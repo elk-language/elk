@@ -335,6 +335,36 @@ func TestInstanceVariables(t *testing.T) {
 				error.NewError(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
 			},
 		},
+		"redeclare an instance variable in a class with a supertype": {
+			input: `
+				class Foo
+					var @foo: String
+					var @foo: String?
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable in a class with a subtype": {
+			input: `
+				class Foo
+					var @foo: String?
+					var @foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable in a class with the same type": {
+			input: `
+				class Foo
+					var @foo: String
+					var @foo: String
+				end
+			`,
+		},
 		"declare an instance variable in a singleton class": {
 			input: `
 				class Foo

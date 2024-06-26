@@ -2776,12 +2776,6 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	ivar := c.getInstanceVariableIn(node.Name, methodNamespace)
-	if ivar != nil {
-		c.addError(
-			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, methodNamespace.Name()),
-			node.Span(),
-		)
-	}
 	var declaredType types.Type
 
 	if methodNamespace.IsPrimitive() {
@@ -2806,6 +2800,13 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType = c.typeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
+		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
+			c.addError(
+				fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, methodNamespace.Name()),
+				node.Span(),
+			)
+			return
+		}
 	}
 
 	switch c.mode {
@@ -3571,6 +3572,8 @@ func (c *Checker) declareMethod(
 					declaredType = c.typeOf(declaredTypeNode)
 					if currentIvar != nil {
 						c.checkCanAssign(declaredType, currentIvar, declaredTypeNode.Span())
+					} else {
+						c.declareInstanceVariable(p.Name, declaredType)
 					}
 				}
 			} else if p.TypeNode == nil {

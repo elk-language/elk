@@ -425,6 +425,40 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewError(L("<main>", P(81, 5, 20), P(81, 5, 20)), "type `Std::String` cannot be assigned to type `Std::Int`"),
 			},
 		},
+		"instance variable parameter declares an instance variable": {
+			input: `
+				class Foo
+					def baz(@a: String)
+						var b: String = @a
+					end
+				end
+			`,
+		},
+		"instance variable parameter declares an instance variable tha can be redeclared with the same type": {
+			input: `
+				class Foo
+					def baz(@a: String)
+						var b: String = @a
+					end
+
+					var @a: String
+				end
+			`,
+		},
+		"instance variable parameter declares an instance variable tha cannot be redeclared with a different type": {
+			input: `
+				class Foo
+					def baz(@a: String)
+						var b: String = @a
+					end
+
+					var @a: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(80, 7, 6), P(90, 7, 16)), "cannot redeclare instance variable `@a`, previous definition found in `Foo`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
