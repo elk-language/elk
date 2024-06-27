@@ -456,7 +456,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(80, 7, 6), P(90, 7, 16)), "cannot redeclare instance variable `@a`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(80, 7, 6), P(90, 7, 16)), "cannot redeclare instance variable `@a` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 	}

@@ -306,7 +306,7 @@ func (*TypeDefinitionNode) expressionNode()              {}
 func (*AliasDeclarationNode) expressionNode()            {}
 func (*GetterDeclarationNode) expressionNode()           {}
 func (*SetterDeclarationNode) expressionNode()           {}
-func (*AccessorDeclarationNode) expressionNode()         {}
+func (*AttrDeclarationNode) expressionNode()             {}
 func (*IncludeExpressionNode) expressionNode()           {}
 func (*ExtendExpressionNode) expressionNode()            {}
 func (*EnhanceExpressionNode) expressionNode()           {}
@@ -2808,8 +2808,9 @@ func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, o
 // Represents an attribute declaration in getters, setters and accessors eg. `foo: String`
 type AttributeParameterNode struct {
 	NodeBase
-	Name     string   // name of the variable
-	TypeNode TypeNode // type of the variable
+	Name        string         // name of the variable
+	TypeNode    TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
 }
 
 func (*AttributeParameterNode) IsStatic() bool {
@@ -2817,15 +2818,16 @@ func (*AttributeParameterNode) IsStatic() bool {
 }
 
 func (a *AttributeParameterNode) IsOptional() bool {
-	return false
+	return a.Initialiser != nil
 }
 
 // Create a new attribute declaration in getters, setters and accessors eg. `foo: String`
-func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode) *AttributeParameterNode {
+func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
 	return &AttributeParameterNode{
-		NodeBase: NodeBase{span: span},
-		Name:     name,
-		TypeNode: typ,
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typ,
+		Initialiser: init,
 	}
 }
 
@@ -3285,19 +3287,19 @@ func NewSetterDeclarationNode(span *position.Span, entries []ParameterNode) *Set
 	}
 }
 
-// Represents a new setter declaration eg. `accessor foo: String`
-type AccessorDeclarationNode struct {
+// Represents a new setter declaration eg. `attr foo: String`
+type AttrDeclarationNode struct {
 	NodeBase
 	Entries []ParameterNode
 }
 
-func (*AccessorDeclarationNode) IsStatic() bool {
+func (*AttrDeclarationNode) IsStatic() bool {
 	return false
 }
 
 // Create an accessor declaration node eg. `accessor foo: String`
-func NewAccessorDeclarationNode(span *position.Span, entries []ParameterNode) *AccessorDeclarationNode {
-	return &AccessorDeclarationNode{
+func NewAttrDeclarationNode(span *position.Span, entries []ParameterNode) *AttrDeclarationNode {
+	return &AttrDeclarationNode{
 		NodeBase: NodeBase{span: span},
 		Entries:  entries,
 	}

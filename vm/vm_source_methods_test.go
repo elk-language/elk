@@ -1321,7 +1321,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter increment": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1336,7 +1336,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter decrement": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1351,7 +1351,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter add": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1366,7 +1366,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter subtract": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1381,7 +1381,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter multiply": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1396,7 +1396,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter divide": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1411,7 +1411,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter exponentiate": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1426,7 +1426,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter modulo": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1441,7 +1441,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter left bitshift": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1456,7 +1456,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic left bitshift": {
 			source: `
 				class Foo
-				  accessor bar: Int8?
+				  attr bar: Int8?
 					init(@bar: Int8?); end
 				end
 
@@ -1471,7 +1471,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter right bitshift": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1486,7 +1486,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic right bitshift": {
 			source: `
 				class Foo
-				  accessor bar: Int8?
+				  attr bar: Int8?
 					init(@bar: Int8?); end
 				end
 
@@ -1501,7 +1501,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise and": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1516,7 +1516,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise or": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1531,7 +1531,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise xor": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1546,7 +1546,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic or falsy": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1561,7 +1561,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic or truthy": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1576,7 +1576,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic and nil": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1591,7 +1591,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic and truthy": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1606,7 +1606,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter nil coalesce falsy": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 
@@ -1621,7 +1621,7 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter nil coalesce truthy": {
 			source: `
 				class Foo
-				  accessor bar: Int?
+				  attr bar: Int?
 					init(@bar: Int?); end
 				end
 

@@ -479,7 +479,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.getterDeclaration(node)
 	case *ast.SetterDeclarationNode:
 		c.setterDeclaration(node)
-	case *ast.AccessorDeclarationNode:
+	case *ast.AttrDeclarationNode:
 		c.accessorDeclaration(node)
 	case *ast.ClassDeclarationNode:
 		c.classDeclaration(node)
@@ -3558,7 +3558,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	c.emit(node.Span().EndPos.Line, bytecode.NIL)
 }
 
-func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
+func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
 	switch c.mode {
 	case functionMode:
 		c.Errors.Add(

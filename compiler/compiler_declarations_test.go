@@ -287,10 +287,10 @@ func TestSetter(t *testing.T) {
 	}
 }
 
-func TestAccessor(t *testing.T) {
+func TestAttr(t *testing.T) {
 	tests := testTable{
-		"define single accessor": {
-			input: "accessor foo",
+		"define single attr": {
+			input: "attr     foo",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -310,8 +310,8 @@ func TestAccessor(t *testing.T) {
 				},
 			),
 		},
-		"define three accessors": {
-			input: "accessor foo: Foo, bar, baz: String",
+		"define three attrs": {
+			input: "attr     foo: Foo, bar, baz: String",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{

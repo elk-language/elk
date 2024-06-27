@@ -725,7 +725,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
 		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode,
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
-		*ast.InstanceVariableDeclarationNode:
+		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -2773,6 +2774,98 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 	node.SetType(typ)
 }
 
+func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode) {
+	method := c.declareMethod(
+		false,
+		false,
+		node.Name,
+		nil,
+		node.TypeNode,
+		nil,
+		node.Span(),
+	)
+	init := node.Initialiser
+	if init == nil {
+		return
+	}
+
+	methodNode := ast.NewMethodDefinitionNode(
+		node.Span(),
+		false,
+		false,
+		node.Name,
+		nil,
+		node.TypeNode,
+		nil,
+		[]ast.StatementNode{
+			ast.NewExpressionStatementNode(
+				init.Span(),
+				init,
+			),
+		},
+	)
+	methodNode.SetType(method)
+	c.registerMethodCheck(
+		method,
+		methodNode,
+	)
+}
+
+func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode) {
+	c.declareMethod(
+		false,
+		false,
+		node.Name,
+		[]ast.ParameterNode{
+			ast.NewMethodParameterNode(
+				node.TypeNode.Span(),
+				"value",
+				true,
+				node.TypeNode,
+				nil,
+				ast.NormalParameterKind,
+			),
+		},
+		node.TypeNode,
+		nil,
+		node.Span(),
+	)
+}
+
+func (c *Checker) getterDeclaration(node *ast.GetterDeclarationNode) {
+	for _, entry := range node.Entries {
+		attribute, ok := entry.(*ast.AttributeParameterNode)
+		if !ok {
+			continue
+		}
+
+		c.declareMethodForGetter(attribute)
+	}
+}
+
+func (c *Checker) setterDeclaration(node *ast.SetterDeclarationNode) {
+	for _, entry := range node.Entries {
+		attribute, ok := entry.(*ast.AttributeParameterNode)
+		if !ok {
+			continue
+		}
+
+		c.declareMethodForSetter(attribute)
+	}
+}
+
+func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
+	for _, entry := range node.Entries {
+		attribute, ok := entry.(*ast.AttributeParameterNode)
+		if !ok {
+			continue
+		}
+
+		c.declareMethodForSetter(attribute)
+		c.declareMethodForGetter(attribute)
+	}
+}
+
 func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	ivar := c.getInstanceVariableIn(node.Name, methodNamespace)
@@ -2796,13 +2889,18 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 
 		declaredType = types.Void{}
 	} else {
-		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType = c.typeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
 		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
 			c.addError(
-				fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, methodNamespace.Name()),
+				fmt.Sprintf(
+					"cannot redeclare instance variable `@%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+					node.Name,
+					types.InspectWithColor(declaredType),
+					types.InspectWithColor(ivar),
+					methodNamespace.Name(),
+				),
 				node.Span(),
 			)
 			return
@@ -3326,6 +3424,12 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.registerInitCheck(method, expr)
 		case *ast.InstanceVariableDeclarationNode:
 			c.instanceVariableDeclaration(expr)
+		case *ast.GetterDeclarationNode:
+			c.getterDeclaration(expr)
+		case *ast.SetterDeclarationNode:
+			c.setterDeclaration(expr)
+		case *ast.AttrDeclarationNode:
+			c.attrDeclaration(expr)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)

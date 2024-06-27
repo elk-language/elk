@@ -478,7 +478,7 @@ const (
 	BREAKPOINT        // Keyword `breakpoint`
 	GETTER            // Keyword `getter`
 	SETTER            // Keyword `setter`
-	ACCESSOR          // Keyword `accessor`
+	ATTR              // Keyword `attr`
 	MUST              // Keyword `must`
 	SINGLETON         // Keyword `singleton`
 	ABSTRACT          // Keyword `abstract`
@@ -553,7 +553,7 @@ var Keywords = map[string]Type{
 	"breakpoint": BREAKPOINT,
 	"getter":     GETTER,
 	"setter":     SETTER,
-	"accessor":   ACCESSOR,
+	"attr":       ATTR,
 	"must":       MUST,
 	"singleton":  SINGLETON,
 	"abstract":   ABSTRACT,
@@ -787,7 +787,7 @@ var tokenNames = [...]string{
 	BREAKPOINT: "breakpoint",
 	GETTER:     "getter",
 	SETTER:     "setter",
-	ACCESSOR:   "accessor",
+	ATTR:       "attr",
 	MUST:       "must",
 	SINGLETON:  "singleton",
 	ABSTRACT:   "abstract",

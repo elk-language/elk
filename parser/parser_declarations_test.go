@@ -2520,6 +2520,7 @@ func TestGetterDeclaration(t *testing.T) {
 										S(P(11, 1, 12), P(13, 1, 14)),
 										"foo",
 										nil,
+										nil,
 									),
 								},
 							),
@@ -2548,6 +2549,7 @@ func TestGetterDeclaration(t *testing.T) {
 										S(P(12, 1, 13), P(15, 1, 16)),
 										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2572,10 +2574,12 @@ func TestGetterDeclaration(t *testing.T) {
 										S(P(12, 1, 13), P(15, 1, 16)),
 										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(18, 1, 19), P(20, 1, 21)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2587,6 +2591,7 @@ func TestGetterDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
 										ast.NewPublicConstantNode(S(P(34, 1, 35), P(38, 1, 39)), "Float"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2616,10 +2621,12 @@ func TestGetterDeclaration(t *testing.T) {
 										S(P(17, 2, 17), P(20, 2, 20)),
 										ast.NewPublicConstantNode(S(P(17, 2, 17), P(19, 2, 19)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(31, 3, 9), P(33, 3, 11)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2631,6 +2638,7 @@ func TestGetterDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
 										ast.NewPublicConstantNode(S(P(55, 4, 20), P(59, 4, 24)), "Float"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2667,6 +2675,7 @@ func TestSetterDeclaration(t *testing.T) {
 										S(P(11, 1, 12), P(13, 1, 14)),
 										"foo",
 										nil,
+										nil,
 									),
 								},
 							),
@@ -2695,12 +2704,43 @@ func TestSetterDeclaration(t *testing.T) {
 										S(P(12, 1, 13), P(15, 1, 16)),
 										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 									),
+									nil,
 								),
 							},
 						),
 					),
 				},
 			),
+		},
+		"cannot have an initialiser": {
+			input: "setter foo: Bar? = 1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewSetterDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(7, 1, 8), P(19, 1, 20)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(12, 1, 13), P(15, 1, 16)),
+										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+									),
+									ast.NewIntLiteralNode(
+										S(P(19, 1, 20), P(19, 1, 20)), "1",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(19, 1, 20), P(19, 1, 20)), "setter declarations cannot have initialisers"),
+			},
 		},
 		"can have a few attributes": {
 			input: "setter foo: Bar?, bar, baz: Int | Float",
@@ -2719,10 +2759,12 @@ func TestSetterDeclaration(t *testing.T) {
 										S(P(12, 1, 13), P(15, 1, 16)),
 										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(18, 1, 19), P(20, 1, 21)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2734,6 +2776,7 @@ func TestSetterDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
 										ast.NewPublicConstantNode(S(P(34, 1, 35), P(38, 1, 39)), "Float"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2763,10 +2806,12 @@ func TestSetterDeclaration(t *testing.T) {
 										S(P(17, 2, 17), P(20, 2, 20)),
 										ast.NewPublicConstantNode(S(P(17, 2, 17), P(19, 2, 19)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(31, 3, 9), P(33, 3, 11)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2778,6 +2823,7 @@ func TestSetterDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
 										ast.NewPublicConstantNode(S(P(55, 4, 20), P(59, 4, 24)), "Float"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2797,7 +2843,7 @@ func TestSetterDeclaration(t *testing.T) {
 func TestAccessorDeclaration(t *testing.T) {
 	tests := testTable{
 		"cannot be a part of an expression": {
-			input: "a = accessor foo",
+			input: "a = attr     foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
@@ -2807,12 +2853,13 @@ func TestAccessorDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(15, 1, 16)),
 							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
-							ast.NewAccessorDeclarationNode(
+							ast.NewAttrDeclarationNode(
 								S(P(4, 1, 5), P(15, 1, 16)),
 								[]ast.ParameterNode{
 									ast.NewAttributeParameterNode(
 										S(P(13, 1, 14), P(15, 1, 16)),
 										"foo",
+										nil,
 										nil,
 									),
 								},
@@ -2822,17 +2869,17 @@ func TestAccessorDeclaration(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(4, 1, 5), P(11, 1, 12)), "accessor declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(4, 1, 5), P(7, 1, 8)), "attr declarations cannot appear in expressions"),
 			},
 		},
 		"can have a type": {
-			input: "accessor foo: Bar?",
+			input: "attr     foo: Bar?",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
-						ast.NewAccessorDeclarationNode(
+						ast.NewAttrDeclarationNode(
 							S(P(0, 1, 1), P(17, 1, 18)),
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
@@ -2842,6 +2889,34 @@ func TestAccessorDeclaration(t *testing.T) {
 										S(P(14, 1, 15), P(17, 1, 18)),
 										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Bar"),
 									),
+									nil,
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an initialiser": {
+			input: "attr     foo: Bar? = 1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewAttrDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(9, 1, 10), P(21, 1, 22)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(14, 1, 15), P(17, 1, 18)),
+										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Bar"),
+									),
+									ast.NewIntLiteralNode(
+										S(P(21, 1, 22), P(21, 1, 22)), "1",
+									),
 								),
 							},
 						),
@@ -2850,13 +2925,13 @@ func TestAccessorDeclaration(t *testing.T) {
 			),
 		},
 		"can have a few attributes": {
-			input: "accessor foo: Bar?, bar, baz: Int | Float",
+			input: "attr     foo: Bar?, bar, baz: Int | Float",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(40, 1, 41)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 1, 41)),
-						ast.NewAccessorDeclarationNode(
+						ast.NewAttrDeclarationNode(
 							S(P(0, 1, 1), P(40, 1, 41)),
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
@@ -2866,10 +2941,12 @@ func TestAccessorDeclaration(t *testing.T) {
 										S(P(14, 1, 15), P(17, 1, 18)),
 										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(20, 1, 21), P(22, 1, 23)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2881,6 +2958,7 @@ func TestAccessorDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(30, 1, 31), P(32, 1, 33)), "Int"),
 										ast.NewPublicConstantNode(S(P(36, 1, 37), P(40, 1, 41)), "Float"),
 									),
+									nil,
 								),
 							},
 						),
@@ -2890,7 +2968,7 @@ func TestAccessorDeclaration(t *testing.T) {
 		},
 		"can span multiple lines": {
 			input: `
-				accessor foo: Bar?,
+				attr     foo: Bar?,
 							 bar,
 							 baz: Int | Float
 			`,
@@ -2900,7 +2978,7 @@ func TestAccessorDeclaration(t *testing.T) {
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
 						S(P(5, 2, 5), P(62, 4, 25)),
-						ast.NewAccessorDeclarationNode(
+						ast.NewAttrDeclarationNode(
 							S(P(5, 2, 5), P(61, 4, 24)),
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
@@ -2910,10 +2988,12 @@ func TestAccessorDeclaration(t *testing.T) {
 										S(P(19, 2, 19), P(22, 2, 22)),
 										ast.NewPublicConstantNode(S(P(19, 2, 19), P(21, 2, 21)), "Bar"),
 									),
+									nil,
 								),
 								ast.NewAttributeParameterNode(
 									S(P(33, 3, 9), P(35, 3, 11)),
 									"bar",
+									nil,
 									nil,
 								),
 								ast.NewAttributeParameterNode(
@@ -2925,6 +3005,7 @@ func TestAccessorDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(51, 4, 14), P(53, 4, 16)), "Int"),
 										ast.NewPublicConstantNode(S(P(57, 4, 20), P(61, 4, 24)), "Float"),
 									),
+									nil,
 								),
 							},
 						),

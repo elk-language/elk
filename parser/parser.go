@@ -656,8 +656,8 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.getterDeclaration(true)
 	case token.SETTER:
 		return p.setterDeclaration(true)
-	case token.ACCESSOR:
-		return p.accessorDeclaration(true)
+	case token.ATTR:
+		return p.attrDeclaration(true)
 	case token.CONST:
 		return p.constantDeclaration(true)
 	case token.VAR:
@@ -1958,8 +1958,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.getterDeclaration(false)
 	case token.SETTER:
 		return p.setterDeclaration(false)
-	case token.ACCESSOR:
-		return p.accessorDeclaration(false)
+	case token.ATTR:
+		return p.attrDeclaration(false)
 	case token.CLASS:
 		return p.classDeclaration(false)
 	case token.MODULE:
@@ -2839,8 +2839,9 @@ func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeVariableNo
 	return commaSeparatedList(p, p.typeVariable, stopTokens...)
 }
 
-// attributeParameter = identifier [":" typeAnnotation]
+// attributeParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
 func (p *Parser) attributeParameter() ast.ParameterNode {
+	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
 	var paramName *token.Token
@@ -2867,16 +2868,70 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 		span = span.Join(typ.Span())
 	}
 
+	if p.match(token.EQUAL_OP) {
+		init = p.expressionWithoutModifier()
+		span = span.Join(init.Span())
+	}
+
 	return ast.NewAttributeParameterNode(
 		span,
 		paramName.Value,
 		typ,
+		init,
+	)
+}
+
+// setterParameter = identifier [":" typeAnnotation]
+func (p *Parser) setterParameter() ast.ParameterNode {
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+
+	var paramName *token.Token
+	var span *position.Span
+
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		paramName = p.advance()
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
+		p.errorExpected("a lowercase identifier as the name of the declared attribute")
+		paramName = p.advance()
+	default:
+		p.errorExpected("an identifier as the name of the declared attribute")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Span(),
+			tok,
+		)
+	}
+	span = span.Join(paramName.Span())
+
+	if p.match(token.COLON) {
+		typ = p.typeAnnotation()
+		span = span.Join(typ.Span())
+	}
+
+	if p.match(token.EQUAL_OP) {
+		init = p.expressionWithoutModifier()
+		p.errorMessageSpan("setter declarations cannot have initialisers", init.Span())
+		span = span.Join(init.Span())
+	}
+
+	return ast.NewAttributeParameterNode(
+		span,
+		paramName.Value,
+		typ,
+		init,
 	)
 }
 
 // attributeParameterList = attributeParameter ("," attributeParameter)*
 func (p *Parser) attributeParameterList(stopTokens ...token.Type) []ast.ParameterNode {
 	return commaSeparatedListWithoutTerminator(p, p.attributeParameter, stopTokens...)
+}
+
+// setterParameterList = setterParameter ("," setterParameter)*
+func (p *Parser) setterParameterList(stopTokens ...token.Type) []ast.ParameterNode {
+	return commaSeparatedListWithoutTerminator(p, p.setterParameter, stopTokens...)
 }
 
 // getterDeclaration = "getter" attributeParameterList
@@ -2902,7 +2957,7 @@ func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 	setterTok := p.advance()
 	p.swallowNewlines()
-	attrList := p.attributeParameterList()
+	attrList := p.setterParameterList()
 
 	if !allowed {
 		p.errorMessageSpan(
@@ -2917,21 +2972,21 @@ func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// accessorDeclaration = "accessor" attributeParameterList
-func (p *Parser) accessorDeclaration(allowed bool) ast.ExpressionNode {
-	accessorTok := p.advance()
+// attrDeclaration = "attr" attributeParameterList
+func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
+	attrTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
 
 	if !allowed {
 		p.errorMessageSpan(
-			"accessor declarations cannot appear in expressions",
-			accessorTok.Span(),
+			"attr declarations cannot appear in expressions",
+			attrTok.Span(),
 		)
 	}
 
-	return ast.NewAccessorDeclarationNode(
-		position.JoinSpanOfLastElement(accessorTok.Span(), attrList),
+	return ast.NewAttrDeclarationNode(
+		position.JoinSpanOfLastElement(attrTok.Span(), attrList),
 		attrList,
 	)
 }

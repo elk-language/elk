@@ -332,7 +332,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a supertype": {
@@ -343,7 +343,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a subtype": {
@@ -354,7 +354,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with the same type": {
