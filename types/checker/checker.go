@@ -1693,7 +1693,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *p
 		fmt.Sprintf(
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
 			baseMethod.Name,
-			baseMethod.DefinedUnder.Name(),
+			types.InspectWithColor(baseMethod.DefinedUnder),
 			baseMethod.InspectSignatureWithColor(true),
 		),
 		span,
@@ -1719,7 +1719,7 @@ func (c *Checker) checkMethodOverride(
 				name,
 				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed()),
 				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed()),
-				baseMethod.DefinedUnder.Name(),
+				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
 			),
 			span,
@@ -1739,7 +1739,7 @@ func (c *Checker) checkMethodOverride(
 				name,
 				types.InspectWithColor(overrideMethod.ReturnType),
 				types.InspectWithColor(baseMethod.ReturnType),
-				baseMethod.DefinedUnder.Name(),
+				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
 			),
 			returnSpan,
@@ -1758,7 +1758,7 @@ func (c *Checker) checkMethodOverride(
 				name,
 				types.InspectWithColor(overrideMethod.ThrowType),
 				types.InspectWithColor(baseMethod.ThrowType),
-				baseMethod.DefinedUnder.Name(),
+				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
 			),
 			throwSpan,
@@ -1774,7 +1774,7 @@ func (c *Checker) checkMethodOverride(
 			fmt.Sprintf(
 				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
 				name,
-				baseMethod.DefinedUnder.Name(),
+				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
 			),
 			paramSpan,
@@ -1790,7 +1790,7 @@ func (c *Checker) checkMethodOverride(
 						name,
 						newParam.Name,
 						oldParam.Name,
-						baseMethod.DefinedUnder.Name(),
+						types.InspectWithColor(baseMethod.DefinedUnder),
 						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
@@ -1804,7 +1804,7 @@ func (c *Checker) checkMethodOverride(
 						name,
 						newParam.NameWithKind(),
 						oldParam.NameWithKind(),
-						baseMethod.DefinedUnder.Name(),
+						types.InspectWithColor(baseMethod.DefinedUnder),
 						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
@@ -1818,7 +1818,7 @@ func (c *Checker) checkMethodOverride(
 						name,
 						types.InspectWithColor(newParam.Type),
 						types.InspectWithColor(oldParam.Type),
-						baseMethod.DefinedUnder.Name(),
+						types.InspectWithColor(baseMethod.DefinedUnder),
 						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
@@ -1835,7 +1835,7 @@ func (c *Checker) checkMethodOverride(
 						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
 						name,
 						param.Name,
-						baseMethod.DefinedUnder.Name(),
+						types.InspectWithColor(baseMethod.DefinedUnder),
 						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
@@ -2251,18 +2251,18 @@ func (c *Checker) getLocal(name string) (local, bool) {
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariableIn(name string, typ types.Namespace) types.Type {
+func (c *Checker) getInstanceVariableIn(name string, typ types.Namespace) (types.Type, types.Namespace) {
 	currentContainer := typ
 	for currentContainer != nil {
 		ivar := currentContainer.InstanceVariableString(name)
 		if ivar != nil {
-			return ivar
+			return ivar, currentContainer
 		}
 
 		currentContainer = currentContainer.Parent()
 	}
 
-	return nil
+	return nil, typ
 }
 
 // Get the instance variable with the specified name
@@ -2272,7 +2272,7 @@ func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace)
 		return nil, nil
 	}
 
-	typ := c.getInstanceVariableIn(name, container)
+	typ, _ := c.getInstanceVariableIn(name, container)
 	return typ, container
 }
 
@@ -2784,9 +2784,27 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode) {
 		nil,
 		node.Span(),
 	)
+
 	init := node.Initialiser
+	var body []ast.StatementNode
+
 	if init == nil {
-		return
+		body = []ast.StatementNode{
+			ast.ExpressionToStatement(
+				ast.NewInstanceVariableNode(node.Span(), node.Name),
+			),
+		}
+	} else {
+		body = []ast.StatementNode{
+			ast.ExpressionToStatement(
+				ast.NewAssignmentExpressionNode(
+					node.Span(),
+					token.New(init.Span(), token.QUESTION_QUESTION_EQUAL),
+					ast.NewInstanceVariableNode(node.Span(), node.Name),
+					init,
+				),
+			),
+		}
 	}
 
 	methodNode := ast.NewMethodDefinitionNode(
@@ -2797,12 +2815,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode) {
 		nil,
 		node.TypeNode,
 		nil,
-		[]ast.StatementNode{
-			ast.NewExpressionStatementNode(
-				init.Span(),
-				init,
-			),
-		},
+		body,
 	)
 	methodNode.SetType(method)
 	c.registerMethodCheck(
@@ -2812,24 +2825,65 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode) {
 }
 
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode) {
-	c.declareMethod(
+	setterName := node.Name + "="
+
+	params := []ast.ParameterNode{
+		ast.NewMethodParameterNode(
+			node.TypeNode.Span(),
+			node.Name,
+			true,
+			node.TypeNode,
+			nil,
+			ast.NormalParameterKind,
+		),
+	}
+	method := c.declareMethod(
 		false,
 		false,
-		node.Name,
-		[]ast.ParameterNode{
-			ast.NewMethodParameterNode(
-				node.TypeNode.Span(),
-				"value",
-				true,
-				node.TypeNode,
-				nil,
-				ast.NormalParameterKind,
-			),
-		},
-		node.TypeNode,
+		setterName,
+		params,
+		nil,
 		nil,
 		node.Span(),
 	)
+
+	methodNode := ast.NewMethodDefinitionNode(
+		node.Span(),
+		false,
+		false,
+		setterName,
+		params,
+		nil,
+		nil,
+		nil,
+	)
+	methodNode.SetType(method)
+	c.registerMethodCheck(
+		method,
+		methodNode,
+	)
+}
+
+func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Type, span *position.Span) {
+	methodNamespace := c.currentMethodScope().container
+	currentIvar, ivarNamespace := c.getInstanceVariableIn(name, methodNamespace)
+
+	if currentIvar != nil {
+		if !c.isTheSameType(typ, currentIvar, span) {
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare instance variable `@%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+					name,
+					types.InspectWithColor(typ),
+					types.InspectWithColor(currentIvar),
+					types.InspectWithColor(ivarNamespace),
+				),
+				span,
+			)
+		}
+	} else {
+		c.declareInstanceVariable(name, typ)
+	}
 }
 
 func (c *Checker) getterDeclaration(node *ast.GetterDeclarationNode) {
@@ -2840,6 +2894,7 @@ func (c *Checker) getterDeclaration(node *ast.GetterDeclarationNode) {
 		}
 
 		c.declareMethodForGetter(attribute)
+		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -2851,6 +2906,7 @@ func (c *Checker) setterDeclaration(node *ast.SetterDeclarationNode) {
 		}
 
 		c.declareMethodForSetter(attribute)
+		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -2863,12 +2919,13 @@ func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
 
 		c.declareMethodForSetter(attribute)
 		c.declareMethodForGetter(attribute)
+		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
 func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
-	ivar := c.getInstanceVariableIn(node.Name, methodNamespace)
+	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
 	var declaredType types.Type
 
 	if methodNamespace.IsPrimitive() {
@@ -2899,7 +2956,7 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 					node.Name,
 					types.InspectWithColor(declaredType),
 					types.InspectWithColor(ivar),
-					methodNamespace.Name(),
+					types.InspectWithColor(ivarNamespace),
 				),
 				node.Span(),
 			)
@@ -3249,6 +3306,20 @@ func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type,
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to type `%s`",
 				types.InspectWithColor(assignedType),
+				types.InspectWithColor(targetType),
+			),
+			span,
+		)
+	}
+}
+
+func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, span *position.Span) {
+	if !c.isSubtype(assignedType, targetType, span) {
+		c.addError(
+			fmt.Sprintf(
+				"type `%s` cannot be assigned to instance variable `@%s` of type `%s`",
+				types.InspectWithColor(assignedType),
+				name,
 				types.InspectWithColor(targetType),
 			),
 			span,
@@ -3658,7 +3729,7 @@ func (c *Checker) declareMethod(
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			if p.SetInstanceVariable {
-				currentIvar := c.getInstanceVariableIn(p.Name, methodNamespace)
+				currentIvar, _ := c.getInstanceVariableIn(p.Name, methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
 						c.addError(
@@ -3675,7 +3746,7 @@ func (c *Checker) declareMethod(
 					declaredTypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.typeOf(declaredTypeNode)
 					if currentIvar != nil {
-						c.checkCanAssign(declaredType, currentIvar, declaredTypeNode.Span())
+						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, declaredTypeNode.Span())
 					} else {
 						c.declareInstanceVariable(p.Name, declaredType)
 					}

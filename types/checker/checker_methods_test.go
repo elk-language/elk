@@ -6,6 +6,509 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestAttrDefinition(t *testing.T) {
+	tests := testTable{
+		"declare an attr and call a getter": {
+			input: `
+				class Foo
+					attr foo: String?
+				end
+				Foo().foo
+			`,
+		},
+		"assign the return value of a getter to an incompatible type": {
+			input: `
+				class Foo
+					attr foo: String?
+				end
+				var a: Int = Foo().foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(63, 5, 18), P(71, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"use an instance variable declared by an attr": {
+			input: `
+				class Foo
+					attr foo: String?
+
+					def bar
+						@foo
+					end
+				end
+			`,
+		},
+		"assign an instance variable declared by an attr to an incompatible type": {
+			input: `
+				class Foo
+					attr foo: String?
+
+					def bar
+						var a: Int = @foo
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(71, 6, 20), P(74, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"redeclare an attr with the same type": {
+			input: `
+				class Foo
+					attr foo: String?
+					attr foo: String?
+				end
+			`,
+		},
+		"redeclare an attr with a different type": {
+			input: `
+				class Foo
+					attr foo: String?
+					attr foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewError(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable using an attr with the same type": {
+			input: `
+				class Foo
+					var @foo: String?
+					attr foo: String?
+				end
+			`,
+		},
+		"redeclare an instance variable using an attr with a different type": {
+			input: `
+				class Foo
+					var @foo: String?
+					attr foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewError(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"override an attr with the same type in a child class": {
+			input: `
+				class Foo
+					attr foo: Int
+				end
+				class Bar < Foo
+					attr foo: Int
+				end
+			`,
+		},
+		"override an attr with a different type in a child class": {
+			input: `
+				class Foo
+					attr foo: Int
+				end
+				class Bar < Foo
+					attr foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewError(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig foo=(foo: Std::Int): void"),
+				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig foo(): Std::Int"),
+			},
+		},
+		"override an instance variable using an attr with the same type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					attr foo: Int
+				end
+			`,
+		},
+		"override an instance variable using an attr with a different type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					attr foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewError(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+			},
+		},
+		"override a method using an attr with the same parameter type in a child class": {
+			input: `
+				class Foo
+					def foo=(foo: String); end
+				end
+				class Bar < Foo
+					attr foo: String
+				end
+			`,
+		},
+		"override a method using an attr with a different parameter type in a child class": {
+			input: `
+				class Foo
+					def foo=(foo: String); end
+				end
+				class Bar < Foo
+					attr foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: sig foo=(foo: Std::String): void"),
+			},
+		},
+		"override a method using an attr with a different return type in a child class": {
+			input: `
+				class Foo
+					def foo: String then "foo"
+				end
+				class Bar < Foo
+					attr foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: sig foo(): Std::String"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestGetterDefinition(t *testing.T) {
+	tests := testTable{
+		"declare a getter and call it": {
+			input: `
+				class Foo
+					getter foo: String?
+				end
+				Foo().foo
+			`,
+		},
+		"assign the return value of a getter to an incompatible type": {
+			input: `
+				class Foo
+					getter foo: String?
+				end
+				var a: Int = Foo().foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(65, 5, 18), P(73, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"use an instance variable declared by a getter": {
+			input: `
+				class Foo
+					getter foo: String?
+
+					def bar
+						@foo
+					end
+				end
+			`,
+		},
+		"assign an instance variable declared by a getter to an incompatible type": {
+			input: `
+				class Foo
+					getter foo: String?
+
+					def bar
+						var a: Int = @foo
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"redeclare a getter with the same type": {
+			input: `
+				class Foo
+					getter foo: String?
+					getter foo: String?
+				end
+			`,
+		},
+		"redeclare a getter with a different type": {
+			input: `
+				class Foo
+					getter foo: String?
+					getter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable using a getter with the same type": {
+			input: `
+				class Foo
+					var @foo: String?
+					getter foo: String?
+				end
+			`,
+		},
+		"redeclare an instance variable using a getter with a different type": {
+			input: `
+				class Foo
+					var @foo: String?
+					getter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"override a getter with the same type in a child class": {
+			input: `
+				class Foo
+					getter foo: Int
+				end
+				class Bar < Foo
+					getter foo: Int
+				end
+			`,
+		},
+		"override a getter with a different type in a child class": {
+			input: `
+				class Foo
+					getter foo: Int
+				end
+				class Bar < Foo
+					getter foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig foo(): Std::Int"),
+			},
+		},
+		"override an instance variable using getter with the same type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					getter foo: Int
+				end
+			`,
+		},
+		"override an instance variable using getter with a different type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					getter foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+			},
+		},
+		"override a method using a getter with the same return type in a child class": {
+			input: `
+				class Foo
+					def foo: String then "foo"
+				end
+				class Bar < Foo
+					getter foo: String
+				end
+			`,
+		},
+		"override a method using a getter with a different return type in a child class": {
+			input: `
+				class Foo
+					def foo: String then "foo"
+				end
+				class Bar < Foo
+					getter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: sig foo(): Std::String"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSetterDefinition(t *testing.T) {
+	tests := testTable{
+		"declare a setter and call a getter": {
+			input: `
+				class Foo
+					setter foo: String?
+				end
+				Foo().foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(52, 5, 5), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
+			},
+		},
+		"use an instance variable declared by a setter": {
+			input: `
+				class Foo
+					setter foo: String?
+
+					def bar
+						@foo
+					end
+				end
+			`,
+		},
+		"assign an instance variable declared by a setter to an incompatible type": {
+			input: `
+				class Foo
+					setter foo: String?
+
+					def bar
+						var a: Int = @foo
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"redeclare a setter with the same type": {
+			input: `
+				class Foo
+					setter foo: String?
+					setter foo: String?
+				end
+			`,
+		},
+		"redeclare a setter with a different type": {
+			input: `
+				class Foo
+					setter foo: String?
+					setter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(57, 4, 18), P(59, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewError(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable using a setter with the same type": {
+			input: `
+				class Foo
+					var @foo: String?
+					setter foo: String?
+				end
+			`,
+		},
+		"redeclare an instance variable using a setter with a different type": {
+			input: `
+				class Foo
+					var @foo: String?
+					setter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(55, 4, 18), P(57, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewError(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"override a setter with the same type in a child class": {
+			input: `
+				class Foo
+					setter foo: Int
+				end
+				class Bar < Foo
+					setter foo: Int
+				end
+			`,
+		},
+		"override a setter with a different type in a child class": {
+			input: `
+				class Foo
+					setter foo: Int
+				end
+				class Bar < Foo
+					setter foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewError(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig foo=(foo: Std::Int): void"),
+			},
+		},
+		"override an instance variable using setter with the same type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					setter foo: Int
+				end
+			`,
+		},
+		"override an instance variable using setter with a different type in a child class": {
+			input: `
+				class Foo
+					var @foo: Int
+				end
+				class Bar < Foo
+					setter foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(79, 6, 18), P(84, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewError(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+			},
+		},
+		"override a method using a setter with the same parameter type in a child class": {
+			input: `
+				class Foo
+					def foo=(foo: String); end
+				end
+				class Bar < Foo
+					setter foo: String
+				end
+			`,
+		},
+		"override a method using a setter with a different parameter type in a child class": {
+			input: `
+				class Foo
+					def foo=(foo: String); end
+				end
+				class Bar < Foo
+					setter foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: sig foo=(foo: Std::String): void"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDefinitionOverride(t *testing.T) {
 	tests := testTable{
 		"invalid override": {
@@ -399,7 +902,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(53, 4, 18), P(59, 4, 24)), "type `Std::String?` cannot be assigned to type `Std::String`"),
+				error.NewError(L("<main>", P(53, 4, 18), P(59, 4, 24)), "type `Std::String?` cannot be assigned to instance variable `@a` of type `Std::String`"),
 			},
 		},
 		"instance variable parameter takes the explicit type": {
