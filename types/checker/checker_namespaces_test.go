@@ -697,6 +697,35 @@ func TestInclude(t *testing.T) {
 				error.NewError(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
 			},
 		},
+		"include mixin with compatible methods": {
+			input: `
+				class Foo
+					def foo(f: String?): String?; end
+				end
+				mixin Bar
+					def foo(f: Object): String then "bar"
+				end
+				class Baz < Foo
+					include Bar
+				end
+			`,
+		},
+		"include mixin with incompatible methods": {
+			input: `
+				class Foo
+					def foo(f: Object): String then "bar"
+				end
+				mixin Bar
+					def foo(f: String?): String?; end
+				end
+				class Baz < Foo
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz` because of incompatible methods:\n\n  - incompatible definitions of `foo`\n      `Bar` has: sig foo(f: Std::String?): Std::String?\n      `Foo` has: sig foo(f: Std::Object): Std::String\n"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

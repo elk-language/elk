@@ -47,7 +47,7 @@ func parserTest(tc testCase, t *testing.T) {
 	opts := []cmp.Option{
 		cmp.AllowUnexported(
 			ast.NodeBase{},
-			ast.Typed{},
+			ast.TypedNodeBase{},
 			token.Token{},
 			ast.BinaryExpressionNode{},
 			ast.LogicalExpressionNode{},
@@ -72,7 +72,7 @@ func parserTest(tc testCase, t *testing.T) {
 			bitfield.BitField8{},
 		),
 		cmpopts.IgnoreFields(
-			ast.Typed{}, "typ",
+			ast.TypedNodeBase{}, "typ",
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

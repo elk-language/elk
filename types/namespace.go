@@ -1,6 +1,8 @@
 package types
 
-import "github.com/elk-language/elk/value"
+import (
+	"github.com/elk-language/elk/value"
+)
 
 type Namespace interface {
 	Type
@@ -37,4 +39,79 @@ type Namespace interface {
 	DefineModule(name string) *Module
 	DefineMixin(name string, env *GlobalEnvironment) *Mixin
 	DefineInterface(name string, env *GlobalEnvironment) *Interface
+}
+
+func GetMethodInNamespace(namespace Namespace, name string) *Method {
+	currentNamespace := namespace
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		method := currentNamespace.MethodString(name)
+		if method != nil {
+			return method
+		}
+	}
+
+	return nil
+}
+
+func NamespacesAreEqual(left, right Namespace) bool {
+	if left == right {
+		return true
+	}
+
+	switch l := left.(type) {
+	case *Mixin:
+		switch r := right.(type) {
+		case *MixinProxy:
+			return l == r.Mixin
+		}
+	case *MixinProxy:
+		switch r := right.(type) {
+		case *Mixin:
+			return l.Mixin == r
+		case *MixinProxy:
+			return l.Mixin == r.Mixin
+		}
+	case *Interface:
+		switch r := right.(type) {
+		case *InterfaceProxy:
+			return l == r.Interface
+		}
+	case *InterfaceProxy:
+		switch r := right.(type) {
+		case *Interface:
+			return l.Interface == r
+		case *InterfaceProxy:
+			return l.Interface == r.Interface
+		}
+	}
+
+	return false
+}
+
+func FindRootParent(namespace Namespace) Namespace {
+	currentNamespace := namespace
+	for {
+		parent := currentNamespace.Parent()
+		if parent == nil {
+			return currentNamespace
+		}
+		currentNamespace = parent
+	}
+}
+
+// Iterate over every method defined in the given namespace including the inherited ones
+func ForeachMethod(namespace Namespace, f func(*Method)) {
+	currentNamespace := namespace
+	seenMethods := make(map[string]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		for _, method := range currentNamespace.Methods().Map {
+			if seenMethods[method.Name] {
+				continue
+			}
+
+			f(method)
+			seenMethods[method.Name] = true
+		}
+	}
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
+	"github.com/rivo/uniseg"
 )
 
 // Check the types of Elk source code.
@@ -622,9 +623,9 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 	return c.isSubtypeOfMixin(a, bMixin, errSpan)
 }
 
-type methodImplementation struct {
-	abstractMethod *types.Method
-	implementation *types.Method
+type methodOverride struct {
+	superMethod *types.Method
+	override    *types.Method
 }
 
 func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
@@ -647,15 +648,15 @@ loop:
 		currentContainer = currentContainer.Parent()
 	}
 
-	var incorrectMethods []methodImplementation
+	var incorrectMethods []methodOverride
 	var currentInterface types.Namespace = b
 	for currentInterface != nil {
 		for _, abstractMethod := range currentInterface.Methods().Map {
-			method := c.getMethod(a, abstractMethod.Name, nil)
+			method := types.GetMethodInNamespace(a, abstractMethod.Name)
 			if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
-				incorrectMethods = append(incorrectMethods, methodImplementation{
-					abstractMethod: abstractMethod,
-					implementation: method,
+				incorrectMethods = append(incorrectMethods, methodOverride{
+					superMethod: abstractMethod,
+					override:    method,
 				})
 			}
 		}
@@ -666,8 +667,8 @@ loop:
 	if len(incorrectMethods) > 0 {
 		methodDetailsBuff := new(strings.Builder)
 		for _, incorrectMethod := range incorrectMethods {
-			implementation := incorrectMethod.implementation
-			abstractMethod := incorrectMethod.abstractMethod
+			implementation := incorrectMethod.override
+			abstractMethod := incorrectMethod.superMethod
 			if implementation == nil {
 				fmt.Fprintf(
 					methodDetailsBuff,
@@ -722,11 +723,13 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
-		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
-		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode,
+		*ast.InitDefinitionNode, *ast.MethodDefinitionNode, *ast.TypeDefinitionNode,
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+		return n
+	case *ast.IncludeExpressionNode:
+		c.checkIncludeExpression(n)
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -938,7 +941,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 				continue
 			}
 
-			method := c.getMethod(namespace, parentMethod.Name, nil)
+			method := types.GetMethodInNamespace(namespace, parentMethod.Name)
 			if method == nil || method.IsAbstract() {
 				c.addError(
 					fmt.Sprintf(
@@ -954,6 +957,97 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 	}
 }
 
+// Search through the ancestor chain of the current namespace
+// looking for the direct parent of the proxy representing the given mixin.
+func (c *Checker) findParentOfMixinProxy(mixin *types.Mixin) types.Namespace {
+	currentNamespace := c.currentConstScope().container
+	currentParent := currentNamespace.Parent()
+	mixinRootParent := types.FindRootParent(mixin)
+
+	for ; currentParent != nil; currentParent = currentParent.Parent() {
+		if types.NamespacesAreEqual(currentParent, mixinRootParent) {
+			return currentParent.Parent()
+		}
+	}
+
+	return nil
+}
+
+func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
+	targetNamespace := c.currentMethodScope().container
+
+	for _, constantNode := range node.Constants {
+		constantType := c.typeOf(constantNode)
+		includedMixin, ok := constantType.(*types.Mixin)
+		if !ok || includedMixin == nil {
+			continue
+		}
+
+		parentOfMixin := c.findParentOfMixinProxy(includedMixin)
+		if parentOfMixin == nil {
+			continue
+		}
+
+		var incompatibleMethods []methodOverride
+		types.ForeachMethod(includedMixin, func(includedMethod *types.Method) {
+			superMethod := types.GetMethodInNamespace(parentOfMixin, includedMethod.Name)
+			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
+				incompatibleMethods = append(incompatibleMethods, methodOverride{
+					superMethod: superMethod,
+					override:    includedMethod,
+				})
+			}
+		})
+
+		if len(incompatibleMethods) == 0 {
+			continue
+		}
+
+		methodDetailsBuff := new(strings.Builder)
+		for _, incompatibleMethod := range incompatibleMethods {
+			override := incompatibleMethod.override
+			superMethod := incompatibleMethod.superMethod
+
+			overrideNamespaceName := types.InspectWithColor(override.DefinedUnder)
+			superNamespaceName := types.InspectWithColor(superMethod.DefinedUnder)
+			overrideNamespaceWidth := uniseg.StringWidth(types.Inspect(override.DefinedUnder))
+			superNamespaceWidth := uniseg.StringWidth(types.Inspect(superMethod.DefinedUnder))
+			var overrideWidthDiff int
+			var superWidthDiff int
+			if overrideNamespaceWidth < superNamespaceWidth {
+				overrideWidthDiff = overrideWidthDiff - superNamespaceWidth
+			} else {
+				superWidthDiff = superNamespaceWidth - overrideNamespaceWidth
+			}
+
+			fmt.Fprintf(
+				methodDetailsBuff,
+				"\n  - incompatible definitions of `%s`\n      `%s`% *s has: %s\n      `%s`% *s has: %s\n",
+				override.Name,
+				overrideNamespaceName,
+				overrideWidthDiff,
+				"",
+				override.InspectSignatureWithColor(false),
+				superNamespaceName,
+				superWidthDiff,
+				"",
+				superMethod.InspectSignatureWithColor(false),
+			)
+		}
+
+		c.addError(
+			fmt.Sprintf(
+				"cannot include `%s` in `%s` because of incompatible methods:\n%s",
+				types.InspectWithColor(includedMixin),
+				types.InspectWithColor(targetNamespace),
+				methodDetailsBuff.String(),
+			),
+			constantNode.Span(),
+		)
+
+	}
+}
+
 func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	constantType, _ := c.resolveConstantType(node)
 
@@ -965,6 +1059,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		)
 		return
 	}
+	node.SetType(constantMixin)
 
 	switch c.mode {
 	case classMode, mixinMode, singletonMode:
@@ -1190,21 +1285,14 @@ func (c *Checker) getMethod(typ types.Type, name string, errSpan *position.Span)
 }
 
 func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
-	method := container.MethodString(name)
-	if method == nil {
-		parent := container.Parent()
-		if parent != nil {
-			method := c._getMethod(parent, name, errSpan, true)
-			if method == nil && !inParent {
-				c.addMissingMethodError(typ, name, errSpan)
-			}
-			return method
-		}
-		if !inParent {
-			c.addMissingMethodError(typ, name, errSpan)
-		}
+	method := types.GetMethodInNamespace(container, name)
+	if method != nil {
+		return method
 	}
-	return method
+	if !inParent {
+		c.addMissingMethodError(typ, name, errSpan)
+	}
+	return nil
 }
 
 func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
@@ -1604,7 +1692,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 		)
 	}
 
-	method := c.getMethod(classType, "#init", nil)
+	method := types.GetMethodInNamespace(class, "#init")
 	if method == nil {
 		method = types.NewMethod(
 			"#init",
@@ -1857,7 +1945,7 @@ func (c *Checker) checkMethod(
 	methodNamespace := c.currentMethodScope().container
 	name := checkedMethod.Name
 
-	currentMethod := c.getMethod(methodNamespace, name, nil)
+	currentMethod := types.GetMethodInNamespace(methodNamespace, name)
 	if checkedMethod != currentMethod && checkedMethod.IsSealed() {
 		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
 	}
@@ -1865,7 +1953,7 @@ func (c *Checker) checkMethod(
 	parent := methodNamespace.Parent()
 
 	if parent != nil {
-		baseMethod := c.getMethod(parent, name, nil)
+		baseMethod := types.GetMethodInNamespace(parent, name)
 		if baseMethod != nil {
 			c.checkMethodOverride(
 				checkedMethod,
