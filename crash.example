@@ -1,0 +1,13 @@
+class Fooo
+  def foo(f: Object): String then "bar"
+end
+class Fooo < Foo; end
+mixin Bar
+  def foo(f: String?): String?; end
+end
+mixin Barr
+  include Bar
+end
+class Baz < Fooo
+  include Barr
+end
