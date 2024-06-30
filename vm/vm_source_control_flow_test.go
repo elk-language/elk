@@ -1706,7 +1706,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				b
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
+				error.NewFailure(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {
@@ -1814,7 +1814,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 				b
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
+				error.NewFailure(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {

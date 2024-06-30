@@ -631,7 +631,7 @@ func TestLiteralTypes(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
+				error.NewFailure(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
 			},
 		},
 		"simple symbol": {
@@ -718,7 +718,7 @@ func TestLiteralTypes(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
+				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
 			},
 		},
 		"int": {

@@ -2096,7 +2096,7 @@ func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 	// case *ast.InstanceVariableNode:
 	// case *ast.AttributeAccessNode:
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
@@ -2124,7 +2124,7 @@ func (c *Checker) localVariableAssignment(name string, operator *token.Token, ri
 	// case token.RBITSHIFT_EQUAL:
 	// case token.RTRIPLE_BITSHIFT_EQUAL:
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
 			c.newLocation(span),
 		)
@@ -2153,7 +2153,7 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 }
 
 func (c *Checker) addErrorWithLocation(message string, loc *position.Location) {
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		message,
 		loc,
 	)
@@ -2163,7 +2163,7 @@ func (c *Checker) addError(message string, span *position.Span) {
 	if span == nil {
 		return
 	}
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		message,
 		c.newLocation(span),
 	)

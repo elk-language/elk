@@ -17,6 +17,7 @@ func TestErrorString(t *testing.T) {
 	err := NewError(
 		L("/opt/elk", P(0, 2, 1), P(5, 2, 1)),
 		"foo bar",
+		FAILURE,
 	)
 
 	diff := cmp.Diff(err.String(), "/opt/elk:2:1: foo bar")
@@ -30,19 +31,22 @@ func TestErrorListAdd(t *testing.T) {
 		NewError(
 			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
 			"foo bar",
+			FAILURE,
 		),
 	}
 
-	got.Add("sick style dude!", L("/opt/elk", P(6, 2, 2), P(10, 2, 6)))
+	got.Add("sick style dude!", L("/opt/elk", P(6, 2, 2), P(10, 2, 6)), FAILURE)
 
 	want := ErrorList{
 		NewError(
 			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
 			"foo bar",
+			FAILURE,
 		),
 		NewError(
 			L("/opt/elk", P(6, 2, 2), P(10, 2, 6)),
 			"sick style dude!",
+			FAILURE,
 		),
 	}
 
@@ -57,10 +61,12 @@ func TestErrorListError(t *testing.T) {
 		NewError(
 			L("/some/path", P(5, 2, 1), P(5, 2, 1)),
 			"foo bar",
+			FAILURE,
 		),
 		NewError(
 			L("<main>", P(20, 4, 5), P(25, 4, 10)),
 			"sick style dude!",
+			FAILURE,
 		),
 	}
 
@@ -83,10 +89,12 @@ func TestErrorListJoin(t *testing.T) {
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 			},
 			right: nil,
@@ -94,10 +102,12 @@ func TestErrorListJoin(t *testing.T) {
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 			},
 		},
@@ -107,20 +117,24 @@ func TestErrorListJoin(t *testing.T) {
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 			},
 			want: ErrorList{
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 			},
 		},
@@ -129,30 +143,36 @@ func TestErrorListJoin(t *testing.T) {
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 			},
 			right: ErrorList{
 				NewError(
 					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
 					"baz",
+					FAILURE,
 				),
 			},
 			want: ErrorList{
 				NewError(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
+					FAILURE,
 				),
 				NewError(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
+					FAILURE,
 				),
 				NewError(
 					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
 					"baz",
+					FAILURE,
 				),
 			},
 		},

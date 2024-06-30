@@ -92,7 +92,7 @@ func (p *Parser) errorToken(err *token.Token) {
 
 // Same as [errorMessage] but let's you pass a Span.
 func (p *Parser) errorMessageSpan(message string, span *position.Span) {
-	p.errors.Add(
+	p.errors.AddFailure(
 		message,
 		position.NewLocationWithSpan("regex", span),
 	)

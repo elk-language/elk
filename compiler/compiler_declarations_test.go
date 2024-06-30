@@ -18,7 +18,7 @@ func TestSingletonBlock(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(5, 2, 5), P(44, 4, 7)), "cannot open a singleton class in the top level"),
+				error.NewFailure(L(P(5, 2, 5), P(44, 4, 7)), "cannot open a singleton class in the top level"),
 			},
 		},
 		"define in a method": {
@@ -30,7 +30,7 @@ func TestSingletonBlock(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(18, 3, 6), P(59, 5, 8)), "cannot open a singleton class in a method"),
+				error.NewFailure(L(P(18, 3, 6), P(59, 5, 8)), "cannot open a singleton class in a method"),
 			},
 		},
 		"define in a setter": {
@@ -42,7 +42,7 @@ func TestSingletonBlock(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(24, 3, 6), P(65, 5, 8)), "cannot open a singleton class in a method"),
+				error.NewFailure(L(P(24, 3, 6), P(65, 5, 8)), "cannot open a singleton class in a method"),
 			},
 		},
 		"define in a class": {
@@ -472,7 +472,7 @@ func TestDefClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(19, 3, 7), P(34, 3, 22)), "cannot define named classes inside of a method: foo"),
+				error.NewFailure(L(P(19, 3, 7), P(34, 3, 22)), "cannot define named classes inside of a method: foo"),
 			},
 		},
 		"class with an absolute parent": {
@@ -673,7 +673,7 @@ func TestDefClass(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
+				error.NewFailure(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
 			},
 		},
 		"nested classes": {
@@ -787,7 +787,7 @@ func TestDefModule(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(18, 3, 6), P(32, 3, 20)), "cannot define named modules inside of a method: foo"),
+				error.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "cannot define named modules inside of a method: foo"),
 			},
 		},
 		"class with an absolute name without a body": {
@@ -1568,7 +1568,7 @@ func TestDefInit(t *testing.T) {
 				init then :bar
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(5, 2, 5), P(18, 2, 18)), "init cannot be defined in the top level"),
+				error.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init cannot be defined in the top level"),
 			},
 		},
 		"define init in a module": {
@@ -1578,7 +1578,7 @@ func TestDefInit(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(21, 3, 6), P(34, 3, 19)), "modules cannot have initializers"),
+				error.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "modules cannot have initializers"),
 			},
 		},
 		"define init in a method": {
@@ -1588,7 +1588,7 @@ func TestDefInit(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(18, 3, 6), P(31, 3, 19)), "methods cannot be nested: #init"),
+				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "methods cannot be nested: #init"),
 			},
 		},
 		"define init in init": {
@@ -1600,7 +1600,7 @@ func TestDefInit(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(33, 4, 8), P(46, 4, 21)), "methods cannot be nested: #init"),
+				error.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "methods cannot be nested: #init"),
 			},
 		},
 		"define with required parameters in a class": {
@@ -1820,7 +1820,7 @@ func TestDefMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L(P(18, 3, 6), P(31, 3, 19)), "cannot define named mixins inside of a method: foo"),
+				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "cannot define named mixins inside of a method: foo"),
 			},
 		},
 		"mixin with an absolute nested name without a body": {
@@ -2081,7 +2081,7 @@ func TestInclude(t *testing.T) {
 		"include in top level": {
 			input: `include ::Bar`,
 			err: error.ErrorList{
-				error.NewError(
+				error.NewFailure(
 					L(P(0, 1, 1), P(12, 1, 13)),
 					"cannot include mixins in the top level",
 				),
@@ -2094,7 +2094,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(
+				error.NewFailure(
 					L(P(21, 3, 6), P(33, 3, 18)),
 					"cannot include mixins in a module",
 				),
@@ -2107,7 +2107,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(
+				error.NewFailure(
 					L(P(18, 3, 6), P(30, 3, 18)),
 					"cannot include mixins in a method",
 				),
@@ -2321,7 +2321,7 @@ func TestExtend(t *testing.T) {
 		"extend in top level": {
 			input: `extend ::Bar`,
 			err: error.ErrorList{
-				error.NewError(
+				error.NewFailure(
 					L(P(0, 1, 1), P(11, 1, 12)),
 					"cannot extend mixins in the top level",
 				),
@@ -2334,7 +2334,7 @@ func TestExtend(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(
+				error.NewFailure(
 					L(P(18, 3, 6), P(29, 3, 17)),
 					"cannot extend mixins in a method",
 				),

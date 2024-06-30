@@ -171,7 +171,7 @@ func (t *transpiler) transpileNode(node ast.Node) {
 		t.anyCharClass()
 	case nil:
 	default:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
 			t.newLocation(node.Span()),
 		)
@@ -569,12 +569,12 @@ func (t *transpiler) notWordCharClass(node *ast.NotWordCharClassNode) {
 	case topLevelMode:
 		t.Buffer.WriteString(`[^\p{L}\p{Mn}\p{Nd}\p{Pc}]`)
 	case charClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`unicode-aware \W in char classes is not supported`,
 			t.newLocation(node.Span()),
 		)
 	case negatedCharClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`double negation of unicode-aware \W is not supported`,
 			t.newLocation(node.Span()),
 		)
@@ -621,12 +621,12 @@ func (t *transpiler) notWhitespaceCharClass(node *ast.NotWhitespaceCharClassNode
 	case topLevelMode:
 		t.Buffer.WriteString(`[^\s\v\p{Z}\x85]`)
 	case charClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`unicode-aware \S in char classes is not supported`,
 			t.newLocation(node.Span()),
 		)
 	case negatedCharClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`double negation of unicode-aware \S is not supported`,
 			t.newLocation(node.Span()),
 		)
@@ -659,12 +659,12 @@ func (t *transpiler) notHorizontalWhitespaceCharClass(node *ast.NotHorizontalWhi
 			t.Buffer.WriteString(`[^\t\p{Zs}]`)
 		}
 	case charClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`unicode-aware \H in char classes is not supported`,
 			t.newLocation(node.Span()),
 		)
 	case negatedCharClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`double negation of unicode-aware \H is not supported`,
 			t.newLocation(node.Span()),
 		)
@@ -697,12 +697,12 @@ func (t *transpiler) notVerticalWhitespaceCharClass(node *ast.NotVerticalWhitesp
 			t.Buffer.WriteString(`[^\n\v\f\r\x85\x{2028}\x{2029}]`)
 		}
 	case charClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`unicode-aware \V in char classes is not supported`,
 			t.newLocation(node.Span()),
 		)
 	case negatedCharClassMode:
-		t.Errors.Add(
+		t.Errors.AddFailure(
 			`double negation of unicode-aware \V is not supported`,
 			t.newLocation(node.Span()),
 		)

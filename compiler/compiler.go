@@ -347,7 +347,7 @@ func (c *Compiler) compileModule(node ast.Node) {
 	case *ast.SingletonBlockExpressionNode:
 		c.compileStatements(n.Body, span)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect module type %#v", n),
 			c.newLocation(span),
 		)
@@ -413,7 +413,7 @@ func (c *Compiler) initLoopJumpSet(label string, returnsValFromLastIteration boo
 
 func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpSet {
 	if len(c.loopJumpSets) < 1 {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
 			c.newLocation(span),
 		)
@@ -431,7 +431,7 @@ func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpS
 		}
 	}
 
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
 		c.newLocation(span),
 	)
@@ -637,7 +637,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		// BENCHMARK: Compare with storing
@@ -646,84 +646,84 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Int16(i), node.Span())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Int32(i), node.Span())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Int64(i), node.Span())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.UInt8(i), node.Span())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.UInt16(i), node.Span())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.UInt32(i), node.Span())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.UInt64(i), node.Span())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Float(f), node.Span())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(f, node.Span())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Float64(f), node.Span())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
-			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitValue(value.Float32(f), node.Span())
 
 	case nil:
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
 			c.newLocation(node.Span()),
 		)
@@ -1316,7 +1316,7 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 	case *ast.PublicConstantNode:
 		c.emitGetModConst(value.ToSymbol(r.Value), node.Span())
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect right side of constant lookup: %T", node.Right),
 			c.newLocation(node.Span()),
 		)
@@ -1567,7 +1567,7 @@ func (c *Compiler) postfixExpression(node *ast.PostfixExpressionNode) {
 	case *ast.InstanceVariableNode:
 		switch c.mode {
 		case topLevelMode:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				"instance variables cannot be set in the top level",
 				c.newLocation(node.Span()),
 			)
@@ -1606,7 +1606,7 @@ func (c *Compiler) postfixExpression(node *ast.PostfixExpressionNode) {
 		// set attribute
 		c.emitSetterCall(n.AttributeName, node.Span())
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
 			c.newLocation(node.Span()),
 		)
@@ -1694,7 +1694,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.XOR_EQUAL:
 		c.complexSetterCall(bytecode.BITWISE_XOR, attr, node.Right, node.Span())
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
@@ -1708,7 +1708,7 @@ func (c *Compiler) complexInstanceVariableAssignment(ivarSymbol value.Symbol, va
 func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode) {
 	switch c.mode {
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"instance variables cannot be set in the top level",
 			c.newLocation(node.Span()),
 		)
@@ -1790,7 +1790,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 	case token.XOR_EQUAL:
 		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_XOR, node.Span())
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
@@ -1895,7 +1895,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 	case token.XOR_EQUAL:
 		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_XOR, node.Span())
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
@@ -1909,7 +1909,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.subscriptAssignment(node, n)
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot assign constants using `%s`", node.Op.StringValue()),
 				c.newLocation(node.Span()),
 			)
@@ -1925,7 +1925,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		case *ast.PublicConstantNode:
 			c.emitDefModConst(value.ToSymbol(r.Value), n.Span())
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
 				c.newLocation(n.Right.Span()),
 			)
@@ -1939,7 +1939,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.AttributeAccessNode:
 		c.attributeAssignment(node, n)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
@@ -1948,7 +1948,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 
 func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
 	if op.Type != token.COLON_EQUAL {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign constants using `%s`", op.StringValue()),
 			c.newLocation(span),
 		)
@@ -1967,7 +1967,7 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 	c.emit(span.StartPos.Line, opcode)
 
 	if local.initialised && local.singleAssignment {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("cannot reassign a val: %s", name),
 			c.newLocation(span),
 		)
@@ -1988,7 +1988,7 @@ func (c *Compiler) nextInstructionOffset() int {
 func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
 	if local, ok := c.resolveLocal(name, span); ok {
 		if local.initialised && local.singleAssignment {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot reassign a val: %s", name),
 				c.newLocation(span),
 			)
@@ -1998,7 +1998,7 @@ func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
 		local := upvalue.local
 		if local.initialised && local.singleAssignment {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot reassign a val: %s", name),
 				c.newLocation(span),
 			)
@@ -2006,7 +2006,7 @@ func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
 		local.initialised = true
 		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
 	} else {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("undeclared variable: %s", name),
 			c.newLocation(span),
 		)
@@ -2088,7 +2088,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		}
 		c.emitSetLocal(span.StartPos.Line, local.index)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
 			c.newLocation(span),
 		)
@@ -2099,7 +2099,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 	switch c.mode {
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot read instance variables in the top level",
 			c.newLocation(span),
 		)
@@ -2112,7 +2112,7 @@ func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
 	if local, ok := c.resolveLocal(name, span); ok {
 		if !local.initialised {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot access an uninitialised local: %s", name),
 				c.newLocation(span),
 			)
@@ -2124,7 +2124,7 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
 		local := upvalue.local
 		if !local.initialised {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot access an uninitialised local: %s", name),
 				c.newLocation(span),
 			)
@@ -2135,7 +2135,7 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 		return local, upvalue, true
 	}
 
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		fmt.Sprintf("undeclared variable: %s", name),
 		c.newLocation(span),
 	)
@@ -2169,7 +2169,7 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	}
 
 	if len(c.upvalues) > math.MaxUint16 {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("upvalue limit reached: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
@@ -2204,7 +2204,7 @@ func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 	case token.UNTIL:
 		c.modifierUntilExpression(label, node)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
 			c.newLocation(node.Span()),
 		)
@@ -2358,7 +2358,7 @@ namedArgNodeLoop:
 		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
 					c.newLocation(namedArg.Span()),
 				)
@@ -2490,7 +2490,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
 		c.specialCollectionPattern(pat)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
 			c.newLocation(span),
 		)
@@ -2615,7 +2615,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 		case *ast.PrivateIdentifierNode:
 			c.identifierObjectPatternAttribute(e.Value, span)
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("invalid object pattern attribute: %T", attr),
 				c.newLocation(span),
 			)
@@ -2714,7 +2714,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.PrivateIdentifierNode:
 			c.identifierMapPatternElement(e.Value, span)
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("invalid map pattern element: %T", element),
 				c.newLocation(span),
 			)
@@ -2740,7 +2740,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 		switch e := element.(type) {
 		case *ast.RestPatternNode:
 			if restElementIsPresent {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					"there should be only a single rest element",
 					c.newLocation(element.Span()),
 				)
@@ -2813,7 +2813,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		switch e := element.(type) {
 		case *ast.RestPatternNode:
 			if elementBeforeRestCount != -1 {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					"there should be only a single rest element",
 					c.newLocation(element.Span()),
 				)
@@ -3072,7 +3072,7 @@ namedArgNodeLoop:
 		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
 					c.newLocation(namedArg.Span()),
 				)
@@ -3120,7 +3120,7 @@ namedArgNodeLoop:
 		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
 					c.newLocation(namedArg.Span()),
 				)
@@ -3172,7 +3172,7 @@ namedArgNodeLoop:
 		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
-				c.Errors.Add(
+				c.Errors.AddFailure(
 					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
 					c.newLocation(namedArg.Span()),
 				)
@@ -3194,19 +3194,19 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode, moduleMode:
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot open a singleton class in the top level",
 			c.newLocation(span),
 		)
 		return
 	case functionMode, setterMethodMode, initMethodMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot open a singleton class in a method",
 			c.newLocation(span),
 		)
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot open a singleton class in this context",
 			c.newLocation(span),
 		)
@@ -3231,7 +3231,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	switch c.mode {
 	case functionMode, setterMethodMode, initMethodMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("methods cannot be nested: %s", node.Name),
 			c.newLocation(node.Span()),
 		)
@@ -3293,19 +3293,19 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	switch c.mode {
 	case functionMode, setterMethodMode, initMethodMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"methods cannot be nested: #init",
 			c.newLocation(node.Span()),
 		)
 		return
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"init cannot be defined in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case moduleMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"modules cannot have initializers",
 			c.newLocation(node.Span()),
 		)
@@ -3329,19 +3329,19 @@ func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode, moduleMode:
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot extend mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot extend mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot extend mixins in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3363,25 +3363,25 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode:
 	case topLevelMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot include mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case moduleMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot include mixins in a module",
 			c.newLocation(node.Span()),
 		)
 		return
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot include mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot include mixins in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3402,7 +3402,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	switch c.mode {
 	case functionMode:
 		if node.Constant != nil {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
@@ -3435,7 +3435,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		case *ast.PrivateConstantNode:
 			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
 				c.newLocation(constant.Right.Span()),
 			)
@@ -3450,7 +3450,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	case nil:
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect mixin name: %T", constant),
 			c.newLocation(constant.Span()),
 		)
@@ -3464,7 +3464,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	switch c.mode {
 	case functionMode:
 		if node.Constant != nil {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
@@ -3497,7 +3497,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		case *ast.PrivateConstantNode:
 			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
 				c.newLocation(constant.Right.Span()),
 			)
@@ -3512,7 +3512,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	case nil:
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect module name: %T", constant),
 			c.newLocation(constant.Span()),
 		)
@@ -3525,7 +3525,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 	switch c.mode {
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot define getters in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3543,7 +3543,7 @@ func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	switch c.mode {
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot define setters in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3561,7 +3561,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
 	switch c.mode {
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot define accessors in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3582,7 +3582,7 @@ func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
 func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
 	case functionMode:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"cannot define aliases in this context",
 			c.newLocation(node.Span()),
 		)
@@ -3602,7 +3602,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	switch c.mode {
 	case functionMode:
 		if node.Constant != nil {
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
@@ -3635,7 +3635,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		case *ast.PrivateConstantNode:
 			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
-			c.Errors.Add(
+			c.Errors.AddFailure(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
 				c.newLocation(constant.Right.Span()),
 			)
@@ -3650,7 +3650,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	case nil:
 		return
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect class name: %T", constant),
 			c.newLocation(constant.Span()),
 		)
@@ -3746,7 +3746,7 @@ func (c *Compiler) instanceVariableDeclaration(node *ast.InstanceVariableDeclara
 	switch c.mode {
 	case classMode, mixinMode, moduleMode:
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			"instance variables can only be declared in class, module, mixin bodies",
 			c.newLocation(node.Span()),
 		)
@@ -3880,7 +3880,7 @@ func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
 			switch elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.Add(
+					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
 						c.newLocation(node.Capacity.Span()),
 					)
@@ -4023,7 +4023,7 @@ elementLoop:
 			switch element := elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.Add(
+					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
 						c.newLocation(node.Capacity.Span()),
 					)
@@ -4416,7 +4416,7 @@ elementLoop:
 			switch elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.Add(
+					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
 						c.newLocation(node.Capacity.Span()),
 					)
@@ -4697,7 +4697,7 @@ func (c *Compiler) wordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) {
 		return
 	}
 
-	c.Errors.Add("invalid word arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid word arrayTuple literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) binArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) {
@@ -4705,7 +4705,7 @@ func (c *Compiler) binArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) {
 		return
 	}
 
-	c.Errors.Add("invalid binary arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid binary arrayTuple literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) symbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode) {
@@ -4713,7 +4713,7 @@ func (c *Compiler) symbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode
 		return
 	}
 
-	c.Errors.Add("invalid symbol arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid symbol arrayTuple literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
@@ -4721,14 +4721,14 @@ func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
 		return
 	}
 
-	c.Errors.Add("invalid hex arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid hex arrayTuple literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) wordArrayListLiteral(node *ast.WordArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid word arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid word arrayList literal", c.newLocation(span))
 		return
 	}
 
@@ -4746,7 +4746,7 @@ func (c *Compiler) binArrayListLiteral(node *ast.BinArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid bin arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid bin arrayList literal", c.newLocation(span))
 		return
 	}
 
@@ -4764,7 +4764,7 @@ func (c *Compiler) symbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) 
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid symbol arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid symbol arrayList literal", c.newLocation(span))
 		return
 	}
 
@@ -4782,7 +4782,7 @@ func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid hex arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid hex arrayList literal", c.newLocation(span))
 		return
 	}
 
@@ -4800,7 +4800,7 @@ func (c *Compiler) wordHashSetLiteral(node *ast.WordHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid word hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid word hashSet literal", c.newLocation(span))
 		return
 	}
 
@@ -4818,7 +4818,7 @@ func (c *Compiler) binHashSetLiteral(node *ast.BinHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid bin hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid bin hashSet literal", c.newLocation(span))
 		return
 	}
 
@@ -4836,7 +4836,7 @@ func (c *Compiler) symbolHashSetLiteral(node *ast.SymbolHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid symbol hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid symbol hashSet literal", c.newLocation(span))
 		return
 	}
 
@@ -4854,7 +4854,7 @@ func (c *Compiler) hexHashSetLiteral(node *ast.HexHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
-		c.Errors.Add("invalid hex hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid hex hashSet literal", c.newLocation(span))
 		return
 	}
 
@@ -4901,7 +4901,7 @@ func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *positi
 		return
 	}
 
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
@@ -4920,7 +4920,7 @@ func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int
 		return
 	}
 
-	c.Errors.Add(
+	c.Errors.AddFailure(
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
@@ -4963,7 +4963,7 @@ func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiter
 	}
 
 	if err != nil {
-		c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+		c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 		return
 	}
 
@@ -5029,7 +5029,7 @@ func (c *Compiler) interpolatedSymbolLiteral(node *ast.InterpolatedSymbolLiteral
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
-		c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+		c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
 		return
 	}
 	if i.IsSmallInt() {
@@ -5052,7 +5052,7 @@ func (c *Compiler) logicalExpression(node *ast.LogicalExpressionNode) {
 	case token.QUESTION_QUESTION:
 		c.nilCoalescing(node)
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
@@ -5164,7 +5164,7 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 	case token.ISA_OP:
 		c.emit(line, bytecode.IS_A)
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", opToken.String()), c.newLocation(span))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), c.newLocation(span))
 	}
 }
 
@@ -5400,7 +5400,7 @@ func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 		// get singleton class
 		c.emit(node.Span().StartPos.Line, bytecode.GET_SINGLETON)
 	default:
-		c.Errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
@@ -5462,7 +5462,7 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 
 	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
@@ -5474,7 +5474,7 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 // Overwrite the placeholder operand of a jump instruction
 func (c *Compiler) patchJumpWithTarget(target int, offset int, span *position.Span) {
 	if target > math.MaxUint16 {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("too many bytes to jump over: %d", target),
 			c.newLocation(span),
 		)
@@ -5560,7 +5560,7 @@ func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, o
 		binary.BigEndian.PutUint32(bytes, uint32(id))
 		c.Bytecode.AddInstruction(span.StartPos.Line, opCode32, bytes...)
 	default:
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
@@ -5754,7 +5754,7 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 	varScope := c.scopes.last()
 	_, ok := varScope.localTable[name]
 	if ok {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
 			c.newLocation(span),
 		)
@@ -5774,7 +5774,7 @@ func (c *Compiler) defineLocalOverrideCurrentScope(name string, span *position.S
 
 func (c *Compiler) defineVariableInScope(scope *scope, name string, span *position.Span, singleAssignment, initialised bool) *local {
 	if c.lastLocalIndex == math.MaxUint16 {
-		c.Errors.Add(
+		c.Errors.AddFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			c.newLocation(span),
 		)

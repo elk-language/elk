@@ -280,7 +280,7 @@ func TestUnicodeCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
 			},
 		},
 		"missing end brace": {
@@ -291,7 +291,7 @@ func TestUnicodeCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 		"invalid single char": {
@@ -302,8 +302,8 @@ func TestUnicodeCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
 			},
 		},
 		"missing single char": {
@@ -314,7 +314,7 @@ func TestUnicodeCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 	}
@@ -360,7 +360,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 				true,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
 			},
 		},
 		"missing end brace": {
@@ -371,7 +371,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 				true,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 		"invalid single char": {
@@ -382,8 +382,8 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 				true,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
 			},
 		},
 		"missing single char": {
@@ -394,7 +394,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 				true,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 	}
@@ -581,8 +581,8 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected f, expected a decimal digit"),
-				error.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected +, expected a decimal digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected f, expected a decimal digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected +, expected a decimal digit"),
 			},
 		},
 		"N quantifier missing right brace": {
@@ -597,7 +597,7 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected }"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected }"),
 			},
 		},
 		"N quantifier missing digit": {
@@ -612,7 +612,7 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "expected decimal digits"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "expected decimal digits"),
 			},
 		},
 		"N quantifier missing digit and right brace": {
@@ -627,8 +627,8 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected }"),
-				error.NewError(L("regex", P(1, 1, 2), P(1, 1, 2)), "expected decimal digits"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected }"),
+				error.NewFailure(L("regex", P(1, 1, 2), P(1, 1, 2)), "expected decimal digits"),
 			},
 		},
 		"NM quantifier N only": {
@@ -657,7 +657,7 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected }"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected }"),
 			},
 		},
 		"NM quantifier N only alt": {
@@ -738,7 +738,7 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected }"),
+				error.NewFailure(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected }"),
 			},
 		},
 		"NM quantifier invalid chars": {
@@ -754,8 +754,8 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected a, expected a decimal digit"),
-				error.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected f, expected a decimal digit"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected a, expected a decimal digit"),
+				error.NewFailure(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected f, expected a decimal digit"),
 			},
 		},
 	}
@@ -799,7 +799,7 @@ func TestCaretEscape(t *testing.T) {
 				'ę',
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(3, 1, 3)), "unexpected ę, expected an ASCII letter"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(3, 1, 3)), "unexpected ę, expected an ASCII letter"),
 			},
 		},
 	}
@@ -827,7 +827,7 @@ func TestUnicodeEscape(t *testing.T) {
 				"6f7l",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(5, 1, 6)), "unexpected l, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(5, 1, 6)), "unexpected l, expected a hex digit"),
 			},
 		},
 		"four digit with invalid meta char": {
@@ -837,7 +837,7 @@ func TestUnicodeEscape(t *testing.T) {
 				"67f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(5, 1, 6)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(5, 1, 6)), "unexpected {, expected a hex digit"),
 			},
 		},
 		"missing digit": {
@@ -847,7 +847,7 @@ func TestUnicodeEscape(t *testing.T) {
 				"fff",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"with braces": {
@@ -864,7 +864,7 @@ func TestUnicodeEscape(t *testing.T) {
 				"6f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"long with braces": {
@@ -881,8 +881,8 @@ func TestUnicodeEscape(t *testing.T) {
 				"6f0",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
-				error.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
+				error.NewFailure(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
 			},
 		},
 	}
@@ -910,7 +910,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				"00006f7l",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected l, expected a hex digit"),
+				error.NewFailure(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected l, expected a hex digit"),
 			},
 		},
 		"eight digit with invalid meta char": {
@@ -920,7 +920,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				"000067f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected {, expected a hex digit"),
 			},
 		},
 		"missing digit": {
@@ -930,7 +930,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				"0000fff",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"with braces": {
@@ -947,7 +947,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				"6f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"missing end brace multiline": {
@@ -966,7 +966,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(6, 2, 6), P(5, 2, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(6, 2, 6), P(5, 2, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"long with braces": {
@@ -983,8 +983,8 @@ func TestLongUnicodeEscape(t *testing.T) {
 				"6f0",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
-				error.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
+				error.NewFailure(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
 			},
 		},
 	}
@@ -1012,7 +1012,7 @@ func TestHexEscape(t *testing.T) {
 				"6l",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected l, expected a hex digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected l, expected a hex digit"),
 			},
 		},
 		"two digit with invalid meta char": {
@@ -1022,7 +1022,7 @@ func TestHexEscape(t *testing.T) {
 				"6",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected a hex digit"),
 			},
 		},
 		"missing digit": {
@@ -1032,7 +1032,7 @@ func TestHexEscape(t *testing.T) {
 				"f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"with braces": {
@@ -1049,7 +1049,7 @@ func TestHexEscape(t *testing.T) {
 				"6f",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
 		"long with braces": {
@@ -1066,8 +1066,8 @@ func TestHexEscape(t *testing.T) {
 				"6f0",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
-				error.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
+				error.NewFailure(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
 			},
 		},
 	}
@@ -1125,7 +1125,7 @@ func TestOctalEscape(t *testing.T) {
 				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, `invalid octal escape: \1234`),
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(0, 1, 1), P(4, 1, 5)), `invalid octal escape: \1234`),
+				error.NewFailure(L("regex", P(0, 1, 1), P(4, 1, 5)), `invalid octal escape: \1234`),
 			},
 		},
 		"simple invalid digit": {
@@ -1135,7 +1135,7 @@ func TestOctalEscape(t *testing.T) {
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.ERROR, `invalid octal escape: \182`),
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(0, 1, 1), P(3, 1, 4)), `invalid octal escape: \182`),
+				error.NewFailure(L("regex", P(0, 1, 1), P(3, 1, 4)), `invalid octal escape: \182`),
 			},
 		},
 
@@ -1153,7 +1153,7 @@ func TestOctalEscape(t *testing.T) {
 				"691",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected 9, expected an octal digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected 9, expected an octal digit"),
 			},
 		},
 		"two digit with invalid meta char": {
@@ -1163,8 +1163,8 @@ func TestOctalEscape(t *testing.T) {
 				"6",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected an octal digit"),
-				error.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
+				error.NewFailure(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected an octal digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
 			},
 		},
 		"missing digit": {
@@ -1174,7 +1174,7 @@ func TestOctalEscape(t *testing.T) {
 				"72",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
 			},
 		},
 		"with braces": {
@@ -1191,7 +1191,7 @@ func TestOctalEscape(t *testing.T) {
 				"62",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected an octal digit"),
+				error.NewFailure(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected an octal digit"),
 			},
 		},
 		"long with braces": {
@@ -1208,7 +1208,7 @@ func TestOctalEscape(t *testing.T) {
 				"6123",
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(0, 1, 1), P(6, 1, 7)), "too many octal digits"),
+				error.NewFailure(L("regex", P(0, 1, 1), P(6, 1, 7)), "too many octal digits"),
 			},
 		},
 	}
@@ -1374,8 +1374,8 @@ func TestQuotedText(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(0, 1, 1), P(2, 1, 3)), "expected end of quoted text"),
-				error.NewError(L("regex", P(4, 1, 5), P(5, 1, 6)), "invalid escape sequence: \\E"),
+				error.NewFailure(L("regex", P(0, 1, 1), P(2, 1, 3)), "expected end of quoted text"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(5, 1, 6)), "invalid escape sequence: \\E"),
 			},
 		},
 	}
@@ -1589,7 +1589,7 @@ func TestCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unterminated character class, missing ]"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(3, 1, 4)), "unterminated character class, missing ]"),
 			},
 		},
 		"invalid chars": {
@@ -1605,7 +1605,7 @@ func TestCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(1, 1, 2), P(1, 1, 2)), "unexpected -, expected a char class element"),
+				error.NewFailure(L("regex", P(1, 1, 2), P(1, 1, 2)), "unexpected -, expected a char class element"),
 			},
 		},
 		"char ranges": {
@@ -1817,7 +1817,7 @@ func TestCharClass(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(7, 1, 8), P(8, 1, 8)), "unexpected ę, expected an ASCII letter"),
+				error.NewFailure(L("regex", P(7, 1, 8), P(8, 1, 8)), "unexpected ę, expected an ASCII letter"),
 			},
 		},
 		"named char class with other elements": {
@@ -2143,7 +2143,7 @@ func TestGroup(t *testing.T) {
 				false,
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected h, expected a regex flag"),
+				error.NewFailure(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected h, expected a regex flag"),
 			},
 		},
 		"char in group": {
@@ -2167,7 +2167,7 @@ func TestGroup(t *testing.T) {
 				T(S(P(2, 1, 3), P(1, 1, 2)), token.END_OF_FILE),
 			),
 			err: error.ErrorList{
-				error.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected )"),
+				error.NewFailure(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected )"),
 			},
 		},
 		"union in group": {

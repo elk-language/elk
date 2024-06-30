@@ -117,7 +117,7 @@ func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 		return
 	}
 
-	p.errors.Add(
+	p.errors.AddFailure(
 		message,
 		position.NewLocationWithSpan(p.sourceName, span),
 	)

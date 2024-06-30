@@ -17,7 +17,7 @@ func TestConstantAccess(t *testing.T) {
 		"access undefined constant": {
 			input: "Foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
 		},
 		"constant lookup": {
@@ -26,13 +26,13 @@ func TestConstantAccess(t *testing.T) {
 		"constant lookup with error in the middle": {
 			input: "Std::Foo::Bar",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "undefined constant `Std::Foo`"),
+				error.NewFailure(L("<main>", P(5, 1, 6), P(7, 1, 8)), "undefined constant `Std::Foo`"),
 			},
 		},
 		"constant lookup with error at the start": {
 			input: "Foo::Bar::Baz",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
 		},
 		"absolute constant lookup": {
@@ -64,7 +64,7 @@ func TestConstantDeclarations(t *testing.T) {
 		"declare with incorrect explicit type": {
 			input: "const Foo: String = 5",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
 			},
 		},
 	}

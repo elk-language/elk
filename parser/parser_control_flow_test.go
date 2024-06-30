@@ -244,7 +244,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "patterns in for in loops should define at least one variable"),
+				error.NewFailure(L("<main>", P(18, 1, 19), P(23, 1, 24)), "patterns in for in loops should define at least one variable"),
 			},
 		},
 		"for loops can span multiple lines": {
@@ -349,7 +349,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(17, 1, 18), P(18, 1, 19)), "unexpected if, expected a statement separator `\\n`, `;`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(18, 1, 19)), "unexpected if, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -690,7 +690,7 @@ nil
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(40, 4, 1), P(43, 4, 4)), "unexpected else, expected an expression"),
+				error.NewFailure(L("<main>", P(40, 4, 1), P(43, 4, 4)), "unexpected else, expected an expression"),
 			},
 		},
 		"can have many elsif blocks": {
@@ -1370,7 +1370,7 @@ nil
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(44, 4, 1), P(47, 4, 4)), "unexpected else, expected an expression"),
+				error.NewFailure(L("<main>", P(44, 4, 1), P(47, 4, 4)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1602,7 +1602,7 @@ nil
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(30, 5, 1), P(33, 5, 4)), "unexpected else, expected an expression"),
+				error.NewFailure(L("<main>", P(30, 5, 1), P(33, 5, 4)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1834,7 +1834,7 @@ nil
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(30, 5, 1), P(33, 5, 4)), "unexpected else, expected an expression"),
+				error.NewFailure(L("<main>", P(30, 5, 1), P(33, 5, 4)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -2036,7 +2036,7 @@ nil
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(21, 5, 1), P(24, 5, 4)), "unexpected else, expected an expression"),
+				error.NewFailure(L("<main>", P(21, 5, 1), P(24, 5, 4)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -2946,7 +2946,7 @@ func TestForIn(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in for in loops should define at least one variable"),
+				error.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in for in loops should define at least one variable"),
 			},
 		},
 		"can be multiline": {

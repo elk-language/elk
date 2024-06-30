@@ -24,7 +24,7 @@ func TestAttrDefinition(t *testing.T) {
 				var a: Int = Foo().foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(63, 5, 18), P(71, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(63, 5, 18), P(71, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"use an instance variable declared by an attr": {
@@ -49,7 +49,7 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(71, 6, 20), P(74, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(71, 6, 20), P(74, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"redeclare an attr with the same type": {
@@ -68,8 +68,8 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
-				error.NewError(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable using an attr with the same type": {
@@ -88,8 +88,8 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
-				error.NewError(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"override an attr with the same type in a child class": {
@@ -112,10 +112,10 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
-				error.NewError(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
-				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
 			},
 		},
 		"override an instance variable using an attr with the same type in a child class": {
@@ -138,8 +138,8 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
-				error.NewError(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
 			},
 		},
 		"override a method using an attr with the same parameter type in a child class": {
@@ -162,7 +162,7 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
 			},
 		},
 		"override a method using an attr with a different return type in a child class": {
@@ -175,7 +175,7 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
 			},
 		},
 	}
@@ -205,7 +205,7 @@ func TestGetterDefinition(t *testing.T) {
 				var a: Int = Foo().foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(65, 5, 18), P(73, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(65, 5, 18), P(73, 5, 26)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"use an instance variable declared by a getter": {
@@ -230,7 +230,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"redeclare a getter with the same type": {
@@ -249,7 +249,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable using a getter with the same type": {
@@ -268,7 +268,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"override a getter with the same type in a child class": {
@@ -291,8 +291,8 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
 			},
 		},
 		"override an instance variable using getter with the same type in a child class": {
@@ -315,7 +315,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
 			},
 		},
 		"override a method using a getter with the same return type in a child class": {
@@ -338,7 +338,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
+				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
 			},
 		},
 	}
@@ -360,7 +360,7 @@ func TestSetterDefinition(t *testing.T) {
 				Foo().foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(52, 5, 5), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
+				error.NewFailure(L("<main>", P(52, 5, 5), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"use an instance variable declared by a setter": {
@@ -385,7 +385,7 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(73, 6, 20), P(76, 6, 23)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"redeclare a setter with the same type": {
@@ -404,8 +404,8 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 4, 18), P(59, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
-				error.NewError(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(57, 4, 18), P(59, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable using a setter with the same type": {
@@ -424,8 +424,8 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(55, 4, 18), P(57, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
-				error.NewError(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(55, 4, 18), P(57, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"override a setter with the same type in a child class": {
@@ -448,9 +448,9 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
-				error.NewError(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewError(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
+				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
 			},
 		},
 		"override an instance variable using setter with the same type in a child class": {
@@ -473,8 +473,8 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(79, 6, 18), P(84, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
-				error.NewError(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(79, 6, 18), P(84, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
+				error.NewFailure(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
 			},
 		},
 		"override a method using a setter with the same parameter type in a child class": {
@@ -497,7 +497,7 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
+				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
 			},
 		},
 	}
@@ -522,8 +522,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"invalid override in included mixin": {
@@ -538,8 +538,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"invalid override in mixin included in mixin": {
@@ -554,8 +554,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override sealed method": {
@@ -568,7 +568,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(88, 6, 6), P(114, 6, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(88, 6, 6), P(114, 6, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare sealed method in the same class": {
@@ -579,7 +579,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare method with a new sealed modifier": {
@@ -590,7 +590,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(53, 4, 6), P(86, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `default`"),
+				error.NewFailure(L("<main>", P(53, 4, 6), P(86, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `default`"),
 			},
 		},
 		"redeclare method with a new abstract modifier": {
@@ -612,7 +612,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(91, 7, 6), P(124, 7, 39)), "cannot override method `baz` with a different modifier, is `abstract`, should be `default`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(91, 7, 6), P(124, 7, 39)), "cannot override method `baz` with a different modifier, is `abstract`, should be `default`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare abstract method with a new sealed modifier ": {
@@ -623,7 +623,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(69, 4, 6), P(102, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `abstract`"),
+				error.NewFailure(L("<main>", P(69, 4, 6), P(102, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `abstract`"),
 			},
 		},
 		"override the method with additional optional params": {
@@ -646,7 +646,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 14), P(94, 6, 19)), "cannot override method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(89, 6, 14), P(94, 6, 19)), "cannot override method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with incompatible param type": {
@@ -659,7 +659,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 14), P(95, 6, 20)), "cannot override method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(89, 6, 14), P(95, 6, 20)), "cannot override method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with narrower param type": {
@@ -672,7 +672,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Object): Std::Object`"),
+				error.NewFailure(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Object): Std::Object`"),
 			},
 		},
 		"override the method with wider param type": {
@@ -695,7 +695,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(98, 6, 23), P(103, 6, 28)), "cannot override method `baz` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(98, 6, 23), P(103, 6, 28)), "cannot override method `baz` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with narrower return type": {
@@ -718,7 +718,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
+				error.NewFailure(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
 			},
 		},
 		"override the method with no return type": {
@@ -731,7 +731,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(87, 6, 6), P(109, 6, 28)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
+				error.NewFailure(L("<main>", P(87, 6, 6), P(109, 6, 28)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
 			},
 		},
 		"override void method with a new return type": {
@@ -772,7 +772,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(29, 3, 6), P(69, 5, 8)), "method `baz` cannot have a body because it is abstract"),
+				error.NewFailure(L("<main>", P(29, 3, 6), P(69, 5, 8)), "method `baz` cannot have a body because it is abstract"),
 			},
 		},
 		"declare an interface method with a body": {
@@ -784,7 +784,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(24, 3, 6), P(55, 5, 8)), "method `baz` cannot have a body because it is abstract"),
+				error.NewFailure(L("<main>", P(24, 3, 6), P(55, 5, 8)), "method `baz` cannot have a body because it is abstract"),
 			},
 		},
 		"declare an abstract method in an abstract class": {
@@ -808,7 +808,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
 			},
 		},
 		"declare an abstract sig in a non-abstract class": {
@@ -818,7 +818,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(20, 3, 6), P(34, 3, 20)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(34, 3, 20)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
 			},
 		},
 		"declare an abstract method in an abstract mixin": {
@@ -835,7 +835,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract mixin `Foo`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract mixin `Foo`"),
 			},
 		},
 		"declare an abstract method in a module": {
@@ -845,7 +845,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(21, 3, 6), P(49, 3, 34)), "cannot declare abstract method `baz` in this context"),
+				error.NewFailure(L("<main>", P(21, 3, 6), P(49, 3, 34)), "cannot declare abstract method `baz` in this context"),
 			},
 		},
 		"methods get hoisted to the top": {
@@ -867,7 +867,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(28, 3, 14), P(29, 3, 15)), "cannot infer the type of instance variable `a`"),
+				error.NewFailure(L("<main>", P(28, 3, 14), P(29, 3, 15)), "cannot infer the type of instance variable `a`"),
 			},
 		},
 		"inferred instance variable parameter type": {
@@ -902,7 +902,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(53, 4, 18), P(59, 4, 24)), "type `Std::String?` cannot be assigned to instance variable `@a` of type `Std::String`"),
+				error.NewFailure(L("<main>", P(53, 4, 18), P(59, 4, 24)), "type `Std::String?` cannot be assigned to instance variable `@a` of type `Std::String`"),
 			},
 		},
 		"instance variable parameter takes the explicit type": {
@@ -925,7 +925,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(81, 5, 20), P(81, 5, 20)), "type `Std::String` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(81, 5, 20), P(81, 5, 20)), "type `Std::String` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"instance variable parameter declares an instance variable": {
@@ -959,7 +959,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(80, 7, 6), P(90, 7, 16)), "cannot redeclare instance variable `@a` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(80, 7, 6), P(90, 7, 16)), "cannot redeclare instance variable `@a` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 	}
@@ -989,7 +989,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo?.baz(5)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(61, 5, 5), P(71, 5, 15)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				error.NewFailure(L("<main>", P(61, 5, 5), P(71, 5, 15)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe call on a nilable receiver": {
@@ -1009,7 +1009,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo")
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(67, 5, 5), P(80, 5, 18)), "argument `c` is missing in call to `baz`"),
+				error.NewFailure(L("<main>", P(67, 5, 5), P(80, 5, 18)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"all required positional arguments": {
@@ -1028,7 +1028,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(123.4, 5)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+				error.NewFailure(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"too many positional arguments": {
@@ -1039,7 +1039,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 5, 28, 9, 0)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(67, 5, 5), P(93, 5, 31)), "expected 2 arguments in call to `baz`, got 5"),
+				error.NewFailure(L("<main>", P(67, 5, 5), P(93, 5, 31)), "expected 2 arguments in call to `baz`, got 5"),
 			},
 		},
 		"missing required argument with named argument": {
@@ -1050,7 +1050,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(bar: "foo")
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(67, 5, 5), P(85, 5, 23)), "argument `c` is missing in call to `baz`"),
+				error.NewFailure(L("<main>", P(67, 5, 5), P(85, 5, 23)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"all required named arguments": {
@@ -1069,7 +1069,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(c: 5, bar: 123.4)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+				error.NewFailure(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"duplicated positional argument as named argument": {
@@ -1080,8 +1080,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 5, bar: 9)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(85, 5, 23), P(90, 5, 28)), "duplicated argument `bar` in call to `baz`"),
-				error.NewError(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "duplicated argument `bar` in call to `baz`"),
+				error.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
 			},
 		},
 		"duplicated named argument": {
@@ -1092,8 +1092,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2, c: 3, c: 9)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(85, 5, 23), P(88, 5, 26)), "duplicated argument `c` in call to `baz`"),
-				error.NewError(L("<main>", P(91, 5, 29), P(94, 5, 32)), "duplicated argument `c` in call to `baz`"),
+				error.NewFailure(L("<main>", P(85, 5, 23), P(88, 5, 26)), "duplicated argument `c` in call to `baz`"),
+				error.NewFailure(L("<main>", P(91, 5, 29), P(94, 5, 32)), "duplicated argument `c` in call to `baz`"),
 			},
 		},
 		"call with missing optional argument": {
@@ -1136,8 +1136,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz 1.2, 5, "foo", .5
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
-				error.NewError(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
+				error.NewFailure(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
 			},
 		},
 		"call with rest argument given by name": {
@@ -1148,7 +1148,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz b: []
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(65, 5, 13), P(69, 5, 17)), "nonexistent parameter `b` given in call to `baz`"),
+				error.NewFailure(L("<main>", P(65, 5, 13), P(69, 5, 17)), "nonexistent parameter `b` given in call to `baz`"),
 			},
 		},
 		"call with required post arguments": {
@@ -1167,7 +1167,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo")
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(78, 5, 5), P(91, 5, 18)), "argument `c` is missing in call to `baz`"),
+				error.NewFailure(L("<main>", P(78, 5, 5), P(91, 5, 18)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"call with rest and post arguments": {
@@ -1186,7 +1186,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1, 3.2)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
+				error.NewFailure(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
 			},
 		},
 		"call with rest and post arguments and wrong type in rest": {
@@ -1197,8 +1197,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 212, .9, '282', 3)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
-				error.NewError(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
+				error.NewFailure(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
+				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
 			},
 		},
 		"call with rest arguments and missing post argument": {
@@ -1209,7 +1209,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
+				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
 			},
 		},
 		"call with named post argument": {
@@ -1228,7 +1228,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(bar: "foo", c: 3)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(78, 5, 5), P(102, 5, 29)), "expected 1... positional arguments in call to `baz`, got 0"),
+				error.NewFailure(L("<main>", P(78, 5, 5), P(102, 5, 29)), "expected 1... positional arguments in call to `baz`, got 0"),
 			},
 		},
 		"call without named rest arguments": {
@@ -1255,8 +1255,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", d: .2, c: 5, e: .1)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(95, 5, 20), P(99, 5, 24)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
-				error.NewError(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
+				error.NewFailure(L("<main>", P(95, 5, 20), P(99, 5, 24)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
+				error.NewFailure(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
 			},
 		},
 	}
@@ -1273,7 +1273,7 @@ func TestInitDefinition(t *testing.T) {
 		"define in outer context": {
 			input: `init; end`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "init definitions cannot appear outside of classes"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define in module": {
@@ -1283,7 +1283,7 @@ func TestInitDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(21, 3, 6), P(29, 3, 14)), "init definitions cannot appear outside of classes"),
+				error.NewFailure(L("<main>", P(21, 3, 6), P(29, 3, 14)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define in class": {
@@ -1323,7 +1323,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(33, 3, 5), P(37, 3, 9)), "cannot instantiate abstract class `Foo`"),
+				error.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "cannot instantiate abstract class `Foo`"),
 			},
 		},
 		"instantiate a class with a constructor": {
@@ -1342,7 +1342,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
 			},
 		},
 		"instantiate a class with an inherited constructor": {
@@ -1365,7 +1365,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
 			},
 		},
 		"call a method on an instantiated instance": {
@@ -1464,7 +1464,7 @@ func TestMethodInheritance(t *testing.T) {
 				bar.foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
+				error.NewFailure(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
 			},
 		},
 		"call a method on singleton type": {

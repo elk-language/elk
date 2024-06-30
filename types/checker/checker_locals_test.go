@@ -20,13 +20,13 @@ func TestVariableDeclaration(t *testing.T) {
 				var foo = bar()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare variable `foo` with type `void`"),
+				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare variable `foo` with type `void`"),
 			},
 		},
 		"reject variable declaration without matching initializer and type": {
 			input: "var foo: Int = 5.2",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept variable declaration without initializer": {
@@ -35,19 +35,19 @@ func TestVariableDeclaration(t *testing.T) {
 		"reject variable declaration with invalid type": {
 			input: "var foo: Foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject variable declaration without initializer and type": {
 			input: "var foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
 			},
 		},
 		"reject redeclared variable": {
 			input: "var foo: Int; var foo: String",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+				error.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 	}
@@ -73,13 +73,13 @@ func TestValueDeclaration(t *testing.T) {
 				val foo = bar()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare value `foo` with type `void`"),
+				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare value `foo` with type `void`"),
 			},
 		},
 		"reject value declaration without matching initializer and type": {
 			input: "val foo: Int = 5.2",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept value declaration without initializer": {
@@ -88,19 +88,19 @@ func TestValueDeclaration(t *testing.T) {
 		"reject value declaration with invalid type": {
 			input: "val foo: Foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject value declaration without initializer and type": {
 			input: "val foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
 			},
 		},
 		"reject redeclared value": {
 			input: "val foo: Int; val foo: String",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+				error.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 		"declaration with type lookup": {
@@ -109,13 +109,13 @@ func TestValueDeclaration(t *testing.T) {
 		"declaration with type lookup and error in the middle": {
 			input: "val foo: Std::Foo::Bar",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
+				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
 			},
 		},
 		"declaration with type lookup and error at the start": {
 			input: "val foo: Foo::Bar::Baz",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"declaration with absolute type lookup": {
@@ -138,7 +138,7 @@ func TestLocalAccess(t *testing.T) {
 		"access uninitialised variable": {
 			input: "var foo: Int; foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 		"access initialised value": {
@@ -147,7 +147,7 @@ func TestLocalAccess(t *testing.T) {
 		"access uninitialised value": {
 			input: "val foo: Int; foo",
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 	}

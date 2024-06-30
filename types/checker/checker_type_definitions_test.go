@@ -20,7 +20,7 @@ func TestTypeDefinition(t *testing.T) {
 				var a: Text = 1
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(45, 3, 19), P(45, 3, 19)), "type `Std::Int(1)` cannot be assigned to type `Text`"),
+				error.NewFailure(L("<main>", P(45, 3, 19), P(45, 3, 19)), "type `Std::Int(1)` cannot be assigned to type `Text`"),
 			},
 		},
 		"call a method on a defined type": {

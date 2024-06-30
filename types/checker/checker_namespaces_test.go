@@ -23,7 +23,7 @@ func TestModule(t *testing.T) {
 		"module with non obvious constant lookup": {
 			input: `module Int::Foo; end`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Int`"),
+				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Int`"),
 			},
 		},
 		"resolve module with non obvious constant lookup": {
@@ -37,13 +37,13 @@ func TestModule(t *testing.T) {
 		"module with undefined root constant": {
 			input: `module Foo::Bar; end`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Foo`"),
+				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Foo`"),
 			},
 		},
 		"module with undefined constant in the middle": {
 			input: `module Std::Foo::Bar; end`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined namespace `Std::Foo`"),
+				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined namespace `Std::Foo`"),
 			},
 		},
 		"nested modules": {
@@ -69,7 +69,7 @@ func TestModule(t *testing.T) {
 				Bar
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
+				error.NewFailure(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
 			},
 		},
 		"define singleton class": {
@@ -80,7 +80,7 @@ func TestModule(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(21, 3, 6), P(38, 4, 8)), "cannot declare a singleton class in this context"),
+				error.NewFailure(L("<main>", P(21, 3, 6), P(38, 4, 8)), "cannot declare a singleton class in this context"),
 			},
 		},
 	}
@@ -100,8 +100,8 @@ func TestClass(t *testing.T) {
 		"class with nonexistent superclass": {
 			input: `class Foo < Bar; end`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
-				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
+				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
+				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
 			},
 		},
 		"class with superclass": {
@@ -116,7 +116,7 @@ func TestClass(t *testing.T) {
 				class Foo < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
+				error.NewFailure(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
 			},
 		},
 		"class with module superclass": {
@@ -125,7 +125,7 @@ func TestClass(t *testing.T) {
 				class Foo < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
+				error.NewFailure(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
 			},
 		},
 		"report errors for missing abstract methods from parent": {
@@ -137,7 +137,7 @@ func TestClass(t *testing.T) {
 				class Bar < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from parents": {
@@ -153,8 +153,8 @@ func TestClass(t *testing.T) {
 				class Baz < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in parents": {
@@ -171,8 +171,8 @@ func TestClass(t *testing.T) {
 				class Baz < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from mixin": {
@@ -186,7 +186,7 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from mixins": {
@@ -206,8 +206,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -226,8 +226,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -240,7 +240,7 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -258,8 +258,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"define and call a singleton method": {
@@ -296,7 +296,7 @@ func TestClass(t *testing.T) {
 				var b: &Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(60, 6, 19), P(60, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+				error.NewFailure(L("<main>", P(60, 6, 19), P(60, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign class to a class singleton type": {
@@ -332,7 +332,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a supertype": {
@@ -343,7 +343,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::String`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::String`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a subtype": {
@@ -354,7 +354,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with the same type": {
@@ -395,7 +395,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(24, 3, 6), P(39, 3, 21)), "cannot declare instance variable `@foo` in this context"),
+				error.NewFailure(L("<main>", P(24, 3, 6), P(39, 3, 21)), "cannot declare instance variable `@foo` in this context"),
 			},
 		},
 		"use instance variable in a class": {
@@ -406,7 +406,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+				error.NewFailure(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
 			},
 		},
 		"use instance variable in an instance method of a class": {
@@ -444,7 +444,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+				error.NewFailure(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
 			},
 		},
 		"use instance variable in an instance method of a mixin": {
@@ -530,7 +530,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
+				error.NewFailure(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
 		"modifier was default, is sealed": {
@@ -544,7 +544,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(51, 6, 5), P(98, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `default`"),
+				error.NewFailure(L("<main>", P(51, 6, 5), P(98, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `default`"),
 			},
 		},
 		"modifier was abstract, is sealed": {
@@ -558,7 +558,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(60, 6, 5), P(107, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `abstract`"),
+				error.NewFailure(L("<main>", P(60, 6, 5), P(107, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `abstract`"),
 			},
 		},
 		"modifier was abstract, is default": {
@@ -572,7 +572,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
+				error.NewFailure(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
 			},
 		},
 		"superclass does not match": {
@@ -586,7 +586,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(51, 6, 5), P(85, 8, 7)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
+				error.NewFailure(L("<main>", P(51, 6, 5), P(85, 8, 7)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
 			},
 		},
 	}
@@ -603,8 +603,8 @@ func TestInclude(t *testing.T) {
 		"include inexistent mixin": {
 			input: `include Foo`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
-				error.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
+				error.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
 			},
 		},
 		"include in top level": {
@@ -613,7 +613,7 @@ func TestInclude(t *testing.T) {
 				include Foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(32, 3, 13), P(34, 3, 15)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(32, 3, 13), P(34, 3, 15)), "cannot include mixins in this context"),
 			},
 		},
 		"include in module": {
@@ -624,7 +624,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(49, 4, 14), P(51, 4, 16)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(49, 4, 14), P(51, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in interface": {
@@ -635,7 +635,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(52, 4, 14), P(54, 4, 16)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(52, 4, 14), P(54, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in class": {
@@ -672,7 +672,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(49, 4, 14), P(51, 4, 16)), "only mixins can be included"),
+				error.NewFailure(L("<main>", P(49, 4, 14), P(51, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include class": {
@@ -683,7 +683,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(48, 4, 14), P(50, 4, 16)), "only mixins can be included"),
+				error.NewFailure(L("<main>", P(48, 4, 14), P(50, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include interface": {
@@ -694,7 +694,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
+				error.NewFailure(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include mixin with compatible methods": {
@@ -723,7 +723,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
+				error.NewFailure(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
 			},
 		},
 		"include mixin with incompatible methods in parent": {
@@ -743,7 +743,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
+				error.NewFailure(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
 			},
 		},
 		"include mixin with incompatible instance variables": {
@@ -759,7 +759,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(124, 9, 14), P(126, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
+				error.NewFailure(L("<main>", P(124, 9, 14), P(126, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
 		"include mixin with incompatible instance variables in parent": {
@@ -779,7 +779,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
+				error.NewFailure(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
 	}
@@ -796,8 +796,8 @@ func TestImplement(t *testing.T) {
 		"implement inexistent interface": {
 			input: `implement Foo`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(10, 1, 11), P(12, 1, 13)), "undefined type `Foo`"),
-				error.NewError(L("<main>", P(10, 1, 11), P(12, 1, 13)), "only interfaces can be implemented"),
+				error.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "only interfaces can be implemented"),
 			},
 		},
 		"implement in top level": {
@@ -806,7 +806,7 @@ func TestImplement(t *testing.T) {
 				implement Foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(38, 3, 15), P(40, 3, 17)), "cannot implement interfaces in this context"),
+				error.NewFailure(L("<main>", P(38, 3, 15), P(40, 3, 17)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in module": {
@@ -817,7 +817,7 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(55, 4, 16), P(57, 4, 18)), "cannot implement interfaces in this context"),
+				error.NewFailure(L("<main>", P(55, 4, 16), P(57, 4, 18)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in interface": {
@@ -852,7 +852,7 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(51, 4, 16), P(53, 4, 18)), "only interfaces can be implemented"),
+				error.NewFailure(L("<main>", P(51, 4, 16), P(53, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement class": {
@@ -863,7 +863,7 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"include mixin": {
@@ -874,7 +874,7 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 	}
@@ -906,7 +906,7 @@ func TestMixinType(t *testing.T) {
 				var a: Bar = Foo()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
+				error.NewFailure(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
 			},
 		},
 		"assign mixin type to the same mixin type": {
@@ -948,7 +948,7 @@ func TestMixinType(t *testing.T) {
 				var b: &Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(102, 9, 19), P(102, 9, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+				error.NewFailure(L("<main>", P(102, 9, 19), P(102, 9, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign mixin to a mixin singleton type": {
@@ -987,7 +987,7 @@ func TestMixinOverride(t *testing.T) {
 				abstract mixin Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(24, 3, 5), P(46, 3, 27)), "cannot redeclare mixin `Bar` with a different modifier, is `abstract`, should be `default`"),
+				error.NewFailure(L("<main>", P(24, 3, 5), P(46, 3, 27)), "cannot redeclare mixin `Bar` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
 		"modifier was abstract, is default": {
@@ -996,7 +996,7 @@ func TestMixinOverride(t *testing.T) {
 				mixin Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
+				error.NewFailure(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
 			},
 		},
 	}
@@ -1021,7 +1021,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -1034,7 +1034,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -1052,8 +1052,8 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -1071,8 +1071,8 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
-				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
+				error.NewFailure(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewFailure(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"define and call a singleton method": {
@@ -1101,7 +1101,7 @@ func TestMixin(t *testing.T) {
 				Bar.foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+				error.NewFailure(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 	}
@@ -1141,7 +1141,7 @@ func TestInterface(t *testing.T) {
 				Bar.foo
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+				error.NewFailure(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 	}
@@ -1191,8 +1191,8 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
-				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
+				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign interface type to the same interface type": {
@@ -1280,8 +1280,8 @@ func TestInterfaceType(t *testing.T) {
 				var b: Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
-				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
+				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
+				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign interface type to an interface singleton type": {
@@ -1293,7 +1293,7 @@ func TestInterfaceType(t *testing.T) {
 				var b: &Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(85, 6, 19), P(85, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+				error.NewFailure(L("<main>", P(85, 6, 19), P(85, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign interface to an interface singleton type": {

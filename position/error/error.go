@@ -12,17 +12,44 @@ import (
 	"github.com/fatih/color"
 )
 
+type Severity uint8
+
+const (
+	FAILURE Severity = iota
+	WARNING
+)
+
 // Represents a single error in a particular source location.
 type Error struct {
 	*position.Location
-	Message string
+	Severity Severity
+	Message  string
 }
 
 // Create a new error.
-func NewError(loc *position.Location, msg string) *Error {
+func NewError(loc *position.Location, msg string, severity Severity) *Error {
 	return &Error{
 		Location: loc,
 		Message:  msg,
+		Severity: severity,
+	}
+}
+
+// Create a new warning.
+func NewFailure(loc *position.Location, msg string) *Error {
+	return &Error{
+		Location: loc,
+		Message:  msg,
+		Severity: FAILURE,
+	}
+}
+
+// Create a new warning.
+func NewWarning(loc *position.Location, msg string) *Error {
+	return &Error{
+		Location: loc,
+		Message:  msg,
+		Severity: WARNING,
 	}
 }
 
@@ -198,8 +225,18 @@ func (e *ErrorList) Append(err *Error) {
 }
 
 // Create and add a new error.
-func (e *ErrorList) Add(message string, loc *position.Location) {
-	e.Append(NewError(loc, message))
+func (e *ErrorList) Add(message string, loc *position.Location, severity Severity) {
+	e.Append(NewError(loc, message, severity))
+}
+
+// Create and add a new failure.
+func (e *ErrorList) AddFailure(message string, loc *position.Location) {
+	e.Append(NewError(loc, message, FAILURE))
+}
+
+// Create and add a new warning.
+func (e *ErrorList) AddWarning(message string, loc *position.Location) {
+	e.Append(NewError(loc, message, WARNING))
 }
 
 // Implements the error interface.
@@ -259,6 +296,16 @@ func (e ErrorList) Err() error {
 	return e
 }
 
+func (e ErrorList) IsFailure() bool {
+	for _, err := range e {
+		if err.Severity == FAILURE {
+			return true
+		}
+	}
+
+	return false
+}
+
 // A thread-safe list of errors.
 type SyncErrorList struct {
 	ErrorList ErrorList
@@ -266,8 +313,18 @@ type SyncErrorList struct {
 }
 
 // Create and add a new error.
-func (e *SyncErrorList) Add(message string, loc *position.Location) {
-	e.Append(NewError(loc, message))
+func (e *SyncErrorList) Add(message string, loc *position.Location, severity Severity) {
+	e.Append(NewError(loc, message, severity))
+}
+
+// Create and add a new failure.
+func (e *SyncErrorList) AddFailure(message string, loc *position.Location) {
+	e.Append(NewFailure(loc, message))
+}
+
+// Create and add a new warning.
+func (e *SyncErrorList) AddWarning(message string, loc *position.Location) {
+	e.Append(NewWarning(loc, message))
 }
 
 // Add a new error.
@@ -275,4 +332,8 @@ func (e *SyncErrorList) Append(err *Error) {
 	e.mutex.Lock()
 	e.ErrorList = append(e.ErrorList, err)
 	e.mutex.Unlock()
+}
+
+func (e *SyncErrorList) IsFailure() bool {
+	return e.ErrorList.IsFailure()
 }
