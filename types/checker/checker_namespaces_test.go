@@ -137,7 +137,7 @@ func TestClass(t *testing.T) {
 				class Bar < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from parents": {
@@ -153,8 +153,8 @@ func TestClass(t *testing.T) {
 				class Baz < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in parents": {
@@ -171,8 +171,8 @@ func TestClass(t *testing.T) {
 				class Baz < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from mixin": {
@@ -186,7 +186,7 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from mixins": {
@@ -206,8 +206,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -226,8 +226,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -240,7 +240,7 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -258,8 +258,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"define and call a singleton method": {
@@ -723,7 +723,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz` because of incompatible methods:\n\n  - incompatible definitions of `foo`\n      `Bar` has: sig foo(f: Std::String?): Std::String?\n      `Foo` has: sig foo(f: Std::Object): Std::String\n"),
+				error.NewError(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
 			},
 		},
 		"include mixin with incompatible methods in parent": {
@@ -743,7 +743,43 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz` because of incompatible methods:\n\n  - incompatible definitions of `foo`\n      `Bar` has: sig foo(f: Std::String?): Std::String?\n      `Foo` has: sig foo(f: Std::Object): Std::String\n"),
+				error.NewError(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `sig foo(f: Std::String?): Std::String?`\n      `Foo` has: `sig foo(f: Std::Object): Std::String`\n"),
+			},
+		},
+		"include mixin with incompatible instance variables": {
+			input: `
+				class Foo
+					var @foo: Object?
+				end
+				mixin Bar
+					var @foo: String?
+				end
+				class Baz < Foo
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(124, 9, 14), P(126, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
+			},
+		},
+		"include mixin with incompatible instance variables in parent": {
+			input: `
+				class Foo
+					var @foo: Object?
+				end
+				class Fooo < Foo; end
+				mixin Bar
+					var @foo: String?
+				end
+				mixin Barr
+					include Bar
+				end
+				class Baz < Fooo
+					include Barr
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
 	}
@@ -985,7 +1021,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -998,7 +1034,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -1016,8 +1052,8 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -1035,8 +1071,8 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
-				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: `sig bar(): void`"),
+				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: `sig foo(): void`"),
 			},
 		},
 		"define and call a singleton method": {
@@ -1155,7 +1191,7 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: sig foo(): void\n"),
+				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
 				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
@@ -1244,7 +1280,7 @@ func TestInterfaceType(t *testing.T) {
 				var b: Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: sig foo(): void\n"),
+				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `sig foo(): void`\n"),
 				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},

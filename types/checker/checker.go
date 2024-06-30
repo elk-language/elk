@@ -672,7 +672,7 @@ loop:
 			if implementation == nil {
 				fmt.Fprintf(
 					methodDetailsBuff,
-					"\n  - missing method `%s` with signature: %s\n",
+					"\n  - missing method `%s` with signature: `%s`\n",
 					types.InspectWithColor(abstractMethod),
 					abstractMethod.InspectSignatureWithColor(false),
 				)
@@ -681,7 +681,7 @@ loop:
 
 			fmt.Fprintf(
 				methodDetailsBuff,
-				"\n  - incorrect implementation of `%s`\n      is:        %s\n      should be: %s\n",
+				"\n  - incorrect implementation of `%s`\n      is:        `%s`\n      should be: `%s`\n",
 				types.InspectWithColor(abstractMethod),
 				implementation.InspectSignatureWithColor(false),
 				abstractMethod.InspectSignatureWithColor(false),
@@ -945,7 +945,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 			if method == nil || method.IsAbstract() {
 				c.addError(
 					fmt.Sprintf(
-						"missing abstract method implementation `%s` with signature: %s",
+						"missing abstract method implementation `%s` with signature: `%s`",
 						types.InspectWithColor(parentMethod),
 						parentMethod.InspectSignatureWithColor(false),
 					),
@@ -971,6 +971,16 @@ func (c *Checker) findParentOfMixinProxy(mixin *types.Mixin) types.Namespace {
 	}
 
 	return nil
+}
+
+type instanceVariableOverride struct {
+	name string
+
+	super          types.Type
+	superNamespace types.Namespace
+
+	override          types.Type
+	overrideNamespace types.Namespace
 }
 
 func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
@@ -999,11 +1009,25 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 			}
 		})
 
-		if len(incompatibleMethods) == 0 {
+		var incompatibleIvars []instanceVariableOverride
+		types.ForeachInstanceVariable(includedMixin, func(name string, includedIvar types.Type, includedNamespace types.Namespace) {
+			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
+			if !c.isTheSameType(superIvar, includedIvar, nil) {
+				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
+					name:              name,
+					super:             superIvar,
+					superNamespace:    superNamespace,
+					override:          includedIvar,
+					overrideNamespace: includedNamespace,
+				})
+			}
+		})
+
+		if len(incompatibleMethods) == 0 && len(incompatibleIvars) == 0 {
 			continue
 		}
 
-		methodDetailsBuff := new(strings.Builder)
+		detailsBuff := new(strings.Builder)
 		for _, incompatibleMethod := range incompatibleMethods {
 			override := incompatibleMethod.override
 			superMethod := incompatibleMethod.superMethod
@@ -1021,8 +1045,8 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 			}
 
 			fmt.Fprintf(
-				methodDetailsBuff,
-				"\n  - incompatible definitions of `%s`\n      `%s`% *s has: %s\n      `%s`% *s has: %s\n",
+				detailsBuff,
+				"\n  - incompatible definitions of method `%s`\n      `%s`% *s has: `%s`\n      `%s`% *s has: `%s`\n",
 				override.Name,
 				overrideNamespaceName,
 				overrideWidthDiff,
@@ -1034,13 +1058,46 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 				superMethod.InspectSignatureWithColor(false),
 			)
 		}
+		for _, incompatibleIvar := range incompatibleIvars {
+			override := incompatibleIvar.override
+			overrideNamespace := incompatibleIvar.overrideNamespace
+			super := incompatibleIvar.super
+			superNamespace := incompatibleIvar.superNamespace
+			name := incompatibleIvar.name
+
+			overrideNamespaceName := types.InspectWithColor(overrideNamespace)
+			superNamespaceName := types.InspectWithColor(superNamespace)
+			overrideNamespaceWidth := uniseg.StringWidth(types.Inspect(overrideNamespace))
+			superNamespaceWidth := uniseg.StringWidth(types.Inspect(superNamespace))
+			var overrideWidthDiff int
+			var superWidthDiff int
+			if overrideNamespaceWidth < superNamespaceWidth {
+				overrideWidthDiff = overrideWidthDiff - superNamespaceWidth
+			} else {
+				superWidthDiff = superNamespaceWidth - overrideNamespaceWidth
+			}
+
+			fmt.Fprintf(
+				detailsBuff,
+				"\n  - incompatible definitions of instance variable `%s`\n      `%s`% *s has: `%s`\n      `%s`% *s has: `%s`\n",
+				types.InspectInstanceVariableWithColor(name),
+				overrideNamespaceName,
+				overrideWidthDiff,
+				"",
+				types.InspectInstanceVariableDeclarationWithColor(name, override),
+				superNamespaceName,
+				superWidthDiff,
+				"",
+				types.InspectInstanceVariableDeclarationWithColor(name, super),
+			)
+		}
 
 		c.addError(
 			fmt.Sprintf(
-				"cannot include `%s` in `%s` because of incompatible methods:\n%s",
+				"cannot include `%s` in `%s`:\n%s",
 				types.InspectWithColor(includedMixin),
 				types.InspectWithColor(targetNamespace),
-				methodDetailsBuff.String(),
+				detailsBuff.String(),
 			),
 			constantNode.Span(),
 		)
@@ -1779,7 +1836,7 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *position.Span) {
 	c.addError(
 		fmt.Sprintf(
-			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
+			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: `%s`",
 			baseMethod.Name,
 			types.InspectWithColor(baseMethod.DefinedUnder),
 			baseMethod.InspectSignatureWithColor(true),
@@ -1803,7 +1860,7 @@ func (c *Checker) checkMethodOverride(
 	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() {
 		c.addError(
 			fmt.Sprintf(
-				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
 				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed()),
 				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed()),
@@ -1823,7 +1880,7 @@ func (c *Checker) checkMethodOverride(
 		}
 		c.addError(
 			fmt.Sprintf(
-				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
 				types.InspectWithColor(overrideMethod.ReturnType),
 				types.InspectWithColor(baseMethod.ReturnType),
@@ -1842,7 +1899,7 @@ func (c *Checker) checkMethodOverride(
 		}
 		c.addError(
 			fmt.Sprintf(
-				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
 				types.InspectWithColor(overrideMethod.ThrowType),
 				types.InspectWithColor(baseMethod.ThrowType),
@@ -1860,7 +1917,7 @@ func (c *Checker) checkMethodOverride(
 		}
 		c.addError(
 			fmt.Sprintf(
-				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: `%s`",
 				name,
 				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
@@ -1874,7 +1931,7 @@ func (c *Checker) checkMethodOverride(
 			if oldParam.Name != newParam.Name {
 				c.addError(
 					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
 						newParam.Name,
 						oldParam.Name,
@@ -1888,7 +1945,7 @@ func (c *Checker) checkMethodOverride(
 			if oldParam.Kind != newParam.Kind {
 				c.addError(
 					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
 						newParam.NameWithKind(),
 						oldParam.NameWithKind(),
@@ -1902,7 +1959,7 @@ func (c *Checker) checkMethodOverride(
 			if !c.isSubtype(oldParam.Type, newParam.Type, paramNodes[i].Span()) {
 				c.addError(
 					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
 						types.InspectWithColor(newParam.Type),
 						types.InspectWithColor(oldParam.Type),
@@ -1920,7 +1977,7 @@ func (c *Checker) checkMethodOverride(
 			if !param.IsOptional() {
 				c.addError(
 					fmt.Sprintf(
-						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
 						param.Name,
 						types.InspectWithColor(baseMethod.DefinedUnder),
@@ -2849,8 +2906,8 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 	if typ == nil {
 		c.addError(
 			fmt.Sprintf(
-				"undefined instance variable `@%s` in type `%s`",
-				node.Value,
+				"undefined instance variable `%s` in type `%s`",
+				types.InspectInstanceVariableWithColor(node.Value),
 				types.InspectWithColor(container),
 			),
 			node.Span(),
@@ -2960,8 +3017,8 @@ func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Typ
 		if !c.isTheSameType(typ, currentIvar, span) {
 			c.addError(
 				fmt.Sprintf(
-					"cannot redeclare instance variable `@%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
-					name,
+					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+					types.InspectInstanceVariableWithColor(name),
 					types.InspectWithColor(typ),
 					types.InspectWithColor(currentIvar),
 					types.InspectWithColor(ivarNamespace),
@@ -3028,7 +3085,10 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 
 	if node.TypeNode == nil {
 		c.addError(
-			fmt.Sprintf("cannot declare instance variable `@%s` without a type", node.Name),
+			fmt.Sprintf(
+				"cannot declare instance variable `%s` without a type",
+				types.InspectInstanceVariableWithColor(node.Name),
+			),
 			node.Span(),
 		)
 
@@ -3040,8 +3100,8 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
 			c.addError(
 				fmt.Sprintf(
-					"cannot redeclare instance variable `@%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
-					node.Name,
+					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+					types.InspectInstanceVariableWithColor(node.Name),
 					types.InspectWithColor(declaredType),
 					types.InspectWithColor(ivar),
 					types.InspectWithColor(ivarNamespace),
@@ -3056,7 +3116,10 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 	case mixinMode, classMode, moduleMode, singletonMode:
 	default:
 		c.addError(
-			fmt.Sprintf("cannot declare instance variable `@%s` in this context", node.Name),
+			fmt.Sprintf(
+				"cannot declare instance variable `%s` in this context",
+				types.InspectInstanceVariableWithColor(node.Name),
+			),
 			node.Span(),
 		)
 		return
@@ -3405,9 +3468,9 @@ func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types
 	if !c.isSubtype(assignedType, targetType, span) {
 		c.addError(
 			fmt.Sprintf(
-				"type `%s` cannot be assigned to instance variable `@%s` of type `%s`",
+				"type `%s` cannot be assigned to instance variable `%s` of type `%s`",
 				types.InspectWithColor(assignedType),
-				name,
+				types.InspectInstanceVariableWithColor(name),
 				types.InspectWithColor(targetType),
 			),
 			span,

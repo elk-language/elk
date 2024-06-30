@@ -1,6 +1,10 @@
 package types
 
-import "github.com/elk-language/elk/lexer"
+import (
+	"fmt"
+
+	"github.com/elk-language/elk/lexer"
+)
 
 type Type interface {
 	ToNonLiteral(*GlobalEnvironment) Type
@@ -24,6 +28,22 @@ func Inspect(typ Type) string {
 	}
 
 	return typ.inspect()
+}
+
+func InspectInstanceVariable(name string) string {
+	return fmt.Sprintf("@%s", name)
+}
+
+func InspectInstanceVariableWithColor(name string) string {
+	return lexer.Colorize(InspectInstanceVariable(name))
+}
+
+func InspectInstanceVariableDeclaration(name string, typ Type) string {
+	return fmt.Sprintf("var @%s: %s", name, Inspect(typ))
+}
+
+func InspectInstanceVariableDeclarationWithColor(name string, typ Type) string {
+	return lexer.Colorize(InspectInstanceVariableDeclaration(name, typ))
 }
 
 func InspectWithColor(typ Type) string {

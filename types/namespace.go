@@ -53,6 +53,18 @@ func GetMethodInNamespace(namespace Namespace, name string) *Method {
 	return nil
 }
 
+func GetInstanceVariableInNamespace(namespace Namespace, name string) (Type, Namespace) {
+	currentNamespace := namespace
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		ivar := currentNamespace.InstanceVariableString(name)
+		if ivar != nil {
+			return ivar, currentNamespace
+		}
+	}
+
+	return nil, nil
+}
+
 func NamespacesAreEqual(left, right Namespace) bool {
 	if left == right {
 		return true
@@ -112,6 +124,23 @@ func ForeachMethod(namespace Namespace, f func(*Method)) {
 
 			f(method)
 			seenMethods[method.Name] = true
+		}
+	}
+}
+
+// Iterate over every instance variable defined in the given namespace including the inherited ones
+func ForeachInstanceVariable(namespace Namespace, f func(name string, typ Type, namespace Namespace)) {
+	currentNamespace := namespace
+	seenIvars := make(map[value.Symbol]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		for name, typ := range currentNamespace.InstanceVariables().Map {
+			if seenIvars[name] {
+				continue
+			}
+
+			f(name.String(), typ, currentNamespace)
+			seenIvars[name] = true
 		}
 	}
 }
