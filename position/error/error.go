@@ -14,10 +14,37 @@ import (
 
 type Severity uint8
 
+func (s Severity) String() string {
+	return severityNames[s]
+}
+
+func (s Severity) Tag(style bool) string {
+	if !style {
+		return fmt.Sprintf("[%s]", s.String())
+	}
+
+	c := color.New(color.Bold, s.color())
+	return c.Sprintf("[%s]", s.String())
+}
+
+func (s Severity) color() color.Attribute {
+	return severityColor[s]
+}
+
 const (
 	FAILURE Severity = iota
 	WARNING
 )
+
+var severityNames = []string{
+	FAILURE: "FAIL",
+	WARNING: "WARN",
+}
+
+var severityColor = []color.Attribute{
+	FAILURE: color.FgRed,
+	WARNING: color.FgYellow,
+}
 
 // Represents a single error in a particular source location.
 type Error struct {
@@ -83,6 +110,9 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	}
 	result.WriteString(errorColor.Sprint(e.Location.String()))
 	result.WriteString(": ")
+
+	result.WriteString(e.Severity.Tag(style))
+	result.WriteByte(' ')
 	result.WriteString(e.Message)
 	result.WriteByte('\n')
 	if len(source) == 0 {

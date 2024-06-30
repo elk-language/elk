@@ -57,7 +57,9 @@ func (e *evaluator) evaluate(input string) {
 	if compileErr != nil {
 		fmt.Println()
 		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		return
+		if compileErr.IsFailure() {
+			return
+		}
 	}
 
 	e.compiler = currentCompiler
@@ -89,7 +91,9 @@ func (e *evaluator) disassemble(input string) {
 	if compileErr != nil {
 		fmt.Println()
 		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		return
+		if compileErr.IsFailure() {
+			return
+		}
 	}
 
 	e.compiler = currentCompiler
@@ -104,7 +108,9 @@ func (e *evaluator) parse(input string) {
 	if err != nil {
 		fmt.Println()
 		fmt.Println(err.HumanStringWithSource(input, true))
-		return
+		if err.IsFailure() {
+			return
+		}
 	}
 	pp.Println(ast)
 }
@@ -119,8 +125,11 @@ func (e *evaluator) typecheck(input string) {
 	if err != nil {
 		fmt.Println()
 		fmt.Println(err.HumanStringWithSource(input, true))
+		isFailure := err.IsFailure()
 		e.typechecker.ClearErrors()
-		return
+		if isFailure {
+			return
+		}
 	}
 
 	fmt.Println("OK")
