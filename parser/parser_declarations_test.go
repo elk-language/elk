@@ -4885,17 +4885,16 @@ end`,
 							[]ast.StructBodyStatementNode{
 								ast.NewParameterStatementNode(
 									S(P(13, 2, 3), P(16, 2, 6)),
-									ast.NewFormalParameterNode(
+									ast.NewAttributeParameterNode(
 										S(P(13, 2, 3), P(15, 2, 5)),
 										"foo",
 										nil,
 										nil,
-										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
 									S(P(19, 3, 3), P(31, 3, 15)),
-									ast.NewFormalParameterNode(
+									ast.NewAttributeParameterNode(
 										S(P(19, 3, 3), P(30, 3, 14)),
 										"bar",
 										ast.NewNilableTypeNode(
@@ -4903,27 +4902,24 @@ end`,
 											ast.NewPublicConstantNode(S(P(24, 3, 8), P(29, 3, 13)), "String"),
 										),
 										nil,
-										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
 									S(P(34, 4, 3), P(47, 4, 16)),
-									ast.NewFormalParameterNode(
+									ast.NewAttributeParameterNode(
 										S(P(34, 4, 3), P(46, 4, 15)),
 										"baz",
 										ast.NewPublicConstantNode(S(P(39, 4, 8), P(41, 4, 10)), "Int"),
 										ast.NewFloatLiteralNode(S(P(45, 4, 14), P(46, 4, 15)), "0.3"),
-										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
 									S(P(50, 5, 3), P(61, 5, 14)),
-									ast.NewFormalParameterNode(
+									ast.NewAttributeParameterNode(
 										S(P(50, 5, 3), P(60, 5, 13)),
 										"ban",
 										nil,
 										ast.NewRawStringLiteralNode(S(P(56, 5, 9), P(60, 5, 13)), "hey"),
-										ast.NormalParameterKind,
 									),
 								),
 							},
@@ -4946,12 +4942,11 @@ end`,
 							[]ast.StructBodyStatementNode{
 								ast.NewParameterStatementNode(
 									S(P(16, 1, 17), P(23, 1, 24)),
-									ast.NewFormalParameterNode(
+									ast.NewAttributeParameterNode(
 										S(P(16, 1, 17), P(23, 1, 24)),
 										"foo",
 										ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Int"),
 										nil,
-										ast.NormalParameterKind,
 									),
 								),
 							},

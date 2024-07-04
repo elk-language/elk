@@ -135,14 +135,6 @@ type methodCheckEntry struct {
 	node           *ast.MethodDefinitionNode
 }
 
-type initCheckEntry struct {
-	filename       string
-	method         *types.Method
-	constantScopes []constantScope
-	methodScopes   []methodScope
-	node           *ast.InitDefinitionNode
-}
-
 // Holds the state of the type checking process
 type Checker struct {
 	Filename                string
@@ -160,7 +152,6 @@ type Checker struct {
 	mode                    mode
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
-	initChecks              *concurrent.Slice[initCheckEntry]
 }
 
 // Instantiate a new Checker instance.
@@ -188,7 +179,6 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		},
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
@@ -213,7 +203,6 @@ func New() *Checker {
 		},
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
@@ -242,7 +231,6 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 
 	c.Filename = sourceName
 	c.methodChecks = concurrent.NewSlice[methodCheckEntry]()
-	c.initChecks = concurrent.NewSlice[initCheckEntry]()
 	bytecodeFunc := c.checkProgram(ast)
 	return bytecodeFunc, c.Errors.ErrorList
 }
@@ -337,16 +325,6 @@ func (c *Checker) currentMethodScope() methodScope {
 	}
 
 	panic("no local method scopes!")
-}
-
-func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefinitionNode) {
-	c.initChecks.Append(initCheckEntry{
-		method:         method,
-		constantScopes: c.constantScopesCopy(),
-		methodScopes:   c.methodScopesCopy(),
-		node:           node,
-		filename:       c.Filename,
-	})
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
@@ -2934,22 +2912,18 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode) {
 	var body []ast.StatementNode
 
 	if init == nil {
-		body = []ast.StatementNode{
-			ast.ExpressionToStatement(
-				ast.NewInstanceVariableNode(node.Span(), node.Name),
-			),
-		}
+		body = ast.ExpressionToStatements(
+			ast.NewInstanceVariableNode(node.Span(), node.Name),
+		)
 	} else {
-		body = []ast.StatementNode{
-			ast.ExpressionToStatement(
-				ast.NewAssignmentExpressionNode(
-					node.Span(),
-					token.New(init.Span(), token.QUESTION_QUESTION_EQUAL),
-					ast.NewInstanceVariableNode(node.Span(), node.Name),
-					init,
-				),
+		body = ast.ExpressionToStatements(
+			ast.NewAssignmentExpressionNode(
+				node.Span(),
+				token.New(init.Span(), token.QUESTION_QUESTION_EQUAL),
+				ast.NewInstanceVariableNode(node.Span(), node.Name),
+				init,
 			),
-		}
+		)
 	}
 
 	methodNode := ast.NewMethodDefinitionNode(
@@ -3068,7 +3042,8 @@ func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
 	}
 }
 
-func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode, docComment string) {
+	node.SetDocComment(docComment)
 	methodNamespace := c.currentMethodScope().container
 	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
 	var declaredType types.Type
@@ -3406,10 +3381,12 @@ func (c *Checker) checkMethods() {
 	)
 }
 
-func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
+func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode, docComment string) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := extractConstantName(node.Constant)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	node.SetDocComment(docComment)
+
 	if constant != nil {
 		c.addError(
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
@@ -3478,6 +3455,91 @@ func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types
 	}
 }
 
+func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode, docComment string) *ast.ClassDeclarationNode {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
+	constantName := extractConstantName(structNode.Constant)
+	class := c.declareClass(
+		false,
+		false,
+		container,
+		constant,
+		fullConstantName,
+		constantName,
+		structNode.Span(),
+	)
+	structNode.SetType(class)
+	structNode.Constant = ast.NewPublicConstantNode(structNode.Constant.Span(), fullConstantName)
+
+	init := ast.NewInitDefinitionNode(
+		structNode.Span(),
+		nil,
+		nil,
+		nil,
+	)
+	attrDeclaration := ast.NewAttrDeclarationNode(
+		structNode.Span(),
+		nil,
+	)
+	newStatements := []ast.StatementNode{
+		ast.ExpressionToStatement(init),
+		ast.ExpressionToStatement(attrDeclaration),
+	}
+
+	var optionalParamSeen bool
+
+	for _, stmt := range structNode.Body {
+		switch s := stmt.(type) {
+		case *ast.ParameterStatementNode:
+			param := s.Parameter.(*ast.AttributeParameterNode)
+			if optionalParamSeen && param.Initialiser == nil {
+				c.addError(
+					fmt.Sprintf(
+						"required struct attribute `%s` cannot appear after optional attributes",
+						param.Name,
+					),
+					param.Span(),
+				)
+			}
+			if param.Initialiser != nil {
+				optionalParamSeen = true
+			}
+			init.Parameters = append(
+				init.Parameters,
+				ast.NewMethodParameterNode(
+					param.Span(),
+					param.Name,
+					true,
+					param.TypeNode,
+					param.Initialiser,
+					ast.NormalParameterKind,
+				),
+			)
+			attrDeclaration.Entries = append(
+				attrDeclaration.Entries,
+				ast.NewAttributeParameterNode(
+					param.Span(),
+					param.Name,
+					param.TypeNode,
+					nil,
+				),
+			)
+		}
+	}
+
+	classNode := ast.NewClassDeclarationNode(
+		structNode.Span(),
+		false,
+		false,
+		structNode.Constant,
+		nil,
+		nil,
+		newStatements,
+	)
+	classNode.SetDocComment(docComment)
+	classNode.SetType(class)
+	return classNode
+}
+
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -3485,18 +3547,29 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			continue
 		}
 
+		var docComment string
 		expression := stmt.Expression
-		if docNode, ok := stmt.Expression.(*ast.DocCommentNode); ok {
+		docNode, ok := stmt.Expression.(*ast.DocCommentNode)
+		if ok {
+			docComment = docNode.Comment
 			expression = docNode.Expression
 		}
 
 		switch expr := expression.(type) {
+		case *ast.StructDeclarationNode:
+			newNode := c.hoistStructDeclaration(expr, docComment)
+			if docNode != nil {
+				docNode.Expression = newNode
+			} else {
+				stmt.Expression = newNode
+			}
 		case *ast.ModuleDeclarationNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
 			module := c.declareModule(container, constant, fullConstantName, constantName, expr.Span())
 			expr.SetType(module)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			expr.SetDocComment(docComment)
 
 			c.pushConstScope(makeLocalConstantScope(module))
 			c.pushMethodScope(makeLocalMethodScope(module))
@@ -3519,6 +3592,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(class)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			expr.SetDocComment(docComment)
 
 			c.pushConstScope(makeLocalConstantScope(class))
 			c.pushMethodScope(makeLocalMethodScope(class))
@@ -3540,6 +3614,8 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(mixin)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			expr.SetDocComment(docComment)
+
 			c.pushConstScope(makeLocalConstantScope(mixin))
 			c.pushMethodScope(makeLocalMethodScope(mixin))
 
@@ -3559,6 +3635,8 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(iface)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			expr.SetDocComment(docComment)
+
 			c.pushConstScope(makeLocalConstantScope(iface))
 			c.pushMethodScope(makeLocalMethodScope(iface))
 
@@ -3567,7 +3645,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			c.popConstScope()
 			c.popMethodScope()
 		case *ast.ConstantDeclarationNode:
-			c.checkConstantDeclaration(expr)
+			c.checkConstantDeclaration(expr, docComment)
 		case *ast.TypeDefinitionNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
@@ -3580,12 +3658,48 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			}
 
 			expr.TypeNode = c.checkTypeNode(expr.TypeNode)
+			expr.SetDocComment(docComment)
+
 			typ := c.typeOf(expr.TypeNode)
 			container.DefineConstant(constantName, types.Void{})
 			namedType := types.NewNamedType(fullConstantName, typ)
 			container.DefineSubtype(constantName, namedType)
 		}
 	}
+}
+
+func (c *Checker) initDefinition(initNode *ast.InitDefinitionNode, docComment string) *ast.MethodDefinitionNode {
+	switch c.mode {
+	case classMode:
+	default:
+		c.addError(
+			"init definitions cannot appear outside of classes",
+			initNode.Span(),
+		)
+	}
+	method := c.declareMethod(
+		false,
+		false,
+		"#init",
+		initNode.Parameters,
+		nil,
+		initNode.ThrowType,
+		initNode.Span(),
+	)
+	initNode.SetType(method)
+	newNode := ast.NewMethodDefinitionNode(
+		initNode.Span(),
+		false,
+		false,
+		"#init",
+		initNode.Parameters,
+		nil,
+		initNode.ThrowType,
+		initNode.Body,
+	)
+	newNode.SetType(method)
+	c.registerMethodCheck(method, newNode)
+	return newNode
 }
 
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
@@ -3595,8 +3709,11 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			continue
 		}
 
+		var docComment string
 		expression := stmt.Expression
-		if docNode, ok := stmt.Expression.(*ast.DocCommentNode); ok {
+		docNode, ok := stmt.Expression.(*ast.DocCommentNode)
+		if ok {
+			docComment = docNode.Comment
 			expression = docNode.Expression
 		}
 
@@ -3625,27 +3742,14 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(method)
 		case *ast.InitDefinitionNode:
-			switch c.mode {
-			case classMode:
-			default:
-				c.addError(
-					"init definitions cannot appear outside of classes",
-					expr.Span(),
-				)
+			newNode := c.initDefinition(expr, docComment)
+			if docNode != nil {
+				docNode.Expression = newNode
+			} else {
+				stmt.Expression = newNode
 			}
-			method := c.declareMethod(
-				false,
-				false,
-				"#init",
-				expr.Parameters,
-				nil,
-				expr.ThrowType,
-				expr.Span(),
-			)
-			expr.SetType(method)
-			c.registerInitCheck(method, expr)
 		case *ast.InstanceVariableDeclarationNode:
-			c.instanceVariableDeclaration(expr)
+			c.instanceVariableDeclaration(expr, docComment)
 		case *ast.GetterDeclarationNode:
 			c.getterDeclaration(expr)
 		case *ast.SetterDeclarationNode:

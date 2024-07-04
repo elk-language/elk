@@ -64,6 +64,23 @@ type Node interface {
 	Type(*types.GlobalEnvironment) types.Type
 }
 
+type DocCommentableNode interface {
+	DocComment() string
+	SetDocComment(string)
+}
+
+type DocCommentableNodeBase struct {
+	comment string
+}
+
+func (d *DocCommentableNodeBase) DocComment() string {
+	return d.comment
+}
+
+func (d *DocCommentableNodeBase) SetDocComment(comment string) {
+	d.comment = comment
+}
+
 // Every node type implements this interface.
 type TypedNode interface {
 	Node
@@ -815,6 +832,7 @@ func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode,
 // Represents an instance variable declaration eg. `var @foo: String`
 type InstanceVariableDeclarationNode struct {
 	NodeBase
+	DocCommentableNodeBase
 	Name     string   // name of the variable
 	TypeNode TypeNode // type of the variable
 }
@@ -2575,6 +2593,7 @@ func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpre
 // Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
 type ConstantDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Constant    ExpressionNode // name of the constant
 	TypeNode    TypeNode       // type of the constant
 	Initialiser ExpressionNode // value assigned to the constant
@@ -2866,6 +2885,7 @@ func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType
 // Represents a class declaration eg. `class Foo; end`
 type ClassDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Abstract      bool
 	Sealed        bool
 	Constant      ExpressionNode     // The constant that will hold the class value
@@ -2903,6 +2923,7 @@ func NewClassDeclarationNode(
 // Represents a module declaration eg. `module Foo; end`
 type ModuleDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Constant ExpressionNode  // The constant that will hold the module value
 	Body     []StatementNode // body of the module
 }
@@ -2928,6 +2949,7 @@ func NewModuleDeclarationNode(
 // Represents a mixin declaration eg. `mixin Foo; end`
 type MixinDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Abstract      bool
 	Constant      ExpressionNode     // The constant that will hold the mixin value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
@@ -2959,6 +2981,7 @@ func NewMixinDeclarationNode(
 // Represents an interface declaration eg. `interface Foo; end`
 type InterfaceDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Constant      ExpressionNode     // The constant that will hold the interface value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the interface
@@ -2987,6 +3010,7 @@ func NewInterfaceDeclarationNode(
 // Represents a struct declaration eg. `struct Foo; end`
 type StructDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Constant      ExpressionNode            // The constant that will hold the struct value
 	TypeVariables []TypeVariableNode        // Generic type variable definitions
 	Body          []StructBodyStatementNode // body of the struct
@@ -3086,6 +3110,7 @@ func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStr
 // Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Name       string
 	Parameters []ParameterNode // formal parameters
 	ReturnType TypeNode
@@ -3138,6 +3163,7 @@ func NewMethodDefinitionNode(
 // Represents a constructor definition eg. `init then 'hello world'`
 type InitDefinitionNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Parameters []ParameterNode // formal parameters
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the method
@@ -3204,6 +3230,7 @@ func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, a
 // Represents a new type definition eg. `typedef StringList = ArrayList[String]`
 type TypeDefinitionNode struct {
 	NodeBase
+	DocCommentableNodeBase
 	Constant ComplexConstantNode // new name of the type
 	TypeNode TypeNode            // the type
 }
@@ -3262,6 +3289,7 @@ func NewAliasDeclarationNode(span *position.Span, entries []*AliasDeclarationEnt
 // Represents a new getter declaration eg. `getter foo: String`
 type GetterDeclarationNode struct {
 	NodeBase
+	DocCommentableNodeBase
 	Entries []ParameterNode
 }
 
@@ -3280,6 +3308,7 @@ func NewGetterDeclarationNode(span *position.Span, entries []ParameterNode) *Get
 // Represents a new setter declaration eg. `setter foo: String`
 type SetterDeclarationNode struct {
 	NodeBase
+	DocCommentableNodeBase
 	Entries []ParameterNode
 }
 
@@ -3298,6 +3327,7 @@ func NewSetterDeclarationNode(span *position.Span, entries []ParameterNode) *Set
 // Represents a new setter declaration eg. `attr foo: String`
 type AttrDeclarationNode struct {
 	NodeBase
+	DocCommentableNodeBase
 	Entries []ParameterNode
 }
 
@@ -3305,7 +3335,7 @@ func (*AttrDeclarationNode) IsStatic() bool {
 	return false
 }
 
-// Create an accessor declaration node eg. `accessor foo: String`
+// Create an attribute declaration node eg. `attr foo: String`
 func NewAttrDeclarationNode(span *position.Span, entries []ParameterNode) *AttrDeclarationNode {
 	return &AttrDeclarationNode{
 		NodeBase: NodeBase{span: span},
@@ -3377,7 +3407,7 @@ func (*ImplementExpressionNode) IsStatic() bool {
 	return false
 }
 
-// Create an enhance expression node eg. `enhance Enumerable[V]`
+// Create an enhance expression node eg. `implement Enumerable[V]`
 func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
 	return &ImplementExpressionNode{
 		NodeBase:  NodeBase{span: span},

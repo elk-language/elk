@@ -49,6 +49,7 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.NodeBase{},
 			ast.TypedNodeBase{},
 			token.Token{},
+			ast.DocCommentableNodeBase{},
 			ast.BinaryExpressionNode{},
 			ast.LogicalExpressionNode{},
 			ast.KeyValueExpressionNode{},

@@ -408,7 +408,7 @@ func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Spa
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
 func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Span, []ast.StructBodyStatementNode, bool) {
-	return genericStatementBlockWithThen(p, p.structBodyStatements, p.formalParameter, ast.NewParameterStatementNodeI, stopTokens...)
+	return genericStatementBlockWithThen(p, p.structBodyStatements, p.attributeParameter, ast.NewParameterStatementNodeI, stopTokens...)
 }
 
 // Represents an AST Node constructor function for binary operators
@@ -611,7 +611,7 @@ func (p *Parser) structBodyStatement(separators ...token.Type) ast.StructBodySta
 
 // parameterStatement = formalParameter [SEPARATOR]
 func (p *Parser) parameterStatement(separators ...token.Type) *ast.ParameterStatementNode {
-	return statementProduction(p, ast.NewParameterStatementNode, p.formalParameter, separators...)
+	return statementProduction(p, ast.NewParameterStatementNode, p.attributeParameter, separators...)
 }
 
 // emptyStatement = SEPARATOR

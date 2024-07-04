@@ -92,6 +92,99 @@ func TestModule(t *testing.T) {
 	}
 }
 
+func TestStruct(t *testing.T) {
+	tests := testTable{
+		"struct with public constant": {
+			input: `struct Foo; end`,
+		},
+		"instantiate a struct with all attributes": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a", 2)
+			`,
+		},
+		"instantiate a struct without optional attributes": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+			`,
+		},
+		"instantiate a struct with invalid attributes": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo(5.2, 'b', :bar)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Float(5.2)`"),
+				error.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `Std::String(\"b\")`"),
+				error.NewFailure(L("<main>", P(68, 7, 13), P(86, 7, 31)), "expected 1...2 arguments in call to `#init`, got 3"),
+			},
+		},
+		"call a getter on a struct": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+				var a: String = f.a
+			`,
+		},
+		"call a getter on a struct and assign to a wrong type": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+				var a: String = f.b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(97, 8, 21), P(99, 8, 23)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"assign struct type to a singleton type": {
+			input: `
+				struct Foo
+				end
+
+				var a = Foo()
+				var b: &Foo = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(61, 6, 19), P(61, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			},
+		},
+		"assign struct to a singleton type": {
+			input: `
+				struct Foo; end
+
+				var a: &Foo = Foo
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestClass(t *testing.T) {
 	tests := testTable{
 		"class with public constant": {
