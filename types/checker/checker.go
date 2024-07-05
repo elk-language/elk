@@ -3047,8 +3047,7 @@ func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
 	}
 }
 
-func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode, docComment string) {
-	node.SetDocComment(docComment)
+func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
 	var declaredType types.Type
@@ -3671,7 +3670,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	}
 }
 
-func (c *Checker) initDefinition(initNode *ast.InitDefinitionNode, docComment string) *ast.MethodDefinitionNode {
+func (c *Checker) initDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {
 	switch c.mode {
 	case classMode:
 	default:
@@ -3714,7 +3713,6 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			continue
 		}
 
-		var docComment string
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
@@ -3744,9 +3742,9 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(method)
 		case *ast.InitDefinitionNode:
-			stmt.Expression = c.initDefinition(expr, docComment)
+			stmt.Expression = c.initDefinition(expr)
 		case *ast.InstanceVariableDeclarationNode:
-			c.instanceVariableDeclaration(expr, docComment)
+			c.instanceVariableDeclaration(expr)
 		case *ast.GetterDeclarationNode:
 			c.getterDeclaration(expr)
 		case *ast.SetterDeclarationNode:
