@@ -3010,7 +3010,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Typ
 	}
 }
 
-func (c *Checker) getterDeclaration(node *ast.GetterDeclarationNode) {
+func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -3022,7 +3022,7 @@ func (c *Checker) getterDeclaration(node *ast.GetterDeclarationNode) {
 	}
 }
 
-func (c *Checker) setterDeclaration(node *ast.SetterDeclarationNode) {
+func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -3034,7 +3034,7 @@ func (c *Checker) setterDeclaration(node *ast.SetterDeclarationNode) {
 	}
 }
 
-func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
+func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -3047,7 +3047,7 @@ func (c *Checker) attrDeclaration(node *ast.AttrDeclarationNode) {
 	}
 }
 
-func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
 	var declaredType types.Type
@@ -3549,6 +3549,120 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	return classNode
 }
 
+func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	module := c.declareModule(
+		node.DocComment(),
+		container,
+		constant,
+		fullConstantName,
+		constantName,
+		node.Span(),
+	)
+	node.SetType(module)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+
+	c.pushConstScope(makeLocalConstantScope(module))
+	c.pushMethodScope(makeLocalMethodScope(module))
+
+	c.hoistTypeDefinitions(node.Body)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	class := c.declareClass(
+		node.DocComment(),
+		node.Abstract,
+		node.Sealed,
+		container,
+		constant,
+		fullConstantName,
+		constantName,
+		node.Span(),
+	)
+	node.SetType(class)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+
+	c.pushConstScope(makeLocalConstantScope(class))
+	c.pushMethodScope(makeLocalMethodScope(class))
+
+	c.hoistTypeDefinitions(node.Body)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	mixin := c.declareMixin(
+		node.DocComment(),
+		node.Abstract,
+		container,
+		constant,
+		fullConstantName,
+		constantName,
+		node.Span(),
+	)
+	node.SetType(mixin)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+
+	c.pushConstScope(makeLocalConstantScope(mixin))
+	c.pushMethodScope(makeLocalMethodScope(mixin))
+
+	c.hoistTypeDefinitions(node.Body)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	iface := c.declareInterface(
+		node.DocComment(),
+		container,
+		constant,
+		fullConstantName,
+		constantName,
+		node.Span(),
+	)
+	node.SetType(iface)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+
+	c.pushConstScope(makeLocalConstantScope(iface))
+	c.pushMethodScope(makeLocalMethodScope(iface))
+
+	c.hoistTypeDefinitions(node.Body)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistTypeDefinition(node *ast.TypeDefinitionNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	if constant != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+			node.Constant.Span(),
+		)
+	}
+
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+
+	typ := c.typeOf(node.TypeNode)
+	container.DefineConstant(constantName, types.Void{})
+	namedType := types.NewNamedType(fullConstantName, typ)
+	container.DefineSubtype(constantName, namedType)
+}
+
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -3561,116 +3675,22 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 		case *ast.StructDeclarationNode:
 			stmt.Expression = c.hoistStructDeclaration(expr)
 		case *ast.ModuleDeclarationNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			module := c.declareModule(
-				expr.DocComment(),
-				container,
-				constant,
-				fullConstantName,
-				constantName,
-				expr.Span(),
-			)
-			expr.SetType(module)
-			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
-
-			c.pushConstScope(makeLocalConstantScope(module))
-			c.pushMethodScope(makeLocalMethodScope(module))
-
-			c.hoistTypeDefinitions(expr.Body)
-
-			c.popConstScope()
-			c.popMethodScope()
+			c.hoistModuleDeclaration(expr)
 		case *ast.ClassDeclarationNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			class := c.declareClass(
-				expr.DocComment(),
-				expr.Abstract,
-				expr.Sealed,
-				container,
-				constant,
-				fullConstantName,
-				constantName,
-				expr.Span(),
-			)
-			expr.SetType(class)
-			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
-
-			c.pushConstScope(makeLocalConstantScope(class))
-			c.pushMethodScope(makeLocalMethodScope(class))
-
-			c.hoistTypeDefinitions(expr.Body)
-
-			c.popConstScope()
-			c.popMethodScope()
+			c.hoistClassDeclaration(expr)
 		case *ast.MixinDeclarationNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			mixin := c.declareMixin(
-				expr.DocComment(),
-				expr.Abstract,
-				container,
-				constant,
-				fullConstantName,
-				constantName,
-				expr.Span(),
-			)
-			expr.SetType(mixin)
-			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
-
-			c.pushConstScope(makeLocalConstantScope(mixin))
-			c.pushMethodScope(makeLocalMethodScope(mixin))
-
-			c.hoistTypeDefinitions(expr.Body)
-
-			c.popConstScope()
-			c.popMethodScope()
+			c.hoistMixinDeclaration(expr)
 		case *ast.InterfaceDeclarationNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			iface := c.declareInterface(
-				expr.DocComment(),
-				container,
-				constant,
-				fullConstantName,
-				constantName,
-				expr.Span(),
-			)
-			expr.SetType(iface)
-			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
-
-			c.pushConstScope(makeLocalConstantScope(iface))
-			c.pushMethodScope(makeLocalMethodScope(iface))
-
-			c.hoistTypeDefinitions(expr.Body)
-
-			c.popConstScope()
-			c.popMethodScope()
+			c.hoistInterfaceDeclaration(expr)
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
 		case *ast.TypeDefinitionNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
-			if constant != nil {
-				c.addError(
-					fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-					expr.Constant.Span(),
-				)
-			}
-
-			expr.TypeNode = c.checkTypeNode(expr.TypeNode)
-
-			typ := c.typeOf(expr.TypeNode)
-			container.DefineConstant(constantName, types.Void{})
-			namedType := types.NewNamedType(fullConstantName, typ)
-			container.DefineSubtype(constantName, namedType)
+			c.hoistTypeDefinition(expr)
 		}
 	}
 }
 
-func (c *Checker) initDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {
+func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {
 	switch c.mode {
 	case classMode:
 	default:
@@ -3706,6 +3726,174 @@ func (c *Checker) initDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDe
 	return newNode
 }
 
+func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
+	method := c.declareMethod(
+		node.DocComment(),
+		node.Abstract,
+		node.Sealed,
+		node.Name,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Span(),
+	)
+	node.SetType(method)
+	c.registerMethodCheck(method, node)
+}
+
+func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
+	method := c.declareMethod(
+		node.DocComment(),
+		true,
+		false,
+		node.Name,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Span(),
+	)
+	node.SetType(method)
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNode) {
+	class, ok := c.typeOf(node).(*types.Class)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(class))
+		c.pushMethodScope(makeLocalMethodScope(class))
+
+		var superclass *types.Class
+
+		if node.Superclass == nil {
+			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+		} else {
+			superclassType, _ := c.resolveConstantType(node.Superclass)
+			var ok bool
+			superclass, ok = superclassType.(*types.Class)
+			if !ok {
+				c.addError(
+					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			} else if superclass.IsSealed() {
+				c.addError(
+					fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			}
+		}
+
+		parent := class.Superclass()
+		if parent == nil && superclass != nil {
+			class.SetParent(superclass)
+		} else if parent != nil && parent != superclass {
+			var span *position.Span
+			if node.Superclass == nil {
+				span = node.Span()
+			} else {
+				span = node.Superclass.Span()
+			}
+
+			c.addError(
+				fmt.Sprintf(
+					"superclass mismatch in `%s`, got `%s`, expected `%s`",
+					class.Name(),
+					superclass.Name(),
+					parent.Name(),
+				),
+				span,
+			)
+		}
+
+	}
+
+	previousMode := c.mode
+	c.mode = classMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
+	module, ok := c.typeOf(node).(*types.Module)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(module))
+		c.pushMethodScope(makeLocalMethodScope(module))
+	}
+
+	previousMode := c.mode
+	c.mode = moduleMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Mixin)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousMode := c.mode
+	c.mode = mixinMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Interface)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousMode := c.mode
+	c.mode = interfaceMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
+	namespace := c.currentConstScope().container
+	singleton := namespace.Singleton()
+	if singleton == nil {
+		c.addError(
+			"cannot declare a singleton class in this context",
+			expr.Span(),
+		)
+		return
+	}
+	expr.SetType(singleton)
+
+	c.pushConstScope(makeLocalConstantScope(singleton))
+	c.pushMethodScope(makeLocalMethodScope(singleton))
+
+	previousMode := c.mode
+	c.mode = singletonMode
+	c.hoistMethodDefinitions(expr.Body)
+	c.setMode(previousMode)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -3717,40 +3905,19 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 
 		switch expr := expression.(type) {
 		case *ast.MethodDefinitionNode:
-			method := c.declareMethod(
-				expr.DocComment(),
-				expr.Abstract,
-				expr.Sealed,
-				expr.Name,
-				expr.Parameters,
-				expr.ReturnType,
-				expr.ThrowType,
-				expr.Span(),
-			)
-			expr.SetType(method)
-			c.registerMethodCheck(method, expr)
+			c.hoistMethodDefinition(expr)
 		case *ast.MethodSignatureDefinitionNode:
-			method := c.declareMethod(
-				expr.DocComment(),
-				true,
-				false,
-				expr.Name,
-				expr.Parameters,
-				expr.ReturnType,
-				expr.ThrowType,
-				expr.Span(),
-			)
-			expr.SetType(method)
+			c.hoistMethodSignatureDefinition(expr)
 		case *ast.InitDefinitionNode:
-			stmt.Expression = c.initDefinition(expr)
+			stmt.Expression = c.hoistInitDefinition(expr)
 		case *ast.InstanceVariableDeclarationNode:
-			c.instanceVariableDeclaration(expr)
+			c.hoistInstanceVariableDeclaration(expr)
 		case *ast.GetterDeclarationNode:
-			c.getterDeclaration(expr)
+			c.hoistGetterDeclaration(expr)
 		case *ast.SetterDeclarationNode:
-			c.setterDeclaration(expr)
+			c.hoistSetterDeclaration(expr)
 		case *ast.AttrDeclarationNode:
-			c.attrDeclaration(expr)
+			c.hoistAttrDeclaration(expr)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)
@@ -3760,134 +3927,15 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				c.implementInterface(constant)
 			}
 		case *ast.ModuleDeclarationNode:
-			module, ok := c.typeOf(expr).(*types.Module)
-			if ok {
-				c.pushConstScope(makeLocalConstantScope(module))
-				c.pushMethodScope(makeLocalMethodScope(module))
-			}
-
-			previousMode := c.mode
-			c.mode = moduleMode
-			c.hoistMethodDefinitions(expr.Body)
-			c.setMode(previousMode)
-
-			if ok {
-				c.popConstScope()
-				c.popMethodScope()
-			}
+			c.hoistMethodDefinitionsWithinModule(expr)
 		case *ast.ClassDeclarationNode:
-			class, ok := c.typeOf(expr).(*types.Class)
-			if ok {
-				c.pushConstScope(makeLocalConstantScope(class))
-				c.pushMethodScope(makeLocalMethodScope(class))
-
-				var superclass *types.Class
-
-				if expr.Superclass == nil {
-					superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-				} else {
-					superclassType, _ := c.resolveConstantType(expr.Superclass)
-					var ok bool
-					superclass, ok = superclassType.(*types.Class)
-					if !ok {
-						c.addError(
-							fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
-							expr.Superclass.Span(),
-						)
-					} else if superclass.IsSealed() {
-						c.addError(
-							fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-							expr.Superclass.Span(),
-						)
-					}
-				}
-
-				parent := class.Superclass()
-				if parent == nil && superclass != nil {
-					class.SetParent(superclass)
-				} else if parent != nil && parent != superclass {
-					var span *position.Span
-					if expr.Superclass == nil {
-						span = expr.Span()
-					} else {
-						span = expr.Superclass.Span()
-					}
-
-					c.addError(
-						fmt.Sprintf(
-							"superclass mismatch in `%s`, got `%s`, expected `%s`",
-							class.Name(),
-							superclass.Name(),
-							parent.Name(),
-						),
-						span,
-					)
-				}
-
-			}
-
-			previousMode := c.mode
-			c.mode = classMode
-			c.hoistMethodDefinitions(expr.Body)
-			c.setMode(previousMode)
-			if ok {
-				c.popConstScope()
-				c.popMethodScope()
-			}
+			c.hoistMethodDefinitionsWithinClass(expr)
 		case *ast.MixinDeclarationNode:
-			mixin, ok := c.typeOf(expr).(*types.Mixin)
-			if ok {
-				c.pushConstScope(makeLocalConstantScope(mixin))
-				c.pushMethodScope(makeLocalMethodScope(mixin))
-			}
-
-			previousMode := c.mode
-			c.mode = mixinMode
-			c.hoistMethodDefinitions(expr.Body)
-			c.setMode(previousMode)
-
-			if ok {
-				c.popConstScope()
-				c.popMethodScope()
-			}
+			c.hoistMethodDefinitionsWithinMixin(expr)
 		case *ast.InterfaceDeclarationNode:
-			mixin, ok := c.typeOf(expr).(*types.Interface)
-			if ok {
-				c.pushConstScope(makeLocalConstantScope(mixin))
-				c.pushMethodScope(makeLocalMethodScope(mixin))
-			}
-
-			previousMode := c.mode
-			c.mode = interfaceMode
-			c.hoistMethodDefinitions(expr.Body)
-			c.setMode(previousMode)
-
-			if ok {
-				c.popConstScope()
-				c.popMethodScope()
-			}
+			c.hoistMethodDefinitionsWithinInterface(expr)
 		case *ast.SingletonBlockExpressionNode:
-			namespace := c.currentConstScope().container
-			singleton := namespace.Singleton()
-			if singleton == nil {
-				c.addError(
-					"cannot declare a singleton class in this context",
-					expr.Span(),
-				)
-				break
-			}
-			expr.SetType(singleton)
-
-			c.pushConstScope(makeLocalConstantScope(singleton))
-			c.pushMethodScope(makeLocalMethodScope(singleton))
-
-			previousMode := c.mode
-			c.mode = singletonMode
-			c.hoistMethodDefinitions(expr.Body)
-			c.setMode(previousMode)
-
-			c.popConstScope()
-			c.popMethodScope()
+			c.hoistMethodDefinitionsWithinSingleton(expr)
 		}
 	}
 }
