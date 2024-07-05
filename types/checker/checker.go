@@ -697,6 +697,97 @@ func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
 	}
 }
 
+func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) {
+	module, ok := c.typeOf(node).(*types.Module)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(module))
+		c.pushMethodScope(makeLocalMethodScope(module))
+	}
+
+	previousSelf := c.selfType
+	c.selfType = module
+	c.checkStatements(node.Body)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
+	class, ok := c.typeOf(node).(*types.Class)
+	if ok {
+		c.checkAbstractMethods(class, node.Constant.Span())
+		c.pushConstScope(makeLocalConstantScope(class))
+		c.pushMethodScope(makeLocalMethodScope(class))
+	}
+
+	previousSelf := c.selfType
+	c.selfType = class.Singleton()
+	c.checkStatements(node.Body)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Mixin)
+	if ok {
+		c.checkAbstractMethods(mixin, node.Constant.Span())
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousSelf := c.selfType
+	c.selfType = mixin.Singleton()
+	c.checkStatements(node.Body)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclarationNode) {
+	iface, ok := c.typeOf(node).(*types.Interface)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(iface))
+		c.pushMethodScope(makeLocalMethodScope(iface))
+	}
+
+	previousSelf := c.selfType
+	c.selfType = iface.Singleton()
+	c.checkStatements(node.Body)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpressionNode) {
+	class, ok := c.typeOf(node).(*types.SingletonClass)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(class))
+		c.pushMethodScope(makeLocalMethodScope(class))
+	}
+
+	previousSelf := c.selfType
+	c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
+	c.checkStatements(node.Body)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
@@ -793,91 +884,19 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ConstantLookupNode:
 		return c.constantLookup(n)
 	case *ast.ModuleDeclarationNode:
-		module, ok := c.typeOf(node).(*types.Module)
-		if ok {
-			c.pushConstScope(makeLocalConstantScope(module))
-			c.pushMethodScope(makeLocalMethodScope(module))
-		}
-
-		previousSelf := c.selfType
-		c.selfType = module
-		c.checkStatements(n.Body)
-		c.selfType = previousSelf
-
-		if ok {
-			c.popConstScope()
-			c.popMethodScope()
-		}
+		c.checkExpressionsWithinModule(n)
 		return n
 	case *ast.ClassDeclarationNode:
-		class, ok := c.typeOf(node).(*types.Class)
-		if ok {
-			c.checkAbstractMethods(class, n.Constant.Span())
-			c.pushConstScope(makeLocalConstantScope(class))
-			c.pushMethodScope(makeLocalMethodScope(class))
-		}
-
-		previousSelf := c.selfType
-		c.selfType = class.Singleton()
-		c.checkStatements(n.Body)
-		c.selfType = previousSelf
-
-		if ok {
-			c.popConstScope()
-			c.popMethodScope()
-		}
+		c.checkExpressionsWithinClass(n)
 		return n
 	case *ast.MixinDeclarationNode:
-		mixin, ok := c.typeOf(node).(*types.Mixin)
-		if ok {
-			c.checkAbstractMethods(mixin, n.Constant.Span())
-			c.pushConstScope(makeLocalConstantScope(mixin))
-			c.pushMethodScope(makeLocalMethodScope(mixin))
-		}
-
-		previousSelf := c.selfType
-		c.selfType = mixin.Singleton()
-		c.checkStatements(n.Body)
-		c.selfType = previousSelf
-
-		if ok {
-			c.popConstScope()
-			c.popMethodScope()
-		}
+		c.checkExpressionsWithinMixin(n)
 		return n
 	case *ast.InterfaceDeclarationNode:
-		iface, ok := c.typeOf(node).(*types.Interface)
-		if ok {
-			c.pushConstScope(makeLocalConstantScope(iface))
-			c.pushMethodScope(makeLocalMethodScope(iface))
-		}
-
-		previousSelf := c.selfType
-		c.selfType = iface.Singleton()
-		c.checkStatements(n.Body)
-		c.selfType = previousSelf
-
-		if ok {
-			c.popConstScope()
-			c.popMethodScope()
-		}
+		c.checkExpressionsWithinInterface(n)
 		return n
 	case *ast.SingletonBlockExpressionNode:
-		class, ok := c.typeOf(node).(*types.SingletonClass)
-		if ok {
-			c.pushConstScope(makeLocalConstantScope(class))
-			c.pushMethodScope(makeLocalMethodScope(class))
-		}
-
-		previousSelf := c.selfType
-		c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
-		c.checkStatements(n.Body)
-		c.selfType = previousSelf
-
-		if ok {
-			c.popConstScope()
-			c.popMethodScope()
-		}
+		c.checkExpressionsWithinSingleton(n)
 		return n
 	case *ast.AssignmentExpressionNode:
 		c.assignmentExpression(n)
