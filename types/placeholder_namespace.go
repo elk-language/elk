@@ -41,7 +41,7 @@ func (p *PlaceholderNamespace) SetParent(Namespace) {
 
 func NewPlaceholderNamespace(name string) *PlaceholderNamespace {
 	return &PlaceholderNamespace{
-		NamespaceBase: MakeNamespaceBase(name),
+		NamespaceBase: MakeNamespaceBase("", name),
 		Locations:     concurrent.NewSlice[*position.Location](),
 	}
 }
@@ -70,8 +70,8 @@ func (p *PlaceholderNamespace) inspect() string {
 	return p.Name()
 }
 
-func (p *PlaceholderNamespace) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, p)
+func (p *PlaceholderNamespace) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, name, params, returnType, throwType, p)
 	p.SetMethod(name, method)
 	return method
 }

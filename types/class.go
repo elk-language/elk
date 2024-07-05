@@ -70,9 +70,9 @@ func (c *Class) SetParent(parent Namespace) {
 	}
 }
 
-func NewClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
+func NewClass(docComment, name string, parent Namespace, env *GlobalEnvironment) *Class {
 	class := &Class{
-		NamespaceBase: MakeNamespaceBase(name),
+		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
 	class.SetParent(parent)
@@ -80,13 +80,14 @@ func NewClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
 	return class
 }
 
-func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
+func NewClassWithDetails(docComment, name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
 	class := &Class{
 		NamespaceBase: NamespaceBase{
-			name:      name,
-			constants: consts,
-			subtypes:  subtypes,
-			methods:   methods,
+			docComment: docComment,
+			name:       name,
+			constants:  consts,
+			subtypes:   subtypes,
+			methods:    methods,
 		},
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
@@ -95,8 +96,8 @@ func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtype
 	return class
 }
 
-func (c *Class) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, c)
+func (c *Class) DefineMethod(docComment string, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, name, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
 }

@@ -361,7 +361,6 @@ func (*HashSetLiteralNode) expressionNode()              {}
 func (*HashMapLiteralNode) expressionNode()              {}
 func (*HashRecordLiteralNode) expressionNode()           {}
 func (*RangeLiteralNode) expressionNode()                {}
-func (*DocCommentNode) expressionNode()                  {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -842,9 +841,12 @@ func (*InstanceVariableDeclarationNode) IsStatic() bool {
 }
 
 // Create a new instance variable declaration node eg. `var @foo: String`
-func NewInstanceVariableDeclarationNode(span *position.Span, name string, typ TypeNode) *InstanceVariableDeclarationNode {
+func NewInstanceVariableDeclarationNode(span *position.Span, docComment string, name string, typ TypeNode) *InstanceVariableDeclarationNode {
 	return &InstanceVariableDeclarationNode{
 		NodeBase: NodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Name:     name,
 		TypeNode: typ,
 	}
@@ -853,6 +855,7 @@ func NewInstanceVariableDeclarationNode(span *position.Span, name string, typ Ty
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Name        string         // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
@@ -863,12 +866,15 @@ func (*VariableDeclarationNode) IsStatic() bool {
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(span *position.Span, docComment string, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Name:          name,
-		TypeNode:      typ,
-		Initialiser:   init,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Name:        name,
+		TypeNode:    typ,
+		Initialiser: init,
 	}
 }
 
@@ -2604,12 +2610,15 @@ func (*ConstantDeclarationNode) IsStatic() bool {
 }
 
 // Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
-func NewConstantDeclarationNode(span *position.Span, constant ExpressionNode, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
+func NewConstantDeclarationNode(span *position.Span, docComment string, constant ExpressionNode, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
 	return &ConstantDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Constant:      constant,
-		TypeNode:      typ,
-		Initialiser:   init,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Constant:    constant,
+		TypeNode:    typ,
+		Initialiser: init,
 	}
 }
 
@@ -2901,6 +2910,7 @@ func (*ClassDeclarationNode) IsStatic() bool {
 // Create a new class declaration node eg. `class Foo; end`
 func NewClassDeclarationNode(
 	span *position.Span,
+	docComment string,
 	abstract bool,
 	sealed bool,
 	constant ExpressionNode,
@@ -2911,6 +2921,9 @@ func NewClassDeclarationNode(
 
 	return &ClassDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Abstract:      abstract,
 		Sealed:        sealed,
 		Constant:      constant,
@@ -2935,14 +2948,18 @@ func (*ModuleDeclarationNode) IsStatic() bool {
 // Create a new module declaration node eg. `module Foo; end`
 func NewModuleDeclarationNode(
 	span *position.Span,
+	docComment string,
 	constant ExpressionNode,
 	body []StatementNode,
 ) *ModuleDeclarationNode {
 
 	return &ModuleDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Constant:      constant,
-		Body:          body,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Constant: constant,
+		Body:     body,
 	}
 }
 
@@ -2963,6 +2980,7 @@ func (*MixinDeclarationNode) IsStatic() bool {
 // Create a new mixin declaration node eg. `mixin Foo; end`
 func NewMixinDeclarationNode(
 	span *position.Span,
+	docComment string,
 	abstract bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
@@ -2971,6 +2989,9 @@ func NewMixinDeclarationNode(
 
 	return &MixinDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Abstract:      abstract,
 		Constant:      constant,
 		TypeVariables: typeVars,
@@ -2994,6 +3015,7 @@ func (*InterfaceDeclarationNode) IsStatic() bool {
 // Create a new interface declaration node eg. `interface Foo; end`
 func NewInterfaceDeclarationNode(
 	span *position.Span,
+	docComment string,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StatementNode,
@@ -3001,6 +3023,9 @@ func NewInterfaceDeclarationNode(
 
 	return &InterfaceDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
@@ -3023,6 +3048,7 @@ func (*StructDeclarationNode) IsStatic() bool {
 // Create a new struct declaration node eg. `struct Foo; end`
 func NewStructDeclarationNode(
 	span *position.Span,
+	docComment string,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StructBodyStatementNode,
@@ -3030,6 +3056,9 @@ func NewStructDeclarationNode(
 
 	return &StructDeclarationNode{
 		TypedNodeBase: TypedNodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
@@ -3140,6 +3169,7 @@ func (m *MethodDefinitionNode) IsSetter() bool {
 // Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(
 	span *position.Span,
+	docComment string,
 	abstract bool,
 	sealed bool,
 	name string,
@@ -3150,13 +3180,16 @@ func NewMethodDefinitionNode(
 ) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Abstract:      abstract,
-		Sealed:        sealed,
-		Name:          name,
-		Parameters:    params,
-		ReturnType:    returnType,
-		ThrowType:     throwType,
-		Body:          body,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Abstract:   abstract,
+		Sealed:     sealed,
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
+		Body:       body,
 	}
 }
 
@@ -3186,6 +3219,7 @@ func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwTyp
 // Represents a method signature definition eg. `sig to_string(val: Int): String`
 type MethodSignatureDefinitionNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Name       string
 	Parameters []ParameterNode // formal parameters
 	ReturnType TypeNode
@@ -3197,13 +3231,16 @@ func (*MethodSignatureDefinitionNode) IsStatic() bool {
 }
 
 // Create a method signature node eg. `sig to_string(val: Int): String`
-func NewMethodSignatureDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+func NewMethodSignatureDefinitionNode(span *position.Span, docComment, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Name:          name,
-		Parameters:    params,
-		ReturnType:    returnType,
-		ThrowType:     throwType,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
 	}
 }
 
@@ -3240,9 +3277,12 @@ func (*TypeDefinitionNode) IsStatic() bool {
 }
 
 // Create a type definition node eg. `typedef StringList = ArrayList[String]`
-func NewTypeDefinitionNode(span *position.Span, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
+func NewTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
 	return &TypeDefinitionNode{
 		NodeBase: NodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
 		Constant: constant,
 		TypeNode: typ,
 	}
@@ -3298,10 +3338,13 @@ func (*GetterDeclarationNode) IsStatic() bool {
 }
 
 // Create a getter declaration node eg. `getter foo: String`
-func NewGetterDeclarationNode(span *position.Span, entries []ParameterNode) *GetterDeclarationNode {
+func NewGetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *GetterDeclarationNode {
 	return &GetterDeclarationNode{
 		NodeBase: NodeBase{span: span},
-		Entries:  entries,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Entries: entries,
 	}
 }
 
@@ -3317,10 +3360,13 @@ func (*SetterDeclarationNode) IsStatic() bool {
 }
 
 // Create a setter declaration node eg. `setter foo: String`
-func NewSetterDeclarationNode(span *position.Span, entries []ParameterNode) *SetterDeclarationNode {
+func NewSetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *SetterDeclarationNode {
 	return &SetterDeclarationNode{
 		NodeBase: NodeBase{span: span},
-		Entries:  entries,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Entries: entries,
 	}
 }
 
@@ -3336,10 +3382,13 @@ func (*AttrDeclarationNode) IsStatic() bool {
 }
 
 // Create an attribute declaration node eg. `attr foo: String`
-func NewAttrDeclarationNode(span *position.Span, entries []ParameterNode) *AttrDeclarationNode {
+func NewAttrDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *AttrDeclarationNode {
 	return &AttrDeclarationNode{
 		NodeBase: NodeBase{span: span},
-		Entries:  entries,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Entries: entries,
 	}
 }
 
@@ -4221,28 +4270,5 @@ func NewRangeLiteralNode(span *position.Span, op *token.Token, from, to Expressi
 		From:     from,
 		To:       to,
 		static:   areExpressionsStatic(from, to),
-	}
-}
-
-// Represents a doc comment eg.
-//
-//	##[foo bar]##
-//	def foo; end
-type DocCommentNode struct {
-	NodeBase
-	Comment    string
-	Expression ExpressionNode
-}
-
-func (*DocCommentNode) IsStatic() bool {
-	return false
-}
-
-// Create a doc comment.
-func NewDocCommentNode(span *position.Span, comment string, expr ExpressionNode) *DocCommentNode {
-	return &DocCommentNode{
-		NodeBase:   NodeBase{span: span},
-		Comment:    comment,
-		Expression: expr,
 	}
 }

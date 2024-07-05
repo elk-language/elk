@@ -131,46 +131,6 @@ func TestSingletonBlock(t *testing.T) {
 	}
 }
 
-func TestDocComment(t *testing.T) {
-	tests := testTable{
-		"document a module": {
-			input: `
-				##[
-					Foo is awesome
-				]##
-				module Foo; end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.CONSTANT_CONTAINER),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.DEF_MODULE),
-					byte(bytecode.DOC_COMMENT),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(56, 5, 20)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(5, 7),
-				},
-				[]value.Value{
-					value.String("Foo is awesome"),
-					value.ToSymbol("Foo"),
-				},
-			),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
-		})
-	}
-}
-
 func TestGetter(t *testing.T) {
 	tests := testTable{
 		"define single getter": {

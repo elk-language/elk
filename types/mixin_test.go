@@ -17,33 +17,35 @@ func TestMixin_CreateProxy(t *testing.T) {
 		wantTail *MixinProxy
 	}{
 		"simple mixin": {
-			mixin:    NewMixin("Foo", env),
-			wantHead: NewMixinProxy(NewMixin("Foo", env), nil),
-			wantTail: NewMixinProxy(NewMixin("Foo", env), nil),
+			mixin:    NewMixin("", "Foo", env),
+			wantHead: NewMixinProxy(NewMixin("", "Foo", env), nil),
+			wantTail: NewMixinProxy(NewMixin("", "Foo", env), nil),
 		},
 		"mixin with parent": {
 			mixin: NewMixinWithDetails(
+				"",
 				"Foo",
-				NewMixinProxy(NewMixin("Bar", env), nil),
+				NewMixinProxy(NewMixin("", "Bar", env), nil),
 				NewTypeMap(),
 				NewTypeMap(),
 				NewMethodMap(), env,
 			),
 			wantHead: NewMixinProxy(
 				NewMixinWithDetails(
+					"",
 					"Foo",
-					NewMixinProxy(NewMixin("Bar", env), nil),
+					NewMixinProxy(NewMixin("", "Bar", env), nil),
 					NewTypeMap(),
 					NewTypeMap(),
 					NewMethodMap(), env,
 				),
 				NewMixinProxy(
-					NewMixin("Bar", env),
+					NewMixin("", "Bar", env),
 					nil,
 				),
 			),
 			wantTail: NewMixinProxy(
-				NewMixin("Bar", env),
+				NewMixin("", "Bar", env),
 				nil,
 			),
 		},

@@ -77,6 +77,7 @@ func (p *Parameter) IsOptional() bool {
 
 type Method struct {
 	Name               string
+	DocComment         string
 	Params             []*Parameter
 	OptionalParamCount int
 	PostParamCount     int
@@ -126,7 +127,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -150,6 +151,7 @@ func NewMethod(name string, params []*Parameter, returnType Type, throwType Type
 
 	return &Method{
 		Name:               name,
+		DocComment:         docComment,
 		Params:             params,
 		ReturnType:         returnType,
 		ThrowType:          throwType,

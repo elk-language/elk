@@ -30,13 +30,14 @@ func (m *Module) IsPrimitive() bool {
 	return false
 }
 
-func NewModule(name string) *Module {
+func NewModule(docComment, name string) *Module {
 	return &Module{
-		NamespaceBase: MakeNamespaceBase(name),
+		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 }
 
 func NewModuleWithDetails(
+	docComment string,
 	name string,
 	consts *TypeMap,
 	subtypes *TypeMap,
@@ -44,10 +45,11 @@ func NewModuleWithDetails(
 ) *Module {
 	return &Module{
 		NamespaceBase: NamespaceBase{
-			name:      name,
-			constants: consts,
-			subtypes:  subtypes,
-			methods:   methods,
+			docComment: docComment,
+			name:       name,
+			constants:  consts,
+			subtypes:   subtypes,
+			methods:    methods,
 		},
 	}
 }
@@ -60,8 +62,8 @@ func (m *Module) inspect() string {
 	return m.Name()
 }
 
-func (m *Module) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, m)
+func (m *Module) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
 }

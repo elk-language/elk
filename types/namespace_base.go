@@ -27,6 +27,7 @@ func NewTypeMap() *TypeMap {
 }
 
 type NamespaceBase struct {
+	docComment        string
 	name              string
 	constants         *TypeMap
 	subtypes          *TypeMap
@@ -34,14 +35,35 @@ type NamespaceBase struct {
 	methods           *MethodMap
 }
 
-func MakeNamespaceBase(name string) NamespaceBase {
+func MakeNamespaceBase(docComment, name string) NamespaceBase {
 	return NamespaceBase{
+		docComment:        docComment,
 		name:              name,
 		constants:         NewTypeMap(),
 		subtypes:          NewTypeMap(),
 		instanceVariables: NewTypeMap(),
 		methods:           NewMethodMap(),
 	}
+}
+
+func (c *NamespaceBase) DocComment() string {
+	return c.docComment
+}
+
+func (c *NamespaceBase) SetDocComment(comment string) {
+	c.docComment = comment
+}
+
+func (c *NamespaceBase) AppendDocComment(newComment string) {
+	if newComment == "" {
+		return
+	}
+	if c.docComment == "" {
+		c.docComment = newComment
+		return
+	}
+
+	c.docComment = fmt.Sprintf("%s\n\n%s", c.docComment, newComment)
 }
 
 func (c *NamespaceBase) Name() string {
@@ -129,32 +151,32 @@ func (c *NamespaceBase) SetMethod(name string, method *Method) {
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
-	class := NewClass(MakeFullConstantName(c.Name(), name), parent, env)
+func (c *NamespaceBase) DefineClass(docComment, name string, parent Namespace, env *GlobalEnvironment) *Class {
+	class := NewClass(docComment, MakeFullConstantName(c.Name(), name), parent, env)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class
 }
 
 // Define a new module.
-func (c *NamespaceBase) DefineModule(name string) *Module {
-	m := NewModule(MakeFullConstantName(c.Name(), name))
+func (c *NamespaceBase) DefineModule(docComment, name string) *Module {
+	m := NewModule(docComment, MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(name string, env *GlobalEnvironment) *Mixin {
-	m := NewMixin(MakeFullConstantName(c.Name(), name), env)
+func (c *NamespaceBase) DefineMixin(docComment string, name string, env *GlobalEnvironment) *Mixin {
+	m := NewMixin(docComment, MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m
 }
 
 // Define a new interface.
-func (c *NamespaceBase) DefineInterface(name string, env *GlobalEnvironment) *Interface {
-	m := NewInterface(MakeFullConstantName(c.Name(), name), env)
+func (c *NamespaceBase) DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
+	m := NewInterface(docComment, MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m

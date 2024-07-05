@@ -640,6 +640,8 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.DEF:
 		return p.methodDefinition(true)
+	case token.SIG:
+		return p.methodSignatureDefinition(true)
 	case token.INIT:
 		return p.initDefinition(true)
 	case token.CLASS:
@@ -1977,7 +1979,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.ALIAS:
 		return p.aliasDeclaration()
 	case token.SIG:
-		return p.methodSignatureDefinition()
+		return p.methodSignatureDefinition(false)
 	case token.SINGLETON:
 		return p.singletonBlockExpression()
 	case token.INCLUDE:
@@ -2463,7 +2465,7 @@ func (p *Parser) implementExpression(allowed bool) *ast.ImplementExpressionNode 
 }
 
 // methodDefinition = "sig" methodName ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
-func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
+func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
@@ -2504,8 +2506,16 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 		span = span.Join(throwType.Span())
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"signature definitions cannot appear in expressions",
+			span,
+		)
+	}
+
 	return ast.NewMethodSignatureDefinitionNode(
 		span,
+		"",
 		methodName,
 		params,
 		returnType,
@@ -2578,6 +2588,7 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	}
 	return ast.NewTypeDefinitionNode(
 		span,
+		"",
 		name,
 		typ,
 	)
@@ -2707,6 +2718,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 
 	return ast.NewMethodDefinitionNode(
 		span,
+		"",
 		false,
 		false,
 		methodName,
@@ -2949,6 +2961,7 @@ func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewGetterDeclarationNode(
 		position.JoinSpanOfLastElement(getterTok.Span(), attrList),
+		"",
 		attrList,
 	)
 }
@@ -2968,6 +2981,7 @@ func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewSetterDeclarationNode(
 		position.JoinSpanOfLastElement(setterTok.Span(), attrList),
+		"",
 		attrList,
 	)
 }
@@ -2987,6 +3001,7 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewAttrDeclarationNode(
 		position.JoinSpanOfLastElement(attrTok.Span(), attrList),
+		"",
 		attrList,
 	)
 }
@@ -3065,6 +3080,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewClassDeclarationNode(
 		span,
+		"",
 		false,
 		false,
 		constant,
@@ -3146,6 +3162,7 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewModuleDeclarationNode(
 		span,
+		"",
 		constant,
 		thenBody,
 	)
@@ -3220,6 +3237,7 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewMixinDeclarationNode(
 		span,
+		"",
 		false,
 		constant,
 		typeVars,
@@ -3296,6 +3314,7 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewInterfaceDeclarationNode(
 		span,
+		"",
 		constant,
 		typeVars,
 		thenBody,
@@ -3371,6 +3390,7 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewStructDeclarationNode(
 		span,
+		"",
 		constant,
 		typeVars,
 		thenBody,
@@ -3423,6 +3443,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 			}
 			return ast.NewInstanceVariableDeclarationNode(
 				span,
+				"",
 				varName.Value,
 				typ,
 			)
@@ -3430,6 +3451,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 
 		return ast.NewVariableDeclarationNode(
 			span,
+			"",
 			varName.Value,
 			typ,
 			init,
@@ -3555,6 +3577,7 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewConstantDeclarationNode(
 		span,
+		"",
 		constant,
 		typ,
 		init,
@@ -5599,19 +5622,24 @@ func (p *Parser) instanceVariable() ast.ExpressionNode {
 }
 
 // docComment = DOC_COMMENT declarationExpression
-func (p *Parser) docComment() *ast.DocCommentNode {
+func (p *Parser) docComment() ast.ExpressionNode {
 	docComment := p.advance()
+	var nested bool
 	if p.lookahead.Type == token.DOC_COMMENT {
+		nested = true
 		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
 	expr := p.declarationExpression()
 
-	return ast.NewDocCommentNode(
-		docComment.Span().Join(expr.Span()),
-		docComment.Value,
-		expr,
-	)
+	docCommentableExpr, ok := expr.(ast.DocCommentableNode)
+	if !ok && !nested {
+		p.errorMessageSpan("doc comments cannot be attached to this expression", expr.Span())
+	}
+	if ok {
+		docCommentableExpr.SetDocComment(docComment.Value)
+	}
+	return expr
 }
 
 // identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER

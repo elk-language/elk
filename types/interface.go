@@ -35,9 +35,9 @@ func (i *Interface) SetParent(parent Namespace) {
 	i.parent = parent.(*InterfaceProxy)
 }
 
-func NewInterface(name string, env *GlobalEnvironment) *Interface {
+func NewInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
 	iface := &Interface{
-		NamespaceBase: MakeNamespaceBase(name),
+		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.Interface))
 
@@ -84,8 +84,8 @@ func (i *Interface) CreateProxy() (head, tail *InterfaceProxy) {
 	return headProxy, tailProxy
 }
 
-func (i *Interface) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, i)
+func (i *Interface) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, name, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method
 }

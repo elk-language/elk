@@ -7,6 +7,9 @@ import (
 type Namespace interface {
 	Type
 	Name() string
+	DocComment() string
+	SetDocComment(string)
+	AppendDocComment(string)
 	Parent() Namespace
 	SetParent(Namespace)
 	Singleton() *SingletonClass
@@ -27,7 +30,7 @@ type Namespace interface {
 	Methods() *MethodMap
 	Method(name value.Symbol) *Method
 	MethodString(name string) *Method
-	DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method
+	DefineMethod(docComment string, name string, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name string, method *Method)
 
 	InstanceVariables() *TypeMap
@@ -35,10 +38,10 @@ type Namespace interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name string, val Type)
 
-	DefineClass(name string, parent Namespace, env *GlobalEnvironment) *Class
-	DefineModule(name string) *Module
-	DefineMixin(name string, env *GlobalEnvironment) *Mixin
-	DefineInterface(name string, env *GlobalEnvironment) *Interface
+	DefineClass(docComment string, name string, parent Namespace, env *GlobalEnvironment) *Class
+	DefineModule(docComment string, name string) *Module
+	DefineMixin(docComment string, name string, env *GlobalEnvironment) *Mixin
+	DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface
 }
 
 func GetMethodInNamespace(namespace Namespace, name string) *Method {

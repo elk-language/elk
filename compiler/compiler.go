@@ -610,8 +610,6 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
 		c.modifierExpression("", node)
-	case *ast.DocCommentNode:
-		c.docComment(node)
 	case *ast.BreakExpressionNode:
 		c.breakExpression(node)
 	case *ast.ContinueExpressionNode:
@@ -2185,12 +2183,6 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	c.Bytecode.UpvalueCount++
 	local.hasUpvalue = true
 	return upvalue
-}
-
-func (c *Compiler) docComment(node *ast.DocCommentNode) {
-	c.emitValue(value.String(node.Comment), node.Span())
-	c.compileNode(node.Expression)
-	c.emit(node.Span().EndPos.Line, bytecode.DOC_COMMENT)
 }
 
 func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {

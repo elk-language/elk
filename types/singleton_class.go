@@ -15,7 +15,7 @@ func NewSingletonClass(attached Namespace, parent Namespace) *SingletonClass {
 		AttachedObject: attached,
 		Class: Class{
 			parent:        parent,
-			NamespaceBase: MakeNamespaceBase("&" + attached.Name()),
+			NamespaceBase: MakeNamespaceBase("", "&"+attached.Name()),
 		},
 	}
 	return singleton

@@ -38,23 +38,24 @@ func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func NewMixin(name string, env *GlobalEnvironment) *Mixin {
+func NewMixin(docComment, name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
-		NamespaceBase: MakeNamespaceBase(name),
+		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
 
 	return mixin
 }
 
-func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
+func NewMixinWithDetails(docComment, name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		parent: parent,
 		NamespaceBase: NamespaceBase{
-			name:      name,
-			constants: consts,
-			methods:   methods,
-			subtypes:  subtypes,
+			docComment: docComment,
+			name:       name,
+			constants:  consts,
+			methods:    methods,
+			subtypes:   subtypes,
 		},
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
@@ -103,8 +104,8 @@ loop:
 	return headProxy, tailProxy
 }
 
-func (m *Mixin) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, m)
+func (m *Mixin) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
 }
