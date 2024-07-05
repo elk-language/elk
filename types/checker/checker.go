@@ -42,29 +42,37 @@ type local struct {
 	singleAssignment bool
 }
 
+func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
+	return &local{
+		typ:              typ,
+		initialised:      initialised,
+		singleAssignment: singleAssignment,
+	}
+}
+
 // Contains definitions of local variables and values
 type localEnvironment struct {
 	parent *localEnvironment
-	locals map[value.Symbol]local
+	locals map[value.Symbol]*local
 }
 
 // Get the local with the specified name from this local environment
-func (l *localEnvironment) getLocal(name string) (local, bool) {
-	local, ok := l.locals[value.ToSymbol(name)]
-	return local, ok
+func (l *localEnvironment) getLocal(name string) *local {
+	local := l.locals[value.ToSymbol(name)]
+	return local
 }
 
 // Resolve the local with the given name from this local environment or any parent environment
-func (l *localEnvironment) resolveLocal(name string) (local, bool) {
+func (l *localEnvironment) resolveLocal(name string) *local {
 	nameSymbol := value.ToSymbol(name)
 	currentEnv := l
 	for {
 		if currentEnv == nil {
-			return local{}, false
+			return nil
 		}
 		loc, ok := currentEnv.locals[nameSymbol]
 		if ok {
-			return loc, true
+			return loc
 		}
 		currentEnv = currentEnv.parent
 	}
@@ -73,7 +81,7 @@ func (l *localEnvironment) resolveLocal(name string) (local, bool) {
 func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
 	return &localEnvironment{
 		parent: parent,
-		locals: make(map[value.Symbol]local),
+		locals: make(map[value.Symbol]*local),
 	}
 }
 
@@ -354,7 +362,7 @@ func (c *Checker) checkStatement(node ast.Node) {
 	case *ast.ExpressionStatementNode:
 		node.Expression = c.checkExpression(node.Expression)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("incorrect statement type %#v", node),
 			node.Span(),
 		)
@@ -666,7 +674,7 @@ loop:
 			)
 		}
 
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` does not implement interface `%s`:\n%s",
 				types.InspectWithColor(a),
@@ -913,7 +921,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
 			node.Span(),
 		)
@@ -940,7 +948,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 
 			method := types.GetMethodInNamespace(namespace, parentMethod.Name)
 			if method == nil || method.IsAbstract() {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"missing abstract method implementation `%s` with signature: `%s`",
 						types.InspectWithColor(parentMethod),
@@ -1089,7 +1097,7 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 			)
 		}
 
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot include `%s` in `%s`:\n%s",
 				types.InspectWithColor(includedMixin),
@@ -1107,7 +1115,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 
 	constantMixin, constantIsMixin := constantType.(*types.Mixin)
 	if !constantIsMixin {
-		c.addError(
+		c.addFailure(
 			"only mixins can be included",
 			node.Span(),
 		)
@@ -1118,7 +1126,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	switch c.mode {
 	case classMode, mixinMode, singletonMode:
 	default:
-		c.addError(
+		c.addFailure(
 			"cannot include mixins in this context",
 			node.Span(),
 		)
@@ -1142,7 +1150,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		tailProxy.SetParent(t.Parent())
 		t.SetParent(headProxy)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot include `%s` in `%s`",
 				types.InspectWithColor(constantType),
@@ -1158,7 +1166,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 
 	constantInterface, constantIsInterface := constantType.(*types.Interface)
 	if !constantIsInterface {
-		c.addError(
+		c.addFailure(
 			"only interfaces can be implemented",
 			node.Span(),
 		)
@@ -1168,7 +1176,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	switch c.mode {
 	case classMode, mixinMode, interfaceMode:
 	default:
-		c.addError(
+		c.addFailure(
 			"cannot implement interfaces in this context",
 			node.Span(),
 		)
@@ -1192,7 +1200,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 		tailProxy.SetParent(t.Parent())
 		t.SetParent(headProxy)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot implement `%s` in `%s`",
 				types.InspectWithColor(constantType),
@@ -1212,7 +1220,7 @@ func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) ast.Complex
 	case *ast.ConstantLookupNode:
 		return c.constantLookup(n)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant type %T", node),
 			node.Span(),
 		)
@@ -1225,7 +1233,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	areCompatible := true
 	if baseMethod != nil {
 		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
 					types.InspectWithColor(overrideMethod),
@@ -1238,7 +1246,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			areCompatible = false
 		}
 		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
 					types.InspectWithColor(overrideMethod),
@@ -1252,7 +1260,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		}
 
 		if len(baseMethod.Params) > len(overrideMethod.Params) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
 					types.InspectWithColor(overrideMethod),
@@ -1268,7 +1276,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 				oldParam := baseMethod.Params[i]
 				newParam := overrideMethod.Params[i]
 				if oldParam.Name != newParam.Name {
-					c.addError(
+					c.addFailure(
 						fmt.Sprintf(
 							"method `%s` has a different parameter name than `%s`, has `%s`, should have `%s`",
 							types.InspectWithColor(overrideMethod),
@@ -1282,7 +1290,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					continue
 				}
 				if oldParam.Kind != newParam.Kind {
-					c.addError(
+					c.addFailure(
 						fmt.Sprintf(
 							"method `%s` has a different parameter kind than `%s`, has `%s`, should have `%s`",
 							types.InspectWithColor(overrideMethod),
@@ -1296,7 +1304,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					continue
 				}
 				if !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
-					c.addError(
+					c.addFailure(
 						fmt.Sprintf(
 							"method `%s` has a different type for parameter `%s` than `%s`, has `%s`, should have `%s`",
 							types.InspectWithColor(overrideMethod),
@@ -1315,7 +1323,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
 				param := overrideMethod.Params[i]
 				if !param.IsOptional() {
-					c.addError(
+					c.addFailure(
 						fmt.Sprintf(
 							"method `%s` has a required parameter missing in `%s`, got `%s`",
 							types.InspectWithColor(overrideMethod),
@@ -1434,7 +1442,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span
 }
 
 func (c *Checker) addMissingMethodError(typ types.Type, name string, span *position.Span) {
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf("method `%s` is not defined on type `%s`", name, types.InspectWithColor(typ)),
 		span,
 	)
@@ -1485,7 +1493,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 		posArgType := c.typeOf(typedPosArg)
 		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
@@ -1500,7 +1508,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 
 	if method.HasPositionalRestParam() {
 		if len(positionalArguments) < requiredPosParamCount {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"expected %d... positional arguments in call to `%s`, got %d",
 					requiredPosParamCount,
@@ -1524,7 +1532,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
@@ -1548,7 +1556,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
@@ -1585,7 +1593,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				continue
 			}
 			if found || i < firstNamedParamIndex {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"duplicated argument `%s` in call to `%s`",
 						paramName,
@@ -1600,7 +1608,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			namedArgType := c.typeOf(typedNamedArgValue)
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
@@ -1623,7 +1631,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		if i < reqParamCount {
 			// the parameter is required
 			// but is not present in the call
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"argument `%s` is missing in call to `%s`",
 					paramName,
@@ -1665,7 +1673,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			)
 			namedArgType := c.typeOf(typedNamedArgValue)
 			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(namedRestParam.Type),
@@ -1687,7 +1695,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 
 			namedArgI := namedArguments[i]
 			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"nonexistent parameter `%s` given in call to `%s`",
 					namedArg.Name,
@@ -1730,7 +1738,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 
 	class, isClass := classType.(*types.Class)
 	if !isClass {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("`%s` cannot be instantiated", className),
 			node.Span(),
 		)
@@ -1740,7 +1748,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 	}
 
 	if class.IsAbstract() {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
 			node.Span(),
 		)
@@ -1786,7 +1794,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	returnType := method.ReturnType
 	if node.NilSafe {
 		if !c.isNilable(receiverType) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				node.Span(),
 			)
@@ -1825,14 +1833,14 @@ func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionN
 }
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), method.Name, got),
 		span,
 	)
 }
 
 func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *position.Span) {
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf(
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: `%s`",
 			baseMethod.Name,
@@ -1856,7 +1864,7 @@ func (c *Checker) checkMethodOverride(
 		c.addOverrideSealedMethodError(baseMethod, span)
 	}
 	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
@@ -1876,7 +1884,7 @@ func (c *Checker) checkMethodOverride(
 		} else {
 			returnSpan = span
 		}
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
@@ -1895,7 +1903,7 @@ func (c *Checker) checkMethodOverride(
 		} else {
 			throwSpan = span
 		}
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
@@ -1913,7 +1921,7 @@ func (c *Checker) checkMethodOverride(
 		if paramSpan == nil {
 			paramSpan = span
 		}
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: `%s`",
 				name,
@@ -1927,7 +1935,7 @@ func (c *Checker) checkMethodOverride(
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 			if oldParam.Name != newParam.Name {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
@@ -1941,7 +1949,7 @@ func (c *Checker) checkMethodOverride(
 				continue
 			}
 			if oldParam.Kind != newParam.Kind {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
@@ -1955,7 +1963,7 @@ func (c *Checker) checkMethodOverride(
 				continue
 			}
 			if !c.isSubtype(oldParam.Type, newParam.Type, paramNodes[i].Span()) {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
@@ -1973,7 +1981,7 @@ func (c *Checker) checkMethodOverride(
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
 			param := overrideMethod.Params[i]
 			if !param.IsOptional() {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: `%s`",
 						name,
@@ -2039,7 +2047,7 @@ func (c *Checker) checkMethod(
 			initType := c.typeOf(initNode)
 			c.checkCanAssign(initType, declaredType, initNode.Span())
 		}
-		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
+		c.addLocal(p.Name, newLocal(declaredType, true, false))
 		p.Initialiser = initNode
 		p.TypeNode = declaredTypeNode
 	}
@@ -2061,7 +2069,7 @@ func (c *Checker) checkMethod(
 	}
 
 	if len(body) > 0 && checkedMethod.IsAbstract() {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"method `%s` cannot have a body because it is abstract",
 				name,
@@ -2084,9 +2092,9 @@ func (c *Checker) checkMethod(
 func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		c.localVariableAssignment(n.Value, node)
 	case *ast.PrivateIdentifierNode:
-		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		c.localVariableAssignment(n.Value, node)
 	// case *ast.SubscriptExpressionNode:
 	// case *ast.ConstantLookupNode:
 	// case *ast.PublicConstantNode:
@@ -2094,16 +2102,35 @@ func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 	// case *ast.InstanceVariableNode:
 	// case *ast.AttributeAccessNode:
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 	}
 }
 
-func (c *Checker) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
-	switch operator.Type {
+func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpressionNode) {
+	span := node.Span()
+	switch node.Op.Type {
 	case token.EQUAL_OP:
+		variable := c.getLocal(name)
+		if variable == nil {
+			c.addFailure(
+				fmt.Sprintf("undefined local `%s`", name),
+				span,
+			)
+			break
+		}
+		if variable.singleAssignment && variable.initialised {
+			c.addFailure(
+				fmt.Sprintf("local value `%s` cannot be reassigned", name),
+				span,
+			)
+		}
+
+		node.Right = c.checkExpression(node.Right)
+		assignedType := c.typeOf(node.Right)
+		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
 	// case token.COLON_EQUAL:
 	// case token.OR_OR_EQUAL:
 	// case token.AND_AND_EQUAL:
@@ -2122,9 +2149,9 @@ func (c *Checker) localVariableAssignment(name string, operator *token.Token, ri
 	// case token.RBITSHIFT_EQUAL:
 	// case token.RTRIPLE_BITSHIFT_EQUAL:
 	default:
-		c.Errors.AddFailure(
-			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
-			c.newLocation(span),
+		c.addFailure(
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),
+			span,
 		)
 	}
 }
@@ -2143,21 +2170,21 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 		c.checkExpression(n.Expression)
 	case *ast.StringLiteralContentSectionNode:
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid string content %T", node),
 			node.Span(),
 		)
 	}
 }
 
-func (c *Checker) addErrorWithLocation(message string, loc *position.Location) {
+func (c *Checker) addFailureWithLocation(message string, loc *position.Location) {
 	c.Errors.AddFailure(
 		message,
 		loc,
 	)
 }
 
-func (c *Checker) addError(message string, span *position.Span) {
+func (c *Checker) addFailure(message string, span *position.Span) {
 	if span == nil {
 		return
 	}
@@ -2253,7 +2280,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	case *ast.ConstantLookupNode:
 		_, leftContainerType, leftContainerName = c._resolveConstantLookupForDeclaration(l, false)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
 			node.Span(),
 		)
@@ -2266,12 +2293,12 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		rightName = r.Value
 	case *ast.PrivateConstantNode:
 		rightName = r.Value
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot read private constant `%s`", rightName),
 			node.Span(),
 		)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
 			node.Span(),
 		)
@@ -2295,7 +2322,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	case *types.SingletonClass:
 		leftContainer = l.AttachedObject
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
 			node.Span(),
 		)
@@ -2337,7 +2364,7 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 		}
 	}
 
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf("undefined constant `%s`", name),
 		span,
 	)
@@ -2357,7 +2384,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		}
 	}
 
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf("undefined constant `%s`", name),
 		span,
 	)
@@ -2374,7 +2401,7 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 		}
 	}
 
-	c.addError(
+	c.addFailure(
 		fmt.Sprintf("undefined type `%s`", name),
 		span,
 	)
@@ -2382,13 +2409,13 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 }
 
 // Add the local with the given name to the current local environment
-func (c *Checker) addLocal(name string, l local) {
+func (c *Checker) addLocal(name string, l *local) {
 	env := c.currentLocalEnv()
 	env.locals[value.ToSymbol(name)] = l
 }
 
 // Get the local with the specified name from the current local environment
-func (c *Checker) getLocal(name string) (local, bool) {
+func (c *Checker) getLocal(name string) *local {
 	env := c.currentLocalEnv()
 	return env.getLocal(name)
 }
@@ -2420,16 +2447,16 @@ func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace)
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
-func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
+func (c *Checker) resolveLocal(name string, span *position.Span) *local {
 	env := c.currentLocalEnv()
-	local, ok := env.resolveLocal(name)
-	if !ok {
-		c.addError(
+	local := env.resolveLocal(name)
+	if local == nil {
+		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
 			span,
 		)
 	}
-	return local, ok
+	return local
 }
 
 func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
@@ -2446,7 +2473,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	case *ast.ConstantLookupNode:
 		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
 			node.Span(),
 		)
@@ -2459,12 +2486,12 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		rightName = r.Value
 	case *ast.PrivateConstantNode:
 		rightName = r.Value
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot use private type `%s`", rightName),
 			node.Span(),
 		)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
 			node.Span(),
 		)
@@ -2477,7 +2504,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	}
 	leftContainer, ok := leftContainerType.(types.Namespace)
 	if !ok {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot read subtypes from `%s`, it is not a type container", leftContainerName),
 			node.Span(),
 		)
@@ -2486,7 +2513,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 
 	constant := leftContainer.SubtypeString(rightName)
 	if constant == nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("undefined type `%s`", typeName),
 			node.Right.Span(),
 		)
@@ -2507,7 +2534,7 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant type node %T", node),
 			node.Span(),
 		)
@@ -2615,7 +2642,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		typ := c.typeOf(n.TypeNode)
 		t, ok := typ.(types.Namespace)
 		if !ok {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
 				n.Span(),
 			)
@@ -2625,7 +2652,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 
 		singleton := t.Singleton()
 		if singleton == nil {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
 				n.Span(),
 			)
@@ -2636,7 +2663,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		n.SetType(singleton)
 		return n
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
 			node.Span(),
 		)
@@ -2775,7 +2802,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	case *ast.ConstantLookupNode:
 		leftContainerType, leftContainerName = c.resolveConstantLookup(l)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
 			node.Span(),
 		)
@@ -2788,12 +2815,12 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 		rightName = r.Value
 	case *ast.PrivateConstantNode:
 		rightName = r.Value
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot read private constant `%s`", rightName),
 			node.Span(),
 		)
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
 			node.Span(),
 		)
@@ -2812,7 +2839,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	case *types.SingletonClass:
 		leftContainer = l.AttachedObject
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
 			node.Span(),
 		)
@@ -2821,7 +2848,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 
 	constant := leftContainer.ConstantString(rightName)
 	if constant == nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("undefined constant `%s`", constantName),
 			node.Right.Span(),
 		)
@@ -2868,9 +2895,13 @@ func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateCon
 }
 
 func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	local, ok := c.resolveLocal(node.Value, node.Span())
-	if ok && !local.initialised {
-		c.addError(
+	local := c.resolveLocal(node.Value, node.Span())
+	if local == nil {
+		node.SetType(types.Void{})
+		return node
+	}
+	if !local.initialised {
+		c.addFailure(
 			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
 			node.Span(),
 		)
@@ -2880,9 +2911,13 @@ func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicId
 }
 
 func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	local, ok := c.resolveLocal(node.Value, node.Span())
-	if ok && !local.initialised {
-		c.addError(
+	local := c.resolveLocal(node.Value, node.Span())
+	if local == nil {
+		node.SetType(types.Void{})
+		return node
+	}
+	if !local.initialised {
+		c.addFailure(
 			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
 			node.Span(),
 		)
@@ -2895,14 +2930,14 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 	typ, container := c.getInstanceVariable(node.Value)
 	self, ok := c.selfType.(types.Namespace)
 	if !ok || self.IsPrimitive() {
-		c.addError(
+		c.addFailure(
 			"cannot use instance variables in this context",
 			node.Span(),
 		)
 	}
 
 	if typ == nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"undefined instance variable `%s` in type `%s`",
 				types.InspectInstanceVariableWithColor(node.Value),
@@ -3013,7 +3048,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Typ
 
 	if currentIvar != nil {
 		if !c.isTheSameType(typ, currentIvar, span) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 					types.InspectInstanceVariableWithColor(name),
@@ -3072,7 +3107,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	var declaredType types.Type
 
 	if methodNamespace.IsPrimitive() {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot declare instance variables in a primitive `%s`",
 				types.InspectWithColor(methodNamespace),
@@ -3082,7 +3117,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	}
 
 	if node.TypeNode == nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot declare instance variable `%s` without a type",
 				types.InspectInstanceVariableWithColor(node.Name),
@@ -3096,7 +3131,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 		declaredType = c.typeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
 		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 					types.InspectInstanceVariableWithColor(node.Name),
@@ -3113,7 +3148,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	switch c.mode {
 	case mixinMode, classMode, moduleMode, singletonMode:
 	default:
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"cannot declare instance variable `%s` in this context",
 				types.InspectInstanceVariableWithColor(node.Name),
@@ -3127,19 +3162,19 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
-	if _, ok := c.getLocal(node.Name); ok {
-		c.addError(
+	if variable := c.getLocal(node.Name); variable != nil {
+		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.TypeNode == nil {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name, local{typ: types.Void{}})
+			c.addLocal(node.Name, newLocal(types.Void{}, false, false))
 			node.SetType(types.Void{})
 			return
 		}
@@ -3147,7 +3182,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name, local{typ: declaredType})
+		c.addLocal(node.Name, newLocal(declaredType, false, false))
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
 		return
@@ -3158,9 +3193,9 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
-		c.addLocal(node.Name, local{typ: actualType, initialised: true})
+		c.addLocal(node.Name, newLocal(actualType, true, false))
 		if types.IsVoid(actualType) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name),
 				init.Span(),
 			)
@@ -3176,7 +3211,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name, local{typ: declaredType, initialised: true})
+	c.addLocal(node.Name, newLocal(declaredType, true, false))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	node.TypeNode = declaredTypeNode
@@ -3185,19 +3220,19 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 }
 
 func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
-	if _, ok := c.getLocal(node.Name); ok {
-		c.addError(
+	if variable := c.getLocal(node.Name); variable != nil {
+		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.TypeNode == nil {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name, local{typ: types.Void{}})
+			c.addLocal(node.Name, newLocal(types.Void{}, false, true))
 			node.SetType(types.Void{})
 			return
 		}
@@ -3205,7 +3240,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name, local{typ: declaredType, singleAssignment: true})
+		c.addLocal(node.Name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
 		return
@@ -3216,9 +3251,9 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init)
-		c.addLocal(node.Name, local{typ: actualType, initialised: true, singleAssignment: true})
+		c.addLocal(node.Name, newLocal(actualType, true, true))
 		if types.IsVoid(actualType) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name),
 				init.Span(),
 			)
@@ -3234,7 +3269,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name, local{typ: declaredType, initialised: true, singleAssignment: true})
+	c.addLocal(node.Name, newLocal(declaredType, true, true))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	node.TypeNode = declaredTypeNode
@@ -3289,7 +3324,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			namespace.DefineConstant(constantName, module)
 			return module
 		default:
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -3311,7 +3346,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -3322,7 +3357,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 		switch t := constantType.(type) {
 		case *types.Class:
 			if abstract != t.IsAbstract() || sealed != t.IsSealed() {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
@@ -3348,7 +3383,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 			namespace.DefineConstant(constantName, class)
 			return class
 		default:
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -3373,7 +3408,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 		}
 
 		for _, location := range placeholder.Locations.Slice {
-			c.addErrorWithLocation(
+			c.addFailureWithLocation(
 				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
 				location,
 			)
@@ -3414,7 +3449,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	if constant != nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			node.Span(),
 		)
@@ -3422,7 +3457,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	init := c.checkExpression(node.Initialiser)
 
 	if !init.IsStatic() {
-		c.addError(
+		c.addFailure(
 			"values assigned to constants must be static, known at compile time",
 			init.Span(),
 		)
@@ -3433,7 +3468,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		// without a type, inference
 		actualType := c.typeOf(init)
 		if types.IsVoid(actualType) {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot declare constant `%s` with type `void`", fullConstantName),
 				init.Span(),
 			)
@@ -3456,7 +3491,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
 	if !c.isSubtype(assignedType, targetType, span) {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to type `%s`",
 				types.InspectWithColor(assignedType),
@@ -3469,7 +3504,7 @@ func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type,
 
 func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, span *position.Span) {
 	if !c.isSubtype(assignedType, targetType, span) {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to instance variable `%s` of type `%s`",
 				types.InspectWithColor(assignedType),
@@ -3520,7 +3555,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		case *ast.ParameterStatementNode:
 			param := s.Parameter.(*ast.AttributeParameterNode)
 			if optionalParamSeen && param.Initialiser == nil {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"required struct attribute `%s` cannot appear after optional attributes",
 						param.Name,
@@ -3668,7 +3703,7 @@ func (c *Checker) hoistTypeDefinition(node *ast.TypeDefinitionNode) {
 	constantName := extractConstantName(node.Constant)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 	if constant != nil {
-		c.addError(
+		c.addFailure(
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			node.Constant.Span(),
 		)
@@ -3713,7 +3748,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	switch c.mode {
 	case classMode:
 	default:
-		c.addError(
+		c.addFailure(
 			"init definitions cannot appear outside of classes",
 			initNode.Span(),
 		)
@@ -3789,12 +3824,12 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 			var ok bool
 			superclass, ok = superclassType.(*types.Class)
 			if !ok {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
 				)
 			} else if superclass.IsSealed() {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
 				)
@@ -3812,7 +3847,7 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 				span = node.Superclass.Span()
 			}
 
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"superclass mismatch in `%s`, got `%s`, expected `%s`",
 					class.Name(),
@@ -3893,7 +3928,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	namespace := c.currentConstScope().container
 	singleton := namespace.Singleton()
 	if singleton == nil {
-		c.addError(
+		c.addFailure(
 			"cannot declare a singleton class in this context",
 			expr.Span(),
 		)
@@ -3992,7 +4027,7 @@ func (c *Checker) declareMethod(
 		if oldMethod.IsNative() && oldMethod.IsSealed() {
 			c.addOverrideSealedMethodError(oldMethod, span)
 		} else if sealed && !oldMethod.IsSealed() {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name,
@@ -4008,7 +4043,7 @@ func (c *Checker) declareMethod(
 	case *types.Interface:
 	case *types.Class:
 		if abstract && !namespace.IsAbstract() {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract class `%s`",
 					name,
@@ -4019,7 +4054,7 @@ func (c *Checker) declareMethod(
 		}
 	case *types.Mixin:
 		if abstract && !namespace.IsAbstract() {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
 					name,
@@ -4030,7 +4065,7 @@ func (c *Checker) declareMethod(
 		}
 	default:
 		if abstract {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in this context",
 					name,
@@ -4050,7 +4085,7 @@ func (c *Checker) declareMethod(
 				currentIvar, _ := c.getInstanceVariableIn(p.Name, methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
-						c.addError(
+						c.addFailure(
 							fmt.Sprintf(
 								"cannot infer the type of instance variable `%s`",
 								p.Name,
@@ -4070,7 +4105,7 @@ func (c *Checker) declareMethod(
 					}
 				}
 			} else if p.TypeNode == nil {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
 				)
@@ -4102,7 +4137,7 @@ func (c *Checker) declareMethod(
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			if p.TypeNode == nil {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
 				)
@@ -4131,7 +4166,7 @@ func (c *Checker) declareMethod(
 				false,
 			))
 		default:
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("invalid param type %T", param),
 				param.Span(),
 			)
@@ -4173,7 +4208,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -4184,7 +4219,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 		switch t := constantType.(type) {
 		case *types.Mixin:
 			if abstract != t.IsAbstract() {
-				c.addError(
+				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
@@ -4210,7 +4245,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			namespace.DefineConstant(constantName, mixin)
 			return mixin
 		default:
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -4227,7 +4262,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
@@ -4251,7 +4286,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			namespace.DefineConstant(constantName, iface)
 			return iface
 		default:
-			c.addError(
+			c.addFailure(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
