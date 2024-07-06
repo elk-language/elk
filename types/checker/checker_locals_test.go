@@ -25,8 +25,8 @@ func TestVariableAssignment(t *testing.T) {
 		},
 		"assign initialised variable with a matching type": {
 			input: `
-			var foo: Int = 5
-			foo = 3
+				var foo: Int = 5
+				foo = 3
 			`,
 		},
 		"assign initialised variable with a non-matching type": {
@@ -37,6 +37,24 @@ func TestVariableAssignment(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
 			},
+		},
+
+		"??= uninitialised variable with a non-matching and non-nilable type": {
+			input: `
+				var foo: Int
+				foo ??= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
+				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "local `foo` is not nilable"),
+				error.NewFailure(L("<main>", P(30, 3, 13), P(32, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"??= initialised variable with a matching type": {
+			input: `
+				var foo: Int? = nil
+				foo ??= 5
+			`,
 		},
 	}
 
