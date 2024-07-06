@@ -86,6 +86,24 @@ func TestVariableAssignment(t *testing.T) {
 				foo ||= 5
 			`,
 		},
+
+		"&&= uninitialised variable with a non-matching and non-truthy type": {
+			input: `
+				var foo: Nil | False
+				foo &&= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "cannot access uninitialised local `foo`"),
+				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "local `foo` cannot be truthy"),
+				error.NewFailure(L("<main>", P(38, 3, 13), P(40, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Nil | Std::False`"),
+			},
+		},
+		"&&= initialised variable with a matching truthy type": {
+			input: `
+				var foo: Int? = nil
+				foo &&= 5
+			`,
+		},
 	}
 
 	for name, tc := range tests {

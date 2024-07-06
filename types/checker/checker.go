@@ -2205,7 +2205,39 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 		node.Right = c.checkExpression(node.Right)
 		assignedType := c.typeOf(node.Right)
 		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	// case token.AND_AND_EQUAL:
+	case token.AND_AND_EQUAL:
+		variable := c.getLocal(name)
+		if variable == nil {
+			c.addFailure(
+				fmt.Sprintf("undefined local `%s`", name),
+				span,
+			)
+			break
+		}
+		if variable.singleAssignment && variable.initialised {
+			c.addFailure(
+				fmt.Sprintf("local value `%s` cannot be reassigned", name),
+				span,
+			)
+		}
+
+		if !variable.initialised {
+			c.addFailure(
+				fmt.Sprintf("cannot access uninitialised local `%s`", name),
+				node.Left.Span(),
+			)
+		}
+
+		if !c.canBeTruthy(variable.typ) {
+			c.addFailure(
+				fmt.Sprintf("local `%s` cannot be truthy", name),
+				node.Left.Span(),
+			)
+		}
+
+		node.Right = c.checkExpression(node.Right)
+		assignedType := c.typeOf(node.Right)
+		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
 	// case token.PLUS_EQUAL:
 	// case token.MINUS_EQUAL:
 	// case token.STAR_EQUAL:

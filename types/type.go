@@ -42,11 +42,13 @@ func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
 
 func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
 	switch t := typ.(type) {
+	case *Nilable:
+		return CanBeTruthy(t.Type, env)
 	case *Class:
-		if t == env.StdSubtype(symbol.Bool) || t == env.StdSubtype(symbol.True) {
-			return true
+		if t == env.StdSubtype(symbol.False) || t == env.StdSubtype(symbol.Nil) {
+			return false
 		}
-		return false
+		return true
 	case *Union:
 		for _, element := range t.Elements {
 			if CanBeTruthy(element, env) {
