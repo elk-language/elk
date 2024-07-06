@@ -2131,10 +2131,9 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 		node.Right = c.checkExpression(node.Right)
 		assignedType := c.typeOf(node.Right)
 		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	// case token.COLON_EQUAL:
+	// case token.QUESTION_QUESTION_EQUAL:
 	// case token.OR_OR_EQUAL:
 	// case token.AND_AND_EQUAL:
-	// case token.QUESTION_QUESTION_EQUAL:
 	// case token.PLUS_EQUAL:
 	// case token.MINUS_EQUAL:
 	// case token.STAR_EQUAL:
@@ -2148,6 +2147,7 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 	// case token.LTRIPLE_BITSHIFT_EQUAL:
 	// case token.RBITSHIFT_EQUAL:
 	// case token.RTRIPLE_BITSHIFT_EQUAL:
+	// case token.COLON_EQUAL:
 	default:
 		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),

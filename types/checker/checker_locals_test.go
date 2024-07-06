@@ -6,6 +6,47 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestVariableAssignment(t *testing.T) {
+	tests := testTable{
+		"assign uninitialised variable with a matching type": {
+			input: `
+				var foo: Int
+				foo = 5
+			`,
+		},
+		"assign uninitialised variable with a non-matching type": {
+			input: `
+				var foo: Int
+				foo = 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"assign initialised variable with a matching type": {
+			input: `
+			var foo: Int = 5
+			foo = 3
+			`,
+		},
+		"assign initialised variable with a non-matching type": {
+			input: `
+				var foo: Int = 5
+				foo = 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"accept variable declaration with matching initializer and type": {
