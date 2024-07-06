@@ -1456,6 +1456,14 @@ func (c *Checker) isNilable(typ types.Type) bool {
 	return types.IsNilable(typ, c.GlobalEnv)
 }
 
+func (c *Checker) canBeFalsy(typ types.Type) bool {
+	return types.CanBeFalsy(typ, c.GlobalEnv)
+}
+
+func (c *Checker) canBeTruthy(typ types.Type) bool {
+	return types.CanBeTruthy(typ, c.GlobalEnv)
+}
+
 func (c *Checker) toNonNilable(typ types.Type) types.Type {
 	return types.ToNonNilable(typ, c.GlobalEnv)
 }
@@ -2187,9 +2195,9 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 			)
 		}
 
-		if !c.isNilable(variable.typ) {
+		if !c.canBeFalsy(variable.typ) {
 			c.addFailure(
-				fmt.Sprintf("local `%s` is not nilable", name),
+				fmt.Sprintf("local `%s` cannot be falsy", name),
 				node.Left.Span(),
 			)
 		}

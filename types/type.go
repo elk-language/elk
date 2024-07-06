@@ -4,11 +4,66 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Type interface {
 	ToNonLiteral(*GlobalEnvironment) Type
 	inspect() string
+}
+
+func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
+	switch t := typ.(type) {
+	case *Nilable:
+		return true
+	case *Class:
+		if t == env.StdSubtype(symbol.Bool) || t == env.StdSubtype(symbol.False) || t == env.StdSubtype(symbol.Nil) {
+			return true
+		}
+		return false
+	case *Union:
+		for _, element := range t.Elements {
+			if CanBeFalsy(element, env) {
+				return true
+			}
+		}
+		return false
+	case *Intersection:
+		for _, element := range t.Elements {
+			if CanBeFalsy(element, env) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
+	switch t := typ.(type) {
+	case *Class:
+		if t == env.StdSubtype(symbol.Bool) || t == env.StdSubtype(symbol.True) {
+			return true
+		}
+		return false
+	case *Union:
+		for _, element := range t.Elements {
+			if CanBeTruthy(element, env) {
+				return true
+			}
+		}
+		return false
+	case *Intersection:
+		for _, element := range t.Elements {
+			if CanBeTruthy(element, env) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
 }
 
 func InspectModifier(abstract, sealed bool) string {

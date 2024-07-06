@@ -50,10 +50,40 @@ func TestVariableAssignment(t *testing.T) {
 				error.NewFailure(L("<main>", P(30, 3, 13), P(32, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
 			},
 		},
-		"??= initialised variable with a matching type": {
+		"??= initialised variable with a matching nilable type": {
 			input: `
 				var foo: Int? = nil
 				foo ??= 5
+			`,
+		},
+		"??= initialised variable with a matching nilable union type": {
+			input: `
+				var foo: Int | Float | Nil = nil
+				foo ??= 5
+			`,
+		},
+
+		"||= uninitialised variable with a non-matching and non-falsy type": {
+			input: `
+				var foo: Int
+				foo ||= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
+				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "local `foo` cannot be falsy"),
+				error.NewFailure(L("<main>", P(30, 3, 13), P(32, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"||= initialised variable with a matching nilable type": {
+			input: `
+				var foo: Int? = nil
+				foo ||= 5
+			`,
+		},
+		"||= initialised variable with a matching falsy type": {
+			input: `
+				var foo: Int | Float | False = false
+				foo ||= 5
 			`,
 		},
 	}
