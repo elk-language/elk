@@ -410,6 +410,16 @@ func TestClass(t *testing.T) {
 
 func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
+		"declare an instance variable in a primitive class": {
+			input: `
+				primitive class Foo
+					var @foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 6), P(45, 3, 21)), "cannot declare instance variable `foo` in a primitive `Foo`"),
+			},
+		},
 		"declare an instance variable in a class": {
 			input: `
 				class Foo

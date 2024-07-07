@@ -3207,7 +3207,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Typ
 			)
 		}
 	} else {
-		c.declareInstanceVariable(name, typ)
+		c.declareInstanceVariable(name, typ, span)
 	}
 }
 
@@ -3253,16 +3253,6 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
 	var declaredType types.Type
 
-	if methodNamespace.IsPrimitive() {
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot declare instance variables in a primitive `%s`",
-				types.InspectWithColor(methodNamespace),
-			),
-			node.Span(),
-		)
-	}
-
 	if node.TypeNode == nil {
 		c.addFailure(
 			fmt.Sprintf(
@@ -3305,7 +3295,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 		return
 	}
 
-	c.declareInstanceVariable(node.Name, declaredType)
+	c.declareInstanceVariable(node.Name, declaredType, node.Span())
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
@@ -3484,8 +3474,14 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 	}
 }
 
-func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
+func (c *Checker) declareInstanceVariable(name string, typ types.Type, errSpan *position.Span) {
 	container := c.currentConstScope().container
+	if container.IsPrimitive() {
+		c.addFailure(
+			fmt.Sprintf("cannot declare instance variable `%s` in a primitive `%s`", name, types.InspectWithColor(container)),
+			errSpan,
+		)
+	}
 	container.DefineInstanceVariable(name, typ)
 }
 
@@ -4254,7 +4250,7 @@ func (c *Checker) declareMethod(
 					if currentIvar != nil {
 						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, declaredTypeNode.Span())
 					} else {
-						c.declareInstanceVariable(p.Name, declaredType)
+						c.declareInstanceVariable(p.Name, declaredType, p.Span())
 					}
 				}
 			} else if p.TypeNode == nil {
