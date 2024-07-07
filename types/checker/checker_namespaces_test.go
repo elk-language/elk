@@ -212,6 +212,21 @@ func TestClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
 			},
 		},
+		"primitive class with primitive superclass": {
+			input: `
+				primitive class Bar; end
+				primitive class Foo < Bar; end
+			`,
+		},
+		"class with primitive superclass": {
+			input: `
+				primitive class Bar; end
+				class Foo < Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 3, 17), P(48, 3, 19)), "class `Foo` must be primitive to inherit from primitive class `Bar`"),
+			},
+		},
 		"class with module superclass": {
 			input: `
 				module Bar; end

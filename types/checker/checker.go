@@ -3977,11 +3977,19 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
 				)
-			} else if superclass.IsSealed() {
-				c.addFailure(
-					fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
-				)
+			} else {
+				if superclass.IsSealed() {
+					c.addFailure(
+						fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
+						node.Superclass.Span(),
+					)
+				}
+				if superclass.IsPrimitive() && !class.IsPrimitive() {
+					c.addFailure(
+						fmt.Sprintf("class `%s` must be primitive to inherit from primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+						node.Superclass.Span(),
+					)
+				}
 			}
 		}
 
