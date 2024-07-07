@@ -629,51 +629,59 @@ func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionSt
 
 // topLevelExpression = declarationExpression
 func (p *Parser) topLevelExpression() ast.ExpressionNode {
-	expr := p.declarationExpression()
+	expr := p.declarationExpression(true)
 	if p.mode == panicMode {
 		p.synchronise()
 	}
 	return expr
 }
 
-func (p *Parser) declarationExpression() ast.ExpressionNode {
+func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.DEF:
-		return p.methodDefinition(true)
+		return p.methodDefinition(allowed)
 	case token.SIG:
-		return p.methodSignatureDefinition(true)
+		return p.methodSignatureDefinition(allowed)
 	case token.INIT:
-		return p.initDefinition(true)
+		return p.initDefinition(allowed)
 	case token.CLASS:
-		return p.classDeclaration(true)
+		return p.classDeclaration(allowed)
 	case token.MODULE:
-		return p.moduleDeclaration(true)
+		return p.moduleDeclaration(allowed)
 	case token.MIXIN:
-		return p.mixinDeclaration(true)
+		return p.mixinDeclaration(allowed)
 	case token.INTERFACE:
-		return p.interfaceDeclaration(true)
+		return p.interfaceDeclaration(allowed)
 	case token.STRUCT:
-		return p.structDeclaration(true)
+		return p.structDeclaration(allowed)
 	case token.GETTER:
-		return p.getterDeclaration(true)
+		return p.getterDeclaration(allowed)
 	case token.SETTER:
-		return p.setterDeclaration(true)
+		return p.setterDeclaration(allowed)
 	case token.ATTR:
-		return p.attrDeclaration(true)
+		return p.attrDeclaration(allowed)
 	case token.CONST:
-		return p.constantDeclaration(true)
+		return p.constantDeclaration(allowed)
 	case token.VAR:
-		return p.variableDeclaration(true)
+		return p.variableDeclaration(allowed)
 	case token.TYPEDEF:
-		return p.typeDefinition(true)
+		return p.typeDefinition(allowed)
 	case token.INCLUDE:
-		return p.includeExpression(true)
+		return p.includeExpression(allowed)
 	case token.EXTEND:
-		return p.extendExpression(true)
+		return p.extendExpression(allowed)
 	case token.ENHANCE:
-		return p.enhanceExpression(true)
+		return p.enhanceExpression(allowed)
 	case token.IMPLEMENT:
-		return p.implementExpression(true)
+		return p.implementExpression(allowed)
+	case token.ABSTRACT:
+		return p.abstractModifier(allowed)
+	case token.PRIMITIVE:
+		return p.primitiveModifier(allowed)
+	case token.SEALED:
+		return p.sealedModifier(allowed)
+	case token.DOC_COMMENT:
+		return p.docComment(allowed)
 	}
 
 	return p.modifierExpression()
@@ -1833,7 +1841,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.OR, token.OR_OR:
 		return p.functionExpression()
 	case token.DOC_COMMENT:
-		return p.docComment()
+		return p.docComment(false)
 	case token.VAR:
 		return p.variableDeclaration(false)
 	case token.VAL:
@@ -1863,9 +1871,11 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.FORNUM:
 		return p.fornumExpression()
 	case token.ABSTRACT:
-		return p.abstractModifier()
+		return p.abstractModifier(false)
+	case token.PRIMITIVE:
+		return p.primitiveModifier(false)
 	case token.SEALED:
-		return p.sealedModifier()
+		return p.sealedModifier(false)
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -3083,6 +3093,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 		"",
 		false,
 		false,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -3960,11 +3971,11 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 }
 
 // sealedModifier = "sealed" declarationExpression
-func (p *Parser) sealedModifier() ast.ExpressionNode {
+func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 	sealedTok := p.advance()
 
 	p.swallowNewlines()
-	node := p.declarationExpression()
+	node := p.declarationExpression(allowed)
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if n.Sealed {
@@ -3992,11 +4003,11 @@ func (p *Parser) sealedModifier() ast.ExpressionNode {
 }
 
 // abstractModifier = "abstract" declarationExpression
-func (p *Parser) abstractModifier() ast.ExpressionNode {
+func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 	abstractTok := p.advance()
 
 	p.swallowNewlines()
-	node := p.declarationExpression()
+	node := p.declarationExpression(allowed)
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if n.Abstract {
@@ -4024,6 +4035,26 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	default:
 		p.errorMessageSpan("the abstract modifier can only be attached to classes, mixins and methods", node.Span())
+	}
+
+	return node
+}
+
+// primitiveModifier = "primitive" declarationExpression
+func (p *Parser) primitiveModifier(allowed bool) ast.ExpressionNode {
+	primitiveTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Primitive {
+			p.errorMessageSpan("the primitive modifier can only be attached once", primitiveTok.Span())
+		}
+		n.Primitive = true
+		n.SetSpan(primitiveTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the primitive modifier can only be attached to classes", node.Span())
 	}
 
 	return node
@@ -5622,7 +5653,7 @@ func (p *Parser) instanceVariable() ast.ExpressionNode {
 }
 
 // docComment = DOC_COMMENT declarationExpression
-func (p *Parser) docComment() ast.ExpressionNode {
+func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 	docComment := p.advance()
 	var nested bool
 	if p.lookahead.Type == token.DOC_COMMENT {
@@ -5630,7 +5661,7 @@ func (p *Parser) docComment() ast.ExpressionNode {
 		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
-	expr := p.declarationExpression()
+	expr := p.declarationExpression(allowed)
 
 	docCommentableExpr, ok := expr.(ast.DocCommentableNode)
 	if !ok && !nested {

@@ -35,12 +35,37 @@ func main() {
 		}
 	}
 	buffer := new(bytes.Buffer)
+	buffer.WriteString(
+		`
+			package headers
 
-	compileConstantContainer(buffer, env.Root, true)
+			import (
+				"github.com/elk-language/elk/types"
+			)
+
+			func SetupGlobalEnvironment(env *types.GlobalEnvironment) {
+
+		`,
+	)
+
+	compileNamespace(buffer, env.Root, true)
+
+	buffer.WriteString(
+		`
+			}
+		`,
+	)
 }
 
-func compileConstantContainer(buffer *bytes.Buffer, constContainer types.Namespace, root bool) {
-	// for name, constant := range constContainer.Constants() {
-	// 	switch constant
+func compileNamespace(buffer *bytes.Buffer, namespace types.Namespace, root bool) {
+	// for name, subtype := range namespace.Subtypes().Map {
+	// 	switch s := subtype.(type) {
+	// 	case *types.Class:
+	// 		compileClass(buffer, s)
+	// 	}
 	// }
+}
+
+func compileClass(buffer *bytes.Buffer, class *types.Class) {
+
 }

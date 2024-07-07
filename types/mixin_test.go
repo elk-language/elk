@@ -17,15 +17,16 @@ func TestMixin_CreateProxy(t *testing.T) {
 		wantTail *MixinProxy
 	}{
 		"simple mixin": {
-			mixin:    NewMixin("", "Foo", env),
-			wantHead: NewMixinProxy(NewMixin("", "Foo", env), nil),
-			wantTail: NewMixinProxy(NewMixin("", "Foo", env), nil),
+			mixin:    NewMixin("", false, "Foo", env),
+			wantHead: NewMixinProxy(NewMixin("", false, "Foo", env), nil),
+			wantTail: NewMixinProxy(NewMixin("", false, "Foo", env), nil),
 		},
 		"mixin with parent": {
 			mixin: NewMixinWithDetails(
 				"",
+				false,
 				"Foo",
-				NewMixinProxy(NewMixin("", "Bar", env), nil),
+				NewMixinProxy(NewMixin("", false, "Bar", env), nil),
 				NewTypeMap(),
 				NewTypeMap(),
 				NewMethodMap(), env,
@@ -33,19 +34,20 @@ func TestMixin_CreateProxy(t *testing.T) {
 			wantHead: NewMixinProxy(
 				NewMixinWithDetails(
 					"",
+					false,
 					"Foo",
-					NewMixinProxy(NewMixin("", "Bar", env), nil),
+					NewMixinProxy(NewMixin("", false, "Bar", env), nil),
 					NewTypeMap(),
 					NewTypeMap(),
 					NewMethodMap(), env,
 				),
 				NewMixinProxy(
-					NewMixin("", "Bar", env),
+					NewMixin("", false, "Bar", env),
 					nil,
 				),
 			),
 			wantTail: NewMixinProxy(
-				NewMixin("", "Bar", env),
+				NewMixin("", false, "Bar", env),
 				nil,
 			),
 		},

@@ -70,8 +70,11 @@ func (c *Class) SetParent(parent Namespace) {
 	}
 }
 
-func NewClass(docComment, name string, parent Namespace, env *GlobalEnvironment) *Class {
+func NewClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
 	class := &Class{
+		primitive:     primitive,
+		sealed:        sealed,
+		abstract:      abstract,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
@@ -80,8 +83,11 @@ func NewClass(docComment, name string, parent Namespace, env *GlobalEnvironment)
 	return class
 }
 
-func NewClassWithDetails(docComment, name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
+func NewClassWithDetails(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
 	class := &Class{
+		primitive: primitive,
+		abstract:  abstract,
+		sealed:    sealed,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,

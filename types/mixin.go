@@ -38,8 +38,9 @@ func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func NewMixin(docComment, name string, env *GlobalEnvironment) *Mixin {
+func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
+		abstract:      abstract,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
@@ -47,9 +48,10 @@ func NewMixin(docComment, name string, env *GlobalEnvironment) *Mixin {
 	return mixin
 }
 
-func NewMixinWithDetails(docComment, name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
+func NewMixinWithDetails(docComment string, abstract bool, name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
-		parent: parent,
+		parent:   parent,
+		abstract: abstract,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,

@@ -2897,6 +2897,7 @@ type ClassDeclarationNode struct {
 	DocCommentableNodeBase
 	Abstract      bool
 	Sealed        bool
+	Primitive     bool
 	Constant      ExpressionNode     // The constant that will hold the class value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Superclass    ExpressionNode     // the super/parent class of this class
@@ -2913,6 +2914,7 @@ func NewClassDeclarationNode(
 	docComment string,
 	abstract bool,
 	sealed bool,
+	primitive bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	superclass ExpressionNode,
@@ -2926,6 +2928,7 @@ func NewClassDeclarationNode(
 		},
 		Abstract:      abstract,
 		Sealed:        sealed,
+		Primitive:     primitive,
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Superclass:    superclass,

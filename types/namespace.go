@@ -38,9 +38,9 @@ type Namespace interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name string, val Type)
 
-	DefineClass(docComment string, name string, parent Namespace, env *GlobalEnvironment) *Class
+	DefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name string) *Module
-	DefineMixin(docComment string, name string, env *GlobalEnvironment) *Mixin
+	DefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface
 }
 

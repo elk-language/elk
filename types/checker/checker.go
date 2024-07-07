@@ -3497,7 +3497,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
+			return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
@@ -3519,13 +3519,16 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 		case *types.PlaceholderNamespace:
 			class := types.NewClassWithDetails(
 				docComment,
+				false,
+				abstract,
+				sealed,
 				t.Name(),
 				nil,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
 				c.GlobalEnv,
-			).SetAbstract(abstract).SetSealed(sealed)
+			)
 			t.Replacement = class
 			namespace.DefineConstant(constantName, class)
 			return class
@@ -3534,12 +3537,12 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
+			return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewClass(docComment, fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
+		return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
 	} else {
-		return namespace.DefineClass(docComment, constantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
+		return namespace.DefineClass(docComment, false, abstract, sealed, constantName, nil, c.GlobalEnv)
 	}
 }
 
@@ -3739,6 +3742,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	classNode := ast.NewClassDeclarationNode(
 		structNode.Span(),
 		structNode.DocComment(),
+		false,
 		false,
 		false,
 		structNode.Constant,
@@ -4359,7 +4363,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(docComment, fullConstantName, c.GlobalEnv).SetAbstract(abstract)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
@@ -4381,13 +4385,14 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 		case *types.PlaceholderNamespace:
 			mixin := types.NewMixinWithDetails(
 				docComment,
+				abstract,
 				t.Name(),
 				nil,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
 				c.GlobalEnv,
-			).SetAbstract(abstract)
+			)
 			t.Replacement = mixin
 			namespace.DefineConstant(constantName, mixin)
 			return mixin
@@ -4396,12 +4401,12 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(docComment, fullConstantName, c.GlobalEnv).SetAbstract(abstract)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewMixin(docComment, fullConstantName, c.GlobalEnv).SetAbstract(abstract)
+		return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
 	} else {
-		return namespace.DefineMixin(docComment, constantName, c.GlobalEnv).SetAbstract(abstract)
+		return namespace.DefineMixin(docComment, abstract, constantName, c.GlobalEnv)
 	}
 }
 

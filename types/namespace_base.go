@@ -150,9 +150,26 @@ func (c *NamespaceBase) SetMethod(name string, method *Method) {
 	c.methods.Set(value.ToSymbol(name), method)
 }
 
+// Define a new class if it does not exist
+func (c *NamespaceBase) TryDefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
+	subtype := c.SubtypeString(name)
+	if subtype == nil {
+		return c.DefineClass(docComment, primitive, abstract, sealed, name, parent, env)
+	}
+
+	class := subtype.(*Class)
+	class.AppendDocComment(docComment)
+	if class.parent != parent {
+		panic(fmt.Sprintf("%s superclass mismatch, previous: %s, now: %s", InspectWithColor(class), InspectWithColor(class.parent), InspectWithColor(parent)))
+	}
+	class.SetAbstract(abstract)
+	class.SetSealed(sealed)
+	return class
+}
+
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment, name string, parent Namespace, env *GlobalEnvironment) *Class {
-	class := NewClass(docComment, MakeFullConstantName(c.Name(), name), parent, env)
+func (c *NamespaceBase) DefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
+	class := NewClass(docComment, primitive, abstract, sealed, MakeFullConstantName(c.Name(), name), parent, env)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class
@@ -167,8 +184,8 @@ func (c *NamespaceBase) DefineModule(docComment, name string) *Module {
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(docComment string, name string, env *GlobalEnvironment) *Mixin {
-	m := NewMixin(docComment, MakeFullConstantName(c.Name(), name), env)
+func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
+	m := NewMixin(docComment, abstract, MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m

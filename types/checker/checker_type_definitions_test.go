@@ -25,7 +25,7 @@ func TestTypeDefinition(t *testing.T) {
 		},
 		"call a method on a defined type": {
 			input: `
-				class Std::String
+				sealed class Std::String
 					def foo; end
 				end
 
