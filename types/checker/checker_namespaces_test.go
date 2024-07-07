@@ -626,6 +626,20 @@ func TestClassOverride(t *testing.T) {
 				error.NewFailure(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
+		"modifier was default, is primitive": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				primitive class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `primitive`, should be `default`"),
+			},
+		},
 		"modifier was default, is sealed": {
 			input: `
 				class Foo; end
@@ -666,6 +680,20 @@ func TestClassOverride(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
+			},
+		},
+		"modifier was primitive, is default": {
+			input: `
+				class Foo; end
+
+				primitive class Bar < Foo; end
+
+				class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(61, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
 			},
 		},
 		"superclass does not match": {

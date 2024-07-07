@@ -70,7 +70,7 @@ func (c *Class) SetParent(parent Namespace) {
 	}
 }
 
-func NewClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
+func NewClass(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
 	class := &Class{
 		primitive:     primitive,
 		sealed:        sealed,
@@ -83,7 +83,7 @@ func NewClass(docComment string, primitive, abstract, sealed bool, name string, 
 	return class
 }
 
-func NewClassWithDetails(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
+func NewClassWithDetails(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
 	class := &Class{
 		primitive: primitive,
 		abstract:  abstract,

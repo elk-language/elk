@@ -1879,8 +1879,8 @@ func (c *Checker) checkMethodOverride(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
 				name,
-				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed()),
-				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed()),
+				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false),
+				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false),
 				types.InspectWithColor(baseMethod.DefinedUnder),
 				baseMethod.InspectSignatureWithColor(true),
 			),
@@ -3489,7 +3489,7 @@ func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
 	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
+func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -3497,19 +3497,19 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
+			return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Class:
-			if abstract != t.IsAbstract() || sealed != t.IsSealed() {
+			if abstract != t.IsAbstract() || sealed != t.IsSealed() || primitive != t.IsPrimitive() {
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, sealed),
-						types.InspectModifier(t.IsAbstract(), t.IsSealed()),
+						types.InspectModifier(abstract, sealed, primitive),
+						types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive()),
 					),
 					span,
 				)
@@ -3519,9 +3519,9 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 		case *types.PlaceholderNamespace:
 			class := types.NewClassWithDetails(
 				docComment,
-				false,
 				abstract,
 				sealed,
+				primitive,
 				t.Name(),
 				nil,
 				t.Constants(),
@@ -3537,12 +3537,12 @@ func (c *Checker) declareClass(docComment string, abstract, sealed bool, namespa
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
+			return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewClass(docComment, false, abstract, sealed, fullConstantName, nil, c.GlobalEnv)
+		return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
 	} else {
-		return namespace.DefineClass(docComment, false, abstract, sealed, constantName, nil, c.GlobalEnv)
+		return namespace.DefineClass(docComment, abstract, sealed, primitive, constantName, nil, c.GlobalEnv)
 	}
 }
 
@@ -3673,6 +3673,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		structNode.DocComment(),
 		false,
 		false,
+		false,
 		container,
 		constant,
 		fullConstantName,
@@ -3784,6 +3785,7 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,
+		node.Primitive,
 		container,
 		constant,
 		fullConstantName,
@@ -4182,8 +4184,8 @@ func (c *Checker) declareMethod(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name,
-					types.InspectModifier(abstract, sealed),
-					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed()),
+					types.InspectModifier(abstract, sealed, false),
+					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
 				),
 				span,
 			)
@@ -4374,8 +4376,8 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, false),
-						types.InspectModifier(t.IsAbstract(), false),
+						types.InspectModifier(abstract, false, false),
+						types.InspectModifier(t.IsAbstract(), false, false),
 					),
 					span,
 				)

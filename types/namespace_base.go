@@ -168,8 +168,8 @@ func (c *NamespaceBase) TryDefineClass(docComment string, primitive, abstract, s
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
-	class := NewClass(docComment, primitive, abstract, sealed, MakeFullConstantName(c.Name(), name), parent, env)
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
+	class := NewClass(docComment, abstract, sealed, primitive, MakeFullConstantName(c.Name(), name), parent, env)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class

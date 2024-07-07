@@ -68,14 +68,23 @@ func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
 	}
 }
 
-func InspectModifier(abstract, sealed bool) string {
+func InspectModifier(abstract, sealed, primitive bool) string {
 	if abstract {
+		if primitive {
+			return "abstract primitive"
+		}
 		return "abstract"
 	}
 	if sealed {
+		if primitive {
+			return "sealed primitive"
+		}
 		return "sealed"
 	}
 
+	if primitive {
+		return "primitive"
+	}
 	return "default"
 }
 
