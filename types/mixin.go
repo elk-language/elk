@@ -38,6 +38,18 @@ func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
+func (m *Mixin) DeclaresInstanceVariables() bool {
+	var currentNamespace Namespace = m
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		if currentNamespace.InstanceVariables().Len() > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		abstract:      abstract,

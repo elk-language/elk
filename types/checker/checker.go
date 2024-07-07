@@ -1017,6 +1017,9 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 		var incompatibleIvars []instanceVariableOverride
 		types.ForeachInstanceVariable(includedMixin, func(name string, includedIvar types.Type, includedNamespace types.Namespace) {
 			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
+			if superIvar == nil {
+				return
+			}
 			if !c.isTheSameType(superIvar, includedIvar, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
 					name:              name,
@@ -1136,6 +1139,17 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	target := c.currentConstScope().container
 	if c.isSubtypeOfMixin(target, constantMixin, nil) {
 		return
+	}
+
+	if target.IsPrimitive() && constantMixin.DeclaresInstanceVariables() {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot include mixin with instance variables `%s` in primitive `%s`",
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(target),
+			),
+			node.Span(),
+		)
 	}
 	headProxy, tailProxy := constantMixin.CreateProxy()
 

@@ -236,6 +236,38 @@ func TestClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
 			},
 		},
+		"include mixin with instance variables": {
+			input: `
+				mixin Foo
+					var @foo: String?
+				end
+				class Bar
+					include Foo
+
+					def bar
+						var f: String? = @foo
+					end
+				end
+			`,
+		},
+		"include mixin with instance variables in a primitive": {
+			input: `
+				mixin Foo
+					var @foo: String?
+				end
+				primitive class Bar
+					include Foo
+
+					def bar
+						var f: String? = @foo
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(83, 6, 14), P(85, 6, 16)), "cannot include mixin with instance variables `Foo` in primitive `Bar`"),
+				error.NewFailure(L("<main>", P(124, 9, 24), P(127, 9, 27)), "cannot use instance variables in this context"),
+			},
+		},
 		"report errors for missing abstract methods from parent": {
 			input: `
 				abstract class Foo
