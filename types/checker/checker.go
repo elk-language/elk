@@ -397,7 +397,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if types.IsAny(a) || types.IsVoid(a) {
 		return false
 	}
-	aNonLiteral := a.ToNonLiteral(c.GlobalEnv)
+	aNonLiteral := c.toNonLiteral(a)
 	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
 		return true
 	}
@@ -1358,7 +1358,7 @@ func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type
 }
 
 func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
-	typ = typ.ToNonLiteral(c.GlobalEnv)
+	typ = c.toNonLiteral(typ)
 
 	switch t := typ.(type) {
 	case *types.NamedType:
@@ -1466,6 +1466,9 @@ func (c *Checker) canBeTruthy(typ types.Type) bool {
 
 func (c *Checker) toNonNilable(typ types.Type) types.Type {
 	return types.ToNonNilable(typ, c.GlobalEnv)
+}
+func (c *Checker) toNonLiteral(typ types.Type) types.Type {
+	return typ.ToNonLiteral(c.GlobalEnv)
 }
 
 func (c *Checker) toNilable(typ types.Type) types.Type {
@@ -2117,6 +2120,12 @@ func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 	}
 }
 
+func (c *Checker) checkAddMethod(receiver types.Type, argument types.Type) (returnType types.Type) {
+	// c.toNonLiteral(receiver)
+	// receiverClass, ok := receiver.(*types.Class)
+	return nil
+}
+
 func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpressionNode) {
 	span := node.Span()
 	switch node.Op.Type {
@@ -2238,7 +2247,41 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 		node.Right = c.checkExpression(node.Right)
 		assignedType := c.typeOf(node.Right)
 		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	// case token.PLUS_EQUAL:
+	case token.PLUS_EQUAL:
+		variable := c.getLocal(name)
+		if variable == nil {
+			c.addFailure(
+				fmt.Sprintf("undefined local `%s`", name),
+				span,
+			)
+			break
+		}
+		if variable.singleAssignment && variable.initialised {
+			c.addFailure(
+				fmt.Sprintf("local value `%s` cannot be reassigned", name),
+				span,
+			)
+		}
+
+		if !variable.initialised {
+			c.addFailure(
+				fmt.Sprintf("cannot access uninitialised local `%s`", name),
+				node.Left.Span(),
+			)
+		}
+
+		c.getMethod(variable.typ, "+", node.Op.Span())
+
+		// if !c.canBeTruthy(variable.typ) {
+		// 	c.addFailure(
+		// 		fmt.Sprintf("local `%s` cannot be truthy", name),
+		// 		node.Left.Span(),
+		// 	)
+		// }
+
+		// node.Right = c.checkExpression(node.Right)
+		// assignedType := c.typeOf(node.Right)
+		// c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
 	// case token.MINUS_EQUAL:
 	// case token.STAR_EQUAL:
 	// case token.SLASH_EQUAL:
@@ -3296,7 +3339,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	if node.TypeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
+		actualType := c.toNonLiteral(c.typeOf(init))
 		c.addLocal(node.Name, newLocal(actualType, true, false))
 		if types.IsVoid(actualType) {
 			c.addFailure(
