@@ -1,4 +1,10 @@
-class ::Std::String
+module Foo
+	class Bar
+		interface Baz; end
+	end
+end
+
+sealed primitive class ::Std::String
 	##[
 		Concatenate this `String`
 		with another `String` or `Char`.
@@ -38,7 +44,6 @@ class ::Std::String
 	def >(other: String | Char): Bool; end
 
 	def ==(other: Object): Bool; end
-	def ===(other: Object): Bool; end
 
 	##[
 		Get the number of unicode code points

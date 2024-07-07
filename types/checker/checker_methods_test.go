@@ -509,6 +509,36 @@ func TestSetterDefinition(t *testing.T) {
 	}
 }
 
+func TestAliasDeclaration(t *testing.T) {
+	tests := testTable{
+		"declare an alias": {
+			input: `
+				class Foo
+					def foo: String then "foo"
+					alias bar foo
+				end
+				var a: String = Foo().bar
+			`,
+		},
+		"declare an alias of a nonexistent method": {
+			input: `
+				class Foo
+					alias bar foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 3, 12), P(32, 3, 18)), "method `foo` is not defined on type `Foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDefinitionOverride(t *testing.T) {
 	tests := testTable{
 		"invalid override": {

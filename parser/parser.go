@@ -2548,7 +2548,7 @@ func (p *Parser) aliasEntry() *ast.AliasDeclarationEntry {
 
 // aliasEntryList = aliasEntry ("," aliasEntry)*
 func (p *Parser) aliasEntryList(stopTokens ...token.Type) []*ast.AliasDeclarationEntry {
-	return commaSeparatedList(p, p.aliasEntry, stopTokens...)
+	return commaSeparatedListWithoutTerminator(p, p.aliasEntry, stopTokens...)
 }
 
 // aliasDeclaration = "alias" methodName methodName

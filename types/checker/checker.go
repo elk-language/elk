@@ -803,7 +803,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode, *ast.TypeDefinitionNode,
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
-		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
 		return n
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpression(n)
@@ -3943,6 +3943,18 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	return newNode
 }
 
+func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
+	namespace := c.currentMethodScope().container
+	for _, entry := range node.Entries {
+		method := types.GetMethodInNamespace(namespace, entry.OldName)
+		if method == nil {
+			c.addMissingMethodError(namespace, entry.OldName, entry.Span())
+			continue
+		}
+		namespace.SetMethod(entry.NewName, method)
+	}
+}
+
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	method := c.declareMethod(
 		node.DocComment(),
@@ -4129,6 +4141,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
+		case *ast.AliasDeclarationNode:
+			c.hoistAliasDeclaration(expr)
 		case *ast.MethodDefinitionNode:
 			c.hoistMethodDefinition(expr)
 		case *ast.MethodSignatureDefinitionNode:

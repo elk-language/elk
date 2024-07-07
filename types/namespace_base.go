@@ -151,7 +151,7 @@ func (c *NamespaceBase) SetMethod(name string, method *Method) {
 }
 
 // Define a new class if it does not exist
-func (c *NamespaceBase) TryDefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
 	subtype := c.SubtypeString(name)
 	if subtype == nil {
 		return c.DefineClass(docComment, primitive, abstract, sealed, name, parent, env)
@@ -160,10 +160,25 @@ func (c *NamespaceBase) TryDefineClass(docComment string, primitive, abstract, s
 	class := subtype.(*Class)
 	class.AppendDocComment(docComment)
 	if class.parent != parent {
-		panic(fmt.Sprintf("%s superclass mismatch, previous: %s, now: %s", InspectWithColor(class), InspectWithColor(class.parent), InspectWithColor(parent)))
+		panic(
+			fmt.Sprintf(
+				"%s superclass mismatch, previous: %s, now: %s",
+				InspectWithColor(class),
+				InspectWithColor(class.parent),
+				InspectWithColor(parent),
+			),
+		)
 	}
-	class.SetAbstract(abstract)
-	class.SetSealed(sealed)
+	if class.IsPrimitive() != primitive || class.IsAbstract() != abstract || class.IsSealed() != sealed {
+		panic(
+			fmt.Sprintf(
+				"%s modifier mismatch, previous: %s, now: %s",
+				InspectWithColor(class),
+				InspectModifier(class.IsAbstract(), class.IsSealed(), class.IsPrimitive()),
+				InspectModifier(abstract, sealed, primitive),
+			),
+		)
+	}
 	return class
 }
 
@@ -175,6 +190,18 @@ func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primiti
 	return class
 }
 
+// Define a new module if it does not exist.
+func (c *NamespaceBase) TryDefineModule(docComment, name string) *Module {
+	subtype := c.SubtypeString(name)
+	if subtype == nil {
+		return c.DefineModule(docComment, name)
+	}
+
+	module := subtype.(*Module)
+	module.AppendDocComment(docComment)
+	return module
+}
+
 // Define a new module.
 func (c *NamespaceBase) DefineModule(docComment, name string) *Module {
 	m := NewModule(docComment, MakeFullConstantName(c.Name(), name))
@@ -183,12 +210,46 @@ func (c *NamespaceBase) DefineModule(docComment, name string) *Module {
 	return m
 }
 
+// Define a new mixin if it does not exist.
+func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
+	subtype := c.SubtypeString(name)
+	if subtype == nil {
+		return c.DefineMixin(docComment, abstract, name, env)
+	}
+
+	mixin := subtype.(*Mixin)
+	mixin.AppendDocComment(docComment)
+	if mixin.IsAbstract() != abstract {
+		panic(
+			fmt.Sprintf(
+				"%s modifier mismatch, previous: %s, now: %s",
+				InspectWithColor(mixin),
+				InspectModifier(mixin.IsAbstract(), false, false),
+				InspectModifier(abstract, false, false),
+			),
+		)
+	}
+	return mixin
+}
+
 // Define a new mixin.
 func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
 	m := NewMixin(docComment, abstract, MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m
+}
+
+// Define a new module if it does not exist.
+func (c *NamespaceBase) TryDefineInterface(docComment, name string, env *GlobalEnvironment) *Interface {
+	subtype := c.SubtypeString(name)
+	if subtype == nil {
+		return c.DefineInterface(docComment, name, env)
+	}
+
+	iface := subtype.(*Interface)
+	iface.AppendDocComment(docComment)
+	return iface
 }
 
 // Define a new interface.

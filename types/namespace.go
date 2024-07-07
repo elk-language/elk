@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	"github.com/elk-language/elk/value"
 )
 
@@ -101,6 +103,15 @@ func NamespacesAreEqual(left, right Namespace) bool {
 	}
 
 	return false
+}
+
+func GetConstantPath(fullConstantPath string) []string {
+	return strings.Split(fullConstantPath, ":")
+}
+
+func GetConstantName(fullConstantPath string) string {
+	constantPath := GetConstantPath(fullConstantPath)
+	return constantPath[len(constantPath)-1]
 }
 
 func FindRootParent(namespace Namespace) Namespace {
