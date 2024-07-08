@@ -12,6 +12,17 @@ import (
 
 type ParameterKind uint8
 
+func (p ParameterKind) String() string {
+	return parameterKindNames[p]
+}
+
+var parameterKindNames = []string{
+	NormalParameterKind:         "types.NormalParameterKind",
+	DefaultValueParameterKind:   "types.DefaultValueParameterKind",
+	PositionalRestParameterKind: "types.PositionalRestParameterKind",
+	NamedRestParameterKind:      "types.NamedRestParameterKind",
+}
+
 const (
 	NormalParameterKind ParameterKind = iota
 	DefaultValueParameterKind

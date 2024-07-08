@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -112,6 +113,183 @@ func GetConstantPath(fullConstantPath string) []string {
 func GetConstantName(fullConstantPath string) string {
 	constantPath := GetConstantPath(fullConstantPath)
 	return constantPath[len(constantPath)-1]
+}
+
+// Serialise the type to Go code
+func TypeToCode(typ Type) string {
+	switch t := typ.(type) {
+	case Any:
+		return "types.Any{}"
+	case Void, nil:
+		return "types.Void{}"
+	case Never:
+		return "types.Never{}"
+	case *Class:
+		return fmt.Sprintf(
+			"types.NameToType(%q, env)",
+			t.name,
+		)
+	case *Mixin:
+		return fmt.Sprintf(
+			"types.NameToType(%q, env)",
+			t.name,
+		)
+	case *Module:
+		return fmt.Sprintf(
+			"types.NameToType(%q, env)",
+			t.name,
+		)
+	case *Interface:
+		return fmt.Sprintf(
+			"types.NameToType(%q, env)",
+			t.name,
+		)
+	case *Nilable:
+		return fmt.Sprintf(
+			"types.NewNilable(%s)",
+			TypeToCode(t.Type),
+		)
+	case *Union:
+		buff := new(strings.Builder)
+		buff.WriteString("types.NewUnion(")
+		for _, element := range t.Elements {
+			fmt.Fprintf(
+				buff,
+				"%s, ",
+				TypeToCode(element),
+			)
+		}
+		buff.WriteRune(')')
+		return buff.String()
+	case *Intersection:
+		buff := new(strings.Builder)
+		buff.WriteString("types.NewIntersection(")
+		for _, element := range t.Elements {
+			fmt.Fprintf(
+				buff,
+				"%s, ",
+				TypeToCode(element),
+			)
+		}
+		buff.WriteRune(')')
+		return buff.String()
+	case *SymbolLiteral:
+		return fmt.Sprintf("types.NewSymbolLiteral(%q)", t.Value)
+	case *StringLiteral:
+		return fmt.Sprintf("types.NewStringLiteral(%q)", t.Value)
+	case *CharLiteral:
+		return fmt.Sprintf("types.NewCharLiteral(%q)", t.Value)
+	case *FloatLiteral:
+		return fmt.Sprintf("types.NewFloatLiteral(%q)", t.Value)
+	case *Float32Literal:
+		return fmt.Sprintf("types.NewFloat32Literal(%q)", t.Value)
+	case *Float64Literal:
+		return fmt.Sprintf("types.NewFloat64Literal(%q)", t.Value)
+	case *IntLiteral:
+		return fmt.Sprintf("types.NewIntLiteral(%q)", t.Value)
+	case *Int64Literal:
+		return fmt.Sprintf("types.NewInt64Literal(%q)", t.Value)
+	case *Int32Literal:
+		return fmt.Sprintf("types.NewInt32Literal(%q)", t.Value)
+	case *Int16Literal:
+		return fmt.Sprintf("types.NewInt16Literal(%q)", t.Value)
+	case *Int8Literal:
+		return fmt.Sprintf("types.NewInt8Literal(%q)", t.Value)
+	case *UInt64Literal:
+		return fmt.Sprintf("types.NewUInt64Literal(%q)", t.Value)
+	case *UInt32Literal:
+		return fmt.Sprintf("types.NewUInt32Literal(%q)", t.Value)
+	case *UInt16Literal:
+		return fmt.Sprintf("types.NewUInt16Literal(%q)", t.Value)
+	case *UInt8Literal:
+		return fmt.Sprintf("types.NewUInt8Literal(%q)", t.Value)
+	default:
+		panic(
+			fmt.Sprintf("invalid type: %T", typ),
+		)
+	}
+}
+
+func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
+	subtypePath := GetConstantPath(fullSubtypePath)
+	var namespace Namespace = env.Root
+	var currentType Type = namespace
+	for _, subtypeName := range subtypePath {
+		if namespace == nil {
+			panic(
+				fmt.Sprintf(
+					"`%s` is not a namespace",
+					InspectWithColor(currentType),
+				),
+			)
+		}
+		currentType = namespace.SubtypeString(subtypeName)
+		if currentType == nil {
+			panic(
+				fmt.Sprintf(
+					"Undefined subtype `%s` in namespace `%s`",
+					subtypeName,
+					InspectWithColor(namespace),
+				),
+			)
+		}
+
+		namespace, _ = currentType.(Namespace)
+	}
+
+	return currentType
+}
+
+func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
+	return NameToType(fullSubtypePath, env).(Namespace)
+}
+
+// iterate over every mixin that is included in the given namespace
+func ForeachIncludedMixin(namespace Namespace, f func(*Mixin)) {
+	currentNamespace := namespace.Parent()
+	seenMixins := make(map[string]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		var mixin *Mixin
+		switch n := currentNamespace.(type) {
+		case *MixinProxy:
+			mixin = n.Mixin
+		default:
+			continue
+		}
+
+		if seenMixins[mixin.name] {
+			continue
+		}
+
+		f(mixin)
+
+		seenMixins[mixin.name] = true
+	}
+}
+
+// iterate over every interface that is implemented in the given namespace
+func ForeachImplementedInterface(namespace Namespace, f func(*Interface)) {
+	currentNamespace := namespace.Parent()
+	seenInterfaces := make(map[string]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		var iface *Interface
+		switch n := currentNamespace.(type) {
+		case *InterfaceProxy:
+			iface = n.Interface
+		default:
+			continue
+		}
+
+		if seenInterfaces[iface.name] {
+			continue
+		}
+
+		f(iface)
+
+		seenInterfaces[iface.name] = true
+	}
 }
 
 func FindRootParent(namespace Namespace) Namespace {

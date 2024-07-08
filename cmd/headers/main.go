@@ -47,6 +47,7 @@ func main() {
 
 			import (
 				"github.com/elk-language/elk/types"
+				"github.com/elk-language/elk/value"
 				"github.com/elk-language/elk/value/symbol"
 			)
 
@@ -56,7 +57,11 @@ func main() {
 		`,
 	)
 
+	buffer.WriteString("\n// Define all namespaces\n")
 	defineSubtypesWithinNamespace(buffer, env.Root)
+
+	buffer.WriteString("\n// Define methods, constants\n")
+	defineMethodsWithinNamespace(buffer, env.Root)
 
 	buffer.WriteString(
 		`
@@ -65,6 +70,70 @@ func main() {
 	)
 
 	os.WriteFile("headers/headers.go", buffer.Bytes(), 0666)
+}
+
+func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
+	defineMethods(buffer, namespace)
+
+	for _, subtype := range namespace.Subtypes().Map {
+		subtypeNamespace, ok := subtype.(types.Namespace)
+		if !ok {
+			continue
+		}
+
+		defineMethodsWithinNamespace(buffer, subtypeNamespace)
+	}
+}
+
+func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
+	fmt.Fprintf(
+		buffer,
+		`
+			{
+				namespace := types.NameToNamespace(%q, env)
+		`,
+		namespace.Name(),
+	)
+	buffer.WriteString("\n// Define methods\n")
+	for _, method := range namespace.Methods().Map {
+		fmt.Fprintf(
+			buffer,
+			"namespace.DefineMethod(%q, %q, ",
+			method.DocComment,
+			method.Name,
+		)
+		if len(method.Params) > 0 {
+			buffer.WriteString("[]*types.Parameter{")
+			for _, param := range method.Params {
+				var isInstanceVariable string
+				if param.InstanceVariable {
+					isInstanceVariable = "true"
+				} else {
+					isInstanceVariable = "false"
+				}
+				fmt.Fprintf(
+					buffer,
+					"types.NewParameter(value.ToSymbol(%q), %s, %s, %s)",
+					param.Name,
+					types.TypeToCode(param.Type),
+					param.Kind,
+					isInstanceVariable,
+				)
+			}
+			buffer.WriteString("}, ")
+		} else {
+			buffer.WriteString("nil, ")
+		}
+
+		fmt.Fprintf(
+			buffer,
+			"%s, %s)\n",
+			types.TypeToCode(method.ReturnType),
+			types.TypeToCode(method.ThrowType),
+		)
+	}
+
+	buffer.WriteString("}")
 }
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
