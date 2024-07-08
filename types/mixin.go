@@ -9,6 +9,18 @@ type Mixin struct {
 	NamespaceBase
 }
 
+func (m *Mixin) IncludeMixin(includedMixin *Mixin) {
+	headProxy, tailProxy := includedMixin.CreateProxy()
+	tailProxy.SetParent(m.Parent())
+	m.SetParent(headProxy)
+}
+
+func (m *Mixin) ImplementInterface(iface *Interface) {
+	headProxy, tailProxy := iface.CreateProxy()
+	tailProxy.SetParent(m.Parent())
+	m.SetParent(headProxy)
+}
+
 func (m *Mixin) Singleton() *SingletonClass {
 	return m.singleton
 }

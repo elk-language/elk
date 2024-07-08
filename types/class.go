@@ -13,6 +13,18 @@ type Class struct {
 	NamespaceBase
 }
 
+func (c *Class) IncludeMixin(mixin *Mixin) {
+	headProxy, tailProxy := mixin.CreateProxy()
+	tailProxy.SetParent(c.Parent())
+	c.SetParent(headProxy)
+}
+
+func (c *Class) ImplementInterface(iface *Interface) {
+	headProxy, tailProxy := iface.CreateProxy()
+	tailProxy.SetParent(c.Parent())
+	c.SetParent(headProxy)
+}
+
 func (c *Class) SetAbstract(abstract bool) *Class {
 	c.abstract = abstract
 	return c

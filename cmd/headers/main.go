@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Compiles Elk headers
@@ -61,7 +62,7 @@ func main() {
 	defineSubtypesWithinNamespace(buffer, env.Root)
 
 	buffer.WriteString("\n// Define methods, constants\n")
-	defineMethodsWithinNamespace(buffer, env.Root)
+	defineMethodsWithinNamespace(buffer, env.Root, env, true)
 
 	buffer.WriteString(
 		`
@@ -72,7 +73,78 @@ func main() {
 	os.WriteFile("headers/headers.go", buffer.Bytes(), 0666)
 }
 
-func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
+func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment, root bool) {
+	namespaceClass, namespaceIsClass := namespace.(*types.Class)
+	objectClass := env.StdSubtypeClass(symbol.Object)
+	hasContent := namespace.Constants().Len() > 0 || namespace.Methods().Len() > 0 || namespace.Parent() != nil && namespace.Parent() != objectClass
+
+	if !hasContent {
+		return
+	}
+
+	if root {
+		buffer.WriteString(
+			`
+				{
+					namespace := env.Root
+			`,
+		)
+	} else {
+		var namespaceType string
+
+		switch namespace.(type) {
+		case *types.Class:
+			namespaceType = "Class"
+		case *types.Mixin:
+			namespaceType = "Mixin"
+		case *types.Interface:
+			namespaceType = "Interface"
+		case *types.Module:
+			namespaceType = "Module"
+		}
+		fmt.Fprintf(
+			buffer,
+			`
+				{
+					namespace := namespace.SubtypeString(%q).(*types.%s)
+			`,
+			types.GetConstantName(namespace.Name()),
+			namespaceType,
+		)
+	}
+	if namespaceIsClass {
+		superclass := namespaceClass.Superclass()
+		if superclass != nil && superclass != objectClass {
+
+			fmt.Fprintf(
+				buffer,
+				`namespace.SetParent(types.NameToNamespace(%q, env))
+				`,
+				namespaceClass.Superclass().Name(),
+			)
+		}
+	}
+
+	buffer.WriteString("\n// Include mixins\n")
+	types.ForeachIncludedMixin(namespace, func(m *types.Mixin) {
+		fmt.Fprintf(
+			buffer,
+			`namespace.IncludeMixin(types.NameToNamespace(%q, env).(*types.Mixin))
+			`,
+			m.Name(),
+		)
+	})
+
+	buffer.WriteString("\n// Implement interfaces\n")
+	types.ForeachImplementedInterface(namespace, func(i *types.Interface) {
+		fmt.Fprintf(
+			buffer,
+			`namespace.ImplementInterface(types.NameToNamespace(%q, env).(*types.Interface))
+			`,
+			i.Name(),
+		)
+	})
+
 	defineMethods(buffer, namespace)
 
 	for _, subtype := range namespace.Subtypes().Map {
@@ -81,19 +153,15 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			continue
 		}
 
-		defineMethodsWithinNamespace(buffer, subtypeNamespace)
+		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
 	}
+
+	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
+
+	buffer.WriteString("}")
 }
 
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
-	fmt.Fprintf(
-		buffer,
-		`
-			{
-				namespace := types.NameToNamespace(%q, env)
-		`,
-		namespace.Name(),
-	)
 	buffer.WriteString("\n// Define methods\n")
 	for _, method := range namespace.Methods().Map {
 		fmt.Fprintf(
@@ -132,8 +200,6 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			types.TypeToCode(method.ThrowType),
 		)
 	}
-
-	buffer.WriteString("}")
 }
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {

@@ -1,10 +1,16 @@
 module Foo
 	class Bar
-		interface Baz; end
+		mixin Baz; end
+		interface Bazi; end
 	end
 end
 
 sealed primitive class ::Std::String
+	include Foo::Bar::Baz
+	implement Foo::Bar::Bazi
+
+	const DUPA = 5
+
 	##[
 		Concatenate this `String`
 		with another `String` or `Char`.

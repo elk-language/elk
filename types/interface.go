@@ -8,6 +8,12 @@ type Interface struct {
 	NamespaceBase
 }
 
+func (i *Interface) ImplementInterface(implementedInterface *Interface) {
+	headProxy, tailProxy := implementedInterface.CreateProxy()
+	tailProxy.SetParent(i.Parent())
+	i.SetParent(headProxy)
+}
+
 func (i *Interface) Singleton() *SingletonClass {
 	return i.singleton
 }
