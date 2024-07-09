@@ -336,6 +336,10 @@ func (c *Checker) currentMethodScope() methodScope {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	if c.HeaderMode {
+		return
+	}
+
 	c.methodChecks.Append(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
@@ -614,7 +618,7 @@ type methodOverride struct {
 	override    *types.Method
 }
 
-func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
+func (c *Checker) implementsInterface(a types.Namespace, b *types.Interface) bool {
 	var currentContainer types.Namespace = a
 loop:
 	for {
@@ -632,6 +636,14 @@ loop:
 		}
 
 		currentContainer = currentContainer.Parent()
+	}
+
+	return false
+}
+
+func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
+	if c.implementsInterface(a, b) {
+		return true
 	}
 
 	var incorrectMethods []methodOverride
@@ -1151,18 +1163,14 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 			node.Span(),
 		)
 	}
-	headProxy, tailProxy := constantMixin.CreateProxy()
 
 	switch t := target.(type) {
 	case *types.Class:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.IncludeMixin(constantMixin)
 	case *types.SingletonClass:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.IncludeMixin(constantMixin)
 	case *types.Mixin:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.IncludeMixin(constantMixin)
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -1198,21 +1206,17 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	}
 
 	target := c.currentConstScope().container
-	if c.isSubtypeOfInterface(target, constantInterface, nil) {
+	if c.implementsInterface(target, constantInterface) {
 		return
 	}
-	headProxy, tailProxy := constantInterface.CreateProxy()
 
 	switch t := target.(type) {
 	case *types.Class:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.ImplementInterface(constantInterface)
 	case *types.Mixin:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.ImplementInterface(constantInterface)
 	case *types.Interface:
-		tailProxy.SetParent(t.Parent())
-		t.SetParent(headProxy)
+		t.ImplementInterface(constantInterface)
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -1783,6 +1787,9 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 	if method == nil {
 		method = types.NewMethod(
 			"",
+			false,
+			false,
+			true,
 			"#init",
 			nil,
 			nil,
@@ -4375,13 +4382,15 @@ func (c *Checker) declareMethod(
 	}
 	newMethod := types.NewMethod(
 		docComment,
+		abstract,
+		sealed,
+		c.HeaderMode,
 		name,
 		params,
 		returnType,
 		throwType,
 		methodScope.container,
 	)
-	newMethod.SetAbstract(abstract).SetSealed(sealed)
 	newMethod.SetSpan(span)
 
 	methodScope.container.SetMethod(name, newMethod)

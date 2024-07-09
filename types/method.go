@@ -12,6 +12,17 @@ import (
 
 type ParameterKind uint8
 
+func (p ParameterKind) String() string {
+	return parameterKindNames[p]
+}
+
+var parameterKindNames = []string{
+	NormalParameterKind:         "NormalParameterKind",
+	DefaultValueParameterKind:   "DefaultValueParameterKind",
+	PositionalRestParameterKind: "PositionalRestParameterKind",
+	NamedRestParameterKind:      "NamedRestParameterKind",
+}
+
 const (
 	NormalParameterKind ParameterKind = iota
 	DefaultValueParameterKind
@@ -127,7 +138,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(docComment string, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -150,6 +161,9 @@ func NewMethod(docComment string, name string, params []*Parameter, returnType T
 	}
 
 	return &Method{
+		abstract:           abstract,
+		sealed:             sealed,
+		native:             native,
 		Name:               name,
 		DocComment:         docComment,
 		Params:             params,

@@ -159,16 +159,6 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 
 	class := subtype.(*Class)
 	class.AppendDocComment(docComment)
-	if class.parent != parent {
-		panic(
-			fmt.Sprintf(
-				"%s superclass mismatch, previous: %s, now: %s",
-				InspectWithColor(class),
-				InspectWithColor(class.parent),
-				InspectWithColor(parent),
-			),
-		)
-	}
 	if class.IsPrimitive() != primitive || class.IsAbstract() != abstract || class.IsSealed() != sealed {
 		panic(
 			fmt.Sprintf(

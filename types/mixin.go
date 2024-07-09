@@ -9,6 +9,18 @@ type Mixin struct {
 	NamespaceBase
 }
 
+func (m *Mixin) IncludeMixin(includedMixin *Mixin) {
+	headProxy, tailProxy := includedMixin.CreateProxy()
+	tailProxy.SetParent(m.Parent())
+	m.SetParent(headProxy)
+}
+
+func (m *Mixin) ImplementInterface(iface *Interface) {
+	headProxy, tailProxy := iface.CreateProxy()
+	tailProxy.SetParent(m.Parent())
+	m.SetParent(headProxy)
+}
+
 func (m *Mixin) Singleton() *SingletonClass {
 	return m.singleton
 }
@@ -118,8 +130,8 @@ loop:
 	return headProxy, tailProxy
 }
 
-func (m *Mixin) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, name, params, returnType, throwType, m)
+func (m *Mixin) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
 }

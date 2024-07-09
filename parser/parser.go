@@ -682,6 +682,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.sealedModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
+	case token.ALIAS:
+		return p.aliasDeclaration(allowed)
 	}
 
 	return p.modifierExpression()
@@ -1987,7 +1989,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.TYPE:
 		return p.typeExpression()
 	case token.ALIAS:
-		return p.aliasDeclaration()
+		return p.aliasDeclaration(false)
 	case token.SIG:
 		return p.methodSignatureDefinition(false)
 	case token.SINGLETON:
@@ -2552,14 +2554,21 @@ func (p *Parser) aliasEntryList(stopTokens ...token.Type) []*ast.AliasDeclaratio
 }
 
 // aliasDeclaration = "alias" methodName methodName
-func (p *Parser) aliasDeclaration() ast.ExpressionNode {
+func (p *Parser) aliasDeclaration(allowed bool) ast.ExpressionNode {
 	aliasTok := p.advance()
 	p.swallowNewlines()
 
 	entries := p.aliasEntryList()
 
+	span := position.JoinSpanOfLastElement(aliasTok.Span(), entries)
+	if !allowed {
+		p.errorMessageSpan(
+			"alias definitions cannot appear in expressions",
+			span,
+		)
+	}
 	return ast.NewAliasDeclarationNode(
-		position.JoinSpanOfLastElement(aliasTok.Span(), entries),
+		span,
 		entries,
 	)
 }

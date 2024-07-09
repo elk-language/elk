@@ -13,6 +13,18 @@ type Class struct {
 	NamespaceBase
 }
 
+func (c *Class) IncludeMixin(mixin *Mixin) {
+	headProxy, tailProxy := mixin.CreateProxy()
+	tailProxy.SetParent(c.Parent())
+	c.SetParent(headProxy)
+}
+
+func (c *Class) ImplementInterface(iface *Interface) {
+	headProxy, tailProxy := iface.CreateProxy()
+	tailProxy.SetParent(c.Parent())
+	c.SetParent(headProxy)
+}
+
 func (c *Class) SetAbstract(abstract bool) *Class {
 	c.abstract = abstract
 	return c
@@ -102,8 +114,8 @@ func NewClassWithDetails(docComment string, abstract, sealed, primitive bool, na
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, name, params, returnType, throwType, c)
+func (c *Class) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
 }

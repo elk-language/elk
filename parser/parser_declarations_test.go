@@ -3064,7 +3064,7 @@ func TestAccessorDeclaration(t *testing.T) {
 
 func TestAliasDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = alias foo bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -3089,6 +3089,9 @@ func TestAliasDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(4, 1, 5), P(16, 1, 17)), "alias definitions cannot appear in expressions"),
+			},
 		},
 		"can have a few entries": {
 			input: "alias foo bar, add plus, remove delete",
