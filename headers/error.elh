@@ -1,0 +1,10 @@
+##[
+	A base class for most errors in Elk stdlib.
+]##
+class Std::Error; end
+
+##[
+	Thrown when a numeric value is too large or too small to be used in a particular setting.
+]##
+class Std::OutOfRangeError < Std::Error; end
+

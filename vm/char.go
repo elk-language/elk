@@ -117,16 +117,22 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+
 	Def(
 		c,
-		"===",
+		"uppercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
-			other := args[1]
-			return self.StrictEqual(other), nil
+			return self.Uppercase(), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+	)
+	Def(
+		c,
+		"lowercase",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Char)
+			return self.Lowercase(), nil
+		},
 	)
 
 	Def(

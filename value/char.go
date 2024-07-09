@@ -245,6 +245,16 @@ func (c Char) Equal(other Value) Value {
 	}
 }
 
+// Convert to uppercase
+func (c Char) Uppercase() Char {
+	return Char(unicode.ToUpper(rune(c)))
+}
+
+// Convert to lowercase
+func (c Char) Lowercase() Char {
+	return Char(unicode.ToLower(rune(c)))
+}
+
 // Check whether s is strictly equal to other
 func (c Char) StrictEqual(other Value) Value {
 	return c.Equal(other)

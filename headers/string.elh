@@ -29,6 +29,8 @@ sealed primitive class ::Std::String
 	sealed def *(n: Int): String; end
 	alias repeat *
 
+	def <=>(other: String | Char): Int; end
+
 	sealed def <=(other: String | Char): Bool; end
 
 	sealed def <(other: String | Char): Bool; end
@@ -40,7 +42,37 @@ sealed primitive class ::Std::String
 	sealed def ==(other: Object): Bool; end
 
 	##[
-		Get the number of unicode code points
+		Get the Unicode code point with the given index.
+		Indices start at 0.
+	]##
+	def chat_at(index: AnyInt): Char; end
+
+	##[
+		Get the byte with the given index.
+		Indices start at 0.
+	]##
+	def byte_at(index: AnyInt): UInt8; end
+
+	##[
+		Get the Unicode grapheme cluster with the given index.
+		Indices start at 0.
+	]##
+	def grapheme_at(index: AnyInt): String; end
+
+	##[
+		Create a new string with all of the characters
+		of this one turned into uppercase.
+	]##
+	def uppercase: String; end
+
+	##[
+		Create a new string with all of the characters
+		of this one turned into lowercase.
+	]##
+	def lowercase: String; end
+
+	##[
+		Get the number of Unicode code points
 		that this `String` contains.
 	]##
 	def length: Int; end
@@ -48,13 +80,13 @@ sealed primitive class ::Std::String
 
 	##[
 		Get the number of bytes that this
-		`String` contains.
+		string contains.
 	]##
 	def byte_count: Int; end
 
 	##[
 		Get the number of unicode grapheme clusters
-		present in the `String`.
+		present in this string.
 	]##
 	def grapheme_count: Int; end
 
@@ -62,6 +94,11 @@ sealed primitive class ::Std::String
 		Convert the `String` to a `Symbol`.
 	]##
 	def to_symbol: Symbol; end
+
+	##[
+		Returns itself.
+	]##
+	def to_string: String; end
 
 	##[
 		Return a human readable `String`
@@ -74,4 +111,47 @@ sealed primitive class ::Std::String
 		Check whether the `String` is empty.
 	]##
 	def is_empty: Bool; end
+
+	##[
+		Iterates over all unicode code points of a `String`.
+	]##
+	def iterator: CharIterator; end
+	alias char_iterator iterator
+
+	##[
+		Iterates over all bytes of a `String`.
+	]##
+	def byte_iterator: ByteIterator; end
+
+	##[
+		Iterates over all unicode code points of a `String`.
+	]##
+	class CharIterator
+		##[
+			Get the next character.
+			Throws `:stop_iteration` when no more characters are available.
+		]##
+		def next: Char ! :stop_iteration; end
+
+		##[
+			Returns itself.
+		]##
+		def iterator: CharIterator; end
+	end
+
+	##[
+		Iterates over all bytes of a `String`.
+	]##
+	class ByteIterator
+		##[
+			Get the next byte.
+			Throws `:stop_iteration` when no more bytes are available.
+		]##
+		def next: UInt8 ! :stop_iteration; end
+
+		##[
+			Returns itself.
+		]##
+		def iterator: ByteIterator; end
+	end
 end

@@ -323,6 +323,12 @@ func typeToCode(typ types.Type) string {
 		return "Void{}"
 	case types.Never:
 		return "Never{}"
+	case *types.NamedType:
+		return fmt.Sprintf(
+			"NewNamedType(%q, %s)",
+			t.Name,
+			typeToCode(t.Type),
+		)
 	case *types.Class:
 		return fmt.Sprintf(
 			"NameToType(%q, env)",

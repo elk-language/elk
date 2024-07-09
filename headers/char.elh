@@ -1,0 +1,82 @@
+##[
+	Represents a single Unicode code point.
+]##
+sealed primitive class ::Std::Char
+	##[
+		Concatenate this `Char`
+		with another `Char` or `String`.
+
+		Creates a new `String` containing the content
+		of both operands.
+	]##
+	sealed def +(other: String | Char): String; end
+	alias concat +
+
+	##[
+		Creates a new `String` that contains the
+		content of `self` repeated `n` times.
+	]##
+	sealed def *(n: Int): String; end
+	alias repeat *
+
+	def <=>(other: String | Char): Int; end
+
+	sealed def <=(other: String | Char): Bool; end
+
+	sealed def <(other: String | Char): Bool; end
+
+	sealed def >=(other: String | Char): Bool; end
+
+	sealed def >(other: String | Char): Bool; end
+
+	sealed def ==(other: Object): Bool; end
+
+	##[
+		Return the uppercase version of this character.
+	]##
+	def uppercase: Char; end
+
+	##[
+		Return the lowercase version of this character.
+	]##
+	def lowercase: Char; end
+
+	##[
+		Always returns 1.
+	]##
+	def length: Int; end
+	alias char_count length
+
+	##[
+		Get the number of bytes that this
+		character contains.
+	]##
+	def byte_count: Int; end
+
+	##[
+		Always returns 1.
+	]##
+	def grapheme_count: Int; end
+
+	##[
+		Creates a new string with this character.
+	]##
+	def to_string: String; end
+
+	##[
+		Converts the `Char` to a `Symbol`.
+	]##
+	def to_symbol: Symbol; end
+
+	##[
+		Return a human readable string
+		representation of this object
+		for debugging etc.
+	]##
+	def inspect: String; end
+
+	##[
+		Always returns false.
+	]##
+	def is_empty: Bool; end
+end
