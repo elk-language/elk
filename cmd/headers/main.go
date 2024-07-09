@@ -17,7 +17,7 @@ import (
 const pathToHeaders = "./headers/"
 
 func main() {
-	env := types.NewGlobalEnvironment()
+	env := types.NewGlobalEnvironmentWithoutHeaders()
 	items, _ := os.ReadDir(pathToHeaders)
 	for _, item := range items {
 		if item.IsDir() {
@@ -42,17 +42,16 @@ func main() {
 	buffer := new(bytes.Buffer)
 	buffer.WriteString(
 		`
-			package headers
+			package types
 
 			// This file is auto-generated, please do not edit it manually
 
 			import (
-				"github.com/elk-language/elk/types"
 				"github.com/elk-language/elk/value"
 				"github.com/elk-language/elk/value/symbol"
 			)
 
-			func SetupGlobalEnvironment(env *types.GlobalEnvironment) {
+			func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				objectClass := env.StdSubtypeClass(symbol.Object)
 				namespace := env.Root
 		`,
@@ -70,13 +69,18 @@ func main() {
 		`,
 	)
 
-	os.WriteFile("headers/headers.go", buffer.Bytes(), 0666)
+	os.WriteFile("types/headers.go", buffer.Bytes(), 0666)
+}
+
+func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment) bool {
+	objectClass := env.StdSubtypeClass(symbol.Object)
+	return namespace.Constants().Len() > 0 || namespace.Methods().Len() > 0 || namespace.Parent() != nil && namespace.Parent() != objectClass
 }
 
 func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment, root bool) {
 	namespaceClass, namespaceIsClass := namespace.(*types.Class)
+	hasContent := namespaceHasContent(namespace, env)
 	objectClass := env.StdSubtypeClass(symbol.Object)
-	hasContent := namespace.Constants().Len() > 0 || namespace.Methods().Len() > 0 || namespace.Parent() != nil && namespace.Parent() != objectClass
 
 	if !hasContent {
 		return
@@ -106,19 +110,20 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			buffer,
 			`
 				{
-					namespace := namespace.SubtypeString(%q).(*types.%s)
+					namespace := namespace.SubtypeString(%q).(*%s)
 			`,
 			types.GetConstantName(namespace.Name()),
 			namespaceType,
 		)
 	}
+	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
 	if namespaceIsClass {
 		superclass := namespaceClass.Superclass()
 		if superclass != nil && superclass != objectClass {
 
 			fmt.Fprintf(
 				buffer,
-				`namespace.SetParent(types.NameToNamespace(%q, env))
+				`namespace.SetParent(NameToNamespace(%q, env))
 				`,
 				namespaceClass.Superclass().Name(),
 			)
@@ -129,7 +134,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	types.ForeachIncludedMixin(namespace, func(m *types.Mixin) {
 		fmt.Fprintf(
 			buffer,
-			`namespace.IncludeMixin(types.NameToNamespace(%q, env).(*types.Mixin))
+			`namespace.IncludeMixin(NameToType(%q, env).(*Mixin))
 			`,
 			m.Name(),
 		)
@@ -139,13 +144,24 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	types.ForeachImplementedInterface(namespace, func(i *types.Interface) {
 		fmt.Fprintf(
 			buffer,
-			`namespace.ImplementInterface(types.NameToNamespace(%q, env).(*types.Interface))
+			`namespace.ImplementInterface(NameToType(%q, env).(*Interface))
 			`,
 			i.Name(),
 		)
 	})
 
 	defineMethods(buffer, namespace)
+
+	buffer.WriteString("\n// Define constants\n")
+	types.ForeachConstant(namespace, func(name string, typ types.Type) {
+		fmt.Fprintf(
+			buffer,
+			`namespace.DefineConstant(%q, %s)
+			`,
+			name,
+			typeToCode(typ),
+		)
+	})
 
 	for _, subtype := range namespace.Subtypes().Map {
 		subtypeNamespace, ok := subtype.(types.Namespace)
@@ -156,8 +172,6 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
 	}
 
-	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
-
 	buffer.WriteString("}")
 }
 
@@ -166,26 +180,23 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	for _, method := range namespace.Methods().Map {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineMethod(%q, %q, ",
+			"namespace.DefineMethod(%q, %t, %t, %t, %q, ",
 			method.DocComment,
+			method.IsAbstract(),
+			method.IsSealed(),
+			method.IsNative(),
 			method.Name,
 		)
 		if len(method.Params) > 0 {
-			buffer.WriteString("[]*types.Parameter{")
+			buffer.WriteString("[]*Parameter{")
 			for _, param := range method.Params {
-				var isInstanceVariable string
-				if param.InstanceVariable {
-					isInstanceVariable = "true"
-				} else {
-					isInstanceVariable = "false"
-				}
 				fmt.Fprintf(
 					buffer,
-					"types.NewParameter(value.ToSymbol(%q), %s, %s, %s)",
+					"NewParameter(value.ToSymbol(%q), %s, %s, %t)",
 					param.Name,
-					types.TypeToCode(param.Type),
+					typeToCode(param.Type),
 					param.Kind,
-					isInstanceVariable,
+					param.InstanceVariable,
 				)
 			}
 			buffer.WriteString("}, ")
@@ -196,8 +207,8 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			"%s, %s)\n",
-			types.TypeToCode(method.ReturnType),
-			types.TypeToCode(method.ThrowType),
+			typeToCode(method.ReturnType),
+			typeToCode(method.ThrowType),
 		)
 	}
 }
@@ -298,5 +309,107 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 	defineSubtypesWithinNamespace(buffer, iface)
 	if hasSubtypes {
 		buffer.WriteString("}\n")
+	}
+}
+
+// Serialise the type to Go code
+func typeToCode(typ types.Type) string {
+	switch t := typ.(type) {
+	case nil:
+		return "nil"
+	case types.Any:
+		return "Any{}"
+	case types.Void:
+		return "Void{}"
+	case types.Never:
+		return "Never{}"
+	case *types.Class:
+		return fmt.Sprintf(
+			"NameToType(%q, env)",
+			t.Name(),
+		)
+	case *types.SingletonClass:
+		return fmt.Sprintf(
+			"NameToNamespace(%q, env).Singleton()",
+			t.AttachedObject.Name(),
+		)
+	case *types.Mixin:
+		return fmt.Sprintf(
+			"NameToType(%q, env)",
+			t.Name(),
+		)
+	case *types.Module:
+		return fmt.Sprintf(
+			"NameToType(%q, env)",
+			t.Name(),
+		)
+	case *types.Interface:
+		return fmt.Sprintf(
+			"NameToType(%q, env)",
+			t.Name(),
+		)
+	case *types.Nilable:
+		return fmt.Sprintf(
+			"NewNilable(%s)",
+			typeToCode(t.Type),
+		)
+	case *types.Union:
+		buff := new(strings.Builder)
+		buff.WriteString("NewUnion(")
+		for _, element := range t.Elements {
+			fmt.Fprintf(
+				buff,
+				"%s, ",
+				typeToCode(element),
+			)
+		}
+		buff.WriteRune(')')
+		return buff.String()
+	case *types.Intersection:
+		buff := new(strings.Builder)
+		buff.WriteString("NewIntersection(")
+		for _, element := range t.Elements {
+			fmt.Fprintf(
+				buff,
+				"%s, ",
+				typeToCode(element),
+			)
+		}
+		buff.WriteRune(')')
+		return buff.String()
+	case *types.SymbolLiteral:
+		return fmt.Sprintf("NewSymbolLiteral(%q)", t.Value)
+	case *types.StringLiteral:
+		return fmt.Sprintf("NewStringLiteral(%q)", t.Value)
+	case *types.CharLiteral:
+		return fmt.Sprintf("NewCharLiteral(%q)", t.Value)
+	case *types.FloatLiteral:
+		return fmt.Sprintf("NewFloatLiteral(%q)", t.Value)
+	case *types.Float32Literal:
+		return fmt.Sprintf("NewFloat32Literal(%q)", t.Value)
+	case *types.Float64Literal:
+		return fmt.Sprintf("NewFloat64Literal(%q)", t.Value)
+	case *types.IntLiteral:
+		return fmt.Sprintf("NewIntLiteral(%q)", t.Value)
+	case *types.Int64Literal:
+		return fmt.Sprintf("NewInt64Literal(%q)", t.Value)
+	case *types.Int32Literal:
+		return fmt.Sprintf("NewInt32Literal(%q)", t.Value)
+	case *types.Int16Literal:
+		return fmt.Sprintf("NewInt16Literal(%q)", t.Value)
+	case *types.Int8Literal:
+		return fmt.Sprintf("NewInt8Literal(%q)", t.Value)
+	case *types.UInt64Literal:
+		return fmt.Sprintf("NewUInt64Literal(%q)", t.Value)
+	case *types.UInt32Literal:
+		return fmt.Sprintf("NewUInt32Literal(%q)", t.Value)
+	case *types.UInt16Literal:
+		return fmt.Sprintf("NewUInt16Literal(%q)", t.Value)
+	case *types.UInt8Literal:
+		return fmt.Sprintf("NewUInt8Literal(%q)", t.Value)
+	default:
+		panic(
+			fmt.Sprintf("invalid type: %T", typ),
+		)
 	}
 }

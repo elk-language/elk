@@ -130,8 +130,8 @@ loop:
 	return headProxy, tailProxy
 }
 
-func (m *Mixin) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, name, params, returnType, throwType, m)
+func (m *Mixin) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
 }

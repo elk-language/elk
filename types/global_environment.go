@@ -33,8 +33,7 @@ func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
 	return g.Std().Constant(name)
 }
 
-// Create a new global environment for type checking.
-func NewGlobalEnvironment() *GlobalEnvironment {
+func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	// -- Bootstrapping --
 
 	rootModule := NewModule("", "Root")
@@ -107,5 +106,12 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, "Regex", objectClass, env)
 	stdModule.DefineClass("", false, true, true, "Method", objectClass, env)
 
+	return env
+}
+
+// Create a new global environment for type checking.
+func NewGlobalEnvironment() *GlobalEnvironment {
+	env := NewGlobalEnvironmentWithoutHeaders()
+	setupGlobalEnvironmentFromHeaders(env)
 	return env
 }

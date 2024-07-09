@@ -17,10 +17,10 @@ func (p ParameterKind) String() string {
 }
 
 var parameterKindNames = []string{
-	NormalParameterKind:         "types.NormalParameterKind",
-	DefaultValueParameterKind:   "types.DefaultValueParameterKind",
-	PositionalRestParameterKind: "types.PositionalRestParameterKind",
-	NamedRestParameterKind:      "types.NamedRestParameterKind",
+	NormalParameterKind:         "NormalParameterKind",
+	DefaultValueParameterKind:   "DefaultValueParameterKind",
+	PositionalRestParameterKind: "PositionalRestParameterKind",
+	NamedRestParameterKind:      "NamedRestParameterKind",
 }
 
 const (
@@ -138,7 +138,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(docComment string, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -161,6 +161,9 @@ func NewMethod(docComment string, name string, params []*Parameter, returnType T
 	}
 
 	return &Method{
+		abstract:           abstract,
+		sealed:             sealed,
+		native:             native,
 		Name:               name,
 		DocComment:         docComment,
 		Params:             params,

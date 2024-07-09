@@ -58,6 +58,7 @@ func TestNilable(t *testing.T) {
 			Class{},
 			Mixin{},
 			MixinProxy{},
+			Method{},
 		),
 		cmpopts.IgnoreUnexported(
 			MethodMap{},

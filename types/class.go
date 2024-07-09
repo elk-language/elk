@@ -114,8 +114,8 @@ func NewClassWithDetails(docComment string, abstract, sealed, primitive bool, na
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, name, params, returnType, throwType, c)
+func (c *Class) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
 }

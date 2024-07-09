@@ -336,6 +336,10 @@ func (c *Checker) currentMethodScope() methodScope {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	if c.HeaderMode {
+		return
+	}
+
 	c.methodChecks.Append(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
@@ -1783,6 +1787,9 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 	if method == nil {
 		method = types.NewMethod(
 			"",
+			false,
+			false,
+			true,
 			"#init",
 			nil,
 			nil,
@@ -4375,13 +4382,15 @@ func (c *Checker) declareMethod(
 	}
 	newMethod := types.NewMethod(
 		docComment,
+		abstract,
+		sealed,
+		c.HeaderMode,
 		name,
 		params,
 		returnType,
 		throwType,
 		methodScope.container,
 	)
-	newMethod.SetAbstract(abstract).SetSealed(sealed)
 	newMethod.SetSpan(span)
 
 	methodScope.container.SetMethod(name, newMethod)

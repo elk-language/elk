@@ -90,8 +90,8 @@ func (i *Interface) CreateProxy() (head, tail *InterfaceProxy) {
 	return headProxy, tailProxy
 }
 
-func (i *Interface) DefineMethod(docComment, name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, name, params, returnType, throwType, i)
+func (i *Interface) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method
 }

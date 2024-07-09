@@ -1,16 +1,4 @@
-module Foo
-	class Bar
-		mixin Baz; end
-		interface Bazi; end
-	end
-end
-
 sealed primitive class ::Std::String
-	include Foo::Bar::Baz
-	implement Foo::Bar::Bazi
-
-	const DUPA = 5
-
 	##[
 		Concatenate this `String`
 		with another `String` or `Char`.
@@ -18,7 +6,7 @@ sealed primitive class ::Std::String
 		Creates a new `String` containing the content
 		of both operands.
 	]##
-	def +(other: String | Char): String; end
+	sealed def +(other: String | Char): String; end
 	alias concat +
 
 	##[
@@ -31,25 +19,25 @@ sealed primitive class ::Std::String
 		a new `String` gets created and returned that doesn't contain
 		the suffix.
 	]##
-	def -(suffix: String | Char): String; end
+	sealed def -(suffix: String | Char): String; end
 	alias remove_suffix -
 
 	##[
 		Creates a new `String` that contains the
 		content of `self` repeated `n` times.
 	]##
-	def *(n: Int): String; end
+	sealed def *(n: Int): String; end
 	alias repeat *
 
-	def <=(other: String | Char): Bool; end
+	sealed def <=(other: String | Char): Bool; end
 
-	def <(other: String | Char): Bool; end
+	sealed def <(other: String | Char): Bool; end
 
-	def >=(other: String | Char): Bool; end
+	sealed def >=(other: String | Char): Bool; end
 
-	def >(other: String | Char): Bool; end
+	sealed def >(other: String | Char): Bool; end
 
-	def ==(other: Object): Bool; end
+	sealed def ==(other: Object): Bool; end
 
 	##[
 		Get the number of unicode code points
