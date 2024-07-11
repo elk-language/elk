@@ -1,4 +1,4 @@
 ignore.*
-headers/headers.go
+types/headers.go
 .vscode
 docs/**/*
