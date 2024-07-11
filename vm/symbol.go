@@ -21,17 +21,6 @@ func init() {
 	)
 	Def(
 		c,
-		"===",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Symbol)
-			other := args[1]
-			return self.StrictEqual(other), nil
-		},
-		DefWithParameters("other"),
-		DefWithSealed(),
-	)
-	Def(
-		c,
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], nil
@@ -45,6 +34,8 @@ func init() {
 			return self.ToString(), nil
 		},
 	)
+	Alias(c, "name", "to_string")
+
 	Def(
 		c,
 		"inspect",

@@ -1,0 +1,32 @@
+##[
+	Represents an interned string.
+
+	A symbol is an integer ID that is associated
+	with a particular name (string).
+
+	A few symbols with the same name refer to the same ID.
+
+	Comparing symbols happens in constant time, so it's
+	usually faster than comparing strings.
+]##
+sealed primitive class ::Std::Symbol
+	sealed def ==(other: Object): Bool; end
+
+	##[
+		Returns the string associated with this symbol.
+	]##
+	def to_string: String; end
+	alias name to_string
+
+	##[
+		Returns itself.
+	]##
+	def to_symbol: Symbol; end
+
+	##[
+		Return a human readable string
+		representation of this object
+		for debugging etc.
+	]##
+	def inspect: String; end
+end

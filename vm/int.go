@@ -241,24 +241,6 @@ func init() {
 	)
 	Def(
 		c,
-		"===",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.StrictEqual(other), nil
-			case *value.BigInt:
-				return s.StrictEqual(other), nil
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
-		},
-		DefWithParameters("other"),
-		DefWithSealed(),
-	)
-	Def(
-		c,
 		"<<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

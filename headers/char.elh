@@ -3,6 +3,16 @@
 ]##
 sealed primitive class ::Std::Char
 	##[
+		Get the next Unicode codepoint by incrementing by 1.
+	]##
+	sealed def ++: Char; end
+
+	##[
+		Get the previous Unicode codepoint by decrementing by 1.
+	]##
+	sealed def --: Char; end
+
+	##[
 		Concatenate this `Char`
 		with another `Char` or `String`.
 
@@ -19,6 +29,10 @@ sealed primitive class ::Std::Char
 	sealed def *(n: Int): String; end
 	alias repeat *
 
+	##[
+		Compare this char with another char or string.
+		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
+	]##
 	def <=>(other: String | Char): Int; end
 
 	sealed def <=(other: String | Char): Bool; end
@@ -43,6 +57,7 @@ sealed primitive class ::Std::Char
 
 	##[
 		Always returns 1.
+		For better compatibility with `String`.
 	]##
 	def length: Int; end
 	alias char_count length
@@ -55,6 +70,7 @@ sealed primitive class ::Std::Char
 
 	##[
 		Always returns 1.
+		For better compatibility with `String`.
 	]##
 	def grapheme_count: Int; end
 
@@ -77,6 +93,7 @@ sealed primitive class ::Std::Char
 
 	##[
 		Always returns false.
+		For better compatibility with `String`.
 	]##
 	def is_empty: Bool; end
 end
