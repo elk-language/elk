@@ -1,5 +1,5 @@
 compile-headers:
-	go run ./cmd/headers/main.go
+	go run ./cmd/headers/main.go -tags headers
 	gofmt -w ./types/headers.go
 
 build: compile-headers

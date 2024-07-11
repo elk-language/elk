@@ -42,6 +42,8 @@ func main() {
 	buffer := new(bytes.Buffer)
 	buffer.WriteString(
 		`
+			//go:build !headers
+
 			package types
 
 			// This file is auto-generated, please do not edit it manually
