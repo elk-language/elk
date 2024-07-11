@@ -29,7 +29,7 @@ sealed primitive class ::Std::String
 	sealed def *(n: Int): String; end
 	alias repeat *
 
-	def <=>(other: String | Char): Int; end
+	sealed def <=>(other: String | Char): Int; end
 
 	sealed def <=(other: String | Char): Bool; end
 

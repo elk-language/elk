@@ -33,7 +33,7 @@ sealed primitive class ::Std::Char
 		Compare this char with another char or string.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	def <=>(other: String | Char): Int; end
+	sealed def <=>(other: String | Char): Int; end
 
 	sealed def <=(other: String | Char): Bool; end
 

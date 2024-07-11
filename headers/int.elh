@@ -45,47 +45,47 @@ sealed primitive class ::Std::Int
 		Compare this integer with another integer.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	def <=>(other: Int): Int; end
+	sealed def <=>(other: Int): Int; end
 
-	def >=(other: Int): Int; end
+	sealed def >=(other: Int): Int; end
 
-	def >(other: Int): Int; end
+	sealed def >(other: Int): Int; end
 
-	def <=(other: Int): Int; end
+	sealed def <=(other: Int): Int; end
 
-	def <(other: Int): Int; end
+	sealed def <(other: Int): Int; end
 
-	def ==(other: Int): Int; end
+	sealed def ==(other: Int): Int; end
 
 	##[
 		Returns an integer shifted left by `other` positions, or right if `other` is negative.
 	]##
-	def <<(other: AnyInt): Int; end
+	sealed def <<(other: AnyInt): Int; end
 
 	##[
 		Returns an integer shifted right by `other` positions, or left if `other` is negative.
 	]##
-	def >>(other: AnyInt): Int; end
+	sealed def >>(other: AnyInt): Int; end
 
 	##[
 		Performs bitwise AND.
 	]##
-	def &(other: Int): Int; end
+	sealed def &(other: Int): Int; end
 
 	##[
 		Performs bitwise AND NOT (bit clear).
 	]##
-	def &~(other: Int): Int; end
+	sealed def &~(other: Int): Int; end
 
 	##[
 		Performs bitwise OR.
 	]##
-	def |(other: Int): Int; end
+	sealed def |(other: Int): Int; end
 
 	##[
 		Performs bitwise XOR.
 	]##
-	def ^(other: Int): Int; end
+	sealed def ^(other: Int): Int; end
 
 	##[
 		Returns the remainder of dividing by `other`.
@@ -96,7 +96,7 @@ sealed primitive class ::Std::Int
 			a % b #=> 1
 		```
 	]##
-	def %(other: Int): Int; end
+	sealed def %(other: Int): Int; end
 
 	##[
 		Returns itself.
@@ -106,7 +106,7 @@ sealed primitive class ::Std::Int
 			+a #=> 1
 		```
 	]##
-	def +@(other: Int): Int; end
+	sealed def +@(other: Int): Int; end
 
 	##[
 		Returns the result of negating the integer.
@@ -116,7 +116,7 @@ sealed primitive class ::Std::Int
 			-a #=> -1
 		```
 	]##
-	def -@(other: Int): Int; end
+	sealed def -@(other: Int): Int; end
 
 	##[
 		Returns itself.
