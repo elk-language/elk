@@ -2426,7 +2426,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(l.Value, leftContainerType)
+			namespace.DefineConstant(value.ToSymbol(l.Value), leftContainerType)
 		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
@@ -2439,7 +2439,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(l.Value, leftContainerType)
+			namespace.DefineConstant(value.ToSymbol(l.Value), leftContainerType)
 		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
@@ -2497,13 +2497,14 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		return nil, nil, constantName
 	}
 
-	constant := leftContainer.ConstantString(rightName)
+	rightSymbol := value.ToSymbol(rightName)
+	constant := leftContainer.Constant(rightSymbol)
 	if constant == nil && !firstCall {
 		placeholder := types.NewPlaceholderNamespace(constantName)
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 		constant = placeholder
 		c.registerPlaceholderNamespace(placeholder)
-		leftContainer.DefineConstant(rightName, constant)
+		leftContainer.DefineConstant(rightSymbol, constant)
 	} else if placeholder, ok := constant.(*types.PlaceholderNamespace); ok {
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 	}
@@ -3459,7 +3460,7 @@ func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
 	}
 }
 
-func (c *Checker) declareModule(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Module {
+func (c *Checker) declareModule(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Module {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if ok {
@@ -3506,7 +3507,7 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
+func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Class {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -3612,7 +3613,7 @@ func (c *Checker) checkMethods() {
 
 func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	if constant != nil {
@@ -3685,7 +3686,7 @@ func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types
 
 func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) *ast.ClassDeclarationNode {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
-	constantName := extractConstantName(structNode.Constant)
+	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
 		structNode.DocComment(),
 		false,
@@ -3774,7 +3775,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 
 func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	module := c.declareModule(
 		node.DocComment(),
 		container,
@@ -3797,7 +3798,7 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 
 func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	class := c.declareClass(
 		node.DocComment(),
 		node.Abstract,
@@ -3823,7 +3824,7 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 
 func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	mixin := c.declareMixin(
 		node.DocComment(),
 		node.Abstract,
@@ -3847,7 +3848,7 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 
 func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	iface := c.declareInterface(
 		node.DocComment(),
 		container,
@@ -3870,7 +3871,7 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 
 func (c *Checker) hoistTypeDefinition(node *ast.TypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := extractConstantName(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 	if constant != nil {
 		c.addFailure(
@@ -4398,7 +4399,7 @@ func (c *Checker) declareMethod(
 	return newMethod
 }
 
-func (c *Checker) declareMixin(docComment string, abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
+func (c *Checker) declareMixin(docComment string, abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Mixin {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -4453,7 +4454,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 	}
 }
 
-func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Interface {
+func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Interface {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {

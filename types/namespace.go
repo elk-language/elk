@@ -24,12 +24,12 @@ type Namespace interface {
 	Constants() *TypeMap
 	Constant(name value.Symbol) Type
 	ConstantString(name string) Type
-	DefineConstant(name string, val Type)
+	DefineConstant(name value.Symbol, val Type)
 
 	Subtypes() *TypeMap
 	Subtype(name value.Symbol) Type
 	SubtypeString(name string) Type
-	DefineSubtype(name string, val Type)
+	DefineSubtype(name value.Symbol, val Type)
 
 	Methods() *MethodMap
 	Method(name value.Symbol) *Method
@@ -42,10 +42,10 @@ type Namespace interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name value.Symbol, val Type)
 
-	DefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class
-	DefineModule(docComment string, name string) *Module
-	DefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin
-	DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface
+	DefineClass(docComment string, primitive, abstract, sealed bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
+	DefineModule(docComment string, name value.Symbol) *Module
+	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
+	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
 func GetMethodInNamespace(namespace Namespace, name value.Symbol) *Method {
@@ -289,6 +289,24 @@ func ForeachMethodSorted(namespace Namespace, f func(name value.Symbol, method *
 	}
 }
 
+// Iterate over every method defined directly under the given namespace
+func ForeachOwnMethod(namespace Namespace, f func(name value.Symbol, method *Method)) {
+	for name, method := range namespace.Methods().Map {
+		f(name, method)
+	}
+}
+
+// Iterate over every method defined directly under the given namespace, sorted by name
+func ForeachOwnMethodSorted(namespace Namespace, f func(name value.Symbol, method *Method)) {
+	methods := namespace.Methods().Map
+	names := symbol.SortKeys(methods)
+
+	for _, name := range names {
+		method := methods[name]
+		f(name, method)
+	}
+}
+
 // Iterate over every instance variable defined in the given namespace including the inherited ones
 func ForeachInstanceVariable(namespace Namespace, f func(name value.Symbol, typ Type, namespace Namespace)) {
 	currentNamespace := namespace
@@ -323,5 +341,23 @@ func ForeachInstanceVariableSorted(namespace Namespace, f func(name value.Symbol
 			f(name, typ, currentNamespace)
 			seenIvars[name] = true
 		}
+	}
+}
+
+// Iterate over every instance variable defined directly under the given namespace
+func ForeachOwnInstanceVariable(namespace Namespace, f func(name value.Symbol, typ Type)) {
+	for name, typ := range namespace.InstanceVariables().Map {
+		f(name, typ)
+	}
+}
+
+// Iterate over every instance variable defined directly under the given namespace, sorted by name
+func ForeachOwnInstanceVariableSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
+	ivars := namespace.InstanceVariables().Map
+	names := symbol.SortKeys(ivars)
+
+	for _, name := range names {
+		typ := ivars[name]
+		f(name, typ)
 	}
 }

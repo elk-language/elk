@@ -138,12 +138,12 @@ func (c *NamespaceBase) InstanceVariableString(name string) Type {
 	return result
 }
 
-func (c *NamespaceBase) DefineConstant(name string, val Type) {
-	c.constants.Set(value.ToSymbol(name), val)
+func (c *NamespaceBase) DefineConstant(name value.Symbol, val Type) {
+	c.constants.Set(name, val)
 }
 
-func (c *NamespaceBase) DefineSubtype(name string, val Type) {
-	c.subtypes.Set(value.ToSymbol(name), val)
+func (c *NamespaceBase) DefineSubtype(name value.Symbol, val Type) {
+	c.subtypes.Set(name, val)
 }
 
 func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
@@ -151,8 +151,8 @@ func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
 }
 
 // Define a new class if it does not exist
-func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
-	subtype := c.SubtypeString(name)
+func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+	subtype := c.Subtype(name)
 	if subtype == nil {
 		return c.DefineClass(docComment, primitive, abstract, sealed, name, parent, env)
 	}
@@ -173,16 +173,16 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive bool, name string, parent Namespace, env *GlobalEnvironment) *Class {
-	class := NewClass(docComment, abstract, sealed, primitive, MakeFullConstantName(c.Name(), name), parent, env)
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+	class := NewClass(docComment, abstract, sealed, primitive, MakeFullConstantName(c.Name(), name.String()), parent, env)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineModule(docComment, name string) *Module {
-	subtype := c.SubtypeString(name)
+func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol) *Module {
+	subtype := c.Subtype(name)
 	if subtype == nil {
 		return c.DefineModule(docComment, name)
 	}
@@ -193,16 +193,16 @@ func (c *NamespaceBase) TryDefineModule(docComment, name string) *Module {
 }
 
 // Define a new module.
-func (c *NamespaceBase) DefineModule(docComment, name string) *Module {
-	m := NewModule(docComment, MakeFullConstantName(c.Name(), name))
+func (c *NamespaceBase) DefineModule(docComment string, name value.Symbol) *Module {
+	m := NewModule(docComment, MakeFullConstantName(c.Name(), name.String()))
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m
 }
 
 // Define a new mixin if it does not exist.
-func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
-	subtype := c.SubtypeString(name)
+func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+	subtype := c.Subtype(name)
 	if subtype == nil {
 		return c.DefineMixin(docComment, abstract, name, env)
 	}
@@ -223,16 +223,16 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name st
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
-	m := NewMixin(docComment, abstract, MakeFullConstantName(c.Name(), name), env)
+func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+	m := NewMixin(docComment, abstract, MakeFullConstantName(c.Name(), name.String()), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineInterface(docComment, name string, env *GlobalEnvironment) *Interface {
-	subtype := c.SubtypeString(name)
+func (c *NamespaceBase) TryDefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+	subtype := c.Subtype(name)
 	if subtype == nil {
 		return c.DefineInterface(docComment, name, env)
 	}
@@ -243,8 +243,8 @@ func (c *NamespaceBase) TryDefineInterface(docComment, name string, env *GlobalE
 }
 
 // Define a new interface.
-func (c *NamespaceBase) DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
-	m := NewInterface(docComment, MakeFullConstantName(c.Name(), name), env)
+func (c *NamespaceBase) DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+	m := NewInterface(docComment, MakeFullConstantName(c.Name(), name.String()), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m

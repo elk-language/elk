@@ -13,46 +13,46 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 	// Define all namespaces
 	{
-		namespace := namespace.TryDefineModule("", "Std")
-		namespace.TryDefineClass("", false, true, true, "ArrayList", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "ArrayTuple", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "BigFloat", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Bool", objectClass, env)
-		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, "Char", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Class", objectClass, env)
-		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, "Error", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "False", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Float", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Float32", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Float64", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "HashMap", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "HashRecord", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "HashSet", objectClass, env)
-		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, "Int", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Int16", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Int32", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Int64", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Int8", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Interface", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Method", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Mixin", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Module", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Nil", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Object", objectClass, env)
-		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, "OutOfRangeError", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "Regex", objectClass, env)
+		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"))
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("ArrayList"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("ArrayTuple"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
+		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Class"), objectClass, env)
+		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("False"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Float"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Float32"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Float64"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashMap"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashRecord"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashSet"), objectClass, env)
+		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, value.ToSymbol("Int"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int16"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int32"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int64"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int8"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Interface"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Method"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Mixin"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Module"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Nil"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Object"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Regex"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("", false, true, true, "String", objectClass, env)
-			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, false, false, "ByteIterator", objectClass, env)
-			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, false, false, "CharIterator", objectClass, env)
+			namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("String"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, false, false, value.ToSymbol("ByteIterator"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, false, false, value.ToSymbol("CharIterator"), objectClass, env)
 		}
-		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, "Symbol", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "True", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "UInt16", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "UInt32", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "UInt64", objectClass, env)
-		namespace.TryDefineClass("", false, true, true, "UInt8", objectClass, env)
-		namespace.TryDefineClass("", false, false, false, "Value", objectClass, env)
+		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt16"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Value"), objectClass, env)
 	}
 
 	// Define methods, constants
@@ -70,6 +70,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 		// Define constants
 
+		// Define instance variables
+
 		{
 			namespace := namespace.SubtypeString("Std").(*Module)
 
@@ -82,6 +84,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			// Define methods
 
 			// Define constants
+
+			// Define instance variables
 
 			{
 				namespace := namespace.SubtypeString("Char").(*Class)
@@ -117,6 +121,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Return the uppercase version of this character.", false, false, true, value.ToSymbol("uppercase"), nil, NameToType("Std::Char", env), nil)
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("False").(*Class)
@@ -131,6 +137,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("Int").(*Class)
@@ -179,6 +187,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("Object").(*Class)
@@ -193,6 +203,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("OutOfRangeError").(*Class)
@@ -207,6 +219,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("String").(*Class)
@@ -249,6 +263,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define constants
 
+				// Define instance variables
+
 				{
 					namespace := namespace.SubtypeString("ByteIterator").(*Class)
 
@@ -263,6 +279,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineMethod("Get the next byte.\nThrows `:stop_iteration` when no more bytes are available.", false, false, true, value.ToSymbol("next"), nil, NameToType("Std::UInt8", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
+
+					// Define instance variables
 				}
 				{
 					namespace := namespace.SubtypeString("CharIterator").(*Class)
@@ -278,6 +296,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineMethod("Get the next character.\nThrows `:stop_iteration` when no more characters are available.", false, false, true, value.ToSymbol("next"), nil, NameToType("Std::Char", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
+
+					// Define instance variables
 				}
 			}
 			{
@@ -297,6 +317,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_symbol"), nil, NameToType("Std::Symbol", env), nil)
 
 				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("True").(*Class)
@@ -311,6 +333,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 
 				// Define constants
+
+				// Define instance variables
 			}
 		}
 	}

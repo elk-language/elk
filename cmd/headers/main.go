@@ -74,7 +74,10 @@ func main() {
 
 func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment) bool {
 	objectClass := env.StdSubtypeClass(symbol.Object)
-	return namespace.Constants().Len() > 0 || namespace.Methods().Len() > 0 || namespace.Parent() != nil && namespace.Parent() != objectClass
+	return namespace.Constants().Len() > 0 ||
+		namespace.Methods().Len() > 0 ||
+		namespace.InstanceVariables().Len() > 0 ||
+		namespace.Parent() != nil && namespace.Parent() != objectClass
 }
 
 func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment, root bool) {
@@ -156,7 +159,18 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	types.ForeachConstantSorted(namespace, func(name value.Symbol, typ types.Type) {
 		fmt.Fprintf(
 			buffer,
-			`namespace.DefineConstant(%q, %s)
+			`namespace.DefineConstant(value.ToSymbol(%q), %s)
+			`,
+			name,
+			typeToCode(typ),
+		)
+	})
+
+	buffer.WriteString("\n// Define instance variables\n")
+	types.ForeachOwnInstanceVariableSorted(namespace, func(name value.Symbol, typ types.Type) {
+		fmt.Fprintf(
+			buffer,
+			`namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)
 			`,
 			name,
 			typeToCode(typ),
@@ -178,11 +192,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
-	methods := namespace.Methods().Map
-	names := symbol.SortKeys(methods)
-
-	for _, name := range names {
-		method := methods[name]
+	types.ForeachOwnMethodSorted(namespace, func(name value.Symbol, method *types.Method) {
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
@@ -215,7 +225,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			typeToCode(method.ReturnType),
 			typeToCode(method.ThrowType),
 		)
-	}
+	})
 }
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
@@ -241,7 +251,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, %q, objectClass, env)
+		`namespace.TryDefineClass(%q, %t, %t, %t, value.ToSymbol(%q), objectClass, env)
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
@@ -264,7 +274,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineMixin(%q, %t, %q, env)
+		`namespace.TryDefineMixin(%q, %t, value.ToSymbol(%q), env)
 		`,
 		mixin.DocComment(),
 		mixin.IsAbstract(),
@@ -285,7 +295,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineModule(%q, %q)
+		`namespace.TryDefineModule(%q, value.ToSymbol(%q))
 		`,
 		module.DocComment(),
 		constantName,
@@ -305,7 +315,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineInterface(%q, %q, env)
+		`namespace.TryDefineInterface(%q, value.ToSymbol(%q), env)
 		`,
 		iface.DocComment(),
 		constantName,
