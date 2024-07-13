@@ -3557,7 +3557,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	)
 }
 
-// constantDeclaration = "const" complexConstant [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
+// constantDeclaration = "const" complexConstant [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier]
 func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	constTok := p.advance()
 	var init ast.ExpressionNode
@@ -3582,8 +3582,8 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
-	} else {
-		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
+	} else if typ == nil {
+		p.errorMessageSpan("constants must have a type", constTok.Span().Join(lastSpan))
 	}
 
 	span := constTok.Span().Join(lastSpan)

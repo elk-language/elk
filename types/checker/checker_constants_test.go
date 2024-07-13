@@ -67,6 +67,12 @@ func TestConstantDeclarations(t *testing.T) {
 				error.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
 			},
 		},
+		"declare without initialising": {
+			input: "const Foo: String",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constant `Foo` has to be initialised"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -2073,7 +2073,7 @@ func TestVariableDeclaration(t *testing.T) {
 
 func TestConstantDeclaration(t *testing.T) {
 	tests := testTable{
-		"is not valid without an initialiser": {
+		"is valid without an initialiser and with a type": {
 			input: "const Foo: String",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -2093,8 +2093,29 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"is not valid without an initialiser and without a type": {
+			input: "const Foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							"",
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constants must be initialised"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must have a type"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -2172,7 +2193,7 @@ func TestConstantDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(6, 1, 7), P(9, 1, 10)), "invalid constant name"),
-				error.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constants must be initialised"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constants must have a type"),
 			},
 		},
 		"cannot have a lowercase identifier as the name": {
@@ -2197,7 +2218,7 @@ func TestConstantDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid constant name"),
-				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must have a type"),
 			},
 		},
 		"can have an initialiser without a type": {

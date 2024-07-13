@@ -3622,6 +3622,32 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			node.Span(),
 		)
 	}
+
+	if node.Initialiser == nil {
+		if !c.HeaderMode {
+			c.addFailure(
+				fmt.Sprintf("constant `%s` has to be initialised", constantName),
+				node.Span(),
+			)
+		}
+		if node.TypeNode == nil {
+			c.addFailure(
+				fmt.Sprintf("cannot declare a constant without a type `%s`", constantName),
+				node.Span(),
+			)
+			container.DefineConstant(constantName, types.Void{})
+			node.SetType(types.Void{})
+			return
+		}
+
+		// without an initialiser but with a type
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+		declaredType := c.typeOf(declaredTypeNode)
+		container.DefineConstant(constantName, declaredType)
+		node.TypeNode = declaredTypeNode
+		node.SetType(types.Void{})
+		return
+	}
 	init := c.checkExpression(node.Initialiser)
 
 	if !init.IsStatic() {
