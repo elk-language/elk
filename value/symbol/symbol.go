@@ -1,6 +1,10 @@
 package symbol
 
-import "github.com/elk-language/elk/value"
+import (
+	"slices"
+
+	"github.com/elk-language/elk/value"
+)
 
 var (
 	Std       = value.ToSymbol("Std")
@@ -35,6 +39,10 @@ var (
 )
 
 var (
+	M_init = value.ToSymbol("#init")
+)
+
+var (
 	OpIncrement            = value.ToSymbol("++")  // `++`
 	OpDecrement            = value.ToSymbol("--")  // `--`
 	OpSubscriptSet         = value.ToSymbol("[]=") // `[]=`
@@ -65,3 +73,22 @@ var (
 	OpDivide               = value.ToSymbol("/")   // `/`
 	OpExponentiate         = value.ToSymbol("**")  // `**`
 )
+
+func SortKeys[V any](m map[value.Symbol]V) []value.Symbol {
+	keys := make([]value.Symbol, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.SortFunc(keys, func(a, b value.Symbol) int {
+		aString := a.String()
+		bString := b.String()
+		if aString < bString {
+			return -1
+		}
+		if aString > bString {
+			return 1
+		}
+		return 0
+	})
+	return keys
+}

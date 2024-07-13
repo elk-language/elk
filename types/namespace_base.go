@@ -122,8 +122,8 @@ func (c *NamespaceBase) MethodString(name string) *Method {
 	return result
 }
 
-func (c *NamespaceBase) DefineInstanceVariable(name string, val Type) {
-	c.instanceVariables.Set(value.ToSymbol(name), val)
+func (c *NamespaceBase) DefineInstanceVariable(name value.Symbol, val Type) {
+	c.instanceVariables.Set(name, val)
 }
 
 // Get the instance variable with the given name.
@@ -146,8 +146,8 @@ func (c *NamespaceBase) DefineSubtype(name string, val Type) {
 	c.subtypes.Set(value.ToSymbol(name), val)
 }
 
-func (c *NamespaceBase) SetMethod(name string, method *Method) {
-	c.methods.Set(value.ToSymbol(name), method)
+func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
+	c.methods.Set(name, method)
 }
 
 // Define a new class if it does not exist

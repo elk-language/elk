@@ -5,6 +5,7 @@ import (
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
 )
 
 // Used during typechecking as a placeholder for a future
@@ -70,7 +71,7 @@ func (p *PlaceholderNamespace) inspect() string {
 	return p.Name()
 }
 
-func (p *PlaceholderNamespace) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+func (p *PlaceholderNamespace) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, p)
 	p.SetMethod(name, method)
 	return method

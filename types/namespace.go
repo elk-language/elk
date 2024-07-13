@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Namespace interface {
@@ -33,13 +34,13 @@ type Namespace interface {
 	Methods() *MethodMap
 	Method(name value.Symbol) *Method
 	MethodString(name string) *Method
-	DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method
-	SetMethod(name string, method *Method)
+	DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method
+	SetMethod(name value.Symbol, method *Method)
 
 	InstanceVariables() *TypeMap
 	InstanceVariable(name value.Symbol) Type
 	InstanceVariableString(name string) Type
-	DefineInstanceVariable(name string, val Type)
+	DefineInstanceVariable(name value.Symbol, val Type)
 
 	DefineClass(docComment string, primitive, abstract, sealed bool, name string, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name string) *Module
@@ -47,10 +48,10 @@ type Namespace interface {
 	DefineInterface(docComment string, name string, env *GlobalEnvironment) *Interface
 }
 
-func GetMethodInNamespace(namespace Namespace, name string) *Method {
+func GetMethodInNamespace(namespace Namespace, name value.Symbol) *Method {
 	currentNamespace := namespace
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		method := currentNamespace.MethodString(name)
+		method := currentNamespace.Method(name)
 		if method != nil {
 			return method
 		}
@@ -59,10 +60,10 @@ func GetMethodInNamespace(namespace Namespace, name string) *Method {
 	return nil
 }
 
-func GetInstanceVariableInNamespace(namespace Namespace, name string) (Type, Namespace) {
+func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (Type, Namespace) {
 	currentNamespace := namespace
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		ivar := currentNamespace.InstanceVariableString(name)
+		ivar := currentNamespace.InstanceVariable(name)
 		if ivar != nil {
 			return ivar, currentNamespace
 		}
@@ -208,36 +209,88 @@ func FindRootParent(namespace Namespace) Namespace {
 	}
 }
 
+// Iterate over every subtype
+func ForeachSubtype(namespace Namespace, f func(name value.Symbol, typ Type)) {
+	for name, typ := range namespace.Subtypes().Map {
+		f(name, typ)
+	}
+}
+
+// Iterate over every subtype, sorted by name
+func ForeachSubtypeSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
+	subtypes := namespace.Subtypes().Map
+	names := symbol.SortKeys(subtypes)
+
+	for _, name := range names {
+		typ := subtypes[name]
+		f(name, typ)
+	}
+}
+
 // Iterate over every constant that is not a subtype
-func ForeachConstant(namespace Namespace, f func(name string, typ Type)) {
+func ForeachConstant(namespace Namespace, f func(name value.Symbol, typ Type)) {
 	for name, typ := range namespace.Constants().Map {
 		if namespace.Subtype(name) != nil {
 			continue
 		}
 
-		f(name.String(), typ)
+		f(name, typ)
+	}
+}
+
+// Iterate over every constant that is not a subtype, sorted by name
+func ForeachConstantSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
+	constants := namespace.Constants().Map
+	names := symbol.SortKeys(constants)
+	for _, name := range names {
+		typ := constants[name]
+		if namespace.Subtype(name) != nil {
+			continue
+		}
+
+		f(name, typ)
 	}
 }
 
 // Iterate over every method defined in the given namespace including the inherited ones
-func ForeachMethod(namespace Namespace, f func(*Method)) {
+func ForeachMethod(namespace Namespace, f func(name value.Symbol, method *Method)) {
 	currentNamespace := namespace
-	seenMethods := make(map[string]bool)
+	seenMethods := make(map[value.Symbol]bool)
 
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		for _, method := range currentNamespace.Methods().Map {
-			if seenMethods[method.Name] {
+		for name, method := range currentNamespace.Methods().Map {
+			if seenMethods[name] {
 				continue
 			}
 
-			f(method)
-			seenMethods[method.Name] = true
+			f(name, method)
+			seenMethods[name] = true
+		}
+	}
+}
+
+// Iterate over every method defined in the given namespace including the inherited ones, sorted by name
+func ForeachMethodSorted(namespace Namespace, f func(name value.Symbol, method *Method)) {
+	currentNamespace := namespace
+	seenMethods := make(map[value.Symbol]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		methods := currentNamespace.Methods().Map
+		names := symbol.SortKeys(methods)
+		for _, name := range names {
+			method := methods[name]
+			if seenMethods[name] {
+				continue
+			}
+
+			f(name, method)
+			seenMethods[name] = true
 		}
 	}
 }
 
 // Iterate over every instance variable defined in the given namespace including the inherited ones
-func ForeachInstanceVariable(namespace Namespace, f func(name string, typ Type, namespace Namespace)) {
+func ForeachInstanceVariable(namespace Namespace, f func(name value.Symbol, typ Type, namespace Namespace)) {
 	currentNamespace := namespace
 	seenIvars := make(map[value.Symbol]bool)
 
@@ -247,7 +300,27 @@ func ForeachInstanceVariable(namespace Namespace, f func(name string, typ Type, 
 				continue
 			}
 
-			f(name.String(), typ, currentNamespace)
+			f(name, typ, currentNamespace)
+			seenIvars[name] = true
+		}
+	}
+}
+
+// Iterate over every instance variable defined in the given namespace including the inherited ones
+func ForeachInstanceVariableSorted(namespace Namespace, f func(name value.Symbol, typ Type, namespace Namespace)) {
+	currentNamespace := namespace
+	seenIvars := make(map[value.Symbol]bool)
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		ivars := currentNamespace.InstanceVariables().Map
+		names := symbol.SortKeys(ivars)
+		for _, name := range names {
+			typ := ivars[name]
+			if seenIvars[name] {
+				continue
+			}
+
+			f(name, typ, currentNamespace)
 			seenIvars[name] = true
 		}
 	}

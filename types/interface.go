@@ -1,6 +1,9 @@
 package types
 
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+)
 
 type Interface struct {
 	parent    *InterfaceProxy
@@ -90,7 +93,7 @@ func (i *Interface) CreateProxy() (head, tail *InterfaceProxy) {
 	return headProxy, tailProxy
 }
 
-func (i *Interface) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+func (i *Interface) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method

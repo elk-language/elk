@@ -991,7 +991,7 @@ func (c *Checker) findParentOfMixinProxy(mixin *types.Mixin) types.Namespace {
 }
 
 type instanceVariableOverride struct {
-	name string
+	name value.Symbol
 
 	super          types.Type
 	superNamespace types.Namespace
@@ -1016,8 +1016,8 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 		}
 
 		var incompatibleMethods []methodOverride
-		types.ForeachMethod(includedMixin, func(includedMethod *types.Method) {
-			superMethod := types.GetMethodInNamespace(parentOfMixin, includedMethod.Name)
+		types.ForeachMethod(includedMixin, func(name value.Symbol, includedMethod *types.Method) {
+			superMethod := types.GetMethodInNamespace(parentOfMixin, name)
 			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
 					superMethod: superMethod,
@@ -1027,7 +1027,7 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 		})
 
 		var incompatibleIvars []instanceVariableOverride
-		types.ForeachInstanceVariable(includedMixin, func(name string, includedIvar types.Type, includedNamespace types.Namespace) {
+		types.ForeachInstanceVariable(includedMixin, func(name value.Symbol, includedIvar types.Type, includedNamespace types.Namespace) {
 			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
 			if superIvar == nil {
 				return
@@ -1100,15 +1100,15 @@ func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
 			fmt.Fprintf(
 				detailsBuff,
 				"\n  - incompatible definitions of instance variable `%s`\n      `%s`% *s has: `%s`\n      `%s`% *s has: `%s`\n",
-				types.InspectInstanceVariableWithColor(name),
+				types.InspectInstanceVariableWithColor(name.String()),
 				overrideNamespaceName,
 				overrideWidthDiff,
 				"",
-				types.InspectInstanceVariableDeclarationWithColor(name, override),
+				types.InspectInstanceVariableDeclarationWithColor(name.String(), override),
 				superNamespaceName,
 				superWidthDiff,
 				"",
-				types.InspectInstanceVariableDeclarationWithColor(name, super),
+				types.InspectInstanceVariableDeclarationWithColor(name.String(), super),
 			)
 		}
 
@@ -1360,22 +1360,22 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name string, errSpan *position.Span) *types.Method {
+func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {
 	return c._getMethod(typ, name, errSpan, false)
 }
 
-func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
 	method := types.GetMethodInNamespace(container, name)
 	if method != nil {
 		return method
 	}
 	if !inParent {
-		c.addMissingMethodError(typ, name, errSpan)
+		c.addMissingMethodError(typ, name.String(), errSpan)
 	}
 	return nil
 }
 
-func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
 	typ = c.toNonLiteral(typ)
 
 	switch t := typ.(type) {
@@ -1397,9 +1397,9 @@ func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span
 		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.Nilable:
 		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
-		nilMethod := nilType.MethodString(name)
+		nilMethod := nilType.Method(name)
 		if nilMethod == nil {
-			c.addMissingMethodError(nilType, name, errSpan)
+			c.addMissingMethodError(nilType, name.String(), errSpan)
 		}
 		nonNilMethod := c.getMethod(t.Type, name, errSpan)
 		if nilMethod == nil || nonNilMethod == nil {
@@ -1454,7 +1454,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span
 
 		return nil
 	default:
-		c.addMissingMethodError(typ, name, errSpan)
+		c.addMissingMethodError(typ, name.String(), errSpan)
 		return nil
 	}
 }
@@ -1739,7 +1739,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 }
 
 func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
-	method := c.getMethod(c.selfType, node.MethodName, node.Span())
+	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		node.SetType(types.Void{})
@@ -1783,14 +1783,14 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 		)
 	}
 
-	method := types.GetMethodInNamespace(class, "#init")
+	method := types.GetMethodInNamespace(class, symbol.M_init)
 	if method == nil {
 		method = types.NewMethod(
 			"",
 			false,
 			false,
 			true,
-			"#init",
+			symbol.M_init,
 			nil,
 			nil,
 			nil,
@@ -1812,9 +1812,9 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	var method *types.Method
 	if node.NilSafe {
 		nonNilableReceiverType := c.toNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, node.MethodName, node.Span())
+		method = c.getMethod(nonNilableReceiverType, value.ToSymbol(node.MethodName), node.Span())
 	} else {
-		method = c.getMethod(receiverType, node.MethodName, node.Span())
+		method = c.getMethod(receiverType, value.ToSymbol(node.MethodName), node.Span())
 	}
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
@@ -1843,7 +1843,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
-	method := c.getMethod(receiverType, node.AttributeName, node.Span())
+	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), node.Span())
 	if method == nil {
 		node.Receiver = receiver
 		node.SetType(types.Void{})
@@ -2291,7 +2291,7 @@ func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpre
 			)
 		}
 
-		c.getMethod(variable.typ, "+", node.Op.Span())
+		c.getMethod(variable.typ, symbol.OpAdd, node.Op.Span())
 
 		// if !c.canBeTruthy(variable.typ) {
 		// 	c.addFailure(
@@ -2589,10 +2589,10 @@ func (c *Checker) getLocal(name string) *local {
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariableIn(name string, typ types.Namespace) (types.Type, types.Namespace) {
+func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) (types.Type, types.Namespace) {
 	currentContainer := typ
 	for currentContainer != nil {
-		ivar := currentContainer.InstanceVariableString(name)
+		ivar := currentContainer.InstanceVariable(name)
 		if ivar != nil {
 			return ivar, currentContainer
 		}
@@ -2604,7 +2604,7 @@ func (c *Checker) getInstanceVariableIn(name string, typ types.Namespace) (types
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace) {
+func (c *Checker) getInstanceVariable(name value.Symbol) (types.Type, types.Namespace) {
 	container, ok := c.selfType.(types.Namespace)
 	if !ok {
 		return nil, nil
@@ -3095,7 +3095,7 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.Privat
 }
 
 func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
-	typ, container := c.getInstanceVariable(node.Value)
+	typ, container := c.getInstanceVariable(value.ToSymbol(node.Value))
 	self, ok := c.selfType.(types.Namespace)
 	if !ok || self.IsPrimitive() {
 		c.addFailure(
@@ -3125,7 +3125,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		docComment,
 		false,
 		false,
-		node.Name,
+		value.ToSymbol(node.Name),
 		nil,
 		node.TypeNode,
 		nil,
@@ -3185,7 +3185,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		docComment,
 		false,
 		false,
-		setterName,
+		value.ToSymbol(setterName),
 		params,
 		nil,
 		nil,
@@ -3210,7 +3210,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	)
 }
 
-func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Type, span *position.Span) {
+func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, span *position.Span) {
 	methodNamespace := c.currentMethodScope().container
 	currentIvar, ivarNamespace := c.getInstanceVariableIn(name, methodNamespace)
 
@@ -3219,7 +3219,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name string, typ types.Typ
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
-					types.InspectInstanceVariableWithColor(name),
+					types.InspectInstanceVariableWithColor(name.String()),
 					types.InspectWithColor(typ),
 					types.InspectWithColor(currentIvar),
 					types.InspectWithColor(ivarNamespace),
@@ -3240,7 +3240,7 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 		}
 
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -3252,7 +3252,7 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 		}
 
 		c.declareMethodForSetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -3265,13 +3265,13 @@ func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 
 		c.declareMethodForSetter(attribute, node.DocComment())
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(attribute.Name, c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
 func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
-	ivar, ivarNamespace := c.getInstanceVariableIn(node.Name, methodNamespace)
+	ivar, ivarNamespace := c.getInstanceVariableIn(value.ToSymbol(node.Name), methodNamespace)
 	var declaredType types.Type
 
 	if node.TypeNode == nil {
@@ -3316,7 +3316,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 		return
 	}
 
-	c.declareInstanceVariable(node.Name, declaredType, node.Span())
+	c.declareInstanceVariable(value.ToSymbol(node.Name), declaredType, node.Span())
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
@@ -3495,7 +3495,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 	}
 }
 
-func (c *Checker) declareInstanceVariable(name string, typ types.Type, errSpan *position.Span) {
+func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, errSpan *position.Span) {
 	container := c.currentConstScope().container
 	if container.IsPrimitive() {
 		c.addFailure(
@@ -3927,7 +3927,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		initNode.DocComment(),
 		false,
 		false,
-		"#init",
+		symbol.M_init,
 		initNode.Parameters,
 		nil,
 		initNode.ThrowType,
@@ -3953,12 +3953,12 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
-		method := types.GetMethodInNamespace(namespace, entry.OldName)
+		method := types.GetMethodInNamespace(namespace, value.ToSymbol(entry.OldName))
 		if method == nil {
 			c.addMissingMethodError(namespace, entry.OldName, entry.Span())
 			continue
 		}
-		namespace.SetMethod(entry.NewName, method)
+		namespace.SetMethod(value.ToSymbol(entry.NewName), method)
 	}
 }
 
@@ -3967,7 +3967,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,
-		node.Name,
+		value.ToSymbol(node.Name),
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -3982,7 +3982,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		node.DocComment(),
 		true,
 		false,
-		node.Name,
+		value.ToSymbol(node.Name),
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -4203,7 +4203,7 @@ func (c *Checker) declareMethod(
 	docComment string,
 	abstract bool,
 	sealed bool,
-	name string,
+	name value.Symbol,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
@@ -4214,7 +4214,7 @@ func (c *Checker) declareMethod(
 	}
 	methodScope := c.currentMethodScope()
 	methodNamespace := methodScope.container
-	oldMethod := methodNamespace.MethodString(name)
+	oldMethod := methodNamespace.Method(name)
 	if oldMethod != nil {
 		if oldMethod.IsNative() && oldMethod.IsSealed() {
 			c.addOverrideSealedMethodError(oldMethod, span)
@@ -4274,7 +4274,7 @@ func (c *Checker) declareMethod(
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			if p.SetInstanceVariable {
-				currentIvar, _ := c.getInstanceVariableIn(p.Name, methodNamespace)
+				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(p.Name), methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
 						c.addFailure(
@@ -4293,7 +4293,7 @@ func (c *Checker) declareMethod(
 					if currentIvar != nil {
 						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, declaredTypeNode.Span())
 					} else {
-						c.declareInstanceVariable(p.Name, declaredType, p.Span())
+						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Span())
 					}
 				}
 			} else if p.TypeNode == nil {

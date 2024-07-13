@@ -87,7 +87,7 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type Method struct {
-	Name               string
+	Name               value.Symbol
 	DocComment         string
 	Params             []*Parameter
 	OptionalParamCount int
@@ -138,7 +138,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -256,7 +256,7 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 		}
 	}
 	buffer.WriteString("sig ")
-	buffer.WriteString(m.Name)
+	buffer.WriteString(m.Name.String())
 	buffer.WriteRune('(')
 	firstIteration := true
 	for _, param := range m.Params {

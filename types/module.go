@@ -1,6 +1,10 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/elk-language/elk/value"
+)
 
 type Module struct {
 	NamespaceBase
@@ -62,7 +66,7 @@ func (m *Module) inspect() string {
 	return m.Name()
 }
 
-func (m *Module) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Module) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method

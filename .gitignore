@@ -1,4 +1,3 @@
 ignore.*
-types/headers.go
 .vscode
 docs/**/*

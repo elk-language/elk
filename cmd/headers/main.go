@@ -42,8 +42,6 @@ func main() {
 	buffer := new(bytes.Buffer)
 	buffer.WriteString(
 		`
-			//go:build !headers
-
 			package types
 
 			// This file is auto-generated, please do not edit it manually
@@ -155,7 +153,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	defineMethods(buffer, namespace)
 
 	buffer.WriteString("\n// Define constants\n")
-	types.ForeachConstant(namespace, func(name string, typ types.Type) {
+	types.ForeachConstantSorted(namespace, func(name value.Symbol, typ types.Type) {
 		fmt.Fprintf(
 			buffer,
 			`namespace.DefineConstant(%q, %s)
@@ -165,24 +163,29 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		)
 	})
 
-	for _, subtype := range namespace.Subtypes().Map {
+	types.ForeachSubtypeSorted(namespace, func(name value.Symbol, subtype types.Type) {
 		subtypeNamespace, ok := subtype.(types.Namespace)
 		if !ok {
-			continue
+			return
 		}
 
 		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
-	}
+	})
 
 	buffer.WriteString("}")
 }
 
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
-	for _, method := range namespace.Methods().Map {
+
+	methods := namespace.Methods().Map
+	names := symbol.SortKeys(methods)
+
+	for _, name := range names {
+		method := methods[name]
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineMethod(%q, %t, %t, %t, %q, ",
+			"namespace.DefineMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
 			method.DocComment,
 			method.IsAbstract(),
 			method.IsSealed(),
@@ -216,21 +219,21 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 }
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
-	for name, subtype := range namespace.Subtypes().Map {
+	types.ForeachSubtypeSorted(namespace, func(name value.Symbol, subtype types.Type) {
 		switch s := subtype.(type) {
 		case *types.Class:
-			defineClass(buffer, s, name)
+			defineClass(buffer, s, name.String())
 		case *types.Mixin:
-			defineMixin(buffer, s, name)
+			defineMixin(buffer, s, name.String())
 		case *types.Module:
-			defineModule(buffer, s, name)
+			defineModule(buffer, s, name.String())
 		case *types.Interface:
-			defineInterface(buffer, s, name)
+			defineInterface(buffer, s, name.String())
 		}
-	}
+	})
 }
 
-func defineClass(buffer *bytes.Buffer, class *types.Class, constantName value.Symbol) {
+func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) {
 	hasSubtypes := class.Subtypes().Len() > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
@@ -253,7 +256,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName value.Sy
 	}
 }
 
-func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName value.Symbol) {
+func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) {
 	hasSubtypes := mixin.Subtypes().Len() > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
@@ -274,7 +277,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName value.Sy
 	}
 }
 
-func defineModule(buffer *bytes.Buffer, module *types.Module, constantName value.Symbol) {
+func defineModule(buffer *bytes.Buffer, module *types.Module, constantName string) {
 	hasSubtypes := module.Subtypes().Len() > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
@@ -294,7 +297,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName value
 	}
 }
 
-func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName value.Symbol) {
+func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName string) {
 	hasSubtypes := iface.Subtypes().Len() > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)

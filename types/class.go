@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -114,7 +115,7 @@ func NewClassWithDetails(docComment string, abstract, sealed, primitive bool, na
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Class) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method

@@ -1,6 +1,9 @@
 package types
 
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+)
 
 type Mixin struct {
 	parent    Namespace
@@ -130,7 +133,7 @@ loop:
 	return headProxy, tailProxy
 }
 
-func (m *Mixin) DefineMethod(docComment string, abstract, sealed, native bool, name string, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Mixin) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
