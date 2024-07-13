@@ -146,6 +146,23 @@ func init() {
 	)
 	Def(
 		c,
+		"append",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			val := args[1].(*value.ArrayList)
+			for _, element := range *val {
+				err := HashSetAppend(vm, self, element)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return self, nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"<<",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashSet)
@@ -159,7 +176,6 @@ func init() {
 		DefWithParameters("value"),
 		DefWithSealed(),
 	)
-	Alias(c, "append", "<<")
 
 	Def(
 		c,

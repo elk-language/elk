@@ -15,7 +15,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"))
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.", false, true, true, value.ToSymbol("ArrayList"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, value.ToSymbol("ArrayList"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -23,7 +23,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable tuple data structure backed\nby an array.\n\nA tuple is an immutable list.", false, true, true, value.ToSymbol("ArrayTuple"), objectClass, env)
+			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, value.ToSymbol("ArrayTuple"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -39,9 +39,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, value.ToSymbol("Float"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Float32"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Float64"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashMap"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashRecord"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("HashSet"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, value.ToSymbol("HashMap"), objectClass, env)
+			{
+				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, value.ToSymbol("HashRecord"), objectClass, env)
+			{
+				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, value.ToSymbol("HashSet"), objectClass, env)
+			{
+				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, value.ToSymbol("Int"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int16"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int32"), objectClass, env)
@@ -300,6 +321,149 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("HashMap").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Create a new `HashMap` containing the pairs of `self`\nand another given `HashMap` or `HashRecord`.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NameToType("Std::HashMap", env), NameToType("Std::HashRecord", env)), NormalParameterKind, false)}, NameToType("Std::HashMap", env), nil)
+				namespace.DefineMethod("Check whether the given value is a `HashMap`\nwith the same elements.", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given value is an `HashMap` or `HashRecord`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), []*Parameter{NewParameter(value.ToSymbol("key"), NewNamedType("Std::HashMap::Key", Any{}), NormalParameterKind, false)}, NewNilable(NewNamedType("Std::HashMap::Value", Any{})), nil)
+				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]="), []*Parameter{NewParameter(value.ToSymbol("key"), NewNamedType("Std::HashMap::Key", Any{}), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashMap::Value", Any{}), NormalParameterKind, false)}, NewNamedType("Std::HashMap::Value", Any{}), nil)
+				namespace.DefineMethod("Returns the number of key-value pairs that can be\nheld by the underlying array.\n\nThis value will change when the map gets resized,\nand the underlying array gets reallocated.", false, false, true, value.ToSymbol("capacity"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Check whether the given `pair` is present in this map.", false, false, true, value.ToSymbol("contains"), []*Parameter{NewParameter(value.ToSymbol("pair"), NameToType("Std::Pair", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given `key` is present in this map.", false, false, true, value.ToSymbol("contains_key"), []*Parameter{NewParameter(value.ToSymbol("key"), NewNamedType("Std::HashMap::Key", Any{}), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given `value` is present in this map.", false, false, true, value.ToSymbol("contains_value"), []*Parameter{NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashMap::Value", Any{}), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Mutates the map.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", false, false, true, value.ToSymbol("grow"), []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::HashMap", env), nil)
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the map.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashMap::Iterator", env), nil)
+				namespace.DefineMethod("Returns the number of left slots for new key-value pairs\nin the underlying array.\nIt tells you how many more elements can be\nadded to the map before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", false, false, true, value.ToSymbol("left_capacity"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the number of key-value pairs present in the map.", false, false, true, value.ToSymbol("length"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), nil, Void{}, nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map_values"), nil, Void{}, nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map_values_mut"), nil, Void{}, nil)
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.SubtypeString("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins
+
+					// Implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns `self`.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashMap::Iterator", env), nil)
+					namespace.DefineMethod("Get the next pair of the map.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, NewNamedType("Std::HashMap::Iterator::Element", Any{}), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.SubtypeString("HashRecord").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Create a new `HashRecord` containing the pairs of `self`\nand another given `HashRecord`.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::HashRecord", env), NormalParameterKind, false)}, NameToType("Std::HashRecord", env), nil)
+				namespace.DefineMethod("Check whether the given value is a `HashRecord`\nwith the same elements.", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given value is an `HashRecord` or `HashMap`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), []*Parameter{NewParameter(value.ToSymbol("key"), NewNamedType("Std::HashRecord::Key", Any{}), NormalParameterKind, false)}, NewNilable(NewNamedType("Std::HashRecord::Value", Any{})), nil)
+				namespace.DefineMethod("Check whether the given `pair` is present in this record.", false, false, true, value.ToSymbol("contains"), []*Parameter{NewParameter(value.ToSymbol("pair"), NameToType("Std::Pair", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given `key` is present in this record.", false, false, true, value.ToSymbol("contains_key"), []*Parameter{NewParameter(value.ToSymbol("key"), NewNamedType("Std::HashRecord::Key", Any{}), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given `value` is present in this record.", false, false, true, value.ToSymbol("contains_value"), []*Parameter{NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashRecord::Value", Any{}), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the record.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashRecord::Iterator", env), nil)
+				namespace.DefineMethod("Returns the number of key-value pairs present in the record.", false, false, true, value.ToSymbol("length"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), nil, Void{}, nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map_values"), nil, Void{}, nil)
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.SubtypeString("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins
+
+					// Implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns `self`.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashRecord::Iterator", env), nil)
+					namespace.DefineMethod("Get the next pair of the record.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, NewNamedType("Std::HashRecord::Iterator::Element", Any{}), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.SubtypeString("HashSet").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new `HashSet` containing only the elements\npresent both in `self` and `other`.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::HashSet", env), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::HashSet", env), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Adds the given value to the set.\n\nDoes nothing if the value is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashSet::Element", Any{}), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Check whether the given value is a `HashSet`\nwith the same elements.", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Check whether the given value is a `HashSet`\nwith the same elements.", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]"), []*Parameter{NewParameter(value.ToSymbol("index"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NewNamedType("Std::HashSet::Element", Any{}), nil)
+				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]="), []*Parameter{NewParameter(value.ToSymbol("index"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashSet::Element", Any{}), NormalParameterKind, false)}, NewNamedType("Std::HashSet::Element", Any{}), nil)
+				namespace.DefineMethod("Adds the given values to the set.\n\nSkips a value if it is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold them.", false, false, true, value.ToSymbol("append"), []*Parameter{NewParameter(value.ToSymbol("values"), NewNamedType("Std::HashSet::Element", Any{}), PositionalRestParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Returns the number of elements that can be\nheld by the underlying array.\n\nThis value will change when the set gets resized,\nand the underlying array gets reallocated.", false, false, true, value.ToSymbol("capacity"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Check whether the given `value` is present in this set.", false, false, true, value.ToSymbol("contains"), []*Parameter{NewParameter(value.ToSymbol("value"), NewNamedType("Std::HashSet::Element", Any{}), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Mutates the set.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", false, false, true, value.ToSymbol("grow"), []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the set.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashSet::Iterator", env), nil)
+				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the set before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", false, false, true, value.ToSymbol("left_capacity"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the number of elements present in the set.", false, false, true, value.ToSymbol("length"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), nil, Void{}, nil)
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::HashSet", env), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::HashSet", env), NormalParameterKind, false)}, NameToType("Std::HashSet", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.SubtypeString("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins
+
+					// Implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns `self`.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::HashSet::Iterator", env), nil)
+					namespace.DefineMethod("Get the next element of the set.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, NewNamedType("Std::HashSet::Iterator::Element", Any{}), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.SubtypeString("Int").(*Class)

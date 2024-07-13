@@ -1,7 +1,7 @@
 ##[
-	A dynamically resizable tuple data structure backed
-	by an array.
+	A tuple data structure backed by an array.
 
+	It is an ordered, immutable collection of integer indexed values.
 	A tuple is an immutable list.
 ]##
 sealed primitive class ::Std::ArrayTuple

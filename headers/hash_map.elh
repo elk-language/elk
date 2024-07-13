@@ -1,0 +1,120 @@
+##[
+	A dynamically resizable map data structure backed
+	by an array with a hashing algorithm.
+
+	It is an unordered collection of key-value pairs.
+]##
+sealed primitive class ::Std::HashMap
+	typedef Key = any
+	typedef Value = any
+
+	##[
+		Mutates the map.
+
+		Reallocates the underlying array to hold
+		the given number of new elements.
+
+		Expands the `capacity` of the list by `new_slots`
+	]##
+	def grow(new_slots: Int): HashMap; end
+
+	##[
+		Returns the number of key-value pairs that can be
+		held by the underlying array.
+
+		This value will change when the map gets resized,
+		and the underlying array gets reallocated.
+	]##
+	def capacity: Int; end
+
+	##[
+		Returns the number of key-value pairs present in the map.
+	]##
+	def length: Int; end
+
+	##[
+		Returns the number of left slots for new key-value pairs
+		in the underlying array.
+		It tells you how many more elements can be
+		added to the map before the underlying array gets
+		reallocated.
+
+		It is always equal to `capacity - length`.
+	]##
+	def left_capacity: Int; end
+
+	##[
+		Get the element under the given key.
+		Returns `nil` when the key is not present.
+	]##
+	def [](key: Key): Value?; end
+
+	##[
+		Set the element under the given index to the given value.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def []=(key: Key, value: Value): Value; end
+
+	##[
+		Create a new `HashMap` containing the pairs of `self`
+		and another given `HashMap` or `HashRecord`.
+	]##
+	sealed def +(other: HashMap | HashRecord): HashMap; end
+
+	##[
+		Check whether the given `pair` is present in this map.
+	]##
+	def contains(pair: Pair): Bool; end
+
+	##[
+		Check whether the given `key` is present in this map.
+	]##
+	def contains_key(key: Key): Bool; end
+
+	##[
+		Check whether the given `value` is present in this map.
+	]##
+	def contains_value(value: Value): Bool; end
+
+	##[
+		Check whether the given value is a `HashMap`
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is an `HashMap` or `HashRecord`
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	# TODO
+	def map; end
+	# TODO
+	def map_values; end
+	# TODO
+	def map_values_mut; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the map.
+	]##
+	def iterator: Iterator; end
+
+	sealed primitive class Iterator
+		typedef Element = any
+
+		##[
+			Get the next pair of the map.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Element ! :stop_iteration; end
+
+		##[
+			Returns `self`.
+		]##
+		def iterator: Iterator; end
+	end
+end

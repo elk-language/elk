@@ -80,6 +80,33 @@ func init() {
 	)
 	Def(
 		c,
+		"+",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			other := args[1]
+
+			switch o := other.(type) {
+			case *value.HashMap:
+				result, err := HashMapConcat(vm, self, o)
+				if err != nil {
+					return nil, err
+				}
+				return result, nil
+			case *value.HashRecord:
+				result, err := HashMapConcat(vm, self, (*value.HashMap)(o))
+				if err != nil {
+					return nil, err
+				}
+				return result, nil
+			default:
+				return nil, value.NewCoerceError(value.HashMapClass, other.Class())
+			}
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"grow",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashMap)
@@ -451,6 +478,16 @@ func HashMapLaxEqual(vm *VM, x *value.HashMap, y *value.HashMap) (bool, value.Va
 	}
 
 	return true, nil
+}
+
+// Create a new map containing the pairs of both maps.
+func HashMapConcat(vm *VM, x *value.HashMap, y *value.HashMap) (*value.HashMap, value.Value) {
+	result := x.Clone()
+	err := HashMapCopy(vm, result, y)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // Checks whether two hash maps are equal

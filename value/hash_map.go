@@ -35,13 +35,17 @@ func (*HashMap) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashMap) Copy() Value {
+func (h *HashMap) Clone() *HashMap {
 	newTable := slices.Clone(h.Table)
 	return &HashMap{
 		Table:         newTable,
 		OccupiedSlots: h.OccupiedSlots,
 		Elements:      h.Elements,
 	}
+}
+
+func (h *HashMap) Copy() Value {
+	return h.Clone()
 }
 
 func (h *HashMap) Inspect() string {

@@ -41,6 +41,7 @@ var (
 	HashMap    = value.ToSymbol("HashMap")
 	HashRecord = value.ToSymbol("HashRecord")
 	HashSet    = value.ToSymbol("HashSet")
+	Pair       = value.ToSymbol("Pair")
 )
 
 var (

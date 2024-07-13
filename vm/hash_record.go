@@ -46,6 +46,33 @@ func init() {
 	)
 	Def(
 		c,
+		"+",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			other := args[1]
+
+			switch o := other.(type) {
+			case *value.HashMap:
+				result, err := HashRecordConcat(vm, self, (*value.HashRecord)(o))
+				if err != nil {
+					return nil, err
+				}
+				return result, nil
+			case *value.HashRecord:
+				result, err := HashRecordConcat(vm, self, o)
+				if err != nil {
+					return nil, err
+				}
+				return result, nil
+			default:
+				return nil, value.NewCoerceError(value.HashRecordClass, other.Class())
+			}
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashRecord)
@@ -313,6 +340,11 @@ func HashRecordCopyTable(vm *VM, target *value.HashRecord, source []value.Pair) 
 // Copy the pairs of one hash record to the other.
 func HashRecordCopy(vm *VM, target *value.HashRecord, source *value.HashRecord) value.Value {
 	return HashMapCopy(vm, (*value.HashMap)(target), (*value.HashMap)(source))
+}
+
+// Create a new map containing the pairs of both maps.
+func HashRecordConcat(vm *VM, x *value.HashRecord, y *value.HashRecord) (value.Value, value.Value) {
+	return HashMapConcat(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Check if the given pair is present in the record

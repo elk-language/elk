@@ -1,33 +1,33 @@
 ##[
-	A dynamically resizable list data structure backed
-	by an array.
+	A dynamically resizable set data structure backed
+	by an array with a hashing algorithm.
 
-	It is an ordered collection of integer indexed values.
+	It is an unordered collection of unique values.
 ]##
-sealed primitive class ::Std::ArrayList
+sealed primitive class ::Std::HashSet
 	typedef Element = any
 
 	##[
-		Mutates the list.
+		Mutates the set.
 
 		Reallocates the underlying array to hold
 		the given number of new elements.
 
 		Expands the `capacity` of the list by `new_slots`
 	]##
-	def grow(new_slots: Int): ArrayList; end
+	def grow(new_slots: Int): HashSet; end
 
 	##[
 		Returns the number of elements that can be
 		held by the underlying array.
 
-		This value will change when the list gets resized,
-		and the underlying array gets reallocated
+		This value will change when the set gets resized,
+		and the underlying array gets reallocated.
 	]##
 	def capacity: Int; end
 
 	##[
-		Returns the number of elements present in the list.
+		Returns the number of elements present in the set.
 	]##
 	def length: Int; end
 
@@ -35,7 +35,7 @@ sealed primitive class ::Std::ArrayList
 		Returns the number of left slots for new elements
 		in the underlying array.
 		It tells you how many more elements can be
-		added to the list before the underlying array gets
+		added to the set before the underlying array gets
 		reallocated.
 
 		It is always equal to `capacity - length`.
@@ -59,58 +59,60 @@ sealed primitive class ::Std::ArrayList
 	def []=(index: AnyInt, value: Element): Element; end
 
 	##[
-		Create a new `ArrayList` containing the elements of `self`
-		and another given `ArrayList` or `ArrayTuple`.
+		Return the union of both sets.
+
+		Create a new `HashSet` containing all the elements
+		present in `self` and `other`.
 	]##
-	sealed def +(other: ArrayList | ArrayTuple): ArrayList; end
+	sealed def +(other: HashSet): HashSet; end
+	alias | +, union +
 
 	##[
-		Create a new `ArrayList` containing the elements of `self`
-		repeated `n` times.
+		Return the intersection of both sets.
+
+		Create a new `HashSet` containing only the elements
+		present both in `self` and `other`.
 	]##
-	sealed def *(n: Int): ArrayList; end
+	sealed def &(other: HashSet): HashSet; end
 
 	##[
-		Check whether the given `value` is present in this list.
+		Check whether the given `value` is present in this set.
 	]##
 	def contains(value: Element): Bool; end
 
 	##[
-		Check whether the given value is an `ArrayList`
+		Check whether the given value is a `HashSet`
 		with the same elements.
 	]##
 	sealed def ==(other: any): Bool; end
+	alias =~ ==
 
 	##[
-		Check whether the given value is an `ArrayList` or `ArrayTuple`
-		with the same elements.
-	]##
-	sealed def =~(other: any): Bool; end
+		Adds the given values to the set.
 
-	##[
-		Adds the given values to the list.
+		Skips a value if it is already present in the set.
 
 		Reallocates the underlying array if it is
 		too small to hold them.
 	]##
-	def append(*values: Element): ArrayList; end
+	def append(*values: Element): HashSet; end
 
 	##[
-		Adds the given value to the list.
+		Adds the given value to the set.
+
+		Does nothing if the value is already present in the set.
 
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def <<(value: Element): ArrayList; end
+	def <<(value: Element): HashSet; end
 
-	# TODO
-	def map_mut; end
 	# TODO
 	def map; end
 
 	##[
 		Returns an iterator that iterates
-		over each element of the list.
+		over each element of the set.
 	]##
 	def iterator: Iterator; end
 
@@ -118,7 +120,7 @@ sealed primitive class ::Std::ArrayList
 		typedef Element = any
 
 		##[
-			Get the next element of the list.
+			Get the next element of the set.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Element ! :stop_iteration; end

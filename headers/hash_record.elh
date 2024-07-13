@@ -1,0 +1,80 @@
+##[
+	A record data structure backed by an array with a hashing algorithm.
+
+	It is an unordered immutable collection of key-value pairs.
+	A record is an immutable map.
+]##
+sealed primitive class ::Std::HashRecord
+	typedef Key = any
+	typedef Value = any
+
+	##[
+		Returns the number of key-value pairs present in the record.
+	]##
+	def length: Int; end
+
+	##[
+		Get the element under the given key.
+		Returns `nil` when the key is not present.
+	]##
+	def [](key: Key): Value?; end
+
+	##[
+		Create a new `HashRecord` containing the pairs of `self`
+		and another given `HashRecord`.
+	]##
+	sealed def +(other: HashRecord): HashRecord; end
+
+	##[
+		Check whether the given `pair` is present in this record.
+	]##
+	def contains(pair: Pair): Bool; end
+
+	##[
+		Check whether the given `key` is present in this record.
+	]##
+	def contains_key(key: Key): Bool; end
+
+	##[
+		Check whether the given `value` is present in this record.
+	]##
+	def contains_value(value: Value): Bool; end
+
+	##[
+		Check whether the given value is a `HashRecord`
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is an `HashRecord` or `HashMap`
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	# TODO
+	def map; end
+	# TODO
+	def map_values; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the record.
+	]##
+	def iterator: Iterator; end
+
+	sealed primitive class Iterator
+		typedef Element = any
+
+		##[
+			Get the next pair of the record.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Element ! :stop_iteration; end
+
+		##[
+			Returns `self`.
+		]##
+		def iterator: Iterator; end
+	end
+end

@@ -105,6 +105,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, symbol.HashSet, objectClass, env)
 	stdModule.DefineClass("", false, true, true, symbol.Regex, objectClass, env)
 	stdModule.DefineClass("", false, true, true, symbol.Method, objectClass, env)
+	stdModule.DefineClass("", false, true, true, symbol.Pair, objectClass, env)
 
 	return env
 }
