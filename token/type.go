@@ -623,6 +623,8 @@ var tokenNames = [...]string{
 	LAX_NOT_EQUAL:           "!~",
 	STRICT_NOT_EQUAL:        "!==",
 
+	MINUS_AT:               "-@",
+	PLUS_AT:                "+@",
 	MINUS:                  "-",
 	PLUS:                   "+",
 	STAR:                   "*",
