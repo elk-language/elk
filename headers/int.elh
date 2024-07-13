@@ -47,15 +47,15 @@ sealed primitive class ::Std::Int
 	]##
 	sealed def <=>(other: Int): Int; end
 
-	sealed def >=(other: Int): Int; end
+	sealed def >=(other: Int): Bool; end
 
-	sealed def >(other: Int): Int; end
+	sealed def >(other: Int): Bool; end
 
-	sealed def <=(other: Int): Int; end
+	sealed def <=(other: Int): Bool; end
 
-	sealed def <(other: Int): Int; end
+	sealed def <(other: Int): Bool; end
 
-	sealed def ==(other: Int): Int; end
+	sealed def ==(other: Int): Bool; end
 
 	##[
 		Returns an integer shifted left by `other` positions, or right if `other` is negative.

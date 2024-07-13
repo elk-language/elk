@@ -1,0 +1,27 @@
+##[
+	Represents a value that can be iterated over in a `for` loop.
+]##
+interface ::Std::Iterable
+	##[
+		Returns an iterator for this structure.
+	]##
+	def iterator: Iterator; end
+end
+
+##[
+	An interface that represents objects
+	that allow for external iteration.
+]##
+interface ::Std::Iterator
+	implement Iterable
+
+	typedef Element = any
+
+	##[
+		Returns the next element.
+		Throws `:stop_iteration` when no more elements are available.
+	]##
+	def next: Element ! :stop_iteration; end
+
+	def iterator: Iterator; end
+end

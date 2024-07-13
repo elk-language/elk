@@ -126,7 +126,7 @@ sealed primitive class ::Std::String
 	##[
 		Iterates over all unicode code points of a `String`.
 	]##
-	class CharIterator
+	sealed primitive class CharIterator
 		##[
 			Get the next character.
 			Throws `:stop_iteration` when no more characters are available.
@@ -142,7 +142,7 @@ sealed primitive class ::Std::String
 	##[
 		Iterates over all bytes of a `String`.
 	]##
-	class ByteIterator
+	sealed primitive class ByteIterator
 		##[
 			Get the next byte.
 			Throws `:stop_iteration` when no more bytes are available.

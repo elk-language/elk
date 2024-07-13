@@ -1,0 +1,75 @@
+##[
+	A dynamically resizable tuple data structure backed
+	by an array.
+
+	A tuple is an immutable list.
+]##
+sealed primitive class ::Std::ArrayTuple
+	typedef Element = any
+
+	##[
+		Returns the number of elements present in the tuple.
+	]##
+	def length: Int; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def [](index: AnyInt): Element; end
+
+	##[
+		Create a new `ArrayTuple` containing the elements of `self`
+		and another given `ArrayTuple`.
+	]##
+	sealed def +(other: ArrayTuple): ArrayTuple; end
+
+	##[
+		Create a new `ArrayTuple` containing the elements of `self`
+		repeated `n` times.
+	]##
+	sealed def *(n: Int): ArrayList; end
+
+	##[
+		Check whether the given `value` is present in this tuple.
+	]##
+	def contains(value: Element): Bool; end
+
+	##[
+		Check whether the given value is an `ArrayTuple`
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is an `ArrayTuple` or `ArrayList`
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	# TODO
+	def map; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the tuple.
+	]##
+	def iterator: Iterator; end
+
+	sealed primitive class Iterator
+		typedef Element = any
+
+		##[
+			Get the next element of the tuple.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Element ! :stop_iteration; end
+
+		##[
+			Returns `self`.
+		]##
+		def iterator: Iterator; end
+	end
+end

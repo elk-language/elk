@@ -1,0 +1,47 @@
+##[
+	A `Pair` represents a 2-element tuple,
+	or a key-value pair.
+]##
+sealed primitive class ::Std::Pair
+	typedef Key = any
+	typedef Value = any
+
+	##[
+		Instantiate the `Pair` with the given key and value.
+	]##
+	init(key: Key, value: Value); end
+
+	##[
+		Returns the key, the first element of the tuple.
+	]##
+	def key: Key; end
+
+	##[
+		Returns the value, the second element of the tuple.
+	]##
+	def value: Value; end
+
+	##[
+		Always returns `2`.
+		For compatibility with `Tuple`.
+	]##
+	def length: Int; end
+
+	##[
+		Get the element with the given index.
+		The key is `0`, value is `1`.
+	]##
+	def [](key: Key): Value; end
+
+	##[
+		Set the element with the given index to the given value.
+		The key is `0`, value is `1`.
+	]##
+	def []=(key: Key, value: Value): Value; end
+
+	##[
+		Check whether the given value
+		is a `Pair` that is equal to this `Pair`.
+	]##
+	def ==(other: any): Bool; end
+end

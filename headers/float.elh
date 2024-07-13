@@ -1,0 +1,140 @@
+##[
+	Represents a floating point number (a fraction like `1.2`, `0.1`).
+
+	This float type has 64 bits on 64 bit platforms
+	and 32 bit on 32 bit platforms.
+]##
+sealed primitive class ::Std::Float
+	##[
+		Returns itself.
+
+		```
+			var a = 1.2
+			+a #=> 1.2
+		```
+	]##
+	sealed def +@(other: Int): Int; end
+
+	##[
+		Returns the result of negating the number.
+
+		```
+			var a = 1.2
+			-a #=> -1.2
+		```
+	]##
+	sealed def -@(other: Int): Int; end
+
+	##[
+		Add `other` to this float.
+	]##
+	sealed def +(other: Float): Float; end
+
+	##[
+		Subtract `other` from this float.
+	]##
+	sealed def -(other: Float): Float; end
+
+	##[
+		Multiply this float by `other`.
+	]##
+	sealed def *(other: Float): Float; end
+
+	##[
+		Divide this float by another float.
+	]##
+	sealed def /(other: Float): Int; end
+
+	##[
+		Exponentiate this float, raise it to the power of `other`.
+	]##
+	sealed def **(other: Int): Int; end
+
+	##[
+		Compare this float with another float.
+		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
+	]##
+	sealed def <=>(other: Float): Int; end
+
+	sealed def >=(other: Int): Bool; end
+
+	sealed def >(other: Int): Bool; end
+
+	sealed def <=(other: Int): Bool; end
+
+	sealed def <(other: Int): Bool; end
+
+	sealed def ==(other: Int): Bool; end
+
+	##[
+		Returns the remainder of dividing by `other`.
+
+		```
+			var a = 10
+			var b = 3
+			a % b #=> 1
+		```
+	]##
+	sealed def %(other: Int): Int; end
+
+	##[
+		Converts the integer to a floating point number.
+	]##
+	def to_float: Float; end
+
+	##[
+		Converts the float to an automatically resized integer.
+	]##
+	def to_int: Int; end
+
+	##[
+		Converts the float to a 64-bit floating point number.
+	]##
+	def to_float64: Float64; end
+
+	##[
+		Converts the float to a 32-bit floating point number.
+	]##
+	def to_float32: Float32; end
+
+	##[
+		Converts the float to a 64-bit integer.
+	]##
+	def to_int64: Int64; end
+
+	##[
+		Converts the float to a 32-bit integer.
+	]##
+	def to_int32: Int32; end
+
+	##[
+		Converts the float to a 16-bit integer.
+	]##
+	def to_int16: Int16; end
+
+	##[
+		Converts the float to a 8-bit integer.
+	]##
+	def to_int8: Int8; end
+
+	##[
+		Converts the float to an unsigned 64-bit integer.
+	]##
+	def to_uint64: UInt64; end
+
+	##[
+		Converts the float to an unsigned 32-bit integer.
+	]##
+	def to_uint32: UInt32; end
+
+	##[
+		Converts the float to an unsigned 16-bit integer.
+	]##
+	def to_uint16: UInt16; end
+
+	##[
+		Converts the float to an unsigned 8-bit integer.
+	]##
+	def to_uint8: UInt8; end
+
+end

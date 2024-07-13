@@ -207,7 +207,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			for _, param := range method.Params {
 				fmt.Fprintf(
 					buffer,
-					"NewParameter(value.ToSymbol(%q), %s, %s, %t)",
+					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
 					param.Name,
 					typeToCode(param.Type),
 					param.Kind,
@@ -262,6 +262,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	defineSubtypesWithinNamespace(buffer, class)
 	if hasSubtypes {
+		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -283,6 +284,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	defineSubtypesWithinNamespace(buffer, mixin)
 	if hasSubtypes {
+		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -303,6 +305,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	defineSubtypesWithinNamespace(buffer, module)
 	if hasSubtypes {
+		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -323,6 +326,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	defineSubtypesWithinNamespace(buffer, iface)
 	if hasSubtypes {
+		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
 		buffer.WriteString("}\n")
 	}
 }

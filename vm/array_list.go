@@ -88,7 +88,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters("n"),
 		DefWithSealed(),
 	)
 	Def(
@@ -102,7 +102,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("other"),
+		DefWithParameters("value"),
 		DefWithSealed(),
 	)
 	Def(

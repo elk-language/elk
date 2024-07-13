@@ -1,0 +1,30 @@
+##[
+	A `Regex` represents regular expression that can be used
+	to match a pattern against strings.
+]##
+sealed primitive class ::Std::Regex
+	##[
+		Check whether the pattern matches
+		the given string.
+
+		Returns `true` if it matches, otherwise `false`.
+	]##
+	def matches(str: String): Bool; end
+
+	##[
+		Create a new regex that contains
+		the patterns present in both operands.
+	]##
+	sealed def +(other: Regex): Regex; end
+
+	##[
+		Creates a new `Regex` that contains the
+		pattern of `self` repeated `n` times.
+	]##
+	sealed def *(n: Int): String; end
+
+	##[
+		Creates a new string with this character.
+	]##
+	def to_string: String; end
+end

@@ -136,17 +136,6 @@ func init() {
 	)
 	Def(
 		c,
-		"%",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Float)
-			other := args[1]
-			return value.ToValueErr(self.Modulo(other))
-		},
-		DefWithParameters("other"),
-		DefWithSealed(),
-	)
-	Def(
-		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Float)
@@ -158,11 +147,11 @@ func init() {
 	)
 	Def(
 		c,
-		"===",
+		"%",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Float)
 			other := args[1]
-			return self.StrictEqual(other), nil
+			return value.ToValueErr(self.Modulo(other))
 		},
 		DefWithParameters("other"),
 		DefWithSealed(),

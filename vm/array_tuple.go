@@ -38,22 +38,6 @@ func init() {
 	)
 	Def(
 		c,
-		"[]=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ArrayTuple)
-			key := args[1]
-			val := args[2]
-			err := self.SubscriptSet(key, val)
-			if err == nil {
-				return val, nil
-			}
-			return nil, err
-		},
-		DefWithParameters("key", "val"),
-		DefWithSealed(),
-	)
-	Def(
-		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
@@ -71,7 +55,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters("n"),
 		DefWithSealed(),
 	)
 	Def(
@@ -85,7 +69,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("other"),
+		DefWithParameters("value"),
 		DefWithSealed(),
 	)
 	Def(

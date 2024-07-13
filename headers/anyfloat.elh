@@ -1,0 +1,1 @@
+typedef Std::AnyFloat = Float | Float64 | Float32 | BigFloat

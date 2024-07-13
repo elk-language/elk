@@ -1,0 +1,64 @@
+##[
+	An interface that represents an ordered, mutable collection
+	of elements indexed by integers starting at `0`.
+]##
+interface ::Std::List
+	typedef Element = any
+
+	##[
+		Returns the number of elements present in the list.
+	]##
+	def length: Int; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def [](index: AnyInt): Element; end
+
+	##[
+		Set the element under the given index to the given value.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def []=(index: AnyInt, value: Element): Element; end
+
+	##[
+		Check whether the given `value` is present in this list.
+	]##
+	def contains(value: Element): Bool; end
+
+	##[
+		Check whether the given value is a list
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is a list
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	##[
+		Adds the given values to the list.
+	]##
+	def append(*values: Element): ArrayList; end
+
+	##[
+		Adds the given value to the list.
+	]##
+	def <<(value: Element): ArrayList; end
+
+	# TODO
+	def map; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the list.
+	]##
+	def iterator: Iterator; end
+end
