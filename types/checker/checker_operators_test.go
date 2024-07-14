@@ -6,6 +6,39 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestBinaryOpMethod(t *testing.T) {
+	tests := testTable{
+		"Call custom add method": {
+			input: `
+				class Foo
+					def +(other: String): String
+						other
+					end
+				end
+
+				var a: String = Foo() + "lol"
+			`,
+		},
+		"Call add method on a type without it": {
+			input: `
+				class Foo; end
+
+				var a: String = Foo() + "lol"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "method `+` is not defined on type `Foo`"),
+				error.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "type `void` cannot be assigned to type `Std::String`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestAdd(t *testing.T) {
 	tests := testTable{
 		"Int - String => Error": {
