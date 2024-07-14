@@ -377,6 +377,30 @@ func (c *Checker) isTheSameType(a, b types.Type, errSpan *position.Span) bool {
 	return c.isSubtype(a, b, errSpan) && c.isSubtype(b, a, errSpan)
 }
 
+// Check whether an "is a" relationship between `a` and `b` is possible.
+func (c *Checker) canBeIsA(a types.Type, b types.Namespace) bool {
+	switch a := a.(type) {
+	case *types.Nilable:
+		return c.canBeIsA(a.Type, b) || c.canBeIsA(c.StdNil(), b)
+	case *types.Union:
+		for _, element := range a.Elements {
+			if c.canBeIsA(element, b) {
+				return true
+			}
+		}
+		return false
+	case *types.Intersection:
+		for _, element := range a.Elements {
+			if c.canBeIsA(element, b) {
+				return true
+			}
+		}
+		return false
+	default:
+		return c.isSubtype(a, b, nil)
+	}
+}
+
 func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false
@@ -955,6 +979,14 @@ func (c *Checker) StdBigFloat() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.BigFloat)
 }
 
+func (c *Checker) StdBool() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.Bool)
+}
+
+func (c *Checker) StdNil() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.Nil)
+}
+
 func (c *Checker) checkArithmeticBinaryOperator(
 	left,
 	right ast.ExpressionNode,
@@ -1019,9 +1051,10 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Span()))
 	case token.STAR_STAR:
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Span()))
-
-	// case token.INSTANCE_OF_OP:
-	// case token.ISA_OP:
+	case token.INSTANCE_OF_OP:
+		c.checkInstanceOf(node)
+	case token.ISA_OP:
+		c.checkIsA(node)
 	// case token.STRICT_EQUAL:
 	// case token.STRICT_NOT_EQUAL:
 
@@ -1052,6 +1085,101 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	}
 
 	return node
+}
+
+func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
+	node.SetType(c.StdBool())
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	rightSingleton, ok := rightType.(*types.SingletonClass)
+	if !ok {
+		c.addFailure(
+			"only classes are allowed as the right operand of the instance of operator `<<:`",
+			node.Right.Span(),
+		)
+		return
+	}
+
+	class, ok := rightSingleton.AttachedObject.(*types.Class)
+	if !ok {
+		c.addFailure(
+			"only classes are allowed as the right operand of the instance of operator `<<:`",
+			node.Right.Span(),
+		)
+		return
+	}
+
+	if c.isSubtype(leftType, class, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"this \"instance of\" check is always true, `%s` will always be an instance of `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(class),
+			),
+			node.Left.Span(),
+		)
+		return
+	}
+
+	if !c.isSubtype(class, leftType, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"impossible \"instance of\" check, `%s` cannot ever be an instance of `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(class),
+			),
+			node.Left.Span(),
+		)
+	}
+}
+
+func (c *Checker) checkIsA(node *ast.BinaryExpressionNode) {
+	node.SetType(c.StdBool())
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	rightSingleton, ok := rightType.(*types.SingletonClass)
+	if !ok {
+		c.addFailure(
+			"only classes and mixins are allowed as the right operand of the is a operator `<:`",
+			node.Right.Span(),
+		)
+		return
+	}
+
+	switch rightSingleton.AttachedObject.(type) {
+	case *types.Class, *types.Mixin:
+	default:
+		c.addFailure(
+			"only classes and mixins are allowed as the right operand of the is a operator `<:`",
+			node.Right.Span(),
+		)
+		return
+	}
+
+	if c.isSubtype(leftType, rightSingleton.AttachedObject, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"this \"is a\" check is always true, `%s` will always be an instance of `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(rightSingleton.AttachedObject),
+			),
+			node.Left.Span(),
+		)
+		return
+	}
+
+	if !c.canBeIsA(leftType, rightSingleton.AttachedObject) {
+		c.addFailure(
+			fmt.Sprintf(
+				"impossible \"is a\" check, `%s` cannot ever be an instance of a descendant of `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(rightSingleton.AttachedObject),
+			),
+			node.Left.Span(),
+		)
+	}
 }
 
 func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position.Span) {

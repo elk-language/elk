@@ -6,6 +6,162 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestIsA(t *testing.T) {
+	tests := testTable{
+		"impossible check": {
+			input: `
+				1.2 <: Int
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `Std::Float(1.2)` cannot ever be an instance of a descendant of `Std::Int`"),
+			},
+		},
+		"always true check": {
+			input: `
+				1 <: Int
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `Std::Int(1)` will always be an instance of `Std::Int`"),
+			},
+		},
+		"valid check with class": {
+			input: `
+				var a: String | Int = 1
+				a <: Int
+			`,
+		},
+		"valid check with subclass": {
+			input: `
+				class Foo; end
+				class Bar < Foo; end
+				var a: Bar? = nil
+				a <: Foo
+			`,
+		},
+		"valid nested check with subclass": {
+			input: `
+				class Foo; end
+				class Bar < Foo; end
+				var a: String | Bar? = nil
+				a <: Foo
+			`,
+		},
+		"valid check with mixin": {
+			input: `
+				mixin Foo; end
+				class Bar
+					include Foo
+				end
+				var a: Bar? = nil
+				a <: Foo
+			`,
+		},
+		"valid nested check with mixin": {
+			input: `
+				mixin Foo; end
+				class Bar
+					include Foo
+				end
+				var a: String | Bar? = nil
+				a <: Foo
+			`,
+		},
+		"invalid right operand": {
+			input: `
+				1 <: 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(10, 2, 10), P(10, 2, 10)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
+			},
+		},
+		"invalid right operand - module": {
+			input: `
+				module Foo; end
+				1 <: Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestInstanceOf(t *testing.T) {
+	tests := testTable{
+		"impossible check": {
+			input: `
+				1.2 <<: Int
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `Std::Float(1.2)` cannot ever be an instance of `Std::Int`"),
+			},
+		},
+		"always true check": {
+			input: `
+				1 <<: Int
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `Std::Int(1)` will always be an instance of `Std::Int`"),
+			},
+		},
+		"valid check with class": {
+			input: `
+				var a: String | Int = 1
+				a <<: Int
+			`,
+		},
+		"impossible check with subclass": {
+			input: `
+				class Foo; end
+				class Bar < Foo; end
+				var a: Bar? = nil
+				a <<: Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 5), P(71, 5, 5)), "impossible \"instance of\" check, `Bar?` cannot ever be an instance of `Foo`"),
+			},
+		},
+		"invalid right operand": {
+			input: `
+				1 <<: 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			},
+		},
+		"invalid right operand - module": {
+			input: `
+				module Foo; end
+				1 <<: Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 11), P(33, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			},
+		},
+		"invalid right operand - mixin": {
+			input: `
+				mixin Foo; end
+				1 <<: Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 11), P(32, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestBinaryOpMethod(t *testing.T) {
 	tests := testTable{
 		"Call custom add method": {
