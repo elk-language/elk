@@ -1019,49 +1019,27 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Span()))
 	case token.STAR_STAR:
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Span()))
-	// case token.LBITSHIFT:
-
-	// case token.LTRIPLE_BITSHIFT:
-
-	// case token.RBITSHIFT:
-
-	// case token.RTRIPLE_BITSHIFT:
-
-	// case token.AND:
-
-	// case token.AND_TILDE:
-
-	// case token.OR:
-
-	// case token.XOR:
-
-	// case token.PERCENT:
-
-	// case token.LAX_EQUAL:
-
-	// case token.LAX_NOT_EQUAL:
-
-	// case token.EQUAL_EQUAL:
-
-	// case token.NOT_EQUAL:
-
-	// case token.STRICT_EQUAL:
-
-	// case token.STRICT_NOT_EQUAL:
-
-	// case token.GREATER:
-
-	// case token.GREATER_EQUAL:
-
-	// case token.LESS:
-
-	// case token.LESS_EQUAL:
-
-	// case token.SPACESHIP_OP:
 
 	// case token.INSTANCE_OF_OP:
-
 	// case token.ISA_OP:
+	// case token.STRICT_EQUAL:
+	// case token.STRICT_NOT_EQUAL:
+
+	case token.LBITSHIFT, token.LTRIPLE_BITSHIFT,
+		token.RBITSHIFT, token.RTRIPLE_BITSHIFT, token.AND,
+		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
+		token.LAX_EQUAL, token.LAX_NOT_EQUAL, token.EQUAL_EQUAL,
+		token.NOT_EQUAL, token.GREATER, token.GREATER_EQUAL,
+		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
+		_, _, typ := c.checkSimpleMethodCall(
+			node.Left,
+			false,
+			value.ToSymbol(node.Op.StringValue()),
+			[]ast.ExpressionNode{node.Right},
+			nil,
+			node.Span(),
+		)
+		node.SetType(typ)
 	default:
 		node.SetType(types.Void{})
 		c.addFailure(

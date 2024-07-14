@@ -19,9 +19,17 @@ func init() {
 			}
 			return self.SetPrecision(p), nil
 		},
-		DefWithSealed(),
+		DefWithParameters("precision"),
 	)
 	Alias(c, "p", "set_precision")
+	Def(
+		c,
+		"precision",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.BigFloat)
+			return value.UInt64(self.Precision()), nil
+		},
+	)
 
 	Def(
 		c,
