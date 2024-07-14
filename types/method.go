@@ -293,3 +293,7 @@ func (m *Method) InspectSignatureWithColor(showModifiers bool) string {
 func (m *Method) ToNonLiteral(env *GlobalEnvironment) Type {
 	return m
 }
+
+func (*Method) IsLiteral() bool {
+	return false
+}

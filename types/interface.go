@@ -106,3 +106,7 @@ func (i *Interface) inspect() string {
 func (i *Interface) ToNonLiteral(env *GlobalEnvironment) Type {
 	return i
 }
+
+func (*Interface) IsLiteral() bool {
+	return false
+}

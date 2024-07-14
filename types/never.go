@@ -10,6 +10,10 @@ func (n Never) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }
 
+func (Never) IsLiteral() bool {
+	return false
+}
+
 func IsNever(t Type) bool {
 	_, ok := t.(Never)
 	return ok

@@ -9,6 +9,7 @@ import (
 
 type Type interface {
 	ToNonLiteral(*GlobalEnvironment) Type
+	IsLiteral() bool
 	inspect() string
 }
 

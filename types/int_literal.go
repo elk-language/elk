@@ -20,6 +20,10 @@ func (i *IntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int)
 }
 
+func (*IntLiteral) IsLiteral() bool {
+	return true
+}
+
 func (i *IntLiteral) inspect() string {
 	return fmt.Sprintf("Std::Int(%s)", i.Value)
 }
@@ -36,6 +40,10 @@ func NewInt64Literal(value string) *Int64Literal {
 
 func (i *Int64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int64)
+}
+
+func (*Int64Literal) IsLiteral() bool {
+	return true
 }
 
 func (i *Int64Literal) inspect() string {
@@ -56,6 +64,10 @@ func (i *Int32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int32)
 }
 
+func (*Int32Literal) IsLiteral() bool {
+	return true
+}
+
 func (i *Int32Literal) inspect() string {
 	return fmt.Sprintf("%si32", i.Value)
 }
@@ -72,6 +84,10 @@ func NewInt16Literal(value string) *Int16Literal {
 
 func (i *Int16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int16)
+}
+
+func (*Int16Literal) IsLiteral() bool {
+	return true
 }
 
 func (i *Int16Literal) inspect() string {
@@ -92,6 +108,10 @@ func (i *Int8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int8)
 }
 
+func (*Int8Literal) IsLiteral() bool {
+	return true
+}
+
 func (i *Int8Literal) inspect() string {
 	return fmt.Sprintf("%si8", i.Value)
 }
@@ -108,6 +128,10 @@ func NewUInt64Literal(value string) *UInt64Literal {
 
 func (i *UInt64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt64)
+}
+
+func (*UInt64Literal) IsLiteral() bool {
+	return true
 }
 
 func (i *UInt64Literal) inspect() string {
@@ -128,6 +152,10 @@ func (i *UInt32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt32)
 }
 
+func (*UInt32Literal) IsLiteral() bool {
+	return true
+}
+
 func (i *UInt32Literal) inspect() string {
 	return fmt.Sprintf("%su32", i.Value)
 }
@@ -146,6 +174,10 @@ func (i *UInt16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt16)
 }
 
+func (*UInt16Literal) IsLiteral() bool {
+	return true
+}
+
 func (i *UInt16Literal) inspect() string {
 	return fmt.Sprintf("%su16", i.Value)
 }
@@ -162,6 +194,10 @@ func NewUInt8Literal(value string) *UInt8Literal {
 
 func (i *UInt8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt8)
+}
+
+func (*UInt8Literal) IsLiteral() bool {
+	return true
 }
 
 func (i *UInt8Literal) inspect() string {

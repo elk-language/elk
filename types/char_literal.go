@@ -21,6 +21,10 @@ func (*CharLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Char)
 }
 
+func (*CharLiteral) IsLiteral() bool {
+	return true
+}
+
 func (c *CharLiteral) inspect() string {
 	return fmt.Sprintf("Std::Char(%s)", value.Char(c.Value).Inspect())
 }

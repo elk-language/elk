@@ -146,3 +146,7 @@ func (m *Mixin) inspect() string {
 func (m *Mixin) ToNonLiteral(env *GlobalEnvironment) Type {
 	return m
 }
+
+func (*Mixin) IsLiteral() bool {
+	return false
+}

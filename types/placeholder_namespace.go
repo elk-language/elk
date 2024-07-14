@@ -67,6 +67,10 @@ func (p *PlaceholderNamespace) ToNonLiteral(env *GlobalEnvironment) Type {
 	return p
 }
 
+func (*PlaceholderNamespace) IsLiteral() bool {
+	return false
+}
+
 func (p *PlaceholderNamespace) inspect() string {
 	return p.Name()
 }

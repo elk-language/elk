@@ -20,6 +20,10 @@ func (u *Union) ToNonLiteral(env *GlobalEnvironment) Type {
 	return u
 }
 
+func (*Union) IsLiteral() bool {
+	return false
+}
+
 func (u *Union) inspect() string {
 	var buf strings.Builder
 	for i, element := range u.Elements {

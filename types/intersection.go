@@ -20,6 +20,10 @@ func (u *Intersection) ToNonLiteral(env *GlobalEnvironment) Type {
 	return u
 }
 
+func (*Intersection) IsLiteral() bool {
+	return false
+}
+
 func (u *Intersection) inspect() string {
 	var buf strings.Builder
 	for i, element := range u.Elements {

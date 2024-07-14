@@ -102,6 +102,10 @@ func (n *Nilable) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }
 
+func (*Nilable) IsLiteral() bool {
+	return false
+}
+
 func (n *Nilable) inspect() string {
 	var buf strings.Builder
 

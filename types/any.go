@@ -9,6 +9,10 @@ func (n Any) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }
 
+func (Any) IsLiteral() bool {
+	return false
+}
+
 func IsAny(t Type) bool {
 	_, ok := t.(Any)
 	return ok

@@ -62,6 +62,10 @@ func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
 	return m
 }
 
+func (*Module) IsLiteral() bool {
+	return false
+}
+
 func (m *Module) inspect() string {
 	return m.Name()
 }

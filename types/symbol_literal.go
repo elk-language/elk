@@ -21,6 +21,10 @@ func (s *SymbolLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Symbol)
 }
 
+func (*SymbolLiteral) IsLiteral() bool {
+	return true
+}
+
 func (s *SymbolLiteral) inspect() string {
 	return fmt.Sprintf("Std::Symbol(:%s)", value.InspectSymbolContent(s.Value))
 }

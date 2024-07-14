@@ -32,6 +32,10 @@ func (s *StringLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.String)
 }
 
+func (*StringLiteral) IsLiteral() bool {
+	return true
+}
+
 func (s *StringLiteral) inspect() string {
 	return fmt.Sprintf("Std::String(%s)", value.String(s.Value).Inspect())
 }

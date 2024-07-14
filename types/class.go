@@ -128,3 +128,7 @@ func (c *Class) inspect() string {
 func (c *Class) ToNonLiteral(env *GlobalEnvironment) Type {
 	return c
 }
+
+func (*Class) IsLiteral() bool {
+	return false
+}

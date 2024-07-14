@@ -16,6 +16,10 @@ func (n *NamedType) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }
 
+func (*NamedType) IsLiteral() bool {
+	return false
+}
+
 func (n *NamedType) inspect() string {
 	return n.Name
 }

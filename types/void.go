@@ -8,6 +8,10 @@ func (v Void) ToNonLiteral(env *GlobalEnvironment) Type {
 	return v
 }
 
+func (Void) IsLiteral() bool {
+	return false
+}
+
 func IsVoid(t Type) bool {
 	_, ok := t.(Void)
 	return ok
