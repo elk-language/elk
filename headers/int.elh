@@ -6,6 +6,26 @@
 ]##
 sealed primitive class ::Std::Int
 	##[
+		Returns itself.
+
+		```
+			var a = 1
+			+a #=> 1
+		```
+	]##
+	sealed def +@: Int; end
+
+	##[
+		Returns the result of negating the integer.
+
+		```
+			var a = 1
+			-a #=> -1
+		```
+	]##
+	sealed def -@: Int; end
+
+	##[
 		Get the next integer by incrementing by `1`.
 	]##
 	sealed def ++: Int; end
@@ -45,17 +65,15 @@ sealed primitive class ::Std::Int
 		Compare this integer with another integer.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: Int): Int; end
+	sealed def <=>(other: CoercibleNumeric): Int; end
 
-	sealed def >=(other: Int): Bool; end
+	sealed def >=(other: CoercibleNumeric): Bool; end
 
-	sealed def >(other: Int): Bool; end
+	sealed def >(other: CoercibleNumeric): Bool; end
 
-	sealed def <=(other: Int): Bool; end
+	sealed def <=(other: CoercibleNumeric): Bool; end
 
-	sealed def <(other: Int): Bool; end
-
-	sealed def ==(other: Int): Bool; end
+	sealed def <(other: CoercibleNumeric): Bool; end
 
 	##[
 		Returns an integer shifted left by `other` positions, or right if `other` is negative.
@@ -97,26 +115,6 @@ sealed primitive class ::Std::Int
 		```
 	]##
 	sealed def %(other: Int): Int; end
-
-	##[
-		Returns itself.
-
-		```
-			var a = 1
-			+a #=> 1
-		```
-	]##
-	sealed def +@(other: Int): Int; end
-
-	##[
-		Returns the result of negating the integer.
-
-		```
-			var a = 1
-			-a #=> -1
-		```
-	]##
-	sealed def -@(other: Int): Int; end
 
 	##[
 		Returns itself.

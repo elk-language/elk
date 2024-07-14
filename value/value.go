@@ -1,6 +1,7 @@
 package value
 
 import (
+	"math"
 	"strings"
 )
 
@@ -141,6 +142,66 @@ func ToGoInt(val Value) (int, bool) {
 		return int(v), true
 	case UInt64:
 		return int(v), true
+	}
+
+	return 0, false
+}
+
+// Converts an Elk value to Go uint.
+// Returns (0, false) when the value is incompatible, too large or negative.
+func ToGoUInt(val Value) (uint, bool) {
+	switch v := val.(type) {
+	case SmallInt:
+		if v < 0 {
+			return 0, false
+		}
+		return uint(v), true
+	case *BigInt:
+		if !v.IsSmallInt() {
+			return 0, false
+		}
+		i := v.ToSmallInt()
+		if i < 0 {
+			return 0, false
+		}
+		if uint64(i) > math.MaxUint {
+			return 0, false
+		}
+		return uint(i), true
+	case Int8:
+		if v < 0 {
+			return 0, false
+		}
+		return uint(v), true
+	case Int16:
+		if v < 0 {
+			return 0, false
+		}
+		return uint(v), true
+	case Int32:
+		if v < 0 {
+			return 0, false
+		}
+		return uint(v), true
+	case Int64:
+		if v < 0 {
+			return 0, false
+		}
+		if uint64(v) > math.MaxUint {
+			return 0, false
+		}
+		return uint(v), true
+	case UInt8:
+		return uint(v), true
+	case UInt16:
+		return uint(v), true
+	case UInt32:
+		return uint(v), true
+	case UInt64:
+		if uint64(v) > math.MaxUint {
+			return 0, false
+		}
+		return uint(v), true
 	}
 
 	return 0, false

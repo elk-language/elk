@@ -944,7 +944,7 @@ func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, rig
 
 // Expression of an operator with two operands eg. `2 + 5`, `foo > bar`
 type BinaryExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Op     *token.Token   // operator
 	Left   ExpressionNode // left hand side
 	Right  ExpressionNode // right hand side
@@ -958,11 +958,11 @@ func (b *BinaryExpressionNode) IsStatic() bool {
 // Create a new binary expression node.
 func NewBinaryExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
 	return &BinaryExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
-		static:   areExpressionsStatic(left, right),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Left:          left,
+		Right:         right,
+		static:        areExpressionsStatic(left, right),
 	}
 }
 

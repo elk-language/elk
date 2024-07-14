@@ -99,10 +99,79 @@ func (f *BigFloat) ToFloat() Float {
 	return Float(f64)
 }
 
+// Convert to a Float64 value.
+func (f *BigFloat) ToFloat64() Float64 {
+	if f.IsNaN() {
+		return Float64NaN()
+	}
+
+	f64, _ := f.AsGoBigFloat().Float64()
+	return Float64(f64)
+}
+
+// Convert to a Float32 value.
+func (f *BigFloat) ToFloat32() Float32 {
+	if f.IsNaN() {
+		return Float32NaN()
+	}
+
+	f32, _ := f.AsGoBigFloat().Float32()
+	return Float32(f32)
+}
+
 // Convert to a Float value.
 func (f *BigFloat) ToBigInt() *BigInt {
 	i, _ := f.ToGoBigFloat().Int(&big.Int{})
 	return ToElkBigInt(i)
+}
+
+// Convert to an Int value.
+func (f *BigFloat) ToInt() Value {
+	bigInt := f.ToBigInt()
+	if bigInt.IsSmallInt() {
+		return bigInt.ToSmallInt()
+	}
+	return bigInt
+}
+
+// Convert to an Int64 value.
+func (f *BigFloat) ToInt64() Int64 {
+	return Int64(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+// Convert to an Int32 value.
+func (f *BigFloat) ToInt32() Int32 {
+	return Int32(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+// Convert to an Int16 value.
+func (f *BigFloat) ToInt16() Int16 {
+	return Int16(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+// Convert to an Int8 value.
+func (f *BigFloat) ToInt8() Int8 {
+	return Int8(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+// Convert to an UInt64 value.
+func (f *BigFloat) ToUInt64() UInt64 {
+	return UInt64(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
+// Convert to an UInt32 value.
+func (f *BigFloat) ToUInt32() UInt32 {
+	return UInt32(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
+// Convert to an UInt16 value.
+func (f *BigFloat) ToUInt16() UInt16 {
+	return UInt16(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
+// Convert to an UInt8 value.
+func (f *BigFloat) ToUInt8() UInt8 {
+	return UInt8(f.ToBigInt().ToGoBigInt().Uint64())
 }
 
 // Set z = x

@@ -932,6 +932,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
+	case *ast.BinaryExpressionNode:
+		return c.checkBinaryExpression(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -939,6 +941,139 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		)
 		return n
 	}
+}
+
+func (c *Checker) StdInt() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.Int)
+}
+
+func (c *Checker) StdFloat() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.Float)
+}
+
+func (c *Checker) StdBigFloat() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.BigFloat)
+}
+
+func (c *Checker) checkArithmeticBinaryOperator(
+	left,
+	right ast.ExpressionNode,
+	methodName value.Symbol,
+	span *position.Span,
+) types.Type {
+	leftType := c.toNonLiteral(c.typeOf(left))
+	leftClassType, leftIsClass := leftType.(*types.Class)
+
+	rightType := c.toNonLiteral(c.typeOf(right))
+	rightClassType, rightIsClass := rightType.(*types.Class)
+	if !leftIsClass || !rightIsClass {
+		return c.checkBinaryOpMethodCall(
+			left,
+			right,
+			methodName,
+			span,
+		)
+	}
+
+	switch leftClassType.Name() {
+	case "Std::Int":
+		switch rightClassType.Name() {
+		case "Std::Int":
+			return c.StdInt()
+		case "Std::Float":
+			return c.StdFloat()
+		case "Std::BigFloat":
+			return c.StdBigFloat()
+		}
+	case "Std::Float":
+		switch rightClassType.Name() {
+		case "Std::Int":
+			return c.StdFloat()
+		case "Std::Float":
+			return c.StdFloat()
+		case "Std::BigFloat":
+			return c.StdBigFloat()
+		}
+	}
+
+	return c.checkBinaryOpMethodCall(
+		left,
+		right,
+		methodName,
+		span,
+	)
+}
+
+func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+
+	switch node.Op.Type {
+	case token.PLUS:
+		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpAdd, node.Span()))
+	case token.MINUS:
+		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpSubtract, node.Span()))
+	case token.STAR:
+		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpMultiply, node.Span()))
+	case token.SLASH:
+		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Span()))
+	case token.STAR_STAR:
+		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Span()))
+	// case token.LBITSHIFT:
+
+	// case token.LTRIPLE_BITSHIFT:
+
+	// case token.RBITSHIFT:
+
+	// case token.RTRIPLE_BITSHIFT:
+
+	// case token.AND:
+
+	// case token.AND_TILDE:
+
+	// case token.OR:
+
+	// case token.XOR:
+
+	// case token.PERCENT:
+
+	// case token.LAX_EQUAL:
+
+	// case token.LAX_NOT_EQUAL:
+
+	// case token.EQUAL_EQUAL:
+
+	// case token.NOT_EQUAL:
+
+	// case token.STRICT_EQUAL:
+
+	// case token.STRICT_NOT_EQUAL:
+
+	// case token.GREATER:
+
+	// case token.GREATER_EQUAL:
+
+	// case token.LESS:
+
+	// case token.LESS_EQUAL:
+
+	// case token.SPACESHIP_OP:
+
+	// case token.INSTANCE_OF_OP:
+
+	// case token.ISA_OP:
+	default:
+		node.SetType(types.Void{})
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid binary operator: `%s`",
+				node.Op.String(),
+			),
+			node.Op.Span(),
+		)
+	}
+
+	return node
 }
 
 func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position.Span) {
@@ -1805,39 +1940,77 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 	node.SetType(class)
 }
 
-func (c *Checker) methodCall(node *ast.MethodCallNode) {
-	receiver := c.checkExpression(node.Receiver)
-	node.Receiver = receiver
+func (c *Checker) checkSimpleMethodCall(
+	receiver ast.ExpressionNode,
+	nilSafe bool,
+	methodName value.Symbol,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	span *position.Span,
+) (
+	_receiver ast.ExpressionNode,
+	_positionalArguments []ast.ExpressionNode,
+	typ types.Type,
+) {
+	receiver = c.checkExpression(receiver)
 	receiverType := c.typeOf(receiver)
 	var method *types.Method
-	if node.NilSafe {
+	if nilSafe {
 		nonNilableReceiverType := c.toNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, value.ToSymbol(node.MethodName), node.Span())
+		method = c.getMethod(nonNilableReceiverType, methodName, span)
 	} else {
-		method = c.getMethod(receiverType, value.ToSymbol(node.MethodName), node.Span())
+		method = c.getMethod(receiverType, methodName, span)
 	}
 	if method == nil {
-		c.checkExpressions(node.PositionalArguments)
-		node.SetType(types.Void{})
-		return
+		c.checkExpressions(positionalArguments)
+		return receiver, positionalArguments, types.Void{}
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments := c.checkMethodArguments(method, positionalArguments, namedArguments, span)
 	returnType := method.ReturnType
-	if node.NilSafe {
+	if nilSafe {
 		if !c.isNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
-				node.Span(),
+				span,
 			)
 		} else {
 			returnType = c.toNilable(returnType)
 		}
 	}
 
-	node.PositionalArguments = typedPositionalArguments
-	node.NamedArguments = nil
-	node.SetType(returnType)
+	return receiver, typedPositionalArguments, returnType
+}
+
+func (c *Checker) checkBinaryOpMethodCall(
+	left ast.ExpressionNode,
+	right ast.ExpressionNode,
+	methodName value.Symbol,
+	span *position.Span,
+) types.Type {
+	_, _, returnType := c.checkSimpleMethodCall(
+		left,
+		false,
+		methodName,
+		[]ast.ExpressionNode{right},
+		nil,
+		span,
+	)
+
+	return returnType
+}
+
+func (c *Checker) methodCall(node *ast.MethodCallNode) {
+	var typ types.Type
+	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+		node.Receiver,
+		node.NilSafe,
+		value.ToSymbol(node.MethodName),
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Span(),
+	)
+	node.SetType(typ)
 }
 
 func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {

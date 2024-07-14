@@ -1,0 +1,29 @@
+##[
+  `Value` is the superclass class of all
+  Elk classes.
+]##
+class Value
+  ##[
+    Compares this value with another value.
+
+    Returns `true` when they are instances of the same class,
+    and are equal.
+  ]##
+  def ==(other: any): Bool; end
+
+  ##[
+    Compares this value with another value.
+    Returns `true` when they are equal.
+
+    Instances of different (but similar) classes
+    may be treated as equal.
+  ]##
+  def =~(other: any): Bool; end
+
+  ##[
+		Returns a human readable `String`
+		representation of this value
+		for debugging etc.
+	]##
+	def inspect: String; end
+end

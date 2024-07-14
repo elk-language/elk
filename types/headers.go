@@ -30,7 +30,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Class"), objectClass, env)
@@ -104,6 +104,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Value"), objectClass, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
+	namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, false, value.ToSymbol("Value"), objectClass, env)
 
 	// Define methods, constants
 
@@ -229,6 +230,50 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
+				namespace := namespace.SubtypeString("BigFloat").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10bf\n\tvar b = 3bf\n\ta % b #=> 1bf\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Multiply this float by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Add `other` to this bigfloat.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1.2bf\n\t+a #=> 1.2bf\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Subtract `other` from this bigfloat.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Returns the result of negating the number.\n\n```\n\tvar a = 1.2bf\n\t-a #=> -1.2bf\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Divide this float by another float.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this float with another float.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Sets the precision to the given integer.", false, false, true, value.ToSymbol("set_precision"), []*Parameter{NewParameter(value.ToSymbol("precision"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Sets the precision to the given integer.", false, false, true, value.ToSymbol("set_precision"), []*Parameter{NewParameter(value.ToSymbol("precision"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_bigfloat"), nil, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Converts to a fixed-precision floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to an automatically resized integer.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the bigfloat to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.SubtypeString("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -291,21 +336,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), nil)
 				namespace.DefineMethod("Multiply this float by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), nil)
-				namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), nil)
 				namespace.DefineMethod("Add `other` to this float.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), nil)
-				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1.2\n\t+a #=> 1.2\n```", false, true, true, value.ToSymbol("+@"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1.2\n\t+a #=> 1.2\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Float", env), nil)
 				namespace.DefineMethod("Subtract `other` from this float.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), nil)
-				namespace.DefineMethod("Returns the result of negating the number.\n\n```\n\tvar a = 1.2\n\t-a #=> -1.2\n```", false, true, true, value.ToSymbol("-@"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the result of negating the number.\n\n```\n\tvar a = 1.2\n\t-a #=> -1.2\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Float", env), nil)
 				namespace.DefineMethod("Divide this float by another float.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("Compare this float with another float.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this float with another number.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Converts the float to a multi-precision floating point number.", false, false, true, value.ToSymbol("to_bigfloat"), nil, NameToType("Std::BigFloat", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
 				namespace.DefineMethod("Converts the float to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
 				namespace.DefineMethod("Converts the float to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
 				namespace.DefineMethod("Converts the float to an automatically resized integer.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
@@ -482,18 +528,17 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1\n\t+a #=> 1\n```", false, true, true, value.ToSymbol("+@"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1\n\t+a #=> 1\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1\n\t-a #=> -1\n```", false, true, true, value.ToSymbol("-@"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1\n\t-a #=> -1\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
 				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
 				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
 				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
@@ -675,7 +720,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Concatenate this `String`\nwith another `String` or `Char`.\n\nCreates a new `String` containing the content\nof both operands.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env)), NormalParameterKind, false)}, NameToType("Std::String", env), nil)
 				namespace.DefineMethod("Get the Unicode grapheme cluster with the given index.\nIndices start at 0.", false, false, true, value.ToSymbol("grapheme_at"), []*Parameter{NewParameter(value.ToSymbol("index"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::String", env), nil)
 				namespace.DefineMethod("Get the number of unicode grapheme clusters\npresent in this string.", false, false, true, value.ToSymbol("grapheme_count"), nil, NameToType("Std::Int", env), nil)
-				namespace.DefineMethod("Return a human readable `String`\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
 				namespace.DefineMethod("Check whether the `String` is empty.", false, false, true, value.ToSymbol("is_empty"), nil, NameToType("Std::Bool", env), nil)
 				namespace.DefineMethod("Iterates over all unicode code points of a `String`.", false, false, true, value.ToSymbol("iterator"), nil, NameToType("Std::String::CharIterator", env), nil)
 				namespace.DefineMethod("Get the number of Unicode code points\nthat this `String` contains.", false, false, true, value.ToSymbol("length"), nil, NameToType("Std::Int", env), nil)
@@ -761,6 +805,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define instance variables
 			}
+		}
+		{
+			namespace := namespace.SubtypeString("Value").(*Class)
+
+			namespace.Name() // noop - avoid unused variable error
+
+			// Include mixins
+
+			// Implement interfaces
+
+			// Define methods
+			namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+			namespace.DefineMethod("Compares this value with another value.\nReturns `true` when they are equal.\n\nInstances of different (but similar) classes\nmay be treated as equal.", false, false, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+			namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+
+			// Define constants
+
+			// Define instance variables
 		}
 	}
 }

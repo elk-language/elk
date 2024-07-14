@@ -13,7 +13,7 @@ sealed primitive class ::Std::Float
 			+a #=> 1.2
 		```
 	]##
-	sealed def +@(other: Int): Int; end
+	sealed def +@: Float; end
 
 	##[
 		Returns the result of negating the number.
@@ -23,7 +23,7 @@ sealed primitive class ::Std::Float
 			-a #=> -1.2
 		```
 	]##
-	sealed def -@(other: Int): Int; end
+	sealed def -@: Float; end
 
 	##[
 		Add `other` to this float.
@@ -48,23 +48,23 @@ sealed primitive class ::Std::Float
 	##[
 		Exponentiate this float, raise it to the power of `other`.
 	]##
-	sealed def **(other: Int): Int; end
+	sealed def **(other: Float): Float; end
 
 	##[
-		Compare this float with another float.
+		Compare this float with another number.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: Float): Int; end
+	sealed def <=>(other: CoercibleNumeric): Int; end
 
-	sealed def >=(other: Int): Bool; end
+	sealed def >=(other: CoercibleNumeric): Bool; end
 
-	sealed def >(other: Int): Bool; end
+	sealed def >(other: CoercibleNumeric): Bool; end
 
-	sealed def <=(other: Int): Bool; end
+	sealed def <=(other: CoercibleNumeric): Bool; end
 
-	sealed def <(other: Int): Bool; end
+	sealed def <(other: CoercibleNumeric): Bool; end
 
-	sealed def ==(other: Int): Bool; end
+	sealed def ==(other: any): Bool; end
 
 	##[
 		Returns the remainder of dividing by `other`.
@@ -75,12 +75,17 @@ sealed primitive class ::Std::Float
 			a % b #=> 1
 		```
 	]##
-	sealed def %(other: Int): Int; end
+	sealed def %(other: Float): Float; end
 
 	##[
-		Converts the integer to a floating point number.
+		Returns itself.
 	]##
 	def to_float: Float; end
+
+	##[
+		Converts the float to a multi-precision floating point number.
+	]##
+	def to_bigfloat: BigFloat; end
 
 	##[
 		Converts the float to an automatically resized integer.

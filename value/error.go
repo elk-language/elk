@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -158,6 +159,17 @@ func NewIndexOutOfRangeError(index string, length int) *Error {
 		index,
 		-length,
 		length,
+	)
+}
+
+// Create a new error that signals that
+// the big float precision is out of range (negative or too large).
+func NewBigFloatPrecisionError(precision string) *Error {
+	return Errorf(
+		OutOfRangeErrorClass,
+		"BigFloat precision cannot be negative or larger than %d, got: %s",
+		uint64(math.MaxUint),
+		precision,
 	)
 }
 

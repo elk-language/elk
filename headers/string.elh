@@ -101,13 +101,6 @@ sealed primitive class ::Std::String
 	def to_string: String; end
 
 	##[
-		Return a human readable `String`
-		representation of this object
-		for debugging etc.
-	]##
-	def inspect: String; end
-
-	##[
 		Check whether the `String` is empty.
 	]##
 	def is_empty: Bool; end
