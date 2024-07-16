@@ -373,12 +373,20 @@ func (c *Checker) checkStatement(node ast.Node) {
 	}
 }
 
+// Check whether the two given types represent the same type.
+// Return true if they do, otherwise false.
 func (c *Checker) isTheSameType(a, b types.Type, errSpan *position.Span) bool {
 	return c.isSubtype(a, b, errSpan) && c.isSubtype(b, a, errSpan)
 }
 
+// Check whether the two given types intersect.
+// Return true if they do, otherwise false.
+func (c *Checker) typesIntersect(a, b types.Type) bool {
+	return c.canBeIsA(a, b) || c.canBeIsA(b, a)
+}
+
 // Check whether an "is a" relationship between `a` and `b` is possible.
-func (c *Checker) canBeIsA(a types.Type, b types.Namespace) bool {
+func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	switch a := a.(type) {
 	case *types.Nilable:
 		return c.canBeIsA(a.Type, b) || c.canBeIsA(c.StdNil(), b)
@@ -1055,14 +1063,33 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		c.checkInstanceOf(node)
 	case token.ISA_OP:
 		c.checkIsA(node)
-	// case token.STRICT_EQUAL:
-	// case token.STRICT_NOT_EQUAL:
-
+	case token.STRICT_EQUAL, token.STRICT_NOT_EQUAL:
+		c.checkStrictEqual(node)
+	case token.LAX_NOT_EQUAL:
+		_, _, typ := c.checkSimpleMethodCall(
+			node.Left,
+			false,
+			symbol.OpLaxEqual,
+			[]ast.ExpressionNode{node.Right},
+			nil,
+			node.Span(),
+		)
+		node.SetType(typ)
+	case token.NOT_EQUAL:
+		_, _, typ := c.checkSimpleMethodCall(
+			node.Left,
+			false,
+			symbol.OpEqual,
+			[]ast.ExpressionNode{node.Right},
+			nil,
+			node.Span(),
+		)
+		node.SetType(typ)
 	case token.LBITSHIFT, token.LTRIPLE_BITSHIFT,
 		token.RBITSHIFT, token.RTRIPLE_BITSHIFT, token.AND,
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
-		token.LAX_EQUAL, token.LAX_NOT_EQUAL, token.EQUAL_EQUAL,
-		token.NOT_EQUAL, token.GREATER, token.GREATER_EQUAL,
+		token.LAX_EQUAL, token.EQUAL_EQUAL,
+		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
 		_, _, typ := c.checkSimpleMethodCall(
 			node.Left,
@@ -1085,6 +1112,24 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	}
 
 	return node
+}
+
+func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
+	node.SetType(c.StdBool())
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	if !c.typesIntersect(leftType, rightType) {
+		c.addFailure(
+			fmt.Sprintf(
+				"this strict equality check is impossible, `%s` cannot ever be equal to `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(rightType),
+			),
+			node.Left.Span(),
+		)
+		return
+	}
 }
 
 func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
@@ -4305,9 +4350,11 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 
 		var superclass *types.Class
 
-		if node.Superclass == nil {
+		switch node.Superclass.(type) {
+		case *ast.NilLiteralNode:
+		case nil:
 			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-		} else {
+		default:
 			superclassType, _ := c.resolveConstantType(node.Superclass)
 			var ok bool
 			superclass, ok = superclassType.(*types.Class)

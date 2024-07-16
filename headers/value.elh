@@ -2,7 +2,7 @@
   `Value` is the superclass class of all
   Elk classes.
 ]##
-class Value
+class ::Std::Value < nil
   ##[
     Compares this value with another value.
 

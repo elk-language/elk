@@ -6,6 +6,117 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestEqual(t *testing.T) {
+	tests := testTable{
+		"no method": {
+			input: `
+				class Foo < nil; end
+				Foo() == "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(43, 3, 18)), "method `==` is not defined on type `Foo`"),
+			},
+		},
+		"no method negated": {
+			input: `
+				class Foo < nil; end
+				Foo() != "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(43, 3, 18)), "method `==` is not defined on type `Foo`"),
+			},
+		},
+		"valid check": {
+			input: `
+				var a = 1
+				var b = 5
+				a == b
+			`,
+		},
+		"valid check negated": {
+			input: `
+				var a = 1
+				var b = 5
+				a != b
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestStrictEqual(t *testing.T) {
+	tests := testTable{
+		"impossible check": {
+			input: `
+				1 === "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `Std::Int(1)` cannot ever be equal to `Std::String(\"foo\")`"),
+			},
+		},
+		"impossible check negated": {
+			input: `
+				1 !== "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `Std::Int(1)` cannot ever be equal to `Std::String(\"foo\")`"),
+			},
+		},
+		"impossible check with variables": {
+			input: `
+				var a = 1
+				var b = "foo"
+				a === b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 4, 5), P(37, 4, 5)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::String`"),
+			},
+		},
+		"impossible check with union type": {
+			input: `
+				var a: Int | Float = 1
+				var b: String? = "foo"
+				a === b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 5), P(59, 4, 5)), "this strict equality check is impossible, `Std::Int | Std::Float` cannot ever be equal to `Std::String?`"),
+			},
+		},
+		"valid check": {
+			input: `
+				var a = 1
+				var b = 5
+				a === b
+			`,
+		},
+		"valid check negated": {
+			input: `
+				var a = 1
+				var b = 5
+				a !== b
+			`,
+		},
+		"valid check with union": {
+			input: `
+				var a: Int | Float | Nil = 1
+				var b: String | Int = 5
+				a === b
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestIsA(t *testing.T) {
 	tests := testTable{
 		"impossible check": {

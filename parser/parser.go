@@ -3025,7 +3025,7 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstant] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstantOrNil] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	classTok := p.advance()
 	var superclass ast.ExpressionNode
@@ -3060,7 +3060,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	}
 
 	if p.match(token.LESS) {
-		superclass = p.genericConstant()
+		superclass = p.genericConstantOrNil()
 	}
 
 	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
@@ -3749,6 +3749,14 @@ func (p *Parser) singletonType() ast.TypeNode {
 		)
 	}
 
+	return p.genericConstant()
+}
+
+// genericConstantOrNil = genericConstant | "nil"
+func (p *Parser) genericConstantOrNil() ast.ComplexConstantNode {
+	if p.accept(token.NIL) {
+		return p.nilLiteral()
+	}
 	return p.genericConstant()
 }
 

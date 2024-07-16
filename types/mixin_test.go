@@ -54,11 +54,14 @@ func TestMixin_CreateProxy(t *testing.T) {
 	}
 
 	cmpOpts := []cmp.Option{
+		cmp.Comparer(func(x, y NamespaceBase) bool {
+			return x.name == y.name
+		}),
 		cmp.AllowUnexported(
-			NamespaceBase{},
 			Class{},
 			Mixin{},
 			MixinProxy{},
+			Method{},
 		),
 		cmpopts.IgnoreUnexported(
 			MethodMap{},

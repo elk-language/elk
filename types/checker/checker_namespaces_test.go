@@ -190,6 +190,18 @@ func TestClass(t *testing.T) {
 		"class with public constant": {
 			input: `class Foo; end`,
 		},
+		"class without a superclass": {
+			input: `class Foo < nil; end`,
+		},
+		"call a builtin method on a class without a superclass": {
+			input: `
+				class Foo < nil; end
+				Foo() == 2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(39, 3, 14)), "method `==` is not defined on type `Foo`"),
+			},
+		},
 		"class with nonexistent superclass": {
 			input: `class Foo < Bar; end`,
 			err: error.ErrorList{

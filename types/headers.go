@@ -101,10 +101,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Value"), objectClass, env)
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, false, value.ToSymbol("Value"), nil, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
-	namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, false, value.ToSymbol("Value"), objectClass, env)
 
 	// Define methods, constants
 
@@ -806,24 +805,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define instance variables
 			}
-		}
-		{
-			namespace := namespace.SubtypeString("Value").(*Class)
+			{
+				namespace := namespace.SubtypeString("Value").(*Class)
 
-			namespace.Name() // noop - avoid unused variable error
+				namespace.Name() // noop - avoid unused variable error
 
-			// Include mixins
+				// Include mixins
 
-			// Implement interfaces
+				// Implement interfaces
 
-			// Define methods
-			namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-			namespace.DefineMethod("Compares this value with another value.\nReturns `true` when they are equal.\n\nInstances of different (but similar) classes\nmay be treated as equal.", false, false, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
-			namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				// Define methods
+				namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compares this value with another value.\nReturns `true` when they are equal.\n\nInstances of different (but similar) classes\nmay be treated as equal.", false, false, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
 
-			// Define constants
+				// Define constants
 
-			// Define instance variables
+				// Define instance variables
+			}
 		}
 	}
 }

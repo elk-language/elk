@@ -3823,6 +3823,28 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have nil as a superclass": {
+			input: `class Foo < nil; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							"",
+							false,
+							false,
+							false,
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
+							nil,
+							ast.NewNilLiteralNode(S(P(12, 1, 13), P(14, 1, 15))),
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a private constant as a superclass": {
 			input: `class Foo < _Bar; end`,
 			want: ast.NewProgramNode(

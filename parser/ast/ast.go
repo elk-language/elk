@@ -650,6 +650,7 @@ func (*PublicConstantNode) complexConstantNode()  {}
 func (*PrivateConstantNode) complexConstantNode() {}
 func (*ConstantLookupNode) complexConstantNode()  {}
 func (*GenericConstantNode) complexConstantNode() {}
+func (*NilLiteralNode) complexConstantNode()      {}
 
 // All nodes that should be valid constants
 // should implement this interface.
@@ -1105,6 +1106,8 @@ func NewSelfLiteralNode(span *position.Span) *SelfLiteralNode {
 type NilLiteralNode struct {
 	NodeBase
 }
+
+func (*NilLiteralNode) SetType(types.Type) {}
 
 func (*NilLiteralNode) IsStatic() bool {
 	return true

@@ -249,15 +249,23 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 		buffer.WriteString(`{ namespace :=`)
 	}
 
+	var initialSuperclass string
+	if class.Superclass() == nil {
+		initialSuperclass = "nil"
+	} else {
+		initialSuperclass = "objectClass"
+	}
+
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, value.ToSymbol(%q), objectClass, env)
+		`namespace.TryDefineClass(%q, %t, %t, %t, value.ToSymbol(%q), %s, env)
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
 		class.IsSealed(),
 		class.IsPrimitive(),
 		constantName,
+		initialSuperclass,
 	)
 
 	defineSubtypesWithinNamespace(buffer, class)
