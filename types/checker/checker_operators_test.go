@@ -6,6 +6,116 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestLogicalAnd(t *testing.T) {
+	tests := testTable{
+		"returns the right type when the left type is truthy": {
+			input: `
+				var a = "foo"
+				var b = 2
+				var c: Int = a && b
+			`,
+		},
+		"returns the left type when the left type is falsy": {
+			input: `
+				var a = nil
+				var b = 2
+				var c: nil = a && b
+			`,
+		},
+		"returns a union of both types with only nil when the left can be both truthy and falsy": {
+			input: `
+				var a: String? = "foo"
+				var b = 2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `nil | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types with only false when the left can be both truthy and falsy": {
+			input: `
+				var a = false
+				var b = 2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `false | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types without duplication": {
+			input: `
+				var a: false | nil | Int = nil
+				var b: Float | Int | nil = 2.2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 4, 16), P(91, 4, 21)), "type `false | nil | Std::Float | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestLogicalOr(t *testing.T) {
+	tests := testTable{
+		"returns the left type when it is truthy": {
+			input: `
+				var a = "foo"
+				var b = 2
+				var c: String = a || b
+			`,
+		},
+		"returns the right type when the left type is falsy": {
+			input: `
+				var a = nil
+				var b = 2
+				var c: Int = a || b
+			`,
+		},
+		"returns a union of both types without nil when the left can be both truthy and falsy": {
+			input: `
+				var a: String? = "foo"
+				var b = 2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types without false when the left can be both truthy and falsy": {
+			input: `
+				var a = false
+				var b = 2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `true | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types without duplication": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: Float | Int | nil = 2.2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestNot(t *testing.T) {
 	tests := testTable{
 		"no methods": {
