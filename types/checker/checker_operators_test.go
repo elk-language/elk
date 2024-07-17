@@ -6,6 +6,61 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestNilCoalescingOperator(t *testing.T) {
+	tests := testTable{
+		"returns the left type when it is not nilable": {
+			input: `
+				var a = "foo"
+				var b = 2
+				var c: String = a ?? b
+			`,
+		},
+		"returns the right type when the left type is nilable": {
+			input: `
+				var a = nil
+				var b = 2
+				var c: Int = a || b
+			`,
+		},
+		"returns a union of both types with bool": {
+			input: `
+				var a: Bool? = true
+				var b = 2
+				var c: 9 = a ?? b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 4, 16), P(59, 4, 21)), "type `Std::Bool | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types without nil when the left can be both truthy and falsy": {
+			input: `
+				var a: String? = "foo"
+				var b = 2
+				var c: 9 = a ?? b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"returns a union of both types without duplication": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: Float | Int | nil = 2.2
+				var c: 9 = a ?? b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestLogicalAnd(t *testing.T) {
 	tests := testTable{
 		"returns the right type when the left type is truthy": {

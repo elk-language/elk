@@ -478,7 +478,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.Any:
 		return types.IsAny(b)
 	case types.Nil:
-		return types.IsNil(b) || b == c.StdNil()
+		return types.IsNilLiteral(b) || b == c.StdNil()
 	case types.True:
 		return types.IsTrue(b) || b == c.StdTrue()
 	case types.False:
@@ -1138,8 +1138,8 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 		return c.checkLogicalAnd(node)
 	case token.OR_OR:
 		return c.checkLogicalOr(node)
-	// case token.QUESTION_QUESTION:
-	// 	c.nilCoalescing(node)
+	case token.QUESTION_QUESTION:
+		return c.checkNilCoalescingOperator(node)
 	default:
 		node.SetType(types.Void{})
 		c.addFailure(
@@ -1151,6 +1151,25 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 		)
 		return node
 	}
+}
+
+func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	if c.isNil(leftType) {
+		node.SetType(rightType)
+		return node
+	}
+	if c.isNotNilable(leftType) {
+		node.SetType(leftType)
+		return node
+	}
+	node.SetType(c.newNormalisedUnion(c.toNonNilable(leftType), rightType))
+
+	return node
 }
 
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
@@ -1929,6 +1948,16 @@ func (c *Checker) typeOf(node ast.Node) types.Type {
 // Type can be `nil`
 func (c *Checker) isNilable(typ types.Type) bool {
 	return types.IsNilable(typ, c.GlobalEnv)
+}
+
+// Type cannot be `nil`
+func (c *Checker) isNotNilable(typ types.Type) bool {
+	return !types.IsNilable(typ, c.GlobalEnv)
+}
+
+// Type is always `nil`
+func (c *Checker) isNil(typ types.Type) bool {
+	return types.IsNil(typ, c.GlobalEnv)
 }
 
 // Type is always falsy.

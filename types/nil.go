@@ -12,9 +12,13 @@ func (Nil) IsLiteral() bool {
 	return true
 }
 
-func IsNil(t Type) bool {
+func IsNilLiteral(t Type) bool {
 	_, ok := t.(Nil)
 	return ok
+}
+
+func IsNil(t Type, env *GlobalEnvironment) bool {
+	return IsNilLiteral(t) || t == env.StdSubtype(symbol.Nil)
 }
 
 func (Nil) inspect() string {
