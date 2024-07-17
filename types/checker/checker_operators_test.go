@@ -6,6 +6,139 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestNot(t *testing.T) {
+	tests := testTable{
+		"no methods": {
+			input: `
+				class Foo < nil; end
+				var a: Bool = !Foo()
+			`,
+		},
+		"valid call": {
+			input: `
+				var a: Bool = !1
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestTilde(t *testing.T) {
+	tests := testTable{
+		"no method": {
+			input: `
+				class Foo < nil; end
+				~Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `~` is not defined on type `Foo`"),
+			},
+		},
+		"valid call": {
+			input: `
+				var a = 1
+				var b: Int = ~a
+			`,
+		},
+		"valid custom call": {
+			input: `
+				class Foo
+					def ~: String
+					  "foo"
+					end
+				end
+
+				var b: String = ~Foo()
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestUnaryMinus(t *testing.T) {
+	tests := testTable{
+		"no method": {
+			input: `
+				class Foo < nil; end
+				-Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `-@` is not defined on type `Foo`"),
+			},
+		},
+		"valid call": {
+			input: `
+				var a = 1
+				var b: Int = -a
+			`,
+		},
+		"valid custom call": {
+			input: `
+				class Foo
+					def -@: String
+					  "foo"
+					end
+				end
+
+				var b: String = -Foo()
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestUnaryPlus(t *testing.T) {
+	tests := testTable{
+		"no method": {
+			input: `
+				class Foo < nil; end
+				+Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `+@` is not defined on type `Foo`"),
+			},
+		},
+		"valid call": {
+			input: `
+				var a = 1
+				var b: Int = +a
+			`,
+		},
+		"valid custom call": {
+			input: `
+				class Foo
+					def +@: String
+					  "foo"
+					end
+				end
+
+				var b: String = +Foo()
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestEqual(t *testing.T) {
 	tests := testTable{
 		"no method": {
@@ -127,6 +260,14 @@ func TestIsA(t *testing.T) {
 				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `Std::Float(1.2)` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
+		"impossible reverse check": {
+			input: `
+				Int :> 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `Std::Float(1.2)` cannot ever be an instance of a descendant of `Std::Int`"),
+			},
+		},
 		"always true check": {
 			input: `
 				1 <: Int
@@ -211,6 +352,14 @@ func TestInstanceOf(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `Std::Float(1.2)` cannot ever be an instance of `Std::Int`"),
+			},
+		},
+		"impossible reverse check": {
+			input: `
+				Int :>> 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `Std::Float(1.2)` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"always true check": {

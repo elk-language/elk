@@ -966,6 +966,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.attributeAccess(n)
 	case *ast.BinaryExpressionNode:
 		return c.checkBinaryExpression(n)
+	case *ast.UnaryExpressionNode:
+		return c.checkUnaryExpression(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1044,6 +1046,64 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	)
 }
 
+func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.ExpressionNode {
+	switch node.Op.Type {
+	case token.PLUS:
+		receiver, _, typ := c.checkSimpleMethodCall(
+			node.Right,
+			false,
+			symbol.OpUnaryPlus,
+			nil,
+			nil,
+			node.Span(),
+		)
+		node.Right = receiver
+		node.SetType(typ)
+		return node
+	case token.MINUS:
+		receiver, _, typ := c.checkSimpleMethodCall(
+			node.Right,
+			false,
+			symbol.OpNegate,
+			nil,
+			nil,
+			node.Span(),
+		)
+		node.Right = receiver
+		node.SetType(typ)
+		return node
+	case token.TILDE:
+		receiver, _, typ := c.checkSimpleMethodCall(
+			node.Right,
+			false,
+			value.ToSymbol(node.Op.StringValue()),
+			nil,
+			nil,
+			node.Span(),
+		)
+		node.Right = receiver
+		node.SetType(typ)
+		return node
+	case token.BANG:
+		return c.checkNotOperator(node)
+	// case token.AND:
+	// 	// get singleton class
+	// 	return c.checkGetSingleton(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid unary operator %s", node.Op.String()),
+			node.Span(),
+		)
+		return node
+	}
+}
+
+func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.ExpressionNode {
+	node.Right = c.checkExpression(node.Right)
+	node.SetType(c.StdBool())
+	return node
+}
+
 func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
 	node.Right = c.checkExpression(node.Right)
@@ -1060,9 +1120,13 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	case token.STAR_STAR:
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Span()))
 	case token.INSTANCE_OF_OP:
-		c.checkInstanceOf(node)
+		c.checkInstanceOf(node, false)
+	case token.REVERSE_INSTANCE_OF_OP:
+		c.checkInstanceOf(node, true)
 	case token.ISA_OP:
-		c.checkIsA(node)
+		c.checkIsA(node, false)
+	case token.REVERSE_ISA_OP:
+		c.checkIsA(node, true)
 	case token.STRICT_EQUAL, token.STRICT_NOT_EQUAL:
 		c.checkStrictEqual(node)
 	case token.LAX_NOT_EQUAL:
@@ -1132,16 +1196,25 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	}
 }
 
-func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
+func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) {
 	node.SetType(c.StdBool())
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	var left ast.ExpressionNode
+	var right ast.ExpressionNode
+	if reverse {
+		left = node.Right
+		right = node.Left
+	} else {
+		left = node.Left
+		right = node.Right
+	}
+	leftType := c.typeOf(left)
+	rightType := c.typeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		c.addFailure(
 			"only classes are allowed as the right operand of the instance of operator `<<:`",
-			node.Right.Span(),
+			right.Span(),
 		)
 		return
 	}
@@ -1150,7 +1223,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
 	if !ok {
 		c.addFailure(
 			"only classes are allowed as the right operand of the instance of operator `<<:`",
-			node.Right.Span(),
+			right.Span(),
 		)
 		return
 	}
@@ -1162,7 +1235,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
 				types.InspectWithColor(leftType),
 				types.InspectWithColor(class),
 			),
-			node.Left.Span(),
+			left.Span(),
 		)
 		return
 	}
@@ -1174,21 +1247,30 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode) {
 				types.InspectWithColor(leftType),
 				types.InspectWithColor(class),
 			),
-			node.Left.Span(),
+			left.Span(),
 		)
 	}
 }
 
-func (c *Checker) checkIsA(node *ast.BinaryExpressionNode) {
+func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	node.SetType(c.StdBool())
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	var left ast.ExpressionNode
+	var right ast.ExpressionNode
+	if reverse {
+		left = node.Right
+		right = node.Left
+	} else {
+		left = node.Left
+		right = node.Right
+	}
+	leftType := c.typeOf(left)
+	rightType := c.typeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		c.addFailure(
 			"only classes and mixins are allowed as the right operand of the is a operator `<:`",
-			node.Right.Span(),
+			right.Span(),
 		)
 		return
 	}
@@ -1198,7 +1280,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode) {
 	default:
 		c.addFailure(
 			"only classes and mixins are allowed as the right operand of the is a operator `<:`",
-			node.Right.Span(),
+			right.Span(),
 		)
 		return
 	}
@@ -1210,7 +1292,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode) {
 				types.InspectWithColor(leftType),
 				types.InspectWithColor(rightSingleton.AttachedObject),
 			),
-			node.Left.Span(),
+			left.Span(),
 		)
 		return
 	}
@@ -1222,7 +1304,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode) {
 				types.InspectWithColor(leftType),
 				types.InspectWithColor(rightSingleton.AttachedObject),
 			),
-			node.Left.Span(),
+			left.Span(),
 		)
 	}
 }

@@ -259,57 +259,57 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	SCOPE_RES_OP        // Scope resolution operator `::`
-	DOT_COLON           // Dot colon `.:`
-	CLOSED_RANGE_OP     // Closed range operator `...`
-	OPEN_RANGE_OP       // Open range operator `<.<`
-	RIGHT_OPEN_RANGE_OP // Right open range operator `..<`
-	LEFT_OPEN_RANGE_OP  // Left open range operator `<..`
-	PIPE_OP             // Pipe operator `|>`
-	AND_AND             // Logical and `&&`
-	AND_BANG            // Logical expression sequencing operator `&!` with the precedence of `&&`
-	OR_OR               // Logical or `||`
-	OR_BANG             // Logical expression sequencing operator `|!` with the precedence of `||`
-	NOT_EQUAL           // Not equal `!=`
-	LAX_NOT_EQUAL       // Lax not equal operator `!~`
-	STRICT_EQUAL        // Strict equal `===`
-	STRICT_NOT_EQUAL    // Strict not equal `!==`
-
-	// Overridable operators start here
-	LABEL_OVERRIDABLE_OP_BEG
-	PLUS_PLUS              // Increment operator `++`
-	MINUS_MINUS            // Decrement operator `--`
-	PLUS_AT                // Negate `+@`
-	MINUS_AT               // Negate `-@`
-	MINUS                  // Minus `-`
-	PLUS                   // Plus `+`
-	STAR                   // Star `*`
-	SLASH                  // Slash `/`
-	STAR_STAR              // Two stars `**`
-	LESS                   // Less than `<`
-	LESS_EQUAL             // Less than or equal `<=`
-	GREATER                // Greater than `>`
-	GREATER_EQUAL          // Greater than or equal `>=`
-	SPACESHIP_OP           // Spaceship operator `<=>`
-	EQUAL_EQUAL            // Equal (comparison) `==`
-	LAX_EQUAL              // Lax equality operator `=~`
-	TILDE                  // Tilde `~`
-	AND                    // Bitwise and `&`
-	AND_TILDE              // Bitwise and not `&~`
-	OR                     // Bitwise or `|`
-	XOR                    // Bitwise xor `^`
+	SCOPE_RES_OP           // Scope resolution operator `::`
+	DOT_COLON              // Dot colon `.:`
+	CLOSED_RANGE_OP        // Closed range operator `...`
+	OPEN_RANGE_OP          // Open range operator `<.<`
+	RIGHT_OPEN_RANGE_OP    // Right open range operator `..<`
+	LEFT_OPEN_RANGE_OP     // Left open range operator `<..`
+	PIPE_OP                // Pipe operator `|>`
+	AND_AND                // Logical and `&&`
+	AND_BANG               // Logical expression sequencing operator `&!` with the precedence of `&&`
+	OR_OR                  // Logical or `||`
+	OR_BANG                // Logical expression sequencing operator `|!` with the precedence of `||`
+	NOT_EQUAL              // Not equal `!=`
+	LAX_NOT_EQUAL          // Lax not equal operator `!~`
+	STRICT_EQUAL           // Strict equal `===`
+	STRICT_NOT_EQUAL       // Strict not equal `!==`
 	QUESTION_QUESTION      // Nil coalescing operator `??`
 	BANG                   // Logical not `!`
 	ISA_OP                 // "is a" operator `<:`
 	REVERSE_ISA_OP         // Reverse "is a" operator `:>`
 	INSTANCE_OF_OP         // Instance of operator `<<:`
 	REVERSE_INSTANCE_OF_OP // Reverse instance of operator `:>>`
-	LBITSHIFT              // Left bitwise shift `<<`
-	LTRIPLE_BITSHIFT       // Triple left bitwise shift `<<<`
-	RBITSHIFT              // Right bitwise shift `>>`
-	RTRIPLE_BITSHIFT       // Triple right bitwise shift `>>>`
-	PERCENT                // Percent `%`
-	LABEL_OP_END           // Operators end here
+
+	// Overridable operators start here
+	LABEL_OVERRIDABLE_OP_BEG
+	PLUS_PLUS        // Increment operator `++`
+	MINUS_MINUS      // Decrement operator `--`
+	PLUS_AT          // Negate `+@`
+	MINUS_AT         // Negate `-@`
+	MINUS            // Minus `-`
+	PLUS             // Plus `+`
+	STAR             // Star `*`
+	SLASH            // Slash `/`
+	STAR_STAR        // Two stars `**`
+	LESS             // Less than `<`
+	LESS_EQUAL       // Less than or equal `<=`
+	GREATER          // Greater than `>`
+	GREATER_EQUAL    // Greater than or equal `>=`
+	SPACESHIP_OP     // Spaceship operator `<=>`
+	EQUAL_EQUAL      // Equal (comparison) `==`
+	LAX_EQUAL        // Lax equality operator `=~`
+	TILDE            // Tilde `~`
+	AND              // Bitwise and `&`
+	AND_TILDE        // Bitwise and not `&~`
+	OR               // Bitwise or `|`
+	XOR              // Bitwise xor `^`
+	LBITSHIFT        // Left bitwise shift `<<`
+	LTRIPLE_BITSHIFT // Triple left bitwise shift `<<<`
+	RBITSHIFT        // Right bitwise shift `>>`
+	RTRIPLE_BITSHIFT // Triple right bitwise shift `>>>`
+	PERCENT          // Percent `%`
+	LABEL_OP_END     // Operators end here
 
 	// Identifiers start here
 	LABEL_IDENTIFIER_BEG

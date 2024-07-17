@@ -1008,7 +1008,7 @@ func NewLogicalExpressionNodeI(span *position.Span, op *token.Token, left, right
 
 // Expression of an operator with one operand eg. `!foo`, `-bar`
 type UnaryExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Op    *token.Token   // operator
 	Right ExpressionNode // right hand side
 }
@@ -1020,9 +1020,9 @@ func (u *UnaryExpressionNode) IsStatic() bool {
 // Create a new unary expression node.
 func NewUnaryExpressionNode(span *position.Span, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
 	return &UnaryExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Right:    right,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Right:         right,
 	}
 }
 

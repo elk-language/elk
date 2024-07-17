@@ -26,6 +26,16 @@ sealed primitive class ::Std::Int
 	sealed def -@: Int; end
 
 	##[
+		Returns the result of applying bitwise NOT on the bits
+		of this integer.
+
+		```
+			~4 #=> -5
+		```
+	]##
+	sealed def ~: Int; end
+
+	##[
 		Get the next integer by incrementing by `1`.
 	]##
 	sealed def ++: Int; end

@@ -667,6 +667,11 @@ func (i SmallInt) BitwiseAnd(other Value) (Value, *Error) {
 	}
 }
 
+// Perform bitwise NOT.
+func (i SmallInt) BitwiseNot() SmallInt {
+	return ^i
+}
+
 // Perform a bitwise AND NOT with another integer value and return an error
 // if something went wrong.
 func (i SmallInt) BitwiseAndNot(other Value) (Value, *Error) {

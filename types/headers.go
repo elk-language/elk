@@ -555,6 +555,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
 				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
 				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4 #=> -5\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::Int", env), nil)
 
 				// Define constants
 
