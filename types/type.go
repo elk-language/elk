@@ -65,7 +65,7 @@ func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
 		}
 		return false
 	default:
-		return false
+		return true
 	}
 }
 

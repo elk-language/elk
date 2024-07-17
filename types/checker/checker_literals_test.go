@@ -201,7 +201,7 @@ func TestBoolLiteral(t *testing.T) {
 		"assign true literal to non matching literal type": {
 			input: "var foo: false = true",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 1, 18), P(20, 1, 21)), "type `Std::True` cannot be assigned to type `Std::False`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(20, 1, 21)), "type `true` cannot be assigned to type `false`"),
 			},
 		},
 		"infer false": {
@@ -219,7 +219,7 @@ func TestBoolLiteral(t *testing.T) {
 		"assign false literal to non matching literal type": {
 			input: "var foo: true = false",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 1, 17), P(20, 1, 21)), "type `Std::False` cannot be assigned to type `Std::True`"),
+				error.NewFailure(L("<main>", P(16, 1, 17), P(20, 1, 21)), "type `false` cannot be assigned to type `true`"),
 			},
 		},
 	}

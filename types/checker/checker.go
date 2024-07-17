@@ -3,6 +3,7 @@ package checker
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
@@ -389,7 +390,7 @@ func (c *Checker) typesIntersect(a, b types.Type) bool {
 func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	switch a := a.(type) {
 	case *types.Nilable:
-		return c.canBeIsA(a.Type, b) || c.canBeIsA(c.StdNil(), b)
+		return c.canBeIsA(a.Type, b) || c.canBeIsA(types.Nil{}, b)
 	case *types.Union:
 		for _, element := range a.Elements {
 			if c.canBeIsA(element, b) {
@@ -427,9 +428,17 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if types.IsNever(a) {
 		return true
 	}
-	if types.IsAny(b) || types.IsVoid(b) {
+	switch b.(type) {
+	case types.Any, types.Void:
 		return true
+	case types.Nil:
+		b = c.StdNil()
+	case types.True:
+		b = c.StdTrue()
+	case types.False:
+		b = c.StdFalse()
 	}
+
 	if types.IsAny(a) || types.IsVoid(a) {
 		return false
 	}
@@ -439,11 +448,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	}
 
 	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
-		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(c.GlobalEnv.StdSubtype(symbol.Nil), b, errSpan)
+		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
 	}
 
 	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
-		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, c.GlobalEnv.StdSubtype(symbol.Nil), errSpan)
+		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
 	}
 
 	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
@@ -468,6 +477,12 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	switch a := a.(type) {
 	case types.Any:
 		return types.IsAny(b)
+	case types.Nil:
+		return types.IsNil(b) || b == c.StdNil()
+	case types.True:
+		return types.IsTrue(b) || b == c.StdTrue()
+	case types.False:
+		return types.IsFalse(b) || b == c.StdFalse()
 	case *types.SingletonClass:
 		b, ok := b.(*types.SingletonClass)
 		if !ok {
@@ -964,6 +979,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
+	case *ast.LogicalExpressionNode:
+		return c.checkLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
 		return c.checkBinaryExpression(n)
 	case *ast.UnaryExpressionNode:
@@ -995,6 +1012,14 @@ func (c *Checker) StdBool() *types.Class {
 
 func (c *Checker) StdNil() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.Nil)
+}
+
+func (c *Checker) StdTrue() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.True)
+}
+
+func (c *Checker) StdFalse() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.False)
 }
 
 func (c *Checker) checkArithmeticBinaryOperator(
@@ -1101,6 +1126,69 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.ExpressionNode {
 	node.Right = c.checkExpression(node.Right)
 	node.SetType(c.StdBool())
+	return node
+}
+
+func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+
+	switch node.Op.Type {
+	case token.AND_AND:
+		return c.checkLogicalAnd(node)
+	case token.OR_OR:
+		return c.checkLogicalOr(node)
+	// case token.QUESTION_QUESTION:
+	// 	c.nilCoalescing(node)
+	default:
+		node.SetType(types.Void{})
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid logical operator: `%s`",
+				node.Op.String(),
+			),
+			node.Op.Span(),
+		)
+		return node
+	}
+}
+
+func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	if c.isTruthy(leftType) {
+		node.SetType(leftType)
+		return node
+	}
+	if c.isFalsy(leftType) {
+		node.SetType(rightType)
+		return node
+	}
+	node.SetType(c.newNormalisedUnion(c.toNonFalsy(leftType), rightType))
+
+	return node
+}
+
+func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	if c.isTruthy(leftType) {
+		node.SetType(rightType)
+		return node
+	}
+	if c.isFalsy(leftType) {
+		node.SetType(leftType)
+		return node
+	}
+
+	node.SetType(c.newNormalisedUnion(c.toNonTruthy(leftType), rightType))
+
 	return node
 }
 
@@ -1838,27 +1926,146 @@ func (c *Checker) typeOf(node ast.Node) types.Type {
 	return node.Type(c.GlobalEnv)
 }
 
+// Type can be `nil`
 func (c *Checker) isNilable(typ types.Type) bool {
 	return types.IsNilable(typ, c.GlobalEnv)
 }
 
+// Type is always falsy.
+func (c *Checker) isFalsy(typ types.Type) bool {
+	return !c.canBeTruthy(typ)
+}
+
+// Type is always truthy.
+func (c *Checker) isTruthy(typ types.Type) bool {
+	return !c.canBeFalsy(typ)
+}
+
+// Type can be falsy
 func (c *Checker) canBeFalsy(typ types.Type) bool {
 	return types.CanBeFalsy(typ, c.GlobalEnv)
 }
 
+// Type can be truthy
 func (c *Checker) canBeTruthy(typ types.Type) bool {
 	return types.CanBeTruthy(typ, c.GlobalEnv)
 }
 
 func (c *Checker) toNonNilable(typ types.Type) types.Type {
-	return types.ToNonNilable(typ, c.GlobalEnv)
+	switch t := typ.(type) {
+	case *types.Nilable:
+		return t.Type
+	case types.Nil:
+		return types.Never{}
+	case *types.Class:
+		if t == c.StdNil() {
+			return types.Never{}
+		}
+		return t
+	case *types.Union:
+		var newElements []types.Type
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.toNonNilable(element))
+		}
+		return c.newNormalisedUnion(newElements...)
+	case *types.Intersection:
+		for _, element := range t.Elements {
+			nonNilable := c.toNonNilable(element)
+			if types.IsNever(nonNilable) {
+				return types.Never{}
+			}
+		}
+		return t
+	default:
+		return t
+	}
 }
+
+func (c *Checker) toNonFalsy(typ types.Type) types.Type {
+	switch t := typ.(type) {
+	case *types.Nilable:
+		return t.Type
+	case *types.Class:
+		if t == c.StdNil() || t == c.StdFalse() {
+			return types.Never{}
+		}
+		if t == c.StdBool() {
+			return types.True{}
+		}
+		return t
+	case types.Nil, types.False:
+		return types.Never{}
+	case *types.Union:
+		var newElements []types.Type
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.toNonFalsy(element))
+		}
+		return c.newNormalisedUnion(newElements...)
+	case *types.Intersection:
+		for _, element := range t.Elements {
+			nonFalsy := c.toNonFalsy(element)
+			if types.IsNever(nonFalsy) {
+				return types.Never{}
+			}
+		}
+		return t
+	default:
+		return t
+	}
+}
+
+func (c *Checker) toNonTruthy(typ types.Type) types.Type {
+	switch t := typ.(type) {
+	case *types.Nilable:
+		return types.Nil{}
+	case *types.Class:
+		if t == c.StdNil() || t == c.StdFalse() {
+			return t
+		}
+		if t == c.StdBool() {
+			return types.False{}
+		}
+		return types.Never{}
+	case types.Nil, types.False:
+		return t
+	case *types.Union:
+		var newElements []types.Type
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.toNonTruthy(element))
+		}
+		return c.newNormalisedUnion(newElements...)
+	case *types.Intersection:
+		for _, element := range t.Elements {
+			nonTruthy := c.toNonTruthy(element)
+			if types.IsNever(nonTruthy) {
+				return types.Never{}
+			}
+		}
+		return t
+	default:
+		return types.Never{}
+	}
+}
+
 func (c *Checker) toNonLiteral(typ types.Type) types.Type {
 	return typ.ToNonLiteral(c.GlobalEnv)
 }
 
 func (c *Checker) toNilable(typ types.Type) types.Type {
-	return types.ToNilable(typ, c.GlobalEnv)
+	if c.isNilable(typ) {
+		return typ
+	}
+
+	switch t := typ.(type) {
+	case *types.Union:
+		newElements := slices.Clone(t.Elements)
+		newElements = append(newElements, types.Nil{})
+		return c.newNormalisedUnion(newElements...)
+	case *types.Intersection:
+		return types.NewNilable(typ)
+	default:
+		return types.NewNilable(typ)
+	}
 }
 
 func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
@@ -3250,13 +3457,70 @@ func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.Un
 	union := types.NewUnion()
 	elements := new([]ast.TypeNode)
 	c._constructUnionType(node, elements, union)
+	normalisedUnion := c.newNormalisedUnion(union.Elements...)
 
 	newNode := ast.NewUnionTypeNode(
 		node.Span(),
 		*elements,
 	)
-	newNode.SetType(union)
+	newNode.SetType(normalisedUnion)
 	return newNode
+}
+
+func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
+	var normalisedElements []types.Type
+
+elementLoop:
+	for _, element := range elements {
+		if types.IsNever(element) {
+			continue elementLoop
+		}
+		switch e := element.(type) {
+		case *types.Union:
+		subUnionLoop:
+			for _, subUnionElement := range e.Elements {
+				if types.IsNever(subUnionElement) {
+					continue subUnionLoop
+				}
+				for _, normalisedElement := range normalisedElements {
+					if c.isSubtype(subUnionElement, normalisedElement, nil) || c.isSubtype(normalisedElement, subUnionElement, nil) {
+						continue subUnionLoop
+					}
+				}
+				normalisedElements = append(normalisedElements, subUnionElement)
+			}
+		case *types.Nilable:
+			elements := []types.Type{e.Type, types.Nil{}}
+		nilableLoop:
+			for _, nilableElement := range elements {
+				if types.IsNever(nilableElement) {
+					continue nilableLoop
+				}
+				for _, normalisedElement := range normalisedElements {
+					if c.isSubtype(nilableElement, normalisedElement, nil) || c.isSubtype(normalisedElement, nilableElement, nil) {
+						continue nilableLoop
+					}
+				}
+				normalisedElements = append(normalisedElements, nilableElement)
+			}
+		default:
+			for _, normalisedElement := range normalisedElements {
+				if c.isSubtype(element, normalisedElement, nil) || c.isSubtype(normalisedElement, element, nil) {
+					continue elementLoop
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		}
+	}
+
+	if len(normalisedElements) == 0 {
+		return types.Never{}
+	}
+	if len(normalisedElements) == 1 {
+		return normalisedElements[0]
+	}
+
+	return types.NewUnion(normalisedElements...)
 }
 
 func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elements *[]ast.TypeNode, union *types.Union) {

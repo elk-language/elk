@@ -974,7 +974,7 @@ func NewBinaryExpressionNodeI(span *position.Span, op *token.Token, left, right 
 
 // Expression of a logical operator with two operands eg. `foo && bar`
 type LogicalExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Op     *token.Token   // operator
 	Left   ExpressionNode // left hand side
 	Right  ExpressionNode // right hand side
@@ -988,21 +988,21 @@ func (l *LogicalExpressionNode) IsStatic() bool {
 // Create a new logical expression node.
 func NewLogicalExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
 	return &LogicalExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
-		static:   areExpressionsStatic(left, right),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Left:          left,
+		Right:         right,
+		static:        areExpressionsStatic(left, right),
 	}
 }
 
 // Same as [NewLogicalExpressionNode] but returns an interface
 func NewLogicalExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &LogicalExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Left:          left,
+		Right:         right,
 	}
 }
 
@@ -1056,7 +1056,7 @@ func (*TrueLiteralNode) IsStatic() bool {
 }
 
 func (*TrueLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.True)
+	return types.True{}
 }
 
 // Create a new `true` literal node.
@@ -1076,7 +1076,7 @@ func (*FalseLiteralNode) IsStatic() bool {
 }
 
 func (*FalseLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.False)
+	return types.False{}
 }
 
 // Create a new `false` literal node.
@@ -1114,7 +1114,7 @@ func (*NilLiteralNode) IsStatic() bool {
 }
 
 func (*NilLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.Nil)
+	return types.Nil{}
 }
 
 // Create a new `nil` literal node.
