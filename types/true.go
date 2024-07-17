@@ -5,7 +5,7 @@ import "github.com/elk-language/elk/value/symbol"
 type True struct{}
 
 func (True) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.True)
+	return env.StdSubtype(symbol.Bool)
 }
 
 func (True) IsLiteral() bool {
