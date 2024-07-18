@@ -512,6 +512,35 @@ func TestVariableDeclaration(t *testing.T) {
 	}
 }
 
+func TestShortVariableDeclaration(t *testing.T) {
+	tests := testTable{
+		"accept variable declaration with inference": {
+			input: "foo := 5",
+		},
+		"cannot declare variable with type void": {
+			input: `
+				def bar; end
+				foo := bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot declare variable `foo` with type `void`"),
+			},
+		},
+		"reject redeclared variable": {
+			input: `var foo: Int; foo := "foo"`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(14, 1, 15), P(25, 1, 26)), "cannot redeclare local `foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
 		"accept value declaration with matching initializer and type": {
