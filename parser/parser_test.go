@@ -450,7 +450,7 @@ func TestAssignment(t *testing.T) {
 				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
-		"constants are valid declaration targets": {
+		"constants are not valid declaration targets": {
 			input: "FooBa := 2",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -466,6 +466,9 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			},
 		},
 		"private constants are not valid assignment targets": {
 			input: "_FooB -= 2",
@@ -487,7 +490,7 @@ func TestAssignment(t *testing.T) {
 				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
-		"private constants are valid declaration targets": {
+		"private constants are not valid declaration targets": {
 			input: "_FooB := 2",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -503,6 +506,9 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			},
 		},
 		"identifiers can be assigned": {
 			input: "foo -= 2",

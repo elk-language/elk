@@ -139,8 +139,7 @@ func (n *NodeBase) SetSpan(span *position.Span) {
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateConstantNode, *PublicConstantNode,
-		*ConstantLookupNode, *PrivateIdentifierNode, *PublicIdentifierNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
 	default:
 		return false

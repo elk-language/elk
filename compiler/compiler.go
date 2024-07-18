@@ -463,6 +463,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 	case *ast.ExpressionStatementNode:
 		c.compileNode(node.Expression)
+	case *ast.ConstantDeclarationNode:
+		c.constantDeclaration(node)
 	case *ast.LabeledExpressionNode:
 		c.labeledExpression(node)
 	case *ast.ConstantLookupNode:
@@ -760,6 +762,17 @@ func (c *Compiler) registerCatch(from, to, jumpAddress int, finally bool) {
 		c.Bytecode.CatchEntries,
 		doCatchEntry,
 	)
+}
+
+func (c *Compiler) constantDeclaration(node *ast.ConstantDeclarationNode) {
+	var name string
+	switch constant := node.Constant.(type) {
+	case *ast.PublicConstantNode:
+		name = constant.Value
+	case *ast.PrivateConstantNode:
+		name = constant.Value
+	}
+	c.compileSimpleConstantDeclaration(name, node.Initialiser, node.Span())
 }
 
 func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
@@ -1905,33 +1918,6 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.SubscriptExpressionNode:
 		c.subscriptAssignment(node, n)
-	case *ast.ConstantLookupNode:
-		if node.Op.Type != token.COLON_EQUAL {
-			c.Errors.AddFailure(
-				fmt.Sprintf("cannot assign constants using `%s`", node.Op.StringValue()),
-				c.newLocation(node.Span()),
-			)
-		}
-		c.compileNode(node.Right)
-		if n.Left == nil {
-			c.emit(node.Span().StartPos.Line, bytecode.ROOT)
-		} else {
-			c.compileNode(n.Left)
-		}
-
-		switch r := n.Right.(type) {
-		case *ast.PublicConstantNode:
-			c.emitDefModConst(value.ToSymbol(r.Value), n.Span())
-		default:
-			c.Errors.AddFailure(
-				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
-				c.newLocation(n.Right.Span()),
-			)
-		}
-	case *ast.PublicConstantNode:
-		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
-	case *ast.PrivateConstantNode:
-		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.InstanceVariableNode:
 		c.instanceVariableAssignment(node, n)
 	case *ast.AttributeAccessNode:
@@ -1944,13 +1930,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	}
 }
 
-func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
-	if op.Type != token.COLON_EQUAL {
-		c.Errors.AddFailure(
-			fmt.Sprintf("cannot assign constants using `%s`", op.StringValue()),
-			c.newLocation(span),
-		)
-	}
+func (c *Compiler) compileSimpleConstantDeclaration(name string, right ast.ExpressionNode, span *position.Span) {
 	c.compileNode(right)
 	c.emit(span.StartPos.Line, bytecode.CONSTANT_CONTAINER)
 	c.emitDefModConst(value.ToSymbol(name), span)

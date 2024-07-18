@@ -76,7 +76,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 			source: `
 				mixin Foo
 					a := 5
-					Bar := a - 2
+					const Bar = a - 2
 				end
 			`,
 			wantStackTop: value.NewMixinWithOptions(
@@ -94,8 +94,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				mixin Gdańsk
 					mixin Gdynia
 						mixin Sopot
-							Trójmiasto := "jest super"
-							::Gdańsk::Warszawa := "to stolica"
+							const Trójmiasto = "jest super"
 						end
 					end
 				end
@@ -119,7 +118,6 @@ func TestVMSource_DefineMixin(t *testing.T) {
 								},
 							),
 						),
-						value.ToSymbol("Warszawa"): value.String("to stolica"),
 					},
 				),
 			),
@@ -128,11 +126,11 @@ func TestVMSource_DefineMixin(t *testing.T) {
 		"open an existing mixin": {
 			source: `
 				mixin Foo
-					FIRST_CONSTANT := "oguem"
+					const FIRST_CONSTANT = "oguem"
 				end
 
 				mixin Foo
-					SECOND_CONSTANT := "całe te"
+					const SECOND_CONSTANT = "całe te"
 				end
 			`,
 			wantStackTop: value.NewMixinWithOptions(
@@ -148,7 +146,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 		},
 		"redefined constant": {
 			source: `
-				Foo := 3
+				const Foo = 3
 				mixin Foo; end
 			`,
 			wantRuntimeErr: value.NewError(
@@ -537,7 +535,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			source: `
 				class Foo
 					a := 5
-					Bar := a - 2
+					const Bar = a - 2
 				end
 			`,
 			wantStackTop: value.NewClassWithOptions(
@@ -555,8 +553,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 				class Gdańsk
 					class Gdynia
 						class Sopot
-							Trójmiasto := "jest super"
-							::Gdańsk::Warszawa := "to stolica"
+							const Trójmiasto = "jest super"
 						end
 					end
 				end
@@ -580,7 +577,6 @@ func TestVMSource_DefineClass(t *testing.T) {
 								},
 							),
 						),
-						value.ToSymbol("Warszawa"): value.String("to stolica"),
 					},
 				),
 			),
@@ -589,11 +585,11 @@ func TestVMSource_DefineClass(t *testing.T) {
 		"open an existing class": {
 			source: `
 				class Foo
-					FIRST_CONSTANT := "oguem"
+					const FIRST_CONSTANT = "oguem"
 				end
 
 				class Foo
-					SECOND_CONSTANT := "całe te"
+					const SECOND_CONSTANT = "całe te"
 				end
 			`,
 			wantStackTop: value.NewClassWithOptions(
@@ -612,11 +608,11 @@ func TestVMSource_DefineClass(t *testing.T) {
 				class Foo; end
 
 				class Bar < ::Foo
-					FIRST_CONSTANT := "oguem"
+					const FIRST_CONSTANT = "oguem"
 				end
 
 				class Bar < ::Std::Error
-					SECOND_CONSTANT := "całe te"
+					const SECOND_CONSTANT = "całe te"
 				end
 			`,
 			wantRuntimeErr: value.NewError(
@@ -630,7 +626,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 		},
 		"incorrect superclass": {
 			source: `
-				A := 3
+				const A = 3
 				class Foo < ::A; end
 			`,
 			wantRuntimeErr: value.NewError(
@@ -644,7 +640,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 		},
 		"redefined constant": {
 			source: `
-				Foo := 3
+				const Foo = 3
 				class Foo; end
 			`,
 			wantRuntimeErr: value.NewError(
@@ -682,7 +678,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 			source: `
 				module Foo
 					a := 5
-					Bar := a - 2
+					const Bar = a - 2
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
@@ -707,8 +703,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				module Gdańsk
 					module Gdynia
 						module Sopot
-							Trójmiasto := "jest super"
-							::Gdańsk::Warszawa := "to stolica"
+							const Trójmiasto = "jest super"
 						end
 					end
 				end
@@ -753,7 +748,6 @@ func TestVMSource_DefineModule(t *testing.T) {
 								},
 							),
 						),
-						value.ToSymbol("Warszawa"): value.String("to stolica"),
 					},
 				),
 			),
@@ -762,11 +756,11 @@ func TestVMSource_DefineModule(t *testing.T) {
 		"open an existing module": {
 			source: `
 				module Foo
-					FIRST_CONSTANT := "oguem"
+					const FIRST_CONSTANT = "oguem"
 				end
 
 				module Foo
-					SECOND_CONSTANT := "całe te"
+					const SECOND_CONSTANT = "całe te"
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
@@ -789,7 +783,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 		},
 		"redefined constant": {
 			source: `
-				Foo := 3
+				const Foo = 3
 				module Foo; end
 			`,
 			wantRuntimeErr: value.NewError(
@@ -836,49 +830,30 @@ func TestVMSource_GetModuleConstant(t *testing.T) {
 func TestVMSource_DefineModuleConstant(t *testing.T) {
 	tests := sourceTestTable{
 		"Set constant under Root": {
-			source:       "::Foo := 3i64",
+			source:       "const Foo = 3i64",
 			wantStackTop: value.Int64(3),
 			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 		"Set constant under Root and read it": {
 			source: `
-				::Foo := 3i64
+				const Foo = 3i64
 				::Foo
 			`,
 			wantStackTop: value.Int64(3),
 			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 		"Set constant under nested modules": {
-			source:       `::Std::Int::Foo := 3i64`,
+			source: `
+				module ::Std
+					class Int
+						const Foo = 3i64
+					end
+				end
+
+				::Std::Int::Foo
+			`,
 			wantStackTop: value.Int64(3),
 			teardown:     func() { value.IntClass.Constants.DeleteString("Foo") },
-		},
-		"Set constant under a variable": {
-			source: `
-				a := ::Std::Int
-				a::Bar := "baz"
-			`,
-			wantStackTop: value.String("baz"),
-			teardown:     func() { value.IntClass.Constants.DeleteString("Bar") },
-		},
-		"Set constant under a variable and read it": {
-			source: `
-				a := ::Std::Int
-				a::Bar := "baz"
-				::Std::Int::Bar
-			`,
-			wantStackTop: value.String("baz"),
-			teardown:     func() { value.IntClass.Constants.DeleteString("Bar") },
-		},
-		"Set a constant under Int": {
-			source: `
-				a := 3
-				a::Foo := 10
-			`,
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`3` is not a module",
-			),
 		},
 	}
 

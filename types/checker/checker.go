@@ -931,7 +931,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		n.SetType(types.NewSymbolLiteral(n.Content))
 		return n
 	case *ast.VariableDeclarationNode:
-		c.variableDeclaration(n)
+		c.checkVariableDeclarationNode(n)
 		return n
 	case *ast.ValueDeclarationNode:
 		c.valueDeclaration(n)
@@ -2854,7 +2854,8 @@ func (c *Checker) checkAssignmentExpression(node *ast.AssignmentExpressionNode) 
 		return c.checkBinaryOperatorAssignmentExpression(node, token.RBITSHIFT)
 	case token.RTRIPLE_BITSHIFT_EQUAL:
 		return c.checkBinaryOperatorAssignmentExpression(node, token.RTRIPLE_BITSHIFT)
-	// case token.COLON_EQUAL:
+	case token.COLON_EQUAL:
+		return c.checkShortVariableDeclaration(node)
 	default:
 		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),
@@ -2862,6 +2863,20 @@ func (c *Checker) checkAssignmentExpression(node *ast.AssignmentExpressionNode) 
 		)
 		return node
 	}
+}
+
+func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	var name string
+	switch left := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		name = left.Value
+	case *ast.PrivateIdentifierNode:
+		name = left.Value
+	}
+	init, _, typ := c.checkVariableDeclaration(name, node.Right, nil, node.Span())
+	node.Right = init
+	node.SetType(typ)
+	return node
 }
 
 func (c *Checker) checkSimpleAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
@@ -3962,62 +3977,71 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	c.declareInstanceVariable(value.ToSymbol(node.Name), declaredType, node.Span())
 }
 
-func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
-	if variable := c.getLocal(node.Name); variable != nil {
+func (c *Checker) checkVariableDeclaration(
+	name string,
+	initialiser ast.ExpressionNode,
+	typeNode ast.TypeNode,
+	span *position.Span,
+) (
+	_init ast.ExpressionNode,
+	_typeNode ast.TypeNode,
+	typ types.Type,
+) {
+	if variable := c.getLocal(name); variable != nil {
 		c.addFailure(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
-			node.Span(),
+			fmt.Sprintf("cannot redeclare local `%s`", name),
+			span,
 		)
 	}
-	if node.Initialiser == nil {
-		if node.TypeNode == nil {
+	if initialiser == nil {
+		if typeNode == nil {
 			c.addFailure(
-				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name),
-				node.Span(),
+				fmt.Sprintf("cannot declare a variable without a type `%s`", name),
+				span,
 			)
-			c.addLocal(node.Name, newLocal(types.Nothing{}, false, false))
-			node.SetType(types.Nothing{})
-			return
+			c.addLocal(name, newLocal(types.Nothing{}, false, false))
+			return initialiser, typeNode, types.Nothing{}
 		}
 
 		// without an initialiser but with a type
-		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name, newLocal(declaredType, false, false))
-		node.TypeNode = declaredTypeNode
-		node.SetType(types.Nothing{})
-		return
+		c.addLocal(name, newLocal(declaredType, false, false))
+		return initialiser, declaredTypeNode, types.Nothing{}
 	}
 
 	// with an initialiser
-	if node.TypeNode == nil {
+	if typeNode == nil {
 		// without a type, inference
-		init := c.checkExpression(node.Initialiser)
+		init := c.checkExpression(initialiser)
 		actualType := c.toNonLiteral(c.typeOf(init))
-		c.addLocal(node.Name, newLocal(actualType, true, false))
+		c.addLocal(name, newLocal(actualType, true, false))
 		if types.IsVoid(actualType) {
 			c.addFailure(
-				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name),
+				fmt.Sprintf("cannot declare variable `%s` with type `void`", name),
 				init.Span(),
 			)
 		}
-		node.Initialiser = init
-		node.SetType(actualType)
-		return
+		return init, nil, actualType
 	}
 
 	// with a type and an initializer
 
-	declaredTypeNode := c.checkTypeNode(node.TypeNode)
+	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.typeOf(declaredTypeNode)
-	init := c.checkExpression(node.Initialiser)
+	init := c.checkExpression(initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name, newLocal(declaredType, true, false))
+	c.addLocal(name, newLocal(declaredType, true, false))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
-	node.TypeNode = declaredTypeNode
+	return init, declaredTypeNode, declaredType
+}
+
+func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
+	init, typeNode, typ := c.checkVariableDeclaration(node.Name, node.Initialiser, node.TypeNode, node.Span())
 	node.Initialiser = init
-	node.SetType(declaredType)
+	node.TypeNode = typeNode
+	node.SetType(typ)
 }
 
 func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {

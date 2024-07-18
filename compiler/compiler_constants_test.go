@@ -62,7 +62,7 @@ func TestGetModuleConstant(t *testing.T) {
 func TestDefModuleConstant(t *testing.T) {
 	tests := testTable{
 		"relative path Foo": {
-			input: "Foo := 3",
+			input: "const Foo = 3",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -71,56 +71,12 @@ func TestDefModuleConstant(t *testing.T) {
 					byte(bytecode.DEF_MOD_CONST8), 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(7, 1, 8)),
+				L(P(0, 1, 1), P(12, 1, 13)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(3),
-					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"absolute path ::Foo": {
-			input: "::Foo := 3",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.ROOT),
-					byte(bytecode.DEF_MOD_CONST8), 1,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-				},
-				[]value.Value{
-					value.SmallInt(3),
-					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"absolute nested path ::Std::Float::Foo": {
-			input: "::Std::Float::Foo := 'bar'",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.ROOT),
-					byte(bytecode.GET_MOD_CONST8), 1,
-					byte(bytecode.GET_MOD_CONST8), 2,
-					byte(bytecode.DEF_MOD_CONST8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(25, 1, 26)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
-				},
-				[]value.Value{
-					value.String("bar"),
-					value.ToSymbol("Std"),
-					value.ToSymbol("Float"),
 					value.ToSymbol("Foo"),
 				},
 			),
