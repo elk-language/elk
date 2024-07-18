@@ -2898,7 +2898,8 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 	// case *ast.PrivateConstantNode:
 	case *ast.InstanceVariableNode:
 		return c.checkInstanceVariableAssignment(n.Value, node)
-	// case *ast.AttributeAccessNode:
+	case *ast.AttributeAccessNode:
+		return c.checkAttributeAssignment(n, node)
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
@@ -2906,6 +2907,22 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 		)
 		return node
 	}
+}
+
+func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	receiver, args, _ := c.checkSimpleMethodCall(
+		attributeNode.Receiver,
+		false,
+		value.ToSymbol(attributeNode.AttributeName+"="),
+		[]ast.ExpressionNode{assignmentNode.Right},
+		nil,
+		assignmentNode.Span(),
+	)
+	attributeNode.Receiver = receiver
+	assignmentNode.Right = args[0]
+
+	assignmentNode.SetType(c.typeOf(assignmentNode.Right))
+	return assignmentNode
 }
 
 func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {

@@ -1289,6 +1289,45 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
 			},
 		},
+
+		"call setter with matching argument": {
+			input: `
+				class Foo
+					def baz=(bar: String); end
+				end
+				Foo().baz = "bar"
+			`,
+		},
+		"the return type of a setter is the same as the argument": {
+			input: `
+				class Foo
+					def baz=(bar: String); end
+				end
+				var a: String = Foo().baz = "bar"
+			`,
+		},
+		"call setter with non-matching argument": {
+			input: `
+				class Foo
+					def baz=(bar: String); end
+				end
+				Foo().baz = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 17), P(71, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz=`, got type `Std::Int(1)`"),
+			},
+		},
+		"call nonexistent setter": {
+			input: `
+				class Foo
+					def baz=(bar: String); end
+				end
+				Foo().foo = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 5, 5), P(71, 5, 17)), "method `foo=` is not defined on type `Foo`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
