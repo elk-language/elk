@@ -4,6 +4,7 @@ package types
 // For example a function that never returns
 // might use the type `never`.
 // It is a subtype of all other types.
+// All method calls on never are valid.
 //
 // It is used to detect unreachable code.
 type Never struct{}

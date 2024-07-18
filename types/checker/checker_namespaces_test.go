@@ -665,7 +665,6 @@ func TestInstanceVariables(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(21, 3, 6), P(24, 3, 9)), "undefined instance variable `@foo` in type `Foo`"),
-				error.NewFailure(L("<main>", P(28, 3, 13), P(28, 3, 13)), "type `Std::Int(2)` cannot be assigned to type `nothing`"),
 			},
 		},
 	}

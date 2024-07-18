@@ -426,7 +426,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	}
 	switch b.(type) {
-	case types.Any, types.Void:
+	case types.Any, types.Void, types.Nothing:
 		return true
 	case types.Nil:
 		b = c.StdNil()
