@@ -4,6 +4,8 @@ package types
 // For example a function that never returns
 // might use the type `never`.
 // It is a subtype of all other types.
+//
+// It is used to detect unreachable code.
 type Never struct{}
 
 func (n Never) ToNonLiteral(env *GlobalEnvironment) Type {

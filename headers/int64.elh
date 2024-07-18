@@ -1,0 +1,237 @@
+##[
+	Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).
+]##
+sealed primitive class ::Std::Int64
+	##[
+		Returns itself.
+
+		```
+			var a = 1i64
+			+a #=> 1i64
+		```
+	]##
+	sealed def +@: Int64; end
+
+	##[
+		Returns the result of negating the integer.
+
+		```
+			var a = 1i64
+			-a #=> -1i64
+		```
+	]##
+	sealed def -@: Int64; end
+
+	##[
+		Returns the result of applying bitwise NOT on the bits
+		of this integer.
+
+		```
+			~4i64 #=> -5i64
+		```
+	]##
+	sealed def ~: Int64; end
+
+	##[
+		Get the next integer by incrementing by `1`.
+	]##
+	sealed def ++: Int64; end
+
+	##[
+		Get the previous integer by decrementing by `1`.
+	]##
+	sealed def --: Int64; end
+
+	##[
+		Add `other` to this integer.
+	]##
+	sealed def +(other: Int64): Int64; end
+
+	##[
+		Subtract `other` from this integer.
+	]##
+	sealed def -(other: Int64): Int64; end
+
+	##[
+		Multiply this integer by `other`.
+	]##
+	sealed def *(other: Int64): Int64; end
+
+	##[
+		Divide this integer by another integer.
+		Throws an unchecked runtime error when dividing by `0`.
+	]##
+	sealed def /(other: Int64): Int64; end
+
+	##[
+		Exponentiate this integer, raise it to the power of `other`.
+	]##
+	sealed def **(other: Int64): Int64; end
+
+	##[
+		Compare this integer with another integer.
+		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
+	]##
+	sealed def <=>(other: Int64): Int; end
+
+	sealed def >=(other: Int64): Bool; end
+
+	sealed def >(other: Int64): Bool; end
+
+	sealed def <=(other: Int64): Bool; end
+
+	sealed def <(other: Int64): Bool; end
+
+	##[
+		Returns an integer shifted arithmetically to the left by `other` positions, or to the right if `other` is negative.
+
+		Preserves the integer's sign bit.
+
+		4i64  << 1  #=> 8i64
+		4i64  << -1 #=> 2i64
+		-4i64 << 1  #=> -8i64
+		-4i64 << -1 #=> -2i64
+	]##
+	sealed def <<(other: AnyInt): Int64; end
+
+	##[
+		Returns an integer shifted logically to the left by `other` positions, or to the right if `other` is negative.
+
+		Unlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.
+
+		```
+		4i64  <<< 1  #=> 8i64
+		4i64  <<< -1 #=> 2i64
+		-4i64 <<< 1  #=> -8i64
+		-4i64 <<< -1 #=> 9223372036854775806i64
+		```
+	]##
+	sealed def <<<(other: AnyInt): Int64; end
+
+	##[
+		Returns an integer shifted arithmetically to the right by `other` positions, or to the left if `other` is negative.
+
+		Preserves the integer's sign bit.
+
+		```
+		4i64  >> 1  #=> 2i64
+		4i64  >> -1 #=> 8i64
+		-4i64 >> 1  #=> -2i64
+		-4i64 >> -1 #=> -8i64
+		```
+	]##
+	sealed def >>(other: AnyInt): Int64; end
+
+	##[
+		Returns an integer shifted logically the the right by `other` positions, or to the left if `other` is negative.
+
+		Unlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.
+
+		```
+		4i64  >>> 1  #=> 2i64
+		4i64  >>> -1 #=> 8i64
+		-4i64 >>> 1  #=> 9223372036854775806i64
+		-4i64 >>> -1 #=> -8i64
+		```
+	]##
+	sealed def >>>(other: AnyInt): Int64; end
+
+	##[
+		Performs bitwise AND.
+	]##
+	sealed def &(other: Int64): Int64; end
+
+	##[
+		Performs bitwise AND NOT (bit clear).
+	]##
+	sealed def &~(other: Int64): Int64; end
+
+	##[
+		Performs bitwise OR.
+	]##
+	sealed def |(other: Int64): Int64; end
+
+	##[
+		Performs bitwise XOR.
+	]##
+	sealed def ^(other: Int64): Int64; end
+
+	##[
+		Returns the remainder of dividing by `other`.
+
+		```
+			var a = 10i64
+			var b = 3i64
+			a % b #=> 1i64
+		```
+	]##
+	sealed def %(other: Int64): Int64; end
+
+	##[
+		Converts to an automatically resizable integer type.
+	]##
+	def to_int: Int; end
+
+	##[
+		Return a human readable string
+		representation of this object
+		for debugging etc.
+	]##
+	def inspect: String; end
+
+	##[
+		Converts the integer to a floating point number.
+	]##
+	def to_float: Float; end
+
+	##[
+		Converts the integer to a 64-bit floating point number.
+	]##
+	def to_float64: Float64; end
+
+	##[
+		Converts the integer to a 32-bit floating point number.
+	]##
+	def to_float32: Float32; end
+
+	##[
+		Returns itself.
+	]##
+	def to_int64: Int64; end
+
+	##[
+		Converts the integer to a 32-bit integer.
+	]##
+	def to_int32: Int32; end
+
+	##[
+		Converts the integer to a 16-bit integer.
+	]##
+	def to_int16: Int16; end
+
+	##[
+		Converts the integer to a 8-bit integer.
+	]##
+	def to_int8: Int8; end
+
+	##[
+		Converts the integer to an unsigned 64-bit integer.
+	]##
+	def to_uint64: UInt64; end
+
+	##[
+		Converts the integer to an unsigned 32-bit integer.
+	]##
+	def to_uint32: UInt32; end
+
+	##[
+		Converts the integer to an unsigned 16-bit integer.
+	]##
+	def to_uint16: UInt16; end
+
+	##[
+		Converts the integer to an unsigned 8-bit integer.
+	]##
+	def to_uint8: UInt8; end
+
+end

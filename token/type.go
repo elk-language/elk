@@ -485,6 +485,7 @@ const (
 	SEALED            // Keyword `sealed`
 	VOID              // Keyword `void`
 	NEVER             // Keyword `never`
+	NOTHING           // Keyword `nothing`
 	ANY               // Keyword `any`
 	PRIMITIVE         // Keyword `primitive`
 	NATIVE            // Keyword `native`
@@ -561,6 +562,7 @@ var Keywords = map[string]Type{
 	"sealed":     SEALED,
 	"void":       VOID,
 	"never":      NEVER,
+	"nothing":    NOTHING,
 	"any":        ANY,
 	"native":     NATIVE,
 	"primitive":  PRIMITIVE,
@@ -798,6 +800,7 @@ var tokenNames = [...]string{
 	SEALED:     "sealed",
 	VOID:       "void",
 	NEVER:      "never",
+	NOTHING:    "nothing",
 	ANY:        "any",
 	PRIMITIVE:  "primitive",
 	NATIVE:     "native",

@@ -608,7 +608,6 @@ func TestBinaryOpMethod(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "method `+` is not defined on type `Foo`"),
-				error.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "type `void` cannot be assigned to type `Std::String`"),
 			},
 		},
 	}

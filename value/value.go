@@ -1385,13 +1385,13 @@ func LogicalLeftBitshift(left, right Value) (Value, *Error) {
 
 	switch l := left.(type) {
 	case Int64:
-		result, err = StrictIntLeftBitshift(l, right)
+		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift64)
 	case Int32:
-		result, err = StrictIntLeftBitshift(l, right)
+		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift32)
 	case Int16:
-		result, err = StrictIntLeftBitshift(l, right)
+		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift16)
 	case Int8:
-		result, err = StrictIntLeftBitshift(l, right)
+		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift8)
 	case UInt64:
 		result, err = StrictIntLeftBitshift(l, right)
 	case UInt32:

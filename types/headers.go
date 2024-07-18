@@ -64,10 +64,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, value.ToSymbol("Int"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int16"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int32"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int64"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Int8"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, value.ToSymbol("Int16"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, value.ToSymbol("Int32"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, value.ToSymbol("Int64"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, value.ToSymbol("Int8"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Interface"), objectClass, env)
 		namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop.", value.ToSymbol("Iterable"), env)
 		{
@@ -97,10 +97,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt16"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, value.ToSymbol("UInt16"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
 		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, false, value.ToSymbol("Value"), nil, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
@@ -562,6 +562,214 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.SubtypeString("Int16").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i16\n\tvar b = 3i16\n\ta % b #=> 1i16\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1i16\n\t+a #=> 1i16\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1i16\n\t-a #=> -1i16\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the left by `other` positions, or to the right if `other` is negative.\n\nPreserves the integer's sign bit.\n\n4i16  << 1  #=> 8i16\n4i16  << -1 #=> 2i16\n-4i16 << 1  #=> -8i16\n-4i16 << -1 #=> -2i16", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically to the left by `other` positions, or to the right if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i16  <<< 1  #=> 8i16\n4i16  <<< -1 #=> 2i16\n-4i16 <<< 1  #=> -8i16\n-4i16 <<< -1 #=> 32766i16\n```", false, true, true, value.ToSymbol("<<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the right by `other` positions, or to the left if `other` is negative.\n\nPreserves the integer's sign bit.\n\n```\n4i16  >> 1  #=> 2i16\n4i16  >> -1 #=> 8i16\n-4i16 >> 1  #=> -2i16\n-4i16 >> -1 #=> -8i16\n```", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically the the right by `other` positions, or to the left if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i16  >>> 1  #=> 2i16\n4i16  >>> -1 #=> 8i16\n-4i16 >>> 1  #=> 32766i16\n-4i16 >>> -1 #=> -8i16\n```", false, true, true, value.ToSymbol(">>>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4i16 #=> -5i16\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::Int16", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("Int32").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i32\n\tvar b = 3i32\n\ta % b #=> 1i32\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1i32\n\t+a #=> 1i32\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1i32\n\t-a #=> -1i32\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the left by `other` positions, or to the right if `other` is negative.\n\nPreserves the integer's sign bit.\n\n4i32  << 1  #=> 8i32\n4i32  << -1 #=> 2i32\n-4i32 << 1  #=> -8i32\n-4i32 << -1 #=> -2i32", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically to the left by `other` positions, or to the right if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i32  <<< 1  #=> 8i32\n4i32  <<< -1 #=> 2i32\n-4i32 <<< 1  #=> -8i32\n-4i32 <<< -1 #=> 2147483646i32\n```", false, true, true, value.ToSymbol("<<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the right by `other` positions, or to the left if `other` is negative.\n\nPreserves the integer's sign bit.\n\n```\n4i32  >> 1  #=> 2i32\n4i32  >> -1 #=> 8i32\n-4i32 >> 1  #=> -2i32\n-4i32 >> -1 #=> -8i32\n```", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically the the right by `other` positions, or to the left if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i32  >>> 1  #=> 2i32\n4i32  >>> -1 #=> 8i32\n-4i32 >>> 1  #=> 2147483646i32\n-4i32 >>> -1 #=> -8i32\n```", false, true, true, value.ToSymbol(">>>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4i32 #=> -5i32\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::Int32", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("Int64").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i64\n\tvar b = 3i64\n\ta % b #=> 1i64\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1i64\n\t+a #=> 1i64\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1i64\n\t-a #=> -1i64\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the left by `other` positions, or to the right if `other` is negative.\n\nPreserves the integer's sign bit.\n\n4i64  << 1  #=> 8i64\n4i64  << -1 #=> 2i64\n-4i64 << 1  #=> -8i64\n-4i64 << -1 #=> -2i64", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically to the left by `other` positions, or to the right if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i64  <<< 1  #=> 8i64\n4i64  <<< -1 #=> 2i64\n-4i64 <<< 1  #=> -8i64\n-4i64 <<< -1 #=> 9223372036854775806i64\n```", false, true, true, value.ToSymbol("<<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the right by `other` positions, or to the left if `other` is negative.\n\nPreserves the integer's sign bit.\n\n```\n4i64  >> 1  #=> 2i64\n4i64  >> -1 #=> 8i64\n-4i64 >> 1  #=> -2i64\n-4i64 >> -1 #=> -8i64\n```", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically the the right by `other` positions, or to the left if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i64  >>> 1  #=> 2i64\n4i64  >>> -1 #=> 8i64\n-4i64 >>> 1  #=> 9223372036854775806i64\n-4i64 >>> -1 #=> -8i64\n```", false, true, true, value.ToSymbol(">>>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4i64 #=> -5i64\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::Int64", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("Int8").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i8\n\tvar b = 3i8\n\ta % b #=> 1i8\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1i8\n\t+a #=> 1i8\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1i8\n\t-a #=> -1i8\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the left by `other` positions, or to the right if `other` is negative.\n\nPreserves the integer's sign bit.\n\n4i8  << 1  #=> 8i8\n4i8  << -1 #=> 2i8\n-4i8 << 1  #=> -8i8\n-4i8 << -1 #=> -2i8", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically to the left by `other` positions, or to the right if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i8  <<< 1  #=> 8i8\n4i8  <<< -1 #=> 2i8\n-4i8 <<< 1  #=> -8i8\n-4i8 <<< -1 #=> 126i8\n```", false, true, true, value.ToSymbol("<<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted arithmetically to the right by `other` positions, or to the left if `other` is negative.\n\nPreserves the integer's sign bit.\n\n```\n4i8  >> 1  #=> 2i8\n4i8  >> -1 #=> 8i8\n-4i8 >> 1  #=> -2i8\n-4i8 >> -1 #=> -8i8\n```", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns an integer shifted logically the the right by `other` positions, or to the left if `other` is negative.\n\nUnlike an arithmetic shift, a logical shift does not preserve the integer's sign bit.\n\n```\n4i8  >>> 1  #=> 2i8\n4i8  >>> -1 #=> 8i8\n-4i8 >>> 1  #=> 126i8\n-4i8 >>> -1 #=> -8i8\n```", false, true, true, value.ToSymbol(">>>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4i8 #=> -5i8\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::Int8", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.SubtypeString("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -801,6 +1009,214 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Implement interfaces
 
 				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("UInt16").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u16\n\tvar b = 3u16\n\ta % b #=> 1u16\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1u16\n\t+a #=> 1u16\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1u16\n\t-a #=> 65535u16\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4u16 #=> 65531u16\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::UInt16", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("UInt32").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u32\n\tvar b = 3u32\n\ta % b #=> 1u32\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1u32\n\t+a #=> 1u32\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1u32\n\t-a #=> 4294967295u32\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4u32 #=> 4294967291u32\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::UInt32", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("UInt64").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u64\n\tvar b = 3u64\n\ta % b #=> 1u64\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1u64\n\t+a #=> 1u64\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1u64\n\t-a #=> 18446744073709551615u64\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4u64 #=> 18446744073709551611u64\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::UInt64", env), nil)
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("UInt8").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u8\n\tvar b = 3u8\n\ta % b #=> 1u8\n```", false, true, true, value.ToSymbol("%"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise AND.", false, true, true, value.ToSymbol("&"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", false, true, true, value.ToSymbol("&~"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Multiply this integer by `other`.", false, true, true, value.ToSymbol("*"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", false, true, true, value.ToSymbol("**"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Add `other` to this integer.", false, true, true, value.ToSymbol("+"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", false, true, true, value.ToSymbol("++"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1u8\n\t+a #=> 1u8\n```", false, true, true, value.ToSymbol("+@"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Subtract `other` from this integer.", false, true, true, value.ToSymbol("-"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", false, true, true, value.ToSymbol("--"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1u8\n\t-a #=> 255u8\n```", false, true, true, value.ToSymbol("-@"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", false, true, true, value.ToSymbol("/"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", false, true, true, value.ToSymbol("<<"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol("<="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", false, true, true, value.ToSymbol("<=>"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("", false, true, true, value.ToSymbol(">="), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", false, true, true, value.ToSymbol(">>"), []*Parameter{NewParameter(value.ToSymbol("other"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise XOR.", false, true, true, value.ToSymbol("^"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+				namespace.DefineMethod("Converts the integer to a floating point number.", false, false, true, value.ToSymbol("to_float"), nil, NameToType("Std::Float", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", false, false, true, value.ToSymbol("to_float32"), nil, NameToType("Std::Float32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", false, false, true, value.ToSymbol("to_float64"), nil, NameToType("Std::Float64", env), nil)
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", false, false, true, value.ToSymbol("to_int"), nil, NameToType("Std::Int", env), nil)
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", false, false, true, value.ToSymbol("to_int16"), nil, NameToType("Std::Int16", env), nil)
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, NameToType("Std::Int32", env), nil)
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, NameToType("Std::Int64", env), nil)
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, NameToType("Std::Int8", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, NameToType("Std::UInt16", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, NameToType("Std::UInt32", env), nil)
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, NameToType("Std::UInt64", env), nil)
+				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_uint8"), nil, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Performs bitwise OR.", false, true, true, value.ToSymbol("|"), []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), nil)
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4u8 #=> 251u8\n```", false, true, true, value.ToSymbol("~"), nil, NameToType("Std::UInt8", env), nil)
 
 				// Define constants
 

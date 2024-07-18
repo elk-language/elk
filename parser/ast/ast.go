@@ -62,6 +62,7 @@ type Node interface {
 	position.SpanInterface
 	IsStatic() bool // Value is known at compile-time
 	Type(*types.GlobalEnvironment) types.Type
+	SkipTypechecking() bool
 }
 
 type DocCommentableNode interface {
@@ -97,6 +98,10 @@ func (t *TypedNodeBase) Type(*types.GlobalEnvironment) types.Type {
 	return t.typ
 }
 
+func (t *TypedNodeBase) SkipTypechecking() bool {
+	return t.typ != nil
+}
+
 func (t *TypedNodeBase) SetType(typ types.Type) {
 	t.typ = typ
 }
@@ -116,6 +121,10 @@ type NodeBase struct {
 
 func (*NodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
 	return types.Void{}
+}
+
+func (t *NodeBase) SkipTypechecking() bool {
+	return false
 }
 
 func (n *NodeBase) Span() *position.Span {
@@ -1982,6 +1991,10 @@ type SingletonBlockExpressionNode struct {
 	Body []StatementNode // do expression body
 }
 
+func (*SingletonBlockExpressionNode) SkipTypechecking() bool {
+	return false
+}
+
 func (*SingletonBlockExpressionNode) IsStatic() bool {
 	return false
 }
@@ -2907,6 +2920,10 @@ type ClassDeclarationNode struct {
 	Body          []StatementNode    // body of the class
 }
 
+func (*ClassDeclarationNode) SkipTypechecking() bool {
+	return false
+}
+
 func (*ClassDeclarationNode) IsStatic() bool {
 	return false
 }
@@ -2947,6 +2964,10 @@ type ModuleDeclarationNode struct {
 	Body     []StatementNode // body of the module
 }
 
+func (*ModuleDeclarationNode) SkipTypechecking() bool {
+	return false
+}
+
 func (*ModuleDeclarationNode) IsStatic() bool {
 	return false
 }
@@ -2977,6 +2998,10 @@ type MixinDeclarationNode struct {
 	Constant      ExpressionNode     // The constant that will hold the mixin value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the mixin
+}
+
+func (*MixinDeclarationNode) SkipTypechecking() bool {
+	return false
 }
 
 func (*MixinDeclarationNode) IsStatic() bool {
@@ -3012,6 +3037,10 @@ type InterfaceDeclarationNode struct {
 	Constant      ExpressionNode     // The constant that will hold the interface value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the interface
+}
+
+func (*InterfaceDeclarationNode) SkipTypechecking() bool {
+	return false
 }
 
 func (*InterfaceDeclarationNode) IsStatic() bool {

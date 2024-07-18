@@ -59,6 +59,57 @@ func LogicalRightShift8[L SimpleInt](left L, right uint64) L {
 
 type logicalShiftFunc[L SimpleInt] func(left L, right uint64) L
 
+// Bitshift a strict int to the left.
+func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), nil
+		}
+		return left << r, nil
+	case Int64:
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), nil
+		}
+		return left << r, nil
+	case Int32:
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), nil
+		}
+		return left << r, nil
+	case Int16:
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), nil
+		}
+		return left << r, nil
+	case Int8:
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), nil
+		}
+		return left << r, nil
+	case UInt64:
+		return left << r, nil
+	case UInt32:
+		return left << r, nil
+	case UInt16:
+		return left << r, nil
+	case UInt8:
+		return left << r, nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left >> -rSmall, nil
+			}
+			return left << rSmall, nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewBitshiftOperandError(right)
+	}
+}
+
 // Logically bitshift a strict int to the right.
 func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
 	switch r := right.(type) {

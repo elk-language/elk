@@ -46,8 +46,15 @@ func TestVariableAssignment(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "local `foo` is not nilable"),
-				error.NewFailure(L("<main>", P(30, 3, 13), P(32, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"??= initialised variable with a non-matching type": {
+			input: `
+				var foo: Int? = 5
+				foo ??= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"??= initialised variable with a matching nilable type": {
@@ -70,8 +77,15 @@ func TestVariableAssignment(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "local `foo` cannot be falsy"),
-				error.NewFailure(L("<main>", P(30, 3, 13), P(32, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"||= initialised variable with a non-matching and non-falsy type": {
+			input: `
+				var foo: Int? = 5
+				foo ||= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"||= initialised variable with a matching nilable type": {
@@ -87,15 +101,22 @@ func TestVariableAssignment(t *testing.T) {
 			`,
 		},
 
-		"&&= uninitialised variable with a non-matching and non-truthy type": {
+		"&&= uninitialised variable": {
 			input: `
 				var foo: Nil | False
 				foo &&= 'f'
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "local `foo` cannot be truthy"),
-				error.NewFailure(L("<main>", P(38, 3, 13), P(40, 3, 15)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Nil | Std::False`"),
+			},
+		},
+		"&&= initialised variable with a non-matching type": {
+			input: `
+				var foo: Int? = nil
+				foo &&= 'f'
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 3, 13), P(39, 3, 15)), "type `nil | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"&&= initialised variable with a matching truthy type": {
@@ -103,6 +124,331 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int? = nil
 				foo &&= 5
 			`,
+		},
+
+		"+= uninitialised variable": {
+			input: `
+				var a: String
+				a += "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"+= on a type with the method": {
+			input: `
+				var a = "foo"
+				a += "bar"
+			`,
+		},
+		"+= on a type without the method": {
+			input: `
+				var a = Object()
+				a += "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `+` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"-= uninitialised variable": {
+			input: `
+				var a: Int
+				a -= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"-= on a type with the method": {
+			input: `
+				var a = 1
+				a -= 2
+			`,
+		},
+		"-= on a type without the method": {
+			input: `
+				var a = Object()
+				a -= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `-` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"*= uninitialised variable": {
+			input: `
+				var a: Int
+				a *= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"*= on a type with the method": {
+			input: `
+				var a = 1
+				a *= 2
+			`,
+		},
+		"*= on a type without the method": {
+			input: `
+				var a = Object()
+				a *= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `*` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"/= uninitialised variable": {
+			input: `
+				var a: Int
+				a /= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"/= on a type with the method": {
+			input: `
+				var a = 1
+				a /= 2
+			`,
+		},
+		"/= on a type without the method": {
+			input: `
+				var a = Object()
+				a /= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `/` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"**= uninitialised variable": {
+			input: `
+				var a: Int
+				a **= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"**= on a type with the method": {
+			input: `
+				var a = 1
+				a **= 2
+			`,
+		},
+		"**= on a type without the method": {
+			input: `
+				var a = Object()
+				a **= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `**` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"%= uninitialised variable": {
+			input: `
+				var a: Int
+				a %= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"%= on a type with the method": {
+			input: `
+				var a = 1
+				a %= 2
+			`,
+		},
+		"%= on a type without the method": {
+			input: `
+				var a = Object()
+				a %= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `%` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"&= uninitialised variable": {
+			input: `
+				var a: Int
+				a &= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"&= on a type with the method": {
+			input: `
+				var a = 1
+				a &= 2
+			`,
+		},
+		"&= on a type without the method": {
+			input: `
+				var a = Object()
+				a &= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `&` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"|= uninitialised variable": {
+			input: `
+				var a: Int
+				a |= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"|= on a type with the method": {
+			input: `
+				var a = 1
+				a |= 2
+			`,
+		},
+		"|= on a type without the method": {
+			input: `
+				var a = Object()
+				a |= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `|` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"^= uninitialised variable": {
+			input: `
+				var a: Int
+				a ^= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"^= on a type with the method": {
+			input: `
+				var a = 1
+				a ^= 2
+			`,
+		},
+		"^= on a type without the method": {
+			input: `
+				var a = Object()
+				a ^= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `^` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"<<= uninitialised variable": {
+			input: `
+				var a: Int
+				a <<= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"<<= on a type with the method": {
+			input: `
+				var a = 1
+				a <<= 2
+			`,
+		},
+		"<<= on a type without the method": {
+			input: `
+				var a = Object()
+				a <<= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `<<` is not defined on type `Std::Object`"),
+			},
+		},
+
+		">>= uninitialised variable": {
+			input: `
+				var a: Int
+				a >>= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		">>= on a type with the method": {
+			input: `
+				var a = 1
+				a >>= 2
+			`,
+		},
+		">>= on a type without the method": {
+			input: `
+				var a = Object()
+				a >>= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `>>` is not defined on type `Std::Object`"),
+			},
+		},
+
+		">>>= uninitialised variable": {
+			input: `
+				var a: Int64
+				a >>>= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		">>>= on a type with the method": {
+			input: `
+				var a = 1i64
+				a >>>= 2
+			`,
+		},
+		">>>= on a type without the method": {
+			input: `
+				var a = Object()
+				a >>>= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `>>>` is not defined on type `Std::Object`"),
+			},
+		},
+
+		"<<<= uninitialised variable": {
+			input: `
+				var a: Int64
+				a <<<= 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"<<<= on a type with the method": {
+			input: `
+				var a = 1i64
+				a <<<= 2
+			`,
+		},
+		"<<<= on a type without the method": {
+			input: `
+				var a = Object()
+				a <<<= "bar"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `<<<` is not defined on type `Std::Object`"),
+			},
 		},
 	}
 

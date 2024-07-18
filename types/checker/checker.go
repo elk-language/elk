@@ -418,14 +418,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	}
 
-	if aNamedType, ok := a.(*types.NamedType); ok {
-		a = aNamedType.Type
-	}
 	if bNamedType, ok := b.(*types.NamedType); ok {
 		b = bNamedType.Type
 	}
 
-	if types.IsNever(a) {
+	if types.IsNever(a) || types.IsNothing(a) {
 		return true
 	}
 	switch b.(type) {
@@ -447,14 +444,6 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	}
 
-	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
-		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
-	}
-
-	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
-		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
-	}
-
 	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
 		for _, aElement := range aUnion.Elements {
 			if !c.isSubtype(aElement, b, errSpan) {
@@ -462,6 +451,10 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 			}
 		}
 		return true
+	}
+
+	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
+		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
 	}
 
 	if bUnion, bIsUnion := b.(*types.Union); bIsUnion {
@@ -473,8 +466,14 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return false
 	}
 
+	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
+		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
+	}
+
 	originalA := a
 	switch a := a.(type) {
+	case *types.NamedType:
+		return c.isSubtype(a.Type, b, errSpan)
 	case types.Any:
 		return types.IsAny(b)
 	case types.Nil:
@@ -856,6 +855,10 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	if node.SkipTypechecking() {
+		return node
+	}
+
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
@@ -966,8 +969,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		c.checkExpressionsWithinSingleton(n)
 		return n
 	case *ast.AssignmentExpressionNode:
-		c.assignmentExpression(n)
-		return n
+		return c.checkAssignmentExpression(n)
 	case *ast.ReceiverlessMethodCallNode:
 		c.receiverlessMethodCall(n)
 		return n
@@ -1141,7 +1143,7 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 	case token.QUESTION_QUESTION:
 		return c.checkNilCoalescingOperator(node)
 	default:
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		c.addFailure(
 			fmt.Sprintf(
 				"invalid logical operator: `%s`",
@@ -1272,7 +1274,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		)
 		node.SetType(typ)
 	default:
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		c.addFailure(
 			fmt.Sprintf(
 				"invalid binary operator: `%s`",
@@ -2000,7 +2002,7 @@ func (c *Checker) toNonNilable(typ types.Type) types.Type {
 	case *types.Intersection:
 		for _, element := range t.Elements {
 			nonNilable := c.toNonNilable(element)
-			if types.IsNever(nonNilable) {
+			if types.IsNever(nonNilable) || types.IsNothing(nonNilable) {
 				return types.Never{}
 			}
 		}
@@ -2033,7 +2035,7 @@ func (c *Checker) toNonFalsy(typ types.Type) types.Type {
 	case *types.Intersection:
 		for _, element := range t.Elements {
 			nonFalsy := c.toNonFalsy(element)
-			if types.IsNever(nonFalsy) {
+			if types.IsNever(nonFalsy) || types.IsNothing(nonFalsy) {
 				return types.Never{}
 			}
 		}
@@ -2066,7 +2068,7 @@ func (c *Checker) toNonTruthy(typ types.Type) types.Type {
 	case *types.Intersection:
 		for _, element := range t.Elements {
 			nonTruthy := c.toNonTruthy(element)
-			if types.IsNever(nonTruthy) {
+			if types.IsNever(nonTruthy) || types.IsNothing(nonTruthy) {
 				return types.Never{}
 			}
 		}
@@ -2346,7 +2348,7 @@ func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
 	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return
 	}
 
@@ -2376,7 +2378,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 			node.Span(),
 		)
 		c.checkExpressions(node.PositionalArguments)
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return
 	}
 
@@ -2423,6 +2425,26 @@ func (c *Checker) checkSimpleMethodCall(
 ) {
 	receiver = c.checkExpression(receiver)
 	receiverType := c.typeOf(receiver)
+
+	// Allow arbitrary method calls on `never` and `nothing`.
+	// Typecheck the arguments.
+	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
+		var typedPositionalArguments []ast.ExpressionNode
+
+		for _, argument := range positionalArguments {
+			typedPositionalArguments = append(typedPositionalArguments, c.checkExpression(argument))
+		}
+		for _, argument := range namedArguments {
+			arg, ok := argument.(*ast.NamedCallArgumentNode)
+			if !ok {
+				continue
+			}
+			typedPositionalArguments = append(typedPositionalArguments, c.checkExpression(arg.Value))
+		}
+
+		return receiver, typedPositionalArguments, receiverType
+	}
+
 	var method *types.Method
 	if nilSafe {
 		nonNilableReceiverType := c.toNonNilable(receiverType)
@@ -2432,7 +2454,7 @@ func (c *Checker) checkSimpleMethodCall(
 	}
 	if method == nil {
 		c.checkExpressions(positionalArguments)
-		return receiver, positionalArguments, types.Void{}
+		return receiver, positionalArguments, types.Nothing{}
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, positionalArguments, namedArguments, span)
@@ -2488,7 +2510,7 @@ func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionN
 	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), node.Span())
 	if method == nil {
 		node.Receiver = receiver
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return node
 	}
 
@@ -2763,12 +2785,91 @@ func (c *Checker) checkMethod(
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
-func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
+func (c *Checker) checkLogicalOperatorAssignmentExpression(node *ast.AssignmentExpressionNode, operator token.Type) ast.ExpressionNode {
+	return c.checkExpression(
+		ast.NewAssignmentExpressionNode(
+			node.Span(),
+			token.New(node.Op.Span(), token.EQUAL_OP),
+			node.Left,
+			ast.NewLogicalExpressionNode(
+				node.Right.Span(),
+				token.New(node.Op.Span(), operator),
+				node.Left,
+				node.Right,
+			),
+		),
+	)
+}
+
+func (c *Checker) checkBinaryOperatorAssignmentExpression(node *ast.AssignmentExpressionNode, operator token.Type) ast.ExpressionNode {
+	return c.checkExpression(
+		ast.NewAssignmentExpressionNode(
+			node.Span(),
+			token.New(node.Op.Span(), token.EQUAL_OP),
+			node.Left,
+			ast.NewBinaryExpressionNode(
+				node.Right.Span(),
+				token.New(node.Op.Span(), operator),
+				node.Left,
+				node.Right,
+			),
+		),
+	)
+}
+
+func (c *Checker) checkAssignmentExpression(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	span := node.Span()
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		return c.checkSimpleAssignment(node)
+	case token.QUESTION_QUESTION_EQUAL:
+		return c.checkLogicalOperatorAssignmentExpression(node, token.QUESTION_QUESTION)
+	case token.OR_OR_EQUAL:
+		return c.checkLogicalOperatorAssignmentExpression(node, token.OR_OR)
+	case token.AND_AND_EQUAL:
+		return c.checkLogicalOperatorAssignmentExpression(node, token.AND_AND)
+	case token.PLUS_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.PLUS)
+	case token.MINUS_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.MINUS)
+	case token.STAR_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.STAR)
+	case token.SLASH_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.SLASH)
+	case token.STAR_STAR_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.STAR_STAR)
+	case token.PERCENT_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.PERCENT)
+	case token.AND_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.AND)
+	case token.OR_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.OR)
+	case token.XOR_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.XOR)
+	case token.LBITSHIFT_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.LBITSHIFT)
+	case token.LTRIPLE_BITSHIFT_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.LTRIPLE_BITSHIFT)
+	case token.RBITSHIFT_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.RBITSHIFT)
+	case token.RTRIPLE_BITSHIFT_EQUAL:
+		return c.checkBinaryOperatorAssignmentExpression(node, token.RTRIPLE_BITSHIFT)
+	// case token.COLON_EQUAL:
+	default:
+		c.addFailure(
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),
+			span,
+		)
+		return node
+	}
+}
+
+func (c *Checker) checkSimpleAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		c.localVariableAssignment(n.Value, node)
+		return c.checkLocalVariableAssignment(n.Value, node)
 	case *ast.PrivateIdentifierNode:
-		c.localVariableAssignment(n.Value, node)
+		return c.checkLocalVariableAssignment(n.Value, node)
 	// case *ast.SubscriptExpressionNode:
 	// case *ast.ConstantLookupNode:
 	// case *ast.PublicConstantNode:
@@ -2780,190 +2881,32 @@ func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			node.Span(),
 		)
+		return node
 	}
 }
 
-func (c *Checker) checkAddMethod(receiver types.Type, argument types.Type) (returnType types.Type) {
-	// c.toNonLiteral(receiver)
-	// receiverClass, ok := receiver.(*types.Class)
-	return nil
-}
-
-func (c *Checker) localVariableAssignment(name string, node *ast.AssignmentExpressionNode) {
+func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	span := node.Span()
-	switch node.Op.Type {
-	case token.EQUAL_OP:
-		variable := c.getLocal(name)
-		if variable == nil {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				span,
-			)
-			break
-		}
-		if variable.singleAssignment && variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("local value `%s` cannot be reassigned", name),
-				span,
-			)
-		}
 
-		node.Right = c.checkExpression(node.Right)
-		assignedType := c.typeOf(node.Right)
-		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	case token.QUESTION_QUESTION_EQUAL:
-		variable := c.getLocal(name)
-		if variable == nil {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				span,
-			)
-			break
-		}
-		if variable.singleAssignment && variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("local value `%s` cannot be reassigned", name),
-				span,
-			)
-		}
-
-		if !variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("cannot access uninitialised local `%s`", name),
-				node.Left.Span(),
-			)
-		}
-
-		if !c.isNilable(variable.typ) {
-			c.addFailure(
-				fmt.Sprintf("local `%s` is not nilable", name),
-				node.Left.Span(),
-			)
-		}
-
-		node.Right = c.checkExpression(node.Right)
-		assignedType := c.typeOf(node.Right)
-		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	case token.OR_OR_EQUAL:
-		variable := c.getLocal(name)
-		if variable == nil {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				span,
-			)
-			break
-		}
-		if variable.singleAssignment && variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("local value `%s` cannot be reassigned", name),
-				span,
-			)
-		}
-
-		if !variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("cannot access uninitialised local `%s`", name),
-				node.Left.Span(),
-			)
-		}
-
-		if !c.canBeFalsy(variable.typ) {
-			c.addFailure(
-				fmt.Sprintf("local `%s` cannot be falsy", name),
-				node.Left.Span(),
-			)
-		}
-
-		node.Right = c.checkExpression(node.Right)
-		assignedType := c.typeOf(node.Right)
-		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	case token.AND_AND_EQUAL:
-		variable := c.getLocal(name)
-		if variable == nil {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				span,
-			)
-			break
-		}
-		if variable.singleAssignment && variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("local value `%s` cannot be reassigned", name),
-				span,
-			)
-		}
-
-		if !variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("cannot access uninitialised local `%s`", name),
-				node.Left.Span(),
-			)
-		}
-
-		if !c.canBeTruthy(variable.typ) {
-			c.addFailure(
-				fmt.Sprintf("local `%s` cannot be truthy", name),
-				node.Left.Span(),
-			)
-		}
-
-		node.Right = c.checkExpression(node.Right)
-		assignedType := c.typeOf(node.Right)
-		c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	case token.PLUS_EQUAL:
-		variable := c.getLocal(name)
-		if variable == nil {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				span,
-			)
-			break
-		}
-		if variable.singleAssignment && variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("local value `%s` cannot be reassigned", name),
-				span,
-			)
-		}
-
-		if !variable.initialised {
-			c.addFailure(
-				fmt.Sprintf("cannot access uninitialised local `%s`", name),
-				node.Left.Span(),
-			)
-		}
-
-		c.getMethod(variable.typ, symbol.OpAdd, node.Op.Span())
-
-		// if !c.canBeTruthy(variable.typ) {
-		// 	c.addFailure(
-		// 		fmt.Sprintf("local `%s` cannot be truthy", name),
-		// 		node.Left.Span(),
-		// 	)
-		// }
-
-		// node.Right = c.checkExpression(node.Right)
-		// assignedType := c.typeOf(node.Right)
-		// c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
-	// case token.MINUS_EQUAL:
-	// case token.STAR_EQUAL:
-	// case token.SLASH_EQUAL:
-	// case token.STAR_STAR_EQUAL:
-	// case token.PERCENT_EQUAL:
-	// case token.AND_EQUAL:
-	// case token.OR_EQUAL:
-	// case token.XOR_EQUAL:
-	// case token.LBITSHIFT_EQUAL:
-	// case token.LTRIPLE_BITSHIFT_EQUAL:
-	// case token.RBITSHIFT_EQUAL:
-	// case token.RTRIPLE_BITSHIFT_EQUAL:
-	// case token.COLON_EQUAL:
-	default:
+	variable := c.getLocal(name)
+	if variable == nil {
 		c.addFailure(
-			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),
+			fmt.Sprintf("undefined local `%s`", name),
+			span,
+		)
+		return node
+	}
+	if variable.singleAssignment && variable.initialised {
+		c.addFailure(
+			fmt.Sprintf("local value `%s` cannot be reassigned", name),
 			span,
 		)
 	}
+
+	node.Right = c.checkExpression(node.Right)
+	assignedType := c.typeOf(node.Right)
+	c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
+	return node
 }
 
 func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
@@ -3356,7 +3299,7 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 	node.SetType(typ)
 }
@@ -3364,7 +3307,7 @@ func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 	node.SetType(typ)
 }
@@ -3457,7 +3400,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
 				n.Span(),
 			)
-			n.SetType(types.Void{})
+			n.SetType(types.Nothing{})
 			return n
 		}
 
@@ -3467,7 +3410,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
 				n.Span(),
 			)
-			n.SetType(types.Void{})
+			n.SetType(types.Nothing{})
 			return n
 		}
 
@@ -3501,14 +3444,14 @@ func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
 
 elementLoop:
 	for _, element := range elements {
-		if types.IsNever(element) {
+		if types.IsNever(element) || types.IsNothing(element) {
 			continue elementLoop
 		}
 		switch e := element.(type) {
 		case *types.Union:
 		subUnionLoop:
 			for _, subUnionElement := range e.Elements {
-				if types.IsNever(subUnionElement) {
+				if types.IsNever(subUnionElement) || types.IsNothing(subUnionElement) {
 					continue subUnionLoop
 				}
 				for _, normalisedElement := range normalisedElements {
@@ -3522,7 +3465,7 @@ elementLoop:
 			elements := []types.Type{e.Type, types.Nil{}}
 		nilableLoop:
 			for _, nilableElement := range elements {
-				if types.IsNever(nilableElement) {
+				if types.IsNever(nilableElement) || types.IsNothing(nilableElement) {
 					continue nilableLoop
 				}
 				for _, normalisedElement := range normalisedElements {
@@ -3619,7 +3562,7 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode,
 func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookupType(node)
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -3729,7 +3672,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node)
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -3743,7 +3686,7 @@ func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *ast.PublicConsta
 func (c *Checker) publicConstant(node *ast.PublicConstantNode) *ast.PublicConstantNode {
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 
 	node.Value = name
@@ -3754,7 +3697,7 @@ func (c *Checker) publicConstant(node *ast.PublicConstantNode) *ast.PublicConsta
 func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Void{}
+		typ = types.Nothing{}
 	}
 
 	node.Value = name
@@ -3765,7 +3708,7 @@ func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateCon
 func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return node
 	}
 	if !local.initialised {
@@ -3781,7 +3724,7 @@ func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicId
 func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
 	local := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return node
 	}
 	if !local.initialised {
@@ -3813,7 +3756,7 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 			),
 			node.Span(),
 		)
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return
 	}
 
@@ -3983,7 +3926,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			node.Span(),
 		)
 
-		declaredType = types.Void{}
+		declaredType = types.Nothing{}
 	} else {
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType = c.typeOf(declaredTypeNode)
@@ -4032,8 +3975,8 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name, newLocal(types.Void{}, false, false))
-			node.SetType(types.Void{})
+			c.addLocal(node.Name, newLocal(types.Nothing{}, false, false))
+			node.SetType(types.Nothing{})
 			return
 		}
 
@@ -4042,7 +3985,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name, newLocal(declaredType, false, false))
 		node.TypeNode = declaredTypeNode
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return
 	}
 
@@ -4090,8 +4033,8 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name, newLocal(types.Void{}, false, true))
-			node.SetType(types.Void{})
+			c.addLocal(node.Name, newLocal(types.Nothing{}, false, true))
+			node.SetType(types.Nothing{})
 			return
 		}
 
@@ -4100,7 +4043,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
-		node.SetType(types.Void{})
+		node.SetType(types.Nothing{})
 		return
 	}
 
@@ -4334,8 +4277,8 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 				fmt.Sprintf("cannot declare a constant without a type `%s`", constantName),
 				node.Span(),
 			)
-			container.DefineConstant(constantName, types.Void{})
-			node.SetType(types.Void{})
+			container.DefineConstant(constantName, types.Nothing{})
+			node.SetType(types.Nothing{})
 			return
 		}
 

@@ -1,0 +1,195 @@
+##[
+	Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).
+]##
+sealed primitive class ::Std::UInt32
+	##[
+		Returns itself.
+
+		```
+			var a = 1u32
+			+a #=> 1u32
+		```
+	]##
+	sealed def +@: UInt32; end
+
+	##[
+		Returns the result of negating the integer.
+
+		```
+			var a = 1u32
+			-a #=> 4294967295u32
+		```
+	]##
+	sealed def -@: UInt32; end
+
+	##[
+		Returns the result of applying bitwise NOT on the bits
+		of this integer.
+
+		```
+			~4u32 #=> 4294967291u32
+		```
+	]##
+	sealed def ~: UInt32; end
+
+	##[
+		Get the next integer by incrementing by `1`.
+	]##
+	sealed def ++: UInt32; end
+
+	##[
+		Get the previous integer by decrementing by `1`.
+	]##
+	sealed def --: UInt32; end
+
+	##[
+		Add `other` to this integer.
+	]##
+	sealed def +(other: UInt32): UInt32; end
+
+	##[
+		Subtract `other` from this integer.
+	]##
+	sealed def -(other: UInt32): UInt32; end
+
+	##[
+		Multiply this integer by `other`.
+	]##
+	sealed def *(other: UInt32): UInt32; end
+
+	##[
+		Divide this integer by another integer.
+		Throws an unchecked runtime error when dividing by `0`.
+	]##
+	sealed def /(other: UInt32): UInt32; end
+
+	##[
+		Exponentiate this integer, raise it to the power of `other`.
+	]##
+	sealed def **(other: UInt32): UInt32; end
+
+	##[
+		Compare this integer with another integer.
+		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
+	]##
+	sealed def <=>(other: UInt32): Int; end
+
+	sealed def >=(other: UInt32): Bool; end
+
+	sealed def >(other: UInt32): Bool; end
+
+	sealed def <=(other: UInt32): Bool; end
+
+	sealed def <(other: UInt32): Bool; end
+
+	##[
+		Returns an integer shifted left by `other` positions, or right if `other` is negative.
+	]##
+	sealed def <<(other: AnyInt): UInt32; end
+	alias <<< <<
+
+	##[
+		Returns an integer shifted right by `other` positions, or left if `other` is negative.
+	]##
+	sealed def >>(other: AnyInt): UInt32; end
+	alias >>> >>
+
+	##[
+		Performs bitwise AND.
+	]##
+	sealed def &(other: UInt32): UInt32; end
+
+	##[
+		Performs bitwise AND NOT (bit clear).
+	]##
+	sealed def &~(other: UInt32): UInt32; end
+
+	##[
+		Performs bitwise OR.
+	]##
+	sealed def |(other: UInt32): UInt32; end
+
+	##[
+		Performs bitwise XOR.
+	]##
+	sealed def ^(other: UInt32): UInt32; end
+
+	##[
+		Returns the remainder of dividing by `other`.
+
+		```
+			var a = 10u32
+			var b = 3u32
+			a % b #=> 1u32
+		```
+	]##
+	sealed def %(other: UInt32): UInt32; end
+
+	##[
+		Converts to an automatically resizable integer type.
+	]##
+	def to_int: Int; end
+
+	##[
+		Return a human readable string
+		representation of this object
+		for debugging etc.
+	]##
+	def inspect: String; end
+
+	##[
+		Converts the integer to a floating point number.
+	]##
+	def to_float: Float; end
+
+	##[
+		Converts the integer to a 64-bit floating point number.
+	]##
+	def to_float64: Float64; end
+
+	##[
+		Converts the integer to a 32-bit floating point number.
+	]##
+	def to_float32: Float32; end
+
+	##[
+		Converts the integer to a 64-bit integer.
+	]##
+	def to_int64: Int64; end
+
+	##[
+		Converts the integer to a 32-bit integer.
+	]##
+	def to_int32: Int32; end
+
+	##[
+		Converts the integer to a 16-bit integer.
+	]##
+	def to_int16: Int16; end
+
+	##[
+		Converts the integer to a 8-bit integer.
+	]##
+	def to_int8: Int8; end
+
+	##[
+		Converts the integer to an unsigned 64-bit integer.
+	]##
+	def to_uint64: UInt64; end
+
+	##[
+		Returns itself.
+	]##
+	def to_uint32: UInt32; end
+
+	##[
+		Converts the integer to an unsigned 16-bit integer.
+	]##
+	def to_uint16: UInt16; end
+
+	##[
+		Converts the integer to an unsigned 8-bit integer.
+	]##
+	def to_uint8: UInt8; end
+
+end
