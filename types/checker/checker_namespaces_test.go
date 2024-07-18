@@ -637,6 +637,37 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 		},
+
+		"assign an instance variable with a matching type": {
+			input: `
+				module Foo
+					var @foo: String
+					@foo = "foo"
+				end
+			`,
+		},
+		"assign an instance variable with a non-matching type": {
+			input: `
+				module Foo
+					var @foo: String
+					@foo = 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 4, 13), P(50, 4, 13)), "type `Std::Int(2)` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"assign an inexistent instance variable": {
+			input: `
+				module Foo
+					@foo = 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(21, 3, 6), P(24, 3, 9)), "undefined instance variable `@foo` in type `Foo`"),
+				error.NewFailure(L("<main>", P(28, 3, 13), P(28, 3, 13)), "type `Std::Int(2)` cannot be assigned to type `nothing`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

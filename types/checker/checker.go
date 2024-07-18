@@ -937,22 +937,22 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		c.valueDeclaration(n)
 		return n
 	case *ast.PublicIdentifierNode:
-		c.publicIdentifier(n)
+		c.checkPublicIdentifierNode(n)
 		return n
 	case *ast.PrivateIdentifierNode:
-		c.privateIdentifier(n)
+		c.checkPrivateIdentifierNode(n)
 		return n
 	case *ast.InstanceVariableNode:
-		c.instanceVariable(n)
+		c.checkInstanceVariableNode(n)
 		return n
 	case *ast.PublicConstantNode:
-		c.publicConstant(n)
+		c.checkPublicConstantNode(n)
 		return n
 	case *ast.PrivateConstantNode:
-		c.privateConstant(n)
+		c.checkPrivateConstantNode(n)
 		return n
 	case *ast.ConstantLookupNode:
-		return c.constantLookup(n)
+		return c.checkConstantLookupNode(n)
 	case *ast.ModuleDeclarationNode:
 		c.checkExpressionsWithinModule(n)
 		return n
@@ -969,7 +969,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		c.checkExpressionsWithinSingleton(n)
 		return n
 	case *ast.AssignmentExpressionNode:
-		return c.checkAssignmentExpression(n)
+		return c.checkAssignmentExpressionNode(n)
 	case *ast.ReceiverlessMethodCallNode:
 		c.receiverlessMethodCall(n)
 		return n
@@ -1709,11 +1709,11 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) ast.ComplexConstantNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		return c.publicConstant(n)
+		return c.checkPublicConstantNode(n)
 	case *ast.PrivateConstantNode:
-		return c.privateConstant(n)
+		return c.checkPrivateConstantNode(n)
 	case *ast.ConstantLookupNode:
-		return c.constantLookup(n)
+		return c.checkConstantLookupNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant type %T", node),
@@ -2507,6 +2507,13 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
+
+	// Allow arbitrary method calls on `never` and `nothing`.
+	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
+		node.SetType(types.Nothing{})
+		return node
+	}
+
 	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), node.Span())
 	if method == nil {
 		node.Receiver = receiver
@@ -2817,11 +2824,11 @@ func (c *Checker) checkBinaryOperatorAssignmentExpression(node *ast.AssignmentEx
 	)
 }
 
-func (c *Checker) checkAssignmentExpression(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkAssignmentExpressionNode(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	span := node.Span()
 	switch node.Op.Type {
 	case token.EQUAL_OP:
-		return c.checkSimpleAssignment(node)
+		return c.checkAssignment(node)
 	case token.QUESTION_QUESTION_EQUAL:
 		return c.checkLogicalOperatorAssignmentExpression(node, token.QUESTION_QUESTION)
 	case token.OR_OR_EQUAL:
@@ -2879,7 +2886,7 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 	return node
 }
 
-func (c *Checker) checkSimpleAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
 		return c.checkLocalVariableAssignment(n.Value, node)
@@ -2889,7 +2896,8 @@ func (c *Checker) checkSimpleAssignment(node *ast.AssignmentExpressionNode) ast.
 	// case *ast.ConstantLookupNode:
 	// case *ast.PublicConstantNode:
 	// case *ast.PrivateConstantNode:
-	// case *ast.InstanceVariableNode:
+	case *ast.InstanceVariableNode:
+		return c.checkInstanceVariableAssignment(n.Value, node)
 	// case *ast.AttributeAccessNode:
 	default:
 		c.addFailure(
@@ -2898,6 +2906,15 @@ func (c *Checker) checkSimpleAssignment(node *ast.AssignmentExpressionNode) ast.
 		)
 		return node
 	}
+}
+
+func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	ivarType := c.checkInstanceVariable(name, node.Left.Span())
+
+	node.Right = c.checkExpression(node.Right)
+	assignedType := c.typeOf(node.Right)
+	c.checkCanAssign(assignedType, ivarType, node.Right.Span())
+	return node
 }
 
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
@@ -3684,7 +3701,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	return constant, constantName
 }
 
-func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
+func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node)
 	if typ == nil {
 		typ = types.Nothing{}
@@ -3698,7 +3715,7 @@ func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *ast.PublicConsta
 	return newNode
 }
 
-func (c *Checker) publicConstant(node *ast.PublicConstantNode) *ast.PublicConstantNode {
+func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Nothing{}
@@ -3709,7 +3726,7 @@ func (c *Checker) publicConstant(node *ast.PublicConstantNode) *ast.PublicConsta
 	return node
 }
 
-func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
+func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Nothing{}
@@ -3720,7 +3737,7 @@ func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateCon
 	return node
 }
 
-func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
+func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
 		node.SetType(types.Nothing{})
@@ -3736,7 +3753,7 @@ func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicId
 	return node
 }
 
-func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
+func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
 	local := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
 		node.SetType(types.Nothing{})
@@ -3752,13 +3769,13 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.Privat
 	return node
 }
 
-func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
-	typ, container := c.getInstanceVariable(value.ToSymbol(node.Value))
+func (c *Checker) checkInstanceVariable(name string, span *position.Span) types.Type {
+	typ, container := c.getInstanceVariable(value.ToSymbol(name))
 	self, ok := c.selfType.(types.Namespace)
 	if !ok || self.IsPrimitive() {
 		c.addFailure(
 			"cannot use instance variables in this context",
-			node.Span(),
+			span,
 		)
 	}
 
@@ -3766,15 +3783,19 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 		c.addFailure(
 			fmt.Sprintf(
 				"undefined instance variable `%s` in type `%s`",
-				types.InspectInstanceVariableWithColor(node.Value),
+				types.InspectInstanceVariableWithColor(name),
 				types.InspectWithColor(container),
 			),
-			node.Span(),
+			span,
 		)
-		node.SetType(types.Nothing{})
-		return
+		return types.Nothing{}
 	}
 
+	return typ
+}
+
+func (c *Checker) checkInstanceVariableNode(node *ast.InstanceVariableNode) {
+	typ := c.checkInstanceVariable(node.Value, node.Span())
 	node.SetType(typ)
 }
 
