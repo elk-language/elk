@@ -981,6 +981,10 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
+	case *ast.NilSafeSubscriptExpressionNode:
+		return c.checkNilSafeSubscriptExpressionNode(n)
+	case *ast.SubscriptExpressionNode:
+		return c.checkSubscriptExpressionNode(n)
 	case *ast.LogicalExpressionNode:
 		return c.checkLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
@@ -1128,6 +1132,38 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.ExpressionNode {
 	node.Right = c.checkExpression(node.Right)
 	node.SetType(c.StdBool())
+	return node
+}
+
+func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) ast.ExpressionNode {
+	receiver, args, typ := c.checkSimpleMethodCall(
+		node.Receiver,
+		true,
+		symbol.OpSubscript,
+		[]ast.ExpressionNode{node.Key},
+		nil,
+		node.Span(),
+	)
+	node.Receiver = receiver
+	node.Key = args[0]
+
+	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode) ast.ExpressionNode {
+	receiver, args, typ := c.checkSimpleMethodCall(
+		node.Receiver,
+		false,
+		symbol.OpSubscript,
+		[]ast.ExpressionNode{node.Key},
+		nil,
+		node.Span(),
+	)
+	node.Receiver = receiver
+	node.Key = args[0]
+
+	node.SetType(typ)
 	return node
 }
 

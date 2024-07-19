@@ -3562,7 +3562,7 @@ func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName s
 
 // Represents subscript access eg. `arr[5]`
 type SubscriptExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
 	static   bool
@@ -3575,16 +3575,16 @@ func (s *SubscriptExpressionNode) IsStatic() bool {
 // Create a subscript expression node eg. `arr[5]`
 func NewSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *SubscriptExpressionNode {
 	return &SubscriptExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Receiver: recv,
-		Key:      key,
-		static:   recv.IsStatic() && key.IsStatic(),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Receiver:      recv,
+		Key:           key,
+		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 
 // Represents nil-safe subscript access eg. `arr?[5]`
 type NilSafeSubscriptExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
 	static   bool
@@ -3597,10 +3597,10 @@ func (s *NilSafeSubscriptExpressionNode) IsStatic() bool {
 // Create a nil-safe subscript expression node eg. `arr?[5]`
 func NewNilSafeSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *NilSafeSubscriptExpressionNode {
 	return &NilSafeSubscriptExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Receiver: recv,
-		Key:      key,
-		static:   recv.IsStatic() && key.IsStatic(),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Receiver:      recv,
+		Key:           key,
+		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 

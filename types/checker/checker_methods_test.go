@@ -1366,6 +1366,90 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(24, 3, 5), P(39, 3, 20)), "method `[]=` is not defined on type `Foo`"),
 			},
 		},
+
+		"call subscript with matching argument": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				var f: String = Foo()["foo"]
+			`,
+		},
+		"call subscript with non-matching argument": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				Foo()[1]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 11), P(71, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `Std::Int(1)`"),
+			},
+		},
+		"call nonexistent subscript": {
+			input: `
+				class Foo; end
+				Foo()["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 5), P(35, 3, 16)), "method `[]` is not defined on type `Foo`"),
+			},
+		},
+
+		"call nil-safe subscript on non nilable type": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				var f: String = Foo()?["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 5, 21), P(93, 5, 33)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+			},
+		},
+		"call nil-safe subscript with matching argument": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				var a: Foo? = Foo()
+				var f: String? = a?["foo"]
+			`,
+		},
+		"call nil-safe subscript and make the return type nilable": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				var a: Foo? = Foo()
+				var f: String = a?["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(105, 6, 21), P(113, 6, 29)), "type `Std::String?` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"call nil-safe subscript with non-matching argument": {
+			input: `
+				class Foo
+					def [](key: String): String; end
+				end
+				var a: Foo? = Foo()
+				a?[1]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 6, 8), P(92, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `Std::Int(1)`"),
+			},
+		},
+		"call nonexistent nil-safe subscript": {
+			input: `
+				class Foo; end
+				var a: Foo? = Foo()
+				a?["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 4, 5), P(56, 4, 13)), "method `[]` is not defined on type `Foo`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
