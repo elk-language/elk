@@ -2663,8 +2663,11 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	p.swallowNewlines()
 	methodName, methodNameSpan := p.methodName()
 	var isSetter bool
+	var isSubscriptSetter bool
 
-	if len(methodName) > 0 {
+	if methodName == "[]=" {
+		isSubscriptSetter = true
+	} else if len(methodName) > 0 {
 		firstChar, _ := utf8.DecodeRuneInString(methodName)
 		lastChar := methodName[len(methodName)-1]
 		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
@@ -2687,7 +2690,18 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		}
 	}
 
-	if isSetter {
+	if isSubscriptSetter {
+		var span *position.Span
+		if len(params) == 0 {
+			span = methodNameSpan
+		} else {
+			span = position.JoinSpanOfCollection(params)
+		}
+
+		if len(params) != 2 {
+			p.errorMessageSpan(fmt.Sprintf("subscript setter methods must have two parameters, got: %d", len(params)), span)
+		}
+	} else if isSetter {
 		if len(params) == 0 {
 			p.errorMessageSpan("setter methods must have a single parameter, got: 0", methodNameSpan)
 		} else if len(params) > 1 {
@@ -2698,7 +2712,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
-		if isSetter {
+		if isSetter || isSubscriptSetter {
 			p.errorMessageSpan("setter methods cannot be defined with custom return types", returnType.Span())
 		}
 	}

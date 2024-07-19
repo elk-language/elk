@@ -5565,6 +5565,124 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "setter methods must have a single parameter, got: 0"),
 			},
 		},
+		"can have subscript setter with two arguments": {
+			input: "def []=(k, v); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							"",
+							false,
+							false,
+							"[]=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"k",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot have subscript setter with custom return type": {
+			input: "def []=(k, v): Int; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							"",
+							false,
+							false,
+							"[]=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"k",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(15, 1, 16), P(17, 1, 18)),
+								"Int",
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "setter methods cannot be defined with custom return types"),
+			},
+		},
+		"cannot define subscript setter with less parameters": {
+			input: "def []=(v); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							"",
+							false,
+							false,
+							"[]=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(8, 1, 9), P(8, 1, 9)), "subscript setter methods must have two parameters, got: 1"),
+			},
+		},
 		"can have a private identifier as a name": {
 			input: "def _foo; end",
 			want: ast.NewProgramNode(
@@ -5645,37 +5763,6 @@ func TestMethodDefinition(t *testing.T) {
 							false,
 							"[]",
 							nil,
-							nil,
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have brackets setter as a name": {
-			input: "def []=(v); end",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
-							"",
-							false,
-							false,
-							"[]=",
-							[]ast.ParameterNode{
-								ast.NewMethodParameterNode(
-									S(P(8, 1, 9), P(8, 1, 9)),
-									"v",
-									false,
-									nil,
-									nil,
-									ast.NormalParameterKind,
-								),
-							},
 							nil,
 							nil,
 							nil,
