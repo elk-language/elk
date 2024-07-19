@@ -1328,6 +1328,44 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(59, 5, 5), P(71, 5, 17)), "method `foo=` is not defined on type `Foo`"),
 			},
 		},
+
+		"call subscript setter with matching argument": {
+			input: `
+				class Foo
+					def []=(key: String, value: Int); end
+				end
+				Foo()["foo"] = 1
+			`,
+		},
+		"the return type of a subscript setter is the same as the value": {
+			input: `
+				class Foo
+					def []=(key: String, value: Int); end
+				end
+				var a: Int = Foo()["foo"] = 1
+			`,
+		},
+		"call subscript setter with non-matching argument": {
+			input: `
+				class Foo
+					def []=(key: String, value: Int); end
+				end
+				Foo()[1] = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(76, 5, 11), P(76, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]=`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(81, 5, 16), P(85, 5, 20)), "expected type `Std::Int` for parameter `value` in call to `[]=`, got type `Std::String(\"foo\")`"),
+			},
+		},
+		"call nonexistent subscript setter": {
+			input: `
+				class Foo; end
+				Foo()["foo"] = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 5), P(39, 3, 20)), "method `[]=` is not defined on type `Foo`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -2892,7 +2892,8 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 		return c.checkLocalVariableAssignment(n.Value, node)
 	case *ast.PrivateIdentifierNode:
 		return c.checkLocalVariableAssignment(n.Value, node)
-	// case *ast.SubscriptExpressionNode:
+	case *ast.SubscriptExpressionNode:
+		return c.checkSubscriptAssignment(n, node)
 	// case *ast.ConstantLookupNode:
 	// case *ast.PublicConstantNode:
 	// case *ast.PrivateConstantNode:
@@ -2907,6 +2908,23 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 		)
 		return node
 	}
+}
+
+func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressionNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	receiver, args, _ := c.checkSimpleMethodCall(
+		subscriptNode.Receiver,
+		false,
+		symbol.OpSubscriptSet,
+		[]ast.ExpressionNode{subscriptNode.Key, assignmentNode.Right},
+		nil,
+		assignmentNode.Span(),
+	)
+	subscriptNode.Receiver = receiver
+	subscriptNode.Key = args[0]
+	assignmentNode.Right = args[1]
+
+	assignmentNode.SetType(c.typeOf(assignmentNode.Right))
+	return assignmentNode
 }
 
 func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
