@@ -868,7 +868,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
 		return n
 	case *ast.IncludeExpressionNode:
-		c.checkIncludeExpression(n)
+		c.checkIncludeExpressionNode(n)
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -925,7 +925,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		n.SetType(types.NewCharLiteral(n.Value))
 		return n
 	case *ast.InterpolatedStringLiteralNode:
-		c.interpolatedStringLiteral(n)
+		c.checkInterpolatedStringLiteralNode(n)
 		return n
 	case *ast.SimpleSymbolLiteralNode:
 		n.SetType(types.NewSymbolLiteral(n.Content))
@@ -934,7 +934,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		c.checkVariableDeclarationNode(n)
 		return n
 	case *ast.ValueDeclarationNode:
-		c.valueDeclaration(n)
+		c.checkValueDeclarationNode(n)
 		return n
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
@@ -971,16 +971,16 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.AssignmentExpressionNode:
 		return c.checkAssignmentExpressionNode(n)
 	case *ast.ReceiverlessMethodCallNode:
-		c.receiverlessMethodCall(n)
+		c.checkReceiverlessMethodCallNode(n)
 		return n
 	case *ast.MethodCallNode:
-		c.methodCall(n)
+		c.checkMethodCallNode(n)
 		return n
 	case *ast.ConstructorCallNode:
-		c.constructorCall(n)
+		c.checkConstructorCallNode(n)
 		return n
 	case *ast.AttributeAccessNode:
-		return c.attributeAccess(n)
+		return c.checkAttributeAccessNode(n)
 	case *ast.NilSafeSubscriptExpressionNode:
 		return c.checkNilSafeSubscriptExpressionNode(n)
 	case *ast.SubscriptExpressionNode:
@@ -1513,7 +1513,7 @@ type instanceVariableOverride struct {
 	overrideNamespace types.Namespace
 }
 
-func (c *Checker) checkIncludeExpression(node *ast.IncludeExpressionNode) {
+func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 	targetNamespace := c.currentMethodScope().container
 
 	for _, constantNode := range node.Constants {
@@ -2380,7 +2380,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 	return typedPositionalArguments
 }
 
-func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
+func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) {
 	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
@@ -2394,7 +2394,7 @@ func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
 	node.SetType(method.ReturnType)
 }
 
-func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
+func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 	classNode := c.checkComplexConstantType(node.Class)
 	node.Class = classNode
 	classType := c.typeOf(classNode)
@@ -2527,7 +2527,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 	return returnType
 }
 
-func (c *Checker) methodCall(node *ast.MethodCallNode) {
+func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
@@ -2540,7 +2540,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	node.SetType(typ)
 }
 
-func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {
+func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
 
@@ -2930,9 +2930,6 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 		return c.checkLocalVariableAssignment(n.Value, node)
 	case *ast.SubscriptExpressionNode:
 		return c.checkSubscriptAssignment(n, node)
-	// case *ast.ConstantLookupNode:
-	// case *ast.PublicConstantNode:
-	// case *ast.PrivateConstantNode:
 	case *ast.InstanceVariableNode:
 		return c.checkInstanceVariableAssignment(n.Value, node)
 	case *ast.AttributeAccessNode:
@@ -3012,7 +3009,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	return node
 }
 
-func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
+func (c *Checker) checkInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) {
 	for _, contentSection := range node.Content {
 		c.checkStringContent(contentSection)
 	}
@@ -4136,7 +4133,7 @@ func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode
 	node.SetType(typ)
 }
 
-func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
+func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	if variable := c.getLocal(node.Name); variable != nil {
 		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
