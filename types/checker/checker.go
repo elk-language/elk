@@ -2988,24 +2988,28 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	span := node.Span()
 
+	var variableType types.Type
 	variable := c.getLocal(name)
 	if variable == nil {
 		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
 			span,
 		)
-		return node
-	}
-	if variable.singleAssignment && variable.initialised {
+		variableType = types.Nothing{}
+	} else if variable.singleAssignment && variable.initialised {
 		c.addFailure(
 			fmt.Sprintf("local value `%s` cannot be reassigned", name),
 			span,
 		)
+		variableType = variable.typ
+	} else {
+		variableType = variable.typ
 	}
 
 	node.Right = c.checkExpression(node.Right)
 	assignedType := c.typeOf(node.Right)
-	c.checkCanAssign(assignedType, variable.typ, node.Right.Span())
+	c.checkCanAssign(assignedType, variableType, node.Right.Span())
+	node.SetType(assignedType)
 	return node
 }
 
