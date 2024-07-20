@@ -6,8 +6,43 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestSingleton(t *testing.T) {
+	tests := testTable{
+		"has its own local scope": {
+			input: `
+				class Foo
+					a := 5
+					singleton
+						a
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 5, 7), P(48, 5, 7)), "undefined local `a`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestModule(t *testing.T) {
 	tests := testTable{
+		"has its own local scope": {
+			input: `
+				a := 5
+				module Foo
+					a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 4, 6), P(32, 4, 6)), "undefined local `a`"),
+			},
+		},
 		"module with public constant": {
 			input: `module Foo; end`,
 		},
@@ -187,6 +222,17 @@ func TestStruct(t *testing.T) {
 
 func TestClass(t *testing.T) {
 	tests := testTable{
+		"has its own local scope": {
+			input: `
+				a := 5
+				class Foo
+					a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
+			},
+		},
 		"class with public constant": {
 			input: `class Foo; end`,
 		},
@@ -1230,6 +1276,17 @@ func TestMixinOverride(t *testing.T) {
 
 func TestMixin(t *testing.T) {
 	tests := testTable{
+		"has its own local scope": {
+			input: `
+				a := 5
+				mixin Foo
+					a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
+			},
+		},
 		"report errors for missing abstract methods from mixin parent": {
 			input: `
 				abstract mixin Foo
@@ -1335,6 +1392,17 @@ func TestMixin(t *testing.T) {
 
 func TestInterface(t *testing.T) {
 	tests := testTable{
+		"has its own local scope": {
+			input: `
+				a := 5
+				interface Foo
+					a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 4, 6), P(35, 4, 6)), "undefined local `a`"),
+			},
+		},
 		"define and call a singleton method": {
 			input: `
 				interface Foo

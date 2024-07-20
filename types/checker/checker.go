@@ -768,6 +768,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
 		c.pushMethodScope(makeLocalMethodScope(module))
+		c.pushLocalEnv(newLocalEnvironment(nil))
 	}
 
 	previousSelf := c.selfType
@@ -778,6 +779,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
+		c.popLocalEnv()
 	}
 }
 
@@ -787,6 +789,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.checkAbstractMethods(class, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
+		c.pushLocalEnv(newLocalEnvironment(nil))
 	}
 
 	previousSelf := c.selfType
@@ -797,6 +800,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
+		c.popLocalEnv()
 	}
 }
 func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
@@ -805,6 +809,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		c.checkAbstractMethods(mixin, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(mixin))
 		c.pushMethodScope(makeLocalMethodScope(mixin))
+		c.pushLocalEnv(newLocalEnvironment(nil))
 	}
 
 	previousSelf := c.selfType
@@ -815,6 +820,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
+		c.popLocalEnv()
 	}
 }
 
@@ -823,6 +829,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
 		c.pushMethodScope(makeLocalMethodScope(iface))
+		c.pushLocalEnv(newLocalEnvironment(nil))
 	}
 
 	previousSelf := c.selfType
@@ -833,6 +840,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
+		c.popLocalEnv()
 	}
 }
 
@@ -841,6 +849,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
+		c.pushLocalEnv(newLocalEnvironment(nil))
 	}
 
 	previousSelf := c.selfType
@@ -851,6 +860,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
+		c.popLocalEnv()
 	}
 }
 
