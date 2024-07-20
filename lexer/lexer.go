@@ -26,6 +26,8 @@ type mode uint8
 const (
 	normalMode mode = iota // Initial mode
 
+	afterMethodCallOperatorMode
+
 	wordArrayListLiteralMode   // Triggered after entering the initial token `\w[` of a word array literal
 	symbolArrayListLiteralMode // Triggered after entering the initial token `\s[` of a symbol array literal
 	hexArrayListLiteralMode    // Triggered after entering the initial token `\x[` of a hex array literal
@@ -167,7 +169,10 @@ func (l *Lexer) popMode() {
 func (l *Lexer) scanToken() *token.Token {
 	switch l.mode() {
 	case normalMode, stringInterpolationMode, regexInterpolationMode:
-		return l.scanNormal()
+		return l.scanNormal(false)
+	case afterMethodCallOperatorMode:
+		l.popMode()
+		return l.scanNormal(true)
 	case stringLiteralMode:
 		return l.scanStringLiteral()
 	case regexLiteralMode:
@@ -875,7 +880,7 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 
 // Assumes that the initial letter has already been consumed.
 // Consumes and constructs a public publicIdentifier token.
-func (l *Lexer) publicIdentifier(init rune) *token.Token {
+func (l *Lexer) publicIdentifier(init rune, afterMethodCallOperator bool) *token.Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
@@ -891,13 +896,16 @@ func (l *Lexer) publicIdentifier(init rune) *token.Token {
 			// Is a keyword
 			return l.token(lexType)
 		}
+		if afterMethodCallOperator {
+			l.matchChar('=')
+		}
 		return l.tokenWithConsumedValue(token.PUBLIC_IDENTIFIER)
 	}
 }
 
 // Assumes that the initial "_" has already been consumed.
 // Consumes and constructs a private publicIdentifier token.
-func (l *Lexer) privateIdentifier() *token.Token {
+func (l *Lexer) privateIdentifier(afterMethodCallOperator bool) *token.Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
 		l.advanceChar()
@@ -910,6 +918,9 @@ func (l *Lexer) privateIdentifier() *token.Token {
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
+		}
+		if afterMethodCallOperator {
+			l.matchChar('=')
 		}
 		return l.tokenWithConsumedValue(token.PRIVATE_IDENTIFIER)
 	}
@@ -1423,7 +1434,7 @@ func (l *Lexer) scanRegexLiteral() *token.Token {
 }
 
 // Scan characters in normal mode.
-func (l *Lexer) scanNormal() *token.Token {
+func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
@@ -1468,6 +1479,7 @@ func (l *Lexer) scanNormal() *token.Token {
 					return l.token(token.RIGHT_OPEN_RANGE_OP)
 				}
 				l.advanceChar()
+				l.pushMode(afterMethodCallOperatorMode)
 				return l.token(token.DOT_DOT)
 			}
 			if isDigit(l.peekChar()) {
@@ -1503,6 +1515,8 @@ func (l *Lexer) scanNormal() *token.Token {
 				}
 				return l.tokenWithValue(token.FLOAT, lexeme.String())
 			}
+
+			l.pushMode(afterMethodCallOperatorMode)
 			return l.token(token.DOT)
 		case '-':
 			if l.matchChar('=') {
@@ -1718,6 +1732,7 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.QUESTION_QUESTION)
 			}
 			if l.matchChar('.') {
+				l.pushMode(afterMethodCallOperatorMode)
 				if l.matchChar('.') {
 					return l.token(token.QUESTION_DOT_DOT)
 				}
@@ -1849,7 +1864,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('`') {
 				return l.rawCharacter()
 			}
-			return l.publicIdentifier('r')
+			return l.publicIdentifier('r', afterMethodCallOperator)
 		case '\'':
 			return l.rawString()
 		case '"':
@@ -1868,7 +1883,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			l.pushMode(stringLiteralMode)
 			return l.token(token.STRING_BEG)
 		case '_':
-			return l.privateIdentifier()
+			return l.privateIdentifier(afterMethodCallOperator)
 		case '@':
 			return l.instanceVariable()
 		case '$':
@@ -1877,7 +1892,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if isDigit(char) {
 				return l.numberLiteral(char)
 			} else if unicode.IsLetter(char) {
-				return l.publicIdentifier(char)
+				return l.publicIdentifier(char, afterMethodCallOperator)
 			}
 			return l.lexError(fmt.Sprintf("unexpected character `%c`", char))
 		}
