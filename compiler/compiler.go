@@ -3062,6 +3062,7 @@ namedArgNodeLoop:
 }
 
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {
+	span := node.Span()
 	c.compileNode(node.Receiver)
 
 	switch node.Op.Type {
@@ -3075,16 +3076,29 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 		// if nil
 		// leave nil on the stack
 		c.patchJump(nilJump, node.Span())
-		return
+	case token.QUESTION_DOT_DOT:
+		c.emit(span.EndPos.Line, bytecode.DUP)
+		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+
+		// if not nil
+		// call the method
+		c.innerMethodCall(node)
+
+		// if nil
+		// leave nil on the stack
+		c.patchJump(nilJump, node.Span())
+	case token.DOT_DOT:
+		c.emit(span.EndPos.Line, bytecode.DUP)
+		c.innerMethodCall(node)
 	case token.DOT:
+		c.innerMethodCall(node)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", node.Op))
 	}
-
-	c.innerMethodCall(node)
 }
 
 func (c *Compiler) innerMethodCall(node *ast.MethodCallNode) {
+	span := node.Span()
 	for _, posArg := range node.PositionalArguments {
 		c.compileNode(posArg)
 	}
@@ -3114,6 +3128,14 @@ namedArgNodeLoop:
 		c.emitCall(callInfo, node.Span())
 	} else {
 		c.emitCallMethod(callInfo, node.Span())
+	}
+
+	switch node.Op.Type {
+	case token.DOT_DOT, token.QUESTION_DOT_DOT:
+		c.emit(span.EndPos.Line, bytecode.POP)
+	case token.DOT, token.QUESTION_DOT:
+	default:
+		panic(fmt.Sprintf("invalid method call operator: %#v", node.Op))
 	}
 }
 

@@ -996,6 +996,47 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"make a cascade call without arguments": {
+			input: "self..foo",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+				},
+			),
+		},
+		"make a cascade call without arguments nil safe": {
+			input: "self?..foo",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.DUP),
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+				},
+			),
+		},
 		"call a method without arguments nil safe": {
 			input: "self?.foo",
 			want: vm.NewBytecodeFunctionNoParams(
