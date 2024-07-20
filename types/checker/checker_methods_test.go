@@ -1450,6 +1450,104 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(48, 4, 5), P(56, 4, 13)), "method `[]` is not defined on type `Foo`"),
 			},
 		},
+
+		"call nonexistent increment": {
+			input: `
+				class Foo; end
+				f := Foo()
+				f++
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 4, 5), P(41, 4, 7)), "method `++` is not defined on type `Foo`"),
+			},
+		},
+		"call increment": {
+			input: `
+				f := 5
+				f++
+			`,
+		},
+		"the return type of increment is as expected": {
+			input: `
+				f := 5
+				var g: 2 = f++
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `Std::Int(2)`"),
+			},
+		},
+		"increment with incompatible return type": {
+			input: `
+				class Foo
+					def ++: String
+						"foo"
+					end
+				end
+
+				f := Foo()
+				f++
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 9, 5), P(86, 9, 7)), "type `Std::String` cannot be assigned to type `Foo`"),
+			},
+		},
+		"call increment on nonexistent variable": {
+			input: `
+				f++
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "undefined local `f`"),
+			},
+		},
+
+		"call nonexistent decrement": {
+			input: `
+				class Foo; end
+				f := Foo()
+				f--
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 4, 5), P(41, 4, 7)), "method `--` is not defined on type `Foo`"),
+			},
+		},
+		"call decrement": {
+			input: `
+				f := 5
+				f--
+			`,
+		},
+		"the return type of decrement is as expected": {
+			input: `
+				f := 5
+				var g: 2 = f--
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `Std::Int(2)`"),
+			},
+		},
+		"decrement with incompatible return type": {
+			input: `
+				class Foo
+					def --: String
+						"foo"
+					end
+				end
+
+				f := Foo()
+				f--
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 9, 5), P(86, 9, 7)), "type `Std::String` cannot be assigned to type `Foo`"),
+			},
+		},
+		"call decrement on nonexistent variable": {
+			input: `
+				f--
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "undefined local `f`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

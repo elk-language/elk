@@ -865,7 +865,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode, *ast.TypeDefinitionNode,
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
-		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
+		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
+		*ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		return n
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
@@ -991,6 +992,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkBinaryExpression(n)
 	case *ast.UnaryExpressionNode:
 		return c.checkUnaryExpression(n)
+	case *ast.PostfixExpressionNode:
+		return c.checkPostfixExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1120,6 +1123,39 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 	// case token.AND:
 	// 	// get singleton class
 	// 	return c.checkGetSingleton(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid unary operator %s", node.Op.String()),
+			node.Span(),
+		)
+		return node
+	}
+}
+
+func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, methodName string) ast.ExpressionNode {
+	return c.checkExpression(
+		ast.NewAssignmentExpressionNode(
+			node.Span(),
+			token.New(node.Op.Span(), token.EQUAL_OP),
+			node.Expression,
+			ast.NewMethodCallNode(
+				node.Span(),
+				node.Expression,
+				false,
+				methodName,
+				nil,
+				nil,
+			),
+		),
+	)
+}
+
+func (c *Checker) checkPostfixExpressionNode(node *ast.PostfixExpressionNode) ast.ExpressionNode {
+	switch node.Op.Type {
+	case token.PLUS_PLUS:
+		return c.checkPostfixExpression(node, "++")
+	case token.MINUS_MINUS:
+		return c.checkPostfixExpression(node, "--")
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid unary operator %s", node.Op.String()),
@@ -2986,20 +3022,21 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 }
 
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	span := node.Span()
-
 	var variableType types.Type
 	variable := c.getLocal(name)
 	if variable == nil {
-		c.addFailure(
-			fmt.Sprintf("undefined local `%s`", name),
-			span,
-		)
+		if !node.Left.SkipTypechecking() {
+			c.addFailure(
+				fmt.Sprintf("undefined local `%s`", name),
+				node.Left.Span(),
+			)
+		}
+		node.Left.SetType(types.Nothing{})
 		variableType = types.Nothing{}
 	} else if variable.singleAssignment && variable.initialised {
 		c.addFailure(
 			fmt.Sprintf("local value `%s` cannot be reassigned", name),
-			span,
+			node.Left.Span(),
 		)
 		variableType = variable.typ
 	} else {

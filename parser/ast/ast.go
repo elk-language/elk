@@ -62,6 +62,7 @@ type Node interface {
 	position.SpanInterface
 	IsStatic() bool // Value is known at compile-time
 	Type(*types.GlobalEnvironment) types.Type
+	SetType(types.Type)
 	SkipTypechecking() bool
 }
 
@@ -122,6 +123,8 @@ type NodeBase struct {
 func (*NodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
 	return types.Void{}
 }
+
+func (*NodeBase) SetType(types.Type) {}
 
 func (t *NodeBase) SkipTypechecking() bool {
 	return false
