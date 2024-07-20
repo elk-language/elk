@@ -55,7 +55,7 @@ sealed primitive class ::Std::HashMap
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def []=(key: Key, value: Value): Value; end
+	def []=(key: Key, value: Value); end
 
 	##[
 		Create a new `HashMap` containing the pairs of `self`

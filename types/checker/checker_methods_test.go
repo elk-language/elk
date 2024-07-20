@@ -1590,6 +1590,212 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "undefined local `f`"),
 			},
 		},
+
+		"pipe operator add an inexistent argument to a constructor call": {
+			input: `
+				class Foo; end
+				1 |> Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(29, 3, 10), P(33, 3, 14)), "expected 0 arguments in call to `#init`, got 1"),
+			},
+		},
+		"pipe operator add an argument with an incompatible type to a constructor call": {
+			input: `
+				class Foo
+					init(a: Float); end
+				end
+				1 |> Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(52, 5, 5), P(52, 5, 5)), "expected type `Std::Float` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+			},
+		},
+		"pipe operator add an additional required argument with a compatible type to a constructor call": {
+			input: `
+				class Foo
+					init(a: Int, b: Float); end
+				end
+				1 |> Foo(2.2)
+			`,
+		},
+		"pipe operator add an argument with a compatible type to a constructor call": {
+			input: `
+				class Foo
+					init(a: Int); end
+				end
+				1 |> Foo()
+			`,
+		},
+
+		"pipe operator add an inexistent argument to a method call": {
+			input: `
+				class Foo
+					def foo; end
+				end
+				f := Foo()
+				1 |> f.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(65, 6, 10), P(71, 6, 16)), "expected 0 arguments in call to `foo`, got 1"),
+			},
+		},
+		"pipe operator add an argument with an incompatible type to a method call": {
+			input: `
+				class Foo
+					def foo(a: Float); end
+				end
+				f := Foo()
+				1 |> f.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 6, 5), P(70, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+			},
+		},
+		"pipe operator add an additional required argument with a compatible type to a method call": {
+			input: `
+				class Foo
+					def foo(a: Int, b: Float); end
+				end
+				f := Foo()
+				1 |> f.foo(2.2)
+			`,
+		},
+		"pipe operator add an argument with a compatible type to a method call": {
+			input: `
+				class Foo
+					def foo(a: Int); end
+				end
+				f := Foo()
+				1 |> f.foo()
+			`,
+		},
+
+		"pipe has the same return type as the method": {
+			input: `
+				class Foo
+					def foo(a: Int): String; end
+				end
+				f := Foo()
+				var b: 9 = 1 |> f.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 6, 21), P(98, 6, 27)), "type `Std::String` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+
+		"pipe operator add an inexistent argument to a receiverless method call": {
+			input: `
+				module Foo
+					def foo; end
+					1 |> foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 11), P(48, 4, 15)), "expected 0 arguments in call to `foo`, got 1"),
+			},
+		},
+		"pipe operator add an argument with an incompatible type to a receiverless method call": {
+			input: `
+				module Foo
+					def foo(a: Float); end
+					1 |> foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+			},
+		},
+		"pipe operator add an additional required argument with a compatible type to a receiverless method call": {
+			input: `
+				module Foo
+					def foo(a: Int, b: Float); end
+					1 |> foo(2.2)
+				end
+			`,
+		},
+		"pipe operator add an argument with a compatible type to a receiverless method call": {
+			input: `
+				module Foo
+					def foo(a: Int); end
+					1 |> foo()
+				end
+			`,
+		},
+
+		"pipe operator add an inexistent argument to attribute access": {
+			input: `
+				module Foo
+					def foo; end
+					1 |> self.foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 4, 6), P(51, 4, 18)), "expected 0 arguments in call to `foo`, got 1"),
+			},
+		},
+		"pipe operator add an argument with an incompatible type to attribute access": {
+			input: `
+				module Foo
+					def foo(a: Float); end
+					1 |> self.foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+			},
+		},
+		"pipe operator add an argument with a compatible type to attribute access": {
+			input: `
+				module Foo
+					def foo(a: Int); end
+					1 |> self.foo
+				end
+			`,
+		},
+
+		"pipe operator add an inexistent argument to a call": {
+			input: `
+				class Foo
+					def call; end
+				end
+				f := Foo()
+				1 |> f.()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(66, 6, 10), P(69, 6, 13)), "expected 0 arguments in call to `call`, got 1"),
+			},
+		},
+		"pipe operator add an argument with an incompatible type to a call": {
+			input: `
+				class Foo
+					def call(a: Float); end
+				end
+				f := Foo()
+				1 |> f.()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 6, 5), P(71, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `call`, got type `Std::Int(1)`"),
+			},
+		},
+		"pipe operator add an additional required argument with a compatible type to a call": {
+			input: `
+				class Foo
+					def call(a: Int, b: Float); end
+				end
+				f := Foo()
+				1 |> f.(2.2)
+			`,
+		},
+		"pipe operator add an argument with a compatible type to a call": {
+			input: `
+				class Foo
+					def call(a: Int); end
+				end
+				f := Foo()
+				1 |> f.()
+			`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -895,6 +895,9 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
 		*ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		return n
+	case *ast.SelfLiteralNode:
+		n.SetType(c.selfType)
+		return n
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
 		return n
@@ -1003,6 +1006,9 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.MethodCallNode:
 		c.checkMethodCallNode(n)
+		return n
+	case *ast.CallNode:
+		c.checkCallNode(n)
 		return n
 	case *ast.ConstructorCallNode:
 		c.checkConstructorCallNode(n)
@@ -1368,20 +1374,29 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 }
 
 func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
-	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
-
 	switch node.Op.Type {
 	case token.PLUS:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpAdd, node.Span()))
 	case token.MINUS:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpSubtract, node.Span()))
 	case token.STAR:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpMultiply, node.Span()))
 	case token.SLASH:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Span()))
 	case token.STAR_STAR:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Span()))
+	case token.PIPE_OP:
+		return c.checkPipeExpression(node)
 	case token.INSTANCE_OF_OP:
 		c.checkInstanceOf(node, false)
 	case token.REVERSE_INSTANCE_OF_OP:
@@ -1428,6 +1443,8 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		)
 		node.SetType(typ)
 	default:
+		node.Left = c.checkExpression(node.Left)
+		node.Right = c.checkExpression(node.Right)
 		node.SetType(types.Nothing{})
 		c.addFailure(
 			fmt.Sprintf(
@@ -1441,8 +1458,48 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	return node
 }
 
+func (c *Checker) checkPipeExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
+	switch r := node.Right.(type) {
+	case *ast.MethodCallNode:
+		r.PositionalArguments = slices.Insert(r.PositionalArguments, 0, node.Left)
+		return c.checkExpression(r)
+	case *ast.CallNode:
+		r.PositionalArguments = slices.Insert(r.PositionalArguments, 0, node.Left)
+		return c.checkExpression(r)
+	case *ast.ConstructorCallNode:
+		r.PositionalArguments = slices.Insert(r.PositionalArguments, 0, node.Left)
+		return c.checkExpression(r)
+	case *ast.ReceiverlessMethodCallNode:
+		r.PositionalArguments = slices.Insert(r.PositionalArguments, 0, node.Left)
+		return c.checkExpression(r)
+	case *ast.AttributeAccessNode:
+		return c.checkExpression(
+			ast.NewMethodCallNode(
+				node.Span(),
+				r.Receiver,
+				token.New(r.Span(), token.DOT),
+				r.AttributeName,
+				[]ast.ExpressionNode{node.Left},
+				nil,
+			),
+		)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid right hand side of a pipe expression: `%T`",
+				node.Right,
+			),
+			node.Right.Span(),
+		)
+		node.SetType(types.Nothing{})
+		return node
+	}
+}
+
 func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	node.SetType(c.StdBool())
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
 	leftType := c.typeOf(node.Left)
 	rightType := c.typeOf(node.Right)
 
@@ -1461,6 +1518,8 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 
 func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) {
 	node.SetType(c.StdBool())
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
 	var left ast.ExpressionNode
 	var right ast.ExpressionNode
 	if reverse {
@@ -1517,6 +1576,8 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 
 func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	node.SetType(c.StdBool())
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
 	var left ast.ExpressionNode
 	var right ast.ExpressionNode
 	if reverse {
@@ -2660,6 +2721,25 @@ func (c *Checker) checkBinaryOpMethodCall(
 	)
 
 	return returnType
+}
+
+func (c *Checker) checkCallNode(node *ast.CallNode) {
+	var typ types.Type
+	var op token.Type
+	if node.NilSafe {
+		op = token.QUESTION_DOT
+	} else {
+		op = token.DOT
+	}
+	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+		node.Receiver,
+		op,
+		value.ToSymbol("call"),
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Span(),
+	)
+	node.SetType(typ)
 }
 
 func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {

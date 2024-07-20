@@ -1110,7 +1110,7 @@ func NewFalseLiteralNode(span *position.Span) *FalseLiteralNode {
 
 // `self` literal.
 type SelfLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 }
 
 func (*SelfLiteralNode) IsStatic() bool {
@@ -1120,7 +1120,7 @@ func (*SelfLiteralNode) IsStatic() bool {
 // Create a new `self` literal node.
 func NewSelfLiteralNode(span *position.Span) *SelfLiteralNode {
 	return &SelfLiteralNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 	}
 }
 

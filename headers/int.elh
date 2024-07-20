@@ -139,6 +139,11 @@ sealed primitive class ::Std::Int
 	def inspect: String; end
 
 	##[
+		Converts the integer to a string.
+	]##
+	def to_string: String; end
+
+	##[
 		Converts the integer to a floating point number.
 	]##
 	def to_float: Float; end

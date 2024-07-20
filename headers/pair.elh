@@ -37,7 +37,7 @@ sealed primitive class ::Std::Pair
 		Set the element with the given index to the given value.
 		The key is `0`, value is `1`.
 	]##
-	def []=(key: Key, value: Value): Value; end
+	def []=(key: Key, value: Value); end
 
 	##[
 		Check whether the given value

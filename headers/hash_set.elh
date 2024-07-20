@@ -56,7 +56,7 @@ sealed primitive class ::Std::HashSet
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def []=(index: AnyInt, value: Element): Element; end
+	def []=(index: AnyInt, value: Element); end
 
 	##[
 		Return the union of both sets.
