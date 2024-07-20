@@ -8,6 +8,205 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestPipeExpression(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "foo = 2 |> Foo()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewBinaryExpressionNode(
+								S(P(6, 1, 7), P(15, 1, 16)),
+								T(S(P(8, 1, 9), P(9, 1, 10)), token.PIPE_OP),
+								ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+								ast.NewConstructorCallNode(
+									S(P(11, 1, 12), P(15, 1, 16)),
+									ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Foo"),
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a constructor call on the right hand side": {
+			input: "2 |> Foo()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewConstructorCallNode(
+								S(P(5, 1, 6), P(9, 1, 10)),
+								ast.NewPublicConstantNode(S(P(5, 1, 6), P(7, 1, 8)), "Foo"),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a receiverless method call on the right hand side": {
+			input: "2 |> foo()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewReceiverlessMethodCallNode(
+								S(P(5, 1, 6), P(9, 1, 10)),
+								"foo",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a method call on the right hand side": {
+			input: "2 |> a.foo()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewMethodCallNode(
+								S(P(5, 1, 6), P(11, 1, 12)),
+								ast.NewPublicIdentifierNode(
+									S(P(5, 1, 6), P(5, 1, 6)),
+									"a",
+								),
+								T(S(P(6, 1, 7), P(6, 1, 7)), token.DOT),
+								"foo",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a function call on the right hand side": {
+			input: "2 |> a.()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewCallNode(
+								S(P(5, 1, 6), P(8, 1, 9)),
+								ast.NewPublicIdentifierNode(
+									S(P(5, 1, 6), P(5, 1, 6)),
+									"a",
+								),
+								false,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"cannot have non method calls on the right": {
+			input: "2 |> foo() + 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewBinaryExpressionNode(
+								S(P(5, 1, 6), P(13, 1, 14)),
+								T(S(P(11, 1, 12), P(11, 1, 12)), token.PLUS),
+								ast.NewReceiverlessMethodCallNode(
+									S(P(5, 1, 6), P(9, 1, 10)),
+									"foo",
+									nil,
+									nil,
+								),
+								ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 1, 6), P(13, 1, 14)), "invalid right hand side of a pipe expression, only method and function calls are allowed"),
+			},
+		},
+		"can be chained": {
+			input: "2 |> foo() |> bar(9.2)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.PIPE_OP),
+							ast.NewBinaryExpressionNode(
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(2, 1, 3), P(3, 1, 4)), token.PIPE_OP),
+								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+								ast.NewReceiverlessMethodCallNode(
+									S(P(5, 1, 6), P(9, 1, 10)),
+									"foo",
+									nil,
+									nil,
+								),
+							),
+							ast.NewReceiverlessMethodCallNode(
+								S(P(14, 1, 15), P(21, 1, 22)),
+								"bar",
+								[]ast.ExpressionNode{
+									ast.NewFloatLiteralNode(S(P(18, 1, 19), P(20, 1, 21)), "9.2"),
+								},
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestConstructorCall(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {

@@ -1102,7 +1102,40 @@ func (p *Parser) logicalOrExpression() ast.ExpressionNode {
 // logicalAndExpression "&&" bitwiseOrExpression |
 // logicalAndExpression "&!" bitwiseOrExpression
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
-	return p.logicalExpression(p.bitwiseOrExpression, token.AND_AND, token.AND_BANG)
+	return p.logicalExpression(p.pipeExpression, token.AND_AND, token.AND_BANG)
+}
+
+// pipeExpression = bitwiseOrExpression |
+// pipeExpression "|>" bitwiseOrExpression
+func (p *Parser) pipeExpression() ast.ExpressionNode {
+	left := p.bitwiseOrExpression()
+
+	for {
+		op, ok := p.matchOk(token.PIPE_OP)
+		if !ok {
+			break
+		}
+		p.swallowNewlines()
+
+		p.indentedSection = true
+		right := p.bitwiseOrExpression()
+		p.indentedSection = false
+		if !ast.IsValidPipeExpressionTarget(right) {
+			p.errorMessageSpan(
+				"invalid right hand side of a pipe expression, only method and function calls are allowed",
+				right.Span(),
+			)
+		}
+
+		left = ast.NewBinaryExpressionNode(
+			left.Span().Join(right.Span()),
+			op,
+			left,
+			right,
+		)
+	}
+
+	return left
 }
 
 // bitwiseOrExpression = bitwiseXorExpression | bitwiseOrExpression "|" bitwiseXorExpression

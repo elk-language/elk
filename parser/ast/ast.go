@@ -197,6 +197,17 @@ func IsComplexConstant(node Node) bool {
 	}
 }
 
+// Check whether the node is a valid right operand of the pipe operator `|>`.
+func IsValidPipeExpressionTarget(node Node) bool {
+	switch node.(type) {
+	case *MethodCallNode, *ReceiverlessMethodCallNode,
+		*AttributeAccessNode, *ConstructorCallNode, *CallNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Represents a single statement, so for example
 // a single valid "line" of Elk code.
 // Usually its an expression optionally terminated with a newline ors semicolon.
