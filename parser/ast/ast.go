@@ -1959,7 +1959,7 @@ func NewCatchNode(span *position.Span, pattern PatternNode, body []StatementNode
 //		print("awesome!")
 //	end
 type DoExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Body    []StatementNode // do expression body
 	Catches []*CatchNode
 	Finally []StatementNode
@@ -1976,10 +1976,10 @@ func (*DoExpressionNode) IsStatic() bool {
 //	end
 func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*CatchNode, finally []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Body:     body,
-		Catches:  catches,
-		Finally:  finally,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Body:          body,
+		Catches:       catches,
+		Finally:       finally,
 	}
 }
 

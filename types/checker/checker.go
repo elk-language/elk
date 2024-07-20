@@ -256,6 +256,14 @@ func (c *Checker) popLocalEnv() {
 	c.localEnvs = c.localEnvs[:len(c.localEnvs)-1]
 }
 
+func (c *Checker) pushNestedLocalEnv() {
+	c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv()))
+}
+
+func (c *Checker) pushIsolatedLocalEnv() {
+	c.pushLocalEnv(newLocalEnvironment(nil))
+}
+
 func (c *Checker) pushLocalEnv(env *localEnvironment) {
 	c.localEnvs = append(c.localEnvs, env)
 }
@@ -355,22 +363,31 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 	return position.NewLocationWithSpan(c.Filename, span)
 }
 
-func (c *Checker) checkStatements(stmts []ast.StatementNode) {
+func (c *Checker) checkStatements(stmts []ast.StatementNode) types.Type {
+	var lastType types.Type
 	for _, statement := range stmts {
-		c.checkStatement(statement)
+		t := c.checkStatement(statement)
+		if t != nil {
+			lastType = t
+		}
 	}
+
+	return lastType
 }
 
-func (c *Checker) checkStatement(node ast.Node) {
+func (c *Checker) checkStatement(node ast.Node) types.Type {
 	switch node := node.(type) {
 	case *ast.EmptyStatementNode:
+		return nil
 	case *ast.ExpressionStatementNode:
 		node.Expression = c.checkExpression(node.Expression)
+		return c.typeOf(node.Expression)
 	default:
 		c.addFailure(
 			fmt.Sprintf("incorrect statement type %#v", node),
 			node.Span(),
 		)
+		return nil
 	}
 }
 
@@ -768,7 +785,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
 		c.pushMethodScope(makeLocalMethodScope(module))
-		c.pushLocalEnv(newLocalEnvironment(nil))
+		c.pushIsolatedLocalEnv()
 	}
 
 	previousSelf := c.selfType
@@ -789,7 +806,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.checkAbstractMethods(class, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushLocalEnv(newLocalEnvironment(nil))
+		c.pushIsolatedLocalEnv()
 	}
 
 	previousSelf := c.selfType
@@ -809,7 +826,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		c.checkAbstractMethods(mixin, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(mixin))
 		c.pushMethodScope(makeLocalMethodScope(mixin))
-		c.pushLocalEnv(newLocalEnvironment(nil))
+		c.pushIsolatedLocalEnv()
 	}
 
 	previousSelf := c.selfType
@@ -829,7 +846,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
 		c.pushMethodScope(makeLocalMethodScope(iface))
-		c.pushLocalEnv(newLocalEnvironment(nil))
+		c.pushIsolatedLocalEnv()
 	}
 
 	previousSelf := c.selfType
@@ -849,7 +866,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushLocalEnv(newLocalEnvironment(nil))
+		c.pushIsolatedLocalEnv()
 	}
 
 	previousSelf := c.selfType
@@ -1004,6 +1021,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkUnaryExpression(n)
 	case *ast.PostfixExpressionNode:
 		return c.checkPostfixExpressionNode(n)
+	case *ast.DoExpressionNode:
+		return c.checkDoExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1158,6 +1177,20 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+}
+
+func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+
+	typ := c.checkStatements(node.Body)
+	if typ == nil {
+		node.SetType(types.Nil{})
+	} else {
+		node.SetType(typ)
+	}
+
+	c.popLocalEnv()
+	return node
 }
 
 func (c *Checker) checkPostfixExpressionNode(node *ast.PostfixExpressionNode) ast.ExpressionNode {
@@ -2814,8 +2847,7 @@ func (c *Checker) checkMethod(
 		}
 	}
 
-	env := newLocalEnvironment(nil)
-	c.pushLocalEnv(env)
+	c.pushIsolatedLocalEnv()
 	defer c.popLocalEnv()
 
 	for _, param := range paramNodes {
