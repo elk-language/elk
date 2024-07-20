@@ -14,13 +14,19 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b = 2
 				var c: String = a ?? b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` can never be nil"),
+			},
 		},
 		"returns the right type when the left type is nilable": {
 			input: `
 				var a = nil
 				var b = 2
-				var c: Int = a || b
+				var c: Int = a ?? b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result"),
+			},
 		},
 		"returns a union of both types with bool": {
 			input: `
@@ -69,6 +75,9 @@ func TestLogicalAnd(t *testing.T) {
 				var b = 2
 				var c: Int = a && b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(50, 4, 18), P(50, 4, 18)), "this condition will always have the same result since type `Std::String` is truthy"),
+			},
 		},
 		"returns the left type when the left type is falsy": {
 			input: `
@@ -76,6 +85,9 @@ func TestLogicalAnd(t *testing.T) {
 				var b = 2
 				var c: nil = a && b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+			},
 		},
 		"returns a union of both types with only nil when the left can be both truthy and falsy": {
 			input: `
@@ -124,6 +136,9 @@ func TestLogicalOr(t *testing.T) {
 				var b = 2
 				var c: String = a || b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` is truthy"),
+			},
 		},
 		"returns the right type when the left type is falsy": {
 			input: `
@@ -131,6 +146,9 @@ func TestLogicalOr(t *testing.T) {
 				var b = 2
 				var c: Int = a || b
 			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+			},
 		},
 		"returns a union of both types without nil when the left can be both truthy and falsy": {
 			input: `

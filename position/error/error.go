@@ -104,11 +104,11 @@ func (e *Error) HumanString(style bool) (string, error) {
 // that can be presented to humans.
 func (e *Error) HumanStringWithSource(source string, style bool) string {
 	var result strings.Builder
-	errorColor := color.New(color.Bold, color.FgRed)
+	severityColor := color.New(color.Bold, e.Severity.color())
 	if !style {
-		errorColor.DisableColor()
+		severityColor.DisableColor()
 	}
-	result.WriteString(errorColor.Sprint(e.Location.String()))
+	result.WriteString(severityColor.Sprint(e.Location.String()))
 	result.WriteString(": ")
 
 	result.WriteString(e.Severity.Tag(style))
@@ -214,17 +214,13 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	}
 	result.WriteByte('\n')
 	result.WriteString(strings.Repeat(" ", startOffset))
-	lineColor := color.New(color.FgHiRed, color.Bold)
-	if !style {
-		lineColor.DisableColor()
-	}
 
 	if currentErrorLength <= 1 {
-		result.WriteString(errorColor.Sprint("│"))
+		result.WriteString(severityColor.Sprint("│"))
 	} else {
-		result.WriteString(errorColor.Sprint("└"))
-		result.WriteString(errorColor.Sprint(strings.Repeat("─", currentErrorLength-2)))
-		result.WriteString(errorColor.Sprint("┤"))
+		result.WriteString(severityColor.Sprint("└"))
+		result.WriteString(severityColor.Sprint(strings.Repeat("─", currentErrorLength-2)))
+		result.WriteString(severityColor.Sprint("┤"))
 	}
 	result.WriteByte('\n')
 	var spaceCount int
@@ -234,7 +230,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 		spaceCount = startOffset + currentErrorLength - 1
 	}
 	result.WriteString(strings.Repeat(" ", spaceCount))
-	result.WriteString(lineColor.Sprint("└ Here\n"))
+	result.WriteString(severityColor.Sprint("└ Here\n"))
 	return result.String()
 }
 

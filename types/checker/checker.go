@@ -1277,10 +1277,21 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 	rightType := c.typeOf(node.Right)
 
 	if c.isNil(leftType) {
+		c.addWarning(
+			"this condition will always have the same result",
+			node.Left.Span(),
+		)
 		node.SetType(rightType)
 		return node
 	}
 	if c.isNotNilable(leftType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` can never be nil",
+				types.InspectWithColor(leftType),
+			),
+			node.Left.Span(),
+		)
 		node.SetType(leftType)
 		return node
 	}
@@ -1296,10 +1307,24 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 	rightType := c.typeOf(node.Right)
 
 	if c.isTruthy(leftType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(leftType),
+			),
+			node.Left.Span(),
+		)
 		node.SetType(leftType)
 		return node
 	}
 	if c.isFalsy(leftType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(leftType),
+			),
+			node.Left.Span(),
+		)
 		node.SetType(rightType)
 		return node
 	}
@@ -1315,10 +1340,24 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 	rightType := c.typeOf(node.Right)
 
 	if c.isTruthy(leftType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(leftType),
+			),
+			node.Left.Span(),
+		)
 		node.SetType(rightType)
 		return node
 	}
 	if c.isFalsy(leftType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(leftType),
+			),
+			node.Left.Span(),
+		)
 		node.SetType(leftType)
 		return node
 	}
@@ -3117,6 +3156,16 @@ func (c *Checker) addFailureWithLocation(message string, loc *position.Location)
 	c.Errors.AddFailure(
 		message,
 		loc,
+	)
+}
+
+func (c *Checker) addWarning(message string, span *position.Span) {
+	if span == nil {
+		return
+	}
+	c.Errors.AddWarning(
+		message,
+		c.newLocation(span),
 	)
 }
 
