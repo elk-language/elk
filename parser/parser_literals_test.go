@@ -4476,7 +4476,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewMethodCallNode(
 										S(P(74, 1, 75), P(86, 1, 87)),
 										ast.NewPublicIdentifierNode(S(P(74, 1, 75), P(74, 1, 75)), "n"),
-										false,
+										T(S(P(75, 1, 76), P(75, 1, 76)), token.DOT),
 										"to_string",
 										nil,
 										nil,
@@ -4845,7 +4845,7 @@ func TestRecordLiteral(t *testing.T) {
 									ast.NewMethodCallNode(
 										S(P(75, 1, 76), P(87, 1, 88)),
 										ast.NewPublicIdentifierNode(S(P(75, 1, 76), P(75, 1, 76)), "n"),
-										false,
+										T(S(P(76, 1, 77), P(76, 1, 77)), token.DOT),
 										"to_string",
 										nil,
 										nil,

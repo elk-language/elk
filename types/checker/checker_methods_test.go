@@ -1008,7 +1008,7 @@ func TestMethodCalls(t *testing.T) {
 				module Foo
 					def baz(a: Int): Int then a
 				end
-				Foo.baz(5)
+				var a: Int = Foo.baz(5)
 			`,
 		},
 		"cannot make nil-safe call on a non nilable receiver": {
@@ -1031,6 +1031,48 @@ func TestMethodCalls(t *testing.T) {
 				nilableFoo?.baz(5)
 			`,
 		},
+
+		"cascade call returns the receiver": {
+			input: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+				var a: Foo = Foo..baz(5)
+			`,
+		},
+		"cannot make nil-safe cascade call on a non nilable receiver": {
+			input: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+				Foo?..baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(61, 5, 5), P(72, 5, 16)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+			},
+		},
+		"can make nil-safe cascade call on a nilable receiver": {
+			input: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+				var nilableFoo: Foo? = Foo
+				nilableFoo?..baz(5)
+			`,
+		},
+		"nil-safe cascade call returns a nilable receiver": {
+			input: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+				var nilableFoo: Foo? = Foo
+				var b: 8 = nilableFoo?..baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(103, 6, 16), P(121, 6, 34)), "type `Foo?` cannot be assigned to type `Std::Int(8)`"),
+			},
+		},
+
 		"missing required argument": {
 			input: `
 				module Foo

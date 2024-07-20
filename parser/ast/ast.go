@@ -3635,7 +3635,7 @@ func NewCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, posArgs
 type MethodCallNode struct {
 	TypedNodeBase
 	Receiver            ExpressionNode
-	NilSafe             bool
+	Op                  *token.Token
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -3646,11 +3646,11 @@ func (*MethodCallNode) IsStatic() bool {
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(span *position.Span, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
 		TypedNodeBase:       TypedNodeBase{span: span},
 		Receiver:            recv,
-		NilSafe:             nilSafe,
+		Op:                  op,
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

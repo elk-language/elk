@@ -31,7 +31,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 }
 
 // Returns `true` if the token can be an end of
-// a range value eg. `..2`
+// a range value eg. `...2`
 func (t Type) IsValidAsEndInRangeLiteral() bool {
 	switch t {
 	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
@@ -50,7 +50,7 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 }
 
 // Returns `true` if the token can be an end of
-// a range pattern eg. `..2`
+// a range pattern eg. `...2`
 func (t Type) IsValidAsEndInRangePattern() bool {
 	switch t {
 	case RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL,
@@ -226,6 +226,8 @@ const (
 	COMMA                         // Comma `,`
 	DOT                           // Dot `.`
 	QUESTION_DOT                  // Safe method call operator `?.`
+	DOT_DOT                       // Cascade call operator `..`
+	QUESTION_DOT_DOT              // Safe cascade call operator `?..`
 	COLON                         // Colon `:`
 	QUESTION                      // Question mark `?`
 
@@ -587,6 +589,8 @@ var tokenNames = [...]string{
 	COMMA:               ",",
 	DOT:                 ".",
 	QUESTION_DOT:        "?.",
+	DOT_DOT:             "..",
+	QUESTION_DOT_DOT:    "?..",
 	COLON:               ":",
 	QUESTION:            "?",
 	PLUS_PLUS:           "++",

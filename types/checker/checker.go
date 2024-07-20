@@ -1114,7 +1114,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 	case token.PLUS:
 		receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
-			false,
+			token.DOT,
 			symbol.OpUnaryPlus,
 			nil,
 			nil,
@@ -1126,7 +1126,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 	case token.MINUS:
 		receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
-			false,
+			token.DOT,
 			symbol.OpNegate,
 			nil,
 			nil,
@@ -1138,7 +1138,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 	case token.TILDE:
 		receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
-			false,
+			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
 			nil,
 			nil,
@@ -1170,7 +1170,7 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			ast.NewMethodCallNode(
 				node.Span(),
 				node.Expression,
-				false,
+				token.New(node.Op.Span(), token.DOT),
 				methodName,
 				nil,
 				nil,
@@ -1217,7 +1217,7 @@ func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.Expression
 func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) ast.ExpressionNode {
 	receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
-		true,
+		token.QUESTION_DOT,
 		symbol.OpSubscript,
 		[]ast.ExpressionNode{node.Key},
 		nil,
@@ -1233,7 +1233,7 @@ func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscript
 func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode) ast.ExpressionNode {
 	receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
-		false,
+		token.DOT,
 		symbol.OpSubscript,
 		[]ast.ExpressionNode{node.Key},
 		nil,
@@ -1395,7 +1395,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	case token.LAX_NOT_EQUAL:
 		_, _, typ := c.checkSimpleMethodCall(
 			node.Left,
-			false,
+			token.DOT,
 			symbol.OpLaxEqual,
 			[]ast.ExpressionNode{node.Right},
 			nil,
@@ -1405,7 +1405,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	case token.NOT_EQUAL:
 		_, _, typ := c.checkSimpleMethodCall(
 			node.Left,
-			false,
+			token.DOT,
 			symbol.OpEqual,
 			[]ast.ExpressionNode{node.Right},
 			nil,
@@ -1420,7 +1420,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
 		_, _, typ := c.checkSimpleMethodCall(
 			node.Left,
-			false,
+			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
 			[]ast.ExpressionNode{node.Right},
 			nil,
@@ -2567,7 +2567,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 
 func (c *Checker) checkSimpleMethodCall(
 	receiver ast.ExpressionNode,
-	nilSafe bool,
+	op token.Type,
 	methodName value.Symbol,
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
@@ -2600,11 +2600,14 @@ func (c *Checker) checkSimpleMethodCall(
 	}
 
 	var method *types.Method
-	if nilSafe {
+	switch op {
+	case token.DOT, token.DOT_DOT:
+		method = c.getMethod(receiverType, methodName, span)
+	case token.QUESTION_DOT, token.QUESTION_DOT_DOT:
 		nonNilableReceiverType := c.toNonNilable(receiverType)
 		method = c.getMethod(nonNilableReceiverType, methodName, span)
-	} else {
-		method = c.getMethod(receiverType, methodName, span)
+	default:
+		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
 	if method == nil {
 		c.checkExpressions(positionalArguments)
@@ -2612,16 +2615,30 @@ func (c *Checker) checkSimpleMethodCall(
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, positionalArguments, namedArguments, span)
-	returnType := method.ReturnType
-	if nilSafe {
+	var returnType types.Type
+	switch op {
+	case token.DOT:
+		returnType = method.ReturnType
+	case token.QUESTION_DOT:
 		if !c.isNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				span,
 			)
+			returnType = method.ReturnType
 		} else {
-			returnType = c.toNilable(returnType)
+			returnType = c.toNilable(method.ReturnType)
 		}
+	case token.DOT_DOT:
+		returnType = receiverType
+	case token.QUESTION_DOT_DOT:
+		if !c.isNilable(receiverType) {
+			c.addFailure(
+				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
+				span,
+			)
+		}
+		returnType = receiverType
 	}
 
 	return receiver, typedPositionalArguments, returnType
@@ -2635,7 +2652,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 ) types.Type {
 	_, _, returnType := c.checkSimpleMethodCall(
 		left,
-		false,
+		token.DOT,
 		methodName,
 		[]ast.ExpressionNode{right},
 		nil,
@@ -2649,7 +2666,7 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
-		node.NilSafe,
+		node.Op.Type,
 		value.ToSymbol(node.MethodName),
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -2680,7 +2697,7 @@ func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.Ex
 	newNode := ast.NewMethodCallNode(
 		node.Span(),
 		receiver,
-		false,
+		token.New(node.Span(), token.DOT),
 		node.AttributeName,
 		typedPositionalArguments,
 		nil,
@@ -3063,7 +3080,7 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressionNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	receiver, args, _ := c.checkSimpleMethodCall(
 		subscriptNode.Receiver,
-		false,
+		token.DOT,
 		symbol.OpSubscriptSet,
 		[]ast.ExpressionNode{subscriptNode.Key, assignmentNode.Right},
 		nil,
@@ -3080,7 +3097,7 @@ func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressio
 func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	receiver, args, _ := c.checkSimpleMethodCall(
 		attributeNode.Receiver,
-		false,
+		token.DOT,
 		value.ToSymbol(attributeNode.AttributeName+"="),
 		[]ast.ExpressionNode{assignmentNode.Right},
 		nil,

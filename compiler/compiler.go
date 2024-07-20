@@ -3064,7 +3064,8 @@ namedArgNodeLoop:
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 	c.compileNode(node.Receiver)
 
-	if node.NilSafe {
+	switch node.Op.Type {
+	case token.QUESTION_DOT:
 		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
 
 		// if not nil
@@ -3075,6 +3076,9 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 		// leave nil on the stack
 		c.patchJump(nilJump, node.Span())
 		return
+	case token.DOT:
+	default:
+		panic(fmt.Sprintf("invalid method call operator: %#v", node.Op))
 	}
 
 	c.innerMethodCall(node)

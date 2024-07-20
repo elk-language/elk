@@ -603,7 +603,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(8, 1, 9)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							nil,
 							nil,
@@ -622,7 +622,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(21, 1, 22)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							[]ast.ExpressionNode{
 								ast.NewFunctionLiteralNode(
@@ -661,7 +661,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "1"),
@@ -702,7 +702,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							nil,
 							[]ast.NamedArgumentNode{
@@ -750,7 +750,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(8, 1, 9)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "1"),
@@ -771,7 +771,45 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							true,
+							T(S(P(3, 1, 4), P(4, 1, 5)), token.QUESTION_DOT),
+							"bar",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can use the cascade call operator": {
+			input: "foo..bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							T(S(P(3, 1, 4), P(4, 1, 5)), token.DOT_DOT),
+							"bar",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can use the safe cascade call operator": {
+			input: "foo?..bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							T(S(P(3, 1, 4), P(5, 1, 6)), token.QUESTION_DOT_DOT),
 							"bar",
 							nil,
 							nil,
@@ -792,12 +830,12 @@ func TestMethodCall(t *testing.T) {
 							ast.NewMethodCallNode(
 								S(P(0, 1, 1), P(8, 1, 9)),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								false,
+								T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 								"bar",
 								nil,
 								nil,
 							),
-							false,
+							T(S(P(9, 1, 10), P(9, 1, 10)), token.DOT),
 							"baz",
 							nil,
 							nil,
@@ -821,7 +859,7 @@ func TestMethodCall(t *testing.T) {
 								ast.NewPublicIdentifierNode(S(P(1, 1, 2), P(3, 1, 4)), "foo"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
 							),
-							false,
+							T(S(P(9, 1, 10), P(9, 1, 10)), token.DOT),
 							"bar",
 							nil,
 							nil,
@@ -840,7 +878,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"_bar",
 							nil,
 							nil,
@@ -862,7 +900,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(6, 1, 7)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"+",
 							nil,
 							nil,
@@ -881,7 +919,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							false,
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"&&",
 							nil,
 							nil,
@@ -903,7 +941,7 @@ func TestMethodCall(t *testing.T) {
 						ast.NewMethodCallNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
-							false,
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.DOT),
 							"_foo",
 							nil,
 							nil,
@@ -1633,7 +1671,7 @@ func TestSubscript(t *testing.T) {
 							ast.NewMethodCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
-								false,
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.DOT),
 								"foo",
 								nil,
 								nil,
@@ -1817,7 +1855,7 @@ func TestNilSafeSubscript(t *testing.T) {
 							ast.NewMethodCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
-								false,
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.DOT),
 								"foo",
 								nil,
 								nil,

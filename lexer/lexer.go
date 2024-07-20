@@ -1467,6 +1467,8 @@ func (l *Lexer) scanNormal() *token.Token {
 					l.advanceChars(2)
 					return l.token(token.RIGHT_OPEN_RANGE_OP)
 				}
+				l.advanceChar()
+				return l.token(token.DOT_DOT)
 			}
 			if isDigit(l.peekChar()) {
 				var lexeme strings.Builder
@@ -1716,6 +1718,9 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.QUESTION_QUESTION)
 			}
 			if l.matchChar('.') {
+				if l.matchChar('.') {
+					return l.token(token.QUESTION_DOT_DOT)
+				}
 				return l.token(token.QUESTION_DOT)
 			}
 			if l.matchChar('[') {

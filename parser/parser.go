@@ -1358,8 +1358,8 @@ const (
 )
 
 // methodCall = identifier ( "(" argumentList ")" | argumentList) |
-// "self" ("." | "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
-// (methodCall | subscript | constructorCall) ("."| "?.") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
+// "self" ("." | "?." | ".." | "?..") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
+// (methodCall | subscript | constructorCall) ("."| "?." | ".." | "?..") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
 //
 // subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
 func (p *Parser) methodCall() ast.ExpressionNode {
@@ -1442,12 +1442,12 @@ methodCallLoop:
 			}
 		}
 
-		if p.accept(token.NEWLINE) && p.acceptSecond(token.DOT, token.QUESTION_DOT) {
+		if p.accept(token.NEWLINE) && p.acceptSecond(token.DOT, token.QUESTION_DOT, token.DOT_DOT, token.QUESTION_DOT_DOT) {
 			p.advance()
 			opToken = p.advance()
 		} else {
 			switch p.lookahead.Type {
-			case token.DOT, token.QUESTION_DOT:
+			case token.DOT, token.QUESTION_DOT, token.DOT_DOT, token.QUESTION_DOT_DOT:
 				opToken = p.advance()
 			case token.LBRACKET, token.QUESTION_LBRACKET:
 				continue methodCallLoop
@@ -1546,7 +1546,7 @@ methodCallLoop:
 		receiver = ast.NewMethodCallNode(
 			receiver.Span().Join(lastSpan),
 			receiver,
-			opToken.Type == token.QUESTION_DOT,
+			opToken,
 			methodName,
 			posArgs,
 			namedArgs,
