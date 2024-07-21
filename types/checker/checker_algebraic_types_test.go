@@ -613,6 +613,38 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `Std::Int(3)` cannot be assigned to type `never`"),
 			},
 		},
+		"normalise Int & ~Int": {
+			input: `
+				var a: Int & ~Int = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 2, 25), P(25, 2, 25)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise Float & Int & ~Int": {
+			input: `
+				var a: Float & Int & ~Int = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+			},
+		},
+		"normalise Float & ~Int & Int": {
+			input: `
+				var a: Float & ~Int & Int = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+			},
+		},
+		"normalise  ~Int & Int & Float": {
+			input: `
+				var a: ~Int & Int & Float = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

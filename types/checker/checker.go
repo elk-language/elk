@@ -4078,7 +4078,7 @@ func normaliseLiteralInIntersection[E types.SimpleLiteral](normalisedElements []
 func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 	var normalisedElements []types.Type
 
-elementLoop:
+firstElementLoop:
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
 		if types.IsNever(element) || types.IsNothing(element) {
@@ -4087,16 +4087,69 @@ elementLoop:
 		switch e := element.(type) {
 		case *types.Intersection:
 			elements = append(elements, e.Elements...)
+		case *types.Not:
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement := normalisedElements[j]
+				if c.isTheSameType(normalisedElement, e.Type, nil) {
+					newNormalisedElements := normalisedElements[0:j]
+					if len(normalisedElements) > j+1 {
+						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
+					}
+					normalisedElements = newNormalisedElements
+					continue firstElementLoop
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		default:
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement, ok := normalisedElements[j].(*types.Not)
+				if !ok {
+					continue
+				}
+
+				if c.isTheSameType(element, normalisedElement.Type, nil) {
+					newNormalisedElements := normalisedElements[0:j]
+					if len(normalisedElements) > j+1 {
+						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
+					}
+					normalisedElements = newNormalisedElements
+					continue firstElementLoop
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		}
+	}
+
+	elements = normalisedElements
+	normalisedElements = nil
+
+secondElementLoop:
+	for i := 0; i < len(elements); i++ {
+		element := elements[i]
+		switch e := element.(type) {
+		case *types.Not:
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement := normalisedElements[j]
+				if c.isTheSameType(normalisedElement, e.Type, nil) {
+					newNormalisedElements := normalisedElements[0:j]
+					if len(normalisedElements) > j+1 {
+						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
+					}
+					normalisedElements = newNormalisedElements
+					continue secondElementLoop
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
 		case *types.Class:
 			for j := 0; j < len(normalisedElements); j++ {
 				switch normalisedElement := c.toNonLiteral(normalisedElements[j]).(type) {
 				case *types.Class:
 					if c.isSubtype(normalisedElement, element, nil) {
-						continue elementLoop
+						continue secondElementLoop
 					}
 					if c.isSubtype(element, normalisedElement, nil) {
 						normalisedElements[j] = element
-						continue elementLoop
+						continue secondElementLoop
 					}
 					return types.Never{}
 				}
@@ -4107,7 +4160,7 @@ elementLoop:
 				switch normalisedElement := normalisedElements[j].(type) {
 				case *types.Module:
 					if element == normalisedElement {
-						continue elementLoop
+						continue secondElementLoop
 					}
 					return types.Never{}
 				}
@@ -4116,7 +4169,7 @@ elementLoop:
 		case *types.IntLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4126,7 +4179,7 @@ elementLoop:
 		case *types.Int64Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4136,7 +4189,7 @@ elementLoop:
 		case *types.Int32Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4146,7 +4199,7 @@ elementLoop:
 		case *types.Int16Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4156,7 +4209,7 @@ elementLoop:
 		case *types.Int8Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4166,7 +4219,7 @@ elementLoop:
 		case *types.UInt64Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4176,7 +4229,7 @@ elementLoop:
 		case *types.UInt32Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4186,7 +4239,7 @@ elementLoop:
 		case *types.UInt16Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4196,7 +4249,7 @@ elementLoop:
 		case *types.UInt8Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4206,7 +4259,7 @@ elementLoop:
 		case *types.FloatLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4216,7 +4269,7 @@ elementLoop:
 		case *types.Float64Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4226,7 +4279,7 @@ elementLoop:
 		case *types.Float32Literal:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4236,7 +4289,7 @@ elementLoop:
 		case *types.BigFloatLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4246,7 +4299,7 @@ elementLoop:
 		case *types.StringLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4256,7 +4309,7 @@ elementLoop:
 		case *types.CharLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4266,7 +4319,7 @@ elementLoop:
 		case *types.SymbolLiteral:
 			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
 			if !ok {
-				continue elementLoop
+				continue secondElementLoop
 			}
 			if typ == nil {
 				return types.Never{}
@@ -4277,11 +4330,11 @@ elementLoop:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
 				if c.isSubtype(normalisedElement, element, nil) {
-					continue elementLoop
+					continue secondElementLoop
 				}
 				if c.isSubtype(element, normalisedElement, nil) {
 					normalisedElements[j] = element
-					continue elementLoop
+					continue secondElementLoop
 				}
 			}
 			normalisedElements = append(normalisedElements, element)
