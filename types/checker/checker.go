@@ -480,6 +480,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	case *types.Nilable:
 		return c.isSubtype(a.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
+	case *types.Not:
+		if bNot, ok := b.(*types.Not); ok {
+			return c.isSubtype(bNot.Type, a.Type, nil)
+		}
+		return false
 	}
 
 	if bIntersection, ok := b.(*types.Intersection); ok {
@@ -502,6 +507,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return false
 	case *types.Nilable:
 		return c.isSubtype(a, b.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
+	case *types.Not:
+		return !c.isSubtype(a, b.Type, nil)
 	}
 
 	if aIntersection, ok := a.(*types.Intersection); ok {
@@ -3964,6 +3971,11 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		typ := c.toNilable(c.typeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
+	case *ast.NotTypeNode:
+		n.TypeNode = c.checkTypeNode(n.TypeNode)
+		typ := c.normaliseType(types.NewNot(c.typeOf(n.TypeNode)))
+		n.SetType(typ)
+		return n
 	case *ast.SingletonTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
 		typ := c.typeOf(n.TypeNode)
@@ -4027,6 +4039,20 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 			union.Elements = append(union.Elements, types.Nil{})
 			return union
 		}
+		return t
+	case *types.Not:
+		t.Type = c.normaliseType(t.Type)
+		switch nestedType := t.Type.(type) {
+		case *types.Not:
+			return nestedType.Type
+		case types.Never:
+			return types.Any{}
+		case types.Any:
+			return types.Never{}
+		case types.Nothing:
+			return types.Nothing{}
+		}
+
 		return t
 	default:
 		return typ

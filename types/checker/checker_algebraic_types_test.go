@@ -632,3 +632,70 @@ func TestIntersectionTypeMethodCall(t *testing.T) {
 		})
 	}
 }
+
+func TestNotTypeSubtype(t *testing.T) {
+	tests := testTable{
+		"assign Int to not Int": {
+			input: `
+				var a = 3
+				var b: ~Int = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 19), P(33, 3, 19)), "type `Std::Int` cannot be assigned to type `~Std::Int`"),
+			},
+		},
+		"assign any non Int value to not Int": {
+			input: `
+				var b: ~Int = "foo"
+				b = 2.5
+				b = 9u8
+			`,
+		},
+		"assign ~Object to ~String": {
+			input: `
+				var a: ~Object = Value()
+				var b: ~String = a
+			`,
+		},
+		"assign ~String to ~Object": {
+			input: `
+				var a: ~String = 5
+				var b: ~Object = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 22), P(45, 3, 22)), "type `~Std::String` cannot be assigned to type `~Std::Object`"),
+			},
+		},
+		"normalise nested not types": {
+			input: `
+				var a: ~(~Int) = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "type `Std::String(\"foo\")` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"normalise not any to never": {
+			input: `
+				var a: ~(any) = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(21, 2, 21), P(25, 2, 25)), "type `Std::String(\"foo\")` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise not never to any": {
+			input: `
+				var a: ~(never) = "foo"
+				a.foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
