@@ -41,6 +41,15 @@ type local struct {
 	typ              types.Type
 	initialised      bool
 	singleAssignment bool
+	shadow           bool
+}
+
+func (l *local) copy() *local {
+	return &local{
+		typ:              l.typ,
+		initialised:      l.initialised,
+		singleAssignment: l.singleAssignment,
+	}
 }
 
 func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
@@ -1202,16 +1211,124 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
+func (c *Checker) narrowCondition(node ast.ExpressionNode, assumeTruthy bool) {
+	switch n := node.(type) {
+	case *ast.UnaryExpressionNode:
+		c.narrowUnary(n, assumeTruthy)
+	case *ast.BinaryExpressionNode:
+		c.narrowBinary(n, assumeTruthy)
+	case *ast.PublicIdentifierNode:
+		c.narrowLocal(n.Value, assumeTruthy)
+	case *ast.PrivateIdentifierNode:
+		c.narrowLocal(n.Value, assumeTruthy)
+	}
+}
+
+func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+	switch node.Op.Type {
+	case token.INSTANCE_OF_OP:
+		c.narrowInstanceOf(node, assumeTruthy)
+	case token.ISA_OP:
+		c.narrowIsA(node, assumeTruthy)
+	}
+}
+
+func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+	var localName string
+	switch l := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		localName = l.Value
+	case *ast.PrivateIdentifierNode:
+		localName = l.Value
+	default:
+		return
+	}
+
+	if assumeTruthy {
+		rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+		if !ok {
+			return
+		}
+		namespace := rightSingleton.AttachedObject
+
+		local := c.resolveLocal(localName, nil)
+		if local == nil {
+			return
+		}
+		newLocal := local.copy()
+		newLocal.shadow = true
+		newLocal.typ = namespace
+		c.addLocal(localName, newLocal)
+	}
+}
+
+func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+	var localName string
+	switch l := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		localName = l.Value
+	case *ast.PrivateIdentifierNode:
+		localName = l.Value
+	default:
+		return
+	}
+
+	if assumeTruthy {
+		rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+		if !ok {
+			return
+		}
+		class, ok := rightSingleton.AttachedObject.(*types.Class)
+		if !ok {
+			return
+		}
+
+		local := c.resolveLocal(localName, nil)
+		if local == nil {
+			return
+		}
+		newLocal := local.copy()
+		newLocal.shadow = true
+		newLocal.typ = class
+		c.addLocal(localName, newLocal)
+	}
+}
+
+func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assumeTruthy bool) {
+	switch node.Op.Type {
+	case token.BANG:
+		c.narrowCondition(node.Right, !assumeTruthy)
+	}
+}
+
+func (c *Checker) narrowLocal(name string, assumeTruthy bool) {
+	local := c.resolveLocal(name, nil)
+	if local == nil {
+		return
+	}
+
+	newLocal := local.copy()
+	newLocal.shadow = true
+	if assumeTruthy {
+		newLocal.typ = c.toNonFalsy(local.typ)
+	} else {
+		newLocal.typ = c.toNonTruthy(local.typ)
+	}
+	c.addLocal(name, newLocal)
+}
+
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOf(node.Condition)
 
 	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, true)
 	thenType := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, false)
 	elseType := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
@@ -3580,7 +3697,12 @@ func (c *Checker) addLocal(name string, l *local) {
 // Get the local with the specified name from the current local environment
 func (c *Checker) getLocal(name string) *local {
 	env := c.currentLocalEnv()
-	return env.getLocal(name)
+	local := env.getLocal(name)
+	if local == nil || local.shadow {
+		return nil
+	}
+
+	return local
 }
 
 // Get the instance variable with the specified name
@@ -3848,11 +3970,31 @@ func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.Un
 	return newNode
 }
 
+func (c *Checker) normaliseType(typ types.Type) types.Type {
+	switch t := typ.(type) {
+	case *types.Union:
+		return c.newNormalisedUnion(t.Elements...)
+	case *types.Nilable:
+		t.Type = c.normaliseType(t.Type)
+		if c.isNilable(t.Type) {
+			return t.Type
+		}
+		if union, ok := t.Type.(*types.Union); ok {
+			union.Elements = append(union.Elements, types.Nil{})
+			return union
+		}
+		return t
+	default:
+		return typ
+	}
+}
+
 func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
 	var normalisedElements []types.Type
 
 elementLoop:
 	for _, element := range elements {
+		element := c.normaliseType(element)
 		if types.IsNever(element) || types.IsNothing(element) {
 			continue elementLoop
 		}
