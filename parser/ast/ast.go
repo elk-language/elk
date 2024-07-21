@@ -2383,7 +2383,7 @@ func NewSwitchExpressionNode(span *position.Span, val ExpressionNode, cases []*C
 
 // Represents an `if` expression eg. `if foo then println("bar")`
 type IfExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Condition ExpressionNode  // if condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
@@ -2396,16 +2396,16 @@ func (*IfExpressionNode) IsStatic() bool {
 // Create a new `if` expression node eg. `if foo then println("bar")`
 func NewIfExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
 	return &IfExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		ThenBody:  then,
-		Condition: cond,
-		ElseBody:  els,
+		TypedNodeBase: TypedNodeBase{span: span},
+		ThenBody:      then,
+		Condition:     cond,
+		ElseBody:      els,
 	}
 }
 
 // Represents an `unless` expression eg. `unless foo then println("bar")`
 type UnlessExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Condition ExpressionNode  // unless condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
@@ -2418,16 +2418,16 @@ func (*UnlessExpressionNode) IsStatic() bool {
 // Create a new `unless` expression node eg. `unless foo then println("bar")`
 func NewUnlessExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
 	return &UnlessExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		ThenBody:  then,
-		Condition: cond,
-		ElseBody:  els,
+		TypedNodeBase: TypedNodeBase{span: span},
+		ThenBody:      then,
+		Condition:     cond,
+		ElseBody:      els,
 	}
 }
 
 // Represents a `while` expression eg. `while i < 5 then i += 5`
 type WhileExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Condition ExpressionNode  // while condition
 	ThenBody  []StatementNode // then expression body
 }
@@ -2439,15 +2439,15 @@ func (*WhileExpressionNode) IsStatic() bool {
 // Create a new `while` expression node eg. `while i < 5 then i += 5`
 func NewWhileExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
 	return &WhileExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Condition: cond,
-		ThenBody:  then,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Condition:     cond,
+		ThenBody:      then,
 	}
 }
 
 // Represents a `until` expression eg. `until i >= 5 then i += 5`
 type UntilExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Condition ExpressionNode  // until condition
 	ThenBody  []StatementNode // then expression body
 }
@@ -2459,15 +2459,15 @@ func (*UntilExpressionNode) IsStatic() bool {
 // Create a new `until` expression node eg. `until i >= 5 then i += 5`
 func NewUntilExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
 	return &UntilExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Condition: cond,
-		ThenBody:  then,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Condition:     cond,
+		ThenBody:      then,
 	}
 }
 
 // Represents a `loop` expression.
 type LoopExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	ThenBody []StatementNode // then expression body
 }
 
@@ -2478,8 +2478,8 @@ func (*LoopExpressionNode) IsStatic() bool {
 // Create a new `loop` expression node eg. `loop println('elk is awesome')`
 func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpressionNode {
 	return &LoopExpressionNode{
-		NodeBase: NodeBase{span: span},
-		ThenBody: then,
+		TypedNodeBase: TypedNodeBase{span: span},
+		ThenBody:      then,
 	}
 }
 

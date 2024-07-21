@@ -372,7 +372,11 @@ func (c *Checker) checkStatements(stmts []ast.StatementNode) types.Type {
 		}
 	}
 
-	return lastType
+	if lastType == nil {
+		return types.Nil{}
+	} else {
+		return lastType
+	}
 }
 
 func (c *Checker) checkStatement(node ast.Node) types.Type {
@@ -1032,6 +1036,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkPostfixExpressionNode(n)
 	case *ast.DoExpressionNode:
 		return c.checkDoExpressionNode(n)
+	case *ast.IfExpressionNode:
+		return c.checkIfExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1196,15 +1202,53 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
+func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOf(node.Condition)
+
+	c.pushNestedLocalEnv()
+	thenType := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.pushNestedLocalEnv()
+	elseType := c.checkStatements(node.ElseBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(thenType)
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(elseType)
+		return node
+	}
+
+	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	return node
+}
+
 func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 
 	typ := c.checkStatements(node.Body)
-	if typ == nil {
-		node.SetType(types.Nil{})
-	} else {
-		node.SetType(typ)
-	}
+	node.SetType(typ)
 
 	c.popLocalEnv()
 	return node
