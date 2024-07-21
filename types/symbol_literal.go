@@ -11,6 +11,10 @@ type SymbolLiteral struct {
 	Value string
 }
 
+func (s *SymbolLiteral) StringValue() string {
+	return s.Value
+}
+
 func NewSymbolLiteral(value string) *SymbolLiteral {
 	return &SymbolLiteral{
 		Value: value,

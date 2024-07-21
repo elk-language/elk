@@ -11,6 +11,10 @@ type CharLiteral struct {
 	Value rune
 }
 
+func (c *CharLiteral) StringValue() string {
+	return string(c.Value)
+}
+
 func NewCharLiteral(value rune) *CharLiteral {
 	return &CharLiteral{
 		Value: value,

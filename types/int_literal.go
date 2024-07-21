@@ -10,6 +10,10 @@ type IntLiteral struct {
 	Value string
 }
 
+func (i *IntLiteral) StringValue() string {
+	return i.Value
+}
+
 func NewIntLiteral(value string) *IntLiteral {
 	return &IntLiteral{
 		Value: value,
@@ -30,6 +34,10 @@ func (i *IntLiteral) inspect() string {
 
 type Int64Literal struct {
 	Value string
+}
+
+func (i *Int64Literal) StringValue() string {
+	return i.Value
 }
 
 func NewInt64Literal(value string) *Int64Literal {
@@ -54,6 +62,10 @@ type Int32Literal struct {
 	Value string
 }
 
+func (i *Int32Literal) StringValue() string {
+	return i.Value
+}
+
 func NewInt32Literal(value string) *Int32Literal {
 	return &Int32Literal{
 		Value: value,
@@ -74,6 +86,10 @@ func (i *Int32Literal) inspect() string {
 
 type Int16Literal struct {
 	Value string
+}
+
+func (i *Int16Literal) StringValue() string {
+	return i.Value
 }
 
 func NewInt16Literal(value string) *Int16Literal {
@@ -98,6 +114,10 @@ type Int8Literal struct {
 	Value string
 }
 
+func (i *Int8Literal) StringValue() string {
+	return i.Value
+}
+
 func NewInt8Literal(value string) *Int8Literal {
 	return &Int8Literal{
 		Value: value,
@@ -118,6 +138,10 @@ func (i *Int8Literal) inspect() string {
 
 type UInt64Literal struct {
 	Value string
+}
+
+func (i *UInt64Literal) StringValue() string {
+	return i.Value
 }
 
 func NewUInt64Literal(value string) *UInt64Literal {
@@ -142,6 +166,10 @@ type UInt32Literal struct {
 	Value string
 }
 
+func (i *UInt32Literal) StringValue() string {
+	return i.Value
+}
+
 func NewUInt32Literal(value string) *UInt32Literal {
 	return &UInt32Literal{
 		Value: value,
@@ -164,6 +192,10 @@ type UInt16Literal struct {
 	Value string
 }
 
+func (i *UInt16Literal) StringValue() string {
+	return i.Value
+}
+
 func NewUInt16Literal(value string) *UInt16Literal {
 	return &UInt16Literal{
 		Value: value,
@@ -184,6 +216,10 @@ func (i *UInt16Literal) inspect() string {
 
 type UInt8Literal struct {
 	Value string
+}
+
+func (i *UInt8Literal) StringValue() string {
+	return i.Value
 }
 
 func NewUInt8Literal(value string) *UInt8Literal {

@@ -11,6 +11,10 @@ type StringLiteral struct {
 	Value string
 }
 
+func (s *StringLiteral) StringValue() string {
+	return s.Value
+}
+
 func NewStringLiteral(value string) *StringLiteral {
 	return &StringLiteral{
 		Value: value,

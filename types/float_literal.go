@@ -10,6 +10,10 @@ type FloatLiteral struct {
 	Value string
 }
 
+func (f *FloatLiteral) StringValue() string {
+	return f.Value
+}
+
 func NewFloatLiteral(value string) *FloatLiteral {
 	return &FloatLiteral{
 		Value: value,
@@ -30,6 +34,10 @@ func (f *FloatLiteral) inspect() string {
 
 type Float64Literal struct {
 	Value string
+}
+
+func (f *Float64Literal) StringValue() string {
+	return f.Value
 }
 
 func NewFloat64Literal(value string) *Float64Literal {
@@ -54,6 +62,10 @@ type Float32Literal struct {
 	Value string
 }
 
+func (f *Float32Literal) StringValue() string {
+	return f.Value
+}
+
 func NewFloat32Literal(value string) *Float32Literal {
 	return &Float32Literal{
 		Value: value,
@@ -74,6 +86,10 @@ func (f *Float32Literal) inspect() string {
 
 type BigFloatLiteral struct {
 	Value string
+}
+
+func (f *BigFloatLiteral) StringValue() string {
+	return f.Value
 }
 
 func NewBigFloatLiteral(value string) *BigFloatLiteral {

@@ -469,35 +469,53 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if types.IsAny(a) || types.IsVoid(a) {
 		return false
 	}
-	aNonLiteral := c.toNonLiteral(a)
-	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
-		return true
-	}
 
-	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
-		for _, aElement := range aUnion.Elements {
+	switch a := a.(type) {
+	case *types.Union:
+		for _, aElement := range a.Elements {
 			if !c.isSubtype(aElement, b, errSpan) {
 				return false
 			}
 		}
 		return true
+	case *types.Nilable:
+		return c.isSubtype(a.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
 	}
 
-	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
-		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
+	if bIntersection, ok := b.(*types.Intersection); ok {
+		subtype := true
+		for _, bElement := range bIntersection.Elements {
+			if !c.isSubtype(a, bElement, errSpan) {
+				subtype = false
+			}
+		}
+		return subtype
 	}
 
-	if bUnion, bIsUnion := b.(*types.Union); bIsUnion {
-		for _, bElement := range bUnion.Elements {
+	switch b := b.(type) {
+	case *types.Union:
+		for _, bElement := range b.Elements {
 			if c.isSubtype(a, bElement, errSpan) {
+				return true
+			}
+		}
+		return false
+	case *types.Nilable:
+		return c.isSubtype(a, b.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
+	}
+
+	if aIntersection, ok := a.(*types.Intersection); ok {
+		for _, aElement := range aIntersection.Elements {
+			if c.isSubtype(aElement, b, nil) {
 				return true
 			}
 		}
 		return false
 	}
 
-	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
-		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
+	aNonLiteral := c.toNonLiteral(a)
+	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
+		return true
 	}
 
 	originalA := a
@@ -2259,6 +2277,43 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.MixinProxy:
 		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+	case *types.Intersection:
+		var methods []*types.Method
+		var baseMethod *types.Method
+
+		for _, element := range t.Elements {
+			elementMethod := c.getMethod(element, name, nil)
+			if elementMethod == nil {
+				continue
+			}
+			methods = append(methods, elementMethod)
+			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) {
+				baseMethod = elementMethod
+			}
+		}
+
+		switch len(methods) {
+		case 0:
+			c.addMissingMethodError(typ, name.String(), errSpan)
+			return nil
+		case 1:
+			return methods[0]
+		}
+
+		isCompatible := true
+		for i := range len(methods) {
+			method := methods[i]
+
+			if !c.checkMethodCompatibility(baseMethod, method, errSpan) {
+				isCompatible = false
+			}
+		}
+
+		if isCompatible {
+			return baseMethod
+		}
+
+		return nil
 	case *types.Nilable:
 		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.Method(name)
@@ -2470,20 +2525,7 @@ func (c *Checker) toNonLiteral(typ types.Type) types.Type {
 }
 
 func (c *Checker) toNilable(typ types.Type) types.Type {
-	if c.isNilable(typ) {
-		return typ
-	}
-
-	switch t := typ.(type) {
-	case *types.Union:
-		newElements := slices.Clone(t.Elements)
-		newElements = append(newElements, types.Nil{})
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		return types.NewNilable(typ)
-	default:
-		return types.NewNilable(typ)
-	}
+	return c.normaliseType(types.NewNilable(typ))
 }
 
 func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
@@ -3960,7 +4002,7 @@ func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.Un
 	union := types.NewUnion()
 	elements := new([]ast.TypeNode)
 	c._constructUnionType(node, elements, union)
-	normalisedUnion := c.newNormalisedUnion(union.Elements...)
+	normalisedUnion := c.normaliseType(union)
 
 	newNode := ast.NewUnionTypeNode(
 		node.Span(),
@@ -3974,6 +4016,8 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 	switch t := typ.(type) {
 	case *types.Union:
 		return c.newNormalisedUnion(t.Elements...)
+	case *types.Intersection:
+		return c.newNormalisedIntersection(t.Elements...)
 	case *types.Nilable:
 		t.Type = c.normaliseType(t.Type)
 		if c.isNilable(t.Type) {
@@ -3987,6 +4031,245 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 	default:
 		return typ
 	}
+}
+
+func normaliseLiteralInIntersection[E types.SimpleLiteral](normalisedElements []types.Type, element E) (types.Type, bool) {
+	for j := 0; j < len(normalisedElements); j++ {
+		switch normalisedElement := normalisedElements[j].(type) {
+		case E:
+			if element.StringValue() == normalisedElement.StringValue() {
+				return nil, false
+			}
+			return nil, true
+		case types.SimpleLiteral:
+			return nil, true
+		}
+	}
+
+	return element, true
+}
+
+func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
+	var normalisedElements []types.Type
+
+elementLoop:
+	for i := 0; i < len(elements); i++ {
+		element := c.normaliseType(elements[i])
+		if types.IsNever(element) || types.IsNothing(element) {
+			return element
+		}
+		switch e := element.(type) {
+		case *types.Intersection:
+			elements = append(elements, e.Elements...)
+		case *types.Class:
+			for j := 0; j < len(normalisedElements); j++ {
+				switch normalisedElement := c.toNonLiteral(normalisedElements[j]).(type) {
+				case *types.Class:
+					if c.isSubtype(normalisedElement, element, nil) {
+						continue elementLoop
+					}
+					if c.isSubtype(element, normalisedElement, nil) {
+						normalisedElements[j] = element
+						continue elementLoop
+					}
+					return types.Never{}
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		case *types.Module:
+			for j := 0; j < len(normalisedElements); j++ {
+				switch normalisedElement := normalisedElements[j].(type) {
+				case *types.Module:
+					if element == normalisedElement {
+						continue elementLoop
+					}
+					return types.Never{}
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		case *types.IntLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Int64Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Int32Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Int16Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Int8Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.UInt64Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.UInt32Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.UInt16Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.UInt8Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.FloatLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Float64Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.Float32Literal:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.BigFloatLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.StringLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.CharLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		case *types.SymbolLiteral:
+			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			if !ok {
+				continue elementLoop
+			}
+			if typ == nil {
+				return types.Never{}
+			}
+
+			normalisedElements = append(normalisedElements, element)
+		default:
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement := normalisedElements[j]
+				if c.isSubtype(normalisedElement, element, nil) {
+					continue elementLoop
+				}
+				if c.isSubtype(element, normalisedElement, nil) {
+					normalisedElements[j] = element
+					continue elementLoop
+				}
+			}
+			normalisedElements = append(normalisedElements, element)
+		}
+	}
+
+	if len(normalisedElements) == 0 {
+		return types.Never{}
+	}
+	if len(normalisedElements) == 1 {
+		return normalisedElements[0]
+	}
+
+	return types.NewIntersection(normalisedElements...)
 }
 
 func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
@@ -4076,11 +4359,13 @@ func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) 
 	intersection := types.NewIntersection()
 	elements := new([]ast.TypeNode)
 	c._constructIntersectionType(node, elements, intersection)
+	normalisedIntersection := c.normaliseType(intersection)
+
 	newNode := ast.NewIntersectionTypeNode(
 		node.Span(),
 		*elements,
 	)
-	newNode.SetType(intersection)
+	newNode.SetType(normalisedIntersection)
 	return newNode
 }
 

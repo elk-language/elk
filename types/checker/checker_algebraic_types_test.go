@@ -219,20 +219,29 @@ func TestUnionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
-		"assign union type to non union type": {
-			input: `
-				var a = 3
-				var b: String | Float = a
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
-			},
-		},
-		"assign union type to more general union type": {
+		"assign union type to more wide union type": {
 			input: `
 				var a: String | Int = 3
 				var b: Int | Float | String = a
 			`,
+		},
+		"assign union type to more narrow union type": {
+			input: `
+				var a: Int | Float | String = 3
+				var b: Int | String = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 3, 27), P(63, 3, 27)), "type `Std::Int | Std::Float | Std::String` cannot be assigned to type `Std::Int | Std::String`"),
+			},
+		},
+		"normalise union type": {
+			input: `
+				var a: (String | (Int | Char | Float))? | Float = 3
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::String | Std::Int | Std::Char | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+			},
 		},
 	}
 
@@ -440,6 +449,180 @@ func TestUnionTypeMethodCall(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(237, 12, 5), P(252, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestIntersectionTypeSubtype(t *testing.T) {
+	tests := testTable{
+		"assign Int to intersection type with Int": {
+			input: `
+				var a = 3
+				var b: Int & StringConvertible = a
+			`,
+		},
+		"assign Int to intersection type with two compatible types": {
+			input: `
+				var a = 3
+				var b: Object & StringConvertible = a
+			`,
+		},
+		"assign intersection type to more wide intersection type": {
+			input: `
+				interface StringConvertible
+					sig to_string: String
+				end
+				interface IntConvertible
+					sig to_int: Int
+				end
+				interface FloatConvertible
+					sig to_float: Float
+				end
+				var a: StringConvertible & IntConvertible = 3
+				var b: StringConvertible & IntConvertible & FloatConvertible = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(307, 12, 68), P(307, 12, 68)), "type `StringConvertible & IntConvertible` cannot be assigned to type `StringConvertible & IntConvertible & FloatConvertible`"),
+			},
+		},
+		"assign intersection type to more narrow intersection type": {
+			input: `
+				interface StringConvertible
+					sig to_string: String
+				end
+				interface IntConvertible
+					sig to_int: Int
+				end
+				interface FloatConvertible
+					sig to_float: Float
+				end
+				var a: StringConvertible & IntConvertible & FloatConvertible = 3
+				var b: StringConvertible & IntConvertible = a
+			`,
+		},
+		"assign a value that does not implement one interface in the intersection": {
+			input: `
+				interface StringConvertible
+					sig to_string: String
+				end
+				interface IntConvertible
+					sig to_int: Int
+				end
+				interface SigmaConvertible
+					sig to_sigma: Float
+				end
+				var a: StringConvertible & IntConvertible & SigmaConvertible = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int(3)` cannot be assigned to type `StringConvertible & IntConvertible & SigmaConvertible`"),
+			},
+		},
+		"assign a value that does not implement a few interfaces in the intersection": {
+			input: `
+				interface BarConvertible
+					sig to_bar: String
+				end
+				interface FooConvertible
+					sig to_foo: Int
+				end
+				interface SigmaConvertible
+					sig to_sigma: Float
+				end
+				var a: FooConvertible & BarConvertible & SigmaConvertible = Object()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `FooConvertible`:\n\n  - missing method `FooConvertible.:to_foo` with signature: `def to_foo(): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `BarConvertible`:\n\n  - missing method `BarConvertible.:to_bar` with signature: `def to_bar(): Std::String`\n"),
+				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` cannot be assigned to type `FooConvertible & BarConvertible & SigmaConvertible`"),
+			},
+		},
+		"normalise intersection type with multiple classes": {
+			input: `
+				var a: String & Int = 3
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise intersection type with multiple modules": {
+			input: `
+				module Foo; end
+				var a: Std & Foo = 3
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise intersection type with the same module repeated": {
+			input: `
+				var a: Std & Std = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "type `Std::Int(3)` cannot be assigned to type `Std`"),
+			},
+		},
+		"normalise intersection type with the same class repeated": {
+			input: `
+				var a: String & String = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 2, 30), P(30, 2, 30)), "type `Std::Int(3)` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"normalise intersection type with the same literal repeated": {
+			input: `
+				var a: 9 & 9 = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `Std::Int(3)` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"normalise intersection type with different literals": {
+			input: `
+				var a: 9 & 3 = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestIntersectionTypeMethodCall(t *testing.T) {
+	tests := testTable{
+		"cal method only present in one type": {
+			input: `
+			  interface Foo
+				  def foo; end
+				end
+				interface Bar
+					def bar; end
+				end
+				class Baz
+					def foo; end
+					def bar; end
+				end
+
+				var a: Foo & Bar = Baz()
+				a.foo
+				a.bar
+			`,
 		},
 	}
 
