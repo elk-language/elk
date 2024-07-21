@@ -637,7 +637,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
 			},
 		},
-		"normalise  ~Int & Int & Float": {
+		"normalise ~Int & Int & Float": {
 			input: `
 				var a: ~Int & Int & Float = 3
 			`,

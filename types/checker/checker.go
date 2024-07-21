@@ -2289,13 +2289,31 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		var baseMethod *types.Method
 
 		for _, element := range t.Elements {
-			elementMethod := c.getMethod(element, name, nil)
-			if elementMethod == nil {
-				continue
-			}
-			methods = append(methods, elementMethod)
-			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) {
-				baseMethod = elementMethod
+			switch e := element.(type) {
+			case *types.Not:
+				switch t := e.Type.(type) {
+				case *types.Interface:
+					elementMethod := c.getMethod(t, name, nil)
+					if elementMethod == nil {
+						continue
+					}
+					return nil
+				case *types.Mixin:
+					elementMethod := c.getMethod(t, name, nil)
+					if elementMethod == nil {
+						continue
+					}
+					return nil
+				}
+			default:
+				elementMethod := c.getMethod(element, name, nil)
+				if elementMethod == nil {
+					continue
+				}
+				methods = append(methods, elementMethod)
+				if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) {
+					baseMethod = elementMethod
+				}
 			}
 		}
 
