@@ -240,7 +240,25 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::String | Std::Int | Std::Char | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"normalise Int | ~Int": {
+			input: `
+				var a: Int | ~Int = 3
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `Std::Int(9)`"),
+			},
+		},
+		"normalise ~Int | Int": {
+			input: `
+				var a: ~Int | Int = 3
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `Std::Int(9)`"),
 			},
 		},
 	}

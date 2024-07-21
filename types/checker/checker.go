@@ -4302,41 +4302,31 @@ func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
 	var normalisedElements []types.Type
 
 elementLoop:
-	for _, element := range elements {
-		element := c.normaliseType(element)
+	for i := 0; i < len(elements); i++ {
+		element := c.normaliseType(elements[i])
 		if types.IsNever(element) || types.IsNothing(element) {
 			continue elementLoop
 		}
 		switch e := element.(type) {
 		case *types.Union:
-		subUnionLoop:
-			for _, subUnionElement := range e.Elements {
-				if types.IsNever(subUnionElement) || types.IsNothing(subUnionElement) {
-					continue subUnionLoop
-				}
-				for _, normalisedElement := range normalisedElements {
-					if c.isSubtype(subUnionElement, normalisedElement, nil) || c.isSubtype(normalisedElement, subUnionElement, nil) {
-						continue subUnionLoop
-					}
-				}
-				normalisedElements = append(normalisedElements, subUnionElement)
-			}
+			elements = append(elements, e.Elements...)
 		case *types.Nilable:
-			elements := []types.Type{e.Type, types.Nil{}}
-		nilableLoop:
-			for _, nilableElement := range elements {
-				if types.IsNever(nilableElement) || types.IsNothing(nilableElement) {
-					continue nilableLoop
+			elements = append(elements, e.Type, types.Nil{})
+		case *types.Not:
+			for _, normalisedElement := range normalisedElements {
+				if c.isTheSameType(e.Type, normalisedElement, nil) {
+					return types.Any{}
 				}
-				for _, normalisedElement := range normalisedElements {
-					if c.isSubtype(nilableElement, normalisedElement, nil) || c.isSubtype(normalisedElement, nilableElement, nil) {
-						continue nilableLoop
-					}
+				if c.isSubtype(element, normalisedElement, nil) || c.isSubtype(normalisedElement, element, nil) {
+					continue elementLoop
 				}
-				normalisedElements = append(normalisedElements, nilableElement)
 			}
+			normalisedElements = append(normalisedElements, element)
 		default:
 			for _, normalisedElement := range normalisedElements {
+				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type, element, nil) {
+					return types.Any{}
+				}
 				if c.isSubtype(element, normalisedElement, nil) || c.isSubtype(normalisedElement, element, nil) {
 					continue elementLoop
 				}
