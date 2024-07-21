@@ -6,10 +6,46 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestRegexLiteral(t *testing.T) {
+	tests := testTable{
+		"infer regex": {
+			input: `
+				var foo = %/str/
+				var a: Regex = foo
+			`,
+		},
+		"infer interpolated regex": {
+			input: `
+				var foo = %/${1} str/
+				var b: Regex = foo
+			`,
+		},
+		"interpolate unconvertible value": {
+			input: `
+				class Foo; end
+				var foo = %/${Foo()} str/
+				var b: Regex = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 3, 19), P(42, 3, 23)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`\n"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"infer raw string": {
-			input: "var foo = 'str'",
+			input: `
+				var foo = 'str'
+				var a: String = foo
+			`,
 		},
 		"assign string literal to String": {
 			input: "var foo: String = 'str'",
@@ -24,10 +60,36 @@ func TestStringLiteral(t *testing.T) {
 			},
 		},
 		"infer double quoted string": {
-			input: `var foo = "str"`,
+			input: `
+				var foo = "str"
+				var b: String = foo
+			`,
 		},
 		"infer interpolated string": {
-			input: `var foo = "${1} str #{5.2}"`,
+			input: `
+				var foo = "${1} str #{5.2}"
+				var b: String = foo
+			`,
+		},
+		"interpolate unconvertible value": {
+			input: `
+				class Foo; end
+				var foo = "${Foo()} str"
+				var b: String = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 3, 18), P(41, 3, 22)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`\n"),
+			},
+		},
+		"interpolate uninspectable value": {
+			input: `
+				class Foo < nil; end
+				var foo = "#{Foo()} str"
+				var b: String = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 18), P(47, 3, 22)), "type `Foo` does not implement interface `Std::Inspectable`:\n\n  - missing method `Std::Inspectable.:inspect` with signature: `def inspect(): Std::String`\n"),
+			},
 		},
 	}
 

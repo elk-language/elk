@@ -255,7 +255,7 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 			buffer.WriteString("native ")
 		}
 	}
-	buffer.WriteString("sig ")
+	buffer.WriteString("def ")
 	buffer.WriteString(m.Name.String())
 	buffer.WriteRune('(')
 	firstIteration := true

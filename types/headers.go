@@ -63,6 +63,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
 		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, value.ToSymbol("Int"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, value.ToSymbol("Int16"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, value.ToSymbol("Int32"), objectClass, env)
@@ -95,6 +96,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, value.ToSymbol("CharIterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, value.ToSymbol("UInt16"), objectClass, env)
@@ -510,6 +512,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.SubtypeString("Inspectable").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", true, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("Int").(*Class)
@@ -978,6 +996,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.SubtypeString("StringConvertible").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Convert the value to a string.", true, false, true, value.ToSymbol("to_string"), nil, NameToType("Std::String", env), nil)
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.SubtypeString("Symbol").(*Class)

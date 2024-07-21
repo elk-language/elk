@@ -893,7 +893,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
-		*ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
+		*ast.UninterpolatedRegexLiteralNode:
 		return n
 	case *ast.SelfLiteralNode:
 		n.SetType(c.selfType)
@@ -957,6 +957,9 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.InterpolatedStringLiteralNode:
 		c.checkInterpolatedStringLiteralNode(n)
+		return n
+	case *ast.InterpolatedRegexLiteralNode:
+		c.checkInterpolatedRegexLiteralNode(n)
 		return n
 	case *ast.SimpleSymbolLiteralNode:
 		n.SetType(types.NewSymbolLiteral(n.Content))
@@ -1048,6 +1051,14 @@ func (c *Checker) StdFloat() *types.Class {
 
 func (c *Checker) StdBigFloat() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.BigFloat)
+}
+
+func (c *Checker) StdStringConvertible() types.Type {
+	return c.GlobalEnv.StdSubtype(symbol.StringConvertible)
+}
+
+func (c *Checker) StdInspectable() types.Type {
+	return c.GlobalEnv.StdSubtype(symbol.Inspectable)
 }
 
 func (c *Checker) StdBool() *types.Class {
@@ -3228,6 +3239,27 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	return node
 }
 
+func (c *Checker) checkInterpolatedRegexLiteralNode(node *ast.InterpolatedRegexLiteralNode) {
+	for _, contentSection := range node.Content {
+		c.checkRegexContent(contentSection)
+	}
+}
+
+func (c *Checker) checkRegexContent(node ast.RegexLiteralContentNode) {
+	switch n := node.(type) {
+	case *ast.RegexInterpolationNode:
+		expr := c.checkExpression(n.Expression)
+		n.Expression = expr
+		c.isSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+	case *ast.RegexLiteralContentSectionNode:
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid regex content %T", node),
+			node.Span(),
+		)
+	}
+}
+
 func (c *Checker) checkInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) {
 	for _, contentSection := range node.Content {
 		c.checkStringContent(contentSection)
@@ -3237,9 +3269,13 @@ func (c *Checker) checkInterpolatedStringLiteralNode(node *ast.InterpolatedStrin
 func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 	switch n := node.(type) {
 	case *ast.StringInspectInterpolationNode:
-		c.checkExpression(n.Expression)
+		expr := c.checkExpression(n.Expression)
+		n.Expression = expr
+		c.isSubtype(c.typeOf(n.Expression), c.StdInspectable(), expr.Span())
 	case *ast.StringInterpolationNode:
-		c.checkExpression(n.Expression)
+		expr := c.checkExpression(n.Expression)
+		n.Expression = expr
+		c.isSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.StringLiteralContentSectionNode:
 	default:
 		c.addFailure(

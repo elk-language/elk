@@ -1,0 +1,13 @@
+##[
+	Values that conform to this interface
+	can be converted to a human readable string
+	that represents the structure of the value.
+]##
+interface ::Std::Inspectable
+	##[
+		Returns a human readable `String`
+		representation of this value
+		for debugging etc.
+	]##
+	def inspect: String; end
+end

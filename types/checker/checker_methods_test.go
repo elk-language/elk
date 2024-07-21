@@ -114,8 +114,8 @@ func TestAttrDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
 				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
-				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::Int): void`"),
+				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo(): Std::Int`"),
 			},
 		},
 		"override an instance variable using an attr with the same type in a child class": {
@@ -162,7 +162,7 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::String): void`"),
 			},
 		},
 		"override a method using an attr with a different return type in a child class": {
@@ -175,7 +175,7 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(92, 6, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `def foo(): Std::String`"),
 			},
 		},
 	}
@@ -292,7 +292,7 @@ func TestGetterDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo(): Std::Int`"),
 			},
 		},
 		"override an instance variable using getter with the same type in a child class": {
@@ -338,7 +338,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo(): Std::String`"),
+				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `def foo(): Std::String`"),
 			},
 		},
 	}
@@ -450,7 +450,7 @@ func TestSetterDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
 				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
-				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::Int): void`"),
+				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::Int): void`"),
 			},
 		},
 		"override an instance variable using setter with the same type in a child class": {
@@ -497,7 +497,7 @@ func TestSetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `sig foo=(foo: Std::String): void`"),
+				error.NewFailure(L("<main>", P(92, 6, 18), P(94, 6, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::String): void`"),
 			},
 		},
 	}
@@ -552,8 +552,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"invalid override in included mixin": {
@@ -568,8 +568,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"invalid override in mixin included in mixin": {
@@ -584,8 +584,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
-				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override sealed method": {
@@ -598,7 +598,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(88, 6, 6), P(114, 6, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(88, 6, 6), P(114, 6, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare sealed method in the same class": {
@@ -609,7 +609,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare method with a new sealed modifier": {
@@ -642,7 +642,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(91, 7, 6), P(124, 7, 39)), "cannot override method `baz` with a different modifier, is `abstract`, should be `default`\n  previous definition found in `Foo`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(91, 7, 6), P(124, 7, 39)), "cannot override method `baz` with a different modifier, is `abstract`, should be `default`\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare abstract method with a new sealed modifier ": {
@@ -676,7 +676,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 6, 14), P(94, 6, 19)), "cannot override method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(89, 6, 14), P(94, 6, 19)), "cannot override method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with incompatible param type": {
@@ -689,7 +689,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 6, 14), P(95, 6, 20)), "cannot override method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(89, 6, 14), P(95, 6, 20)), "cannot override method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with narrower param type": {
@@ -702,7 +702,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Object): Std::Object`"),
+				error.NewFailure(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Object): Std::Object`"),
 			},
 		},
 		"override the method with wider param type": {
@@ -725,7 +725,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(98, 6, 23), P(103, 6, 28)), "cannot override method `baz` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(98, 6, 23), P(103, 6, 28)), "cannot override method `baz` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"override the method with narrower return type": {
@@ -748,7 +748,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
+				error.NewFailure(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::String): Std::String`"),
 			},
 		},
 		"override the method with no return type": {
@@ -761,7 +761,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 6, 6), P(109, 6, 28)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `sig baz(a: Std::String): Std::String`"),
+				error.NewFailure(L("<main>", P(87, 6, 6), P(109, 6, 28)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::String): Std::String`"),
 			},
 		},
 		"override void method with a new return type": {
