@@ -3706,12 +3706,25 @@ func (p *Parser) unionType() ast.TypeNode {
 	return p.binaryTypeExpression(p.intersectionType, token.OR)
 }
 
-// intersectionType = nilableType | intersectionType "&" nilableType
+// intersectionType = notType | intersectionType "&" notType
 func (p *Parser) intersectionType() ast.TypeNode {
-	return p.binaryTypeExpression(p.nilableType, token.AND)
+	return p.binaryTypeExpression(p.notType, token.AND)
 }
 
-// nilableType = primaryType | primaryType "?"
+// notType = ["~"] nilableType
+func (p *Parser) notType() ast.TypeNode {
+	if andTok, ok := p.matchOk(token.TILDE); ok {
+		typ := p.nilableType()
+		return ast.NewNotTypeNode(
+			andTok.Span().Join(typ.Span()),
+			typ,
+		)
+	}
+
+	return p.nilableType()
+}
+
+// nilableType = primaryType ["?"]
 func (p *Parser) nilableType() ast.TypeNode {
 	primType := p.primaryType()
 

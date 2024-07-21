@@ -153,6 +153,133 @@ func TestConstantType(t *testing.T) {
 	}
 }
 
+func TestNotType(t *testing.T) {
+	tests := testTable{
+		"type can be a not type with a constant": {
+			input: "type ~String",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							ast.NewNotTypeNode(
+								S(P(5, 1, 6), P(11, 1, 12)),
+								ast.NewPublicConstantNode(
+									S(P(6, 1, 7), P(11, 1, 12)),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a not type with a private constant": {
+			input: "type ~_FooBa",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							ast.NewNotTypeNode(
+								S(P(5, 1, 6), P(11, 1, 12)),
+								ast.NewPrivateConstantNode(
+									S(P(6, 1, 7), P(11, 1, 12)),
+									"_FooBa",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a not constant lookup": {
+			input: "type ~::Foo::Bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewNotTypeNode(
+								S(P(5, 1, 6), P(15, 1, 16)),
+								ast.NewConstantLookupNode(
+									S(P(6, 1, 7), P(15, 1, 16)),
+									ast.NewConstantLookupNode(
+										S(P(6, 1, 7), P(10, 1, 11)),
+										nil,
+										ast.NewPublicConstantNode(
+											S(P(8, 1, 9), P(10, 1, 11)),
+											"Foo",
+										),
+									),
+									ast.NewPublicConstantNode(
+										S(P(13, 1, 14), P(15, 1, 16)),
+										"Bar",
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a not literal": {
+			input: "type ~1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewNotTypeNode(
+								S(P(5, 1, 6), P(6, 1, 7)),
+								ast.NewIntLiteralNode(
+									S(P(6, 1, 7), P(6, 1, 7)),
+									"1",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a nilable literal with expression": {
+			input: "type ~(1)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewNotTypeNode(
+								S(P(5, 1, 6), P(7, 1, 8)),
+								ast.NewIntLiteralNode(
+									S(P(7, 1, 8), P(7, 1, 8)),
+									"1",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestNilableType(t *testing.T) {
 	tests := testTable{
 		"type can be a nilable type with a constant": {

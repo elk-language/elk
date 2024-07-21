@@ -400,6 +400,7 @@ func (*IntersectionTypeNode) typeNode()          {}
 func (*BinaryTypeExpressionNode) typeNode()      {}
 func (*NilableTypeNode) typeNode()               {}
 func (*SingletonTypeNode) typeNode()             {}
+func (*NotTypeNode) typeNode()                   {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}
 func (*ConstantLookupNode) typeNode()            {}
@@ -2750,6 +2751,24 @@ func (*SingletonTypeNode) IsStatic() bool {
 // Create a new singleton type node eg. `&String`
 func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
 	return &SingletonTypeNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		TypeNode:      typ,
+	}
+}
+
+// Represents a not type eg. `~String`
+type NotTypeNode struct {
+	TypedNodeBase
+	TypeNode TypeNode // right hand side
+}
+
+func (*NotTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new not type node eg. `~String`
+func NewNotTypeNode(span *position.Span, typ TypeNode) *NotTypeNode {
+	return &NotTypeNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		TypeNode:      typ,
 	}
