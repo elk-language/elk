@@ -4156,6 +4156,13 @@ secondElementLoop:
 					normalisedElements = newNormalisedElements
 					continue secondElementLoop
 				}
+				if c.isSubtype(normalisedElement, element, nil) {
+					continue secondElementLoop
+				}
+				if c.isSubtype(element, normalisedElement, nil) {
+					normalisedElements[j] = element
+					continue secondElementLoop
+				}
 			}
 			normalisedElements = append(normalisedElements, element)
 		case *types.Class:
@@ -4170,6 +4177,14 @@ secondElementLoop:
 						continue secondElementLoop
 					}
 					return types.Never{}
+				default:
+					if c.isSubtype(normalisedElement, element, nil) {
+						continue secondElementLoop
+					}
+					if c.isSubtype(element, normalisedElement, nil) {
+						normalisedElements[j] = element
+						continue secondElementLoop
+					}
 				}
 			}
 			normalisedElements = append(normalisedElements, element)
@@ -4181,6 +4196,14 @@ secondElementLoop:
 						continue secondElementLoop
 					}
 					return types.Never{}
+				default:
+					if c.isSubtype(normalisedElement, element, nil) {
+						continue secondElementLoop
+					}
+					if c.isSubtype(element, normalisedElement, nil) {
+						normalisedElements[j] = element
+						continue secondElementLoop
+					}
 				}
 			}
 			normalisedElements = append(normalisedElements, element)

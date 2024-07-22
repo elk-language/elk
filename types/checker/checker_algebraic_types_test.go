@@ -741,6 +741,22 @@ func TestNotTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
 			},
 		},
+		"normalise ~Float & String": {
+			input: `
+				var a: ~Float & String = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `Std::Float(1.2)` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"normalise String & ~Float": {
+			input: `
+				var a: String & ~Float = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `Std::Float(1.2)` cannot be assigned to type `Std::String`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
