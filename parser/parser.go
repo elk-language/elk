@@ -3657,12 +3657,6 @@ func (p *Parser) typeAnnotation() ast.TypeNode {
 	case token.VOID:
 		tok := p.advance()
 		return ast.NewVoidTypeNode(tok.Span())
-	case token.NEVER:
-		tok := p.advance()
-		return ast.NewNeverTypeNode(tok.Span())
-	case token.ANY:
-		tok := p.advance()
-		return ast.NewAnyTypeNode(tok.Span())
 	}
 	return p.unionType()
 }
@@ -3674,12 +3668,6 @@ func (p *Parser) typeAnnotationWithoutUnionAndVoid() ast.TypeNode {
 		p.errorMessage("type `void` cannot be used in this context")
 		tok := p.advance()
 		return ast.NewVoidTypeNode(tok.Span())
-	case token.NEVER:
-		tok := p.advance()
-		return ast.NewNeverTypeNode(tok.Span())
-	case token.ANY:
-		tok := p.advance()
-		return ast.NewAnyTypeNode(tok.Span())
 	}
 	return p.intersectionType()
 }
@@ -3691,12 +3679,6 @@ func (p *Parser) typeAnnotationWithoutVoid() ast.TypeNode {
 		p.errorMessage("type `void` cannot be used in this context")
 		tok := p.advance()
 		return ast.NewVoidTypeNode(tok.Span())
-	case token.NEVER:
-		tok := p.advance()
-		return ast.NewNeverTypeNode(tok.Span())
-	case token.ANY:
-		tok := p.advance()
-		return ast.NewAnyTypeNode(tok.Span())
 	}
 	return p.unionType()
 }
@@ -3789,6 +3771,12 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.float64()
 	case token.FLOAT32:
 		return p.float32()
+	case token.NEVER:
+		tok := p.advance()
+		return ast.NewNeverTypeNode(tok.Span())
+	case token.ANY:
+		tok := p.advance()
+		return ast.NewAnyTypeNode(tok.Span())
 	default:
 		return p.namedType()
 	}
