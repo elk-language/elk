@@ -64,7 +64,7 @@ func TestConstantDeclarations(t *testing.T) {
 		"declare with incorrect explicit type": {
 			input: "const Foo: String = 5",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `5` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"declare without initialising": {

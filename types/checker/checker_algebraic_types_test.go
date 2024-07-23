@@ -240,7 +240,7 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise Int | ~Int": {
@@ -249,7 +249,7 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise ~Int | Int": {
@@ -258,7 +258,7 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -539,7 +539,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`\n"),
-				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int(3)` cannot be assigned to type `StringConvertible & IntConvertible & SigmaConvertible`"),
+				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `3` cannot be assigned to type `StringConvertible & IntConvertible & SigmaConvertible`"),
 			},
 		},
 		"assign a value that does not implement a few interfaces in the intersection": {
@@ -568,7 +568,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection type with multiple modules": {
@@ -578,7 +578,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection type with the same module repeated": {
@@ -586,7 +586,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Std & Std = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "type `Std::Int(3)` cannot be assigned to type `Std`"),
+				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "type `3` cannot be assigned to type `Std`"),
 			},
 		},
 		"normalise intersection type with the same class repeated": {
@@ -594,7 +594,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: String & String = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(30, 2, 30)), "type `Std::Int(3)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(30, 2, 30), P(30, 2, 30)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"normalise intersection type with the same literal repeated": {
@@ -602,7 +602,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: 9 & 9 = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `Std::Int(3)` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise intersection type with different literals": {
@@ -610,7 +610,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: 9 & 3 = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise Int & ~Int": {
@@ -618,7 +618,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Int & ~Int = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 2, 25), P(25, 2, 25)), "type `Std::Int(3)` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(25, 2, 25), P(25, 2, 25)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise Float & Int & ~Int": {
@@ -626,7 +626,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Float & Int & ~Int = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
 			},
 		},
 		"normalise Float & ~Int & Int": {
@@ -634,7 +634,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Float & ~Int & Int = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
 			},
 		},
 		"normalise ~Int & Int & Float": {
@@ -642,7 +642,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: ~Int & Int & Float = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
 			},
 		},
 		"normalise intersection of unions": {
@@ -650,7 +650,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: (1 | 2) & (2 | 3) = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 2, 32), P(32, 2, 32)), "type `Std::Int(3)` cannot be assigned to type `Std::Int(2)`"),
+				error.NewFailure(L("<main>", P(32, 2, 32), P(32, 2, 32)), "type `3` cannot be assigned to type `2`"),
 			},
 		},
 		"normalise intersection of union and negation": {
@@ -658,7 +658,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: (String | Float | Int) & ~Float = 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `Std::Float(2.5)` cannot be assigned to type `Std::String | Std::Int`"),
+				error.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `2.5` cannot be assigned to type `Std::String | Std::Int`"),
 			},
 		},
 		"normalise Float & 9.2": {
@@ -666,7 +666,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Float & 9.2 = 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `Std::Float(2.5)` cannot be assigned to type `Std::Float(9.2)`"),
+				error.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `2.5` cannot be assigned to type `9.2`"),
 			},
 		},
 	}
@@ -745,7 +745,7 @@ func TestNotTypeSubtype(t *testing.T) {
 				var a: ~(~Int) = "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "type `Std::String(\"foo\")` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"normalise not any to never": {
@@ -753,7 +753,7 @@ func TestNotTypeSubtype(t *testing.T) {
 				var a: ~(any) = "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 2, 21), P(25, 2, 25)), "type `Std::String(\"foo\")` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(21, 2, 21), P(25, 2, 25)), "type `\"foo\"` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise not never to any": {
@@ -770,7 +770,7 @@ func TestNotTypeSubtype(t *testing.T) {
 				var a: ~Float & String = 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `Std::Float(1.2)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"normalise String & ~Float": {
@@ -778,7 +778,7 @@ func TestNotTypeSubtype(t *testing.T) {
 				var a: String & ~Float = 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `Std::Float(1.2)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
 			},
 		},
 	}

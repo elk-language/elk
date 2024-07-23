@@ -29,7 +29,7 @@ func (*FloatLiteral) IsLiteral() bool {
 }
 
 func (f *FloatLiteral) inspect() string {
-	return fmt.Sprintf("Std::Float(%s)", f.Value)
+	return f.Value
 }
 
 type Float64Literal struct {

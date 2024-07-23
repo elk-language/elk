@@ -35,7 +35,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var c: 9 = a ?? b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 4, 16), P(59, 4, 21)), "type `Std::Bool | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(54, 4, 16), P(59, 4, 21)), "type `Std::Bool | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without nil when the left can be both truthy and falsy": {
@@ -45,7 +45,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var c: 9 = a ?? b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without duplication": {
@@ -55,7 +55,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var c: 9 = a ?? b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func TestLogicalAnd(t *testing.T) {
 				var c: 9 = a && b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `nil | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `nil | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types with only false when the left can be both truthy and falsy": {
@@ -106,7 +106,7 @@ func TestLogicalAnd(t *testing.T) {
 				var c: 9 = a && b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `false | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `false | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without duplication": {
@@ -116,7 +116,7 @@ func TestLogicalAnd(t *testing.T) {
 				var c: 9 = a && b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(86, 4, 16), P(91, 4, 21)), "type `false | nil | Std::Float | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(86, 4, 16), P(91, 4, 21)), "type `false | nil | Std::Float | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -157,7 +157,7 @@ func TestLogicalOr(t *testing.T) {
 				var c: 9 = a || b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without false when the left can be both truthy and falsy": {
@@ -167,7 +167,7 @@ func TestLogicalOr(t *testing.T) {
 				var c: 9 = a || b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `true | Std::Int` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `true | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without duplication": {
@@ -177,7 +177,7 @@ func TestLogicalOr(t *testing.T) {
 				var c: 9 = a || b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -372,7 +372,7 @@ func TestStrictEqual(t *testing.T) {
 				1 === "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `Std::Int(1)` cannot ever be equal to `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check negated": {
@@ -380,7 +380,7 @@ func TestStrictEqual(t *testing.T) {
 				1 !== "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `Std::Int(1)` cannot ever be equal to `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check with variables": {
@@ -440,7 +440,7 @@ func TestIsA(t *testing.T) {
 				1.2 <: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `Std::Float(1.2)` cannot ever be an instance of a descendant of `Std::Int`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"impossible reverse check": {
@@ -448,7 +448,7 @@ func TestIsA(t *testing.T) {
 				Int :> 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `Std::Float(1.2)` cannot ever be an instance of a descendant of `Std::Int`"),
+				error.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"always true check": {
@@ -456,7 +456,7 @@ func TestIsA(t *testing.T) {
 				1 <: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `Std::Int(1)` will always be an instance of `Std::Int`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -534,7 +534,7 @@ func TestInstanceOf(t *testing.T) {
 				1.2 <<: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `Std::Float(1.2)` cannot ever be an instance of `Std::Int`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"impossible reverse check": {
@@ -542,7 +542,7 @@ func TestInstanceOf(t *testing.T) {
 				Int :>> 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `Std::Float(1.2)` cannot ever be an instance of `Std::Int`"),
+				error.NewFailure(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"always true check": {
@@ -550,7 +550,7 @@ func TestInstanceOf(t *testing.T) {
 				1 <<: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `Std::Int(1)` will always be an instance of `Std::Int`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -644,7 +644,7 @@ func TestAdd(t *testing.T) {
 				var a: Int = 1 + "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
 			},
 		},
 		"Int + Int => Int": {
@@ -708,7 +708,7 @@ func TestSubtract(t *testing.T) {
 				var a: Int = 1 - "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"foo\"`"),
 			},
 		},
 		"Int - Int => Int": {
@@ -772,7 +772,7 @@ func TestMultiply(t *testing.T) {
 				var a: Int = 1 * "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"foo\"`"),
 			},
 		},
 		"Int * Int => Int": {
@@ -836,7 +836,7 @@ func TestDivide(t *testing.T) {
 				var a: Int = 1 / "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `/`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `/`, got type `\"foo\"`"),
 			},
 		},
 		"Int / Int => Int": {
@@ -900,7 +900,7 @@ func TestExponentiate(t *testing.T) {
 				var a: Int = 1 ** "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `**`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `**`, got type `\"foo\"`"),
 			},
 		},
 		"Int ** Int => Int": {

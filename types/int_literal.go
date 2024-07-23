@@ -29,7 +29,7 @@ func (*IntLiteral) IsLiteral() bool {
 }
 
 func (i *IntLiteral) inspect() string {
-	return fmt.Sprintf("Std::Int(%s)", i.Value)
+	return i.Value
 }
 
 type Int64Literal struct {

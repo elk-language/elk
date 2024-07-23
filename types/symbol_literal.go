@@ -30,5 +30,5 @@ func (*SymbolLiteral) IsLiteral() bool {
 }
 
 func (s *SymbolLiteral) inspect() string {
-	return fmt.Sprintf("Std::Symbol(:%s)", value.InspectSymbolContent(s.Value))
+	return fmt.Sprintf(":%s", value.InspectSymbolContent(s.Value))
 }

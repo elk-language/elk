@@ -56,7 +56,7 @@ func TestStringLiteral(t *testing.T) {
 		"assign string literal to non matching literal type": {
 			input: "var foo: 'str' = 'foo'",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::String(\"foo\")` cannot be assigned to type `Std::String(\"str\")`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `\"foo\"` cannot be assigned to type `\"str\"`"),
 			},
 		},
 		"infer double quoted string": {
@@ -120,7 +120,7 @@ func TestSymbolLiteral(t *testing.T) {
 		"assign symbol literal to non matching literal type": {
 			input: "var foo: :symb = :foob",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Symbol(:foob)` cannot be assigned to type `Std::Symbol(:symb)`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `:foob` cannot be assigned to type `:symb`"),
 			},
 		},
 	}
@@ -149,7 +149,7 @@ func TestCharLiteral(t *testing.T) {
 		"assign char literal to non matching literal type": {
 			input: "var foo: `b` = `f`",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Char(`f`)` cannot be assigned to type `Std::Char(`b`)`"),
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type ``f`` cannot be assigned to type ``b``"),
 			},
 		},
 	}
@@ -175,7 +175,7 @@ func TestIntLiteral(t *testing.T) {
 		"assign int literal to non matching literal type": {
 			input: "var foo: 23456 = 12345",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Int(12345)` cannot be assigned to type `Std::Int(23456)`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `12345` cannot be assigned to type `23456`"),
 			},
 		},
 		"infer int64": {
@@ -225,7 +225,7 @@ func TestFloatLiteral(t *testing.T) {
 		"assign Float literal to non matching literal type": {
 			input: "var foo: 23.56 = 12.45",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Float(12.45)` cannot be assigned to type `Std::Float(23.56)`"),
+				error.NewFailure(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `12.45` cannot be assigned to type `23.56`"),
 			},
 		},
 		"infer float64": {

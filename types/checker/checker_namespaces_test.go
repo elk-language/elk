@@ -162,8 +162,8 @@ func TestStruct(t *testing.T) {
 				var f = Foo(5.2, 'b', :bar)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Float(5.2)`"),
-				error.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `Std::String(\"b\")`"),
+				error.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `5.2`"),
+				error.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `\"b\"`"),
 				error.NewFailure(L("<main>", P(68, 7, 13), P(86, 7, 31)), "expected 1...2 arguments in call to `#init`, got 3"),
 			},
 		},
@@ -700,7 +700,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 4, 13), P(50, 4, 13)), "type `Std::Int(2)` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(50, 4, 13), P(50, 4, 13)), "type `2` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"assign an inexistent instance variable": {

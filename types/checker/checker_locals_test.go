@@ -20,7 +20,7 @@ func TestVariableAssignment(t *testing.T) {
 				foo = 'f'
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"assign initialised variable with a matching type": {
@@ -35,7 +35,7 @@ func TestVariableAssignment(t *testing.T) {
 				foo = 'f'
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `Std::String(\"f\")` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 
@@ -55,7 +55,7 @@ func TestVariableAssignment(t *testing.T) {
 				foo ??= 'f'
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
+				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"??= initialised variable with a matching nilable type": {
@@ -87,7 +87,7 @@ func TestVariableAssignment(t *testing.T) {
 				foo ||= 'f'
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
+				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"||= initialised variable with a matching nilable type": {
@@ -119,7 +119,7 @@ func TestVariableAssignment(t *testing.T) {
 				foo &&= 'f'
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 13), P(39, 3, 15)), "type `nil | Std::String(\"f\")` cannot be assigned to type `Std::Int?`"),
+				error.NewFailure(L("<main>", P(37, 3, 13), P(39, 3, 15)), "type `nil | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"&&= initialised variable with a matching truthy type": {
@@ -482,7 +482,7 @@ func TestVariableDeclaration(t *testing.T) {
 		"reject variable declaration without matching initializer and type": {
 			input: "var foo: Int = 5.2",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept variable declaration without initializer": {
@@ -564,7 +564,7 @@ func TestValueDeclaration(t *testing.T) {
 		"reject value declaration without matching initializer and type": {
 			input: "val foo: Int = 5.2",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept value declaration without initializer": {

@@ -1069,7 +1069,7 @@ func TestMethodCalls(t *testing.T) {
 				var b: 8 = nilableFoo?..baz(5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(103, 6, 16), P(121, 6, 34)), "type `Foo?` cannot be assigned to type `Std::Int(8)`"),
+				error.NewFailure(L("<main>", P(103, 6, 16), P(121, 6, 34)), "type `Foo?` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1100,7 +1100,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(123.4, 5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+				error.NewFailure(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `123.4`"),
 			},
 		},
 		"too many positional arguments": {
@@ -1141,7 +1141,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(c: 5, bar: 123.4)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+				error.NewFailure(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `123.4`"),
 			},
 		},
 		"duplicated positional argument as named argument": {
@@ -1153,7 +1153,7 @@ func TestMethodCalls(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "duplicated argument `bar` in call to `baz`"),
-				error.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `9`"),
 			},
 		},
 		"duplicated named argument": {
@@ -1208,8 +1208,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz 1.2, 5, "foo", .5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
-				error.NewFailure(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `5`"),
+				error.NewFailure(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `\"foo\"`"),
 			},
 		},
 		"call with rest argument given by name": {
@@ -1258,7 +1258,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1, 3.2)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
+				error.NewFailure(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `3.2`"),
 			},
 		},
 		"call with rest and post arguments and wrong type in rest": {
@@ -1269,8 +1269,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 212, .9, '282', 3)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
-				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
+				error.NewFailure(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `212`"),
+				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `\"282\"`"),
 			},
 		},
 		"call with rest arguments and missing post argument": {
@@ -1281,7 +1281,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
+				error.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `128.1`"),
 			},
 		},
 		"call with named post argument": {
@@ -1327,8 +1327,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", d: .2, c: 5, e: .1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(95, 5, 20), P(99, 5, 24)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
-				error.NewFailure(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
+				error.NewFailure(L("<main>", P(95, 5, 20), P(99, 5, 24)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `0.2`"),
+				error.NewFailure(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `0.1`"),
 			},
 		},
 
@@ -1356,7 +1356,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo().baz = 1
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 17), P(71, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz=`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(71, 5, 17), P(71, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz=`, got type `1`"),
 			},
 		},
 		"call nonexistent setter": {
@@ -1395,8 +1395,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo()[1] = "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(76, 5, 11), P(76, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]=`, got type `Std::Int(1)`"),
-				error.NewFailure(L("<main>", P(81, 5, 16), P(85, 5, 20)), "expected type `Std::Int` for parameter `value` in call to `[]=`, got type `Std::String(\"foo\")`"),
+				error.NewFailure(L("<main>", P(76, 5, 11), P(76, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]=`, got type `1`"),
+				error.NewFailure(L("<main>", P(81, 5, 16), P(85, 5, 20)), "expected type `Std::Int` for parameter `value` in call to `[]=`, got type `\"foo\"`"),
 			},
 		},
 		"call nonexistent subscript setter": {
@@ -1425,7 +1425,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo()[1]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 11), P(71, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(71, 5, 11), P(71, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
 			},
 		},
 		"call nonexistent subscript": {
@@ -1479,7 +1479,7 @@ func TestMethodCalls(t *testing.T) {
 				a?[1]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 8), P(92, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(92, 6, 8), P(92, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
 			},
 		},
 		"call nonexistent nil-safe subscript": {
@@ -1515,7 +1515,7 @@ func TestMethodCalls(t *testing.T) {
 				var g: 2 = f++
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `Std::Int(2)`"),
+				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `2`"),
 			},
 		},
 		"increment with incompatible return type": {
@@ -1564,7 +1564,7 @@ func TestMethodCalls(t *testing.T) {
 				var g: 2 = f--
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `Std::Int(2)`"),
+				error.NewFailure(L("<main>", P(27, 3, 16), P(29, 3, 18)), "type `Std::Int` cannot be assigned to type `2`"),
 			},
 		},
 		"decrement with incompatible return type": {
@@ -1608,7 +1608,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> Foo()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(52, 5, 5), P(52, 5, 5)), "expected type `Std::Float` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(52, 5, 5), P(52, 5, 5)), "expected type `Std::Float` for parameter `a` in call to `#init`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a constructor call": {
@@ -1649,7 +1649,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.foo()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 6, 5), P(70, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(70, 6, 5), P(70, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a method call": {
@@ -1680,7 +1680,7 @@ func TestMethodCalls(t *testing.T) {
 				var b: 9 = 1 |> f.foo()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 21), P(98, 6, 27)), "type `Std::String` cannot be assigned to type `Std::Int(9)`"),
+				error.NewFailure(L("<main>", P(92, 6, 21), P(98, 6, 27)), "type `Std::String` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -1703,7 +1703,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a receiverless method call": {
@@ -1742,7 +1742,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an argument with a compatible type to attribute access": {
@@ -1775,7 +1775,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 6, 5), P(71, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `call`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(71, 6, 5), P(71, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `call`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a call": {
@@ -1879,7 +1879,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
 			},
 		},
 		"instantiate a class with an inherited constructor": {
@@ -1902,7 +1902,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+				error.NewFailure(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
 			},
 		},
 		"call a method on an instantiated instance": {

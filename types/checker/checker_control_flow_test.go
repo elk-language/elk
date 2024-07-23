@@ -89,7 +89,7 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 7, 7)), "type `Std::String | Std::Float(2.2)` cannot be assigned to type `Std::Int(8)`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 7, 7)), "type `Std::String | 2.2` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of all branches if the condition is neither truthy nor falsy": {
@@ -105,7 +105,7 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 4, 16), P(134, 10, 7)), "type `Std::String | Std::Float(2.5) | Std::Regex` cannot be assigned to type `Std::Int(8)`"),
+				error.NewFailure(L("<main>", P(60, 4, 16), P(134, 10, 7)), "type `Std::String | 2.5 | Std::Regex` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of then and nil if the condition is neither truthy nor falsy": {
@@ -116,7 +116,7 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(66, 5, 7)), "type `Std::String | nil` cannot be assigned to type `Std::Int(8)`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(66, 5, 7)), "type `Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"returns nil when empty": {
