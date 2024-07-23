@@ -1269,22 +1269,24 @@ func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assumeTruthy bool) {
 		return
 	}
 
-	if assumeTruthy {
-		rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
-		if !ok {
-			return
-		}
-		namespace := rightSingleton.AttachedObject
-
-		local := c.resolveLocal(localName, nil)
-		if local == nil {
-			return
-		}
-		newLocal := local.copy()
-		newLocal.shadow = true
-		newLocal.typ = namespace
-		c.addLocal(localName, newLocal)
+	rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+	if !ok {
+		return
 	}
+	namespace := rightSingleton.AttachedObject
+
+	local := c.resolveLocal(localName, nil)
+	if local == nil {
+		return
+	}
+	newLocal := local.copy()
+	newLocal.shadow = true
+	if assumeTruthy {
+		newLocal.typ = namespace
+	} else {
+		newLocal.typ = c.newNormalisedIntersection(local.typ, types.NewNot(namespace))
+	}
+	c.addLocal(localName, newLocal)
 }
 
 func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy bool) {
@@ -1298,25 +1300,27 @@ func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy 
 		return
 	}
 
-	if assumeTruthy {
-		rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
-		if !ok {
-			return
-		}
-		class, ok := rightSingleton.AttachedObject.(*types.Class)
-		if !ok {
-			return
-		}
-
-		local := c.resolveLocal(localName, nil)
-		if local == nil {
-			return
-		}
-		newLocal := local.copy()
-		newLocal.shadow = true
-		newLocal.typ = class
-		c.addLocal(localName, newLocal)
+	rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+	if !ok {
+		return
 	}
+	class, ok := rightSingleton.AttachedObject.(*types.Class)
+	if !ok {
+		return
+	}
+
+	local := c.resolveLocal(localName, nil)
+	if local == nil {
+		return
+	}
+	newLocal := local.copy()
+	newLocal.shadow = true
+	if assumeTruthy {
+		newLocal.typ = class
+	} else {
+		newLocal.typ = c.newNormalisedIntersection(local.typ, types.NewNot(class))
+	}
+	c.addLocal(localName, newLocal)
 }
 
 func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assumeTruthy bool) {

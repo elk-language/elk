@@ -125,6 +125,57 @@ func TestIfExpressions(t *testing.T) {
 				var b: nil = if a; end
 			`,
 		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a: Bool = false
+				if a
+					var b: true = a
+				else
+					var b: false = a
+				end
+			`,
+		},
+		"narrow nilable variable type by using truthiness": {
+			input: `
+				var a: Int? = nil
+				if a
+					var b: Int = a
+				else
+					var b: nil = a
+				end
+			`,
+		},
+		"narrow nilable variable type by using negated truthiness": {
+			input: `
+				var a: Int? = nil
+				if !a
+					var b: nil = a
+				else
+					var b: Int = a
+				end
+			`,
+		},
+		"narrow variable type by using <:": {
+			input: `
+				var a: Int? = nil
+				if a <: Int
+					var b: Int = a
+				else
+					var b: nil = a
+				end
+			`,
+		},
+		"narrow variable type by using <<:": {
+			input: `
+				var a: Int? = nil
+				if a <<: Int
+					var b: Int = a
+				else
+					var b: nil = a
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
