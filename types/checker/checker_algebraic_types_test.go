@@ -661,6 +661,14 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `Std::Float(2.5)` cannot be assigned to type `Std::String | Std::Int`"),
 			},
 		},
+		"normalise Float & 9.2": {
+			input: `
+				var a: Float & 9.2 = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `Std::Float(2.5)` cannot be assigned to type `Std::Float(9.2)`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

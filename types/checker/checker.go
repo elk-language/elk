@@ -4077,7 +4077,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 	}
 }
 
-func normaliseLiteralInIntersection[E types.SimpleLiteral](normalisedElements []types.Type, element E) (types.Type, bool) {
+func normaliseLiteralInIntersection[E types.SimpleLiteral](c *Checker, normalisedElements []types.Type, element E) (types.Type, bool) {
 	for j := 0; j < len(normalisedElements); j++ {
 		switch normalisedElement := normalisedElements[j].(type) {
 		case E:
@@ -4087,6 +4087,14 @@ func normaliseLiteralInIntersection[E types.SimpleLiteral](normalisedElements []
 			return nil, true
 		case types.SimpleLiteral:
 			return nil, true
+		default:
+			if c.isSubtype(normalisedElement, element, nil) {
+				return nil, false
+			}
+			if c.isSubtype(element, normalisedElement, nil) {
+				normalisedElements[j] = element
+				return nil, false
+			}
 		}
 	}
 
@@ -4240,7 +4248,7 @@ secondElementLoop:
 			}
 			normalisedElements = append(normalisedElements, element)
 		case *types.IntLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4250,7 +4258,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Int64Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4260,7 +4268,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Int32Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4270,7 +4278,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Int16Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4280,7 +4288,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Int8Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4290,7 +4298,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.UInt64Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4300,7 +4308,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.UInt32Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4310,7 +4318,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.UInt16Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4320,7 +4328,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.UInt8Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4330,7 +4338,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.FloatLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4340,7 +4348,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Float64Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4350,7 +4358,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.Float32Literal:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4360,7 +4368,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.BigFloatLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4370,7 +4378,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.StringLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4380,7 +4388,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.CharLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
@@ -4390,7 +4398,7 @@ secondElementLoop:
 
 			normalisedElements = append(normalisedElements, element)
 		case *types.SymbolLiteral:
-			typ, ok := normaliseLiteralInIntersection(normalisedElements, e)
+			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
 			if !ok {
 				continue secondElementLoop
 			}
