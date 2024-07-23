@@ -176,6 +176,27 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 		},
+		"narrow a few variables with &&": {
+			input: `
+				var a: Int? = nil
+				var b: Bool = false
+				if a && b
+					var c: Int = a
+					var d: true = b
+				end
+			`,
+		},
+		"narrow a few variables with ||": {
+			input: `
+				var a: Int? = nil
+				var b: Bool = false
+				if a || b
+				else
+					var c: nil = a
+					var d: false = b
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {

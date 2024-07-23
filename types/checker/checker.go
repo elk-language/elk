@@ -1242,10 +1242,67 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assumeTruthy bool) {
 		c.narrowUnary(n, assumeTruthy)
 	case *ast.BinaryExpressionNode:
 		c.narrowBinary(n, assumeTruthy)
+	case *ast.LogicalExpressionNode:
+		c.narrowLogical(n, assumeTruthy)
 	case *ast.PublicIdentifierNode:
 		c.narrowLocal(n.Value, assumeTruthy)
 	case *ast.PrivateIdentifierNode:
 		c.narrowLocal(n.Value, assumeTruthy)
+	}
+}
+
+func (c *Checker) narrowLogical(node *ast.LogicalExpressionNode, assumeTruthy bool) {
+	switch node.Op.Type {
+	case token.AND_AND:
+		c.narrowLogicalAnd(node, assumeTruthy)
+	case token.OR_OR:
+		c.narrowLogicalOr(node, assumeTruthy)
+		// case token.QUESTION_QUESTION:
+		// 	c.narrowNilCoalescing(node, assumeTruthy)
+	}
+}
+
+func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assumeTruthy bool) {
+	if assumeTruthy {
+		// the whole condition is truthy, so the entire expression must be truthy
+		c.narrowCondition(node.Left, true)
+		c.narrowCondition(node.Right, true)
+		return
+	}
+
+	// the whole condition is falsy
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+	if c.isTruthy(leftType) {
+		// left is truthy, so right must be falsy
+		c.narrowCondition(node.Right, false)
+		return
+	}
+	if c.isTruthy(rightType) {
+		// left is falsy, right is truthy
+		c.narrowCondition(node.Left, false)
+	}
+}
+
+func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assumeTruthy bool) {
+	if !assumeTruthy {
+		// the whole condition is falsy, so the entire expression must be falsy
+		c.narrowCondition(node.Left, false)
+		c.narrowCondition(node.Right, false)
+		return
+	}
+
+	// the whole condition is truthy
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+	if c.isFalsy(leftType) {
+		// left is falsy, so right must be truthy
+		c.narrowCondition(node.Right, true)
+		return
+	}
+	if c.isTruthy(rightType) {
+		// left is truthy, right is falsy
+		c.narrowCondition(node.Left, true)
 	}
 }
 
