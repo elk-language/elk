@@ -2654,7 +2654,7 @@ func NewConstantDeclarationNode(span *position.Span, docComment string, constant
 
 // Type expression of an operator with two operands eg. `String | Int`
 type BinaryTypeExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Op    *token.Token // operator
 	Left  TypeNode     // left hand side
 	Right TypeNode     // right hand side
@@ -2667,20 +2667,20 @@ func (*BinaryTypeExpressionNode) IsStatic() bool {
 // Create a new binary type expression node eg. `String | Int`
 func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
 	return &BinaryTypeExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Left:          left,
+		Right:         right,
 	}
 }
 
 // Same as [NewBinaryTypeExpressionNode] but returns an interface
 func NewBinaryTypeExpressionNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
 	return &BinaryTypeExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Left:          left,
+		Right:         right,
 	}
 }
 

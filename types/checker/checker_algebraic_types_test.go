@@ -707,7 +707,7 @@ func TestIntersectionTypeMethodCall(t *testing.T) {
 	}
 }
 
-func TestNotTypeSubtype(t *testing.T) {
+func TestNotType(t *testing.T) {
 	tests := testTable{
 		"assign Int to not Int": {
 			input: `
@@ -779,6 +779,52 @@ func TestNotTypeSubtype(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestDifferenceType(t *testing.T) {
+	tests := testTable{
+		"normalise Int / Int to never": {
+			input: `
+				var a: Int / Int = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `\"foo\"` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise Int? / nil to Int": {
+			input: `
+				var a: Int? / nil = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 2, 25), P(29, 2, 29)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"normalise with union": {
+			input: `
+				var a: (Int | String | Float) / String = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 2, 46), P(50, 2, 50)), "type `\"foo\"` cannot be assigned to type `Std::Int | Std::Float`"),
+			},
+		},
+		"normalise with intersection": {
+			input: `
+				interface Foo
+					sig foo
+				end
+				var a: (Int & Foo) / Foo = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 	}

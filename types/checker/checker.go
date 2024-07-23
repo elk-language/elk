@@ -3937,14 +3937,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		n.SetType(types.NewSymbolLiteral(n.Content))
 		return n
 	case *ast.BinaryTypeExpressionNode:
-		switch n.Op.Type {
-		case token.OR:
-			return c.constructUnionType(n)
-		case token.AND:
-			return c.constructIntersectionType(n)
-		default:
-			panic("invalid binary type expression operator")
-		}
+		return c.checkBinaryTypeExpressionNode(n)
 	case *ast.IntLiteralNode:
 		n.SetType(types.NewIntLiteral(n.Value))
 		return n
@@ -4025,6 +4018,23 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 			node.Span(),
 		)
 		return n
+	}
+}
+
+func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNode) ast.TypeNode {
+	switch node.Op.Type {
+	case token.OR:
+		return c.constructUnionType(node)
+	case token.AND:
+		return c.constructIntersectionType(node)
+	case token.SLASH:
+		node.Left = c.checkTypeNode(node.Left)
+		node.Right = c.checkTypeNode(node.Right)
+		typ := c.newNormalisedIntersection(c.typeOf(node.Left), types.NewNot(c.typeOf(node.Right)))
+		node.SetType(typ)
+		return node
+	default:
+		panic("invalid binary type expression operator")
 	}
 }
 
@@ -4119,6 +4129,17 @@ func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Typ
 			}
 			c.distributeIntersectionOverUnions(newUnionElements, newIntersectionElements, i+1)
 		}
+	case *types.Nilable:
+		elements := []types.Type{e.Type, types.Nil{}}
+		for _, subUnionElement := range elements {
+			newIntersectionElements := make([]types.Type, 0, len(intersectionElements)+1)
+			newIntersectionElements = append(newIntersectionElements, intersectionElements[:i]...)
+			newIntersectionElements = append(newIntersectionElements, subUnionElement)
+			if len(intersectionElements) >= i+2 {
+				newIntersectionElements = append(newIntersectionElements, intersectionElements[i+1:]...)
+			}
+			c.distributeIntersectionOverUnions(newUnionElements, newIntersectionElements, i+1)
+		}
 	default:
 		c.distributeIntersectionOverUnions(newUnionElements, intersectionElements, i+1)
 	}
@@ -4146,7 +4167,14 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 		}
 		switch e := element.(type) {
 		case *types.Intersection:
-			elements = append(elements, e.Elements...)
+			newElements := make([]types.Type, 0, len(elements)+len(e.Elements))
+			newElements = append(newElements, elements[:i]...)
+			newElements = append(newElements, e.Elements...)
+			if len(elements) >= i+2 {
+				newElements = append(newElements, elements[i+1:]...)
+			}
+			elements = newElements
+			i--
 		}
 	}
 	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)

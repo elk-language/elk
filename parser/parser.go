@@ -3688,9 +3688,14 @@ func (p *Parser) unionType() ast.TypeNode {
 	return p.binaryTypeExpression(p.intersectionType, token.OR)
 }
 
-// intersectionType = notType | intersectionType "&" notType
+// intersectionType = differenceType | intersectionType "&" differenceType
 func (p *Parser) intersectionType() ast.TypeNode {
-	return p.binaryTypeExpression(p.notType, token.AND)
+	return p.binaryTypeExpression(p.differenceType, token.AND)
+}
+
+// differenceType = notType | differenceType "/" notType
+func (p *Parser) differenceType() ast.TypeNode {
+	return p.binaryTypeExpression(p.notType, token.SLASH)
 }
 
 // notType = ["~"] nilableType

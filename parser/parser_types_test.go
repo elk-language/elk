@@ -546,6 +546,32 @@ func TestBinaryType(t *testing.T) {
 				},
 			),
 		},
+		"difference": {
+			input: "type String / 4",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewBinaryTypeExpressionNode(
+								S(P(5, 1, 6), P(14, 1, 15)),
+								T(S(P(12, 1, 13), P(12, 1, 13)), token.SLASH),
+								ast.NewPublicConstantNode(
+									S(P(5, 1, 6), P(10, 1, 11)),
+									"String",
+								),
+								ast.NewIntLiteralNode(
+									S(P(14, 1, 15), P(14, 1, 15)),
+									"4",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
