@@ -645,6 +645,22 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `Std::Int(3)` cannot be assigned to type `Std::Float`"),
 			},
 		},
+		"normalise intersection of unions": {
+			input: `
+				var a: (1 | 2) & (2 | 3) = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 2, 32), P(32, 2, 32)), "type `Std::Int(3)` cannot be assigned to type `Std::Int(2)`"),
+			},
+		},
+		"normalise intersection of union and negation": {
+			input: `
+				var a: (String | Float | Int) & ~Float = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `Std::Float(2.5)` cannot be assigned to type `Std::String | Std::Int`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

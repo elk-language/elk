@@ -4093,10 +4093,44 @@ func normaliseLiteralInIntersection[E types.SimpleLiteral](normalisedElements []
 	return element, true
 }
 
-func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
-	var normalisedElements []types.Type
+func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Type, intersectionElements []types.Type, i int) {
+	if i == len(intersectionElements) {
+		*newUnionElements = append(*newUnionElements, types.NewIntersection(intersectionElements...))
+		return
+	}
 
-firstElementLoop:
+	intersectionElement := intersectionElements[i]
+	switch e := intersectionElement.(type) {
+	case *types.Union:
+		for _, subUnionElement := range e.Elements {
+			newIntersectionElements := make([]types.Type, 0, len(intersectionElements)+1)
+			newIntersectionElements = append(newIntersectionElements, intersectionElements[:i]...)
+			newIntersectionElements = append(newIntersectionElements, subUnionElement)
+			if len(intersectionElements) >= i+2 {
+				newIntersectionElements = append(newIntersectionElements, intersectionElements[i+1:]...)
+			}
+			c.distributeIntersectionOverUnions(newUnionElements, newIntersectionElements, i+1)
+		}
+	default:
+		c.distributeIntersectionOverUnions(newUnionElements, intersectionElements, i+1)
+	}
+}
+
+// Transform an intersection of unions to a unions of intersections.
+// String & (Int | Float) => (String & Int) | (String & Float)
+func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElements []types.Type) types.Type {
+	newUnionElements := new([]types.Type)
+	c.distributeIntersectionOverUnions(newUnionElements, intersectionElements, 0)
+	if len(*newUnionElements) == 0 {
+		return types.Never{}
+	}
+	if len(*newUnionElements) == 1 {
+		return (*newUnionElements)[0]
+	}
+	return types.NewUnion(*newUnionElements...)
+}
+
+func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
 		if types.IsNever(element) || types.IsNothing(element) {
@@ -4105,6 +4139,24 @@ firstElementLoop:
 		switch e := element.(type) {
 		case *types.Intersection:
 			elements = append(elements, e.Elements...)
+		}
+	}
+	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)
+	intersection, ok := distributedIntersection.(*types.Intersection)
+	if !ok {
+		return c.normaliseType(distributedIntersection)
+	}
+
+	elements = intersection.Elements
+	var normalisedElements []types.Type
+
+firstElementLoop:
+	for i := 0; i < len(elements); i++ {
+		element := elements[i]
+		if types.IsNever(element) || types.IsNothing(element) {
+			return element
+		}
+		switch e := element.(type) {
 		case *types.Not:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
@@ -4145,26 +4197,6 @@ secondElementLoop:
 	for i := 0; i < len(elements); i++ {
 		element := elements[i]
 		switch e := element.(type) {
-		case *types.Not:
-			for j := 0; j < len(normalisedElements); j++ {
-				normalisedElement := normalisedElements[j]
-				if c.isTheSameType(normalisedElement, e.Type, nil) {
-					newNormalisedElements := normalisedElements[0:j]
-					if len(normalisedElements) > j+1 {
-						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
-					}
-					normalisedElements = newNormalisedElements
-					continue secondElementLoop
-				}
-				if c.isSubtype(normalisedElement, element, nil) {
-					continue secondElementLoop
-				}
-				if c.isSubtype(element, normalisedElement, nil) {
-					normalisedElements[j] = element
-					continue secondElementLoop
-				}
-			}
-			normalisedElements = append(normalisedElements, element)
 		case *types.Class:
 			for j := 0; j < len(normalisedElements); j++ {
 				switch normalisedElement := c.toNonLiteral(normalisedElements[j]).(type) {
