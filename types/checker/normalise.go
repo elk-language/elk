@@ -42,30 +42,6 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 	}
 }
 
-func normaliseLiteralInIntersection[E types.SimpleLiteral](c *Checker, normalisedElements []types.Type, element E) (types.Type, bool) {
-	for j := 0; j < len(normalisedElements); j++ {
-		switch normalisedElement := normalisedElements[j].(type) {
-		case E:
-			if element.StringValue() == normalisedElement.StringValue() {
-				return nil, false
-			}
-			return nil, true
-		case types.SimpleLiteral:
-			return nil, true
-		default:
-			if c.isSubtype(normalisedElement, element, nil) {
-				return nil, false
-			}
-			if c.isSubtype(element, normalisedElement, nil) {
-				normalisedElements[j] = element
-				return nil, false
-			}
-		}
-	}
-
-	return element, true
-}
-
 func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Type, intersectionElements []types.Type, i int) {
 	if i == len(intersectionElements) {
 		*newUnionElements = append(*newUnionElements, types.NewIntersection(intersectionElements...))
@@ -132,264 +108,24 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 			i--
 		}
 	}
+	// fmt.Printf("before: %s\n", types.InspectWithColor(types.NewIntersection(elements...)))
 	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)
 	intersection, ok := distributedIntersection.(*types.Intersection)
 	if !ok {
+		// fmt.Printf("after: %s\n", types.InspectWithColor(distributedIntersection))
 		return c.normaliseType(distributedIntersection)
 	}
 
 	elements = intersection.Elements
 	var normalisedElements []types.Type
 
-firstElementLoop:
+secondElementLoop:
 	for i := 0; i < len(elements); i++ {
 		element := elements[i]
 		if types.IsNever(element) || types.IsNothing(element) {
 			return element
 		}
-		switch e := element.(type) {
-		case *types.Not:
-			for j := 0; j < len(normalisedElements); j++ {
-				normalisedElement := normalisedElements[j]
-				if c.isTheSameType(normalisedElement, e.Type, nil) {
-					newNormalisedElements := normalisedElements[0:j]
-					if len(normalisedElements) > j+1 {
-						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
-					}
-					normalisedElements = newNormalisedElements
-					continue firstElementLoop
-				}
-			}
-			normalisedElements = append(normalisedElements, element)
-		default:
-			for j := 0; j < len(normalisedElements); j++ {
-				normalisedElement, ok := normalisedElements[j].(*types.Not)
-				if !ok {
-					continue
-				}
-
-				if c.isTheSameType(element, normalisedElement.Type, nil) {
-					newNormalisedElements := normalisedElements[0:j]
-					if len(normalisedElements) > j+1 {
-						newNormalisedElements = append(newNormalisedElements, normalisedElements[j+1:]...)
-					}
-					normalisedElements = newNormalisedElements
-					continue firstElementLoop
-				}
-			}
-			normalisedElements = append(normalisedElements, element)
-		}
-	}
-
-	elements = normalisedElements
-	normalisedElements = nil
-
-secondElementLoop:
-	for i := 0; i < len(elements); i++ {
-		element := elements[i]
-		switch e := element.(type) {
-		case *types.Class:
-			for j := 0; j < len(normalisedElements); j++ {
-				switch normalisedElement := c.toNonLiteral(normalisedElements[j]).(type) {
-				case *types.Class:
-					if c.isSubtype(normalisedElement, element, nil) {
-						continue secondElementLoop
-					}
-					if c.isSubtype(element, normalisedElement, nil) {
-						normalisedElements[j] = element
-						continue secondElementLoop
-					}
-					return types.Never{}
-				default:
-					if c.isSubtype(normalisedElement, element, nil) {
-						continue secondElementLoop
-					}
-					if c.isSubtype(element, normalisedElement, nil) {
-						normalisedElements[j] = element
-						continue secondElementLoop
-					}
-				}
-			}
-			normalisedElements = append(normalisedElements, element)
-		case *types.Module:
-			for j := 0; j < len(normalisedElements); j++ {
-				switch normalisedElement := normalisedElements[j].(type) {
-				case *types.Module:
-					if element == normalisedElement {
-						continue secondElementLoop
-					}
-					return types.Never{}
-				default:
-					if c.isSubtype(normalisedElement, element, nil) {
-						continue secondElementLoop
-					}
-					if c.isSubtype(element, normalisedElement, nil) {
-						normalisedElements[j] = element
-						continue secondElementLoop
-					}
-				}
-			}
-			normalisedElements = append(normalisedElements, element)
-		case *types.IntLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Int64Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Int32Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Int16Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Int8Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.UInt64Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.UInt32Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.UInt16Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.UInt8Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.FloatLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Float64Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.Float32Literal:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.BigFloatLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.StringLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.CharLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
-		case *types.SymbolLiteral:
-			typ, ok := normaliseLiteralInIntersection(c, normalisedElements, e)
-			if !ok {
-				continue secondElementLoop
-			}
-			if typ == nil {
-				return types.Never{}
-			}
-
-			normalisedElements = append(normalisedElements, element)
+		switch element.(type) {
 		default:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
@@ -400,11 +136,17 @@ secondElementLoop:
 					normalisedElements[j] = element
 					continue secondElementLoop
 				}
+				if !types.IsInterface(element) && !types.IsMixin(element) &&
+					!types.IsInterface(normalisedElement) && !types.IsMixin(normalisedElement) &&
+					!c.typesIntersect(element, normalisedElement) {
+					return types.Never{}
+				}
 			}
 			normalisedElements = append(normalisedElements, element)
 		}
 	}
 
+	// fmt.Printf("after: %s\n", types.InspectWithColor(types.NewIntersection(normalisedElements...)))
 	if len(normalisedElements) == 0 {
 		return types.Never{}
 	}

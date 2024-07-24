@@ -626,23 +626,15 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Float & Int & ~Int = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
-		"normalise Float & ~Int & Int": {
+		"normalise (Float | Int) & ~Int": {
 			input: `
-				var a: Float & ~Int & Int = 3
+				var a: (Float | Int) & ~Int = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
-			},
-		},
-		"normalise ~Int & Int & Float": {
-			input: `
-				var a: ~Int & Int & Float = 3
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(35, 2, 35), P(35, 2, 35)), "type `3` cannot be assigned to type `Std::Float`"),
 			},
 		},
 		"normalise intersection of unions": {

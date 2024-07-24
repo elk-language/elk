@@ -12,6 +12,11 @@ type Mixin struct {
 	NamespaceBase
 }
 
+func IsMixin(typ Type) bool {
+	_, ok := typ.(*Mixin)
+	return ok
+}
+
 func (m *Mixin) IncludeMixin(includedMixin *Mixin) {
 	headProxy, tailProxy := includedMixin.CreateProxy()
 	tailProxy.SetParent(m.Parent())

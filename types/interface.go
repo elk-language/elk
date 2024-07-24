@@ -11,6 +11,11 @@ type Interface struct {
 	NamespaceBase
 }
 
+func IsInterface(typ Type) bool {
+	_, ok := typ.(*Interface)
+	return ok
+}
+
 func (i *Interface) ImplementInterface(implementedInterface *Interface) {
 	headProxy, tailProxy := implementedInterface.CreateProxy()
 	tailProxy.SetParent(i.Parent())
