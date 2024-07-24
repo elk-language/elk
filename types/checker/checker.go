@@ -2355,8 +2355,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		c.checkPrivateConstantType(n)
 		return n
 	case *ast.ConstantLookupNode:
-		c.constantLookupType(n)
-		return n
+		return c.constantLookupType(n)
 	case *ast.RawStringLiteralNode:
 		n.SetType(types.NewStringLiteral(n.Value))
 		return n
