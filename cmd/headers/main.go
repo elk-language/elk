@@ -162,7 +162,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			`namespace.DefineConstant(value.ToSymbol(%q), %s)
 			`,
 			name,
-			typeToCode(typ),
+			typeToCode(typ, false),
 		)
 	})
 
@@ -173,7 +173,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			`namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)
 			`,
 			name,
-			typeToCode(typ),
+			typeToCode(typ, false),
 		)
 	})
 
@@ -209,7 +209,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 					buffer,
 					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
 					param.Name,
-					typeToCode(param.Type),
+					typeToCode(param.Type, false),
 					param.Kind,
 					param.InstanceVariable,
 				)
@@ -222,8 +222,8 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			"%s, %s)\n",
-			typeToCode(method.ReturnType),
-			typeToCode(method.ThrowType),
+			typeToCode(method.ReturnType, false),
+			typeToCode(method.ThrowType, false),
 		)
 	})
 }
@@ -239,8 +239,20 @@ func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespa
 			defineModule(buffer, s, name.String())
 		case *types.Interface:
 			defineInterface(buffer, s, name.String())
+		default:
+			defineSubtype(buffer, s, name.String())
 		}
 	})
+}
+
+func defineSubtype(buffer *bytes.Buffer, subtype types.Type, name string) {
+	fmt.Fprintf(
+		buffer,
+		`namespace.DefineSubtype(value.ToSymbol(%q), %s)
+		`,
+		name,
+		typeToCode(subtype, true),
+	)
 }
 
 func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) {
@@ -340,7 +352,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 }
 
 // Serialise the type to Go code
-func typeToCode(typ types.Type) string {
+func typeToCode(typ types.Type, init bool) string {
 	switch t := typ.(type) {
 	case nil:
 		return "nil"
@@ -348,13 +360,33 @@ func typeToCode(typ types.Type) string {
 		return "Any{}"
 	case types.Void:
 		return "Void{}"
+	case types.Nil:
+		return "Nil{}"
+	case types.True:
+		return "True{}"
+	case types.False:
+		return "False{}"
 	case types.Never:
 		return "Never{}"
-	case *types.NamedType:
+	case types.Nothing:
+		return "Nothing{}"
+	case *types.Not:
 		return fmt.Sprintf(
-			"NewNamedType(%q, %s)",
+			"NewNot(%s)",
+			typeToCode(t.Type, init),
+		)
+	case *types.NamedType:
+		if init {
+			return fmt.Sprintf(
+				"NewNamedType(%q, %s)",
+				t.Name,
+				typeToCode(t.Type, init),
+			)
+		}
+
+		return fmt.Sprintf(
+			"NameToType(%q, env)",
 			t.Name,
-			typeToCode(t.Type),
 		)
 	case *types.Class:
 		return fmt.Sprintf(
@@ -384,7 +416,7 @@ func typeToCode(typ types.Type) string {
 	case *types.Nilable:
 		return fmt.Sprintf(
 			"NewNilable(%s)",
-			typeToCode(t.Type),
+			typeToCode(t.Type, init),
 		)
 	case *types.Union:
 		buff := new(strings.Builder)
@@ -393,7 +425,7 @@ func typeToCode(typ types.Type) string {
 			fmt.Fprintf(
 				buff,
 				"%s, ",
-				typeToCode(element),
+				typeToCode(element, init),
 			)
 		}
 		buff.WriteRune(')')
@@ -405,7 +437,7 @@ func typeToCode(typ types.Type) string {
 			fmt.Fprintf(
 				buff,
 				"%s, ",
-				typeToCode(element),
+				typeToCode(element, init),
 			)
 		}
 		buff.WriteRune(')')

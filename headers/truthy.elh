@@ -1,0 +1,2 @@
+typedef Std::Falsy = nil | false
+typedef Std::Truthy = ~Falsy

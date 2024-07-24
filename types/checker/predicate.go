@@ -1,4 +1,3 @@
-// Package checker implements the Elk type checker
 package checker
 
 import (

@@ -205,3 +205,160 @@ func TestIfExpressions(t *testing.T) {
 		})
 	}
 }
+
+func TestLogicalAnd(t *testing.T) {
+	tests := testTable{
+		"returns the right type when the left type is truthy": {
+			input: `
+				var a = "foo"
+				var b = 2
+				var c: Int = a && b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(50, 4, 18), P(50, 4, 18)), "this condition will always have the same result since type `Std::String` is truthy"),
+			},
+		},
+		"returns the left type when the left type is falsy": {
+			input: `
+				var a = nil
+				var b = 2
+				var c: nil = a && b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+			},
+		},
+		"returns a union of both types with only nil when the left can be both truthy and falsy": {
+			input: `
+				var a: String? = "foo"
+				var b = 2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `nil | Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"returns a union of both types with only false when the left can be both truthy and falsy": {
+			input: `
+				var a = false
+				var b = 2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `false | Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"returns a union of both types without duplication": {
+			input: `
+				var a: false | nil | Int = nil
+				var b: Float | Int | nil = 2.2
+				var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 4, 16), P(91, 4, 21)), "type `false | nil | Std::Float | Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+
+		"narrow left variable to non falsy": {
+			input: `
+				var a: false | nil | Int = nil
+				a && a + 2
+			`,
+		},
+		"narrow a few variables to non falsy": {
+			input: `
+				var a: Int? = nil
+				var b: Int? = nil
+				a && b && a + b
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestLogicalOr(t *testing.T) {
+	tests := testTable{
+		"returns the left type when it is truthy": {
+			input: `
+				var a = "foo"
+				var b = 2
+				var c: String = a || b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` is truthy"),
+			},
+		},
+		"returns the right type when the left type is falsy": {
+			input: `
+				var a = nil
+				var b = 2
+				var c: Int = a || b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+			},
+		},
+		"returns a union of both types without nil when the left can be both truthy and falsy": {
+			input: `
+				var a: String? = "foo"
+				var b = 2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"returns a union of both types without false when the left can be both truthy and falsy": {
+			input: `
+				var a = false
+				var b = 2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 4, 16), P(53, 4, 21)), "type `true | Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"returns a union of both types without duplication": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: Float | Int | nil = 2.2
+				var c: 9 = a || b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `9`"),
+			},
+		},
+
+		"narrow left variable to falsy": {
+			input: `
+				var a: false | nil | Int = nil
+				a || var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 3, 21), P(56, 3, 21)), "type `false | nil` cannot be assigned to type `9`"),
+			},
+		},
+		"narrow a few variables to non falsy": {
+			input: `
+				var a: Int? = nil
+				var b: Int? = nil
+				a || b || var c: 9 = a && b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(70, 4, 26), P(70, 4, 26)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewFailure(L("<main>", P(70, 4, 26), P(75, 4, 31)), "type `nil` cannot be assigned to type `9`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}

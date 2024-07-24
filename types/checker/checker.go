@@ -936,9 +936,6 @@ func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode
 }
 
 func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.ExpressionNode {
-	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
-
 	switch node.Op.Type {
 	case token.AND_AND:
 		return c.checkLogicalAnd(node)
@@ -991,7 +988,12 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Left, false)
+
 	node.Right = c.checkExpression(node.Right)
+	c.popLocalEnv()
+
 	leftType := c.typeOf(node.Left)
 	rightType := c.typeOf(node.Right)
 
@@ -1024,7 +1026,12 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 
 func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Left, true)
+
 	node.Right = c.checkExpression(node.Right)
+	c.popLocalEnv()
+
 	leftType := c.typeOf(node.Left)
 	rightType := c.typeOf(node.Right)
 
