@@ -175,33 +175,7 @@ func (c *Checker) narrowLocal(name string, assumeTruthy bool) {
 }
 
 func (c *Checker) toNonNilable(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return t.Type
-	case types.Nil:
-		return types.Never{}
-	case *types.Class:
-		if t == c.StdNil() {
-			return types.Never{}
-		}
-		return t
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonNilable(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonNilable := c.toNonNilable(element)
-			if types.IsNever(nonNilable) || types.IsNothing(nonNilable) {
-				return types.Never{}
-			}
-		}
-		return t
-	default:
-		return t
-	}
+	return c.newNormalisedIntersection(typ, types.NewNot(types.Nil{}))
 }
 
 func (c *Checker) toNonFalsy(typ types.Type) types.Type {
@@ -232,6 +206,12 @@ func (c *Checker) toNonFalsy(typ types.Type) types.Type {
 			}
 		}
 		return t
+	case *types.NamedType:
+		nonFalsy := c.toNonFalsy(t.Type)
+		if c.isTheSameType(nonFalsy, t.Type, nil) {
+			return t
+		}
+		return nonFalsy
 	default:
 		return t
 	}
@@ -265,6 +245,12 @@ func (c *Checker) toNonTruthy(typ types.Type) types.Type {
 			}
 		}
 		return t
+	case *types.NamedType:
+		nonTruthy := c.toNonTruthy(t.Type)
+		if c.isTheSameType(nonTruthy, t.Type, nil) {
+			return t
+		}
+		return nonTruthy
 	default:
 		return types.Never{}
 	}

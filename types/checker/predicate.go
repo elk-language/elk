@@ -74,6 +74,8 @@ func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 			}
 		}
 		return false
+	case *types.Not:
+		return !c.isTheSameType(a.Type, b, nil)
 	default:
 		return c.isSubtype(a, b, nil)
 	}
@@ -109,6 +111,8 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 			return true
 		}
 		return false
+	case *types.Not:
+		return !c.isTheSameType(a.Type, b, nil)
 	default:
 		return c.isSubtype(a, b, nil)
 	}

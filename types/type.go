@@ -36,6 +36,8 @@ func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
 			}
 		}
 		return false
+	case *NamedType:
+		return CanBeFalsy(t.Type, env)
 	default:
 		return false
 	}
@@ -66,6 +68,8 @@ func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
 			}
 		}
 		return false
+	case *NamedType:
+		return CanBeTruthy(t.Type, env)
 	default:
 		return true
 	}

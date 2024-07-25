@@ -321,6 +321,25 @@ func TestIsA(t *testing.T) {
 				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
+		"impossible check with not type": {
+			input: `
+				var a: ~Int = "foo"
+				if a <: Int
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 8), P(32, 3, 8)), "impossible \"is a\" check, `~Std::Int` cannot ever be an instance of a descendant of `Std::Int`"),
+			},
+		},
+		"valid check with not type": {
+			input: `
+				var a: ~Int = "foo"
+				if a <: String
+					a + "bar"
+				end
+			`,
+		},
 		"impossible reverse check": {
 			input: `
 				Int :> 1.2

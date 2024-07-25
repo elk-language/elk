@@ -146,9 +146,31 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 		},
+		"narrow named nilable variable type by using truthiness": {
+			input: `
+				typedef Foo = Int?
+				var a: Foo = nil
+				if a
+					var b: Int = a
+				else
+					var b: nil = a
+				end
+			`,
+		},
 		"narrow nilable variable type by using negated truthiness": {
 			input: `
 				var a: Int? = nil
+				if !a
+					var b: nil = a
+				else
+					var b: Int = a
+				end
+			`,
+		},
+		"narrow named nilable variable type by using negated truthiness": {
+			input: `
+				typedef Foo = Int?
+				var a: Foo = nil
 				if !a
 					var b: nil = a
 				else
