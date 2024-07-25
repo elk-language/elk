@@ -717,11 +717,14 @@ func TestNotType(t *testing.T) {
 				b = 9u8
 			`,
 		},
-		"assign ~Object to ~String": {
+		"cannot assign a superclass of the negated type to the not type": {
 			input: `
 				var a: ~Object = Value()
 				var b: ~String = a
 			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(28, 2, 28)), "type `Std::Value` cannot be assigned to type `~Std::Object`"),
+			},
 		},
 		"assign ~String to ~Object": {
 			input: `
@@ -771,6 +774,30 @@ func TestNotType(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"normalise Bool & ~False": {
+			input: `
+				var a: Bool & ~False = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `Std::Bool & ~Std::False`"),
+			},
+		},
+		"normalise ~Bool & False": {
+			input: `
+				var a: ~Bool & False = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise intersection of negated unions": {
+			input: `
+				var a: (Bool | Int | nil) & ~(false | nil) = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 2, 50), P(52, 2, 52)), "type `2.5` cannot be assigned to type `(Std::Bool & ~false) | Std::Int`"),
 			},
 		},
 	}

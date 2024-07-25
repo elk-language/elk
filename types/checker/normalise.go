@@ -34,6 +34,18 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 			return types.Never{}
 		case types.Nothing:
 			return types.Nothing{}
+		case *types.Union:
+			intersectionElements := make([]types.Type, 0, len(nestedType.Elements))
+			for _, element := range nestedType.Elements {
+				intersectionElements = append(intersectionElements, types.NewNot(element))
+			}
+			return c.newNormalisedIntersection(intersectionElements...)
+		case *types.Intersection:
+			unionElements := make([]types.Type, 0, len(nestedType.Elements))
+			for _, element := range nestedType.Elements {
+				unionElements = append(unionElements, types.NewNot(element))
+			}
+			return c.newNormalisedUnion(unionElements...)
 		}
 
 		return t

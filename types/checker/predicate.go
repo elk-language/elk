@@ -112,7 +112,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		}
 		return false
 	case *types.Not:
-		return !c.isTheSameType(a.Type, b, nil)
+		return !c.isSubtype(b, a.Type, nil)
 	default:
 		return c.isSubtype(a, b, nil)
 	}
@@ -186,7 +186,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Nilable:
 		return c.isSubtype(a, b.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
 	case *types.Not:
-		return !c.isSubtype(a, b.Type, nil)
+		return !c.typesIntersect(a, b.Type)
 	}
 
 	if aIntersection, ok := a.(*types.Intersection); ok {
