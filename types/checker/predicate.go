@@ -79,6 +79,41 @@ func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	}
 }
 
+// Check whether the two given types can potentially intersect.
+// Return true if they do, otherwise false.
+func (c *Checker) canIntersect(a, b types.Type) bool {
+	return c._canIntersect(a, b) || c._canIntersect(b, a)
+}
+
+func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
+	switch a := a.(type) {
+	case *types.Nilable:
+		return c.canBeIsA(a.Type, b) || c.canBeIsA(types.Nil{}, b)
+	case *types.Union:
+		for _, element := range a.Elements {
+			if c.canBeIsA(element, b) {
+				return true
+			}
+		}
+		return false
+	case *types.Intersection:
+		for _, element := range a.Elements {
+			if c.canBeIsA(element, b) {
+				return true
+			}
+		}
+		return false
+	case *types.Mixin, *types.Interface:
+		switch b.(type) {
+		case *types.Mixin, *types.Interface, *types.Class:
+			return true
+		}
+		return false
+	default:
+		return c.isSubtype(a, b, nil)
+	}
+}
+
 func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false

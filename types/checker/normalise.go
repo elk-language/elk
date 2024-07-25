@@ -108,45 +108,50 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 			i--
 		}
 	}
-	// fmt.Printf("before: %s\n", types.InspectWithColor(types.NewIntersection(elements...)))
 	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)
 	intersection, ok := distributedIntersection.(*types.Intersection)
 	if !ok {
-		// fmt.Printf("after: %s\n", types.InspectWithColor(distributedIntersection))
 		return c.normaliseType(distributedIntersection)
 	}
 
 	elements = intersection.Elements
-	var normalisedElements []types.Type
+	normalisedElements := make([]types.Type, 0, len(elements))
 
-secondElementLoop:
-	for i := 0; i < len(elements); i++ {
-		element := elements[i]
+	// detect empty intersections
+	for _, element := range elements {
 		if types.IsNever(element) || types.IsNothing(element) {
 			return element
 		}
-		switch element.(type) {
-		default:
-			for j := 0; j < len(normalisedElements); j++ {
-				normalisedElement := normalisedElements[j]
-				if c.isSubtype(normalisedElement, element, nil) {
-					continue secondElementLoop
-				}
-				if c.isSubtype(element, normalisedElement, nil) {
-					normalisedElements[j] = element
-					continue secondElementLoop
-				}
-				if !types.IsInterface(element) && !types.IsMixin(element) &&
-					!types.IsInterface(normalisedElement) && !types.IsMixin(normalisedElement) &&
-					!c.typesIntersect(element, normalisedElement) {
-					return types.Never{}
-				}
+
+		for _, normalisedElement := range normalisedElements {
+			if !c.canIntersect(element, normalisedElement) {
+				return types.Never{}
 			}
-			normalisedElements = append(normalisedElements, element)
 		}
+		normalisedElements = append(normalisedElements, element)
 	}
 
-	// fmt.Printf("after: %s\n", types.InspectWithColor(types.NewIntersection(normalisedElements...)))
+	elements = normalisedElements
+	normalisedElements = make([]types.Type, 0, len(elements))
+
+eliminateSupertypesLoop:
+	for i := 0; i < len(elements); i++ {
+		element := elements[i]
+
+		for j := 0; j < len(normalisedElements); j++ {
+			normalisedElement := normalisedElements[j]
+			if c.isSubtype(normalisedElement, element, nil) {
+				continue eliminateSupertypesLoop
+			}
+			if c.isSubtype(element, normalisedElement, nil) {
+				normalisedElements[j] = element
+				continue eliminateSupertypesLoop
+			}
+
+		}
+		normalisedElements = append(normalisedElements, element)
+	}
+
 	if len(normalisedElements) == 0 {
 		return types.Never{}
 	}
@@ -282,108 +287,4 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode,
 		rightType := c.typeOf(rightTypeNode)
 		intersection.Elements = append(intersection.Elements, rightType)
 	}
-}
-
-func (c *Checker) toNonNilable(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return t.Type
-	case types.Nil:
-		return types.Never{}
-	case *types.Class:
-		if t == c.StdNil() {
-			return types.Never{}
-		}
-		return t
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonNilable(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonNilable := c.toNonNilable(element)
-			if types.IsNever(nonNilable) || types.IsNothing(nonNilable) {
-				return types.Never{}
-			}
-		}
-		return t
-	default:
-		return t
-	}
-}
-
-func (c *Checker) toNonFalsy(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return t.Type
-	case *types.Class:
-		if t == c.StdNil() || t == c.StdFalse() {
-			return types.Never{}
-		}
-		if t == c.StdBool() {
-			return types.True{}
-		}
-		return t
-	case types.Nil, types.False:
-		return types.Never{}
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonFalsy(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonFalsy := c.toNonFalsy(element)
-			if types.IsNever(nonFalsy) || types.IsNothing(nonFalsy) {
-				return types.Never{}
-			}
-		}
-		return t
-	default:
-		return t
-	}
-}
-
-func (c *Checker) toNonTruthy(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return types.Nil{}
-	case *types.Class:
-		if t == c.StdNil() || t == c.StdFalse() {
-			return t
-		}
-		if t == c.StdBool() {
-			return types.False{}
-		}
-		return types.Never{}
-	case types.Nil, types.False:
-		return t
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonTruthy(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonTruthy := c.toNonTruthy(element)
-			if types.IsNever(nonTruthy) || types.IsNothing(nonTruthy) {
-				return types.Never{}
-			}
-		}
-		return t
-	default:
-		return types.Never{}
-	}
-}
-
-func (c *Checker) toNonLiteral(typ types.Type) types.Type {
-	return typ.ToNonLiteral(c.GlobalEnv)
-}
-
-func (c *Checker) toNilable(typ types.Type) types.Type {
-	return c.normaliseType(types.NewNilable(typ))
 }

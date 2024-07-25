@@ -816,7 +816,7 @@ func TestDifferenceType(t *testing.T) {
 				var a: (Int & Foo) / Foo = "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `never`"),
 			},
 		},
 	}
