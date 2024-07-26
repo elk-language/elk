@@ -2,91 +2,219 @@
 package checker
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 )
 
-func (c *Checker) narrowCondition(node ast.ExpressionNode, assumeTruthy bool) {
+type assumption uint8
+
+func (a assumption) negate() assumption {
+	switch a {
+	case assumptionTruthy:
+		return assumptionFalsy
+	case assumptionFalsy:
+		return assumptionTruthy
+	case assumptionNil:
+		return assumptionNotNil
+	case assumptionNotNil:
+		return assumptionNil
+	case assumptionNever:
+		return a
+	default:
+		panic(fmt.Sprintf("invalid assumption: %#v", a))
+	}
+}
+
+func (a assumption) toNilable() assumption {
+	switch a {
+	case assumptionTruthy:
+		return assumptionNotNil
+	case assumptionFalsy:
+		return assumptionNil
+	default:
+		return a
+	}
+}
+
+const (
+	assumptionTruthy assumption = iota
+	assumptionFalsy
+	assumptionNil
+	assumptionNotNil
+	assumptionNever
+)
+
+func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	switch n := node.(type) {
 	case *ast.UnaryExpressionNode:
-		c.narrowUnary(n, assumeTruthy)
+		c.narrowUnary(n, assume)
 	case *ast.BinaryExpressionNode:
-		c.narrowBinary(n, assumeTruthy)
+		c.narrowBinary(n, assume)
 	case *ast.LogicalExpressionNode:
-		c.narrowLogical(n, assumeTruthy)
+		c.narrowLogical(n, assume)
 	case *ast.PublicIdentifierNode:
-		c.narrowLocal(n.Value, assumeTruthy)
+		c.narrowLocal(n.Value, assume)
 	case *ast.PrivateIdentifierNode:
-		c.narrowLocal(n.Value, assumeTruthy)
+		c.narrowLocal(n.Value, assume)
 	}
 }
 
-func (c *Checker) narrowLogical(node *ast.LogicalExpressionNode, assumeTruthy bool) {
+func (c *Checker) narrowLogical(node *ast.LogicalExpressionNode, assume assumption) {
 	switch node.Op.Type {
 	case token.AND_AND:
-		c.narrowLogicalAnd(node, assumeTruthy)
+		c.narrowLogicalAnd(node, assume)
 	case token.OR_OR:
-		c.narrowLogicalOr(node, assumeTruthy)
-		// case token.QUESTION_QUESTION:
-		// 	c.narrowNilCoalescing(node, assumeTruthy)
+		c.narrowLogicalOr(node, assume)
+	case token.QUESTION_QUESTION:
+		c.narrowNilCoalescing(node, assume)
 	}
 }
 
-func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assumeTruthy bool) {
-	if assumeTruthy {
+func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assumption) {
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	switch assume {
+	case assumptionTruthy:
 		// the whole condition is truthy, so the entire expression must be truthy
-		c.narrowCondition(node.Left, true)
-		c.narrowCondition(node.Right, true)
+		if c.isFalsy(leftType) || c.isFalsy(rightType) {
+			// any side is falsy, so the condition is impossible
+			c.narrowCondition(node.Left, assumptionNever)
+			c.narrowCondition(node.Right, assumptionNever)
+			return
+		}
+		c.narrowCondition(node.Left, assumptionTruthy)
+		c.narrowCondition(node.Right, assumptionTruthy)
 		return
+	case assumptionNotNil:
+		// the whole condition is not nil, so the entire expression must be not nil
+		if c.isNil(leftType) || c.isNil(rightType) {
+			// any side is nil, so the condition is impossible
+			c.narrowCondition(node.Left, assumptionNever)
+			c.narrowCondition(node.Right, assumptionNever)
+			return
+		}
+		c.narrowCondition(node.Left, assumptionNotNil)
+		c.narrowCondition(node.Right, assumptionNotNil)
+		return
+	case assumptionNever:
+		c.narrowCondition(node.Left, assumptionNever)
+		c.narrowCondition(node.Right, assumptionNever)
+		return
+	case assumptionFalsy:
+		// the whole condition is falsy
+		if c.isTruthy(leftType) {
+			// left is truthy, so right must be falsy
+			c.narrowCondition(node.Right, assumptionFalsy)
+			return
+		}
+		if c.isTruthy(rightType) {
+			// left is falsy, right is truthy
+			c.narrowCondition(node.Left, assumptionFalsy)
+		}
 	}
 
-	// the whole condition is falsy
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
-	if c.isTruthy(leftType) {
-		// left is truthy, so right must be falsy
-		c.narrowCondition(node.Right, false)
-		return
-	}
-	if c.isTruthy(rightType) {
-		// left is falsy, right is truthy
-		c.narrowCondition(node.Left, false)
-	}
 }
 
-func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assumeTruthy bool) {
-	if !assumeTruthy {
+func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assumption) {
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	switch assume {
+	case assumptionFalsy:
 		// the whole condition is falsy, so the entire expression must be falsy
-		c.narrowCondition(node.Left, false)
-		c.narrowCondition(node.Right, false)
+		if c.isTruthy(leftType) || c.isTruthy(rightType) {
+			// any side is truthy, so the condition is impossible
+			c.narrowCondition(node.Left, assumptionNever)
+			c.narrowCondition(node.Right, assumptionNever)
+			return
+		}
+		c.narrowCondition(node.Left, assumptionFalsy)
+		c.narrowCondition(node.Right, assumptionFalsy)
 		return
-	}
-
-	// the whole condition is truthy
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
-	if c.isFalsy(leftType) {
-		// left is falsy, so right must be truthy
-		c.narrowCondition(node.Right, true)
+	case assumptionNil:
+		// the whole condition is nil, so the entire expression must be nil
+		if c.isNotNilable(leftType) || c.isNotNilable(rightType) {
+			// any side is not nilable, so the condition is impossible
+			c.narrowCondition(node.Left, assumptionNever)
+			c.narrowCondition(node.Right, assumptionNever)
+			return
+		}
+		c.narrowCondition(node.Left, assumptionNil)
+		c.narrowCondition(node.Right, assumptionNil)
 		return
-	}
-	if c.isTruthy(rightType) {
-		// left is truthy, right is falsy
-		c.narrowCondition(node.Left, true)
+	case assumptionNever:
+		c.narrowCondition(node.Left, assumptionNever)
+		c.narrowCondition(node.Right, assumptionNever)
+		return
+	case assumptionTruthy:
+		// the whole condition is truthy
+		if c.isFalsy(leftType) {
+			// left is falsy, so right must be truthy
+			c.narrowCondition(node.Right, assumptionTruthy)
+			return
+		}
+		if c.isFalsy(rightType) {
+			// right is falsy, left be truthy
+			c.narrowCondition(node.Left, assumptionTruthy)
+		}
+	case assumptionNotNil:
+		// the whole condition is not nil
+		if c.isFalsy(leftType) {
+			// left is falsy, so right must not be nil
+			c.narrowCondition(node.Right, assumptionNotNil)
+			return
+		}
 	}
 }
 
-func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+func (c *Checker) narrowNilCoalescing(node *ast.LogicalExpressionNode, assume assumption) {
+	leftType := c.typeOf(node.Left)
+	rightType := c.typeOf(node.Right)
+
+	switch assume {
+	case assumptionNil:
+		// the whole condition is nil, so the entire expression must be nil
+		if c.isNotNilable(leftType) || c.isNotNilable(rightType) {
+			// any side is not nilable, so the condition is impossible
+			c.narrowCondition(node.Left, assumptionNever)
+			c.narrowCondition(node.Right, assumptionNever)
+			return
+		}
+		c.narrowCondition(node.Left, assumptionNil)
+		c.narrowCondition(node.Right, assumptionNil)
+		return
+	case assumptionNever:
+		c.narrowCondition(node.Left, assumptionNever)
+		c.narrowCondition(node.Right, assumptionNever)
+		return
+	case assumptionNotNil:
+		// the whole condition is not nil
+		if c.isNil(leftType) {
+			// left is nil, so right must not be nil
+			c.narrowCondition(node.Right, assumptionNotNil)
+			return
+		}
+		if c.isNil(rightType) {
+			// right is nil, left must not be nil
+			c.narrowCondition(node.Left, assumptionNotNil)
+		}
+	}
+}
+
+func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assume assumption) {
 	switch node.Op.Type {
 	case token.INSTANCE_OF_OP:
-		c.narrowInstanceOf(node, assumeTruthy)
+		c.narrowInstanceOf(node, assume)
 	case token.ISA_OP:
-		c.narrowIsA(node, assumeTruthy)
+		c.narrowIsA(node, assume)
 	}
 }
 
-func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assume assumption) {
 	var localName string
 	switch l := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
@@ -113,10 +241,14 @@ func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assumeTruthy bool) {
 		local.shadow = true
 		c.addLocal(localName, local)
 	}
-	if assumeTruthy {
+	switch assume {
+	case assumptionTruthy:
 		local.typ = namespace
-	} else {
+	case assumptionFalsy:
 		local.typ = c.differenceType(local.typ, namespace)
+	case assumptionNotNil:
+	case assumptionNever, assumptionNil:
+		local.typ = types.Never{}
 	}
 }
 
@@ -124,7 +256,7 @@ func (c *Checker) differenceType(a, b types.Type) types.Type {
 	return c.newNormalisedIntersection(a, types.NewNot(b))
 }
 
-func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy bool) {
+func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assume assumption) {
 	var localName string
 	switch l := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
@@ -154,21 +286,25 @@ func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy 
 		local.shadow = true
 		c.addLocal(localName, local)
 	}
-	if assumeTruthy {
+	switch assume {
+	case assumptionTruthy:
 		local.typ = class
-	} else {
+	case assumptionFalsy:
 		local.typ = c.differenceType(local.typ, class)
+	case assumptionNotNil:
+	case assumptionNever, assumptionNil:
+		local.typ = types.Never{}
 	}
 }
 
-func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assumeTruthy bool) {
+func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assume assumption) {
 	switch node.Op.Type {
 	case token.BANG:
-		c.narrowCondition(node.Right, !assumeTruthy)
+		c.narrowCondition(node.Right, assume.negate())
 	}
 }
 
-func (c *Checker) narrowLocal(name string, assumeTruthy bool) {
+func (c *Checker) narrowLocal(name string, assume assumption) {
 	local, inCurrentEnv := c.resolveLocal(name, nil)
 	if local == nil {
 		return
@@ -179,10 +315,17 @@ func (c *Checker) narrowLocal(name string, assumeTruthy bool) {
 		c.addLocal(name, local)
 		local.shadow = true
 	}
-	if assumeTruthy {
+	switch assume {
+	case assumptionTruthy:
 		local.typ = c.toNonFalsy(local.typ)
-	} else {
+	case assumptionFalsy:
 		local.typ = c.toNonTruthy(local.typ)
+	case assumptionNever:
+		local.typ = types.Never{}
+	case assumptionNil:
+		local.typ = types.Nil{}
+	case assumptionNotNil:
+		local.typ = c.toNonNilable(local.typ)
 	}
 }
 

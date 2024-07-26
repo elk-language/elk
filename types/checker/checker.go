@@ -834,12 +834,12 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 	conditionType := c.typeOf(node.Condition)
 
 	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Condition, true)
+	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Condition, false)
+	c.narrowCondition(node.Condition, assumptionFalsy)
 	elseType := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
@@ -958,7 +958,12 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 
 func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Left, assumptionNil)
+
 	node.Right = c.checkExpression(node.Right)
+	c.popLocalEnv()
+
 	leftType := c.typeOf(node.Left)
 	rightType := c.typeOf(node.Right)
 
@@ -989,7 +994,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
 	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Left, false)
+	c.narrowCondition(node.Left, assumptionFalsy)
 
 	node.Right = c.checkExpression(node.Right)
 	c.popLocalEnv()
@@ -1027,7 +1032,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
 	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Left, true)
+	c.narrowCondition(node.Left, assumptionTruthy)
 
 	node.Right = c.checkExpression(node.Right)
 	c.popLocalEnv()
@@ -1904,14 +1909,8 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	var variableType types.Type
-	variable := c.getLocal(name)
+	variable, _ := c.resolveLocal(name, node.Left.Span())
 	if variable == nil {
-		if !node.Left.SkipTypechecking() {
-			c.addFailure(
-				fmt.Sprintf("undefined local `%s`", name),
-				node.Left.Span(),
-			)
-		}
 		node.Left.SetType(types.Nothing{})
 		variableType = types.Nothing{}
 	} else if variable.singleAssignment && variable.initialised {
