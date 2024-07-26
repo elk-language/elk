@@ -247,7 +247,7 @@ func TestLogicalAnd(t *testing.T) {
 				var c: nil = a && b
 			`,
 			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `nil` is falsy"),
 			},
 		},
 		"returns a union of both types with only nil when the left can be both truthy and falsy": {
@@ -322,7 +322,7 @@ func TestLogicalOr(t *testing.T) {
 				var c: Int = a || b
 			`,
 			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `Std::Nil` is falsy"),
+				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `nil` is falsy"),
 			},
 		},
 		"returns a union of both types without nil when the left can be both truthy and falsy": {

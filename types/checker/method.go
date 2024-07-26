@@ -1063,7 +1063,7 @@ func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
-	typ = c.toNonLiteral(typ)
+	typ = c.toNonLiteral(typ, true)
 
 	switch t := typ.(type) {
 	case *types.NamedType:

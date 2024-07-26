@@ -3734,6 +3734,9 @@ func (p *Parser) primaryType() ast.TypeNode {
 	}
 
 	switch p.lookahead.Type {
+	case token.BOOL:
+		tok := p.advance()
+		return ast.NewBoolLiteralNode(tok.Span())
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:

@@ -776,6 +776,19 @@ func TestNotType(t *testing.T) {
 				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
 			},
 		},
+		"normalise named type": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+
+				var a: AnyInt & Foo = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `Std::Int` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`\n"),
+				error.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `1` cannot be assigned to type `Std::AnyInt & Foo`"),
+			},
+		},
 		"normalise Bool & ~False": {
 			input: `
 				var a: Bool & ~False = 1.2
@@ -790,6 +803,14 @@ func TestNotType(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise nil & ~false & ~nil": {
+			input: `
+				var a: nil & ~false & ~nil = false
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 2, 34), P(38, 2, 38)), "type `false` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection of negated unions": {

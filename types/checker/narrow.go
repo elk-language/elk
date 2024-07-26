@@ -256,7 +256,19 @@ func (c *Checker) toNonTruthy(typ types.Type) types.Type {
 	}
 }
 
-func (c *Checker) toNonLiteral(typ types.Type) types.Type {
+func (c *Checker) isSingletonLiteralType(typ types.Type) bool {
+	switch typ.(type) {
+	case types.Nil, types.Bool:
+		return true
+	}
+
+	return false
+}
+
+func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
+	if !widenSingletonTypes && c.isSingletonLiteralType(typ) {
+		return typ
+	}
 	return typ.ToNonLiteral(c.GlobalEnv)
 }
 

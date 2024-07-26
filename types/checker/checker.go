@@ -715,10 +715,10 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	methodName value.Symbol,
 	span *position.Span,
 ) types.Type {
-	leftType := c.toNonLiteral(c.typeOf(left))
+	leftType := c.toNonLiteral(c.typeOf(left), true)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
-	rightType := c.toNonLiteral(c.typeOf(right))
+	rightType := c.toNonLiteral(c.typeOf(right), true)
 	rightClassType, rightIsClass := rightType.(*types.Class)
 	if !leftIsClass || !rightIsClass {
 		return c.checkBinaryOpMethodCall(
@@ -2814,7 +2814,7 @@ func (c *Checker) checkVariableDeclaration(
 	if typeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(initialiser)
-		actualType := c.toNonLiteral(c.typeOf(init))
+		actualType := c.toNonLiteral(c.typeOf(init), false)
 		c.addLocal(name, newLocal(actualType, true, false))
 		if types.IsVoid(actualType) {
 			c.addFailure(

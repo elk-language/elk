@@ -583,6 +583,23 @@ func TestBinaryType(t *testing.T) {
 
 func TestLiteralTypes(t *testing.T) {
 	tests := testTable{
+		"bool": {
+			input: "type bool",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewBoolLiteralNode(
+								S(P(5, 1, 6), P(8, 1, 9)),
+							),
+						),
+					),
+				},
+			),
+		},
 		"true": {
 			input: "type true",
 			want: ast.NewProgramNode(

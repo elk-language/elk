@@ -107,7 +107,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		return false
 	case *types.Mixin, *types.Interface:
 		switch b.(type) {
-		case *types.Mixin, *types.Interface, *types.Class:
+		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType:
 			return true
 		}
 		return false
@@ -138,6 +138,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	case types.Nil:
 		b = c.StdNil()
+	case types.Bool:
+		b = c.StdBool()
 	case types.True:
 		b = c.StdTrue()
 	case types.False:
@@ -198,7 +200,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return false
 	}
 
-	aNonLiteral := c.toNonLiteral(a)
+	aNonLiteral := c.toNonLiteral(a, true)
 	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
 		return true
 	}
@@ -211,6 +213,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return types.IsAny(b)
 	case types.Nil:
 		return types.IsNilLiteral(b) || b == c.StdNil()
+	case types.Bool:
+		return types.IsBool(b) || b == c.StdBool()
 	case types.True:
 		return types.IsTrue(b) || b == c.StdTrue()
 	case types.False:

@@ -406,6 +406,7 @@ func (*PrivateConstantNode) typeNode()           {}
 func (*ConstantLookupNode) typeNode()            {}
 func (*GenericConstantNode) typeNode()           {}
 func (*NilLiteralNode) typeNode()                {}
+func (*BoolLiteralNode) typeNode()               {}
 func (*TrueLiteralNode) typeNode()               {}
 func (*FalseLiteralNode) typeNode()              {}
 func (*CharLiteralNode) typeNode()               {}
@@ -1066,6 +1067,26 @@ func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr Express
 		NodeBase:   NodeBase{span: span},
 		Op:         op,
 		Expression: expr,
+	}
+}
+
+// `bool` literal.
+type BoolLiteralNode struct {
+	NodeBase
+}
+
+func (*BoolLiteralNode) IsStatic() bool {
+	return true
+}
+
+func (*BoolLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+	return types.Bool{}
+}
+
+// Create a new `bool` literal node.
+func NewBoolLiteralNode(span *position.Span) *BoolLiteralNode {
+	return &BoolLiteralNode{
+		NodeBase: NodeBase{span: span},
 	}
 }
 

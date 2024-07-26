@@ -493,6 +493,7 @@ const (
 	NATIVE            // Keyword `native`
 	DEFAULT           // Keyword `default`
 	MACRO             // Keyword `macro`
+	BOOL              // Keyword `bool`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -571,6 +572,7 @@ var Keywords = map[string]Type{
 	"primitive":  PRIMITIVE,
 	"default":    DEFAULT,
 	"macro":      MACRO,
+	"bool":       BOOL,
 }
 
 var tokenNames = [...]string{
@@ -812,4 +814,5 @@ var tokenNames = [...]string{
 	NATIVE:     "native",
 	DEFAULT:    "default",
 	MACRO:      "macro",
+	BOOL:       "bool",
 }
