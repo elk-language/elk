@@ -2410,7 +2410,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		n.SetType(types.NewFloat32Literal(n.Value))
 		return n
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.VoidTypeNode,
-		*ast.NeverTypeNode, *ast.AnyTypeNode, *ast.NilLiteralNode:
+		*ast.NeverTypeNode, *ast.AnyTypeNode, *ast.NilLiteralNode, *ast.BoolLiteralNode:
 		return n
 	case *ast.NilableTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)

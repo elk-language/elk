@@ -103,6 +103,7 @@ func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElement
 }
 
 func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
+	var containsNot bool
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
 		if types.IsNever(element) || types.IsNothing(element) {
@@ -118,6 +119,19 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 			}
 			elements = newElements
 			i--
+		case *types.Not:
+			containsNot = true
+		}
+	}
+	if containsNot {
+		// expand named types
+		for i := 0; i < len(elements); i++ {
+			switch e := elements[i].(type) {
+			case *types.NamedType:
+				elements[i] = e.Type
+			case types.Bool:
+				elements[i] = types.NewUnion(types.True{}, types.False{})
+			}
 		}
 	}
 	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)

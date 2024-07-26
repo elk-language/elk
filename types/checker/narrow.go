@@ -179,96 +179,23 @@ func (c *Checker) toNonNilable(typ types.Type) types.Type {
 }
 
 func (c *Checker) toNonFalsy(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return t.Type
-	case *types.Class:
-		if t == c.StdNil() || t == c.StdFalse() {
-			return types.Never{}
-		}
-		if t == c.StdBool() {
-			return types.True{}
-		}
-		return t
-	case types.Nil, types.False:
-		return types.Never{}
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonFalsy(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonFalsy := c.toNonFalsy(element)
-			if types.IsNever(nonFalsy) || types.IsNothing(nonFalsy) {
-				return types.Never{}
-			}
-		}
-		return t
-	case *types.NamedType:
-		nonFalsy := c.toNonFalsy(t.Type)
-		if c.isTheSameType(nonFalsy, t.Type, nil) {
-			return t
-		}
-		return nonFalsy
-	default:
-		return t
-	}
+	return c.newNormalisedIntersection(typ, types.NewNot(types.Nil{}), types.NewNot(types.False{}))
 }
 
 func (c *Checker) toNonTruthy(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Nilable:
-		return types.Nil{}
-	case *types.Class:
-		if t == c.StdNil() || t == c.StdFalse() {
-			return t
-		}
-		if t == c.StdBool() {
-			return types.False{}
-		}
-		return types.Never{}
-	case types.Nil, types.False:
-		return t
-	case *types.Union:
-		var newElements []types.Type
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.toNonTruthy(element))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		for _, element := range t.Elements {
-			nonTruthy := c.toNonTruthy(element)
-			if types.IsNever(nonTruthy) || types.IsNothing(nonTruthy) {
-				return types.Never{}
-			}
-		}
-		return t
-	case *types.NamedType:
-		nonTruthy := c.toNonTruthy(t.Type)
-		if c.isTheSameType(nonTruthy, t.Type, nil) {
-			return t
-		}
-		return nonTruthy
-	default:
-		return types.Never{}
-	}
-}
-
-func (c *Checker) isSingletonLiteralType(typ types.Type) bool {
-	switch typ.(type) {
-	case types.Nil, types.Bool:
-		return true
-	}
-
-	return false
+	return c.newNormalisedIntersection(typ, types.NewUnion(types.Nil{}, types.False{}))
 }
 
 func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
-	if !widenSingletonTypes && c.isSingletonLiteralType(typ) {
-		return typ
+	if !widenSingletonTypes {
+		switch typ.(type) {
+		case types.Nil, types.Bool:
+			return typ
+		case types.False, types.True:
+			return types.Bool{}
+		}
 	}
+
 	return typ.ToNonLiteral(c.GlobalEnv)
 }
 

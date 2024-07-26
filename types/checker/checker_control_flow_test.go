@@ -128,7 +128,7 @@ func TestIfExpressions(t *testing.T) {
 
 		"narrow Bool variable type by using truthiness": {
 			input: `
-				var a: Bool = false
+				var a = false
 				if a
 					var b: true = a
 				else
@@ -201,7 +201,7 @@ func TestIfExpressions(t *testing.T) {
 		"narrow a few variables with &&": {
 			input: `
 				var a: Int? = nil
-				var b: Bool = false
+				var b = false
 				if a && b
 					var c: Int = a
 					var d: true = b
@@ -211,7 +211,7 @@ func TestIfExpressions(t *testing.T) {
 		"narrow a few variables with ||": {
 			input: `
 				var a: Int? = nil
-				var b: Bool = false
+				var b = false
 				if a || b
 				else
 					var c: nil = a
