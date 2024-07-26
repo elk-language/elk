@@ -103,18 +103,25 @@ func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assumeTruthy bool) {
 	}
 	namespace := rightSingleton.AttachedObject
 
-	local := c.resolveLocal(localName, nil)
+	local, inCurrentEnv := c.resolveLocal(localName, nil)
 	if local == nil {
 		return
 	}
-	newLocal := local.copy()
-	newLocal.shadow = true
-	if assumeTruthy {
-		newLocal.typ = namespace
-	} else {
-		newLocal.typ = c.newNormalisedIntersection(local.typ, types.NewNot(namespace))
+
+	if !inCurrentEnv {
+		local = local.copy()
+		local.shadow = true
+		c.addLocal(localName, local)
 	}
-	c.addLocal(localName, newLocal)
+	if assumeTruthy {
+		local.typ = namespace
+	} else {
+		local.typ = c.differenceType(local.typ, namespace)
+	}
+}
+
+func (c *Checker) differenceType(a, b types.Type) types.Type {
+	return c.newNormalisedIntersection(a, types.NewNot(b))
 }
 
 func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy bool) {
@@ -137,18 +144,21 @@ func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assumeTruthy 
 		return
 	}
 
-	local := c.resolveLocal(localName, nil)
+	local, inCurrentEnv := c.resolveLocal(localName, nil)
 	if local == nil {
 		return
 	}
-	newLocal := local.copy()
-	newLocal.shadow = true
-	if assumeTruthy {
-		newLocal.typ = class
-	} else {
-		newLocal.typ = c.newNormalisedIntersection(local.typ, types.NewNot(class))
+
+	if !inCurrentEnv {
+		local = local.copy()
+		local.shadow = true
+		c.addLocal(localName, local)
 	}
-	c.addLocal(localName, newLocal)
+	if assumeTruthy {
+		local.typ = class
+	} else {
+		local.typ = c.differenceType(local.typ, class)
+	}
 }
 
 func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assumeTruthy bool) {
@@ -159,23 +169,25 @@ func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assumeTruthy bool) 
 }
 
 func (c *Checker) narrowLocal(name string, assumeTruthy bool) {
-	local := c.resolveLocal(name, nil)
+	local, inCurrentEnv := c.resolveLocal(name, nil)
 	if local == nil {
 		return
 	}
 
-	newLocal := local.copy()
-	newLocal.shadow = true
-	if assumeTruthy {
-		newLocal.typ = c.toNonFalsy(local.typ)
-	} else {
-		newLocal.typ = c.toNonTruthy(local.typ)
+	if !inCurrentEnv {
+		local = local.copy()
+		c.addLocal(name, local)
+		local.shadow = true
 	}
-	c.addLocal(name, newLocal)
+	if assumeTruthy {
+		local.typ = c.toNonFalsy(local.typ)
+	} else {
+		local.typ = c.toNonTruthy(local.typ)
+	}
 }
 
 func (c *Checker) toNonNilable(typ types.Type) types.Type {
-	return c.newNormalisedIntersection(typ, types.NewNot(types.Nil{}))
+	return c.differenceType(typ, types.Nil{})
 }
 
 func (c *Checker) toNonFalsy(typ types.Type) types.Type {

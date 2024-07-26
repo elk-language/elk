@@ -113,6 +113,8 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 			return true
 		}
 		return false
+	case *types.NamedType:
+		return c._canIntersect(a.Type, b)
 	case *types.Not:
 		return !c.isSubtype(b, a.Type, nil)
 	default:

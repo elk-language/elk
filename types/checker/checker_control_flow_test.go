@@ -178,6 +178,16 @@ func TestIfExpressions(t *testing.T) {
 				end
 			`,
 		},
+		"narrow union type by using <:": {
+			input: `
+				var a: Int | String = "foo"
+				if a <: Int
+					var b: Int = a
+				else
+					var b: String = a
+				end
+			`,
+		},
 		"narrow variable type by using <:": {
 			input: `
 				var a: Int? = nil

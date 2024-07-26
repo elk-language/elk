@@ -73,16 +73,16 @@ func (l *localEnvironment) getLocal(name string) *local {
 }
 
 // Resolve the local with the given name from this local environment or any parent environment
-func (l *localEnvironment) resolveLocal(name string) *local {
+func (l *localEnvironment) resolveLocal(name string) (*local, bool) {
 	nameSymbol := value.ToSymbol(name)
 	currentEnv := l
 	for {
 		if currentEnv == nil {
-			return nil
+			return nil, false
 		}
 		loc, ok := currentEnv.locals[nameSymbol]
 		if ok {
-			return loc
+			return loc, l == currentEnv
 		}
 		currentEnv = currentEnv.parent
 	}
@@ -2235,16 +2235,16 @@ func (c *Checker) getInstanceVariable(name value.Symbol) (types.Type, types.Name
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
-func (c *Checker) resolveLocal(name string, span *position.Span) *local {
+func (c *Checker) resolveLocal(name string, span *position.Span) (*local, bool) {
 	env := c.currentLocalEnv()
-	local := env.resolveLocal(name)
+	local, inCurrentEnv := env.resolveLocal(name)
 	if local == nil {
 		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
 			span,
 		)
 	}
-	return local
+	return local, inCurrentEnv
 }
 
 func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
@@ -2465,7 +2465,7 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 	case token.SLASH:
 		node.Left = c.checkTypeNode(node.Left)
 		node.Right = c.checkTypeNode(node.Right)
-		typ := c.newNormalisedIntersection(c.typeOf(node.Left), types.NewNot(c.typeOf(node.Right)))
+		typ := c.differenceType(c.typeOf(node.Left), c.typeOf(node.Right))
 		node.SetType(typ)
 		return node
 	default:
@@ -2607,7 +2607,7 @@ func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.P
 }
 
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	local := c.resolveLocal(node.Value, node.Span())
+	local, _ := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
 		node.SetType(types.Nothing{})
 		return node
@@ -2623,7 +2623,7 @@ func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast
 }
 
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	local := c.resolveLocal(node.Value, node.Span())
+	local, _ := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
 		node.SetType(types.Nothing{})
 		return node
