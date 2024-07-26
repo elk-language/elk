@@ -76,6 +76,8 @@ func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 		return false
 	case *types.Not:
 		return !c.isTheSameType(a.Type, b, nil)
+	case *types.NamedType:
+		return c.canBeIsA(a.Type, b)
 	default:
 		return c.isSubtype(a, b, nil)
 	}

@@ -127,8 +127,18 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 		// expand named types
 		for i := 0; i < len(elements); i++ {
 			switch e := elements[i].(type) {
+			case *types.Intersection:
+				newElements := make([]types.Type, 0, len(elements)+len(e.Elements))
+				newElements = append(newElements, elements[:i]...)
+				newElements = append(newElements, e.Elements...)
+				if len(elements) >= i+2 {
+					newElements = append(newElements, elements[i+1:]...)
+				}
+				elements = newElements
+				i--
 			case *types.NamedType:
 				elements[i] = e.Type
+				i--
 			case types.Bool:
 				elements[i] = types.NewUnion(types.True{}, types.False{})
 			}

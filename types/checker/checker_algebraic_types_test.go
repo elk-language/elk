@@ -821,6 +821,38 @@ func TestNotType(t *testing.T) {
 				error.NewFailure(L("<main>", P(50, 2, 50), P(52, 2, 52)), "type `2.5` cannot be assigned to type `(Std::Bool & ~false) | Std::Int`"),
 			},
 		},
+		"normalise intersection with a named union": {
+			input: `
+				typedef Foo = Bool | Int | nil
+				typedef Bar = false | nil
+				var a: Foo & ~Bar = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `(Std::Bool & ~Bar) | Std::Int`"),
+			},
+		},
+		"normalise intersection with a named union containing bool": {
+			input: `
+				typedef Foo = bool | Int | nil
+				typedef Bar = false | nil
+				var a: Foo & ~Bar = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `true | Std::Int`"),
+			},
+		},
+		"normalise intersection with a named intersection": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				typedef Bar = Int & Foo
+				var a: Bar & ~Foo = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(97, 6, 25), P(99, 6, 27)), "type `2.5` cannot be assigned to type `Std::Int`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -865,6 +897,16 @@ func TestDifferenceType(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `never`"),
+			},
+		},
+		"normalise with named types": {
+			input: `
+				typedef Foo = 0 | 1 | 2 | 3 | 4 | 5
+				typedef Bar = 0 | 2 | 4
+				var a: Foo / Bar = 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 4, 24), P(94, 4, 26)), "type `2.5` cannot be assigned to type `1 | 3 | 5`"),
 			},
 		},
 	}
