@@ -277,6 +277,113 @@ func TestWhileExpression(t *testing.T) {
 	}
 }
 
+func TestLoopExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				loop
+					var b: Int? = a
+				end
+			`,
+		},
+		"returns never": {
+			input: `
+				a := 2
+				b := loop
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 7, 9), P(72, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestUntilExpression(t *testing.T) {
+	tests := testTable{
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				until foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 11), P(32, 3, 15)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				until a
+					var b: Int? = a
+				end
+			`,
+		},
+		"returns never if condition is falsy": {
+			input: `
+				a := 2
+				b := until false
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewFailure(L("<main>", P(79, 7, 9), P(79, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil if condition is truthy": {
+			input: `
+				a := 2
+				var b: nil = until true
+					"foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+			},
+		},
+		"returns a nilable body type if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = until a
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(69, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a = false
+				until a
+					var b: false = a
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestUnlessExpression(t *testing.T) {
 	tests := testTable{
 		"cannot use void in the condition": {

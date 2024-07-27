@@ -674,6 +674,10 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkUnlessExpressionNode(n)
 	case *ast.WhileExpressionNode:
 		return c.checkWhileExpressionNode(n)
+	case *ast.UntilExpressionNode:
+		return c.checkUntilExpressionNode(n)
+	case *ast.LoopExpressionNode:
+		return c.checkLoopExpressionNode(n)
 	case *ast.NumericForExpressionNode:
 		return c.checkNumericForExpressionNode(n)
 	case *ast.ReturnExpressionNode:
@@ -902,6 +906,54 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 			node.Condition.Span(),
 		)
 		node.SetType(types.Nil{})
+		return node
+	}
+
+	node.SetType(c.toNilable(thenType))
+	return node
+}
+
+func (c *Checker) checkLoopExpressionNode(node *ast.LoopExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	node.SetType(types.Never{})
+	return node
+}
+
+func (c *Checker) checkUntilExpressionNode(node *ast.UntilExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionFalsy)
+	thenType, _ := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this loop will never execute since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Nil{})
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Never{})
 		return node
 	}
 
