@@ -2507,7 +2507,7 @@ func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpre
 
 // Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`
 type NumericForExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Initialiser ExpressionNode  // i := 0
 	Condition   ExpressionNode  // i < 10
 	Increment   ExpressionNode  // i += 1
@@ -2521,11 +2521,11 @@ func (*NumericForExpressionNode) IsStatic() bool {
 // Create a new numeric `fornum` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
 func NewNumericForExpressionNode(span *position.Span, init, cond, incr ExpressionNode, then []StatementNode) *NumericForExpressionNode {
 	return &NumericForExpressionNode{
-		NodeBase:    NodeBase{span: span},
-		Initialiser: init,
-		Condition:   cond,
-		Increment:   incr,
-		ThenBody:    then,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Initialiser:   init,
+		Condition:     cond,
+		Increment:     incr,
+		ThenBody:      then,
 	}
 }
 

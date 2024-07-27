@@ -512,6 +512,9 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	if node == nil {
+		return nil
+	}
 	if node.SkipTypechecking() {
 		return node
 	}
@@ -668,6 +671,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkUnlessExpressionNode(n)
 	case *ast.WhileExpressionNode:
 		return c.checkWhileExpressionNode(n)
+	case *ast.NumericForExpressionNode:
+		return c.checkNumericForExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -830,6 +835,54 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+}
+
+func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Initialiser = c.checkExpression(node.Initialiser)
+
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOf(node.Condition)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionTruthy)
+
+	node.Increment = c.checkExpression(node.Increment)
+
+	thenType := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if node.Condition == nil {
+		node.SetType(types.Never{})
+		return node
+	}
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Never{})
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this loop will never execute since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Nil{})
+		return node
+	}
+
+	node.SetType(c.toNilable(thenType))
+	return node
 }
 
 func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.ExpressionNode {
@@ -1704,6 +1757,9 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 }
 
 func (c *Checker) typeOf(node ast.Node) types.Type {
+	if node == nil {
+		return types.Void{}
+	}
 	return node.Type(c.GlobalEnv)
 }
 

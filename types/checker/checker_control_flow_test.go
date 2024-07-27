@@ -39,6 +39,104 @@ func TestDoExpression(t *testing.T) {
 	}
 }
 
+func TestNumericForExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				fornum ;;
+					var b: Int? = a
+				end
+			`,
+		},
+		"use variables defined in the header": {
+			input: `
+				fornum i := 0; i < 8; i++
+					var b: Int = i
+				end
+			`,
+		},
+		"typecheck the header and body": {
+			input: `
+				fornum a; b; c
+					d
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "undefined local `a`"),
+				error.NewFailure(L("<main>", P(15, 2, 15), P(15, 2, 15)), "undefined local `b`"),
+				error.NewFailure(L("<main>", P(18, 2, 18), P(18, 2, 18)), "undefined local `c`"),
+				error.NewFailure(L("<main>", P(25, 3, 6), P(25, 3, 6)), "undefined local `d`"),
+			},
+		},
+		"returns never if condition is truthy": {
+			input: `
+				a := 2
+				b := fornum ;true;
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(81, 7, 9), P(81, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns never when there is no condition": {
+			input: `
+				a := 2
+				b := fornum ;;
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(77, 7, 9), P(77, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil if condition is falsy": {
+			input: `
+				a := 2
+				var b: nil = fornum ;false;
+					"foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(37, 3, 26), P(41, 3, 30)), "this loop will never execute since type `false` is falsy"),
+			},
+		},
+		"returns a nilable body type if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = fornum ;a;
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(72, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a = false
+				fornum ;a;
+					var b: true = a
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestWhileExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
