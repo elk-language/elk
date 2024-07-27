@@ -6,6 +6,61 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestReturnExpression(t *testing.T) {
+	tests := testTable{
+		"the return type is never": {
+			input: `
+				a := return
+				a = 4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 3, 9), P(25, 3, 9)), "type `4` cannot be assigned to type `never`"),
+			},
+		},
+		"warn about values returned in the top level": {
+			input: `
+				return 4
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(12, 2, 12), P(12, 2, 12)), "values returned in void context will be ignored"),
+			},
+		},
+		"warn about values returned in void methods": {
+			input: `
+				def foo
+					return 4
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(25, 3, 13), P(25, 3, 13)), "values returned in void context will be ignored"),
+			},
+		},
+		"accept matching return type": {
+			input: `
+				def foo: String
+					return "foo"
+				end
+			`,
+		},
+		"invalid return type": {
+			input: `
+				def foo: String
+					return 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 3, 6), P(33, 3, 13)), "type `2` cannot be assigned to type `Std::String`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestDoExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
@@ -119,6 +174,16 @@ func TestNumericForExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(36, 3, 16), P(72, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
 			},
 		},
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				fornum foo(); foo(); foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 19), P(40, 3, 23)), "cannot use type `void` as a value in this context"),
+			},
+		},
 
 		"narrow Bool variable type by using truthiness": {
 			input: `
@@ -139,6 +204,16 @@ func TestNumericForExpression(t *testing.T) {
 
 func TestWhileExpression(t *testing.T) {
 	tests := testTable{
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				while foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 11), P(32, 3, 15)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"has access to outer variables": {
 			input: `
 				var a: Int? = 5
@@ -204,6 +279,16 @@ func TestWhileExpression(t *testing.T) {
 
 func TestUnlessExpression(t *testing.T) {
 	tests := testTable{
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				unless foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"has access to outer variables": {
 			input: `
 				var a: Int? = 5
@@ -277,6 +362,16 @@ func TestUnlessExpression(t *testing.T) {
 
 func TestIfExpression(t *testing.T) {
 	tests := testTable{
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				if foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 3, 8), P(29, 3, 12)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"has access to outer variables": {
 			input: `
 				var a: Int? = 5
@@ -585,6 +680,15 @@ func TestIfExpression(t *testing.T) {
 
 func TestLogicalAnd(t *testing.T) {
 	tests := testTable{
+		"cannot use void on the left hand side": {
+			input: `
+				def foo; end
+				foo() && foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(26, 3, 9)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"returns the right type when the left type is truthy": {
 			input: `
 				var a = "foo"
@@ -660,6 +764,15 @@ func TestLogicalAnd(t *testing.T) {
 
 func TestLogicalOr(t *testing.T) {
 	tests := testTable{
+		"cannot use void on the left hand side": {
+			input: `
+				def foo; end
+				foo() || foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(26, 3, 9)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"returns the left type when it is truthy": {
 			input: `
 				var a = "foo"
@@ -742,6 +855,15 @@ func TestLogicalOr(t *testing.T) {
 
 func TestNilCoalescing(t *testing.T) {
 	tests := testTable{
+		"cannot use void on the left hand side": {
+			input: `
+				def foo; end
+				foo() ?? foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 3, 5), P(26, 3, 9)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"returns the left type when it is not nilable": {
 			input: `
 				var a = "foo"

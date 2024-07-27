@@ -2582,6 +2582,10 @@ func (*BreakExpressionNode) IsStatic() bool {
 	return false
 }
 
+func (*BreakExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+	return types.Never{}
+}
+
 // Create a new `break` expression node eg. `break`
 func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNode) *BreakExpressionNode {
 	return &BreakExpressionNode{
@@ -2601,6 +2605,10 @@ func (*ReturnExpressionNode) IsStatic() bool {
 	return false
 }
 
+func (*ReturnExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+	return types.Never{}
+}
+
 // Create a new `return` expression node eg. `return`, `return true`
 func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExpressionNode {
 	return &ReturnExpressionNode{
@@ -2614,6 +2622,10 @@ type ContinueExpressionNode struct {
 	NodeBase
 	Label string
 	Value ExpressionNode
+}
+
+func (*ContinueExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+	return types.Never{}
 }
 
 func (*ContinueExpressionNode) IsStatic() bool {
@@ -2633,6 +2645,10 @@ func NewContinueExpressionNode(span *position.Span, label string, val Expression
 type ThrowExpressionNode struct {
 	NodeBase
 	Value ExpressionNode
+}
+
+func (*ThrowExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+	return types.Never{}
 }
 
 func (*ThrowExpressionNode) IsStatic() bool {

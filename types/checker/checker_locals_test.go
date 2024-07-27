@@ -476,7 +476,7 @@ func TestVariableDeclaration(t *testing.T) {
 				var foo = bar()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare variable `foo` with type `void`"),
+				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject variable declaration without matching initializer and type": {
@@ -526,7 +526,7 @@ func TestShortVariableDeclaration(t *testing.T) {
 				foo := bar()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot declare variable `foo` with type `void`"),
+				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject redeclared variable": {
@@ -558,7 +558,7 @@ func TestValueDeclaration(t *testing.T) {
 				val foo = bar()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot declare value `foo` with type `void`"),
+				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject value declaration without matching initializer and type": {

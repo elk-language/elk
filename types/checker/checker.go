@@ -673,6 +673,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkWhileExpressionNode(n)
 	case *ast.NumericForExpressionNode:
 		return c.checkNumericForExpressionNode(n)
+	case *ast.ReturnExpressionNode:
+		return c.checkReturnExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -837,12 +839,31 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
+func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
+	var typ types.Type
+	if node.Value == nil {
+		typ = types.Nil{}
+	} else {
+		if types.IsVoid(c.returnType) {
+			c.addWarning(
+				"values returned in void context will be ignored",
+				node.Value.Span(),
+			)
+		}
+		node.Value = c.checkExpression(node.Value)
+		typ = c.typeOfGuardVoid(node.Value)
+	}
+	c.checkCanAssign(typ, c.returnType, node.Span())
+
+	return node
+}
+
 func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Initialiser = c.checkExpression(node.Initialiser)
 
 	node.Condition = c.checkExpression(node.Condition)
-	conditionType := c.typeOf(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
@@ -888,7 +909,7 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
-	conditionType := c.typeOf(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
@@ -927,7 +948,7 @@ func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.Ex
 func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
-	conditionType := c.typeOf(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
@@ -971,7 +992,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
-	conditionType := c.typeOf(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
@@ -1104,7 +1125,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 	node.Right = c.checkExpression(node.Right)
 	c.popLocalEnv()
 
-	leftType := c.typeOf(node.Left)
+	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
 	if c.isNil(leftType) {
@@ -1139,7 +1160,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 	node.Right = c.checkExpression(node.Right)
 	c.popLocalEnv()
 
-	leftType := c.typeOf(node.Left)
+	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
 	if c.isTruthy(leftType) {
@@ -1164,7 +1185,8 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 		node.SetType(rightType)
 		return node
 	}
-	node.SetType(c.newNormalisedUnion(c.toNonFalsy(leftType), rightType))
+	union := c.newNormalisedUnion(c.toNonFalsy(leftType), rightType)
+	node.SetType(union)
 
 	return node
 }
@@ -1177,7 +1199,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 	node.Right = c.checkExpression(node.Right)
 	c.popLocalEnv()
 
-	leftType := c.typeOf(node.Left)
+	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
 	if c.isTruthy(leftType) {
@@ -1335,8 +1357,8 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	node.SetType(c.StdBool())
 	node.Left = c.checkExpression(node.Left)
 	node.Right = c.checkExpression(node.Right)
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	leftType := c.typeOfGuardVoid(node.Left)
+	rightType := c.typeOfGuardVoid(node.Right)
 
 	if !c.typesIntersect(leftType, rightType) {
 		c.addWarning(
@@ -1364,7 +1386,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		left = node.Left
 		right = node.Right
 	}
-	leftType := c.typeOf(left)
+	leftType := c.typeOfGuardVoid(left)
 	rightType := c.typeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
@@ -1422,7 +1444,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		left = node.Left
 		right = node.Right
 	}
-	leftType := c.typeOf(left)
+	leftType := c.typeOfGuardVoid(left)
 	rightType := c.typeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
@@ -1763,6 +1785,21 @@ func (c *Checker) typeOf(node ast.Node) types.Type {
 	return node.Type(c.GlobalEnv)
 }
 
+func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
+	typ := c.typeOf(node)
+	if node != nil && types.IsVoid(typ) {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot use type `%s` as a value in this context",
+				types.InspectWithColor(types.Void{}),
+			),
+			node.Span(),
+		)
+		return types.Nothing{}
+	}
+	return typ
+}
+
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) {
 	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
@@ -1864,7 +1901,7 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 
 func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
-	receiverType := c.typeOf(receiver)
+	receiverType := c.typeOfGuardVoid(receiver)
 
 	// Allow arbitrary method calls on `never` and `nothing`.
 	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
@@ -2045,7 +2082,7 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 	ivarType := c.checkInstanceVariable(name, node.Left.Span())
 
 	node.Right = c.checkExpression(node.Right)
-	assignedType := c.typeOf(node.Right)
+	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, ivarType, node.Right.Span())
 	return node
 }
@@ -2067,7 +2104,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 
 	node.Right = c.checkExpression(node.Right)
-	assignedType := c.typeOf(node.Right)
+	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, variableType, node.Right.Span())
 	node.SetType(assignedType)
 	return node
@@ -2956,14 +2993,8 @@ func (c *Checker) checkVariableDeclaration(
 	if typeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(initialiser)
-		actualType := c.toNonLiteral(c.typeOf(init), false)
+		actualType := c.toNonLiteral(c.typeOfGuardVoid(init), false)
 		c.addLocal(name, newLocal(actualType, true, false))
-		if types.IsVoid(actualType) {
-			c.addFailure(
-				fmt.Sprintf("cannot declare variable `%s` with type `void`", name),
-				init.Span(),
-			)
-		}
 		return init, nil, actualType
 	}
 
@@ -2972,7 +3003,7 @@ func (c *Checker) checkVariableDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(initialiser)
-	actualType := c.typeOf(init)
+	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(name, newLocal(declaredType, true, false))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
@@ -3017,14 +3048,8 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	if node.TypeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := c.typeOf(init)
+		actualType := c.typeOfGuardVoid(init)
 		c.addLocal(node.Name, newLocal(actualType, true, true))
-		if types.IsVoid(actualType) {
-			c.addFailure(
-				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name),
-				init.Span(),
-			)
-		}
 		node.Initialiser = init
 		node.SetType(actualType)
 		return
@@ -3035,7 +3060,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	declaredTypeNode := c.checkTypeNode(node.TypeNode)
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
-	actualType := c.typeOf(init)
+	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(node.Name, newLocal(declaredType, true, true))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
@@ -3247,7 +3272,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	// with an initialiser
 	if node.TypeNode == nil {
 		// without a type, inference
-		actualType := c.typeOf(init)
+		actualType := c.typeOfGuardVoid(init)
 		if types.IsVoid(actualType) {
 			c.addFailure(
 				fmt.Sprintf("cannot declare constant `%s` with type `void`", fullConstantName),
@@ -3264,7 +3289,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 	declaredTypeNode := c.checkTypeNode(node.TypeNode)
 	declaredType := c.typeOf(declaredTypeNode)
-	actualType := c.typeOf(init)
+	actualType := c.typeOfGuardVoid(init)
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	container.DefineConstant(constantName, declaredType)

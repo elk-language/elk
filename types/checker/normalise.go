@@ -213,21 +213,31 @@ elementLoop:
 		case *types.Nilable:
 			elements = append(elements, e.Type, types.Nil{})
 		case *types.Not:
-			for _, normalisedElement := range normalisedElements {
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement := normalisedElements[j]
 				if c.isTheSameType(e.Type, normalisedElement, nil) {
 					return types.Any{}
 				}
-				if c.isSubtype(element, normalisedElement, nil) || c.isSubtype(normalisedElement, element, nil) {
+				if c.isSubtype(normalisedElement, element, nil) {
+					normalisedElements[j] = element
+					continue elementLoop
+				}
+				if c.isSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}
 			normalisedElements = append(normalisedElements, element)
 		default:
-			for _, normalisedElement := range normalisedElements {
+			for j := 0; j < len(normalisedElements); j++ {
+				normalisedElement := normalisedElements[j]
 				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type, element, nil) {
 					return types.Any{}
 				}
-				if c.isSubtype(element, normalisedElement, nil) || c.isSubtype(normalisedElement, element, nil) {
+				if c.isSubtype(normalisedElement, element, nil) {
+					normalisedElements[j] = element
+					continue elementLoop
+				}
+				if c.isSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}

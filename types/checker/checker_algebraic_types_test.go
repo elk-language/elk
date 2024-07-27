@@ -261,6 +261,22 @@ func TestUnionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
+		"normalise Bool | False": {
+			input: `
+				var a: Bool | False = :foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
+			},
+		},
+		"normalise False | Bool": {
+			input: `
+				var a: False | Bool = :foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

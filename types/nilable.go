@@ -8,7 +8,7 @@ import (
 
 func IsNilable(typ Type, env *GlobalEnvironment) bool {
 	switch t := typ.(type) {
-	case *Nilable, Nil:
+	case *Nilable, Nil, Void, Nothing:
 		return true
 	case *Class:
 		if t == env.StdSubtype(symbol.Nil) {
