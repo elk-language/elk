@@ -326,7 +326,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with different return types": {
 			input: `
 				class Bar
-					def foo(a: Int): String then a
+					def foo(a: Int): String then ""
 				end
 				class Foo
 					def foo(a: Int): Int then a
@@ -338,14 +338,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(230, 12, 5), P(234, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(230, 12, 5), P(234, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(231, 12, 5), P(235, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(231, 12, 5), P(235, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
 			input: `
 				class Bar
-					def foo(a: String): Int then a
+					def foo(a: String): Int then 1
 				end
 				class Foo
 					def foo(a: Int): Int then a
@@ -364,7 +364,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with wider param type": {
 			input: `
 				class Foo
-					def foo(a: String): Int then a
+					def foo(a: String): Int then 5
 				end
 				class Bar
 					def foo(a: Object): Int then 5
@@ -376,7 +376,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with narrower param type": {
 			input: `
 				class Foo
-					def foo(a: String): Int then a
+					def foo(a: String): Int then 2
 				end
 				class Bar
 					def foo(a: Object): Int then 5
@@ -391,7 +391,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with wider return type": {
 			input: `
 				class Foo
-					def foo(a: String): Int then a
+					def foo(a: String): Int then 3
 				end
 				class Bar
 					def foo(a: String): Object then 5
@@ -406,7 +406,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with narrower return type": {
 			input: `
 				class Foo
-					def foo(a: String): Int then a
+					def foo(a: String): Int then 2
 				end
 				class Bar
 					def foo(a: String): Object then 5

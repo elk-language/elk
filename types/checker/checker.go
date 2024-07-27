@@ -372,35 +372,38 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 	return position.NewLocationWithSpan(c.Filename, span)
 }
 
-func (c *Checker) checkStatements(stmts []ast.StatementNode) types.Type {
+func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *position.Span) {
 	var lastType types.Type
+	var lastTypeSpan *position.Span
 	for _, statement := range stmts {
-		t := c.checkStatement(statement)
+		var t types.Type
+		t, span := c.checkStatement(statement)
 		if t != nil {
+			lastTypeSpan = span
 			lastType = t
 		}
 	}
 
 	if lastType == nil {
-		return types.Nil{}
+		return types.Nil{}, nil
 	} else {
-		return lastType
+		return lastType, lastTypeSpan
 	}
 }
 
-func (c *Checker) checkStatement(node ast.Node) types.Type {
+func (c *Checker) checkStatement(node ast.Node) (types.Type, *position.Span) {
 	switch node := node.(type) {
 	case *ast.EmptyStatementNode:
-		return nil
+		return nil, nil
 	case *ast.ExpressionStatementNode:
 		node.Expression = c.checkExpression(node.Expression)
-		return c.typeOf(node.Expression)
+		return c.typeOf(node.Expression), node.Expression.Span()
 	default:
 		c.addFailure(
 			fmt.Sprintf("incorrect statement type %#v", node),
 			node.Span(),
 		)
-		return nil
+		return nil, nil
 	}
 }
 
@@ -870,7 +873,7 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 
 	node.Increment = c.checkExpression(node.Increment)
 
-	thenType := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -913,7 +916,7 @@ func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.Ex
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	thenType := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -952,12 +955,12 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
-	thenType := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	elseType := c.checkStatements(node.ElseBody)
+	elseType, _ := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -996,12 +999,12 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	thenType := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
-	elseType := c.checkStatements(node.ElseBody)
+	elseType, _ := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -1036,7 +1039,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 
-	typ := c.checkStatements(node.Body)
+	typ, _ := c.checkStatements(node.Body)
 	node.SetType(typ)
 
 	c.popLocalEnv()

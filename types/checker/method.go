@@ -373,7 +373,13 @@ func (c *Checker) checkMethod(
 	defer c.setMode(previousMode)
 	c.returnType = returnType
 	c.throwType = throwType
-	c.checkStatements(body)
+	bodyReturnType, returnSpan := c.checkStatements(body)
+	if !checkedMethod.IsAbstract() && !c.HeaderMode {
+		if returnSpan == nil {
+			returnSpan = span
+		}
+		c.checkCanAssign(bodyReturnType, returnType, returnSpan)
+	}
 	c.returnType = nil
 	c.throwType = nil
 	return typedReturnTypeNode, typedThrowTypeNode

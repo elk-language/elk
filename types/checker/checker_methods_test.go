@@ -70,6 +70,7 @@ func TestAttrDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
 				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"redeclare an instance variable using an attr with the same type": {
@@ -90,6 +91,7 @@ func TestAttrDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
 				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"override an attr with the same type in a child class": {
@@ -116,6 +118,7 @@ func TestAttrDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
 				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo=` with invalid parameter type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::Int): void`"),
 				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"override an instance variable using an attr with the same type in a child class": {
@@ -140,6 +143,7 @@ func TestAttrDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(77, 6, 16), P(82, 6, 21)), "type `Std::String` cannot be assigned to instance variable `@foo` of type `Std::Int`"),
 				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(72, 6, 11), P(82, 6, 21)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"override a method using an attr with the same parameter type in a child class": {
@@ -250,6 +254,7 @@ func TestGetterDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"redeclare an instance variable using a getter with the same type": {
@@ -269,6 +274,7 @@ func TestGetterDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(50, 4, 13), P(57, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(50, 4, 13), P(57, 4, 20)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"override a getter with the same type in a child class": {
@@ -293,6 +299,7 @@ func TestGetterDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
 				error.NewFailure(L("<main>", P(81, 6, 18), P(86, 6, 23)), "cannot override method `foo` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: `def foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(76, 6, 13), P(86, 6, 23)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"override an instance variable using getter with the same type in a child class": {
@@ -316,6 +323,7 @@ func TestGetterDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(74, 6, 13), P(84, 6, 23)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::Int`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(74, 6, 13), P(84, 6, 23)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"override a method using a getter with the same return type in a child class": {
@@ -770,7 +778,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 					def baz(a: String); end
 				end
 				class Foo < Bar
-					def baz(a: String): String; end
+					def baz(a: String): String then a
 				end
 			`,
 		},
@@ -785,6 +793,23 @@ func TestMethodDefinitionOverride(t *testing.T) {
 
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
+		"declare with an invalid implicit return value": {
+			input: `
+				def foo: String
+					5
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 3, 6), P(26, 3, 6)), "type `5` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"declare with a valid implicit return value": {
+			input: `
+				def foo: String
+					"lol"
+				end
+			`,
+		},
 		"redeclare the method in the same class with incompatible signature": {
 			input: `
 				class Foo
@@ -1412,7 +1437,7 @@ func TestMethodCalls(t *testing.T) {
 		"call subscript with matching argument": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				var f: String = Foo()["foo"]
 			`,
@@ -1420,12 +1445,12 @@ func TestMethodCalls(t *testing.T) {
 		"call subscript with non-matching argument": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				Foo()[1]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 11), P(71, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
+				error.NewFailure(L("<main>", P(75, 5, 11), P(75, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
 			},
 		},
 		"call nonexistent subscript": {
@@ -1441,18 +1466,18 @@ func TestMethodCalls(t *testing.T) {
 		"call nil-safe subscript on non nilable type": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				var f: String = Foo()?["foo"]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(81, 5, 21), P(93, 5, 33)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				error.NewFailure(L("<main>", P(85, 5, 21), P(97, 5, 33)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
 			},
 		},
 		"call nil-safe subscript with matching argument": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				var a: Foo? = Foo()
 				var f: String? = a?["foo"]
@@ -1461,25 +1486,25 @@ func TestMethodCalls(t *testing.T) {
 		"call nil-safe subscript and make the return type nilable": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				var a: Foo? = Foo()
 				var f: String = a?["foo"]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(105, 6, 21), P(113, 6, 29)), "type `Std::String?` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(109, 6, 21), P(117, 6, 29)), "type `Std::String?` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"call nil-safe subscript with non-matching argument": {
 			input: `
 				class Foo
-					def [](key: String): String; end
+					def [](key: String): String then key
 				end
 				var a: Foo? = Foo()
 				a?[1]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 8), P(92, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
+				error.NewFailure(L("<main>", P(96, 6, 8), P(96, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
 			},
 		},
 		"call nonexistent nil-safe subscript": {
@@ -1674,13 +1699,13 @@ func TestMethodCalls(t *testing.T) {
 		"pipe has the same return type as the method": {
 			input: `
 				class Foo
-					def foo(a: Int): String; end
+					def foo(a: Int): String then "f"
 				end
 				f := Foo()
 				var b: 9 = 1 |> f.foo()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 21), P(98, 6, 27)), "type `Std::String` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(96, 6, 21), P(102, 6, 27)), "type `Std::String` cannot be assigned to type `9`"),
 			},
 		},
 
