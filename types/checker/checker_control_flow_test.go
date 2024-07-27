@@ -6,6 +6,70 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestBreakExpression(t *testing.T) {
+	tests := testTable{
+		"the return type is never": {
+			input: `
+				loop
+					a := break
+					a = 4
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 4, 10), P(35, 4, 10)), "type `4` cannot be assigned to type `never`"),
+			},
+		},
+		"outside of a loop": {
+			input: `break`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"outside of a loop with a nonexistent label": {
+			input: `break$foo`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"with a nonexistent label": {
+			input: `
+				loop
+					break$foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"with a displaced label": {
+			input: `
+				$foo: loop; end
+				loop
+					break$foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 4, 6), P(43, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"with a valid label": {
+			input: `
+				$foo: loop
+					loop
+						break$foo
+					end
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestReturnExpression(t *testing.T) {
 	tests := testTable{
 		"the return type is never": {
@@ -298,6 +362,64 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(72, 7, 9), P(72, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil when a naked break is present": {
+			input: `
+				var a: Int? = 2
+				b := loop
+					if a
+						break
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(82, 8, 9), P(82, 8, 9)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"returns the value given to break": {
+			input: `
+				var a: Int? = 2
+				var b = loop
+					if a
+						break ""
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(88, 8, 9), P(88, 8, 9)), "type `3` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"returns the union of values given to break": {
+			input: `
+				var a: Int? = 2
+				var b = loop
+					if a
+						break ""
+					else
+						break 2.5
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(114, 10, 9), P(114, 10, 9)), "type `3` cannot be assigned to type `\"\" | 2.5`"),
+			},
+		},
+		"break nested labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b = $foo: loop
+					loop
+						break$foo ""
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(98, 8, 9), P(98, 8, 9)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 	}

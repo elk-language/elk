@@ -2558,6 +2558,10 @@ type LabeledExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (l *LabeledExpressionNode) Type(env *types.GlobalEnvironment) types.Type {
+	return l.Expression.Type(env)
+}
+
 func (l *LabeledExpressionNode) IsStatic() bool {
 	return l.Expression.IsStatic()
 }

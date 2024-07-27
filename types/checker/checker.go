@@ -59,6 +59,7 @@ type Checker struct {
 	methodScopes            []methodScope
 	methodScopesCopyCache   []methodScope
 	localEnvs               []*localEnvironment
+	loops                   []*loop
 	returnType              types.Type
 	throwType               types.Type
 	selfType                types.Type
@@ -466,11 +467,15 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.UntilExpressionNode:
 		return c.checkUntilExpressionNode(n)
 	case *ast.LoopExpressionNode:
-		return c.checkLoopExpressionNode(n)
+		return c.checkLoopExpressionNode("", n)
 	case *ast.NumericForExpressionNode:
 		return c.checkNumericForExpressionNode(n)
+	case *ast.LabeledExpressionNode:
+		return c.checkLabeledExpressionNode(n)
 	case *ast.ReturnExpressionNode:
 		return c.checkReturnExpressionNode(n)
+	case *ast.BreakExpressionNode:
+		return c.checkBreakExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -635,6 +640,27 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
+func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.ExpressionNode {
+	var typ types.Type
+	if node.Value == nil {
+		typ = types.Nil{}
+	} else {
+		node.Value = c.checkExpression(node.Value)
+		typ = c.typeOfGuardVoid(node.Value)
+	}
+
+	loop := c.findLoop(node.Label, node.Span())
+	if loop != nil {
+		if loop.returnType == nil {
+			loop.returnType = typ
+		} else {
+			loop.returnType = c.newNormalisedUnion(loop.returnType, typ)
+		}
+	}
+
+	return node
+}
+
 func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
 	var typ types.Type
 	if node.Value == nil {
@@ -651,6 +677,30 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
 
+	return node
+}
+
+func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) ast.ExpressionNode {
+	switch expr := node.Expression.(type) {
+	case *ast.LoopExpressionNode:
+		node.Expression = c.checkLoopExpressionNode(node.Label, expr)
+		// case *ast.WhileExpressionNode:
+		// 	c.whileExpression(node.Label, expr)
+		// case *ast.UntilExpressionNode:
+		// 	c.untilExpression(node.Label, expr)
+		// case *ast.LoopExpressionNode:
+		// 	c.loopExpression(node.Label, expr.ThenBody, expr.Span())
+		// case *ast.NumericForExpressionNode:
+		// 	c.numericForExpression(node.Label, expr)
+		// case *ast.ForInExpressionNode:
+		// 	c.forInExpression(node.Label, expr)
+		// case *ast.ModifierForInNode:
+		// 	c.modifierForIn(node.Label, expr)
+		// case *ast.ModifierNode:
+		// 	c.modifierExpression(node.Label, expr)
+		// default:
+		// 	c.compileNode(node.Expression)
+	}
 	return node
 }
 
@@ -702,12 +752,18 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 	return node
 }
 
-func (c *Checker) checkLoopExpressionNode(node *ast.LoopExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {
+	loop := c.registerLoop(label)
 	c.pushNestedLocalEnv()
 	c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
+	c.popLoop()
 
-	node.SetType(types.Never{})
+	if loop.returnType == nil {
+		node.SetType(types.Never{})
+	} else {
+		node.SetType(loop.returnType)
+	}
 	return node
 }
 
