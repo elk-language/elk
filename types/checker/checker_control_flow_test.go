@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
-func TestDoExpressions(t *testing.T) {
+func TestDoExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
 			input: `
@@ -39,7 +39,80 @@ func TestDoExpressions(t *testing.T) {
 	}
 }
 
-func TestIfExpressions(t *testing.T) {
+func TestUnlessExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				unless a
+					var b: Int? = a
+				else
+					a
+				end
+			`,
+		},
+		"returns the last else expression if condition is truthy": {
+			input: `
+				a := 2
+				var b: Float = unless true
+					"foo" + "bar"
+					a + 2
+				else
+					2.2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(38, 3, 27), P(41, 3, 30)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"returns the last then expression if condition is falsy": {
+			input: `
+				a := 2
+				var b: Int = unless false
+					"foo" + "bar"
+					a + 2
+				else
+					2.2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(36, 3, 25), P(40, 3, 29)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"returns a union of both branches if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = unless a
+					"foo" + "bar"
+				else
+					2.2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(88, 7, 7)), "type `Std::String | 2.2` cannot be assigned to type `8`"),
+			},
+		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a = false
+				unless a
+					var b: false = a
+				else
+					var b: true = a
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestIfExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
 			input: `
