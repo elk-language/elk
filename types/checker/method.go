@@ -12,6 +12,28 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+type methodCheckEntry struct {
+	filename       string
+	method         *types.Method
+	constantScopes []constantScope
+	methodScopes   []methodScope
+	node           *ast.MethodDefinitionNode
+}
+
+func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	if c.HeaderMode {
+		return
+	}
+
+	c.methodChecks.Append(methodCheckEntry{
+		method:         method,
+		constantScopes: c.constantScopesCopy(),
+		methodScopes:   c.methodScopesCopy(),
+		node:           node,
+		filename:       c.Filename,
+	})
+}
+
 const concurrencyLimit = 10_000
 
 func (c *Checker) checkMethods() {
