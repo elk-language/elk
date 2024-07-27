@@ -39,6 +39,71 @@ func TestDoExpression(t *testing.T) {
 	}
 }
 
+func TestWhileExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				while a
+					var b: Int? = a
+				end
+			`,
+		},
+		"returns never if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(78, 7, 9), P(78, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil expression if condition is falsy": {
+			input: `
+				a := 2
+				var b: nil = while false
+					"foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+			},
+		},
+		"returns a nilable body type if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(69, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a = false
+				while a
+					var b: true = a
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestUnlessExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {

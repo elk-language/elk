@@ -666,6 +666,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkIfExpressionNode(n)
 	case *ast.UnlessExpressionNode:
 		return c.checkUnlessExpressionNode(n)
+	case *ast.WhileExpressionNode:
+		return c.checkWhileExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -828,6 +830,45 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+}
+
+func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOf(node.Condition)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionTruthy)
+	thenType := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Never{})
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this loop will never execute since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		node.SetType(types.Nil{})
+		return node
+	}
+
+	node.SetType(c.toNilable(thenType))
+	return node
 }
 
 func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.ExpressionNode {
