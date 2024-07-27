@@ -250,7 +250,7 @@ func TestStrictEqual(t *testing.T) {
 				1 === "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check negated": {
@@ -258,7 +258,7 @@ func TestStrictEqual(t *testing.T) {
 				1 !== "foo"
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check with variables": {
@@ -268,7 +268,7 @@ func TestStrictEqual(t *testing.T) {
 				a === b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 4, 5), P(37, 4, 5)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::String`"),
+				error.NewWarning(L("<main>", P(37, 4, 5), P(37, 4, 5)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::String`"),
 			},
 		},
 		"impossible check with union type": {
@@ -278,7 +278,7 @@ func TestStrictEqual(t *testing.T) {
 				a === b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 5), P(59, 4, 5)), "this strict equality check is impossible, `Std::Int | Std::Float` cannot ever be equal to `Std::String?`"),
+				error.NewWarning(L("<main>", P(59, 4, 5), P(59, 4, 5)), "this strict equality check is impossible, `Std::Int | Std::Float` cannot ever be equal to `Std::String?`"),
 			},
 		},
 		"valid check": {
@@ -318,7 +318,7 @@ func TestIsA(t *testing.T) {
 				1.2 <: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"impossible check with not type": {
@@ -329,7 +329,7 @@ func TestIsA(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 8), P(32, 3, 8)), "impossible \"is a\" check, `~Std::Int` cannot ever be an instance of a descendant of `Std::Int`"),
+				error.NewWarning(L("<main>", P(32, 3, 8), P(32, 3, 8)), "impossible \"is a\" check, `~Std::Int` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"valid check with not type": {
@@ -345,7 +345,7 @@ func TestIsA(t *testing.T) {
 				Int :> 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
+				error.NewWarning(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"always true check": {
@@ -353,7 +353,7 @@ func TestIsA(t *testing.T) {
 				1 <: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `1` will always be an instance of `Std::Int`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -431,7 +431,7 @@ func TestInstanceOf(t *testing.T) {
 				1.2 <<: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"impossible reverse check": {
@@ -439,7 +439,7 @@ func TestInstanceOf(t *testing.T) {
 				Int :>> 1.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
+				error.NewWarning(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"always true check": {
@@ -447,7 +447,7 @@ func TestInstanceOf(t *testing.T) {
 				1 <<: Int
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `1` will always be an instance of `Std::Int`"),
+				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -464,7 +464,7 @@ func TestInstanceOf(t *testing.T) {
 				a <<: Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 5), P(71, 5, 5)), "impossible \"instance of\" check, `Bar?` cannot ever be an instance of `Foo`"),
+				error.NewWarning(L("<main>", P(71, 5, 5), P(71, 5, 5)), "impossible \"instance of\" check, `Bar?` cannot ever be an instance of `Foo`"),
 			},
 		},
 		"invalid right operand": {

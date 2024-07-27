@@ -208,15 +208,58 @@ func (c *Checker) narrowNilCoalescing(node *ast.LogicalExpressionNode, assume as
 func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assume assumption) {
 	switch node.Op.Type {
 	case token.INSTANCE_OF_OP:
-		c.narrowInstanceOf(node, assume)
+		c.narrowInstanceOf(node.Left, node.Right, assume)
+	case token.REVERSE_INSTANCE_OF_OP:
+		c.narrowInstanceOf(node.Right, node.Left, assume)
 	case token.ISA_OP:
-		c.narrowIsA(node, assume)
+		c.narrowIsA(node.Left, node.Right, assume)
+	case token.REVERSE_ISA_OP:
+		c.narrowIsA(node.Right, node.Left, assume)
+	case token.STRICT_EQUAL:
+		c.narrowStrictEqual(node, assume)
+	case token.STRICT_NOT_EQUAL:
+		c.narrowStrictEqual(node, assume.negate())
 	}
 }
 
-func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assume assumption) {
+func (c *Checker) narrowStrictEqual(node *ast.BinaryExpressionNode, assume assumption) {
+	switch assume {
+	case assumptionTruthy:
+		c.narrowToIntersectWith(node.Left, c.typeOf(node.Right))
+		c.narrowToIntersectWith(node.Right, c.typeOf(node.Left))
+	case assumptionNil:
+		c.narrowCondition(node.Left, assumptionNever)
+		c.narrowCondition(node.Right, assumptionNever)
+	}
+}
+
+func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type) {
 	var localName string
-	switch l := node.Left.(type) {
+	switch n := node.(type) {
+	case *ast.PublicIdentifierNode:
+		localName = n.Value
+	case *ast.PrivateIdentifierNode:
+		localName = n.Value
+	default:
+		return
+	}
+
+	local, inCurrentEnv := c.resolveLocal(localName, nil)
+	if local == nil {
+		return
+	}
+
+	if !inCurrentEnv {
+		local = local.copy()
+		local.shadow = true
+		c.addLocal(localName, local)
+	}
+	local.typ = c.newNormalisedIntersection(local.typ, typ)
+}
+
+func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
+	var localName string
+	switch l := left.(type) {
 	case *ast.PublicIdentifierNode:
 		localName = l.Value
 	case *ast.PrivateIdentifierNode:
@@ -225,7 +268,7 @@ func (c *Checker) narrowIsA(node *ast.BinaryExpressionNode, assume assumption) {
 		return
 	}
 
-	rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+	rightSingleton, ok := c.typeOf(right).(*types.SingletonClass)
 	if !ok {
 		return
 	}
@@ -256,9 +299,9 @@ func (c *Checker) differenceType(a, b types.Type) types.Type {
 	return c.newNormalisedIntersection(a, types.NewNot(b))
 }
 
-func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assume assumption) {
+func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assumption) {
 	var localName string
-	switch l := node.Left.(type) {
+	switch l := left.(type) {
 	case *ast.PublicIdentifierNode:
 		localName = l.Value
 	case *ast.PrivateIdentifierNode:
@@ -267,7 +310,7 @@ func (c *Checker) narrowInstanceOf(node *ast.BinaryExpressionNode, assume assump
 		return
 	}
 
-	rightSingleton, ok := c.typeOf(node.Right).(*types.SingletonClass)
+	rightSingleton, ok := c.typeOf(right).(*types.SingletonClass)
 	if !ok {
 		return
 	}

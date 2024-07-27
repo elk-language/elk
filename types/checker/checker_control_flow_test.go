@@ -259,6 +259,85 @@ func TestIfExpressions(t *testing.T) {
 				error.NewWarning(L("<main>", P(30, 3, 8), P(35, 3, 13)), "this condition will always have the same result since type `Std::Int` is truthy"),
 			},
 		},
+
+		"narrow with ===": {
+			input: `
+				var a: Int | Float = 1
+				var b: Float? = .2
+				if a === b
+					a = :foo
+					b = :bar
+				else
+					a = :baz
+					b = :fizz
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 10), P(78, 5, 13)), "type `:foo` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(89, 6, 10), P(92, 6, 13)), "type `:bar` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(112, 8, 10), P(115, 8, 13)), "type `:baz` cannot be assigned to type `Std::Int | Std::Float`"),
+				error.NewFailure(L("<main>", P(126, 9, 10), P(130, 9, 14)), "type `:fizz` cannot be assigned to type `Std::Float?`"),
+			},
+		},
+		"narrow with an impossible ===": {
+			input: `
+				var a: Int = 1
+				var b: Float = .2
+				if a === b
+					a = :foo
+					b = :bar
+				else
+					a = :baz
+					b = :fizz
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(49, 4, 8), P(49, 4, 8)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::Float`"),
+				error.NewFailure(L("<main>", P(66, 5, 10), P(69, 5, 13)), "type `:foo` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(80, 6, 10), P(83, 6, 13)), "type `:bar` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(103, 8, 10), P(106, 8, 13)), "type `:baz` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(117, 9, 10), P(121, 9, 14)), "type `:fizz` cannot be assigned to type `Std::Float`"),
+			},
+		},
+		"narrow with !==": {
+			input: `
+				var a: Int | Float = 1
+				var b: Float? = .2
+				if a !== b
+					a = :foo
+					b = :bar
+				else
+					a = :baz
+					b = :fizz
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 10), P(78, 5, 13)), "type `:foo` cannot be assigned to type `Std::Int | Std::Float`"),
+				error.NewFailure(L("<main>", P(89, 6, 10), P(92, 6, 13)), "type `:bar` cannot be assigned to type `Std::Float?`"),
+				error.NewFailure(L("<main>", P(112, 8, 10), P(115, 8, 13)), "type `:baz` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(126, 9, 10), P(130, 9, 14)), "type `:fizz` cannot be assigned to type `Std::Float`"),
+			},
+		},
+		"narrow with an impossible !==": {
+			input: `
+				var a: Int = 1
+				var b: Float = .2
+				if a !== b
+					a = :foo
+					b = :bar
+				else
+					a = :baz
+					b = :fizz
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(49, 4, 8), P(49, 4, 8)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::Float`"),
+				error.NewFailure(L("<main>", P(66, 5, 10), P(69, 5, 13)), "type `:foo` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(80, 6, 10), P(83, 6, 13)), "type `:bar` cannot be assigned to type `Std::Float`"),
+				error.NewFailure(L("<main>", P(103, 8, 10), P(106, 8, 13)), "type `:baz` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(117, 9, 10), P(121, 9, 14)), "type `:fizz` cannot be assigned to type `never`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

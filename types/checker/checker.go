@@ -1199,7 +1199,7 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	rightType := c.typeOf(node.Right)
 
 	if !c.typesIntersect(leftType, rightType) {
-		c.addFailure(
+		c.addWarning(
 			fmt.Sprintf(
 				"this strict equality check is impossible, `%s` cannot ever be equal to `%s`",
 				types.InspectWithColor(leftType),
@@ -1246,7 +1246,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 	}
 
 	if c.isSubtype(leftType, class, nil) {
-		c.addFailure(
+		c.addWarning(
 			fmt.Sprintf(
 				"this \"instance of\" check is always true, `%s` will always be an instance of `%s`",
 				types.InspectWithColor(leftType),
@@ -1258,7 +1258,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 	}
 
 	if !c.isSubtype(class, leftType, nil) {
-		c.addFailure(
+		c.addWarning(
 			fmt.Sprintf(
 				"impossible \"instance of\" check, `%s` cannot ever be an instance of `%s`",
 				types.InspectWithColor(leftType),
@@ -1305,7 +1305,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	}
 
 	if c.isSubtype(leftType, rightSingleton.AttachedObject, nil) {
-		c.addFailure(
+		c.addWarning(
 			fmt.Sprintf(
 				"this \"is a\" check is always true, `%s` will always be an instance of `%s`",
 				types.InspectWithColor(leftType),
@@ -1317,7 +1317,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	}
 
 	if !c.canBeIsA(leftType, rightSingleton.AttachedObject) {
-		c.addFailure(
+		c.addWarning(
 			fmt.Sprintf(
 				"impossible \"is a\" check, `%s` cannot ever be an instance of a descendant of `%s`",
 				types.InspectWithColor(leftType),
