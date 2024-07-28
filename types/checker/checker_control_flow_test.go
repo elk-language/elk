@@ -70,6 +70,70 @@ func TestBreakExpression(t *testing.T) {
 	}
 }
 
+func TestContinueExpression(t *testing.T) {
+	tests := testTable{
+		"the return type is never": {
+			input: `
+				loop
+					a := continue
+					a = 4
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 4, 10), P(38, 4, 10)), "type `4` cannot be assigned to type `never`"),
+			},
+		},
+		"outside of a loop": {
+			input: `continue`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"outside of a loop with a nonexistent label": {
+			input: `continue$foo`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"with a nonexistent label": {
+			input: `
+				loop
+					continue$foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"with a displaced label": {
+			input: `
+				$foo: loop; end
+				loop
+					continue$foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 4, 6), P(46, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"with a valid label": {
+			input: `
+				$foo: loop
+					loop
+						continue$foo
+					end
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestReturnExpression(t *testing.T) {
 	tests := testTable{
 		"the return type is never": {
@@ -420,6 +484,49 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(98, 8, 9), P(98, 8, 9)), "type `3` cannot be assigned to type `Std::String`"),
+			},
+		},
+
+		"returns never when a naked continue is present": {
+			input: `
+				var a: Int? = 2
+				b := loop
+					if a
+						continue
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 8, 9), P(85, 8, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"does not return the value given to continue": {
+			input: `
+				var a: Int? = 2
+				var b = loop
+					if a
+						continue ""
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(91, 8, 9), P(91, 8, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"continue in nested labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b = $foo: loop
+					loop
+						continue$foo ""
+					end
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(101, 8, 9), P(101, 8, 9)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 	}

@@ -9,12 +9,14 @@ import (
 
 type loop struct {
 	label      string
+	endless    bool
 	returnType types.Type
 }
 
-func (c *Checker) registerLoop(label string) *loop {
+func (c *Checker) registerLoop(label string, endless bool) *loop {
 	newLoop := &loop{
-		label: label,
+		label:   label,
+		endless: endless,
 	}
 	c.loops = append(c.loops, newLoop)
 	return newLoop

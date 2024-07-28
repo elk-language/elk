@@ -476,6 +476,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkReturnExpressionNode(n)
 	case *ast.BreakExpressionNode:
 		return c.checkBreakExpressionNode(n)
+	case *ast.ContinueExpressionNode:
+		return c.checkContinueExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -640,6 +642,27 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
+func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) ast.ExpressionNode {
+	var typ types.Type
+	if node.Value == nil {
+		typ = types.Nil{}
+	} else {
+		node.Value = c.checkExpression(node.Value)
+		typ = c.typeOfGuardVoid(node.Value)
+	}
+
+	loop := c.findLoop(node.Label, node.Span())
+	if loop != nil && !loop.endless {
+		if loop.returnType == nil {
+			loop.returnType = typ
+		} else {
+			loop.returnType = c.newNormalisedUnion(loop.returnType, typ)
+		}
+	}
+
+	return node
+}
+
 func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.ExpressionNode {
 	var typ types.Type
 	if node.Value == nil {
@@ -753,7 +776,7 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 }
 
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {
-	loop := c.registerLoop(label)
+	loop := c.registerLoop(label, true)
 	c.pushNestedLocalEnv()
 	c.checkStatements(node.ThenBody)
 	c.popLocalEnv()
