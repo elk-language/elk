@@ -15,6 +15,12 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		return c.newNormalisedIntersection(t.Elements...)
 	case *types.Nilable:
 		t.Type = c.normaliseType(t.Type)
+		switch t.Type.(type) {
+		case types.Never:
+			return types.Nil{}
+		case types.Any, types.Nothing:
+			return t.Type
+		}
 		if c.isNilable(t.Type) {
 			return t.Type
 		}

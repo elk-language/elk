@@ -330,81 +330,6 @@ func TestNumericForExpression(t *testing.T) {
 	}
 }
 
-func TestWhileExpression(t *testing.T) {
-	tests := testTable{
-		"cannot use void in the condition": {
-			input: `
-				def foo; end
-				while foo()
-				end
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 11), P(32, 3, 15)), "cannot use type `void` as a value in this context"),
-			},
-		},
-		"has access to outer variables": {
-			input: `
-				var a: Int? = 5
-				while a
-					var b: Int? = a
-				end
-			`,
-		},
-		"returns never if condition is truthy": {
-			input: `
-				a := 2
-				b := while true
-					"foo" + "bar"
-					a + 2
-				end
-				b = 3
-			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(78, 7, 9), P(78, 7, 9)), "type `3` cannot be assigned to type `never`"),
-			},
-		},
-		"returns nil expression if condition is falsy": {
-			input: `
-				a := 2
-				var b: nil = while false
-					"foo" + "bar"
-					a + 2
-				end
-			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
-			},
-		},
-		"returns a nilable body type if the condition is neither truthy nor falsy": {
-			input: `
-				var a: Int? = 2
-				var b: 8 = while a
-					"foo" + "bar"
-				end
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(69, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
-			},
-		},
-
-		"narrow Bool variable type by using truthiness": {
-			input: `
-				var a = false
-				while a
-					var b: true = a
-				end
-			`,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
-		})
-	}
-}
-
 func TestLoopExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
@@ -527,6 +452,241 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(101, 8, 9), P(101, 8, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestWhileExpression(t *testing.T) {
+	tests := testTable{
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				while foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 11), P(32, 3, 15)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				while a
+					var b: Int? = a
+				end
+			`,
+		},
+		"returns never if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					"foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(78, 7, 9), P(78, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil if condition is falsy": {
+			input: `
+				a := 2
+				var b: nil = while false
+					"foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+			},
+		},
+		"returns a nilable body type if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(69, 5, 7)), "type `Std::String?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"narrow Bool variable type by using truthiness": {
+			input: `
+				var a = false
+				while a
+					var b: true = a
+				end
+			`,
+		},
+
+		"returns nil with a naked break if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					break
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(70, 7, 9), P(70, 7, 9)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"returns the value given to break if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					break "foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(84, 7, 9), P(84, 7, 9)), "type `3` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"returns nil with a break if condition is falsy": {
+			input: `
+				a := 2
+				var b: nil = while false
+					break "foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+			},
+		},
+		"returns a nilable body type with naked break if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					break
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(80, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+			},
+		},
+		"returns a union of body type, nil and the value given to break if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					break 2.5
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+		"break from a nested labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = $foo: while a
+					var b: Int? = 9
+					while b
+						break$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+
+		"returns never with a naked continue if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					continue
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(73, 7, 9), P(73, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns never with continue if condition is truthy": {
+			input: `
+				a := 2
+				b := while true
+					continue "foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewFailure(L("<main>", P(87, 7, 9), P(87, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil with a continue if condition is falsy": {
+			input: `
+				a := 2
+				var b: nil = while false
+					continue "foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+			},
+		},
+		"returns a nilable body type with naked continue if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					continue
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(83, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+			},
+		},
+		"returns a union of body type, nil and the value given to continue if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = while a
+					continue 2.5
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(87, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+		"continue a parent labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = $foo: while a
+					var b: Int? = 9
+					while b
+						continue$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 	}

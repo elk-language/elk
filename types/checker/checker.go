@@ -463,7 +463,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.UnlessExpressionNode:
 		return c.checkUnlessExpressionNode(n)
 	case *ast.WhileExpressionNode:
-		return c.checkWhileExpressionNode(n)
+		return c.checkWhileExpressionNode("", n)
 	case *ast.UntilExpressionNode:
 		return c.checkUntilExpressionNode(n)
 	case *ast.LoopExpressionNode:
@@ -707,8 +707,8 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 	switch expr := node.Expression.(type) {
 	case *ast.LoopExpressionNode:
 		node.Expression = c.checkLoopExpressionNode(node.Label, expr)
-		// case *ast.WhileExpressionNode:
-		// 	c.whileExpression(node.Label, expr)
+	case *ast.WhileExpressionNode:
+		node.Expression = c.checkWhileExpressionNode(node.Label, expr)
 		// case *ast.UntilExpressionNode:
 		// 	c.untilExpression(node.Label, expr)
 		// case *ast.LoopExpressionNode:
@@ -829,18 +829,14 @@ func (c *Checker) checkUntilExpressionNode(node *ast.UntilExpressionNode) ast.Ex
 	return node
 }
 
-func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Condition, assumptionTruthy)
-	thenType, _ := c.checkStatements(node.ThenBody)
-	c.popLocalEnv()
-
-	c.popLocalEnv()
-
+	var typ types.Type
+	var endless bool
+	var noop bool
 	if c.isTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
@@ -849,8 +845,8 @@ func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.Ex
 			),
 			node.Condition.Span(),
 		)
-		node.SetType(types.Never{})
-		return node
+		endless = true
+		typ = types.Never{}
 	}
 	if c.isFalsy(conditionType) {
 		c.addWarning(
@@ -860,11 +856,29 @@ func (c *Checker) checkWhileExpressionNode(node *ast.WhileExpressionNode) ast.Ex
 			),
 			node.Condition.Span(),
 		)
-		node.SetType(types.Nil{})
+		noop = true
+		typ = types.Nil{}
+	}
+	loop := c.registerLoop(label, endless)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionTruthy)
+	thenType, _ := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if noop {
+		node.SetType(typ)
 		return node
 	}
-
-	node.SetType(c.toNilable(thenType))
+	if typ == nil {
+		typ = c.toNilable(thenType)
+	}
+	if loop.returnType != nil {
+		typ = c.newNormalisedUnion(typ, loop.returnType)
+	}
+	node.SetType(typ)
 	return node
 }
 
