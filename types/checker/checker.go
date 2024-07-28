@@ -465,7 +465,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.WhileExpressionNode:
 		return c.checkWhileExpressionNode("", n)
 	case *ast.UntilExpressionNode:
-		return c.checkUntilExpressionNode(n)
+		return c.checkUntilExpressionNode("", n)
 	case *ast.LoopExpressionNode:
 		return c.checkLoopExpressionNode("", n)
 	case *ast.NumericForExpressionNode:
@@ -709,8 +709,8 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		node.Expression = c.checkLoopExpressionNode(node.Label, expr)
 	case *ast.WhileExpressionNode:
 		node.Expression = c.checkWhileExpressionNode(node.Label, expr)
-		// case *ast.UntilExpressionNode:
-		// 	c.untilExpression(node.Label, expr)
+	case *ast.UntilExpressionNode:
+		node.Expression = c.checkUntilExpressionNode(node.Label, expr)
 		// case *ast.LoopExpressionNode:
 		// 	c.loopExpression(node.Label, expr.ThenBody, expr.Span())
 		// case *ast.NumericForExpressionNode:
@@ -790,18 +790,14 @@ func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpression
 	return node
 }
 
-func (c *Checker) checkUntilExpressionNode(node *ast.UntilExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
-	c.narrowCondition(node.Condition, assumptionFalsy)
-	thenType, _ := c.checkStatements(node.ThenBody)
-	c.popLocalEnv()
-
-	c.popLocalEnv()
-
+	var typ types.Type
+	var endless bool
+	var noop bool
 	if c.isTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
@@ -810,8 +806,8 @@ func (c *Checker) checkUntilExpressionNode(node *ast.UntilExpressionNode) ast.Ex
 			),
 			node.Condition.Span(),
 		)
-		node.SetType(types.Nil{})
-		return node
+		noop = true
+		typ = types.Nil{}
 	}
 	if c.isFalsy(conditionType) {
 		c.addWarning(
@@ -821,11 +817,29 @@ func (c *Checker) checkUntilExpressionNode(node *ast.UntilExpressionNode) ast.Ex
 			),
 			node.Condition.Span(),
 		)
-		node.SetType(types.Never{})
+		endless = true
+		typ = types.Never{}
+	}
+	loop := c.registerLoop(label, endless)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionFalsy)
+	thenType, _ := c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if noop {
+		node.SetType(typ)
 		return node
 	}
-
-	node.SetType(c.toNilable(thenType))
+	if typ == nil {
+		typ = c.toNilable(thenType)
+	}
+	if loop.returnType != nil {
+		typ = c.newNormalisedUnion(typ, loop.returnType)
+	}
+	node.SetType(typ)
 	return node
 }
 

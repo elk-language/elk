@@ -764,6 +764,166 @@ func TestUntilExpression(t *testing.T) {
 				end
 			`,
 		},
+
+		"returns nil with a naked break if condition is falsy": {
+			input: `
+				a := 2
+				b := until false
+					break
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewFailure(L("<main>", P(71, 7, 9), P(71, 7, 9)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"returns the value given to break if condition is falsy": {
+			input: `
+				a := 2
+				b := until false
+					break "foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewFailure(L("<main>", P(85, 7, 9), P(85, 7, 9)), "type `3` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"returns nil with a break if condition is truthy": {
+			input: `
+				a := 2
+				var b: nil = until true
+					break "foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+			},
+		},
+		"returns a nilable body type with naked break if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = until a
+					break
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(80, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+			},
+		},
+		"returns a union of body type, nil and the value given to break if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = until a
+					break 2.5
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+		"break from a nested labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = $foo: until a
+					var b: Int? = 9
+					until b
+						break$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+
+		"returns never with a naked continue if condition is falsy": {
+			input: `
+				a := 2
+				b := until false
+					continue
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewFailure(L("<main>", P(74, 7, 9), P(74, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns never with continue if condition is falsy": {
+			input: `
+				a := 2
+				b := until false
+					continue "foo" + "bar"
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewFailure(L("<main>", P(88, 7, 9), P(88, 7, 9)), "type `3` cannot be assigned to type `never`"),
+			},
+		},
+		"returns nil with a continue if condition is truthy": {
+			input: `
+				a := 2
+				var b: nil = until true
+					continue "foo" + "bar"
+					a + 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+			},
+		},
+		"returns a nilable body type with naked continue if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = until a
+					continue
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(83, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+			},
+		},
+		"returns a union of body type, nil and the value given to continue if the condition is neither truthy nor falsy": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = until a
+					continue 2.5
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(87, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
+		"continue a parent labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = $foo: until a
+					var b: Int? = 9
+					until b
+						continue$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
