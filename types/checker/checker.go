@@ -469,7 +469,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.LoopExpressionNode:
 		return c.checkLoopExpressionNode("", n)
 	case *ast.NumericForExpressionNode:
-		return c.checkNumericForExpressionNode(n)
+		return c.checkNumericForExpressionNode("", n)
 	case *ast.LabeledExpressionNode:
 		return c.checkLabeledExpressionNode(n)
 	case *ast.ReturnExpressionNode:
@@ -711,6 +711,8 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		node.Expression = c.checkWhileExpressionNode(node.Label, expr)
 	case *ast.UntilExpressionNode:
 		node.Expression = c.checkUntilExpressionNode(node.Label, expr)
+	case *ast.NumericForExpressionNode:
+		node.Expression = c.checkNumericForExpressionNode(node.Label, expr)
 		// case *ast.LoopExpressionNode:
 		// 	c.loopExpression(node.Label, expr.ThenBody, expr.Span())
 		// case *ast.NumericForExpressionNode:
@@ -727,12 +729,43 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 	return node
 }
 
-func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericForExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Initialiser = c.checkExpression(node.Initialiser)
 
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
+
+	var typ types.Type
+	var endless bool
+	var noop bool
+	if node.Condition == nil {
+		endless = true
+		typ = types.Never{}
+	}
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		endless = true
+		typ = types.Never{}
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this loop will never execute since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		noop = true
+		typ = types.Nil{}
+	}
+	loop := c.registerLoop(label, endless)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
@@ -744,34 +777,17 @@ func (c *Checker) checkNumericForExpressionNode(node *ast.NumericForExpressionNo
 
 	c.popLocalEnv()
 
-	if node.Condition == nil {
-		node.SetType(types.Never{})
+	if noop {
+		node.SetType(typ)
 		return node
 	}
-	if c.isTruthy(conditionType) {
-		c.addWarning(
-			fmt.Sprintf(
-				"this condition will always have the same result since type `%s` is truthy",
-				types.InspectWithColor(conditionType),
-			),
-			node.Condition.Span(),
-		)
-		node.SetType(types.Never{})
-		return node
+	if typ == nil {
+		typ = c.toNilable(thenType)
 	}
-	if c.isFalsy(conditionType) {
-		c.addWarning(
-			fmt.Sprintf(
-				"this loop will never execute since type `%s` is falsy",
-				types.InspectWithColor(conditionType),
-			),
-			node.Condition.Span(),
-		)
-		node.SetType(types.Nil{})
-		return node
+	if loop.returnType != nil {
+		typ = c.newNormalisedUnion(typ, loop.returnType)
 	}
-
-	node.SetType(c.toNilable(thenType))
+	node.SetType(typ)
 	return node
 }
 
