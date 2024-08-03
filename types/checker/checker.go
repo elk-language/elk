@@ -165,12 +165,27 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *position.Span) {
 	var lastType types.Type
 	var lastTypeSpan *position.Span
+	var seenNever bool
+	var unreachableCodeErrorReported bool
 	for _, statement := range stmts {
 		var t types.Type
 		t, span := c.checkStatement(statement)
-		if t != nil {
-			lastTypeSpan = span
-			lastType = t
+		if t == nil {
+			continue
+		}
+
+		if seenNever {
+			if !unreachableCodeErrorReported {
+				unreachableCodeErrorReported = true
+				c.addUnreachableCodeError(span)
+			}
+			continue
+		}
+		lastTypeSpan = span
+		lastType = t
+
+		if types.IsNever(t) {
+			seenNever = true
 		}
 	}
 
@@ -2147,6 +2162,13 @@ func (c *Checker) addFailure(message string, span *position.Span) {
 	c.Errors.AddFailure(
 		message,
 		c.newLocation(span),
+	)
+}
+
+func (c *Checker) addUnreachableCodeError(span *position.Span) {
+	c.addWarning(
+		"unreachable code",
+		span,
 	)
 }
 

@@ -17,6 +17,7 @@ func TestBreakExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(35, 4, 10), P(35, 4, 10)), "type `4` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(31, 4, 6), P(35, 4, 10)), "unreachable code"),
 			},
 		},
 		"outside of a loop": {
@@ -50,6 +51,7 @@ func TestBreakExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(35, 4, 6), P(43, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+				error.NewWarning(L("<main>", P(25, 3, 5), P(51, 5, 7)), "unreachable code"),
 			},
 		},
 		"with a valid label": {
@@ -81,6 +83,7 @@ func TestContinueExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(38, 4, 10), P(38, 4, 10)), "type `4` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(34, 4, 6), P(38, 4, 10)), "unreachable code"),
 			},
 		},
 		"outside of a loop": {
@@ -114,6 +117,7 @@ func TestContinueExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(35, 4, 6), P(46, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+				error.NewWarning(L("<main>", P(25, 3, 5), P(54, 5, 7)), "unreachable code"),
 			},
 		},
 		"with a valid label": {
@@ -143,6 +147,7 @@ func TestReturnExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(25, 3, 9), P(25, 3, 9)), "type `4` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(21, 3, 5), P(25, 3, 9)), "unreachable code"),
 			},
 		},
 		"warn about values returned in the top level": {
@@ -264,6 +269,7 @@ func TestNumericForExpression(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
 				error.NewFailure(L("<main>", P(81, 7, 9), P(81, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(77, 7, 5), P(81, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns never when there is no condition": {
@@ -277,6 +283,7 @@ func TestNumericForExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(77, 7, 9), P(77, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(73, 7, 5), P(77, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil if condition is falsy": {
@@ -326,35 +333,44 @@ func TestNumericForExpression(t *testing.T) {
 			input: `
 				a := 2
 				b := fornum ;true;
-					break
+					c := false
+					if c
+						break
+					end
 					a + 2
 				end
 				b = 3
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(73, 7, 9), P(73, 7, 9)), "type `3` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(109, 10, 9), P(109, 10, 9)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"returns the value given to break if condition is truthy": {
 			input: `
 				a := 2
 				b := fornum ;true;
-					break "foo" + "bar"
+					c := false
+					if c
+						break "foo" + "bar"
+					end
 					a + 2
 				end
 				b = 3
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(87, 7, 9), P(87, 7, 9)), "type `3` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(123, 10, 9), P(123, 10, 9)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"returns nil with a break if condition is falsy": {
 			input: `
 				a := 2
 				var b: nil = fornum ;false;
-					break "foo" + "bar"
+					c := false
+					if c
+						break "foo" + "bar"
+					end
 					a + 2
 				end
 			`,
@@ -366,24 +382,30 @@ func TestNumericForExpression(t *testing.T) {
 			input: `
 				var a: Int? = 2
 				var b: 8 = fornum ;a;
-					break
+					c := false
+					if c
+						break
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(83, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(119, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to break if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = fornum ;a;
-					break 2.5
+					c := false
+					if c
+						break 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(87, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(123, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"break from a nested labeled loop": {
@@ -398,7 +420,8 @@ func TestNumericForExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(145, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewWarning(L("<main>", P(116, 7, 7), P(128, 7, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(145, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -406,14 +429,18 @@ func TestNumericForExpression(t *testing.T) {
 			input: `
 				a := 2
 				b := fornum ;true;
-					continue
+					c := false
+					if c
+						continue
+					end
 					a + 2
 				end
 				b = 3
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(76, 7, 9), P(76, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(112, 10, 9), P(112, 10, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(108, 10, 5), P(112, 10, 9)), "unreachable code"),
 			},
 		},
 		"returns never with continue if condition is truthy": {
@@ -427,14 +454,19 @@ func TestNumericForExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(29, 3, 18), P(32, 3, 21)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(68, 5, 6), P(72, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(90, 7, 9), P(90, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(86, 7, 5), P(90, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil with a continue if condition is falsy": {
 			input: `
 				a := 2
 				var b: nil = fornum ;false;
-					continue "foo" + "bar"
+					c := false
+					if c
+						continue "foo" + "bar"
+					end
 					a + 2
 				end
 			`,
@@ -446,24 +478,30 @@ func TestNumericForExpression(t *testing.T) {
 			input: `
 				var a: Int? = 2
 				var b: 8 = fornum ;a;
-					continue
+					var c: Int? = 1
+					if c
+						continue
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(86, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(127, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to continue if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = fornum ;a;
-					continue 2.5
+					c := false
+					if c
+						continue 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(90, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(126, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"continue a parent labeled loop": {
@@ -478,7 +516,8 @@ func TestNumericForExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(148, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewWarning(L("<main>", P(119, 7, 7), P(131, 7, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(148, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -511,6 +550,7 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(72, 7, 9), P(72, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(68, 7, 5), P(72, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil when a naked break is present": {
@@ -584,6 +624,7 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(85, 8, 9), P(85, 8, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(81, 8, 5), P(85, 8, 9)), "unreachable code"),
 			},
 		},
 		"does not return the value given to continue": {
@@ -598,6 +639,7 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(91, 8, 9), P(91, 8, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(87, 8, 5), P(91, 8, 9)), "unreachable code"),
 			},
 		},
 		"continue in nested labeled loop": {
@@ -612,6 +654,7 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(101, 8, 9), P(101, 8, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(97, 8, 5), P(101, 8, 9)), "unreachable code"),
 			},
 		},
 	}
@@ -655,6 +698,7 @@ func TestWhileExpression(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
 				error.NewFailure(L("<main>", P(78, 7, 9), P(78, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(74, 7, 5), P(78, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil if condition is falsy": {
@@ -694,35 +738,44 @@ func TestWhileExpression(t *testing.T) {
 			input: `
 				a := 2
 				b := while true
-					break
+					c := false
+					if c
+						break
+					end
 					a + 2
 				end
 				b = 3
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(70, 7, 9), P(70, 7, 9)), "type `3` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(106, 10, 9), P(106, 10, 9)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"returns the value given to break if condition is truthy": {
 			input: `
 				a := 2
 				b := while true
-					break "foo" + "bar"
+					c := false
+					if c
+						break "foo" + "bar"
+					end
 					a + 2
 				end
 				b = 3
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewFailure(L("<main>", P(84, 7, 9), P(84, 7, 9)), "type `3` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(120, 10, 9), P(120, 10, 9)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"returns nil with a break if condition is falsy": {
 			input: `
 				a := 2
 				var b: nil = while false
-					break "foo" + "bar"
+					c := false
+					if c
+						break "foo" + "bar"
+					end
 					a + 2
 				end
 			`,
@@ -734,24 +787,30 @@ func TestWhileExpression(t *testing.T) {
 			input: `
 				var a: Int? = 2
 				var b: 8 = while a
-					break
+					c := false
+					if c
+						break
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(80, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(116, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to break if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = while a
-					break 2.5
+					c := false
+					if c
+						break 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(120, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"break from a nested labeled loop": {
@@ -766,7 +825,8 @@ func TestWhileExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewWarning(L("<main>", P(110, 7, 7), P(122, 7, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -781,7 +841,9 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(51, 5, 6), P(55, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(73, 7, 9), P(73, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(69, 7, 5), P(73, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns never with continue if condition is truthy": {
@@ -795,7 +857,9 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(30, 3, 19)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(65, 5, 6), P(69, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(87, 7, 9), P(87, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(83, 7, 5), P(87, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil with a continue if condition is falsy": {
@@ -808,30 +872,37 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(74, 5, 6), P(78, 5, 10)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked continue if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = while a
-					continue
+					c := false
+					if c
+						continue
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(83, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(119, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to continue if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = while a
-					continue 2.5
+					c := false
+					if c
+						continue 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(87, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(123, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"continue a parent labeled loop": {
@@ -846,7 +917,8 @@ func TestWhileExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewWarning(L("<main>", P(113, 7, 7), P(125, 7, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -890,6 +962,7 @@ func TestUntilExpression(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
 				error.NewFailure(L("<main>", P(79, 7, 9), P(79, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(75, 7, 5), P(79, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil if condition is truthy": {
@@ -936,6 +1009,7 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(49, 5, 6), P(53, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(71, 7, 9), P(71, 7, 9)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
@@ -950,6 +1024,7 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(63, 5, 6), P(67, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(85, 7, 9), P(85, 7, 9)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
@@ -963,30 +1038,37 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(70, 5, 6), P(74, 5, 10)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked break if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = until a
-					break
+					var c: Int? = 3
+					if c
+						break
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(80, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(121, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to break if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = until a
-					break 2.5
+					var c: Int? = 3
+					if c
+						break 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(84, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(125, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"break from a nested labeled loop": {
@@ -995,13 +1077,16 @@ func TestUntilExpression(t *testing.T) {
 				var b: 8 = $foo: until a
 					var b: Int? = 9
 					until b
-						break$foo 2.5
+						var c: Int? = 3
+						if c
+							break$foo 2.5
+						end
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(183, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1016,7 +1101,9 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(52, 5, 6), P(56, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(74, 7, 9), P(74, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(70, 7, 5), P(74, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns never with continue if condition is falsy": {
@@ -1030,7 +1117,9 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 3, 16), P(31, 3, 20)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(66, 5, 6), P(70, 5, 10)), "unreachable code"),
 				error.NewFailure(L("<main>", P(88, 7, 9), P(88, 7, 9)), "type `3` cannot be assigned to type `never`"),
+				error.NewWarning(L("<main>", P(84, 7, 5), P(88, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns nil with a continue if condition is truthy": {
@@ -1043,30 +1132,37 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(73, 5, 6), P(77, 5, 10)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked continue if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = until a
-					continue
+					var c: Int? = 3
+					if c
+						continue
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(83, 6, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(124, 9, 7)), "type `nil | Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"returns a union of body type, nil and the value given to continue if the condition is neither truthy nor falsy": {
 			input: `
 				var a: Int? = 2
 				var b: 8 = until a
-					continue 2.5
+					var c: Int? = 3
+					if c
+						continue 2.5
+					end
 					"foo" + "bar"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(87, 6, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(128, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"continue a parent labeled loop": {
@@ -1075,13 +1171,16 @@ func TestUntilExpression(t *testing.T) {
 				var b: 8 = $foo: until a
 					var b: Int? = 9
 					until b
-						continue$foo 2.5
+						var c: Int? = 3
+						if c
+							continue$foo 2.5
+						end
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(186, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 	}
