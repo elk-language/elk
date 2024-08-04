@@ -1226,6 +1226,7 @@ func TestUnlessExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(38, 3, 27), P(41, 3, 30)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(48, 4, 6), P(61, 4, 19)), "unreachable code"),
 			},
 		},
 		"returns the last then expression if condition is falsy": {
@@ -1240,6 +1241,7 @@ func TestUnlessExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(36, 3, 25), P(40, 3, 29)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(86, 7, 6), P(89, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns a union of both branches if the condition is neither truthy nor falsy": {
@@ -1309,6 +1311,7 @@ func TestIfExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(32, 3, 21), P(35, 3, 24)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(81, 7, 6), P(84, 7, 9)), "unreachable code"),
 			},
 		},
 		"returns the last else expression if condition is truthy": {
@@ -1323,6 +1326,7 @@ func TestIfExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(34, 3, 23), P(38, 3, 27)), "this condition will always have the same result since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(45, 4, 6), P(58, 4, 19)), "unreachable code"),
 			},
 		},
 		"returns a union of both branches if the condition is neither truthy nor falsy": {
@@ -1477,6 +1481,7 @@ func TestIfExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(46, 4, 10), P(49, 4, 13)), "type `:foo` cannot be assigned to type `never`"),
 				error.NewFailure(L("<main>", P(69, 6, 10), P(72, 6, 13)), "type `:bar` cannot be assigned to type `Std::Int?`"),
 				error.NewWarning(L("<main>", P(28, 3, 8), P(35, 3, 15)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(42, 4, 6), P(50, 4, 14)), "unreachable code"),
 			},
 		},
 		"narrow a few variables with ||": {
@@ -1503,6 +1508,7 @@ func TestIfExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(46, 4, 10), P(49, 4, 13)), "type `:foo` cannot be assigned to type `Std::Int?`"),
 				error.NewFailure(L("<main>", P(69, 6, 10), P(72, 6, 13)), "type `:bar` cannot be assigned to type `never`"),
 				error.NewWarning(L("<main>", P(30, 3, 8), P(35, 3, 13)), "this condition will always have the same result since type `Std::Int` is truthy"),
+				error.NewWarning(L("<main>", P(65, 6, 6), P(73, 6, 14)), "unreachable code"),
 			},
 		},
 
@@ -1622,6 +1628,7 @@ func TestLogicalAnd(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(53, 4, 23), P(53, 4, 23)), "unreachable code"),
 			},
 		},
 		"returns a union of both types with only nil when the left can be both truthy and falsy": {
@@ -1696,6 +1703,7 @@ func TestLogicalOr(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` is truthy"),
+				error.NewWarning(L("<main>", P(58, 4, 26), P(58, 4, 26)), "unreachable code"),
 			},
 		},
 		"returns the right type when the left type is falsy": {
@@ -1756,6 +1764,7 @@ func TestLogicalOr(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(70, 4, 26), P(70, 4, 26)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(75, 4, 31), P(75, 4, 31)), "unreachable code"),
 				error.NewFailure(L("<main>", P(70, 4, 26), P(75, 4, 31)), "type `nil` cannot be assigned to type `9`"),
 			},
 		},
@@ -1787,6 +1796,7 @@ func TestNilCoalescing(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				error.NewWarning(L("<main>", P(58, 4, 26), P(58, 4, 26)), "unreachable code"),
 			},
 		},
 		"returns the right type when the left type is nil": {
@@ -1837,6 +1847,7 @@ func TestNilCoalescing(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(70, 4, 26), P(70, 4, 26)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(75, 4, 31), P(75, 4, 31)), "unreachable code"),
 				error.NewFailure(L("<main>", P(70, 4, 26), P(75, 4, 31)), "type `nil` cannot be assigned to type `9`"),
 			},
 		},

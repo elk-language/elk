@@ -47,6 +47,7 @@ func TestVariableAssignment(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
 				error.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` can never be nil"),
+				error.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
 			},
 		},
 		"??= initialised variable with a non-matching type": {
@@ -79,6 +80,7 @@ func TestVariableAssignment(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
 				error.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` is truthy"),
+				error.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
 			},
 		},
 		"||= initialised variable with a non-matching and non-falsy type": {
@@ -111,6 +113,7 @@ func TestVariableAssignment(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "cannot access uninitialised local `foo`"),
 				error.NewWarning(L("<main>", P(30, 3, 5), P(32, 3, 7)), "this condition will always have the same result since type `Std::Nil | Std::False` is falsy"),
+				error.NewWarning(L("<main>", P(38, 3, 13), P(40, 3, 15)), "unreachable code"),
 			},
 		},
 		"&&= initialised variable with a non-matching type": {

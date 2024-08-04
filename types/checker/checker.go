@@ -952,6 +952,9 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ThenBody) > 0 {
+			c.addUnreachableCodeError(node.ThenBody[0].Span())
+		}
 		node.SetType(elseType)
 		return node
 	}
@@ -963,6 +966,9 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ElseBody) > 0 {
+			c.addUnreachableCodeError(node.ElseBody[0].Span())
+		}
 		node.SetType(thenType)
 		return node
 	}
@@ -996,6 +1002,9 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ElseBody) > 0 {
+			c.addUnreachableCodeError(node.ElseBody[0].Span())
+		}
 		node.SetType(thenType)
 		return node
 	}
@@ -1007,6 +1016,9 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ThenBody) > 0 {
+			c.addUnreachableCodeError(node.ThenBody[0].Span())
+		}
 		node.SetType(elseType)
 		return node
 	}
@@ -1126,6 +1138,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 			),
 			node.Left.Span(),
 		)
+		c.addUnreachableCodeError(node.Right.Span())
 		node.SetType(leftType)
 		return node
 	}
@@ -1153,6 +1166,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 			),
 			node.Left.Span(),
 		)
+		c.addUnreachableCodeError(node.Right.Span())
 		node.SetType(leftType)
 		return node
 	}
@@ -1203,6 +1217,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 			),
 			node.Left.Span(),
 		)
+		c.addUnreachableCodeError(node.Right.Span())
 		node.SetType(leftType)
 		return node
 	}

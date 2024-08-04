@@ -16,6 +16,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				error.NewWarning(L("<main>", P(58, 4, 26), P(58, 4, 26)), "unreachable code"),
 			},
 		},
 		"returns the right type when the left type is nilable": {
