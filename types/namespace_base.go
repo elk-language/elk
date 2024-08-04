@@ -70,6 +70,10 @@ func (c *NamespaceBase) Name() string {
 	return c.name
 }
 
+func (c *NamespaceBase) SetName(name string) {
+	c.name = name
+}
+
 func (c *NamespaceBase) Methods() *MethodMap {
 	return c.methods
 }
@@ -244,7 +248,7 @@ func (c *NamespaceBase) TryDefineInterface(docComment string, name value.Symbol,
 
 // Define a new interface.
 func (c *NamespaceBase) DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
-	m := NewInterface(docComment, MakeFullConstantName(c.Name(), name.String()), env)
+	m := NewInterface(docComment, MakeFullConstantName(c.Name(), name.String()), false, env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m

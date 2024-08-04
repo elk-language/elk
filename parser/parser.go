@@ -29,6 +29,7 @@ const (
 	panicMode                        // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
 	withoutBitwiseOrMode             // disables bitwise OR `|` from the grammar
 	incompleteMode                   // the input is incomplete, parser expected more tokens but received an END_OF_FILE.
+	withoutUnionTypeMode             // disables union type `|` from the grammar
 )
 
 // Holds the current state of the parsing process.
@@ -3685,6 +3686,9 @@ func (p *Parser) typeAnnotationWithoutVoid() ast.TypeNode {
 
 // unionType = intersectionType | unionType "|" intersectionType
 func (p *Parser) unionType() ast.TypeNode {
+	if p.mode == withoutUnionTypeMode {
+		return p.intersectionType()
+	}
 	return p.binaryTypeExpression(p.intersectionType, token.OR)
 }
 
@@ -3728,6 +3732,9 @@ func (p *Parser) nilableType() ast.TypeNode {
 // primaryType = namedType | "(" typeAnnotation ")"
 func (p *Parser) primaryType() ast.TypeNode {
 	if p.match(token.LPAREN) {
+		if p.mode == withoutUnionTypeMode {
+			p.mode = normalMode
+		}
 		t := p.typeAnnotation()
 		p.consume(token.RPAREN)
 		return t
@@ -3785,9 +3792,63 @@ func (p *Parser) primaryType() ast.TypeNode {
 	case token.ANY:
 		tok := p.advance()
 		return ast.NewAnyTypeNode(tok.Span())
+	case token.OR, token.OR_OR:
+		return p.closureType()
 	default:
 		return p.namedType()
 	}
+}
+
+// closureType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
+func (p *Parser) closureType() ast.TypeNode {
+	var params []ast.ParameterNode
+	var span *position.Span
+	var returnType ast.TypeNode
+	var throwType ast.TypeNode
+
+	if p.accept(token.OR) {
+		span = p.advance().Span()
+		if !p.accept(token.OR) {
+			p.mode = withoutUnionTypeMode
+			params = p.signatureParameterList(token.OR)
+			p.mode = normalMode
+			span = position.JoinSpanOfLastElement(span, params)
+		}
+		if tok, ok := p.consume(token.OR); !ok {
+			return ast.NewInvalidNode(
+				tok.Span(),
+				tok,
+			)
+		}
+	} else {
+		orOr, ok := p.consume(token.OR_OR)
+		span = orOr.Span()
+		if !ok {
+			return ast.NewInvalidNode(
+				orOr.Span(),
+				orOr,
+			)
+		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+		span = span.Join(returnType.Span())
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+		span = span.Join(throwType.Span())
+	}
+
+	return ast.NewClosureTypeNode(
+		span,
+		params,
+		returnType,
+		throwType,
+	)
 }
 
 // namedType = singletonType
@@ -5645,7 +5706,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 	)
 }
 
-// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] functionAfterArrow
+// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstSpan *position.Span
@@ -5689,7 +5750,7 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
 }
 
-// identifierOrFunction = identifier | identifier functionAfterArrow
+// identifierOrFunction = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()

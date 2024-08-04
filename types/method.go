@@ -233,7 +233,12 @@ func (m *Method) PositionalRestParam() *Parameter {
 
 func (m *Method) inspect() string {
 	switch scope := m.DefinedUnder.(type) {
-	case *Class, *Mixin, *Interface:
+	case *Class, *Mixin:
+		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
+	case *Interface:
+		if scope.closure {
+			return m.Name.String()
+		}
 		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
 	case *Module:
 		return fmt.Sprintf("%s::%s", scope.Name(), m.Name)
@@ -282,6 +287,49 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 	}
 	buffer.WriteString(": ")
 	buffer.WriteString(Inspect(returnType))
+
+	throwType := m.ThrowType
+	if throwType != nil {
+		buffer.WriteString(" ! ")
+		buffer.WriteString(Inspect(throwType))
+	}
+
+	return buffer.String()
+}
+
+func (m *Method) InspectClosure() string {
+	buffer := new(strings.Builder)
+	buffer.WriteRune('|')
+	firstIteration := true
+	for _, param := range m.Params {
+		if !firstIteration {
+			buffer.WriteString(", ")
+		}
+		if param.IsPositionalRest() {
+			buffer.WriteRune('*')
+		} else if param.IsNamedRest() {
+			buffer.WriteString("**")
+		}
+		buffer.WriteString(param.Name.String())
+		if param.HasDefaultValue() {
+			buffer.WriteRune('?')
+		}
+		buffer.WriteString(": ")
+		buffer.WriteString(Inspect(param.Type))
+	}
+	buffer.WriteRune('|')
+	returnType := m.ReturnType
+	if returnType == nil {
+		returnType = Void{}
+	}
+	buffer.WriteString(": ")
+	buffer.WriteString(Inspect(returnType))
+
+	throwType := m.ThrowType
+	if throwType != nil {
+		buffer.WriteString(" ! ")
+		buffer.WriteString(Inspect(throwType))
+	}
 
 	return buffer.String()
 }

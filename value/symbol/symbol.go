@@ -48,6 +48,7 @@ var (
 
 var (
 	M_init = value.ToSymbol("#init")
+	M_call = value.ToSymbol("call")
 )
 
 var (

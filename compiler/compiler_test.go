@@ -18,7 +18,7 @@ var singletonClassSymbol value.Symbol = value.ToSymbol("<singleton_class>")
 var moduleSymbol value.Symbol = value.ToSymbol("<module>")
 var mixinSymbol value.Symbol = value.ToSymbol("<mixin>")
 var mainSymbol value.Symbol = value.ToSymbol("<main>")
-var functionSymbol value.Symbol = value.ToSymbol("<function>")
+var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 
 // Represents a single compiler test case.
 type testCase struct {

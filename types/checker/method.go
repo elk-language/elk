@@ -57,6 +57,7 @@ func (c *Checker) checkMethods() {
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
 	method := c.declareMethod(
+		c.currentMethodScope().container,
 		docComment,
 		false,
 		false,
@@ -106,6 +107,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docComment string) {
 	setterName := node.Name + "="
 
+	methodScope := c.currentMethodScope()
 	params := []ast.ParameterNode{
 		ast.NewMethodParameterNode(
 			node.TypeNode.Span(),
@@ -117,6 +119,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		),
 	}
 	method := c.declareMethod(
+		methodScope.container,
 		docComment,
 		false,
 		false,
@@ -311,6 +314,7 @@ func (c *Checker) checkMethodOverride(
 }
 
 func (c *Checker) checkMethod(
+	methodNamespace types.Namespace,
 	checkedMethod *types.Method,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
@@ -318,7 +322,6 @@ func (c *Checker) checkMethod(
 	body []ast.StatementNode,
 	span *position.Span,
 ) (ast.TypeNode, ast.TypeNode) {
-	methodNamespace := c.currentMethodScope().container
 	name := checkedMethod.Name
 
 	currentMethod := types.GetMethodInNamespace(methodNamespace, name)
@@ -346,22 +349,42 @@ func (c *Checker) checkMethod(
 	defer c.popLocalEnv()
 
 	for _, param := range paramNodes {
-		p, _ := param.(*ast.MethodParameterNode)
-		var declaredType types.Type
-		var declaredTypeNode ast.TypeNode
-		if p.TypeNode != nil {
-			declaredTypeNode = p.TypeNode
-			declaredType = c.typeOf(declaredTypeNode)
+		switch p := param.(type) {
+		case *ast.MethodParameterNode:
+			var declaredType types.Type
+			var declaredTypeNode ast.TypeNode
+			if p.TypeNode != nil {
+				declaredTypeNode = p.TypeNode
+				declaredType = c.typeOf(declaredTypeNode)
+			}
+			var initNode ast.ExpressionNode
+			if p.Initialiser != nil {
+				initNode = c.checkExpression(p.Initialiser)
+				initType := c.typeOf(initNode)
+				c.checkCanAssign(initType, declaredType, initNode.Span())
+			}
+			c.addLocal(p.Name, newLocal(declaredType, true, false))
+			p.Initialiser = initNode
+			p.TypeNode = declaredTypeNode
+		case *ast.FormalParameterNode:
+			var declaredType types.Type
+			var declaredTypeNode ast.TypeNode
+			if p.TypeNode != nil {
+				declaredTypeNode = p.TypeNode
+				declaredType = c.typeOf(declaredTypeNode)
+			}
+			var initNode ast.ExpressionNode
+			if p.Initialiser != nil {
+				initNode = c.checkExpression(p.Initialiser)
+				initType := c.typeOf(initNode)
+				c.checkCanAssign(initType, declaredType, initNode.Span())
+			}
+			c.addLocal(p.Name, newLocal(declaredType, true, false))
+			p.Initialiser = initNode
+			p.TypeNode = declaredTypeNode
+		default:
+			panic(fmt.Sprintf("invalid parameter type: %T", param))
 		}
-		var initNode ast.ExpressionNode
-		if p.Initialiser != nil {
-			initNode = c.checkExpression(p.Initialiser)
-			initType := c.typeOf(initNode)
-			c.checkCanAssign(initType, declaredType, initNode.Span())
-		}
-		c.addLocal(p.Name, newLocal(declaredType, true, false))
-		p.Initialiser = initNode
-		p.TypeNode = declaredTypeNode
 	}
 
 	var returnType types.Type
@@ -751,6 +774,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	returnType, throwType := c.checkMethod(
+		c.currentMethodScope().container,
 		c.typeOf(node).(*types.Method),
 		node.Parameters,
 		node.ReturnType,
@@ -763,6 +787,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 }
 
 func (c *Checker) declareMethod(
+	methodNamespace types.Namespace,
 	docComment string,
 	abstract bool,
 	sealed bool,
@@ -775,8 +800,6 @@ func (c *Checker) declareMethod(
 	if c.mode == interfaceMode {
 		abstract = true
 	}
-	methodScope := c.currentMethodScope()
-	methodNamespace := methodScope.container
 	oldMethod := methodNamespace.Method(name)
 	if oldMethod != nil {
 		if oldMethod.IsNative() && oldMethod.IsSealed() {
@@ -833,6 +856,38 @@ func (c *Checker) declareMethod(
 	var params []*types.Parameter
 	for _, param := range paramNodes {
 		switch p := param.(type) {
+		case *ast.FormalParameterNode:
+			var declaredType types.Type
+			var declaredTypeNode ast.TypeNode
+			if p.TypeNode == nil {
+				c.addFailure(
+					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					param.Span(),
+				)
+			} else {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			}
+
+			var kind types.ParameterKind
+			switch p.Kind {
+			case ast.NormalParameterKind:
+				kind = types.NormalParameterKind
+			case ast.PositionalRestParameterKind:
+				kind = types.PositionalRestParameterKind
+			case ast.NamedRestParameterKind:
+				kind = types.NamedRestParameterKind
+			}
+			if p.Initialiser != nil {
+				kind = types.DefaultValueParameterKind
+			}
+			name := value.ToSymbol(p.Name)
+			params = append(params, types.NewParameter(
+				name,
+				declaredType,
+				kind,
+				false,
+			))
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
@@ -952,11 +1007,11 @@ func (c *Checker) declareMethod(
 		params,
 		returnType,
 		throwType,
-		methodScope.container,
+		methodNamespace,
 	)
 	newMethod.SetSpan(span)
 
-	methodScope.container.SetMethod(name, newMethod)
+	methodNamespace.SetMethod(name, newMethod)
 
 	return newMethod
 }

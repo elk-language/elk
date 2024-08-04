@@ -8,6 +8,72 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestClosureType(t *testing.T) {
+	tests := testTable{
+		"void closure without arguments": {
+			input: "type ||",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewClosureTypeNode(
+								S(P(5, 1, 6), P(6, 1, 7)),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"closure with arguments, return type and throw type": {
+			input: "type |a: String, b?: Int|: Int ! :dupa",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 1, 38)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(37, 1, 38)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(37, 1, 38)),
+							ast.NewClosureTypeNode(
+								S(P(5, 1, 6), P(37, 1, 38)),
+								[]ast.ParameterNode{
+									ast.NewSignatureParameterNode(
+										S(P(6, 1, 7), P(14, 1, 15)),
+										"a",
+										ast.NewPublicConstantNode(S(P(9, 1, 10), P(14, 1, 15)), "String"),
+										false,
+										ast.NormalParameterKind,
+									),
+									ast.NewSignatureParameterNode(
+										S(P(17, 1, 18), P(23, 1, 24)),
+										"b",
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Int"),
+										true,
+										ast.NormalParameterKind,
+									),
+								},
+								ast.NewPublicConstantNode(S(P(27, 1, 28), P(29, 1, 30)), "Int"),
+								ast.NewSimpleSymbolLiteralNode(S(P(33, 1, 34), P(37, 1, 38)), "dupa"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestConstantType(t *testing.T) {
 	tests := testTable{
 		"type can be a public constant": {

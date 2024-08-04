@@ -454,6 +454,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.CallNode:
 		c.checkCallNode(n)
 		return n
+	case *ast.ClosureLiteralNode:
+		return c.checkClosureLiteralNode(n)
 	case *ast.ConstructorCallNode:
 		c.checkConstructorCallNode(n)
 		return n
@@ -2042,6 +2044,33 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 		node.Span(),
 	)
 	node.SetType(typ)
+}
+
+func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
+	iface := types.NewInterface("", "", true, c.GlobalEnv)
+	method := c.declareMethod(
+		iface,
+		"",
+		false,
+		true,
+		symbol.M_call,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Span(),
+	)
+	c.checkMethod(
+		iface,
+		method,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Body,
+		node.Span(),
+	)
+	iface.SetName(method.InspectClosure())
+	node.SetType(iface)
+	return node
 }
 
 func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.ExpressionNode {
@@ -3715,6 +3744,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		)
 	}
 	method := c.declareMethod(
+		c.currentMethodScope().container,
 		initNode.DocComment(),
 		false,
 		false,
@@ -3755,6 +3785,7 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	method := c.declareMethod(
+		c.currentMethodScope().container,
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,
@@ -3770,6 +3801,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
 	method := c.declareMethod(
+		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
 		false,
@@ -4042,7 +4074,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
@@ -4066,10 +4098,10 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+		return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
 	} else {
 		return namespace.DefineInterface(docComment, constantName, c.GlobalEnv)
 	}

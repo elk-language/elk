@@ -400,6 +400,7 @@ func (*IntersectionTypeNode) typeNode()          {}
 func (*BinaryTypeExpressionNode) typeNode()      {}
 func (*NilableTypeNode) typeNode()               {}
 func (*SingletonTypeNode) typeNode()             {}
+func (*ClosureTypeNode) typeNode()               {}
 func (*NotTypeNode) typeNode()                   {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}
@@ -2956,9 +2957,31 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, i
 	}
 }
 
+// Represents a closure type eg. `|i: Int|: String`
+type ClosureTypeNode struct {
+	NodeBase
+	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
+	ReturnType TypeNode
+	ThrowType  TypeNode
+}
+
+func (*ClosureTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new closure type node eg. `|i: Int|: String`
+func NewClosureTypeNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode) *ClosureTypeNode {
+	return &ClosureTypeNode{
+		NodeBase:   NodeBase{span: span},
+		Parameters: params,
+		ReturnType: retType,
+		ThrowType:  throwType,
+	}
+}
+
 // Represents a closure eg. `|i| -> println(i)`
 type ClosureLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
@@ -2972,11 +2995,11 @@ func (*ClosureLiteralNode) IsStatic() bool {
 // Create a new closure expression node eg. `|i| -> println(i)`
 func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
-		NodeBase:   NodeBase{span: span},
-		Parameters: params,
-		ReturnType: retType,
-		ThrowType:  throwType,
-		Body:       body,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Parameters:    params,
+		ReturnType:    retType,
+		ThrowType:     throwType,
+		Body:          body,
 	}
 }
 

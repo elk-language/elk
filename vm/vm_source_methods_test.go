@@ -578,7 +578,7 @@ func TestVMSource_CallFunction(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"`<function>` wrong number of arguments, given: 2, expected: 1",
+				"`<closure>` wrong number of arguments, given: 2, expected: 1",
 			),
 		},
 	}

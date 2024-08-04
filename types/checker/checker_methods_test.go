@@ -2078,3 +2078,46 @@ func TestMethodInheritance(t *testing.T) {
 		})
 	}
 }
+
+func TestClosureLiteral(t *testing.T) {
+	tests := testTable{
+		"assign a valid closure to a variable": {
+			input: `
+				a := |a: Int|: Int -> a
+			`,
+		},
+		"invalid parameter default value and return value": {
+			input: `
+				a := |a: Int = 2.3|: String -> a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 2, 20), P(22, 2, 22)), "type `2.3` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(36, 2, 36), P(36, 2, 36)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"without param type": {
+			input: `
+				a := |a| -> 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "cannot declare parameter `a` without a type"),
+			},
+		},
+		"assign an invalid value to a closure type": {
+			input: `
+				a := |a: Int|: Int -> a
+				a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `Std::Int` does not implement interface `|a: Std::Int|: Std::Int`:\n\n  - missing method `call` with signature: `def call(a: Std::Int): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `3` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
