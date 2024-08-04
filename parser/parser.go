@@ -2861,12 +2861,13 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// typeVariable = ["+" | "-"] constant ["<" strictConstantLookup]
+// typeVariable = ["+" | "-"] constant [">" TypeNode] ["<" TypeNode]
 func (p *Parser) typeVariable() ast.TypeVariableNode {
 	variance := ast.INVARIANT
 	var firstSpan *position.Span
 	var lastSpan *position.Span
-	var upperBound ast.ComplexConstantNode
+	var lowerBound ast.TypeNode
+	var upperBound ast.TypeNode
 
 	switch p.lookahead.Type {
 	case token.PLUS:
@@ -2900,8 +2901,13 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 	}
 	lastSpan = nameTok.Span()
 
+	if p.match(token.GREATER) {
+		lowerBound = p.typeAnnotation()
+		lastSpan = lowerBound.Span()
+	}
+
 	if p.match(token.LESS) {
-		upperBound = p.strictConstantLookup()
+		upperBound = p.typeAnnotation()
 		lastSpan = upperBound.Span()
 	}
 
@@ -2909,6 +2915,7 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 		firstSpan.Join(lastSpan),
 		variance,
 		nameTok.Value,
+		lowerBound,
 		upperBound,
 	)
 }
