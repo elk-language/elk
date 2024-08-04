@@ -236,7 +236,7 @@ func (m *Method) inspect() string {
 	case *Class, *Mixin:
 		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
 	case *Interface:
-		if scope.closure {
+		if scope.IsClosure {
 			return m.Name.String()
 		}
 		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)

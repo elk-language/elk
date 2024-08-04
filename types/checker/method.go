@@ -57,6 +57,7 @@ func (c *Checker) checkMethods() {
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
 	method := c.declareMethod(
+		nil,
 		c.currentMethodScope().container,
 		docComment,
 		false,
@@ -119,6 +120,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		),
 	}
 	method := c.declareMethod(
+		nil,
 		methodScope.container,
 		docComment,
 		false,
@@ -387,20 +389,16 @@ func (c *Checker) checkMethod(
 		}
 	}
 
-	var returnType types.Type
+	returnType := checkedMethod.ReturnType
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
-		returnType = c.typeOf(typedReturnTypeNode)
-	} else {
-		returnType = types.Void{}
 	}
 
-	var throwType types.Type
+	throwType := checkedMethod.ThrowType
 	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
-		throwType = c.typeOf(typedThrowTypeNode)
 	}
 
 	if len(body) > 0 && checkedMethod.IsAbstract() {
@@ -455,7 +453,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		}
 		param := method.Params[currentParamIndex]
 
-		typedPosArg := c.checkExpression(posArg)
+		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 		posArgType := c.typeOf(typedPosArg)
 		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
@@ -494,7 +492,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		currentArgIndex := currentParamIndex
 		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
-			typedPosArg := c.checkExpression(posArg)
+			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
@@ -518,7 +516,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			typedPosArg := c.checkExpression(posArg)
+			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
@@ -570,7 +568,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			}
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
-			typedNamedArgValue := c.checkExpression(namedArg.Value)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
 			namedArgType := c.typeOf(typedNamedArgValue)
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
@@ -628,7 +626,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 
 			namedArgI := namedArguments[i]
 			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
-			typedNamedArgValue := c.checkExpression(namedArg.Value)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
 			namedRestArgs.Elements = append(
 				namedRestArgs.Elements,
 				ast.NewSymbolKeyValueExpressionNode(
@@ -787,6 +785,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 }
 
 func (c *Checker) declareMethod(
+	baseMethod *types.Method,
 	methodNamespace types.Namespace,
 	docComment string,
 	abstract bool,
@@ -854,19 +853,21 @@ func (c *Checker) declareMethod(
 	}
 
 	var params []*types.Parameter
-	for _, param := range paramNodes {
+	for i, param := range paramNodes {
 		switch p := param.(type) {
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
-			if p.TypeNode == nil {
+			if p.TypeNode != nil {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			} else if baseMethod != nil && len(baseMethod.Params) > i {
+				declaredType = baseMethod.Params[i].Type
+			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
 				)
-			} else {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
 			}
 
 			var kind types.ParameterKind
@@ -914,14 +915,16 @@ func (c *Checker) declareMethod(
 						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Span())
 					}
 				}
-			} else if p.TypeNode == nil {
+			} else if p.TypeNode != nil {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			} else if baseMethod != nil && len(baseMethod.Params) > i {
+				declaredType = baseMethod.Params[i].Type
+			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
 				)
-			} else {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
 			}
 
 			var kind types.ParameterKind
@@ -946,14 +949,16 @@ func (c *Checker) declareMethod(
 		case *ast.SignatureParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
-			if p.TypeNode == nil {
+			if p.TypeNode != nil {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			} else if baseMethod != nil && len(baseMethod.Params) > i {
+				declaredType = baseMethod.Params[i].Type
+			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
 				)
-			} else {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
 			}
 
 			var kind types.ParameterKind
@@ -988,6 +993,8 @@ func (c *Checker) declareMethod(
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 		returnType = c.typeOf(typedReturnTypeNode)
+	} else if baseMethod != nil && baseMethod.ReturnType != nil {
+		returnType = baseMethod.ReturnType
 	} else {
 		returnType = types.Void{}
 	}
@@ -997,6 +1004,8 @@ func (c *Checker) declareMethod(
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.typeOf(typedThrowTypeNode)
+	} else if baseMethod != nil && baseMethod.ThrowType != nil {
+		throwType = baseMethod.ThrowType
 	}
 	newMethod := types.NewMethod(
 		docComment,

@@ -319,6 +319,22 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	}
 }
 
+func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type) ast.ExpressionNode {
+	switch n := node.(type) {
+	case *ast.ClosureLiteralNode:
+		switch t := typ.(type) {
+		case *types.NamedType:
+			return c.checkExpressionWithType(node, t.Type)
+		case *types.Interface:
+			if t.IsClosure {
+				return c.checkClosureLiteralNodeWithType(n, t)
+			}
+		}
+	}
+
+	return c.checkExpression(node)
+}
+
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	if node == nil {
 		return nil
@@ -2046,9 +2062,41 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 	node.SetType(typ)
 }
 
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Interface) ast.ExpressionNode {
+	baseMethod := closureType.Method(symbol.M_call)
+	iface := types.NewInterface("", "", true, c.GlobalEnv)
+	iface.ImplementInterface(closureType)
+	method := c.declareMethod(
+		baseMethod,
+		iface,
+		"",
+		false,
+		false,
+		symbol.M_call,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Span(),
+	)
+	returnTypeNode, throwTypeNode := c.checkMethod(
+		iface,
+		method,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Body,
+		node.Span(),
+	)
+	node.ReturnType = returnTypeNode
+	node.ThrowType = throwTypeNode
+	node.SetType(iface)
+	return node
+}
+
 func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
 	iface := types.NewInterface("", "", true, c.GlobalEnv)
 	method := c.declareMethod(
+		nil,
 		iface,
 		"",
 		false,
@@ -2059,7 +2107,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		node.ThrowType,
 		node.Span(),
 	)
-	c.checkMethod(
+	returnTypeNode, throwTypeNode := c.checkMethod(
 		iface,
 		method,
 		node.Parameters,
@@ -2068,6 +2116,8 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		node.Body,
 		node.Span(),
 	)
+	node.ReturnType = returnTypeNode
+	node.ThrowType = throwTypeNode
 	iface.SetName(method.InspectClosure())
 	node.SetType(iface)
 	return node
@@ -2838,10 +2888,11 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	iface := types.NewInterface("", "", true, c.GlobalEnv)
 	method := c.declareMethod(
+		nil,
 		iface,
 		"",
 		true,
-		true,
+		false,
 		symbol.M_call,
 		node.Parameters,
 		node.ReturnType,
@@ -3203,7 +3254,7 @@ func (c *Checker) checkVariableDeclaration(
 
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.typeOf(declaredTypeNode)
-	init := c.checkExpression(initialiser)
+	init := c.checkExpressionWithType(initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(name, newLocal(declaredType, true, false))
 	c.checkCanAssign(actualType, declaredType, init.Span())
@@ -3260,7 +3311,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 
 	declaredTypeNode := c.checkTypeNode(node.TypeNode)
 	declaredType := c.typeOf(declaredTypeNode)
-	init := c.checkExpression(node.Initialiser)
+	init := c.checkExpressionWithType(node.Initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(node.Name, newLocal(declaredType, true, true))
 	c.checkCanAssign(actualType, declaredType, init.Span())
@@ -3764,6 +3815,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		)
 	}
 	method := c.declareMethod(
+		nil,
 		c.currentMethodScope().container,
 		initNode.DocComment(),
 		false,
@@ -3805,6 +3857,7 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	method := c.declareMethod(
+		nil,
 		c.currentMethodScope().container,
 		node.DocComment(),
 		node.Abstract,
@@ -3821,6 +3874,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
 	method := c.declareMethod(
+		nil,
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,

@@ -2116,7 +2116,7 @@ func TestClosureLiteral(t *testing.T) {
 		"assign a compatible value to a closure type": {
 			input: `
 				var a: |a: Int|: String
-				a = |a: Int, b: String = "dupa"|: String -> b
+				a = |a: Int, b: String = "foo"|: String -> b
 			`,
 		},
 		"assign an incompatible closure to a closure type": {
@@ -2127,6 +2127,38 @@ func TestClosureLiteral(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` does not implement interface `|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
 				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
+			},
+		},
+		"take param and return types from closure defined as a formal parameter": {
+			input: `
+				def foo(fn: |a: String|: Int); end
+				foo() |a| -> 5
+			`,
+		},
+		"invalid closure argument": {
+			input: `
+				def foo(fn: |a: String|: Int); end
+				foo() |i| -> 2.5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 3, 12), P(51, 3, 12)), "cannot override method `call` with invalid parameter name, is `i`, should be `a`\n  previous definition found in `|a: Std::String|: Std::Int`, with signature: `abstract def call(a: Std::String): Std::Int`"),
+				error.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `2.5` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"call a closure": {
+			input: `
+				a := |a: Int|: Int -> a
+				a.(9)
+				a.call(3 + 8)
+			`,
+		},
+		"call a closure with invalid arguments": {
+			input: `
+				a := |a: Int|: Int -> a
+				a.(2.5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 8), P(38, 3, 10)), "expected type `Std::Int` for parameter `a` in call to `call`, got type `2.5`"),
 			},
 		},
 	}

@@ -1589,7 +1589,7 @@ methodCallLoop:
 }
 
 func (p *Parser) hasTrailingClosure() bool {
-	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.accept(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA)))
+	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.accept(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
 }
 
 // beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall
