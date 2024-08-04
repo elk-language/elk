@@ -976,7 +976,7 @@ func TestRawCharLiteral(t *testing.T) {
 	}
 }
 
-func TestFunction(t *testing.T) {
+func TestClosure(t *testing.T) {
 	tests := testTable{
 		"can have arguments and be single line": {
 			input: `|a| -> 'foo' + .2`,
@@ -985,7 +985,7 @@ func TestFunction(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(16, 1, 17)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(16, 1, 17)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1027,7 +1027,7 @@ func TestFunction(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1072,7 +1072,7 @@ func TestFunction(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 4, 1)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(26, 4, 1)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1121,7 +1121,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 4, 3)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(26, 4, 3)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1167,7 +1167,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1209,7 +1209,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(16, 1, 17)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(16, 1, 17)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1254,7 +1254,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(19, 1, 20)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1306,7 +1306,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1361,7 +1361,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(24, 1, 25)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1406,7 +1406,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(17, 1, 18)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1451,7 +1451,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1496,7 +1496,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1551,7 +1551,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(21, 1, 22)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(21, 1, 22)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1603,7 +1603,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(32, 1, 33)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(32, 1, 33)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1652,7 +1652,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 1, 41)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(40, 1, 41)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -1701,7 +1701,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(15, 1, 16)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
 							nil,
 							nil,
@@ -1735,7 +1735,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 1, 13)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(12, 1, 13)),
 							nil,
 							nil,
@@ -1769,7 +1769,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(24, 1, 25)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
 							nil,
 							ast.NewNilableTypeNode(S(P(4, 1, 5), P(10, 1, 11)), ast.NewPublicConstantNode(S(P(4, 1, 5), P(9, 1, 10)), "String")),
@@ -1803,7 +1803,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(29, 1, 30)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(29, 1, 30)),
 							nil,
 							nil,
@@ -1837,7 +1837,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(39, 1, 40)),
-						ast.NewFunctionLiteralNode(
+						ast.NewClosureLiteralNode(
 							S(P(0, 1, 1), P(39, 1, 40)),
 							nil,
 							ast.NewNilableTypeNode(S(P(4, 1, 5), P(10, 1, 11)), ast.NewPublicConstantNode(S(P(4, 1, 5), P(9, 1, 10)), "String")),

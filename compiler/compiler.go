@@ -66,7 +66,7 @@ const (
 	classMode
 	mixinMode
 	moduleMode
-	functionMode
+	closureMode
 	setterMethodMode
 	initMethodMode
 	valuePatternDeclarationNode
@@ -186,7 +186,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 		// reserve the third slot on the stack for the method container
 		c.defineLocal("$method_container", &position.Span{}, true, true)
 		c.predefinedLocals = 3
-	case functionMode, setterMethodMode, initMethodMode:
+	case closureMode, setterMethodMode, initMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -491,8 +491,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.mixinDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
-	case *ast.FunctionLiteralNode:
-		c.functionLiteral(node)
+	case *ast.ClosureLiteralNode:
+		c.closureLiteral(node)
 	case *ast.InitDefinitionNode:
 		c.initDefinition(node)
 	case *ast.IncludeExpressionNode:
@@ -3197,7 +3197,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 			c.newLocation(span),
 		)
 		return
-	case functionMode, setterMethodMode, initMethodMode:
+	case closureMode, setterMethodMode, initMethodMode:
 		c.Errors.AddFailure(
 			"cannot open a singleton class in a method",
 			c.newLocation(span),
@@ -3228,7 +3228,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	switch c.mode {
-	case functionMode, setterMethodMode, initMethodMode:
+	case closureMode, setterMethodMode, initMethodMode:
 		c.Errors.AddFailure(
 			fmt.Sprintf("methods cannot be nested: %s", node.Name),
 			c.newLocation(node.Span()),
@@ -3240,7 +3240,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	if node.IsSetter() {
 		mode = setterMethodMode
 	} else {
-		mode = functionMode
+		mode = closureMode
 	}
 
 	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
@@ -3256,19 +3256,19 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
-func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
-	functionCompiler := new("<function>", functionMode, c.newLocation(node.Span()))
-	functionCompiler.parent = c
-	functionCompiler.Errors = c.Errors
-	functionCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
-	c.Errors = functionCompiler.Errors
+func (c *Compiler) closureLiteral(node *ast.ClosureLiteralNode) {
+	closureCompiler := new("<closure>", closureMode, c.newLocation(node.Span()))
+	closureCompiler.parent = c
+	closureCompiler.Errors = c.Errors
+	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
+	c.Errors = closureCompiler.Errors
 
-	result := functionCompiler.Bytecode
+	result := closureCompiler.Bytecode
 	c.emitValue(result, node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
 
-	for _, upvalue := range functionCompiler.upvalues {
+	for _, upvalue := range closureCompiler.upvalues {
 		var flags bitfield.BitField8
 		if upvalue.isLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
@@ -3290,7 +3290,7 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	switch c.mode {
-	case functionMode, setterMethodMode, initMethodMode:
+	case closureMode, setterMethodMode, initMethodMode:
 		c.Errors.AddFailure(
 			"methods cannot be nested: #init",
 			c.newLocation(node.Span()),
@@ -3332,7 +3332,7 @@ func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 			c.newLocation(node.Span()),
 		)
 		return
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot extend mixins in a method",
 			c.newLocation(node.Span()),
@@ -3372,7 +3372,7 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 			c.newLocation(node.Span()),
 		)
 		return
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot include mixins in a method",
 			c.newLocation(node.Span()),
@@ -3398,7 +3398,7 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 
 func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		if node.Constant != nil {
 			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
@@ -3460,7 +3460,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		if node.Constant != nil {
 			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
@@ -3522,7 +3522,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 
 func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot define getters in this context",
 			c.newLocation(node.Span()),
@@ -3540,7 +3540,7 @@ func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 
 func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot define setters in this context",
 			c.newLocation(node.Span()),
@@ -3558,7 +3558,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 
 func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot define accessors in this context",
 			c.newLocation(node.Span()),
@@ -3579,7 +3579,7 @@ func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
 
 func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		c.Errors.AddFailure(
 			"cannot define aliases in this context",
 			c.newLocation(node.Span()),
@@ -3598,7 +3598,7 @@ func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	switch c.mode {
-	case functionMode:
+	case closureMode:
 		if node.Constant != nil {
 			c.Errors.AddFailure(
 				fmt.Sprintf("cannot define named classes inside of a method: %s", c.Bytecode.Name().ToString()),

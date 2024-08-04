@@ -1419,7 +1419,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		}
 
 		if p.hasTrailingClosure() {
-			function := p.functionExpression()
+			function := p.closureExpression()
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
@@ -1498,7 +1498,7 @@ methodCallLoop:
 				)
 			}
 			if p.hasTrailingClosure() {
-				function := p.functionExpression()
+				function := p.closureExpression()
 				if len(namedArgs) > 0 {
 					namedArgs = append(
 						namedArgs,
@@ -1564,7 +1564,7 @@ methodCallLoop:
 		}
 
 		if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
-			function := p.functionExpression()
+			function := p.closureExpression()
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
@@ -1796,7 +1796,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Span())
 	case token.THIN_ARROW:
-		return p.functionAfterArrow(nil, nil, nil, nil)
+		return p.closureAfterArrow(nil, nil, nil, nil)
 	case token.SELF:
 		return p.selfLiteral()
 	case token.BREAK:
@@ -1874,7 +1874,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.COLON:
 		return p.symbolLiteral(true)
 	case token.OR, token.OR_OR:
-		return p.functionExpression()
+		return p.closureExpression()
 	case token.DOC_COMMENT:
 		return p.docComment(false)
 	case token.VAR:
@@ -5584,8 +5584,8 @@ strContentLoop:
 	)
 }
 
-// functionAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
-func (p *Parser) functionAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
+// closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
+func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
 	var span *position.Span
 	arrowTok, ok := p.consume(token.THIN_ARROW)
 	if !ok {
@@ -5607,7 +5607,7 @@ func (p *Parser) functionAfterArrow(firstSpan *position.Span, params []ast.Param
 		} else {
 			span = firstSpan
 		}
-		return ast.NewFunctionLiteralNode(
+		return ast.NewClosureLiteralNode(
 			span,
 			params,
 			returnType,
@@ -5636,7 +5636,7 @@ func (p *Parser) functionAfterArrow(firstSpan *position.Span, params []ast.Param
 		}
 	}
 
-	return ast.NewFunctionLiteralNode(
+	return ast.NewClosureLiteralNode(
 		span,
 		params,
 		returnType,
@@ -5645,8 +5645,8 @@ func (p *Parser) functionAfterArrow(firstSpan *position.Span, params []ast.Param
 	)
 }
 
-// functionExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] functionAfterArrow
-func (p *Parser) functionExpression() ast.ExpressionNode {
+// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] functionAfterArrow
+func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstSpan *position.Span
 	var returnType ast.TypeNode
@@ -5686,14 +5686,14 @@ func (p *Parser) functionExpression() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	return p.functionAfterArrow(firstSpan, params, returnType, throwType)
+	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
 }
 
 // identifierOrFunction = identifier | identifier functionAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
-		return p.functionAfterArrow(
+		return p.closureAfterArrow(
 			ident.Span(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(

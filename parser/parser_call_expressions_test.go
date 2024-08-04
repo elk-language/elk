@@ -664,7 +664,7 @@ func TestMethodCall(t *testing.T) {
 							S(P(0, 1, 1), P(17, 1, 18)),
 							"foo",
 							[]ast.ExpressionNode{
-								ast.NewFunctionLiteralNode(
+								ast.NewClosureLiteralNode(
 									S(P(6, 1, 7), P(17, 1, 18)),
 									[]ast.ParameterNode{
 										ast.NewFormalParameterNode(S(P(7, 1, 8), P(7, 1, 8)), "i", nil, nil, ast.NormalParameterKind),
@@ -703,7 +703,7 @@ func TestMethodCall(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "1"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "5"),
-								ast.NewFunctionLiteralNode(
+								ast.NewClosureLiteralNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									[]ast.ParameterNode{
 										ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
@@ -749,7 +749,7 @@ func TestMethodCall(t *testing.T) {
 								ast.NewNamedCallArgumentNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									"func",
-									ast.NewFunctionLiteralNode(
+									ast.NewClosureLiteralNode(
 										S(P(10, 1, 11), P(21, 1, 22)),
 										[]ast.ParameterNode{
 											ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
@@ -824,7 +824,7 @@ func TestMethodCall(t *testing.T) {
 							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
 							[]ast.ExpressionNode{
-								ast.NewFunctionLiteralNode(
+								ast.NewClosureLiteralNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									[]ast.ParameterNode{
 										ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
@@ -865,7 +865,7 @@ func TestMethodCall(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "1"),
 								ast.NewIntLiteralNode(S(P(11, 1, 12), P(11, 1, 12)), "5"),
-								ast.NewFunctionLiteralNode(
+								ast.NewClosureLiteralNode(
 									S(P(14, 1, 15), P(25, 1, 26)),
 									[]ast.ParameterNode{
 										ast.NewFormalParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil, nil, ast.NormalParameterKind),
@@ -913,7 +913,7 @@ func TestMethodCall(t *testing.T) {
 								ast.NewNamedCallArgumentNode(
 									S(P(14, 1, 15), P(25, 1, 26)),
 									"func",
-									ast.NewFunctionLiteralNode(
+									ast.NewClosureLiteralNode(
 										S(P(14, 1, 15), P(25, 1, 26)),
 										[]ast.ParameterNode{
 											ast.NewFormalParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil, nil, ast.NormalParameterKind),

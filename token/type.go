@@ -234,7 +234,7 @@ const (
 	// Operators start here
 	LABEL_OP_BEG
 
-	THIN_ARROW   // Thin arrow `->` (function arrow)
+	THIN_ARROW   // Thin arrow `->` (closure arrow)
 	WIGGLY_ARROW // Wiggly arrow `~>` (lambda arrow)
 	THICK_ARROW  // Thick arrow `=>`
 

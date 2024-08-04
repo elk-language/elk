@@ -337,7 +337,7 @@ func (*ContinueExpressionNode) expressionNode()          {}
 func (*ThrowExpressionNode) expressionNode()             {}
 func (*ConstantDeclarationNode) expressionNode()         {}
 func (*ConstantLookupNode) expressionNode()              {}
-func (*FunctionLiteralNode) expressionNode()             {}
+func (*ClosureLiteralNode) expressionNode()              {}
 func (*ClassDeclarationNode) expressionNode()            {}
 func (*ModuleDeclarationNode) expressionNode()           {}
 func (*MixinDeclarationNode) expressionNode()            {}
@@ -2956,22 +2956,22 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, i
 	}
 }
 
-// Represents a function eg. `|i| -> println(i)`
-type FunctionLiteralNode struct {
+// Represents a closure eg. `|i| -> println(i)`
+type ClosureLiteralNode struct {
 	NodeBase
-	Parameters []ParameterNode // formal parameters of the function separated by semicolons
+	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
-	Body       []StatementNode // body of the function
+	Body       []StatementNode // body of the closure
 }
 
-func (*FunctionLiteralNode) IsStatic() bool {
+func (*ClosureLiteralNode) IsStatic() bool {
 	return false
 }
 
-// Create a new function expression node eg. `|i| -> println(i)`
-func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *FunctionLiteralNode {
-	return &FunctionLiteralNode{
+// Create a new closure expression node eg. `|i| -> println(i)`
+func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
+	return &ClosureLiteralNode{
 		NodeBase:   NodeBase{span: span},
 		Parameters: params,
 		ReturnType: retType,
