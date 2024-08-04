@@ -267,6 +267,8 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 	for _, param := range m.Params {
 		if !firstIteration {
 			buffer.WriteString(", ")
+		} else {
+			firstIteration = false
 		}
 		if param.IsPositionalRest() {
 			buffer.WriteRune('*')
@@ -304,6 +306,8 @@ func (m *Method) InspectClosure() string {
 	for _, param := range m.Params {
 		if !firstIteration {
 			buffer.WriteString(", ")
+		} else {
+			firstIteration = false
 		}
 		if param.IsPositionalRest() {
 			buffer.WriteRune('*')

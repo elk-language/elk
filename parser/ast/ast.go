@@ -2959,7 +2959,7 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, i
 
 // Represents a closure type eg. `|i: Int|: String`
 type ClosureTypeNode struct {
-	NodeBase
+	TypedNodeBase
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
@@ -2972,10 +2972,10 @@ func (*ClosureTypeNode) IsStatic() bool {
 // Create a new closure type node eg. `|i: Int|: String`
 func NewClosureTypeNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode) *ClosureTypeNode {
 	return &ClosureTypeNode{
-		NodeBase:   NodeBase{span: span},
-		Parameters: params,
-		ReturnType: retType,
-		ThrowType:  throwType,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Parameters:    params,
+		ReturnType:    retType,
+		ThrowType:     throwType,
 	}
 }
 

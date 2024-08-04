@@ -2716,6 +2716,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
+	case *ast.ClosureTypeNode:
+		return c.checkClosureTypeNode(n)
 	case *ast.RawStringLiteralNode:
 		n.SetType(types.NewStringLiteral(n.Value))
 		return n
@@ -2831,6 +2833,24 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 	default:
 		panic("invalid binary type expression operator")
 	}
+}
+
+func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
+	iface := types.NewInterface("", "", true, c.GlobalEnv)
+	method := c.declareMethod(
+		iface,
+		"",
+		true,
+		true,
+		symbol.M_call,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Span(),
+	)
+	iface.SetName(method.InspectClosure())
+	node.SetType(iface)
+	return node
 }
 
 func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {

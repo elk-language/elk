@@ -2113,6 +2113,22 @@ func TestClosureLiteral(t *testing.T) {
 				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `3` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
 			},
 		},
+		"assign a compatible value to a closure type": {
+			input: `
+				var a: |a: Int|: String
+				a = |a: Int, b: String = "dupa"|: String -> b
+			`,
+		},
+		"assign an incompatible closure to a closure type": {
+			input: `
+				a := |a: Int|: Int -> a
+				a = |a: Float, b: String = "foo"|: String -> b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` does not implement interface `|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
