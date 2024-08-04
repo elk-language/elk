@@ -2048,7 +2048,7 @@ func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) 
 
 // Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.
 type ModifierNode struct {
-	NodeBase
+	TypedNodeBase
 	Modifier *token.Token   // modifier token
 	Left     ExpressionNode // left hand side
 	Right    ExpressionNode // right hand side
@@ -2061,10 +2061,10 @@ func (*ModifierNode) IsStatic() bool {
 // Create a new modifier node eg. `return true if foo`.
 func NewModifierNode(span *position.Span, mod *token.Token, left, right ExpressionNode) *ModifierNode {
 	return &ModifierNode{
-		NodeBase: NodeBase{span: span},
-		Modifier: mod,
-		Left:     left,
-		Right:    right,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Modifier:      mod,
+		Left:          left,
+		Right:         right,
 	}
 }
 

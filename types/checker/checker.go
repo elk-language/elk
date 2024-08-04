@@ -732,18 +732,21 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		node.Expression = c.checkUntilExpressionNode(node.Label, expr)
 	case *ast.NumericForExpressionNode:
 		node.Expression = c.checkNumericForExpressionNode(node.Label, expr)
-		// case *ast.LoopExpressionNode:
-		// 	c.loopExpression(node.Label, expr.ThenBody, expr.Span())
-		// case *ast.NumericForExpressionNode:
-		// 	c.numericForExpression(node.Label, expr)
-		// case *ast.ForInExpressionNode:
-		// 	c.forInExpression(node.Label, expr)
-		// case *ast.ModifierForInNode:
-		// 	c.modifierForIn(node.Label, expr)
-		// case *ast.ModifierNode:
-		// 	c.modifierExpression(node.Label, expr)
-		// default:
-		// 	c.compileNode(node.Expression)
+	case *ast.ModifierNode:
+		switch expr.Modifier.Type {
+		case token.WHILE:
+			node.Expression = c.checkWhileModifierNode(node.Label, expr)
+		case token.UNTIL:
+			node.Expression = c.checkUntilModifierNode(node.Label, expr)
+		default:
+			node.Expression = c.checkExpression(node.Expression)
+		}
+	// case *ast.ForInExpressionNode:
+	// 	c.forInExpression(node.Label, expr)
+	// case *ast.ModifierForInNode:
+	// 	c.modifierForIn(node.Label, expr)
+	default:
+		node.Expression = c.checkExpression(node.Expression)
 	}
 	return node
 }
@@ -884,6 +887,50 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 	return node
 }
 
+func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	var typ types.Type
+	var endless bool
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		endless = true
+		typ = types.Never{}
+	}
+	loop := c.registerLoop(label, endless)
+
+	node.Left = c.checkExpression(node.Left)
+	thenType := c.typeOf(node.Left)
+
+	c.popLocalEnv()
+
+	if typ == nil {
+		typ = c.toNilable(thenType)
+	}
+	if loop.returnType != nil {
+		typ = c.newNormalisedUnion(typ, loop.returnType)
+	}
+	node.SetType(typ)
+	return node
+}
+
 func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
@@ -930,6 +977,50 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		node.SetType(typ)
 		return node
 	}
+	if typ == nil {
+		typ = c.toNilable(thenType)
+	}
+	if loop.returnType != nil {
+		typ = c.newNormalisedUnion(typ, loop.returnType)
+	}
+	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	var typ types.Type
+	var endless bool
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		endless = true
+		typ = types.Never{}
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+	}
+	loop := c.registerLoop(label, endless)
+
+	node.Left = c.checkExpression(node.Left)
+	thenType := c.typeOf(node.Left)
+
+	c.popLocalEnv()
+
 	if typ == nil {
 		typ = c.toNilable(thenType)
 	}
@@ -1010,8 +1101,10 @@ func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
 				nil,
 			),
 		)
-	// case token.WHILE:
-	// case token.UNTIL:
+	case token.WHILE:
+		return c.checkWhileModifierNode("", node)
+	case token.UNTIL:
+		return c.checkUntilModifierNode("", node)
 	default:
 		c.addFailure(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
