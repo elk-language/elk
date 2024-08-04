@@ -1213,6 +1213,15 @@ func TestUnlessExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
 			},
 		},
+		"checks modifier version": {
+			input: `
+				def foo; end
+				nil unless foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 16), P(37, 3, 20)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"has access to outer variables": {
 			input: `
 				var a: Int? = 5
@@ -1296,6 +1305,25 @@ func TestIfExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(25, 3, 8), P(29, 3, 12)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"checks modifier version": {
+			input: `
+				def foo; end
+				nil if foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"checks modifier version with else": {
+			input: `
+				a := 2
+				var b: Int = (a + 2 if true else 2.2)
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(39, 3, 28), P(42, 3, 31)), "this condition will always have the same result since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(49, 3, 38), P(51, 3, 40)), "unreachable code"),
 			},
 		},
 		"has access to outer variables": {

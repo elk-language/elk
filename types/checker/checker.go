@@ -475,6 +475,10 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkDoExpressionNode(n)
 	case *ast.IfExpressionNode:
 		return c.checkIfExpressionNode(n)
+	case *ast.ModifierIfElseNode:
+		return c.checkModifierIfElseNode(n)
+	case *ast.ModifierNode:
+		return c.checkModifierNode(n)
 	case *ast.UnlessExpressionNode:
 		return c.checkUnlessExpressionNode(n)
 	case *ast.WhileExpressionNode:
@@ -984,6 +988,48 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 
 	node.SetType(c.newNormalisedUnion(thenType, elseType))
 	return node
+}
+
+func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
+	switch node.Modifier.Type {
+	case token.IF:
+		return c.checkIfExpressionNode(
+			ast.NewIfExpressionNode(
+				node.Span(),
+				node.Right,
+				ast.ExpressionToStatements(node.Left),
+				nil,
+			),
+		)
+	case token.UNLESS:
+		return c.checkUnlessExpressionNode(
+			ast.NewUnlessExpressionNode(
+				node.Span(),
+				node.Right,
+				ast.ExpressionToStatements(node.Left),
+				nil,
+			),
+		)
+	// case token.WHILE:
+	// case token.UNTIL:
+	default:
+		c.addFailure(
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
+			node.Span(),
+		)
+		return node
+	}
+}
+
+func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode) ast.ExpressionNode {
+	return c.checkIfExpressionNode(
+		ast.NewIfExpressionNode(
+			node.Span(),
+			node.Condition,
+			ast.ExpressionToStatements(node.ThenExpression),
+			ast.ExpressionToStatements(node.ElseExpression),
+		),
+	)
 }
 
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.ExpressionNode {
