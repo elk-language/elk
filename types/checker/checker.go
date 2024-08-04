@@ -777,6 +777,9 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ThenBody) > 0 {
+			c.addUnreachableCodeError(node.ThenBody[0].Span())
+		}
 		noop = true
 		typ = types.Nil{}
 	}
@@ -837,6 +840,9 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ThenBody) > 0 {
+			c.addUnreachableCodeError(node.ThenBody[0].Span())
+		}
 		noop = true
 		typ = types.Nil{}
 	}
@@ -901,6 +907,9 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 			),
 			node.Condition.Span(),
 		)
+		if len(node.ThenBody) > 0 {
+			c.addUnreachableCodeError(node.ThenBody[0].Span())
+		}
 		noop = true
 		typ = types.Nil{}
 	}

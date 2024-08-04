@@ -296,6 +296,7 @@ func TestNumericForExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(37, 3, 26), P(41, 3, 30)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(49, 4, 6), P(62, 4, 19)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type if the condition is neither truthy nor falsy": {
@@ -376,6 +377,7 @@ func TestNumericForExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(37, 3, 26), P(41, 3, 30)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(49, 4, 6), P(59, 4, 16)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked break if the condition is neither truthy nor falsy": {
@@ -472,6 +474,7 @@ func TestNumericForExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(37, 3, 26), P(41, 3, 30)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(49, 4, 6), P(59, 4, 16)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked continue if the condition is neither truthy nor falsy": {
@@ -711,6 +714,7 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(46, 4, 6), P(59, 4, 19)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type if the condition is neither truthy nor falsy": {
@@ -781,6 +785,7 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(46, 4, 6), P(56, 4, 16)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type with naked break if the condition is neither truthy nor falsy": {
@@ -872,6 +877,7 @@ func TestWhileExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(39, 3, 28)), "this loop will never execute since type `false` is falsy"),
+				error.NewWarning(L("<main>", P(46, 4, 6), P(68, 4, 28)), "unreachable code"),
 				error.NewWarning(L("<main>", P(74, 5, 6), P(78, 5, 10)), "unreachable code"),
 			},
 		},
@@ -975,6 +981,7 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(45, 4, 6), P(58, 4, 19)), "unreachable code"),
 			},
 		},
 		"returns a nilable body type if the condition is neither truthy nor falsy": {
@@ -1038,6 +1045,7 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(45, 4, 6), P(64, 4, 25)), "unreachable code"),
 				error.NewWarning(L("<main>", P(70, 5, 6), P(74, 5, 10)), "unreachable code"),
 			},
 		},
@@ -1132,6 +1140,7 @@ func TestUntilExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(35, 3, 24), P(38, 3, 27)), "this loop will never execute since type `true` is truthy"),
+				error.NewWarning(L("<main>", P(45, 4, 6), P(67, 4, 28)), "unreachable code"),
 				error.NewWarning(L("<main>", P(73, 5, 6), P(77, 5, 10)), "unreachable code"),
 			},
 		},
