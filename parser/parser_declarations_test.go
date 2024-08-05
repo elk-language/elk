@@ -2386,6 +2386,56 @@ func TestTypeDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(11, 1, 12), P(10, 1, 11)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
+		"can be generic": {
+			input: "typedef Foo[+V > Bar, -T < Baz] = V | T",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 1, 39)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 1, 39)),
+						ast.NewGenericTypeDefinitionNode(
+							S(P(0, 1, 1), P(38, 1, 39)),
+							"",
+							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									S(P(12, 1, 13), P(19, 1, 20)),
+									ast.COVARIANT,
+									"V",
+									ast.NewPublicConstantNode(
+										S(P(17, 1, 18), P(19, 1, 20)),
+										"Bar",
+									),
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									S(P(22, 1, 23), P(29, 1, 30)),
+									ast.CONTRAVARIANT,
+									"T",
+									nil,
+									ast.NewPublicConstantNode(
+										S(P(27, 1, 28), P(29, 1, 30)),
+										"Baz",
+									),
+								),
+							},
+							ast.NewBinaryTypeExpressionNode(
+								S(P(34, 1, 35), P(38, 1, 39)),
+								T(S(P(36, 1, 37), P(36, 1, 37)), token.OR),
+								ast.NewPublicConstantNode(
+									S(P(34, 1, 35), P(34, 1, 35)),
+									"V",
+								),
+								ast.NewPublicConstantNode(
+									S(P(38, 1, 39), P(38, 1, 39)),
+									"T",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"cannot be a part of an expression": {
 			input: "a = typedef Foo = String?",
 			want: ast.NewProgramNode(

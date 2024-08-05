@@ -2625,6 +2625,22 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	typedefTok := p.advance()
 
 	name := p.strictConstantLookup()
+	var typeVars []ast.TypeVariableNode
+
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeVars = p.typeVariableList()
+			if errTok, ok := p.consume(token.RBRACKET); !ok {
+				return ast.NewInvalidNode(
+					errTok.Span(),
+					errTok,
+				)
+			}
+		}
+	}
 	equalTok, ok := p.consume(token.EQUAL_OP)
 	if !ok {
 		return ast.NewInvalidNode(equalTok.Span(), equalTok)
@@ -2637,6 +2653,15 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 		p.errorMessageSpan(
 			"type definitions cannot appear in expressions",
 			span,
+		)
+	}
+	if len(typeVars) > 0 {
+		return ast.NewGenericTypeDefinitionNode(
+			span,
+			"",
+			name,
+			typeVars,
+			typ,
 		)
 	}
 	return ast.NewTypeDefinitionNode(

@@ -347,6 +347,7 @@ func (*MethodDefinitionNode) expressionNode()            {}
 func (*InitDefinitionNode) expressionNode()              {}
 func (*MethodSignatureDefinitionNode) expressionNode()   {}
 func (*GenericConstantNode) expressionNode()             {}
+func (*GenericTypeDefinitionNode) expressionNode()       {}
 func (*TypeDefinitionNode) expressionNode()              {}
 func (*AliasDeclarationNode) expressionNode()            {}
 func (*GetterDeclarationNode) expressionNode()           {}
@@ -3394,6 +3395,32 @@ func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, a
 		TypedNodeBase:    TypedNodeBase{span: span},
 		Constant:         constant,
 		GenericArguments: args,
+	}
+}
+
+// Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`
+type GenericTypeDefinitionNode struct {
+	NodeBase
+	DocCommentableNodeBase
+	TypeVariables []TypeVariableNode  // Generic type variable definitions
+	Constant      ComplexConstantNode // new name of the type
+	TypeNode      TypeNode            // the type
+}
+
+func (*GenericTypeDefinitionNode) IsStatic() bool {
+	return false
+}
+
+// Create a generic type definition node eg. `typedef Nilable[T] = T | nil`
+func NewGenericTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typeVars []TypeVariableNode, typ TypeNode) *GenericTypeDefinitionNode {
+	return &GenericTypeDefinitionNode{
+		NodeBase: NodeBase{span: span},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Constant:      constant,
+		TypeVariables: typeVars,
+		TypeNode:      typ,
 	}
 }
 
