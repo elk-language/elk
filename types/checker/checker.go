@@ -66,6 +66,7 @@ type Checker struct {
 	mode                    mode
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
+	typeDefinitionChecks    *concurrent.Slice[typeDefinitionCheckEntry]
 }
 
 // Instantiate a new Checker instance.
@@ -93,6 +94,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		},
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:  concurrent.NewSlice[typeDefinitionCheckEntry](),
 	}
 }
 
@@ -3468,6 +3470,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 		}
 	}
 
+	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.checkMethods()
 	c.checkStatements(statements)
@@ -3759,23 +3762,6 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 	c.popMethodScope()
 }
 
-func (c *Checker) hoistTypeDefinition(node *ast.TypeDefinitionNode) {
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
-	if constant != nil {
-		c.addFailure(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			node.Constant.Span(),
-		)
-	}
-
-	container.DefineConstant(constantName, types.Void{})
-	namedType := types.NewNamedType(fullConstantName, nil)
-	container.DefineSubtype(constantName, namedType)
-	node.SetType(namedType)
-}
-
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -3798,7 +3784,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
 		case *ast.TypeDefinitionNode:
-			c.hoistTypeDefinition(expr)
+			c.registerTypeDefinitionCheck(expr)
 		}
 	}
 }
@@ -4079,11 +4065,6 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistMethodDefinitionsWithinInterface(expr)
 		case *ast.SingletonBlockExpressionNode:
 			c.hoistMethodDefinitionsWithinSingleton(expr)
-		case *ast.TypeDefinitionNode:
-			namedType := c.typeOf(expr).(*types.NamedType)
-			expr.TypeNode = c.checkTypeNode(expr.TypeNode)
-			typ := c.typeOf(expr.TypeNode)
-			namedType.Type = typ
 		}
 	}
 }

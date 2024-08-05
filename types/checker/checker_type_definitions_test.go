@@ -34,28 +34,24 @@ func TestTypeDefinition(t *testing.T) {
 				a.foo
 			`,
 		},
-		"define a type using a type before its declaration with difference": {
+		"define a type using a class before its declaration": {
 			input: `
-				typedef Foo = Bar / nil
 				typedef Bar = Baz | nil
 				class Baz; end
 
-				var b: Foo / 3 = 9.2
+				var b: Bar / 3 = 9.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(98, 6, 22), P(100, 6, 24)), "type `9.2` cannot be assigned to type `Baz`"),
+				error.NewFailure(L("<main>", P(70, 5, 22), P(72, 5, 24)), "type `9.2` cannot be assigned to type `Baz | nil`"),
 			},
 		},
-		"define a type using a type before its declaration with union": {
+		"define a type using another type before its declaration": {
 			input: `
-				typedef Foo = Bar | 3
-				typedef Bar = Baz | nil
-				class Baz; end
-
-				var b: Foo / 9 = 9.2
+				typedef Foo = Bar | nil
+				typedef Bar = 1 | 2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(96, 6, 22), P(98, 6, 24)), "type `9.2` cannot be assigned to type `3 | Baz | nil`"),
+				error.NewFailure(L("<main>", P(19, 2, 19), P(21, 2, 21)), "undefined type `Bar`"),
 			},
 		},
 	}
