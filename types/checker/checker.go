@@ -3770,12 +3770,10 @@ func (c *Checker) hoistTypeDefinition(node *ast.TypeDefinitionNode) {
 		)
 	}
 
-	node.TypeNode = c.checkTypeNode(node.TypeNode)
-
-	typ := c.typeOf(node.TypeNode)
 	container.DefineConstant(constantName, types.Void{})
-	namedType := types.NewNamedType(fullConstantName, typ)
+	namedType := types.NewNamedType(fullConstantName, nil)
 	container.DefineSubtype(constantName, namedType)
+	node.SetType(namedType)
 }
 
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
@@ -4081,6 +4079,11 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistMethodDefinitionsWithinInterface(expr)
 		case *ast.SingletonBlockExpressionNode:
 			c.hoistMethodDefinitionsWithinSingleton(expr)
+		case *ast.TypeDefinitionNode:
+			namedType := c.typeOf(expr).(*types.NamedType)
+			expr.TypeNode = c.checkTypeNode(expr.TypeNode)
+			typ := c.typeOf(expr.TypeNode)
+			namedType.Type = typ
 		}
 	}
 }

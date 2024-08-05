@@ -110,6 +110,8 @@ func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElement
 
 func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 	var containsNot bool
+	var containsUninitialisedNamedTypes bool
+
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
 		if types.IsNever(element) || types.IsNothing(element) {
@@ -127,7 +129,14 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 			i--
 		case *types.Not:
 			containsNot = true
+		case *types.NamedType:
+			if e.Type == nil {
+				containsUninitialisedNamedTypes = true
+			}
 		}
+	}
+	if containsUninitialisedNamedTypes {
+		return types.NewIntersection(elements...)
 	}
 	if containsNot {
 		// expand named types

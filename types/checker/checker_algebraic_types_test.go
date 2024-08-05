@@ -868,7 +868,7 @@ func TestNotType(t *testing.T) {
 				var a: Bar & ~Foo = 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(97, 6, 25), P(99, 6, 27)), "type `2.5` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(97, 6, 25), P(99, 6, 27)), "type `2.5` cannot be assigned to type `never`"),
 			},
 		},
 	}

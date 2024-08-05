@@ -3426,7 +3426,7 @@ func NewGenericTypeDefinitionNode(span *position.Span, docComment string, consta
 
 // Represents a new type definition eg. `typedef StringList = ArrayList[String]`
 type TypeDefinitionNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	Constant ComplexConstantNode // new name of the type
 	TypeNode TypeNode            // the type
@@ -3439,7 +3439,7 @@ func (*TypeDefinitionNode) IsStatic() bool {
 // Create a type definition node eg. `typedef StringList = ArrayList[String]`
 func NewTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
 	return &TypeDefinitionNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
