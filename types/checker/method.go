@@ -21,7 +21,7 @@ type methodCheckEntry struct {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	if c.HeaderMode {
+	if c.IsHeader {
 		return
 	}
 
@@ -41,7 +41,7 @@ func (c *Checker) checkMethods() {
 		concurrencyLimit,
 		c.methodChecks.Slice,
 		func(methodCheck methodCheckEntry) {
-			methodChecker := c.newChecker(
+			methodChecker := c.newMethodChecker(
 				methodCheck.filename,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
@@ -53,6 +53,7 @@ func (c *Checker) checkMethods() {
 			methodChecker.checkMethodDefinition(node)
 		},
 	)
+	c.methodChecks.Slice = nil
 }
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
@@ -417,7 +418,7 @@ func (c *Checker) checkMethod(
 	c.returnType = returnType
 	c.throwType = throwType
 	bodyReturnType, returnSpan := c.checkStatements(body)
-	if !checkedMethod.IsAbstract() && !c.HeaderMode {
+	if !checkedMethod.IsAbstract() && !c.IsHeader {
 		if returnSpan == nil {
 			returnSpan = span
 		}
@@ -1011,7 +1012,7 @@ func (c *Checker) declareMethod(
 		docComment,
 		abstract,
 		sealed,
-		c.HeaderMode,
+		c.IsHeader,
 		name,
 		params,
 		returnType,

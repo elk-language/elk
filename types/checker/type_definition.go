@@ -60,13 +60,9 @@ func (c *Checker) checkTypeDefinitions() {
 		concurrencyLimit,
 		c.typeDefinitionChecks.Slice,
 		func(typedefCheck typeDefinitionCheckEntry) {
-			typedefChecker := c.newChecker(
+			typedefChecker := c.newTypeDefinitionChecker(
 				typedefCheck.filename,
 				typedefCheck.constantScopes,
-				typedefCheck.methodScopes,
-				nil,
-				nil,
-				nil,
 			)
 			typedefChecker.checkTypeDefinition(
 				typedefCheck.name,
@@ -75,4 +71,5 @@ func (c *Checker) checkTypeDefinitions() {
 			)
 		},
 	)
+	c.typeDefinitionChecks.Slice = nil
 }

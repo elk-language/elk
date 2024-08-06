@@ -433,6 +433,9 @@ func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, er
 		return true
 	}
 
+	if c.phase == initPhase && len(b.Methods().Map) < 1 {
+		return false
+	}
 	var incorrectMethods []methodOverride
 	var currentInterface types.Namespace = b
 	for currentInterface != nil {

@@ -48,12 +48,21 @@ const (
 	singletonMode
 )
 
+type phase uint8
+
+const (
+	initPhase phase = iota
+	expressionPhase
+)
+
 // Holds the state of the type checking process
 type Checker struct {
 	Filename                string
 	Errors                  *error.SyncErrorList
 	GlobalEnv               *types.GlobalEnvironment
-	HeaderMode              bool
+	IsHeader                bool
+	phase                   phase
+	mode                    mode
 	constantScopes          []constantScope
 	constantScopesCopyCache []constantScope
 	methodScopes            []methodScope
@@ -63,7 +72,6 @@ type Checker struct {
 	returnType              types.Type
 	throwType               types.Type
 	selfType                types.Type
-	mode                    mode
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
 	typeDefinitionChecks    *concurrent.Slice[typeDefinitionCheckEntry]
@@ -77,7 +85,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 	return &Checker{
 		Filename:   filename,
 		GlobalEnv:  globalEnv,
-		HeaderMode: headerMode,
+		IsHeader:   headerMode,
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		mode:       topLevelMode,
@@ -119,14 +127,16 @@ func New() *Checker {
 		},
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:  concurrent.NewSlice[typeDefinitionCheckEntry](),
 	}
 }
 
-func (c *Checker) newChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
+func (c *Checker) newMethodChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
 	return &Checker{
 		GlobalEnv:      c.GlobalEnv,
 		Filename:       filename,
 		mode:           methodMode,
+		phase:          c.phase,
 		selfType:       selfType,
 		returnType:     returnType,
 		throwType:      throwType,
@@ -136,6 +146,17 @@ func (c *Checker) newChecker(filename string, constScopes []constantScope, metho
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
+	}
+}
+
+func (c *Checker) newTypeDefinitionChecker(filename string, constScopes []constantScope) *Checker {
+	return &Checker{
+		GlobalEnv:      c.GlobalEnv,
+		Filename:       filename,
+		mode:           topLevelMode,
+		phase:          c.phase,
+		constantScopes: constScopes,
+		Errors:         c.Errors,
 	}
 }
 
@@ -3454,8 +3475,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	statements := node.Body
 
-	c.hoistTypeDefinitions(statements)
-
+	c.hoistNamespaceDefinitions(statements)
 	for _, placeholder := range c.placeholderNamespaces.Slice {
 		replacement := placeholder.Replacement
 		if replacement != nil {
@@ -3470,8 +3490,10 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 		}
 	}
 
+	c.hoistInheritance(statements)
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
+	c.phase = expressionPhase
 	c.checkMethods()
 	c.checkStatements(statements)
 
@@ -3491,7 +3513,7 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	}
 
 	if node.Initialiser == nil {
-		if !c.HeaderMode {
+		if !c.IsHeader {
 			c.addFailure(
 				fmt.Sprintf("constant `%s` has to be initialised", constantName),
 				node.Span(),
@@ -3683,7 +3705,7 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 	c.pushConstScope(makeLocalConstantScope(module))
 	c.pushMethodScope(makeLocalMethodScope(module))
 
-	c.hoistTypeDefinitions(node.Body)
+	c.hoistNamespaceDefinitions(node.Body)
 
 	c.popConstScope()
 	c.popMethodScope()
@@ -3709,7 +3731,7 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 	c.pushConstScope(makeLocalConstantScope(class))
 	c.pushMethodScope(makeLocalMethodScope(class))
 
-	c.hoistTypeDefinitions(node.Body)
+	c.hoistNamespaceDefinitions(node.Body)
 
 	c.popConstScope()
 	c.popMethodScope()
@@ -3733,7 +3755,7 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 	c.pushConstScope(makeLocalConstantScope(mixin))
 	c.pushMethodScope(makeLocalMethodScope(mixin))
 
-	c.hoistTypeDefinitions(node.Body)
+	c.hoistNamespaceDefinitions(node.Body)
 
 	c.popConstScope()
 	c.popMethodScope()
@@ -3756,13 +3778,13 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 	c.pushConstScope(makeLocalConstantScope(iface))
 	c.pushMethodScope(makeLocalMethodScope(iface))
 
-	c.hoistTypeDefinitions(node.Body)
+	c.hoistNamespaceDefinitions(node.Body)
 
 	c.popConstScope()
 	c.popMethodScope()
 }
 
-func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
+func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
 		if !ok {
@@ -3785,6 +3807,10 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			c.checkConstantDeclaration(expr)
 		case *ast.TypeDefinitionNode:
 			c.registerTypeDefinitionCheck(expr)
+		case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+			*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+			namespace := c.currentMethodScope().container
+			namespace.DefineInstanceVariable(symbol.Empty, nil) // placeholder
 		}
 	}
 }
@@ -3877,60 +3903,6 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
-
-		var superclass *types.Class
-
-		switch node.Superclass.(type) {
-		case *ast.NilLiteralNode:
-		case nil:
-			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-		default:
-			superclassType, _ := c.resolveConstantType(node.Superclass)
-			var ok bool
-			superclass, ok = superclassType.(*types.Class)
-			if !ok {
-				c.addFailure(
-					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
-				)
-			} else {
-				if superclass.IsSealed() {
-					c.addFailure(
-						fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-						node.Superclass.Span(),
-					)
-				}
-				if superclass.IsPrimitive() && !class.IsPrimitive() {
-					c.addFailure(
-						fmt.Sprintf("class `%s` must be primitive to inherit from primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
-						node.Superclass.Span(),
-					)
-				}
-			}
-		}
-
-		parent := class.Superclass()
-		if parent == nil && superclass != nil {
-			class.SetParent(superclass)
-		} else if parent != nil && parent != superclass {
-			var span *position.Span
-			if node.Superclass == nil {
-				span = node.Span()
-			} else {
-				span = node.Superclass.Span()
-			}
-
-			c.addFailure(
-				fmt.Sprintf(
-					"superclass mismatch in `%s`, got `%s`, expected `%s`",
-					class.Name(),
-					superclass.Name(),
-					parent.Name(),
-				),
-				span,
-			)
-		}
-
 	}
 
 	previousMode := c.mode
@@ -4000,6 +3972,22 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
 	namespace := c.currentConstScope().container
 	singleton := namespace.Singleton()
+
+	c.pushConstScope(makeLocalConstantScope(singleton))
+	c.pushMethodScope(makeLocalMethodScope(singleton))
+
+	previousMode := c.mode
+	c.mode = singletonMode
+	c.hoistMethodDefinitions(expr.Body)
+	c.setMode(previousMode)
+
+	c.popConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistInheritanceWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
+	namespace := c.currentConstScope().container
+	singleton := namespace.Singleton()
 	if singleton == nil {
 		c.addFailure(
 			"cannot declare a singleton class in this context",
@@ -4014,11 +4002,168 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 
 	previousMode := c.mode
 	c.mode = singletonMode
-	c.hoistMethodDefinitions(expr.Body)
+	c.hoistInheritance(expr.Body)
 	c.setMode(previousMode)
 
 	c.popConstScope()
 	c.popMethodScope()
+}
+
+func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
+	class, ok := c.typeOf(node).(*types.Class)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(class))
+		c.pushMethodScope(makeLocalMethodScope(class))
+
+		var superclass *types.Class
+
+		switch node.Superclass.(type) {
+		case *ast.NilLiteralNode:
+		case nil:
+			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+		default:
+			superclassType, _ := c.resolveConstantType(node.Superclass)
+			var ok bool
+			superclass, ok = superclassType.(*types.Class)
+			if !ok {
+				c.addFailure(
+					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			} else {
+				if superclass.IsSealed() {
+					c.addFailure(
+						fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
+						node.Superclass.Span(),
+					)
+				}
+				if superclass.IsPrimitive() && !class.IsPrimitive() {
+					c.addFailure(
+						fmt.Sprintf("class `%s` must be primitive to inherit from primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+						node.Superclass.Span(),
+					)
+				}
+			}
+		}
+
+		parent := class.Superclass()
+		if parent == nil && superclass != nil {
+			class.SetParent(superclass)
+		} else if parent != nil && parent != superclass {
+			var span *position.Span
+			if node.Superclass == nil {
+				span = node.Span()
+			} else {
+				span = node.Superclass.Span()
+			}
+
+			c.addFailure(
+				fmt.Sprintf(
+					"superclass mismatch in `%s`, got `%s`, expected `%s`",
+					class.Name(),
+					superclass.Name(),
+					parent.Name(),
+				),
+				span,
+			)
+		}
+
+	}
+
+	previousMode := c.mode
+	c.mode = classMode
+	c.hoistInheritance(node.Body)
+	c.setMode(previousMode)
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistInheritanceWithinModule(node *ast.ModuleDeclarationNode) {
+	module, ok := c.typeOf(node).(*types.Module)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(module))
+		c.pushMethodScope(makeLocalMethodScope(module))
+	}
+
+	previousMode := c.mode
+	c.mode = moduleMode
+	c.hoistInheritance(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistInheritanceWithinMixin(node *ast.MixinDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Mixin)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousMode := c.mode
+	c.mode = mixinMode
+	c.hoistInheritance(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistInheritanceWithinInterface(node *ast.InterfaceDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Interface)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousMode := c.mode
+	c.mode = interfaceMode
+	c.hoistInheritance(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistInheritance(statements []ast.StatementNode) {
+	for _, statement := range statements {
+		stmt, ok := statement.(*ast.ExpressionStatementNode)
+		if !ok {
+			continue
+		}
+
+		expression := stmt.Expression
+
+		switch expr := expression.(type) {
+		case *ast.IncludeExpressionNode:
+			for _, constant := range expr.Constants {
+				c.includeMixin(constant)
+			}
+		case *ast.ImplementExpressionNode:
+			for _, constant := range expr.Constants {
+				c.implementInterface(constant)
+			}
+		case *ast.ModuleDeclarationNode:
+			c.hoistInheritanceWithinModule(expr)
+		case *ast.ClassDeclarationNode:
+			c.hoistInheritanceWithinClass(expr)
+		case *ast.MixinDeclarationNode:
+			c.hoistInheritanceWithinMixin(expr)
+		case *ast.InterfaceDeclarationNode:
+			c.hoistInheritanceWithinInterface(expr)
+		case *ast.SingletonBlockExpressionNode:
+			c.hoistInheritanceWithinSingleton(expr)
+		}
+	}
 }
 
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
@@ -4047,14 +4192,6 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistSetterDeclaration(expr)
 		case *ast.AttrDeclarationNode:
 			c.hoistAttrDeclaration(expr)
-		case *ast.IncludeExpressionNode:
-			for _, constant := range expr.Constants {
-				c.includeMixin(constant)
-			}
-		case *ast.ImplementExpressionNode:
-			for _, constant := range expr.Constants {
-				c.implementInterface(constant)
-			}
 		case *ast.ModuleDeclarationNode:
 			c.hoistMethodDefinitionsWithinModule(expr)
 		case *ast.ClassDeclarationNode:
