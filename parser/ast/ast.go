@@ -3208,7 +3208,7 @@ const (
 
 // Represents a type variable eg. `+V`
 type VariantTypeVariableNode struct {
-	NodeBase
+	TypedNodeBase
 	Variance   Variance // Variance level of this type variable
 	Name       string   // Name of the type variable eg. `T`
 	UpperBound TypeNode
@@ -3222,11 +3222,11 @@ func (*VariantTypeVariableNode) IsStatic() bool {
 // Create a new type variable node eg. `+V`
 func NewVariantTypeVariableNode(span *position.Span, variance Variance, name string, lower, upper TypeNode) *VariantTypeVariableNode {
 	return &VariantTypeVariableNode{
-		NodeBase:   NodeBase{span: span},
-		Variance:   variance,
-		Name:       name,
-		LowerBound: lower,
-		UpperBound: upper,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Variance:      variance,
+		Name:          name,
+		LowerBound:    lower,
+		UpperBound:    upper,
 	}
 }
 

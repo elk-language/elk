@@ -61,6 +61,10 @@ func (c *Checker) constantScopesCopy() []constantScope {
 		return c.constantScopesCopyCache
 	}
 
+	return c.constantScopesCopyWithoutCache()
+}
+
+func (c *Checker) constantScopesCopyWithoutCache() []constantScope {
 	scopesCopy := make([]constantScope, len(c.constantScopes))
 	copy(scopesCopy, c.constantScopes)
 	c.constantScopesCopyCache = scopesCopy

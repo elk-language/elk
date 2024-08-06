@@ -373,7 +373,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
-		*ast.UninterpolatedRegexLiteralNode:
+		*ast.UninterpolatedRegexLiteralNode, *ast.GenericTypeDefinitionNode:
 		return n
 	case *ast.SelfLiteralNode:
 		n.SetType(c.selfType)
@@ -3807,6 +3807,8 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			c.checkConstantDeclaration(expr)
 		case *ast.TypeDefinitionNode:
 			c.registerTypeDefinitionCheck(expr)
+		case *ast.GenericTypeDefinitionNode:
+			c.registerGenericTypeDefinitionCheck(expr)
 		case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 			*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 			namespace := c.currentMethodScope().container

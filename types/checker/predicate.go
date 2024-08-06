@@ -343,6 +343,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 			return false
 		}
 		return a.Value == b.Value
+	case *types.TypeVariable:
+		return false
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}

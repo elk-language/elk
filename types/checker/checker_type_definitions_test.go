@@ -62,3 +62,62 @@ func TestTypeDefinition(t *testing.T) {
 		})
 	}
 }
+
+func TestGenericTypeDefinition(t *testing.T) {
+	tests := testTable{
+		"define a generic type with valid content": {
+			input: `
+				typedef Dupa[V] = V | String
+			`,
+		},
+		"define a generic type with invalid content": {
+			input: `
+				typedef Dupa[V] = T | String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(23, 2, 23), P(23, 2, 23)), "undefined type `T`"),
+			},
+		},
+		"define a generic type with valid upper bound": {
+			input: `
+				typedef Dupa[V < Object] = V | String
+			`,
+		},
+		"define a generic type with invalid upper bound": {
+			input: `
+				typedef Dupa[V < Foo] = V | String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+			},
+		},
+		"define a generic type with valid lower bound": {
+			input: `
+				typedef Dupa[V > Int] = V | String
+			`,
+		},
+		"define a generic type with invalid lower bound": {
+			input: `
+				typedef Dupa[V > Foo] = V | String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+			},
+		},
+		"define a generic type with invalid upper and lower bound": {
+			input: `
+				typedef Dupa[V > Foo < Bar] = V | String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "undefined type `Bar`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
