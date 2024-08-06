@@ -3,7 +3,6 @@ package checker
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -56,20 +55,18 @@ func (c *Checker) checkTypeDefinition(
 }
 
 func (c *Checker) checkTypeDefinitions() {
-	concurrent.Foreach(
-		concurrencyLimit,
-		c.typeDefinitionChecks.Slice,
-		func(typedefCheck typeDefinitionCheckEntry) {
-			typedefChecker := c.newTypeDefinitionChecker(
-				typedefCheck.filename,
-				typedefCheck.constantScopes,
-			)
-			typedefChecker.checkTypeDefinition(
-				typedefCheck.name,
-				typedefCheck.typeNode,
-				typedefCheck.typeVarNodes,
-			)
-		},
-	)
+	oldFilename := c.Filename
+	oldConstantScopes := c.constantScopes
+	for _, typedefCheck := range c.typeDefinitionChecks.Slice {
+		c.Filename = typedefCheck.filename
+		c.constantScopes = typedefCheck.constantScopes
+		c.checkTypeDefinition(
+			typedefCheck.name,
+			typedefCheck.typeNode,
+			typedefCheck.typeVarNodes,
+		)
+	}
+	c.Filename = oldFilename
+	c.constantScopes = oldConstantScopes
 	c.typeDefinitionChecks.Slice = nil
 }

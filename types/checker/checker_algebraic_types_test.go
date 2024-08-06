@@ -70,14 +70,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 		"missing method on nilable type": {
 			input: `
 			  class Foo; end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 				  def foo; end
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(110, 7, 5), P(114, 7, 9)), "method `foo` is not defined on type `Foo`"),
+				error.NewFailure(L("<main>", P(118, 7, 5), P(122, 7, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"missing method on both types": {
@@ -96,14 +96,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int, b: String); end
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int); end
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(156, 9, 5), P(160, 9, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(164, 9, 5), P(168, 9, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
 			},
 		},
 		"method with different return types": {
@@ -111,14 +111,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int): Nil then nil
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(161, 9, 5), P(165, 9, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -126,14 +126,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Float): Int then 5
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(161, 9, 5), P(165, 9, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -141,7 +141,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo? = nil
@@ -153,14 +153,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(174, 9, 5), P(186, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				error.NewFailure(L("<main>", P(182, 9, 5), P(194, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -168,14 +168,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, *b: Float): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(170, 9, 5), P(182, 9, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(178, 9, 5), P(190, 9, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -183,14 +183,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, **b: Float): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(171, 9, 5), P(186, 9, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(179, 9, 5), P(194, 9, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -311,16 +311,16 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int, b: String); end
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int); end
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(237, 12, 5), P(241, 12, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(237, 12, 5), P(241, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(237, 12, 5), P(241, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
 			},
 		},
 		"method with different return types": {
@@ -331,15 +331,15 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int): Nil then nil
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(231, 12, 5), P(235, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(231, 12, 5), P(235, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -350,15 +350,15 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Float): Int then 5
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(230, 12, 5), P(234, 12, 9)), "method `Bar.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(230, 12, 5), P(234, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Bar.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
 			},
 		},
 		"method with wider param type": {
@@ -367,7 +367,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 					def foo(a: String): Int then 5
 				end
 				class Bar
-					def foo(a: Object): Int then 5
+					def foo(a: Value): Int then 5
 				end
 				var a: Foo | Bar = Foo()
 				a.foo("b")
@@ -394,13 +394,13 @@ func TestUnionTypeMethodCall(t *testing.T) {
 					def foo(a: String): Int then 3
 				end
 				class Bar
-					def foo(a: String): Object then 5
+					def foo(a: String): Value then 5
 				end
 				var a: Foo | Bar = Foo()
 				a.foo("b")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(153, 9, 5), P(162, 9, 14)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Object`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
 			},
 		},
 		"method with narrower return type": {
@@ -409,7 +409,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 					def foo(a: String): Int then 2
 				end
 				class Bar
-					def foo(a: String): Object then 5
+					def foo(a: String): Value then 5
 				end
 				var a: Bar | Foo = Foo()
 				a.foo("b")
@@ -423,7 +423,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
@@ -438,14 +438,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(257, 12, 5), P(269, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				error.NewFailure(L("<main>", P(265, 12, 5), P(277, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -456,14 +456,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, *b: Float): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(236, 12, 5), P(248, 12, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(244, 12, 5), P(256, 12, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -474,14 +474,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil
+				sealed primitive class Std::Nil < Value
 					def foo(a: Int, **b: Float): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(237, 12, 5), P(252, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(260, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -504,7 +504,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 		"assign Int to intersection type with two compatible types": {
 			input: `
 				var a = 3
-				var b: Object & StringConvertible = a
+				var b: Value & StringConvertible = a
 			`,
 		},
 		"assign intersection type to more wide intersection type": {
@@ -737,11 +737,13 @@ func TestNotType(t *testing.T) {
 		},
 		"cannot assign a superclass of the negated type to the not type": {
 			input: `
-				var a: ~Object = Value()
-				var b: ~String = a
+				class Foo; end
+				class Bar < Foo; end
+				var a: ~Foo = Object()
+				var b: ~Bar = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(28, 2, 28)), "type `Std::Value` cannot be assigned to type `~Std::Object`"),
+				error.NewFailure(L("<main>", P(63, 4, 19), P(70, 4, 26)), "type `Std::Object` cannot be assigned to type `~Foo`"),
 			},
 		},
 		"assign ~String to ~Object": {

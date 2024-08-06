@@ -1,7 +1,7 @@
 ##[
 	Represents a single Unicode code point.
 ]##
-sealed primitive class ::Std::Char
+sealed primitive class ::Std::Char < Value
 	##[
 		Get the next Unicode codepoint by incrementing by 1.
 	]##

@@ -1,7 +1,7 @@
 ##[
 	Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).
 ]##
-sealed primitive class ::Std::Int8
+sealed primitive class ::Std::Int8 < Value
 	##[
 		Returns itself.
 

@@ -1,4 +1,4 @@
-sealed primitive class ::Std::String
+sealed primitive class ::Std::String < Value
 	##[
 		Concatenate this `String`
 		with another `String` or `Char`.

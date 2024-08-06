@@ -281,9 +281,6 @@ func TestClass(t *testing.T) {
 				primitive class Bar; end
 				class Foo < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 3, 17), P(48, 3, 19)), "class `Foo` must be primitive to inherit from primitive class `Bar`"),
-			},
 		},
 		"class with module superclass": {
 			input: `
@@ -829,7 +826,7 @@ func TestClassOverride(t *testing.T) {
 		},
 		"modifier was primitive, is default": {
 			input: `
-				class Foo; end
+				primitive class Foo; end
 
 				primitive class Bar < Foo; end
 
@@ -838,7 +835,7 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(61, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
+				error.NewFailure(L("<main>", P(71, 6, 5), P(111, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
 			},
 		},
 		"superclass does not match": {
@@ -969,7 +966,7 @@ func TestInclude(t *testing.T) {
 					def foo(f: String?): String?; end
 				end
 				mixin Bar
-					def foo(f: Object): String then "bar"
+					def foo(f: Value): String then "bar"
 				end
 				class Baz < Foo
 					include Bar

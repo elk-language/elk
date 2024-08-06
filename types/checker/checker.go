@@ -4037,9 +4037,9 @@ func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
 						node.Superclass.Span(),
 					)
 				}
-				if superclass.IsPrimitive() && !class.IsPrimitive() {
+				if class.IsPrimitive() && !superclass.IsPrimitive() {
 					c.addFailure(
-						fmt.Sprintf("class `%s` must be primitive to inherit from primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+						fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
 						node.Superclass.Span(),
 					)
 				}

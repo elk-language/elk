@@ -2,7 +2,7 @@
 	A `Regex` represents regular expression that can be used
 	to match a pattern against strings.
 ]##
-sealed primitive class ::Std::Regex
+sealed primitive class ::Std::Regex < Value
 	##[
 		Check whether the pattern matches
 		the given string.

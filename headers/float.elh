@@ -4,7 +4,7 @@
 	This float type has 64 bits on 64 bit platforms
 	and 32 bit on 32 bit platforms.
 ]##
-sealed primitive class ::Std::Float
+sealed primitive class ::Std::Float < Value
 	##[
 		Returns itself.
 

@@ -124,7 +124,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
 		namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
 		namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
-		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, false, value.ToSymbol("Value"), nil, env)
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, value.ToSymbol("Value"), nil, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 
@@ -164,6 +164,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("ArrayList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -213,6 +214,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("ArrayTuple").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -255,6 +257,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("BigFloat").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -297,9 +300,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.SubtypeString("Bool").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.SubtypeString("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -353,6 +373,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Float").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -392,9 +413,42 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.SubtypeString("Float32").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("Float64").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.SubtypeString("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -444,6 +498,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("HashRecord").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -488,6 +543,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("HashSet").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -554,6 +610,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Int").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -605,6 +662,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Int16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -657,6 +715,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Int32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -709,6 +768,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Int64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -761,6 +821,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Int8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -869,6 +930,38 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.SubtypeString("Method").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.SubtypeString("Nil").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins
+
+				// Implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.SubtypeString("Object").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -904,6 +997,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Pair").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -926,6 +1020,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Regex").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -945,6 +1040,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("String").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -1038,6 +1134,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("Symbol").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -1074,6 +1171,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("UInt16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -1126,6 +1224,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("UInt32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -1178,6 +1277,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("UInt64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 
@@ -1230,6 +1330,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.SubtypeString("UInt8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins
 

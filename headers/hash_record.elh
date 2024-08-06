@@ -4,7 +4,7 @@
 	It is an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-sealed primitive class ::Std::HashRecord
+sealed primitive class ::Std::HashRecord < Value
 	typedef Key = any
 	typedef Value = any
 

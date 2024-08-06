@@ -703,14 +703,14 @@ func TestMethodDefinitionOverride(t *testing.T) {
 		"override the method with narrower param type": {
 			input: `
 				class Bar
-					def baz(a: Object): Object then a
+					def baz(a: Value): Value then a
 				end
 				class Foo < Bar
-					def baz(a: Int): Object then 1
+					def baz(a: Int): Value then 1
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Object): Std::Object`"),
+				error.NewFailure(L("<main>", P(93, 6, 14), P(98, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Value`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Value): Std::Value`"),
 			},
 		},
 		"override the method with wider param type": {
@@ -719,7 +719,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 					def baz(a: Int): Int then a
 				end
 				class Foo < Bar
-					def baz(a: Object): Int then 1
+					def baz(a: Value): Int then 1
 				end
 			`,
 		},
@@ -739,7 +739,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 		"override the method with narrower return type": {
 			input: `
 				class Bar
-					def baz(a: Object): Object then a
+					def baz(a: Object): Value then a
 				end
 				class Foo < Bar
 					def baz(a: Object): String then "a"
@@ -752,11 +752,11 @@ func TestMethodDefinitionOverride(t *testing.T) {
 					def baz(a: String): String then a
 				end
 				class Foo < Bar
-					def baz(a: String): Object then "a"
+					def baz(a: String): Value then "a"
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::String): Std::String`"),
+				error.NewFailure(L("<main>", P(107, 6, 26), P(111, 6, 30)), "cannot override method `baz` with a different return type, is `Std::Value`, should be `Std::String`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::String): Std::String`"),
 			},
 		},
 		"override the method with no return type": {

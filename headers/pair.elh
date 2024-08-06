@@ -2,7 +2,7 @@
 	A `Pair` represents a 2-element tuple,
 	or a key-value pair.
 ]##
-sealed primitive class ::Std::Pair
+sealed primitive class ::Std::Pair < Value
 	typedef Key = any
 	typedef Value = any
 

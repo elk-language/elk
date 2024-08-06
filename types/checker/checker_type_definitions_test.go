@@ -25,7 +25,7 @@ func TestTypeDefinition(t *testing.T) {
 		},
 		"call a method on a defined type": {
 			input: `
-				sealed primitive class Std::String
+				sealed primitive class Std::String < Value
 					def foo; end
 				end
 

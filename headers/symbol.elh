@@ -9,7 +9,7 @@
 	Comparing symbols happens in constant time, so it's
 	usually faster than comparing strings.
 ]##
-sealed primitive class ::Std::Symbol
+sealed primitive class ::Std::Symbol < Value
 	sealed def ==(other: Object): Bool; end
 
 	##[

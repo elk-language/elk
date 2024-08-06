@@ -4,7 +4,7 @@
 
 	It is an unordered collection of key-value pairs.
 ]##
-sealed primitive class ::Std::HashMap
+sealed primitive class ::Std::HashMap < Value
 	typedef Key = any
 	typedef Value = any
 
