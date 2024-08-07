@@ -113,6 +113,65 @@ func TestGenericTypeDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "undefined type `Bar`"),
 			},
 		},
+
+		"use a generic type with a valid type argument": {
+			input: `
+				typedef Foo[V] = V | String
+				var a: Foo[Int] = 2.4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(55, 3, 23), P(57, 3, 25)), "type `2.4` cannot be assigned to type `Std::Int | Std::String`"),
+			},
+		},
+		"use a generic type with an invalid number of type arguments": {
+			input: `
+				typedef Foo[V] = V | String
+				var a: Foo[Int, Float] = 2.4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "generic type `Foo[V]` requires 1 type argument(s)"),
+			},
+		},
+		"use a generic type with a satisfied upper bound": {
+			input: `
+				typedef Foo[V < Float] = V | String
+				var a: Foo[Float] = 2.4
+			`,
+		},
+		"use a generic type with an unsatisfied upper bound": {
+			input: `
+				typedef Foo[V < Float] = V | String
+				var a: Foo[Int] = 2.4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Float`"),
+			},
+		},
+		"use a generic type with a satisfied lower bound": {
+			input: `
+				typedef Foo[V > Float] = V | String
+				var a: Foo[Value] = 2.4
+			`,
+		},
+		"use a generic type with an unsatisfied lower bound": {
+			input: `
+				typedef Foo[V > Float] = V | String
+				var a: Foo[Int] = 2.4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
+			},
+		},
+		"use a generic type with an unsatisfied upper and lower bound": {
+			input: `
+				typedef Foo[V > Float < Object] = V | String
+				var a: Foo[Int] = 2.4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Object`"),
+				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

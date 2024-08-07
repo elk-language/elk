@@ -109,7 +109,7 @@ func TestConstantType(t *testing.T) {
 									S(P(5, 1, 6), P(8, 1, 9)),
 									"List",
 								),
-								[]ast.ComplexConstantNode{
+								[]ast.TypeNode{
 									ast.NewPublicConstantNode(
 										S(P(10, 1, 11), P(12, 1, 13)),
 										"Int",
@@ -194,7 +194,7 @@ func TestConstantType(t *testing.T) {
 										"Bar",
 									),
 								),
-								[]ast.ComplexConstantNode{
+								[]ast.TypeNode{
 									ast.NewPublicConstantNode(
 										S(P(16, 1, 17), P(18, 1, 19)),
 										"Int",

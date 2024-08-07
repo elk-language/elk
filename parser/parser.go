@@ -2490,6 +2490,11 @@ func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexCons
 	return commaSeparatedListWithoutTerminator(p, p.genericConstant, stopTokens...)
 }
 
+// typeAnnotationList = typeAnnotation ("," typeAnnotation)*
+func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
+	return commaSeparatedListWithoutTerminator(p, p.typeAnnotation, stopTokens...)
+}
+
 // includeExpression = "include" genericConstantList
 func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 	return includelikeExpression(p, ast.NewIncludeExpressionNode, allowed)
@@ -3921,7 +3926,7 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 		return constant
 	}
 
-	constList := p.genericConstantList(token.RBRACKET)
+	typeList := p.typeAnnotationList(token.RBRACKET)
 	rbracket, ok := p.consume(token.RBRACKET)
 	if !ok {
 		return ast.NewInvalidNode(rbracket.Span(), rbracket)
@@ -3930,7 +3935,7 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	return ast.NewGenericConstantNode(
 		constant.Span().Join(rbracket.Span()),
 		constant,
-		constList,
+		typeList,
 	)
 }
 

@@ -59,7 +59,7 @@ func (c *Checker) checkTypeDefinition(
 		return
 	}
 
-	typeVars := make([]*types.TypeVariable, len(typeVarNodes))
+	typeVars := make([]*types.TypeParameter, 0, len(typeVarNodes))
 	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", fullConstantName))
 	for _, typeVarNode := range typeVarNodes {
 		varNode, ok := typeVarNode.(*ast.VariantTypeVariableNode)
@@ -77,27 +77,27 @@ func (c *Checker) checkTypeDefinition(
 			variance = types.CONTRAVARIANT
 		}
 
-		var lowerType types.Type
+		var lowerType types.Type = types.Never{}
 		if varNode.LowerBound != nil {
 			varNode.LowerBound = c.checkTypeNode(varNode.LowerBound)
 			lowerType = c.typeOf(varNode.LowerBound)
 		}
 
-		var upperType types.Type
+		var upperType types.Type = types.Any{}
 		if varNode.UpperBound != nil {
 			varNode.UpperBound = c.checkTypeNode(varNode.UpperBound)
 			upperType = c.typeOf(varNode.UpperBound)
 		}
 
-		t := types.NewTypeVariable(
-			varNode.Name,
-			upperType,
+		t := types.NewTypeParameter(
+			value.ToSymbol(varNode.Name),
 			lowerType,
+			upperType,
 			variance,
 		)
 		typeVars = append(typeVars, t)
 		typeVarNode.SetType(t)
-		typeVarMod.DefineSubtype(value.ToSymbol(t.Name), t)
+		typeVarMod.DefineSubtype(t.Name, t)
 	}
 
 	c.pushConstScope(makeConstantScope(typeVarMod))

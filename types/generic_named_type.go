@@ -1,18 +1,20 @@
 package types
 
-import "strings"
+import (
+	"strings"
+)
 
 type GenericNamedType struct {
-	Name          string
-	Type          Type
-	TypeVariables []*TypeVariable
+	Name           string
+	Type           Type
+	TypeParameters []*TypeParameter
 }
 
-func NewGenericNamedType(name string, typ Type, typeVars []*TypeVariable) *GenericNamedType {
+func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *GenericNamedType {
 	return &GenericNamedType{
-		Name:          name,
-		Type:          typ,
-		TypeVariables: typeVars,
+		Name:           name,
+		Type:           typ,
+		TypeParameters: typeVars,
 	}
 }
 
@@ -29,7 +31,7 @@ func (g *GenericNamedType) inspect() string {
 
 	buffer.WriteString(g.Name)
 	buffer.WriteRune('[')
-	for i, typeVar := range g.TypeVariables {
+	for i, typeVar := range g.TypeParameters {
 		if i > 0 {
 			buffer.WriteString(", ")
 		}
@@ -40,12 +42,12 @@ func (g *GenericNamedType) inspect() string {
 			buffer.WriteRune('-')
 		}
 
-		buffer.WriteString(typeVar.Name)
-		if typeVar.LowerBound != nil {
+		buffer.WriteString(typeVar.Name.String())
+		if !IsNever(typeVar.LowerBound) {
 			buffer.WriteString(" > ")
 			buffer.WriteString(Inspect(typeVar.LowerBound))
 		}
-		if typeVar.UpperBound != nil {
+		if !IsAny(typeVar.UpperBound) {
 			buffer.WriteString(" < ")
 			buffer.WriteString(Inspect(typeVar.UpperBound))
 		}

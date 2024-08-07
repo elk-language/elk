@@ -395,7 +395,7 @@ func TestIncludeExpression(t *testing.T) {
 								ast.NewGenericConstantNode(
 									S(P(8, 1, 9), P(25, 1, 26)),
 									ast.NewPublicConstantNode(S(P(8, 1, 9), P(17, 1, 18)), "Enumerable"),
-									[]ast.ComplexConstantNode{
+									[]ast.TypeNode{
 										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									},
 								),
@@ -626,7 +626,7 @@ func TestImplementExpression(t *testing.T) {
 								ast.NewGenericConstantNode(
 									S(P(10, 1, 11), P(27, 1, 28)),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(19, 1, 20)), "Enumerable"),
-									[]ast.ComplexConstantNode{
+									[]ast.TypeNode{
 										ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
 									},
 								),
@@ -828,7 +828,7 @@ func TestExtendExpression(t *testing.T) {
 								ast.NewGenericConstantNode(
 									S(P(7, 1, 8), P(24, 1, 25)),
 									ast.NewPublicConstantNode(S(P(7, 1, 8), P(16, 1, 17)), "Enumerable"),
-									[]ast.ComplexConstantNode{
+									[]ast.TypeNode{
 										ast.NewPublicConstantNode(S(P(18, 1, 19), P(23, 1, 24)), "String"),
 									},
 								),
@@ -1000,7 +1000,7 @@ func TestEnhanceExpression(t *testing.T) {
 								ast.NewGenericConstantNode(
 									S(P(8, 1, 9), P(25, 1, 26)),
 									ast.NewPublicConstantNode(S(P(8, 1, 9), P(17, 1, 18)), "Enumerable"),
-									[]ast.ComplexConstantNode{
+									[]ast.TypeNode{
 										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									},
 								),
@@ -1370,7 +1370,7 @@ func TestValueDeclaration(t *testing.T) {
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Std"),
 									ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Map"),
 								),
-								[]ast.ComplexConstantNode{
+								[]ast.TypeNode{
 									ast.NewConstantLookupNode(
 										S(P(18, 1, 19), P(28, 1, 29)),
 										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
@@ -1379,7 +1379,7 @@ func TestValueDeclaration(t *testing.T) {
 									ast.NewGenericConstantNode(
 										S(P(31, 1, 32), P(42, 1, 43)),
 										ast.NewPublicConstantNode(S(P(31, 1, 32), P(34, 1, 35)), "List"),
-										[]ast.ComplexConstantNode{
+										[]ast.TypeNode{
 											ast.NewPublicConstantNode(S(P(36, 1, 37), P(41, 1, 42)), "String"),
 										},
 									),
@@ -1926,7 +1926,7 @@ func TestVariableDeclaration(t *testing.T) {
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Std"),
 									ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Map"),
 								),
-								[]ast.ComplexConstantNode{
+								[]ast.TypeNode{
 									ast.NewConstantLookupNode(
 										S(P(18, 1, 19), P(28, 1, 29)),
 										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
@@ -1935,7 +1935,7 @@ func TestVariableDeclaration(t *testing.T) {
 									ast.NewGenericConstantNode(
 										S(P(31, 1, 32), P(42, 1, 43)),
 										ast.NewPublicConstantNode(S(P(31, 1, 32), P(34, 1, 35)), "List"),
-										[]ast.ComplexConstantNode{
+										[]ast.TypeNode{
 											ast.NewPublicConstantNode(S(P(36, 1, 37), P(41, 1, 42)), "String"),
 										},
 									),
@@ -3971,7 +3971,7 @@ func TestClassDeclaration(t *testing.T) {
 									ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Std"),
 									ast.NewPublicConstantNode(S(P(17, 1, 18), P(19, 1, 20)), "Map"),
 								),
-								[]ast.ComplexConstantNode{
+								[]ast.TypeNode{
 									ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "Symbol"),
 									ast.NewPublicConstantNode(S(P(29, 1, 30), P(34, 1, 35)), "String"),
 								},

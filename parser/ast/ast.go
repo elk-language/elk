@@ -3381,8 +3381,8 @@ func NewMethodSignatureDefinitionNode(span *position.Span, docComment, name stri
 // Represents a generic constant in type annotations eg. `ArrayList[String]`
 type GenericConstantNode struct {
 	TypedNodeBase
-	Constant         ComplexConstantNode
-	GenericArguments []ComplexConstantNode
+	Constant      ComplexConstantNode
+	TypeArguments []TypeNode
 }
 
 func (*GenericConstantNode) IsStatic() bool {
@@ -3390,11 +3390,11 @@ func (*GenericConstantNode) IsStatic() bool {
 }
 
 // Create a generic constant node eg. `ArrayList[String]`
-func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
+func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []TypeNode) *GenericConstantNode {
 	return &GenericConstantNode{
-		TypedNodeBase:    TypedNodeBase{span: span},
-		Constant:         constant,
-		GenericArguments: args,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Constant:      constant,
+		TypeArguments: args,
 	}
 }
 

@@ -2763,6 +2763,99 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 	}
 }
 
+func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.TypeNode {
+	constantType, _ := c.resolveConstantType(node.Constant)
+	if constantType == nil {
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	switch t := constantType.(type) {
+	case *types.GenericNamedType:
+		if len(node.TypeArguments) != len(t.TypeParameters) {
+			c.addFailure(
+				fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(constantType), len(t.TypeParameters)),
+				node.Constant.Span(),
+			)
+			node.SetType(types.Nothing{})
+			return node
+		}
+
+		var fail bool
+		typeArgumentMap := make(map[value.Symbol]types.Type, len(t.TypeParameters))
+		for i := range len(t.TypeParameters) {
+			typeParameter := t.TypeParameters[i]
+
+			node.TypeArguments[i] = c.checkTypeNode(node.TypeArguments[i])
+			typeArgumentNode := node.TypeArguments[i]
+			typeArgument := c.typeOf(typeArgumentNode)
+			typeArgumentMap[typeParameter.Name] = typeArgument
+
+			if !c.isSubtype(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"type `%s` does not satisfy the upper bound `%s`",
+						types.InspectWithColor(typeArgument),
+						types.InspectWithColor(typeParameter.UpperBound),
+					),
+					typeArgumentNode.Span(),
+				)
+				fail = true
+			}
+			if !c.isSubtype(typeParameter.LowerBound, typeArgument, typeArgumentNode.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"type `%s` does not satisfy the lower bound `%s`",
+						types.InspectWithColor(typeArgument),
+						types.InspectWithColor(typeParameter.LowerBound),
+					),
+					typeArgumentNode.Span(),
+				)
+				fail = true
+			}
+		}
+		if fail {
+			node.SetType(types.Nothing{})
+			return node
+		}
+
+		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap))
+		return node
+	default:
+		c.addFailure(
+			fmt.Sprintf("type `%s` is not generic", types.InspectWithColor(constantType)),
+			node.Constant.Span(),
+		)
+		node.SetType(types.Nothing{})
+		return node
+	}
+}
+
+func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]types.Type) types.Type {
+	switch t := typ.(type) {
+	case *types.TypeParameter:
+		return typeArgMap[t.Name]
+	case *types.Nilable:
+		return types.NewNilable(c.replaceTypeParameters(t.Type, typeArgMap))
+	case *types.Not:
+		return types.NewNot(c.replaceTypeParameters(t.Type, typeArgMap))
+	case *types.Union:
+		newElements := make([]types.Type, 0, len(t.Elements))
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+		}
+		return c.newNormalisedUnion(newElements...)
+	case *types.Intersection:
+		newElements := make([]types.Type, 0, len(t.Elements))
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+		}
+		return c.newNormalisedIntersection(newElements...)
+	default:
+		return t
+	}
+}
+
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	if typ == nil {
@@ -2787,6 +2880,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 	case *ast.PrivateConstantNode:
 		c.checkPrivateConstantType(n)
 		return n
+	case *ast.GenericConstantNode:
+		return c.checkGenericConstantType(n)
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
 	case *ast.ClosureTypeNode:
