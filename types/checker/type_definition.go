@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
@@ -11,57 +12,96 @@ import (
 type typeDefinitionCheckEntry struct {
 	filename       string
 	constantScopes []constantScope
-	name           ast.ComplexConstantNode
-	typeNode       ast.TypeNode
-	typeVarNodes   []ast.TypeVariableNode
+	typ            types.Type
 }
 
 func (c *Checker) registerTypeDefinitionCheck(node *ast.TypeDefinitionNode) {
-	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
-		filename:       c.Filename,
-		constantScopes: c.constantScopesCopy(),
-		name:           node.Constant,
-		typeNode:       node.TypeNode,
-	})
-}
-
-func (c *Checker) registerGenericTypeDefinitionCheck(node *ast.GenericTypeDefinitionNode) {
-	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
-		filename:       c.Filename,
-		constantScopes: c.constantScopesCopyWithoutCache(),
-		name:           node.Constant,
-		typeNode:       node.TypeNode,
-		typeVarNodes:   node.TypeVariables,
-	})
-}
-
-func (c *Checker) checkTypeDefinition(
-	name ast.ComplexConstantNode,
-	typeNode ast.TypeNode,
-	typeVarNodes []ast.TypeVariableNode,
-) {
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(name)
-	constantName := value.ToSymbol(extractConstantName(name))
-	name = ast.NewPublicConstantNode(name.Span(), fullConstantName)
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 	if constant != nil {
 		c.addFailure(
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			name.Span(),
+			node.Constant.Span(),
 		)
 	}
 
 	container.DefineConstant(constantName, types.Void{})
-	if len(typeVarNodes) < 1 {
-		typeNode = c.checkTypeNode(typeNode)
-		typ := c.typeOf(typeNode)
-		namedType := types.NewNamedType(fullConstantName, typ)
-		container.DefineSubtype(constantName, namedType)
+	namedType := types.NewNamedType(fullConstantName, nil)
+	namedType.Node = node
+	container.DefineSubtype(constantName, namedType)
+
+	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
+		filename:       c.Filename,
+		constantScopes: c.constantScopesCopy(),
+		typ:            namedType,
+	})
+}
+
+func (c *Checker) registerGenericTypeDefinitionCheck(node *ast.GenericTypeDefinitionNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := value.ToSymbol(extractConstantName(node.Constant))
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	if constant != nil {
+		c.addFailure(
+			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+			node.Constant.Span(),
+		)
+	}
+
+	container.DefineConstant(constantName, types.Void{})
+	namedType := types.NewGenericNamedType(
+		fullConstantName,
+		nil,
+		nil,
+	)
+	namedType.Node = node
+	container.DefineSubtype(constantName, namedType)
+
+	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
+		filename:       c.Filename,
+		constantScopes: c.constantScopesCopyWithoutCache(),
+		typ:            namedType,
+	})
+}
+
+func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span) {
+	if namedType.Type == nil && namedType.Node == nil {
+		c.addFailure(
+			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
+			span,
+		)
+		return
+	}
+	if namedType.Node == nil {
 		return
 	}
 
-	typeVars := make([]*types.TypeParameter, 0, len(typeVarNodes))
-	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", fullConstantName))
-	for _, typeVarNode := range typeVarNodes {
+	node := namedType.Node.(*ast.TypeDefinitionNode)
+	namedType.Node = nil
+	typeNode := c.checkTypeNode(node.TypeNode)
+	typ := c.typeOf(typeNode)
+	namedType.Type = typ
+}
+
+func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span *position.Span) {
+	if namedType.Type == nil && namedType.Node == nil {
+		c.addFailure(
+			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
+			span,
+		)
+		return
+	}
+	if namedType.Node == nil {
+		return
+	}
+
+	node := namedType.Node.(*ast.GenericTypeDefinitionNode)
+	namedType.Node = nil
+
+	typeVars := make([]*types.TypeParameter, 0, len(node.TypeVariables))
+	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", namedType.Name))
+	for _, typeVarNode := range node.TypeVariables {
 		varNode, ok := typeVarNode.(*ast.VariantTypeVariableNode)
 		if !ok {
 			continue
@@ -102,14 +142,10 @@ func (c *Checker) checkTypeDefinition(
 
 	c.pushConstScope(makeConstantScope(typeVarMod))
 
-	typeNode = c.checkTypeNode(typeNode)
-	typ := c.typeOf(typeNode)
-	namedType := types.NewGenericNamedType(
-		fullConstantName,
-		typ,
-		typeVars,
-	)
-	container.DefineSubtype(constantName, namedType)
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+	typ := c.typeOf(node.TypeNode)
+	namedType.Type = typ
+	namedType.TypeParameters = typeVars
 
 	c.popConstScope()
 }
@@ -120,11 +156,12 @@ func (c *Checker) checkTypeDefinitions() {
 	for _, typedefCheck := range c.typeDefinitionChecks.Slice {
 		c.Filename = typedefCheck.filename
 		c.constantScopes = typedefCheck.constantScopes
-		c.checkTypeDefinition(
-			typedefCheck.name,
-			typedefCheck.typeNode,
-			typedefCheck.typeVarNodes,
-		)
+		switch t := typedefCheck.typ.(type) {
+		case *types.NamedType:
+			c.checkNamedType(t, nil)
+		case *types.GenericNamedType:
+			c.checkGenericNamedType(t, nil)
+		}
 	}
 	c.Filename = oldFilename
 	c.constantScopes = oldConstantScopes

@@ -8,6 +8,15 @@ import (
 
 func TestTypeDefinition(t *testing.T) {
 	tests := testTable{
+		"define types with circular dependencies": {
+			input: `
+				typedef Foo = Bar
+				typedef Bar = Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(41, 3, 19), P(43, 3, 21)), "Type `Foo` circularly references itself"),
+			},
+		},
 		"define a type and assign a compatible value": {
 			input: `
 				typedef Text = String
@@ -50,9 +59,6 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Foo = Bar | nil
 				typedef Bar = 1 | 2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 2, 19), P(21, 2, 21)), "undefined type `Bar`"),
-			},
 		},
 	}
 
@@ -65,6 +71,24 @@ func TestTypeDefinition(t *testing.T) {
 
 func TestGenericTypeDefinition(t *testing.T) {
 	tests := testTable{
+		"define generic types with circular dependencies": {
+			input: `
+				typedef Foo[V] = V | Bar
+				typedef Bar = Foo[Int]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 3, 19), P(50, 3, 21)), "Type `Foo` circularly references itself"),
+			},
+		},
+		"define generic types with circular dependencies in the bounds": {
+			input: `
+				typedef Foo[V < Bar] = V | Float
+				typedef Bar = Foo[Int]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 3, 19), P(58, 3, 21)), "Type `Foo` circularly references itself"),
+			},
+		},
 		"define a generic type with valid content": {
 			input: `
 				typedef Dupa[V] = V | String

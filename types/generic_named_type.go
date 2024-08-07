@@ -8,6 +8,7 @@ type GenericNamedType struct {
 	Name           string
 	Type           Type
 	TypeParameters []*TypeParameter
+	Node           AstNode
 }
 
 func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *GenericNamedType {
@@ -27,6 +28,10 @@ func (*GenericNamedType) IsLiteral() bool {
 }
 
 func (g *GenericNamedType) inspect() string {
+	if len(g.TypeParameters) < 1 {
+		return g.Name
+	}
+
 	buffer := new(strings.Builder)
 
 	buffer.WriteString(g.Name)

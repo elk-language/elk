@@ -2607,12 +2607,22 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 	return nil, name
 }
 
+func (c *Checker) checkTypeIfNecessary(typ types.Type, span *position.Span) {
+	switch t := typ.(type) {
+	case *types.GenericNamedType:
+		c.checkGenericNamedType(t, span)
+	case *types.NamedType:
+		c.checkNamedType(t, span)
+	}
+}
+
 // Get the type with the given name
 func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.SubtypeString(name)
 		if constant != nil {
+			c.checkTypeIfNecessary(constant, span)
 			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
 	}
@@ -2741,6 +2751,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
+	c.checkTypeIfNecessary(constant, node.Right.Span())
 	return constant, typeName
 }
 
@@ -2763,6 +2774,16 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 	}
 }
 
+func (c *Checker) addTypeArgumentCountError(typ types.Type, paramCount int, span *position.Span) {
+	if paramCount == 0 {
+		return
+	}
+	c.addFailure(
+		fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), paramCount),
+		span,
+	)
+}
+
 func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.TypeNode {
 	constantType, _ := c.resolveConstantType(node.Constant)
 	if constantType == nil {
@@ -2773,10 +2794,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 	switch t := constantType.(type) {
 	case *types.GenericNamedType:
 		if len(node.TypeArguments) != len(t.TypeParameters) {
-			c.addFailure(
-				fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(constantType), len(t.TypeParameters)),
-				node.Constant.Span(),
-			)
+			c.addTypeArgumentCountError(constantType, len(t.TypeParameters), node.Constant.Span())
 			node.SetType(types.Nothing{})
 			return node
 		}
@@ -2860,10 +2878,7 @@ func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addFailure(
-			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
-			node.Span(),
-		)
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
 		typ = types.Nothing{}
 	case nil:
 		typ = types.Nothing{}
@@ -2875,10 +2890,7 @@ func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addFailure(
-			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
-			node.Span(),
-		)
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
 		typ = types.Nothing{}
 	case nil:
 		typ = types.Nothing{}
@@ -3040,10 +3052,7 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 	typ, name := c.resolveConstantLookupType(node)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addFailure(
-			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
-			node.Span(),
-		)
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
 		typ = types.Nothing{}
 	case nil:
 		typ = types.Nothing{}
@@ -4130,17 +4139,16 @@ func (c *Checker) hoistInheritanceWithinSingleton(expr *ast.SingletonBlockExpres
 func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
 	class, ok := c.typeOf(node).(*types.Class)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
-
+		var superclassType types.Type
 		var superclass *types.Class
 
 		switch node.Superclass.(type) {
 		case *ast.NilLiteralNode:
 		case nil:
 			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+			superclassType = superclass
 		default:
-			superclassType, _ := c.resolveConstantType(node.Superclass)
+			superclassType, _ = c.resolveConstantType(node.Superclass)
 			var ok bool
 			superclass, ok = superclassType.(*types.Class)
 			if !ok {
@@ -4179,7 +4187,7 @@ func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
 				fmt.Sprintf(
 					"superclass mismatch in `%s`, got `%s`, expected `%s`",
 					class.Name(),
-					superclass.Name(),
+					types.InspectWithColor(superclassType),
 					parent.Name(),
 				),
 				span,
@@ -4187,6 +4195,9 @@ func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
 		}
 
 	}
+
+	c.pushConstScope(makeLocalConstantScope(class))
+	c.pushMethodScope(makeLocalMethodScope(class))
 
 	previousMode := c.mode
 	c.mode = classMode
