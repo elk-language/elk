@@ -2858,7 +2858,14 @@ func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Sym
 
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
-	if typ == nil {
+	switch t := typ.(type) {
+	case *types.GenericNamedType:
+		c.addFailure(
+			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
+			node.Span(),
+		)
+		typ = types.Nothing{}
+	case nil:
 		typ = types.Nothing{}
 	}
 	node.SetType(typ)
@@ -2866,7 +2873,14 @@ func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 
 func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
-	if typ == nil {
+	switch t := typ.(type) {
+	case *types.GenericNamedType:
+		c.addFailure(
+			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
+			node.Span(),
+		)
+		typ = types.Nothing{}
+	case nil:
 		typ = types.Nothing{}
 	}
 	node.SetType(typ)
@@ -3024,7 +3038,14 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 
 func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookupType(node)
-	if typ == nil {
+	switch t := typ.(type) {
+	case *types.GenericNamedType:
+		c.addFailure(
+			fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), len(t.TypeParameters)),
+			node.Span(),
+		)
+		typ = types.Nothing{}
+	case nil:
 		typ = types.Nothing{}
 	}
 

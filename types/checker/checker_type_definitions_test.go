@@ -70,6 +70,17 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Dupa[V] = V | String
 			`,
 		},
+		"use a generic type under a namespace": {
+			input: `
+				module Foo
+					typedef Bar[V] = V | String
+				end
+				var a: Foo::Bar[Int] = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 5, 28), P(86, 5, 30)), "type `nil` cannot be assigned to type `Std::Int | Std::String`"),
+			},
+		},
 		"define a generic type with invalid content": {
 			input: `
 				typedef Dupa[V] = T | String
@@ -170,6 +181,26 @@ func TestGenericTypeDefinition(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Object`"),
 				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
+			},
+		},
+		"use a generic type without type arguments": {
+			input: `
+				typedef Dupa[V] = V | String
+				var a: Dupa = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "generic type `Dupa[V]` requires 1 type argument(s)"),
+			},
+		},
+		"use a generic type under a namespace without type arguments": {
+			input: `
+				module Foo
+					typedef Bar[V] = V | String
+				end
+				var a: Foo::Bar = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "generic type `Foo::Bar[V]` requires 1 type argument(s)"),
 			},
 		},
 	}
