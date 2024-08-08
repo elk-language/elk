@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type typeDefinitionCheckEntry struct {
@@ -168,4 +169,106 @@ func (c *Checker) checkTypeDefinitions() {
 	c.Filename = oldFilename
 	c.constantScopes = oldConstantScopes
 	c.typeDefinitionChecks.Slice = nil
+}
+
+type hoistedNamespaceCheck struct {
+	filename       string
+	node           ast.ExpressionNode
+	constantScopes []constantScope
+}
+
+func (c *Checker) registerHoistedNamespaceCheck(node ast.ExpressionNode) {
+	c.hoistedNamespaceChecks.Append(hoistedNamespaceCheck{
+		node:           node,
+		filename:       c.Filename,
+		constantScopes: c.constantScopesCopy(),
+	})
+}
+
+func (c *Checker) checkInheritance() {
+	oldFilename := c.Filename
+	oldConstantScopes := c.constantScopes
+	for _, namespaceCheck := range c.hoistedNamespaceChecks.Slice {
+		c.Filename = namespaceCheck.filename
+		c.constantScopes = namespaceCheck.constantScopes
+		switch n := namespaceCheck.node.(type) {
+		case *ast.IncludeExpressionNode:
+			for _, constant := range n.Constants {
+				c.includeMixin(constant)
+			}
+			n.SetType(types.Nothing{})
+		case *ast.ImplementExpressionNode:
+			for _, constant := range n.Constants {
+				c.implementInterface(constant)
+			}
+			n.SetType(types.Nothing{})
+		case *ast.ClassDeclarationNode:
+			c.checkClassInheritance(n)
+		}
+	}
+	c.Filename = oldFilename
+	c.constantScopes = oldConstantScopes
+	c.hoistedNamespaceChecks.Slice = nil
+}
+
+func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
+	class, ok := c.typeOf(node).(*types.Class)
+	if !ok {
+		return
+	}
+	var superclassType types.Type
+	var superclass *types.Class
+
+	switch node.Superclass.(type) {
+	case *ast.NilLiteralNode:
+	case nil:
+		superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+		superclassType = superclass
+	default:
+		superclassType, _ = c.resolveConstantType(node.Superclass)
+		var ok bool
+		superclass, ok = superclassType.(*types.Class)
+		if !ok {
+			c.addFailure(
+				fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+				node.Superclass.Span(),
+			)
+		} else {
+			if superclass.IsSealed() {
+				c.addFailure(
+					fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			}
+			if class.IsPrimitive() && !superclass.IsPrimitive() {
+				c.addFailure(
+					fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			}
+		}
+	}
+
+	parent := class.Superclass()
+	if parent == nil && superclass != nil {
+		class.SetParent(superclass)
+	} else if parent != nil && parent != superclass {
+		var span *position.Span
+		if node.Superclass == nil {
+			span = node.Span()
+		} else {
+			span = node.Superclass.Span()
+		}
+
+		c.addFailure(
+			fmt.Sprintf(
+				"superclass mismatch in `%s`, got `%s`, expected `%s`",
+				class.Name(),
+				types.InspectWithColor(superclassType),
+				parent.Name(),
+			),
+			span,
+		)
+	}
+
 }

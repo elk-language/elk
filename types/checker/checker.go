@@ -75,6 +75,7 @@ type Checker struct {
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
 	typeDefinitionChecks    *concurrent.Slice[typeDefinitionCheckEntry]
+	hoistedNamespaceChecks  *concurrent.Slice[hoistedNamespaceCheck]
 }
 
 // Instantiate a new Checker instance.
@@ -100,9 +101,10 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:  concurrent.NewSlice[typeDefinitionCheckEntry](),
+		placeholderNamespaces:  concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:           concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:   concurrent.NewSlice[typeDefinitionCheckEntry](),
+		hoistedNamespaceChecks: concurrent.NewSlice[hoistedNamespaceCheck](),
 	}
 }
 
@@ -125,9 +127,10 @@ func New() *Checker {
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:  concurrent.NewSlice[typeDefinitionCheckEntry](),
+		placeholderNamespaces:  concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:           concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:   concurrent.NewSlice[typeDefinitionCheckEntry](),
+		hoistedNamespaceChecks: concurrent.NewSlice[hoistedNamespaceCheck](),
 	}
 }
 
@@ -1950,16 +1953,6 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 	node.SetType(constantMixin)
 
-	switch c.mode {
-	case classMode, mixinMode, singletonMode:
-	default:
-		c.addFailure(
-			"cannot include mixins in this context",
-			node.Span(),
-		)
-		return
-	}
-
 	target := c.currentConstScope().container
 	if c.isSubtypeOfMixin(target, constantMixin, nil) {
 		return
@@ -2002,16 +1995,6 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	if !constantIsInterface {
 		c.addFailure(
 			"only interfaces can be implemented",
-			node.Span(),
-		)
-		return
-	}
-
-	switch c.mode {
-	case classMode, mixinMode, interfaceMode:
-	default:
-		c.addFailure(
-			"cannot implement interfaces in this context",
 			node.Span(),
 		)
 		return
@@ -3698,7 +3681,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 		}
 	}
 
-	c.hoistInheritance(statements)
+	c.checkInheritance()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.phase = expressionPhase
@@ -3944,6 +3927,8 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		return
 	}
 
+	c.registerHoistedNamespaceCheck(node)
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	class := c.declareClass(
@@ -4048,6 +4033,7 @@ func (c *Checker) hoistSingletonDeclaration(node *ast.SingletonBlockExpressionNo
 
 	currentNamespace := c.currentConstScope().container
 	singleton := currentNamespace.Singleton()
+	node.SetType(singleton)
 
 	prevMode := c.mode
 	c.mode = singletonMode
@@ -4088,6 +4074,20 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			c.registerTypeDefinitionCheck(expr)
 		case *ast.GenericTypeDefinitionNode:
 			c.registerGenericTypeDefinitionCheck(expr)
+		case *ast.ImplementExpressionNode:
+			switch c.mode {
+			case classMode, mixinMode, interfaceMode:
+			default:
+				return
+			}
+			c.registerHoistedNamespaceCheck(expr)
+		case *ast.IncludeExpressionNode:
+			switch c.mode {
+			case classMode, mixinMode, singletonMode:
+			default:
+				return
+			}
+			c.registerHoistedNamespaceCheck(expr)
 		case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 			*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 			namespace := c.currentMethodScope().container
@@ -4265,187 +4265,6 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 
 	c.popConstScope()
 	c.popMethodScope()
-}
-
-func (c *Checker) hoistInheritanceWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
-	namespace := c.currentConstScope().container
-	singleton := namespace.Singleton()
-	if singleton == nil {
-		return
-	}
-	expr.SetType(singleton)
-
-	c.pushConstScope(makeLocalConstantScope(singleton))
-	c.pushMethodScope(makeLocalMethodScope(singleton))
-
-	previousMode := c.mode
-	c.mode = singletonMode
-	c.hoistInheritance(expr.Body)
-	c.setMode(previousMode)
-
-	c.popConstScope()
-	c.popMethodScope()
-}
-
-func (c *Checker) hoistInheritanceWithinClass(node *ast.ClassDeclarationNode) {
-	class, ok := c.typeOf(node).(*types.Class)
-	if ok {
-		var superclassType types.Type
-		var superclass *types.Class
-
-		switch node.Superclass.(type) {
-		case *ast.NilLiteralNode:
-		case nil:
-			superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-			superclassType = superclass
-		default:
-			superclassType, _ = c.resolveConstantType(node.Superclass)
-			var ok bool
-			superclass, ok = superclassType.(*types.Class)
-			if !ok {
-				c.addFailure(
-					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
-				)
-			} else {
-				if superclass.IsSealed() {
-					c.addFailure(
-						fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-						node.Superclass.Span(),
-					)
-				}
-				if class.IsPrimitive() && !superclass.IsPrimitive() {
-					c.addFailure(
-						fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
-						node.Superclass.Span(),
-					)
-				}
-			}
-		}
-
-		parent := class.Superclass()
-		if parent == nil && superclass != nil {
-			class.SetParent(superclass)
-		} else if parent != nil && parent != superclass {
-			var span *position.Span
-			if node.Superclass == nil {
-				span = node.Span()
-			} else {
-				span = node.Superclass.Span()
-			}
-
-			c.addFailure(
-				fmt.Sprintf(
-					"superclass mismatch in `%s`, got `%s`, expected `%s`",
-					class.Name(),
-					types.InspectWithColor(superclassType),
-					parent.Name(),
-				),
-				span,
-			)
-		}
-
-	}
-
-	c.pushConstScope(makeLocalConstantScope(class))
-	c.pushMethodScope(makeLocalMethodScope(class))
-
-	previousMode := c.mode
-	c.mode = classMode
-	c.hoistInheritance(node.Body)
-	c.setMode(previousMode)
-	if ok {
-		c.popConstScope()
-		c.popMethodScope()
-	}
-}
-
-func (c *Checker) hoistInheritanceWithinModule(node *ast.ModuleDeclarationNode) {
-	module, ok := c.typeOf(node).(*types.Module)
-	if ok {
-		c.pushConstScope(makeLocalConstantScope(module))
-		c.pushMethodScope(makeLocalMethodScope(module))
-	}
-
-	previousMode := c.mode
-	c.mode = moduleMode
-	c.hoistInheritance(node.Body)
-	c.setMode(previousMode)
-
-	if ok {
-		c.popConstScope()
-		c.popMethodScope()
-	}
-}
-
-func (c *Checker) hoistInheritanceWithinMixin(node *ast.MixinDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Mixin)
-	if ok {
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
-	}
-
-	previousMode := c.mode
-	c.mode = mixinMode
-	c.hoistInheritance(node.Body)
-	c.setMode(previousMode)
-
-	if ok {
-		c.popConstScope()
-		c.popMethodScope()
-	}
-}
-
-func (c *Checker) hoistInheritanceWithinInterface(node *ast.InterfaceDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Interface)
-	if ok {
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
-	}
-
-	previousMode := c.mode
-	c.mode = interfaceMode
-	c.hoistInheritance(node.Body)
-	c.setMode(previousMode)
-
-	if ok {
-		c.popConstScope()
-		c.popMethodScope()
-	}
-}
-
-func (c *Checker) hoistInheritance(statements []ast.StatementNode) {
-	for _, statement := range statements {
-		stmt, ok := statement.(*ast.ExpressionStatementNode)
-		if !ok {
-			continue
-		}
-
-		expression := stmt.Expression
-
-		switch expr := expression.(type) {
-		case *ast.IncludeExpressionNode:
-			for _, constant := range expr.Constants {
-				c.includeMixin(constant)
-			}
-			expr.SetType(types.Nothing{})
-		case *ast.ImplementExpressionNode:
-			for _, constant := range expr.Constants {
-				c.implementInterface(constant)
-			}
-			expr.SetType(types.Nothing{})
-		case *ast.ModuleDeclarationNode:
-			c.hoistInheritanceWithinModule(expr)
-		case *ast.ClassDeclarationNode:
-			c.hoistInheritanceWithinClass(expr)
-		case *ast.MixinDeclarationNode:
-			c.hoistInheritanceWithinMixin(expr)
-		case *ast.InterfaceDeclarationNode:
-			c.hoistInheritanceWithinInterface(expr)
-		case *ast.SingletonBlockExpressionNode:
-			c.hoistInheritanceWithinSingleton(expr)
-		}
-	}
 }
 
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {

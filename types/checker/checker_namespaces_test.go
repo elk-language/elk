@@ -942,8 +942,7 @@ func TestInclude(t *testing.T) {
 		"include inexistent mixin": {
 			input: `include Foo`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
-				error.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot include mixins in this context"),
 			},
 		},
 		"include in top level": {
@@ -952,7 +951,7 @@ func TestInclude(t *testing.T) {
 				include Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 13), P(34, 3, 15)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(24, 3, 5), P(34, 3, 15)), "cannot include mixins in this context"),
 			},
 		},
 		"include in module": {
@@ -963,7 +962,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 4, 14), P(51, 4, 16)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(41, 4, 6), P(51, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in interface": {
@@ -974,7 +973,7 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(52, 4, 14), P(54, 4, 16)), "cannot include mixins in this context"),
+				error.NewFailure(L("<main>", P(44, 4, 6), P(54, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in class": {
@@ -1143,10 +1142,14 @@ func TestInclude(t *testing.T) {
 func TestImplement(t *testing.T) {
 	tests := testTable{
 		"implement inexistent interface": {
-			input: `implement Foo`,
+			input: `
+				class Foo
+					implement Bar
+				end
+			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "undefined type `Foo`"),
-				error.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "only interfaces can be implemented"),
+				error.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "undefined type `Bar`"),
+				error.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement in top level": {
@@ -1155,7 +1158,7 @@ func TestImplement(t *testing.T) {
 				implement Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(38, 3, 15), P(40, 3, 17)), "cannot implement interfaces in this context"),
+				error.NewFailure(L("<main>", P(28, 3, 05), P(40, 3, 17)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in module": {
@@ -1166,7 +1169,7 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(55, 4, 16), P(57, 4, 18)), "cannot implement interfaces in this context"),
+				error.NewFailure(L("<main>", P(45, 4, 6), P(57, 4, 18)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in interface": {
