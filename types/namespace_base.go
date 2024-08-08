@@ -11,6 +11,9 @@ func MakeFullConstantName(containerName, constName string) string {
 	if containerName == "Root" || containerName == "" {
 		return constName
 	}
+	if containerName[0] == '&' {
+		return fmt.Sprintf("(%s)::%s", containerName, constName)
+	}
 	return fmt.Sprintf("%s::%s", containerName, constName)
 }
 

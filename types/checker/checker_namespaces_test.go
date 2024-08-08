@@ -115,7 +115,29 @@ func TestModule(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 3, 6), P(38, 4, 8)), "cannot declare a singleton class in this context"),
+				error.NewFailure(L("<main>", P(21, 3, 6), P(38, 4, 8)), "singleton definitions cannot appear in this context"),
+			},
+		},
+		"within method": {
+			input: `
+				def foo
+					module Foo; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
+			},
+		},
+		"within singleton": {
+			input: `
+				class Foo
+					singleton
+						module Bar; end
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 4, 7), P(50, 4, 21)), "module definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -210,6 +232,28 @@ func TestStruct(t *testing.T) {
 
 				var a: &Foo = Foo
 			`,
+		},
+		"within method": {
+			input: `
+				def foo
+					struct Foo; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 3, 13), P(27, 3, 15)), "struct definitions cannot appear in this context"),
+			},
+		},
+		"within singleton": {
+			input: `
+				class Foo
+					singleton
+						struct Bar; end
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 4, 14), P(45, 4, 16)), "struct definitions cannot appear in this context"),
+			},
 		},
 	}
 
@@ -501,6 +545,28 @@ func TestClass(t *testing.T) {
 				var a: &Foo = Foo
 			`,
 		},
+		"within method": {
+			input: `
+				def foo
+					class Foo; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "class definitions cannot appear in this context"),
+			},
+		},
+		"within singleton": {
+			input: `
+				class Foo
+					singleton
+						class Bar; end
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 4, 7), P(49, 4, 20)), "class definitions cannot appear in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -708,6 +774,16 @@ func TestInstanceVariables(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(21, 3, 6), P(24, 3, 9)), "undefined instance variable `@foo` in type `Foo`"),
+			},
+		},
+		"declare within a method": {
+			input: `
+				def foo
+					var @a: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "instance variable definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -1045,6 +1121,16 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
+		"include within a method": {
+			input: `
+				def foo
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(28, 3, 16)), "cannot include mixins in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -1129,7 +1215,7 @@ func TestImplement(t *testing.T) {
 				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
-		"include mixin": {
+		"implement mixin": {
 			input: `
 				mixin Foo; end
 				class  Bar
@@ -1138,6 +1224,16 @@ func TestImplement(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+			},
+		},
+		"implement within a method": {
+			input: `
+				def foo
+					implement Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(30, 3, 18)), "cannot implement interfaces in this context"),
 			},
 		},
 	}
@@ -1378,6 +1474,16 @@ func TestMixin(t *testing.T) {
 				error.NewFailure(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
+		"within a method": {
+			input: `
+				def foo
+					mixin Bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -1427,6 +1533,16 @@ func TestInterface(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+			},
+		},
+		"within a method": {
+			input: `
+				def foo
+					interface Bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(35, 3, 23)), "interface definitions cannot appear in this context"),
 			},
 		},
 	}

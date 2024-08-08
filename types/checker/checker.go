@@ -243,14 +243,20 @@ func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
 
 func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) {
 	module, ok := c.typeOf(node).(*types.Module)
+	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
 		c.pushMethodScope(makeLocalMethodScope(module))
 		c.pushIsolatedLocalEnv()
+		c.selfType = module
+	} else {
+		c.selfType = types.Nothing{}
+		c.addFailure(
+			"module definitions cannot appear in this context",
+			node.Span(),
+		)
 	}
 
-	previousSelf := c.selfType
-	c.selfType = module
 	c.checkStatements(node.Body)
 	c.selfType = previousSelf
 
@@ -263,15 +269,21 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 
 func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	class, ok := c.typeOf(node).(*types.Class)
+	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(class, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
 		c.pushIsolatedLocalEnv()
+		c.selfType = class.Singleton()
+	} else {
+		c.selfType = types.Nothing{}
+		c.addFailure(
+			"class definitions cannot appear in this context",
+			node.Span(),
+		)
 	}
 
-	previousSelf := c.selfType
-	c.selfType = class.Singleton()
 	c.checkStatements(node.Body)
 	c.selfType = previousSelf
 
@@ -283,15 +295,21 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 }
 func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	mixin, ok := c.typeOf(node).(*types.Mixin)
+	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(mixin, node.Constant.Span())
 		c.pushConstScope(makeLocalConstantScope(mixin))
 		c.pushMethodScope(makeLocalMethodScope(mixin))
 		c.pushIsolatedLocalEnv()
+		c.selfType = mixin.Singleton()
+	} else {
+		c.selfType = types.Nothing{}
+		c.addFailure(
+			"mixin definitions cannot appear in this context",
+			node.Span(),
+		)
 	}
 
-	previousSelf := c.selfType
-	c.selfType = mixin.Singleton()
 	c.checkStatements(node.Body)
 	c.selfType = previousSelf
 
@@ -304,14 +322,20 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 
 func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclarationNode) {
 	iface, ok := c.typeOf(node).(*types.Interface)
+	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
 		c.pushMethodScope(makeLocalMethodScope(iface))
 		c.pushIsolatedLocalEnv()
+		c.selfType = iface.Singleton()
+	} else {
+		c.selfType = types.Nothing{}
+		c.addFailure(
+			"interface definitions cannot appear in this context",
+			node.Span(),
+		)
 	}
 
-	previousSelf := c.selfType
-	c.selfType = iface.Singleton()
 	c.checkStatements(node.Body)
 	c.selfType = previousSelf
 
@@ -324,14 +348,20 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 
 func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpressionNode) {
 	class, ok := c.typeOf(node).(*types.SingletonClass)
+	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
 		c.pushIsolatedLocalEnv()
+		c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
+	} else {
+		c.selfType = types.Nothing{}
+		c.addFailure(
+			"singleton definitions cannot appear in this context",
+			node.Span(),
+		)
 	}
 
-	previousSelf := c.selfType
-	c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
 	c.checkStatements(node.Body)
 	c.selfType = previousSelf
 
@@ -368,12 +398,52 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
-		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
-		*ast.InitDefinitionNode, *ast.MethodDefinitionNode, *ast.TypeDefinitionNode,
-		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
-		*ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
-		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
-		*ast.UninterpolatedRegexLiteralNode, *ast.GenericTypeDefinitionNode:
+		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
+		return n
+	case *ast.ImplementExpressionNode:
+		if c.typeOf(node) == nil {
+			c.addFailure(
+				"cannot implement interfaces in this context",
+				node.Span(),
+			)
+			n.SetType(types.Nothing{})
+		}
+		return n
+	case *ast.InstanceVariableDeclarationNode:
+		if c.typeOf(node) == nil {
+			c.addFailure(
+				"instance variable definitions cannot appear in this context",
+				n.Span(),
+			)
+			n.SetType(types.Nothing{})
+		}
+		return n
+	case *ast.TypeDefinitionNode, *ast.GenericTypeDefinitionNode:
+		if c.typeOf(node) == nil {
+			c.addFailure(
+				"type definitions cannot appear in this context",
+				n.Span(),
+			)
+			n.SetType(types.Nothing{})
+		}
+		return n
+	case *ast.StructDeclarationNode:
+		c.addFailure(
+			"struct definitions cannot appear in this context",
+			n.Constant.Span(),
+		)
+		n.SetType(types.Nothing{})
+		return n
+	case *ast.MethodDefinitionNode, *ast.InitDefinitionNode,
+		*ast.MethodSignatureDefinitionNode, *ast.SetterDeclarationNode,
+		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
+		if c.typeOf(node) == nil {
+			c.addFailure(
+				"method definitions cannot appear in this context",
+				node.Span(),
+			)
+			node.SetType(types.Nothing{})
+		}
 		return n
 	case *ast.SelfLiteralNode:
 		n.SetType(c.selfType)
@@ -1736,6 +1806,13 @@ type instanceVariableOverride struct {
 }
 
 func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
+	if c.typeOf(node) == nil {
+		c.addFailure(
+			"cannot include mixins in this context",
+			node.Span(),
+		)
+		return
+	}
 	targetNamespace := c.currentMethodScope().container
 
 	for _, constantNode := range node.Constants {
@@ -3336,6 +3413,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 				),
 				node.Span(),
 			)
+			node.SetType(types.Nothing{})
 			return
 		}
 	}
@@ -3350,9 +3428,11 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			),
 			node.Span(),
 		)
+		node.SetType(types.Nothing{})
 		return
 	}
 
+	node.SetType(declaredType)
 	c.declareInstanceVariable(value.ToSymbol(node.Name), declaredType, node.Span())
 }
 
@@ -3724,7 +3804,14 @@ func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types
 	}
 }
 
-func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) *ast.ClassDeclarationNode {
+func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) ast.ExpressionNode {
+	switch c.mode {
+	case topLevelMode, classMode, interfaceMode,
+		moduleMode, mixinMode:
+	default:
+		return structNode
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
 	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
@@ -3814,6 +3901,13 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 }
 
 func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
+	switch c.mode {
+	case topLevelMode, classMode, interfaceMode,
+		moduleMode, mixinMode:
+	default:
+		return
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	module := c.declareModule(
@@ -3827,6 +3921,8 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 	node.SetType(module)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
+	prevMode := c.mode
+	c.mode = moduleMode
 	c.pushConstScope(makeLocalConstantScope(module))
 	c.pushMethodScope(makeLocalMethodScope(module))
 
@@ -3834,9 +3930,17 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 
 	c.popConstScope()
 	c.popMethodScope()
+	c.mode = prevMode
 }
 
 func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
+	switch c.mode {
+	case topLevelMode, classMode, interfaceMode,
+		moduleMode, mixinMode:
+	default:
+		return
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	class := c.declareClass(
@@ -3853,6 +3957,8 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 	node.SetType(class)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
+	prevMode := c.mode
+	c.mode = classMode
 	c.pushConstScope(makeLocalConstantScope(class))
 	c.pushMethodScope(makeLocalMethodScope(class))
 
@@ -3860,9 +3966,17 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 
 	c.popConstScope()
 	c.popMethodScope()
+	c.mode = prevMode
 }
 
 func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
+	switch c.mode {
+	case topLevelMode, classMode, interfaceMode,
+		moduleMode, mixinMode:
+	default:
+		return
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	mixin := c.declareMixin(
@@ -3877,6 +3991,8 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 	node.SetType(mixin)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
+	prevMode := c.mode
+	c.mode = mixinMode
 	c.pushConstScope(makeLocalConstantScope(mixin))
 	c.pushMethodScope(makeLocalMethodScope(mixin))
 
@@ -3884,9 +4000,17 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 
 	c.popConstScope()
 	c.popMethodScope()
+	c.mode = prevMode
 }
 
 func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) {
+	switch c.mode {
+	case topLevelMode, classMode, interfaceMode,
+		moduleMode, mixinMode:
+	default:
+		return
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	iface := c.declareInterface(
@@ -3900,6 +4024,8 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 	node.SetType(iface)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
+	prevMode := c.mode
+	c.mode = interfaceMode
 	c.pushConstScope(makeLocalConstantScope(iface))
 	c.pushMethodScope(makeLocalMethodScope(iface))
 
@@ -3907,6 +4033,29 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 
 	c.popConstScope()
 	c.popMethodScope()
+	c.mode = prevMode
+}
+
+func (c *Checker) hoistSingletonDeclaration(node *ast.SingletonBlockExpressionNode) {
+	switch c.mode {
+	case classMode, mixinMode, interfaceMode:
+	default:
+		return
+	}
+
+	currentNamespace := c.currentConstScope().container
+	singleton := currentNamespace.Singleton()
+
+	prevMode := c.mode
+	c.mode = singletonMode
+	c.pushConstScope(makeLocalConstantScope(singleton))
+	c.pushMethodScope(makeLocalMethodScope(singleton))
+
+	c.hoistNamespaceDefinitions(node.Body)
+
+	c.popConstScope()
+	c.popMethodScope()
+	c.mode = prevMode
 }
 
 func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
@@ -3930,6 +4079,8 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			c.hoistInterfaceDeclaration(expr)
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
+		case *ast.SingletonBlockExpressionNode:
+			c.hoistSingletonDeclaration(expr)
 		case *ast.TypeDefinitionNode:
 			c.registerTypeDefinitionCheck(expr)
 		case *ast.GenericTypeDefinitionNode:
@@ -4116,10 +4267,6 @@ func (c *Checker) hoistInheritanceWithinSingleton(expr *ast.SingletonBlockExpres
 	namespace := c.currentConstScope().container
 	singleton := namespace.Singleton()
 	if singleton == nil {
-		c.addFailure(
-			"cannot declare a singleton class in this context",
-			expr.Span(),
-		)
 		return
 	}
 	expr.SetType(singleton)
@@ -4277,10 +4424,12 @@ func (c *Checker) hoistInheritance(statements []ast.StatementNode) {
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)
 			}
+			expr.SetType(types.Nothing{})
 		case *ast.ImplementExpressionNode:
 			for _, constant := range expr.Constants {
 				c.implementInterface(constant)
 			}
+			expr.SetType(types.Nothing{})
 		case *ast.ModuleDeclarationNode:
 			c.hoistInheritanceWithinModule(expr)
 		case *ast.ClassDeclarationNode:

@@ -857,7 +857,7 @@ func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode,
 
 // Represents an instance variable declaration eg. `var @foo: String`
 type InstanceVariableDeclarationNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	Name     string   // name of the variable
 	TypeNode TypeNode // type of the variable
@@ -870,7 +870,7 @@ func (*InstanceVariableDeclarationNode) IsStatic() bool {
 // Create a new instance variable declaration node eg. `var @foo: String`
 func NewInstanceVariableDeclarationNode(span *position.Span, docComment string, name string, typ TypeNode) *InstanceVariableDeclarationNode {
 	return &InstanceVariableDeclarationNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -3400,7 +3400,7 @@ func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, a
 
 // Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`
 type GenericTypeDefinitionNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	TypeVariables []TypeVariableNode  // Generic type variable definitions
 	Constant      ComplexConstantNode // new name of the type
@@ -3414,7 +3414,7 @@ func (*GenericTypeDefinitionNode) IsStatic() bool {
 // Create a generic type definition node eg. `typedef Nilable[T] = T | nil`
 func NewGenericTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typeVars []TypeVariableNode, typ TypeNode) *GenericTypeDefinitionNode {
 	return &GenericTypeDefinitionNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -3554,8 +3554,12 @@ func NewAttrDeclarationNode(span *position.Span, docComment string, entries []Pa
 
 // Represents an include expression eg. `include Enumerable[V]`
 type IncludeExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Constants []ComplexConstantNode
+}
+
+func (*IncludeExpressionNode) SkipTypechecking() bool {
+	return false
 }
 
 func (*IncludeExpressionNode) IsStatic() bool {
@@ -3565,8 +3569,8 @@ func (*IncludeExpressionNode) IsStatic() bool {
 // Create an include expression node eg. `include Enumerable[V]`
 func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Constants: consts,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Constants:     consts,
 	}
 }
 
@@ -3608,8 +3612,12 @@ func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode)
 
 // Represents an enhance expression eg. `implement Enumerable[V]`
 type ImplementExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Constants []ComplexConstantNode
+}
+
+func (*ImplementExpressionNode) SkipTypechecking() bool {
+	return false
 }
 
 func (*ImplementExpressionNode) IsStatic() bool {
@@ -3619,8 +3627,8 @@ func (*ImplementExpressionNode) IsStatic() bool {
 // Create an enhance expression node eg. `implement Enumerable[V]`
 func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
 	return &ImplementExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Constants: consts,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Constants:     consts,
 	}
 }
 

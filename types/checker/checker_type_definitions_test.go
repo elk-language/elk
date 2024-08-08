@@ -60,6 +60,16 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Bar = 1 | 2
 			`,
 		},
+		"define within a method": {
+			input: `
+				def foo
+					typedef Foo = Bar | nil
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(40, 3, 28)), "type definitions cannot appear in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -225,6 +235,16 @@ func TestGenericTypeDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "generic type `Foo::Bar[V]` requires 1 type argument(s)"),
+			},
+		},
+		"define within a method": {
+			input: `
+				def foo
+					typedef Bar[V] = V | String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(44, 3, 32)), "type definitions cannot appear in this context"),
 			},
 		},
 	}

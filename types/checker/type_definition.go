@@ -82,6 +82,7 @@ func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span
 	typeNode := c.checkTypeNode(node.TypeNode)
 	typ := c.typeOf(typeNode)
 	namedType.Type = typ
+	node.SetType(typ)
 }
 
 func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span *position.Span) {
@@ -146,6 +147,7 @@ func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span 
 	typ := c.typeOf(node.TypeNode)
 	namedType.Type = typ
 	namedType.TypeParameters = typeVars
+	node.SetType(namedType)
 
 	c.popConstScope()
 }
