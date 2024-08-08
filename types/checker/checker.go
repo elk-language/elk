@@ -3347,6 +3347,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 }
 
 func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
+	node.SetType(types.Nothing{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -3359,6 +3360,7 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 }
 
 func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
+	node.SetType(types.Nothing{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -3371,6 +3373,7 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 }
 
 func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
+	node.SetType(types.Nothing{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -4132,6 +4135,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 }
 
 func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
+	node.SetType(types.Nothing{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
 		method := types.GetMethodInNamespace(namespace, value.ToSymbol(entry.OldName))

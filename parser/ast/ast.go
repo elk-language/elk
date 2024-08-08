@@ -3470,7 +3470,7 @@ func NewAliasDeclarationEntry(span *position.Span, newName, oldName string) *Ali
 
 // Represents a new alias declaration eg. `alias push append, add plus`
 type AliasDeclarationNode struct {
-	NodeBase
+	TypedNodeBase
 	Entries []*AliasDeclarationEntry
 }
 
@@ -3481,14 +3481,14 @@ func (*AliasDeclarationNode) IsStatic() bool {
 // Create an alias declaration node eg. `alias push append, add plus`
 func NewAliasDeclarationNode(span *position.Span, entries []*AliasDeclarationEntry) *AliasDeclarationNode {
 	return &AliasDeclarationNode{
-		NodeBase: NodeBase{span: span},
-		Entries:  entries,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Entries:       entries,
 	}
 }
 
 // Represents a new getter declaration eg. `getter foo: String`
 type GetterDeclarationNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
 }
@@ -3500,7 +3500,7 @@ func (*GetterDeclarationNode) IsStatic() bool {
 // Create a getter declaration node eg. `getter foo: String`
 func NewGetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *GetterDeclarationNode {
 	return &GetterDeclarationNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -3510,7 +3510,7 @@ func NewGetterDeclarationNode(span *position.Span, docComment string, entries []
 
 // Represents a new setter declaration eg. `setter foo: String`
 type SetterDeclarationNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
 }
@@ -3522,7 +3522,7 @@ func (*SetterDeclarationNode) IsStatic() bool {
 // Create a setter declaration node eg. `setter foo: String`
 func NewSetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *SetterDeclarationNode {
 	return &SetterDeclarationNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -3532,7 +3532,7 @@ func NewSetterDeclarationNode(span *position.Span, docComment string, entries []
 
 // Represents a new setter declaration eg. `attr foo: String`
 type AttrDeclarationNode struct {
-	NodeBase
+	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
 }
@@ -3544,7 +3544,7 @@ func (*AttrDeclarationNode) IsStatic() bool {
 // Create an attribute declaration node eg. `attr foo: String`
 func NewAttrDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *AttrDeclarationNode {
 	return &AttrDeclarationNode{
-		NodeBase: NodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},

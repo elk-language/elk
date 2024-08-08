@@ -8,6 +8,16 @@ import (
 
 func TestAttrDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within a method": {
+			input: `
+				def foo
+					attr foo: String?
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(34, 3, 22)), "method definitions cannot appear in this context"),
+			},
+		},
 		"declare an attr and call a getter": {
 			input: `
 				class Foo
@@ -193,6 +203,16 @@ func TestAttrDefinition(t *testing.T) {
 
 func TestGetterDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within a method": {
+			input: `
+				def foo
+					getter foo: String?
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(36, 3, 24)), "method definitions cannot appear in this context"),
+			},
+		},
 		"declare a getter and call it": {
 			input: `
 				class Foo
@@ -360,6 +380,16 @@ func TestGetterDefinition(t *testing.T) {
 
 func TestSetterDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within a method": {
+			input: `
+				def foo
+					setter foo: String?
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(36, 3, 24)), "method definitions cannot appear in this context"),
+			},
+		},
 		"declare a setter and call a getter": {
 			input: `
 				class Foo
@@ -519,6 +549,16 @@ func TestSetterDefinition(t *testing.T) {
 
 func TestAliasDeclaration(t *testing.T) {
 	tests := testTable{
+		"declare within a method": {
+			input: `
+				def foo
+					alias bar foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(30, 3, 18)), "method definitions cannot appear in this context"),
+			},
+		},
 		"declare an alias": {
 			input: `
 				class Foo
@@ -793,6 +833,16 @@ func TestMethodDefinitionOverride(t *testing.T) {
 
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within a method": {
+			input: `
+				def foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(29, 3, 17)), "method definitions cannot appear in this context"),
+			},
+		},
 		"declare with an invalid implicit return value": {
 			input: `
 				def foo: String
@@ -1832,6 +1882,12 @@ func TestMethodCalls(t *testing.T) {
 
 func TestInitDefinition(t *testing.T) {
 	tests := testTable{
+		"define within a method": {
+			input: `def foo; init; end; end`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 1, 10), P(17, 1, 18)), "method definitions cannot appear in this context"),
+			},
+		},
 		"define in outer context": {
 			input: `init; end`,
 			err: error.ErrorList{
