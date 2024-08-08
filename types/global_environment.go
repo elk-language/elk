@@ -47,6 +47,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	valueClass := &Class{
 		NamespaceBase: MakeNamespaceBase("", "Std::Value"),
+		FullyChecked:  true,
 	}
 	valueClass.primitive = true
 	stdModule.DefineSubtype(symbol.Value, valueClass)
@@ -54,12 +55,14 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	objectClass := &Class{
 		parent:        valueClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
+		FullyChecked:  true,
 	}
 	stdModule.DefineSubtype(symbol.Object, objectClass)
 
 	classClass := &Class{
 		parent:        objectClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
+		FullyChecked:  true,
 	}
 	stdModule.DefineSubtype(symbol.Class, classClass)
 
@@ -74,39 +77,39 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	// -- End of Bootstrapping --
 
-	stdModule.DefineClass("", false, false, false, symbol.Module, objectClass, env)
-	stdModule.DefineClass("", false, false, false, symbol.Mixin, objectClass, env)
-	stdModule.DefineClass("", false, false, false, symbol.Interface, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, symbol.Module, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, symbol.Mixin, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, symbol.Interface, objectClass, env)
 
-	boolClass := stdModule.DefineClass("", false, true, true, symbol.Bool, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.True, boolClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.False, boolClass, env)
+	boolClass := stdModule.DefineClass("", false, true, true, true, symbol.Bool, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.True, boolClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.False, boolClass, env)
 
-	stdModule.DefineClass("", false, true, true, symbol.Nil, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.String, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Symbol, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Char, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Float, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.BigFloat, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Float64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Float32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Int, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Int64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Int32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Int16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Int8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.UInt64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.UInt32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.UInt16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.UInt8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.ArrayList, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.ArrayTuple, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.HashMap, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.HashRecord, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.HashSet, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Regex, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Method, valueClass, env)
-	stdModule.DefineClass("", false, true, true, symbol.Pair, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Nil, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.String, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Symbol, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Char, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Float, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.BigFloat, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Float64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Float32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Int, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Int64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Int32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Int16, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Int8, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.UInt64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.UInt32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.UInt16, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.UInt8, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.ArrayList, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.ArrayTuple, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.HashMap, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.HashRecord, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.HashSet, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Regex, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Method, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Pair, valueClass, env)
 
 	return env
 }

@@ -2667,23 +2667,17 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 	return nil, name
 }
 
-func (c *Checker) checkTypeIfNecessary(typ types.Type, span *position.Span) {
-	switch t := typ.(type) {
-	case *types.GenericNamedType:
-		c.checkGenericNamedType(t, span)
-	case *types.NamedType:
-		c.checkNamedType(t, span)
-	}
-}
-
 // Get the type with the given name
 func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.SubtypeString(name)
 		if constant != nil {
-			c.checkTypeIfNecessary(constant, span)
-			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
+			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
+			if !c.checkTypeIfNecessary(constant, span) {
+				return types.Nothing{}, fullName
+			}
+			return constant, fullName
 		}
 	}
 
@@ -2811,7 +2805,9 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
-	c.checkTypeIfNecessary(constant, node.Right.Span())
+	if !c.checkTypeIfNecessary(constant, node.Right.Span()) {
+		return types.Nothing{}, typeName
+	}
 	return constant, typeName
 }
 
@@ -2898,6 +2894,9 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 		}
 
 		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap))
+		return node
+	case types.Nothing:
+		node.SetType(types.Nothing{})
 		return node
 	default:
 		c.addFailure(
@@ -3614,7 +3613,15 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
+			return types.NewClass(
+				docComment,
+				abstract,
+				sealed,
+				primitive,
+				fullConstantName,
+				nil,
+				c.GlobalEnv,
+			)
 		}
 		constantType = ct.AttachedObject
 
@@ -3654,12 +3661,37 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
+			return types.NewClass(
+				docComment,
+				abstract,
+				sealed,
+				primitive,
+				fullConstantName,
+				nil,
+				c.GlobalEnv,
+			)
 		}
 	} else if namespace == nil {
-		return types.NewClass(docComment, abstract, sealed, primitive, fullConstantName, nil, c.GlobalEnv)
+		return types.NewClass(
+			docComment,
+			abstract,
+			sealed,
+			primitive,
+			fullConstantName,
+			nil,
+			c.GlobalEnv,
+		)
 	} else {
-		return namespace.DefineClass(docComment, abstract, sealed, primitive, constantName, nil, c.GlobalEnv)
+		return namespace.DefineClass(
+			docComment,
+			abstract,
+			sealed,
+			primitive,
+			false,
+			constantName,
+			nil,
+			c.GlobalEnv,
+		)
 	}
 }
 
@@ -3883,6 +3915,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		newStatements,
 	)
 	classNode.SetType(class)
+	c.registerHoistedNamespaceCheck(classNode)
 	return classNode
 }
 

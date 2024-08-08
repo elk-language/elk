@@ -545,7 +545,7 @@ func TestClass(t *testing.T) {
 				var a: &Foo = Foo
 			`,
 		},
-		"within method": {
+		"declare within method": {
 			input: `
 				def foo
 					class Foo; end
@@ -555,7 +555,7 @@ func TestClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "class definitions cannot appear in this context"),
 			},
 		},
-		"within singleton": {
+		"declare within singleton": {
 			input: `
 				class Foo
 					singleton
@@ -565,6 +565,23 @@ func TestClass(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(36, 4, 7), P(49, 4, 20)), "class definitions cannot appear in this context"),
+			},
+		},
+		"declare a class inheriting from itself": {
+			input: `
+				class Foo < Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "Type `Foo` circularly references itself"),
+			},
+		},
+		"declare a class inheriting from its child": {
+			input: `
+				class Foo < Bar; end
+				class Bar < Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "Type `Bar` circularly references itself"),
 			},
 		},
 	}

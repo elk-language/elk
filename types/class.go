@@ -6,11 +6,13 @@ import (
 )
 
 type Class struct {
-	parent    Namespace
-	abstract  bool
-	sealed    bool
-	primitive bool
-	singleton *SingletonClass
+	parent       Namespace
+	abstract     bool
+	sealed       bool
+	primitive    bool
+	FullyChecked bool
+	singleton    *SingletonClass
+	Node         AstNode
 	NamespaceBase
 }
 

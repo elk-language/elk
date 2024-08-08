@@ -66,16 +66,46 @@ func (c *Checker) registerGenericTypeDefinitionCheck(node *ast.GenericTypeDefini
 	})
 }
 
-func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span) {
+func (c *Checker) checkTypeIfNecessary(typ types.Type, span *position.Span) (ok bool) {
+	switch t := typ.(type) {
+	case *types.GenericNamedType:
+		return c.checkGenericNamedType(t, span)
+	case *types.NamedType:
+		return c.checkNamedType(t, span)
+	case *types.Class:
+		return c.checkClassInheritanceIfNecessary(t, span)
+	default:
+		return true
+	}
+}
+
+func (c *Checker) checkClassInheritanceIfNecessary(class *types.Class, span *position.Span) bool {
+	if !class.FullyChecked && class.Node == nil {
+		c.addFailure(
+			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(class)),
+			span,
+		)
+		return false
+	}
+	if class.Node == nil {
+		return true
+	}
+
+	node := class.Node.(*ast.ClassDeclarationNode)
+	c.checkClassInheritance(node)
+	return true
+}
+
+func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span) bool {
 	if namedType.Type == nil && namedType.Node == nil {
 		c.addFailure(
 			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
 			span,
 		)
-		return
+		return false
 	}
 	if namedType.Node == nil {
-		return
+		return true
 	}
 
 	node := namedType.Node.(*ast.TypeDefinitionNode)
@@ -84,18 +114,19 @@ func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span
 	typ := c.typeOf(typeNode)
 	namedType.Type = typ
 	node.SetType(typ)
+	return true
 }
 
-func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span *position.Span) {
+func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span *position.Span) bool {
 	if namedType.Type == nil && namedType.Node == nil {
 		c.addFailure(
 			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
 			span,
 		)
-		return
+		return false
 	}
 	if namedType.Node == nil {
-		return
+		return true
 	}
 
 	node := namedType.Node.(*ast.GenericTypeDefinitionNode)
@@ -151,6 +182,7 @@ func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span 
 	node.SetType(namedType)
 
 	c.popConstScope()
+	return true
 }
 
 func (c *Checker) checkTypeDefinitions() {
@@ -218,6 +250,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	}
 	var superclassType types.Type
 	var superclass *types.Class
+	class.Node = nil
 
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
@@ -229,27 +262,32 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		var ok bool
 		superclass, ok = superclassType.(*types.Class)
 		if !ok {
+			if !types.IsNothing(superclassType) {
+				c.addFailure(
+					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+			}
+			break
+		}
+
+		if superclass.IsSealed() {
 			c.addFailure(
-				fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+				fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
 				node.Superclass.Span(),
 			)
-		} else {
-			if superclass.IsSealed() {
-				c.addFailure(
-					fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
-				)
-			}
-			if class.IsPrimitive() && !superclass.IsPrimitive() {
-				c.addFailure(
-					fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
-				)
-			}
 		}
+		if class.IsPrimitive() && !superclass.IsPrimitive() {
+			c.addFailure(
+				fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+				node.Superclass.Span(),
+			)
+		}
+
 	}
 
 	parent := class.Superclass()
+	class.FullyChecked = true
 	if parent == nil && superclass != nil {
 		class.SetParent(superclass)
 	} else if parent != nil && parent != superclass {
@@ -270,5 +308,4 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 			span,
 		)
 	}
-
 }
