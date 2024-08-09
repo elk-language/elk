@@ -1,15 +1,8 @@
 package types
 
-import "github.com/elk-language/elk/position"
-
-type AstNode interface {
-	position.SpanInterface
-}
-
 type NamedType struct {
 	Name string
 	Type Type
-	Node AstNode
 }
 
 func NewNamedType(name string, typ Type) *NamedType {

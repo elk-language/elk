@@ -74,8 +74,7 @@ type Checker struct {
 	selfType                types.Type
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
-	typeDefinitionChecks    *concurrent.Slice[typeDefinitionCheckEntry]
-	hoistedNamespaceChecks  *concurrent.Slice[hoistedNamespaceCheck]
+	typeDefinitionChecks    *typeDefinitionChecks
 }
 
 // Instantiate a new Checker instance.
@@ -101,10 +100,9 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces:  concurrent.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:           concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:   concurrent.NewSlice[typeDefinitionCheckEntry](),
-		hoistedNamespaceChecks: concurrent.NewSlice[hoistedNamespaceCheck](),
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:  newTypeDefinitionChecks(),
 	}
 }
 
@@ -127,10 +125,9 @@ func New() *Checker {
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces:  concurrent.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:           concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:   concurrent.NewSlice[typeDefinitionCheckEntry](),
-		hoistedNamespaceChecks: concurrent.NewSlice[hoistedNamespaceCheck](),
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		typeDefinitionChecks:  newTypeDefinitionChecks(),
 	}
 }
 
@@ -149,17 +146,7 @@ func (c *Checker) newMethodChecker(filename string, constScopes []constantScope,
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-	}
-}
-
-func (c *Checker) newTypeDefinitionChecker(filename string, constScopes []constantScope) *Checker {
-	return &Checker{
-		GlobalEnv:      c.GlobalEnv,
-		Filename:       filename,
-		mode:           topLevelMode,
-		phase:          c.phase,
-		constantScopes: constScopes,
-		Errors:         c.Errors,
+		typeDefinitionChecks: newTypeDefinitionChecks(),
 	}
 }
 
@@ -1943,6 +1930,9 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	constantType, _ := c.resolveConstantType(node)
 
+	if types.IsNothing(constantType) {
+		return
+	}
 	constantMixin, constantIsMixin := constantType.(*types.Mixin)
 	if !constantIsMixin {
 		c.addFailure(
@@ -1991,6 +1981,9 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	constantType, _ := c.resolveConstantType(node)
 
+	if types.IsNothing(constantType) {
+		return
+	}
 	constantInterface, constantIsInterface := constantType.(*types.Interface)
 	if !constantIsInterface {
 		c.addFailure(
@@ -2674,7 +2667,7 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 		constant := constScope.container.SubtypeString(name)
 		if constant != nil {
 			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
-			if !c.checkTypeIfNecessary(constant, span) {
+			if !c.checkTypeIfNecessary(fullName, span) {
 				return types.Nothing{}, fullName
 			}
 			return constant, fullName
@@ -2805,7 +2798,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
-	if !c.checkTypeIfNecessary(constant, node.Right.Span()) {
+	if !c.checkTypeIfNecessary(typeName, node.Right.Span()) {
 		return types.Nothing{}, typeName
 	}
 	return constant, typeName
@@ -3687,7 +3680,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			abstract,
 			sealed,
 			primitive,
-			false,
 			constantName,
 			nil,
 			c.GlobalEnv,
@@ -3713,7 +3705,6 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 		}
 	}
 
-	c.checkInheritance()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.phase = expressionPhase
@@ -3915,7 +3906,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		newStatements,
 	)
 	classNode.SetType(class)
-	c.registerHoistedNamespaceCheck(classNode)
+	c.registerNamespaceDeclarationCheck(fullConstantName, classNode, class)
 	return classNode
 }
 
@@ -3960,8 +3951,6 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		return
 	}
 
-	c.registerHoistedNamespaceCheck(node)
-
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	class := c.declareClass(
@@ -3976,6 +3965,7 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		node.Span(),
 	)
 	node.SetType(class)
+	c.registerNamespaceDeclarationCheck(fullConstantName, node, class)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	prevMode := c.mode
@@ -4104,23 +4094,27 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 		case *ast.SingletonBlockExpressionNode:
 			c.hoistSingletonDeclaration(expr)
 		case *ast.TypeDefinitionNode:
-			c.registerTypeDefinitionCheck(expr)
+			c.registerNamedTypeCheck(expr)
 		case *ast.GenericTypeDefinitionNode:
-			c.registerGenericTypeDefinitionCheck(expr)
+			c.registerGenericNamedTypeCheck(expr)
 		case *ast.ImplementExpressionNode:
 			switch c.mode {
 			case classMode, mixinMode, interfaceMode:
 			default:
 				return
 			}
-			c.registerHoistedNamespaceCheck(expr)
+			namespace := c.currentMethodScope().container
+			expr.SetType(types.Nothing{})
+			c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
 		case *ast.IncludeExpressionNode:
 			switch c.mode {
 			case classMode, mixinMode, singletonMode:
 			default:
 				return
 			}
-			c.registerHoistedNamespaceCheck(expr)
+			namespace := c.currentMethodScope().container
+			expr.SetType(types.Nothing{})
+			c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
 		case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 			*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 			namespace := c.currentMethodScope().container

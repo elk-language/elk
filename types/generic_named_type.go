@@ -8,7 +8,6 @@ type GenericNamedType struct {
 	Name           string
 	Type           Type
 	TypeParameters []*TypeParameter
-	Node           AstNode
 }
 
 func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *GenericNamedType {

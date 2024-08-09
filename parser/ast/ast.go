@@ -3008,13 +3008,14 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 type ClassDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Abstract      bool
-	Sealed        bool
-	Primitive     bool
-	Constant      ExpressionNode     // The constant that will hold the class value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Superclass    ExpressionNode     // the super/parent class of this class
-	Body          []StatementNode    // body of the class
+	Abstract              bool
+	Sealed                bool
+	Primitive             bool
+	Constant              ExpressionNode     // The constant that will hold the class value
+	TypeVariables         []TypeVariableNode // Generic type variable definitions
+	Superclass            ExpressionNode     // the super/parent class of this class
+	Body                  []StatementNode    // body of the class
+	IncludesAndImplements []ExpressionNode
 }
 
 func (*ClassDeclarationNode) SkipTypechecking() bool {
@@ -3091,10 +3092,11 @@ func NewModuleDeclarationNode(
 type MixinDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Abstract      bool
-	Constant      ExpressionNode     // The constant that will hold the mixin value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Body          []StatementNode    // body of the mixin
+	Abstract              bool
+	Constant              ExpressionNode     // The constant that will hold the mixin value
+	TypeVariables         []TypeVariableNode // Generic type variable definitions
+	Body                  []StatementNode    // body of the mixin
+	IncludesAndImplements []ExpressionNode
 }
 
 func (*MixinDeclarationNode) SkipTypechecking() bool {
@@ -3134,6 +3136,7 @@ type InterfaceDeclarationNode struct {
 	Constant      ExpressionNode     // The constant that will hold the interface value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the interface
+	Implements    []*ImplementExpressionNode
 }
 
 func (*InterfaceDeclarationNode) SkipTypechecking() bool {

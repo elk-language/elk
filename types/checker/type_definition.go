@@ -10,13 +10,73 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+type typedefState uint8
+
+const (
+	NEW_TYPEDEF typedefState = iota
+	CHECKING_TYPEDEF
+	CHECKED_TYPEDEF
+)
+
+type typeDefinitionChecks struct {
+	m     map[string]*typeDefinitionCheck
+	order []string
+}
+
+type typeDefinitionCheck struct {
+	entries []*typeDefinitionCheckEntry
+	typ     types.Type
+	state   typedefState
+}
+
+func (t *typeDefinitionChecks) addEntry(name string, typ types.Type, entry *typeDefinitionCheckEntry) {
+	existingCheck, ok := t.m[name]
+	if ok {
+		existingCheck.entries = append(existingCheck.entries, entry)
+	} else {
+		t.m[name] = &typeDefinitionCheck{
+			typ: typ,
+			entries: []*typeDefinitionCheckEntry{
+				entry,
+			},
+		}
+		t.order = append(t.order, name)
+	}
+}
+
+func newTypeDefinitionChecks() *typeDefinitionChecks {
+	return &typeDefinitionChecks{
+		m: make(map[string]*typeDefinitionCheck),
+	}
+}
+
 type typeDefinitionCheckEntry struct {
 	filename       string
 	constantScopes []constantScope
-	typ            types.Type
+	node           ast.ExpressionNode
 }
 
-func (c *Checker) registerTypeDefinitionCheck(node *ast.TypeDefinitionNode) {
+func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, node ast.ExpressionNode) *typeDefinitionCheckEntry {
+	return &typeDefinitionCheckEntry{
+		filename:       filename,
+		constantScopes: constScopes,
+		node:           node,
+	}
+}
+
+func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type) {
+	c.typeDefinitionChecks.addEntry(
+		name,
+		typ,
+		newTypeDefinitionCheckEntry(
+			c.Filename,
+			c.constantScopesCopy(),
+			node,
+		),
+	)
+}
+
+func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
@@ -29,17 +89,21 @@ func (c *Checker) registerTypeDefinitionCheck(node *ast.TypeDefinitionNode) {
 
 	container.DefineConstant(constantName, types.Void{})
 	namedType := types.NewNamedType(fullConstantName, nil)
-	namedType.Node = node
 	container.DefineSubtype(constantName, namedType)
+	node.SetType(namedType)
 
-	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
-		filename:       c.Filename,
-		constantScopes: c.constantScopesCopy(),
-		typ:            namedType,
-	})
+	c.typeDefinitionChecks.addEntry(
+		namedType.Name,
+		namedType,
+		newTypeDefinitionCheckEntry(
+			c.Filename,
+			c.constantScopesCopy(),
+			node,
+		),
+	)
 }
 
-func (c *Checker) registerGenericTypeDefinitionCheck(node *ast.GenericTypeDefinitionNode) {
+func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
@@ -56,81 +120,40 @@ func (c *Checker) registerGenericTypeDefinitionCheck(node *ast.GenericTypeDefini
 		nil,
 		nil,
 	)
-	namedType.Node = node
 	container.DefineSubtype(constantName, namedType)
+	node.SetType(namedType)
 
-	c.typeDefinitionChecks.Append(typeDefinitionCheckEntry{
-		filename:       c.Filename,
-		constantScopes: c.constantScopesCopyWithoutCache(),
-		typ:            namedType,
-	})
+	c.typeDefinitionChecks.addEntry(
+		namedType.Name,
+		namedType,
+		newTypeDefinitionCheckEntry(
+			c.Filename,
+			c.constantScopesCopyWithoutCache(),
+			node,
+		),
+	)
 }
 
-func (c *Checker) checkTypeIfNecessary(typ types.Type, span *position.Span) (ok bool) {
-	switch t := typ.(type) {
-	case *types.GenericNamedType:
-		return c.checkGenericNamedType(t, span)
-	case *types.NamedType:
-		return c.checkNamedType(t, span)
-	case *types.Class:
-		return c.checkClassInheritanceIfNecessary(t, span)
-	default:
-		return true
-	}
-}
-
-func (c *Checker) checkClassInheritanceIfNecessary(class *types.Class, span *position.Span) bool {
-	if !class.FullyChecked && class.Node == nil {
-		c.addFailure(
-			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(class)),
-			span,
-		)
-		return false
-	}
-	if class.Node == nil {
+func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok bool) {
+	typedefCheck, ok := c.typeDefinitionChecks.m[name]
+	if !ok {
 		return true
 	}
 
-	node := class.Node.(*ast.ClassDeclarationNode)
-	c.checkClassInheritance(node)
-	return true
+	return c.checkTypeDefinition(typedefCheck, span)
 }
 
-func (c *Checker) checkNamedType(namedType *types.NamedType, span *position.Span) bool {
-	if namedType.Type == nil && namedType.Node == nil {
-		c.addFailure(
-			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
-			span,
-		)
-		return false
-	}
-	if namedType.Node == nil {
-		return true
-	}
-
-	node := namedType.Node.(*ast.TypeDefinitionNode)
-	namedType.Node = nil
+func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
+	namedType := c.typeOf(node).(*types.NamedType)
 	typeNode := c.checkTypeNode(node.TypeNode)
 	typ := c.typeOf(typeNode)
 	namedType.Type = typ
-	node.SetType(typ)
+
 	return true
 }
 
-func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span *position.Span) bool {
-	if namedType.Type == nil && namedType.Node == nil {
-		c.addFailure(
-			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(namedType)),
-			span,
-		)
-		return false
-	}
-	if namedType.Node == nil {
-		return true
-	}
-
-	node := namedType.Node.(*ast.GenericTypeDefinitionNode)
-	namedType.Node = nil
+func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) bool {
+	namedType := c.typeOf(node).(*types.GenericNamedType)
 
 	typeVars := make([]*types.TypeParameter, 0, len(node.TypeVariables))
 	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", namedType.Name))
@@ -179,51 +202,46 @@ func (c *Checker) checkGenericNamedType(namedType *types.GenericNamedType, span 
 	typ := c.typeOf(node.TypeNode)
 	namedType.Type = typ
 	namedType.TypeParameters = typeVars
-	node.SetType(namedType)
 
 	c.popConstScope()
+
 	return true
 }
 
 func (c *Checker) checkTypeDefinitions() {
 	oldFilename := c.Filename
 	oldConstantScopes := c.constantScopes
-	for _, typedefCheck := range c.typeDefinitionChecks.Slice {
-		c.Filename = typedefCheck.filename
-		c.constantScopes = typedefCheck.constantScopes
-		switch t := typedefCheck.typ.(type) {
-		case *types.NamedType:
-			c.checkNamedType(t, nil)
-		case *types.GenericNamedType:
-			c.checkGenericNamedType(t, nil)
-		}
+	for _, typeName := range c.typeDefinitionChecks.order {
+		typedefCheck := c.typeDefinitionChecks.m[typeName]
+		c.checkTypeDefinition(typedefCheck, nil)
 	}
 	c.Filename = oldFilename
 	c.constantScopes = oldConstantScopes
-	c.typeDefinitionChecks.Slice = nil
+	c.typeDefinitionChecks = newTypeDefinitionChecks()
 }
 
-type hoistedNamespaceCheck struct {
-	filename       string
-	node           ast.ExpressionNode
-	constantScopes []constantScope
-}
+func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *position.Span) bool {
+	if typedefCheck.state == CHECKING_TYPEDEF {
+		c.addFailure(
+			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
+			span,
+		)
+		return false
+	}
+	if typedefCheck.state == CHECKED_TYPEDEF {
+		return true
+	}
 
-func (c *Checker) registerHoistedNamespaceCheck(node ast.ExpressionNode) {
-	c.hoistedNamespaceChecks.Append(hoistedNamespaceCheck{
-		node:           node,
-		filename:       c.Filename,
-		constantScopes: c.constantScopesCopy(),
-	})
-}
+	typedefCheck.state = CHECKING_TYPEDEF
 
-func (c *Checker) checkInheritance() {
-	oldFilename := c.Filename
-	oldConstantScopes := c.constantScopes
-	for _, namespaceCheck := range c.hoistedNamespaceChecks.Slice {
-		c.Filename = namespaceCheck.filename
-		c.constantScopes = namespaceCheck.constantScopes
-		switch n := namespaceCheck.node.(type) {
+	for _, entry := range typedefCheck.entries {
+		c.Filename = entry.filename
+		c.constantScopes = entry.constantScopes
+		switch n := entry.node.(type) {
+		case *ast.TypeDefinitionNode:
+			c.checkNamedType(n)
+		case *ast.GenericTypeDefinitionNode:
+			c.checkGenericNamedType(n)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range n.Constants {
 				c.includeMixin(constant)
@@ -238,9 +256,9 @@ func (c *Checker) checkInheritance() {
 			c.checkClassInheritance(n)
 		}
 	}
-	c.Filename = oldFilename
-	c.constantScopes = oldConstantScopes
-	c.hoistedNamespaceChecks.Slice = nil
+
+	typedefCheck.state = CHECKED_TYPEDEF
+	return true
 }
 
 func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
@@ -250,7 +268,6 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	}
 	var superclassType types.Type
 	var superclass *types.Class
-	class.Node = nil
 
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
@@ -287,7 +304,6 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	}
 
 	parent := class.Superclass()
-	class.FullyChecked = true
 	if parent == nil && superclass != nil {
 		class.SetParent(superclass)
 	} else if parent != nil && parent != superclass {

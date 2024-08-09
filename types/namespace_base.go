@@ -161,7 +161,7 @@ func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
 func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	subtype := c.Subtype(name)
 	if subtype == nil {
-		return c.DefineClass(docComment, primitive, abstract, sealed, true, name, parent, env)
+		return c.DefineClass(docComment, primitive, abstract, sealed, name, parent, env)
 	}
 
 	class := subtype.(*Class)
@@ -180,9 +180,8 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, fullyChecked bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	class := NewClass(docComment, abstract, sealed, primitive, MakeFullConstantName(c.Name(), name.String()), parent, env)
-	class.FullyChecked = fullyChecked
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class

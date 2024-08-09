@@ -581,7 +581,7 @@ func TestClass(t *testing.T) {
 				class Bar < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "Type `Bar` circularly references itself"),
+				error.NewFailure(L("<main>", P(42, 3, 17), P(44, 3, 19)), "Type `Foo` circularly references itself"),
 			},
 		},
 	}
@@ -1504,6 +1504,30 @@ func TestMixin(t *testing.T) {
 				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
 			},
 		},
+		"include itself": {
+			input: `
+				mixin Foo
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 14), P(30, 3, 16)), "Type `Foo` circularly references itself"),
+			},
+		},
+		"circular include": {
+			input: `
+				mixin Foo
+					include Bar
+				end
+
+				mixin Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 7, 14), P(70, 7, 16)), "Type `Foo` circularly references itself"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -1563,6 +1587,30 @@ func TestInterface(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(18, 3, 6), P(35, 3, 23)), "interface definitions cannot appear in this context"),
+			},
+		},
+		"implement itself": {
+			input: `
+				interface Foo
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "Type `Foo` circularly references itself"),
+			},
+		},
+		"circular implement": {
+			input: `
+				interface Foo
+					implement Bar
+				end
+
+				interface Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 7, 16), P(82, 7, 18)), "Type `Foo` circularly references itself"),
 			},
 		},
 	}
