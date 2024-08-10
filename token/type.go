@@ -211,25 +211,18 @@ func (t Type) IsComparisonOperator() bool {
 }
 
 const (
-	ZERO_VALUE        Type = iota // Zero value for Type
-	ERROR                         // ERROR Token with a message
-	END_OF_FILE                   // End Of File has been reached
-	NEWLINE                       // Newline `\n`, `\r\n`
-	SEMICOLON                     // SEMICOLON `;`
-	LPAREN                        // Left parenthesis `(`
-	RPAREN                        // Right parenthesis `)`
-	LBRACE                        // Left brace `{`
-	RBRACE                        // Right brace `}`
-	LBRACKET                      // Left bracket `[`
-	QUESTION_LBRACKET             // Safe access `?[`
-	RBRACKET                      // Right bracket `]`
-	COMMA                         // Comma `,`
-	DOT                           // Dot `.`
-	QUESTION_DOT                  // Safe method call operator `?.`
-	DOT_DOT                       // Cascade call operator `..`
-	QUESTION_DOT_DOT              // Safe cascade call operator `?..`
-	COLON                         // Colon `:`
-	QUESTION                      // Question mark `?`
+	ZERO_VALUE       Type = iota // Zero value for Type
+	ERROR                        // ERROR Token with a message
+	END_OF_FILE                  // End Of File has been reached
+	NEWLINE                      // Newline `\n`, `\r\n`
+	SEMICOLON                    // SEMICOLON `;`
+	COMMA                        // Comma `,`
+	DOT                          // Dot `.`
+	QUESTION_DOT                 // Safe method call operator `?.`
+	DOT_DOT                      // Cascade call operator `..`
+	QUESTION_DOT_DOT             // Safe cascade call operator `?..`
+	COLON                        // Colon `:`
+	QUESTION                     // Question mark `?`
 
 	// Operators start here
 	LABEL_OP_BEG
@@ -261,7 +254,15 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
+	LPAREN                 // Left parenthesis `(`
+	RPAREN                 // Right parenthesis `)`
+	LBRACE                 // Left brace `{`
+	RBRACE                 // Right brace `}`
+	LBRACKET               // Left bracket `[`
+	QUESTION_LBRACKET      // Safe access `?[`
+	RBRACKET               // Right bracket `]`
 	SCOPE_RES_OP           // Scope resolution operator `::`
+	COLON_COLON_LBRACKET   // Colon, colon, left bracket `::[`
 	DOT_COLON              // Dot colon `.:`
 	CLOSED_RANGE_OP        // Closed range operator `...`
 	OPEN_RANGE_OP          // Open range operator `<.<`
@@ -576,36 +577,37 @@ var Keywords = map[string]Type{
 }
 
 var tokenNames = [...]string{
-	ERROR:               "ERROR",
-	END_OF_FILE:         "END_OF_FILE",
-	NEWLINE:             "NEWLINE",
-	SEMICOLON:           ";",
-	THICK_ARROW:         "=>",
-	THIN_ARROW:          "->",
-	WIGGLY_ARROW:        "~>",
-	LPAREN:              "(",
-	RPAREN:              ")",
-	LBRACE:              "{",
-	RBRACE:              "}",
-	LBRACKET:            "[",
-	QUESTION_LBRACKET:   "?[",
-	RBRACKET:            "]",
-	COMMA:               ",",
-	DOT:                 ".",
-	QUESTION_DOT:        "?.",
-	DOT_DOT:             "..",
-	QUESTION_DOT_DOT:    "?..",
-	COLON:               ":",
-	QUESTION:            "?",
-	PLUS_PLUS:           "++",
-	MINUS_MINUS:         "--",
-	SCOPE_RES_OP:        "::",
-	DOT_COLON:           ".:",
-	CLOSED_RANGE_OP:     "...",
-	OPEN_RANGE_OP:       "<.<",
-	RIGHT_OPEN_RANGE_OP: "..<",
-	LEFT_OPEN_RANGE_OP:  "<..",
-	PIPE_OP:             "|>",
+	ERROR:                "ERROR",
+	END_OF_FILE:          "END_OF_FILE",
+	NEWLINE:              "NEWLINE",
+	SEMICOLON:            ";",
+	THICK_ARROW:          "=>",
+	THIN_ARROW:           "->",
+	WIGGLY_ARROW:         "~>",
+	LPAREN:               "(",
+	RPAREN:               ")",
+	LBRACE:               "{",
+	RBRACE:               "}",
+	LBRACKET:             "[",
+	QUESTION_LBRACKET:    "?[",
+	RBRACKET:             "]",
+	COMMA:                ",",
+	DOT:                  ".",
+	QUESTION_DOT:         "?.",
+	DOT_DOT:              "..",
+	QUESTION_DOT_DOT:     "?..",
+	COLON:                ":",
+	QUESTION:             "?",
+	PLUS_PLUS:            "++",
+	MINUS_MINUS:          "--",
+	SCOPE_RES_OP:         "::",
+	COLON_COLON_LBRACKET: "::[",
+	DOT_COLON:            ".:",
+	CLOSED_RANGE_OP:      "...",
+	OPEN_RANGE_OP:        "<.<",
+	RIGHT_OPEN_RANGE_OP:  "..<",
+	LEFT_OPEN_RANGE_OP:   "<..",
+	PIPE_OP:              "|>",
 
 	EQUAL_OP:                "=",
 	MINUS_EQUAL:             "-=",

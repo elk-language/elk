@@ -1658,28 +1658,54 @@ func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast
 }
 
 // constructorCall = constantLookup |
-// strictConstantLookup "(" argumentList ")" |
-// strictConstantLookup argumentList
+// strictConstantLookup ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList )
 func (p *Parser) constructorCall() ast.ExpressionNode {
 	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT, token.SCOPE_RES_OP) {
 		return p.constantLookup()
 	}
 
 	constant := p.strictConstantLookup()
+	span := constant.Span()
 
-	lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+	var typeArgs []ast.TypeNode
+	if p.match(token.COLON_COLON_LBRACKET) {
+		p.swallowNewlines()
+		// generic constructor call
+		typeArgs = p.typeAnnotationList(token.RBRACKET)
+		p.swallowNewlines()
+		rbracket, ok := p.consume(token.RBRACKET)
+		if !ok {
+			return ast.NewInvalidNode(rbracket.Span(), rbracket)
+		}
+		span = span.Join(rbracket.Span())
+	}
+
+	lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
 		return ast.NewInvalidNode(
 			errToken.Span(),
 			errToken,
 		)
 	}
-	if lastSpan == nil {
+	if lastArgSpan == nil {
+		if typeArgs != nil {
+			p.errorMessageSpan("invalid generic constant", span)
+		}
 		return constant
 	}
+	span = span.Join(lastArgSpan)
 
+	if len(typeArgs) > 0 {
+		return ast.NewGenericConstructorCallNode(
+			span,
+			constant,
+			typeArgs,
+			posArgs,
+			namedArgs,
+		)
+	}
 	return ast.NewConstructorCallNode(
-		constant.Span().Join(lastSpan),
+		span,
 		constant,
 		posArgs,
 		namedArgs,
@@ -2492,7 +2518,7 @@ func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexCons
 
 // typeAnnotationList = typeAnnotation ("," typeAnnotation)*
 func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
-	return commaSeparatedListWithoutTerminator(p, p.typeAnnotation, stopTokens...)
+	return commaSeparatedList(p, p.typeAnnotation, stopTokens...)
 }
 
 // includeExpression = "include" genericConstantList
@@ -3134,7 +3160,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList()
+			typeVars = p.typeVariableList(token.RBRACKET)
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),
@@ -3914,7 +3940,7 @@ func (p *Parser) genericConstantOrNil() ast.ComplexConstantNode {
 	return p.genericConstant()
 }
 
-// genericConstant = strictConstantLookup | strictConstantLookup "[" [genericConstantList] "]"
+// genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
 func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	constant := p.strictConstantLookup()
 	if !p.match(token.LBRACKET) {

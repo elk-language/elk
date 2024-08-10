@@ -357,6 +357,7 @@ func (*IncludeExpressionNode) expressionNode()           {}
 func (*ExtendExpressionNode) expressionNode()            {}
 func (*EnhanceExpressionNode) expressionNode()           {}
 func (*ImplementExpressionNode) expressionNode()         {}
+func (*GenericConstructorCallNode) expressionNode()      {}
 func (*ConstructorCallNode) expressionNode()             {}
 func (*SubscriptExpressionNode) expressionNode()         {}
 func (*NilSafeSubscriptExpressionNode) expressionNode()  {}
@@ -3671,6 +3672,30 @@ func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posA
 	return &ConstructorCallNode{
 		TypedNodeBase:       TypedNodeBase{span: span},
 		Class:               class,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`
+type GenericConstructorCallNode struct {
+	TypedNodeBase
+	Class               ComplexConstantNode // class that is being instantiated
+	TypeArguments       []TypeNode
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*GenericConstructorCallNode) IsStatic() bool {
+	return false
+}
+
+// Create a constructor call node eg. `ArrayList::[Int](1, 2, 3)`
+func NewGenericConstructorCallNode(span *position.Span, class ComplexConstantNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericConstructorCallNode {
+	return &GenericConstructorCallNode{
+		TypedNodeBase:       TypedNodeBase{span: span},
+		Class:               class,
+		TypeArguments:       typeArgs,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
 	}
