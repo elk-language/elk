@@ -784,6 +784,53 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can omit the receiver and have type arguments": {
+			input: "foo::[String]()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewGenericReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							"foo",
+							[]ast.TypeNode{
+								ast.NewPublicConstantNode(S(P(6, 1, 7), P(11, 1, 12)), "String"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be multiline, omit the receiver and have type arguments": {
+			input: `
+				foo::[
+					String,
+				]()
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(32, 4, 8)),
+						ast.NewGenericReceiverlessMethodCallNode(
+							S(P(5, 2, 5), P(31, 4, 7)),
+							"foo",
+							[]ast.TypeNode{
+								ast.NewPublicConstantNode(S(P(17, 3, 6), P(22, 3, 11)), "String"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can omit the receiver, arguments and have a trailing closure": {
 			input: "foo() |i| -> i * 2",
 			want: ast.NewProgramNode(
@@ -935,6 +982,57 @@ func TestMethodCall(t *testing.T) {
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
 							"bar",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver with type arguments": {
+			input: "foo.bar::[String]()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewGenericMethodCallNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
+							"bar",
+							[]ast.TypeNode{
+								ast.NewPublicConstantNode(S(P(10, 1, 11), P(15, 1, 16)), "String"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be multiline, have an explicit receiver with type arguments": {
+			input: `
+				foo.bar::[
+					String,
+				]()
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(36, 4, 8)),
+						ast.NewGenericMethodCallNode(
+							S(P(5, 2, 5), P(35, 4, 7)),
+							ast.NewPublicIdentifierNode(S(P(5, 2, 5), P(7, 2, 7)), "foo"),
+							T(S(P(8, 2, 8), P(8, 2, 8)), token.DOT),
+							"bar",
+							[]ast.TypeNode{
+								ast.NewPublicConstantNode(S(P(21, 3, 6), P(26, 3, 11)), "String"),
+							},
 							nil,
 							nil,
 						),

@@ -1391,9 +1391,9 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = identifier ( "(" argumentList ")" | argumentList) |
-// "self" ("." | "?." | ".." | "?..") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
-// (methodCall | subscript | constructorCall) ("."| "?." | ".." | "?..") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
+// methodCall = identifier ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList) |
+// "self" ("." | "?." | ".." | "?..") (identifier | keyword | overridableOperator) ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList) |
+// (methodCall | subscript | constructorCall) ("."| "?." | ".." | "?..") [publicIdentifier | keyword | overridableOperator] ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList)
 //
 // subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
 func (p *Parser) methodCall() ast.ExpressionNode {
@@ -1401,16 +1401,30 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 
 	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
-		(p.secondLookahead.Type == token.LPAREN || p.secondLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
+		(p.acceptSecond(token.LPAREN, token.COLON_COLON_LBRACKET) || p.secondLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
-		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+		span := methodName.Span()
+
+		var typeArgs []ast.TypeNode
+		if p.match(token.COLON_COLON_LBRACKET) {
+			p.swallowNewlines()
+			// generic constructor call
+			typeArgs = p.typeAnnotationList(token.RBRACKET)
+			p.swallowNewlines()
+			rbracket, ok := p.consume(token.RBRACKET)
+			if !ok {
+				return ast.NewInvalidNode(rbracket.Span(), rbracket)
+			}
+			span = span.Join(rbracket.Span())
+		}
+		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
 				errToken.Span(),
 				errToken,
 			)
 		}
-		if lastSpan == nil {
+		if lastArgSpan == nil {
 			p.errorExpected("method arguments")
 			errToken = p.advance()
 			return ast.NewInvalidNode(
@@ -1418,6 +1432,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 				errToken,
 			)
 		}
+		span = span.Join(lastArgSpan)
 
 		if p.hasTrailingClosure() {
 			function := p.closureExpression()
@@ -1429,15 +1444,25 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			} else {
 				posArgs = append(posArgs, function)
 			}
-			lastSpan = function.Span()
+			span = span.Join(function.Span())
 		}
 
-		receiver = ast.NewReceiverlessMethodCallNode(
-			methodName.Span().Join(lastSpan),
-			methodName.Value,
-			posArgs,
-			namedArgs,
-		)
+		if len(typeArgs) > 0 {
+			receiver = ast.NewGenericReceiverlessMethodCallNode(
+				span,
+				methodName.Value,
+				typeArgs,
+				posArgs,
+				namedArgs,
+			)
+		} else {
+			receiver = ast.NewReceiverlessMethodCallNode(
+				span,
+				methodName.Value,
+				posArgs,
+				namedArgs,
+			)
+		}
 	}
 
 	// method call
@@ -1540,24 +1565,40 @@ methodCallLoop:
 
 		methodNameTok := p.advance()
 		methodName := methodNameTok.StringValue()
+		span := receiver.Span().Join(methodNameTok.Span())
+
+		var typeArgs []ast.TypeNode
+		if p.match(token.COLON_COLON_LBRACKET) {
+			p.swallowNewlines()
+			// generic constructor call
+			typeArgs = p.typeAnnotationList(token.RBRACKET)
+			p.swallowNewlines()
+			rbracket, ok := p.consume(token.RBRACKET)
+			if !ok {
+				return ast.NewInvalidNode(rbracket.Span(), rbracket)
+			}
+			span = span.Join(rbracket.Span())
+		}
 
 		hasParentheses := p.lookahead.Type == token.LPAREN
-		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
 				errToken.Span(),
 				errToken,
 			)
 		}
-		if lastSpan == nil {
-			lastSpan = methodNameTok.Span()
+		if lastArgSpan != nil {
+			span = span.Join(lastArgSpan)
 		}
 
 		hasTrailingClosure := p.hasTrailingClosure()
 
-		if !hasTrailingClosure && !hasParentheses && len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT {
+		if !hasTrailingClosure && !hasParentheses &&
+			len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT &&
+			len(typeArgs) == 0 {
 			receiver = ast.NewAttributeAccessNode(
-				receiver.Span().Join(lastSpan),
+				span,
 				receiver,
 				methodName,
 			)
@@ -1574,17 +1615,29 @@ methodCallLoop:
 			} else {
 				posArgs = append(posArgs, function)
 			}
-			lastSpan = function.Span()
+			span = span.Join(function.Span())
 		}
 
-		receiver = ast.NewMethodCallNode(
-			receiver.Span().Join(lastSpan),
-			receiver,
-			opToken,
-			methodName,
-			posArgs,
-			namedArgs,
-		)
+		if len(typeArgs) > 0 {
+			receiver = ast.NewGenericMethodCallNode(
+				span,
+				receiver,
+				opToken,
+				methodName,
+				typeArgs,
+				posArgs,
+				namedArgs,
+			)
+		} else {
+			receiver = ast.NewMethodCallNode(
+				span,
+				receiver,
+				opToken,
+				methodName,
+				posArgs,
+				namedArgs,
+			)
+		}
 	}
 }
 
