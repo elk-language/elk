@@ -163,34 +163,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 			continue
 		}
 
-		var variance types.Variance
-		switch varNode.Variance {
-		case ast.INVARIANT:
-			variance = types.INVARIANT
-		case ast.COVARIANT:
-			variance = types.COVARIANT
-		case ast.CONTRAVARIANT:
-			variance = types.CONTRAVARIANT
-		}
-
-		var lowerType types.Type = types.Never{}
-		if varNode.LowerBound != nil {
-			varNode.LowerBound = c.checkTypeNode(varNode.LowerBound)
-			lowerType = c.typeOf(varNode.LowerBound)
-		}
-
-		var upperType types.Type = types.Any{}
-		if varNode.UpperBound != nil {
-			varNode.UpperBound = c.checkTypeNode(varNode.UpperBound)
-			upperType = c.typeOf(varNode.UpperBound)
-		}
-
-		t := types.NewTypeParameter(
-			value.ToSymbol(varNode.Name),
-			lowerType,
-			upperType,
-			variance,
-		)
+		t := c.checkTypeVariableNode(varNode)
 		typeVars = append(typeVars, t)
 		typeVarNode.SetType(t)
 		typeVarMod.DefineSubtype(t.Name, t)
@@ -266,6 +239,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	if !ok {
 		return
 	}
+
 	var superclassType types.Type
 	var superclass *types.Class
 
@@ -324,4 +298,54 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 			span,
 		)
 	}
+
+	if len(node.TypeVariables) < 1 {
+		return
+	}
+
+	typeVars := make([]*types.TypeParameter, 0, len(node.TypeVariables))
+	for _, typeVarNode := range node.TypeVariables {
+		varNode, ok := typeVarNode.(*ast.VariantTypeVariableNode)
+		if !ok {
+			continue
+		}
+
+		t := c.checkTypeVariableNode(varNode)
+		typeVars = append(typeVars, t)
+		typeVarNode.SetType(t)
+		class.DefineSubtype(t.Name, t)
+	}
+
+	class.TypeParameters = typeVars
+}
+
+func (c *Checker) checkTypeVariableNode(node *ast.VariantTypeVariableNode) *types.TypeParameter {
+	var variance types.Variance
+	switch node.Variance {
+	case ast.INVARIANT:
+		variance = types.INVARIANT
+	case ast.COVARIANT:
+		variance = types.COVARIANT
+	case ast.CONTRAVARIANT:
+		variance = types.CONTRAVARIANT
+	}
+
+	var lowerType types.Type = types.Never{}
+	if node.LowerBound != nil {
+		node.LowerBound = c.checkTypeNode(node.LowerBound)
+		lowerType = c.typeOf(node.LowerBound)
+	}
+
+	var upperType types.Type = types.Any{}
+	if node.UpperBound != nil {
+		node.UpperBound = c.checkTypeNode(node.UpperBound)
+		upperType = c.typeOf(node.UpperBound)
+	}
+
+	return types.NewTypeParameter(
+		value.ToSymbol(node.Name),
+		lowerType,
+		upperType,
+		variance,
+	)
 }

@@ -6,12 +6,17 @@ import (
 )
 
 type Class struct {
-	parent    Namespace
-	abstract  bool
-	sealed    bool
-	primitive bool
-	singleton *SingletonClass
+	parent         Namespace
+	abstract       bool
+	sealed         bool
+	primitive      bool
+	singleton      *SingletonClass
+	TypeParameters []*TypeParameter
 	NamespaceBase
+}
+
+func (c *Class) IsGeneric() bool {
+	return len(c.TypeParameters) > 0
 }
 
 func (c *Class) IncludeMixin(mixin *Mixin) {

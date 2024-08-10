@@ -2053,6 +2053,17 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	node.SetType(method.ReturnType)
 }
 
+func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
+	for _, arg := range args {
+		arg, ok := arg.(*ast.NamedCallArgumentNode)
+		if !ok {
+			continue
+		}
+
+		c.checkExpression(arg.Value)
+	}
+}
+
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 	classNode := c.checkComplexConstantType(node.Class)
 	node.Class = classNode
@@ -2066,13 +2077,20 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 		className = cn.Value
 	}
 
+	if types.IsNothing(classType) {
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return
+	}
 	class, isClass := classType.(*types.Class)
 	if !isClass {
 		c.addFailure(
-			fmt.Sprintf("`%s` cannot be instantiated", className),
+			fmt.Sprintf("`%s` cannot be instantiated", types.InspectWithColor(classType)),
 			node.Span(),
 		)
 		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Nothing{})
 		return
 	}
@@ -2926,27 +2944,30 @@ func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Sym
 	}
 }
 
-func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
-	typ, _ := c.resolveType(node.Value, node.Span())
+func (c *Checker) checkSimpleConstantType(name string, span *position.Span) types.Type {
+	typ, _ := c.resolveType(name, span)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), span)
 		typ = types.Nothing{}
+	case *types.Class:
+		if t.IsGeneric() {
+			c.addTypeArgumentCountError(typ, len(t.TypeParameters), span)
+			typ = types.Nothing{}
+		}
 	case nil:
 		typ = types.Nothing{}
 	}
+	return typ
+}
+
+func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
+	typ := c.checkSimpleConstantType(node.Value, node.Span())
 	node.SetType(typ)
 }
 
 func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
-	typ, _ := c.resolveType(node.Value, node.Span())
-	switch t := typ.(type) {
-	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
-		typ = types.Nothing{}
-	case nil:
-		typ = types.Nothing{}
-	}
+	typ := c.checkSimpleConstantType(node.Value, node.Span())
 	node.SetType(typ)
 }
 
@@ -3106,6 +3127,11 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 	case *types.GenericNamedType:
 		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
 		typ = types.Nothing{}
+	case *types.Class:
+		if t.IsGeneric() {
+			c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
+			typ = types.Nothing{}
+		}
 	case nil:
 		typ = types.Nothing{}
 	}

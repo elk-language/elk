@@ -3008,14 +3008,13 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 type ClassDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Abstract              bool
-	Sealed                bool
-	Primitive             bool
-	Constant              ExpressionNode     // The constant that will hold the class value
-	TypeVariables         []TypeVariableNode // Generic type variable definitions
-	Superclass            ExpressionNode     // the super/parent class of this class
-	Body                  []StatementNode    // body of the class
-	IncludesAndImplements []ExpressionNode
+	Abstract      bool
+	Sealed        bool
+	Primitive     bool
+	Constant      ExpressionNode     // The constant that will hold the class value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Superclass    ExpressionNode     // the super/parent class of this class
+	Body          []StatementNode    // body of the class
 }
 
 func (*ClassDeclarationNode) SkipTypechecking() bool {
