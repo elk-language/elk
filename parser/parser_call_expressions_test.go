@@ -743,6 +743,450 @@ func TestConstructorCall(t *testing.T) {
 	}
 }
 
+func TestNewExpression(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "foo = new",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewNewExpressionNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have an empty argument list": {
+			input: "new()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type arguments": {
+			input: "new::[1 | 2, String]()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewGenericNewExpressionNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							[]ast.TypeNode{
+								ast.NewBinaryTypeExpressionNode(
+									S(P(6, 1, 7), P(10, 1, 11)),
+									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
+									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "2"),
+								),
+								ast.NewPublicConstantNode(S(P(13, 1, 14), P(18, 1, 19)), "String"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type arguments and regular arguments": {
+			input: "new::[1 | 2, String](8)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewGenericNewExpressionNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							[]ast.TypeNode{
+								ast.NewBinaryTypeExpressionNode(
+									S(P(6, 1, 7), P(10, 1, 11)),
+									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
+									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "2"),
+								),
+								ast.NewPublicConstantNode(S(P(13, 1, 14), P(18, 1, 19)), "String"),
+							},
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "8"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type arguments and regular arguments without parens": {
+			input: "new::[1 | 2, String] 8",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewGenericNewExpressionNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							[]ast.TypeNode{
+								ast.NewBinaryTypeExpressionNode(
+									S(P(6, 1, 7), P(10, 1, 11)),
+									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
+									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "2"),
+								),
+								ast.NewPublicConstantNode(S(P(13, 1, 14), P(18, 1, 19)), "String"),
+							},
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "8"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot have type arguments without regular arguments": {
+			input: "new::[1 | 2, String]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewInvalidNode(S(P(0, 1, 1), P(2, 1, 3)), T(S(P(0, 1, 1), P(2, 1, 3)), token.NEW)),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(19, 1, 20)), "invalid generic new expression"),
+			},
+		},
+		"can have multiline type arguments": {
+			input: `
+				new::[
+					1 | 2,
+					String,
+				]()
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(44, 5, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(44, 5, 8)),
+						ast.NewGenericNewExpressionNode(
+							S(P(5, 2, 5), P(43, 5, 7)),
+							[]ast.TypeNode{
+								ast.NewBinaryTypeExpressionNode(
+									S(P(17, 3, 6), P(21, 3, 10)),
+									T(S(P(19, 3, 8), P(19, 3, 8)), token.OR),
+									ast.NewIntLiteralNode(S(P(17, 3, 6), P(17, 3, 6)), "1"),
+									ast.NewIntLiteralNode(S(P(21, 3, 10), P(21, 3, 10)), "2"),
+								),
+								ast.NewPublicConstantNode(S(P(29, 4, 6), P(34, 4, 11)), "String"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have positional arguments": {
+			input: "new(.1, 'foo', :bar)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma": {
+			input: "new(.1, 'foo', :bar,)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have named arguments": {
+			input: "new(bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(24, 1, 25)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(24, 1, 25)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(24, 1, 25)),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(4, 1, 5), P(12, 1, 13)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(9, 1, 10), P(12, 1, 13)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(15, 1, 16), P(23, 1, 24)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(20, 1, 21), P(23, 1, 24))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have positional and named arguments": {
+			input: "new(.1, 'foo', :bar, bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(41, 1, 42)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(41, 1, 42)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(41, 1, 42)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(21, 1, 22), P(29, 1, 30)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 1, 27), P(29, 1, 30)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(32, 1, 33), P(40, 1, 41)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(37, 1, 38), P(40, 1, 41))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after commas": {
+			input: "new(.1,\n'foo',\n:bar, bar: :baz,\nelk: true)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(41, 4, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(41, 4, 10)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(41, 4, 10)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 4)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(21, 3, 7), P(29, 3, 15)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 15)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(32, 4, 1), P(40, 4, 9)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 9))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines around parentheses": {
+			input: "new(\n.1, 'foo', :bar, bar: :baz, elk: true\n)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 3, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 3, 1)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(43, 3, 1)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(5, 2, 1), P(6, 2, 2)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(9, 2, 5), P(13, 2, 9)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(16, 2, 12), P(19, 2, 15)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(22, 2, 18), P(30, 2, 26)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(27, 2, 23), P(30, 2, 26)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(33, 2, 29), P(41, 2, 37)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(38, 2, 34), P(41, 2, 37))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have positional arguments without parentheses": {
+			input: "new .1, 'foo', :bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have named arguments without parentheses": {
+			input: "new bar: :baz, elk: true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(23, 1, 24)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(23, 1, 24)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(23, 1, 24)),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(4, 1, 5), P(12, 1, 13)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(9, 1, 10), P(12, 1, 13)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(15, 1, 16), P(23, 1, 24)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(20, 1, 21), P(23, 1, 24))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have positional and named arguments without parentheses": {
+			input: "new .1, 'foo', :bar, bar: :baz, elk: true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(40, 1, 41)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(40, 1, 41)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(40, 1, 41)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(21, 1, 22), P(29, 1, 30)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 1, 27), P(29, 1, 30)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(32, 1, 33), P(40, 1, 41)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(37, 1, 38), P(40, 1, 41))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after commas without parentheses": {
+			input: "new .1,\n'foo',\n:bar, bar: :baz,\nelk: true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(40, 4, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(40, 4, 9)),
+						ast.NewNewExpressionNode(
+							S(P(0, 1, 1), P(40, 4, 9)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 4)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(21, 3, 7), P(29, 3, 15)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 15)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(32, 4, 1), P(40, 4, 9)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 9))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestMethodCall(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {

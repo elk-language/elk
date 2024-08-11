@@ -495,6 +495,7 @@ const (
 	DEFAULT           // Keyword `default`
 	MACRO             // Keyword `macro`
 	BOOL              // Keyword `bool`
+	NEW               // Keyword `new`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -574,6 +575,7 @@ var Keywords = map[string]Type{
 	"default":    DEFAULT,
 	"macro":      MACRO,
 	"bool":       BOOL,
+	"new":        NEW,
 }
 
 var tokenNames = [...]string{
@@ -817,4 +819,5 @@ var tokenNames = [...]string{
 	DEFAULT:    "default",
 	MACRO:      "macro",
 	BOOL:       "bool",
+	NEW:        "new",
 }

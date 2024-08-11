@@ -357,6 +357,8 @@ func (*IncludeExpressionNode) expressionNode()             {}
 func (*ExtendExpressionNode) expressionNode()              {}
 func (*EnhanceExpressionNode) expressionNode()             {}
 func (*ImplementExpressionNode) expressionNode()           {}
+func (*GenericNewExpressionNode) expressionNode()          {}
+func (*NewExpressionNode) expressionNode()                 {}
 func (*GenericConstructorCallNode) expressionNode()        {}
 func (*ConstructorCallNode) expressionNode()               {}
 func (*SubscriptExpressionNode) expressionNode()           {}
@@ -3655,6 +3657,48 @@ func NewNamedCallArgumentNode(span *position.Span, name string, val ExpressionNo
 		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Value:    val,
+	}
+}
+
+// Represents a new expression eg. `new(123)`
+type NewExpressionNode struct {
+	TypedNodeBase
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*NewExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new expression node eg. `new(123)`
+func NewNewExpressionNode(span *position.Span, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *NewExpressionNode {
+	return &NewExpressionNode{
+		TypedNodeBase:       TypedNodeBase{span: span},
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a new expression eg. `new::[Int](123)`
+type GenericNewExpressionNode struct {
+	TypedNodeBase
+	TypeArguments       []TypeNode
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*GenericNewExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a generic new expression node eg. `new::[Int](123)`
+func NewGenericNewExpressionNode(span *position.Span, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericNewExpressionNode {
+	return &GenericNewExpressionNode{
+		TypedNodeBase:       TypedNodeBase{span: span},
+		TypeArguments:       typeArgs,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
 	}
 }
 
