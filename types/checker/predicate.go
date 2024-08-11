@@ -173,6 +173,10 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return false
 	case types.Self:
 		return c.isSubtype(c.selfType, b, errSpan)
+	case *types.TypeParameter:
+		if c.isSubtype(a.UpperBound, b, errSpan) {
+			return true
+		}
 	}
 
 	if bIntersection, ok := b.(*types.Intersection); ok {
@@ -197,6 +201,10 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return c.isSubtype(a, b.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
 	case *types.Not:
 		return !c.typesIntersect(a, b.Type)
+	case *types.TypeParameter:
+		if c.isSubtype(a, b.LowerBound, errSpan) {
+			return true
+		}
 	}
 
 	if aIntersection, ok := a.(*types.Intersection); ok {
@@ -348,7 +356,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		}
 		return a.Value == b.Value
 	case *types.TypeParameter:
-		return false
+		b, ok := b.(*types.TypeParameter)
+		if !ok {
+			return false
+		}
+		return a.Name == b.Name
 	case *types.Generic:
 		genericB, ok := b.(*types.Generic)
 		if !ok {

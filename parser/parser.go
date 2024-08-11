@@ -1864,23 +1864,10 @@ func (p *Parser) constant() ast.ConstantNode {
 	)
 }
 
-// newExpression = "new" ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList )
+// newExpression = "new" ( "(" argumentList ")" | argumentList )
 func (p *Parser) newExpression() ast.ExpressionNode {
 	newTok := p.advance()
 	span := newTok.Span()
-
-	var typeArgs []ast.TypeNode
-	if p.match(token.COLON_COLON_LBRACKET) {
-		p.swallowNewlines()
-		// generic constructor call
-		typeArgs = p.typeAnnotationList(token.RBRACKET)
-		p.swallowNewlines()
-		rbracket, ok := p.consume(token.RBRACKET)
-		if !ok {
-			return ast.NewInvalidNode(rbracket.Span(), rbracket)
-		}
-		span = span.Join(rbracket.Span())
-	}
 
 	lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
@@ -1889,23 +1876,8 @@ func (p *Parser) newExpression() ast.ExpressionNode {
 			errToken,
 		)
 	}
-	if lastArgSpan == nil && typeArgs != nil {
-		p.errorMessageSpan("invalid generic new expression", span)
-		return ast.NewInvalidNode(
-			newTok.Span(),
-			newTok,
-		)
-	}
 	span = span.Join(lastArgSpan)
 
-	if len(typeArgs) > 0 {
-		return ast.NewGenericNewExpressionNode(
-			span,
-			typeArgs,
-			posArgs,
-			namedArgs,
-		)
-	}
 	return ast.NewNewExpressionNode(
 		span,
 		posArgs,

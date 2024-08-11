@@ -1199,6 +1199,8 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 		return c._getMethod(c.selfType, name, typeArgs, errSpan, inParent)
 	case *types.NamedType:
 		return c._getMethod(t.Type, name, typeArgs, errSpan, inParent)
+	case *types.TypeParameter:
+		return c._getMethod(t.UpperBound, name, typeArgs, errSpan, inParent)
 	case *types.Generic:
 		var method *types.Method
 		switch genericType := t.Type.(type) {

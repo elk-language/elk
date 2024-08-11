@@ -1871,6 +1871,54 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.()
 			`,
 		},
+
+		"call a method on a type parameter": {
+			input: `
+				class Bar[V]
+					init(@a: V); end
+
+					def bar
+						@a.foo()
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 6, 7), P(67, 6, 14)), "method `foo` is not defined on type `any`"),
+			},
+		},
+		"call a method on a type parameter with an upper bound": {
+			input: `
+				class Foo
+					def foo; end
+				end
+
+				class Bar[V < Foo]
+					init(@a: V); end
+
+					def bar
+						@a.foo()
+					end
+				end
+			`,
+		},
+		"call a method on a type parameter with a lower bound": {
+			input: `
+				class Foo
+					def foo; end
+				end
+
+				class Bar[V > Foo]
+					init(@a: V); end
+
+					def bar
+						@a.foo()
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(107, 10, 7), P(114, 10, 14)), "method `foo` is not defined on type `any`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -2086,6 +2134,117 @@ func TestConstructorCall(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(108, 8, 11), P(110, 8, 13)), "type `Std::Int` does not satisfy the lower bound `Baz`"),
+			},
+		},
+
+		"new - instantiate a class without a constructor": {
+			input: `
+				class Foo
+					def foo: self
+						new
+					end
+				end
+			`,
+		},
+		"new - instantiate an abstract class": {
+			input: `
+				abstract class Foo
+					def foo: self
+						new
+					end
+				end
+			`,
+		},
+		"new - instantiate a class with a constructor": {
+			input: `
+				class Foo
+					init(a: Int); end
+
+					def foo: self
+						new(1)
+					end
+				end
+			`,
+		},
+		"new - instantiate a class with a constructor with a wrong type": {
+			input: `
+				class Foo
+					init(a: String); end
+					def foo: self
+						new(1)
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 5, 11), P(70, 5, 11)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+			},
+		},
+		"new - instantiate a class with an inherited constructor": {
+			input: `
+				class Bar
+					init(a: Int); end
+				end
+
+				class Foo < Bar
+					def foo: self
+						new(1)
+					end
+				end
+			`,
+		},
+		"new - instantiate a class with an inherited constructor with a wrong type": {
+			input: `
+				class Bar
+					init(a: String); end
+				end
+
+				class Foo < Bar
+					def foo: self
+						new(1)
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 8, 11), P(99, 8, 11)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+			},
+		},
+		"new - call a method on an instantiated instance": {
+			input: `
+				class Foo
+					init(a: String); end
+
+					def foo
+						a := new("foo")
+						a.bar
+					end
+
+					def bar; end
+				end
+			`,
+		},
+		"new - instantiate a generic class": {
+			input: `
+				class Foo[V]
+					init(@a: V); end
+
+					def foo: self
+						new(@a)
+					end
+				end
+			`,
+		},
+		"new - instantiate a generic class with invalid arguments": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+
+					def foo: self
+						new("foo")
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 6, 11), P(73, 6, 15)), "expected type `V` for parameter `a` in call to `#init`, got type `\"foo\"`"),
 			},
 		},
 	}

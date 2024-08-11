@@ -563,9 +563,10 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.ClosureLiteralNode:
 		return c.checkClosureLiteralNode(n)
+	case *ast.NewExpressionNode:
+		return c.checkNewExpressionNode(n)
 	case *ast.ConstructorCallNode:
-		c.checkConstructorCallNode(n)
-		return n
+		return c.checkConstructorCallNode(n)
 	case *ast.GenericConstructorCallNode:
 		return c.checkGenericConstructorCallNode(n)
 	case *ast.AttributeAccessNode:
@@ -2125,8 +2126,77 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	return types.NewTypeArguments(typeArgumentMap, typeArgumentOrder), true
 }
 
+func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.ExpressionNode {
+	var class *types.Class
+	switch t := c.selfType.(type) {
+	case *types.Class:
+		class = t
+	case *types.SingletonClass:
+		if attached, ok := t.AttachedObject.(*types.Class); ok {
+			class = attached
+		}
+	}
+
+	if class == nil {
+		c.addFailure(
+			fmt.Sprintf("`%s` cannot be instantiated", types.InspectWithColor(c.selfType)),
+			node.Span(),
+		)
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	var typeArgs *types.TypeArguments
+	var method *types.Method
+	if len(class.TypeParameters) > 0 {
+		typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(class.TypeParameters))
+		typeArgumentOrder := make([]value.Symbol, len(class.TypeParameters))
+		for i, param := range class.TypeParameters {
+			typeArgumentMap[param.Name] = types.NewTypeArgument(
+				param,
+				param.Variance,
+			)
+			typeArgumentOrder[i] = param.Name
+		}
+		typeArgs = types.NewTypeArguments(
+			typeArgumentMap,
+			typeArgumentOrder,
+		)
+		generic := types.NewGeneric(
+			class,
+			typeArgs,
+		)
+		method = c.getMethod(generic, symbol.M_init, nil, nil)
+	} else {
+		method = c.getMethod(class, symbol.M_init, nil, nil)
+	}
+
+	if method == nil {
+		method = types.NewMethod(
+			"",
+			false,
+			false,
+			true,
+			symbol.M_init,
+			nil,
+			nil,
+			nil,
+			class,
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(types.Self{})
+	return node
+}
+
 func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {
-	classType, className := c.resolveConstantType(node.Class)
+	classType, _ := c.resolveConstantType(node.Class)
 	if classType == nil {
 		classType = types.Nothing{}
 	}
@@ -2151,7 +2221,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 
 	if class.IsAbstract() {
 		c.addFailure(
-			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
+			fmt.Sprintf("cannot instantiate abstract class `%s`", types.InspectWithColor(class)),
 			node.Span(),
 		)
 	}
@@ -2193,24 +2263,16 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	return node
 }
 
-func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
+func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
 	classNode := c.checkComplexConstantType(node.Class)
 	node.Class = classNode
 	classType := c.typeOf(classNode)
-	var className string
-
-	switch cn := classNode.(type) {
-	case *ast.PublicConstantNode:
-		className = cn.Value
-	case *ast.PrivateConstantNode:
-		className = cn.Value
-	}
 
 	if types.IsNothing(classType) {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Nothing{})
-		return
+		return node
 	}
 	class, isClass := classType.(*types.Class)
 	if !isClass {
@@ -2221,17 +2283,17 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Nothing{})
-		return
+		return node
 	}
 
 	if class.IsAbstract() {
 		c.addFailure(
-			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
+			fmt.Sprintf("cannot instantiate abstract class `%s`", types.InspectWithColor(class)),
 			node.Span(),
 		)
 	}
 
-	method := types.GetMethodInNamespace(class, symbol.M_init)
+	method := c.getMethod(class, symbol.M_init, nil, nil)
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -2251,6 +2313,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(class)
+	return node
 }
 
 func (c *Checker) checkCallNode(node *ast.CallNode) {
@@ -3023,6 +3086,21 @@ func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Sym
 			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
 		}
 		return arg.Type
+	case *types.Generic:
+		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+		for key, arg := range t.ArgumentMap {
+			newMap[key] = types.NewTypeArgument(
+				c.replaceTypeParameters(arg.Type, typeArgMap),
+				arg.Variance,
+			)
+		}
+		return types.NewGeneric(
+			c.replaceTypeParameters(t.Type, typeArgMap),
+			types.NewTypeArguments(
+				newMap,
+				t.ArgumentOrder,
+			),
+		)
 	case *types.TypeParameter:
 		arg := typeArgMap[t.Name]
 		if arg == nil {
