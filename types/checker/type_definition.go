@@ -196,7 +196,7 @@ func (c *Checker) checkTypeDefinitions() {
 func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *position.Span) bool {
 	if typedefCheck.state == CHECKING_TYPEDEF {
 		c.addFailure(
-			fmt.Sprintf("Type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
+			fmt.Sprintf("type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
 			span,
 		)
 		return false
@@ -253,7 +253,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		var ok bool
 		superclass, ok = superclassType.(*types.Class)
 		if !ok {
-			if !types.IsNothing(superclassType) {
+			if !types.IsNothing(superclassType) && superclassType != nil {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),

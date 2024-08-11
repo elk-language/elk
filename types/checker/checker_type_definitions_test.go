@@ -14,7 +14,7 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Bar = Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(41, 3, 19), P(43, 3, 21)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(41, 3, 19), P(43, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define a type and assign a compatible value": {
@@ -87,7 +87,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Bar = Foo[Int]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 3, 19), P(50, 3, 21)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(48, 3, 19), P(50, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define generic types with circular dependencies in the bounds": {
@@ -96,7 +96,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Bar = Foo[Int]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 19), P(58, 3, 21)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(56, 3, 19), P(58, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define a generic type with valid content": {
@@ -174,7 +174,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Foo[Int, Float] = 2.4
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "generic type `Foo[V]` requires 1 type argument(s)"),
+				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "generic type `Foo[V]` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"use a generic type with a satisfied upper bound": {
@@ -223,7 +223,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Dupa = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "generic type `Dupa[V]` requires 1 type argument(s)"),
+				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "generic type `Dupa[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"use a generic type under a namespace without type arguments": {
@@ -234,7 +234,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Foo::Bar = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "generic type `Foo::Bar[V]` requires 1 type argument(s)"),
+				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "generic type `Foo::Bar[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"define within a method": {

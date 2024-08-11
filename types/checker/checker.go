@@ -558,6 +558,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ConstructorCallNode:
 		c.checkConstructorCallNode(n)
 		return n
+	case *ast.GenericConstructorCallNode:
+		return c.checkGenericConstructorCallNode(n)
 	case *ast.AttributeAccessNode:
 		return c.checkAttributeAccessNode(n)
 	case *ast.NilSafeSubscriptExpressionNode:
@@ -1930,7 +1932,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	constantType, _ := c.resolveConstantType(node)
 
-	if types.IsNothing(constantType) {
+	if types.IsNothing(constantType) || constantType == nil {
 		return
 	}
 	constantMixin, constantIsMixin := constantType.(*types.Mixin)
@@ -1981,7 +1983,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	constantType, _ := c.resolveConstantType(node)
 
-	if types.IsNothing(constantType) {
+	if types.IsNothing(constantType) || constantType == nil {
 		return
 	}
 	constantInterface, constantIsInterface := constantType.(*types.Interface)
@@ -2040,7 +2042,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
+	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), nil, node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		node.SetType(types.Nothing{})
@@ -2062,6 +2064,125 @@ func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
 
 		c.checkExpression(arg.Value)
 	}
+}
+
+func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []*types.TypeParameter, span *position.Span) (*types.TypeArguments, bool) {
+	if len(typeArgs) != len(typeParams) {
+		c.addTypeArgumentCountError(typ, len(typeParams), len(typeArgs), span)
+		return nil, false
+	}
+
+	typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(typeParams))
+	typeArgumentOrder := make([]value.Symbol, 0, len(typeParams))
+	var fail bool
+	for i := range len(typeParams) {
+		typeParameter := typeParams[i]
+
+		typeArgs[i] = c.checkTypeNode(typeArgs[i])
+		typeArgumentNode := typeArgs[i]
+		typeArgument := c.typeOf(typeArgumentNode)
+		typeArgumentMap[typeParameter.Name] = types.NewTypeArgument(
+			typeArgument,
+			typeParameter.Variance,
+		)
+		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
+
+		if !c.isSubtype(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"type `%s` does not satisfy the upper bound `%s`",
+					types.InspectWithColor(typeArgument),
+					types.InspectWithColor(typeParameter.UpperBound),
+				),
+				typeArgumentNode.Span(),
+			)
+			fail = true
+		}
+		if !c.isSubtype(typeParameter.LowerBound, typeArgument, typeArgumentNode.Span()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"type `%s` does not satisfy the lower bound `%s`",
+					types.InspectWithColor(typeArgument),
+					types.InspectWithColor(typeParameter.LowerBound),
+				),
+				typeArgumentNode.Span(),
+			)
+			fail = true
+		}
+	}
+	if fail {
+		return nil, false
+	}
+
+	return types.NewTypeArguments(typeArgumentMap, typeArgumentOrder), true
+}
+
+func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {
+	classType, className := c.resolveConstantType(node.Class)
+	if classType == nil {
+		classType = types.Nothing{}
+	}
+
+	if types.IsNothing(classType) {
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return node
+	}
+	class, isClass := classType.(*types.Class)
+	if !isClass {
+		c.addFailure(
+			fmt.Sprintf("`%s` cannot be instantiated", types.InspectWithColor(classType)),
+			node.Span(),
+		)
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	if class.IsAbstract() {
+		c.addFailure(
+			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
+			node.Span(),
+		)
+	}
+
+	typeArgs, ok := c.checkTypeArguments(
+		class,
+		node.TypeArguments,
+		class.TypeParameters,
+		node.Class.Span(),
+	)
+	if !ok {
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	generic := types.NewGeneric(class, typeArgs)
+	method := c.getMethod(generic, symbol.M_init, nil, nil)
+	if method == nil {
+		method = types.NewMethod(
+			"",
+			false,
+			false,
+			true,
+			symbol.M_init,
+			nil,
+			nil,
+			nil,
+			class,
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(generic)
+	return node
 }
 
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) {
@@ -2227,7 +2348,7 @@ func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.Ex
 		return node
 	}
 
-	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), node.Span())
+	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), nil, node.Span())
 	if method == nil {
 		node.Receiver = receiver
 		node.SetType(types.Nothing{})
@@ -2686,7 +2807,7 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 		if constant != nil {
 			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
 			if !c.checkTypeIfNecessary(fullName, span) {
-				return types.Nothing{}, fullName
+				return nil, fullName
 			}
 			return constant, fullName
 		}
@@ -2841,12 +2962,12 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 	}
 }
 
-func (c *Checker) addTypeArgumentCountError(typ types.Type, paramCount int, span *position.Span) {
+func (c *Checker) addTypeArgumentCountError(typ types.Type, paramCount, argCount int, span *position.Span) {
 	if paramCount == 0 {
 		return
 	}
 	c.addFailure(
-		fmt.Sprintf("generic type `%s` requires %d type argument(s)", types.InspectWithColor(typ), paramCount),
+		fmt.Sprintf("generic type `%s` requires %d type argument(s), got: %d", types.InspectWithColor(typ), paramCount, argCount),
 		span,
 	)
 }
@@ -2860,51 +2981,18 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 
 	switch t := constantType.(type) {
 	case *types.GenericNamedType:
-		if len(node.TypeArguments) != len(t.TypeParameters) {
-			c.addTypeArgumentCountError(constantType, len(t.TypeParameters), node.Constant.Span())
+		typeArgumentMap, ok := c.checkTypeArguments(
+			constantType,
+			node.TypeArguments,
+			t.TypeParameters,
+			node.Constant.Span(),
+		)
+		if !ok {
 			node.SetType(types.Nothing{})
 			return node
 		}
 
-		var fail bool
-		typeArgumentMap := make(map[value.Symbol]types.Type, len(t.TypeParameters))
-		for i := range len(t.TypeParameters) {
-			typeParameter := t.TypeParameters[i]
-
-			node.TypeArguments[i] = c.checkTypeNode(node.TypeArguments[i])
-			typeArgumentNode := node.TypeArguments[i]
-			typeArgument := c.typeOf(typeArgumentNode)
-			typeArgumentMap[typeParameter.Name] = typeArgument
-
-			if !c.isSubtype(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span()) {
-				c.addFailure(
-					fmt.Sprintf(
-						"type `%s` does not satisfy the upper bound `%s`",
-						types.InspectWithColor(typeArgument),
-						types.InspectWithColor(typeParameter.UpperBound),
-					),
-					typeArgumentNode.Span(),
-				)
-				fail = true
-			}
-			if !c.isSubtype(typeParameter.LowerBound, typeArgument, typeArgumentNode.Span()) {
-				c.addFailure(
-					fmt.Sprintf(
-						"type `%s` does not satisfy the lower bound `%s`",
-						types.InspectWithColor(typeArgument),
-						types.InspectWithColor(typeParameter.LowerBound),
-					),
-					typeArgumentNode.Span(),
-				)
-				fail = true
-			}
-		}
-		if fail {
-			node.SetType(types.Nothing{})
-			return node
-		}
-
-		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap))
+		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap))
 		return node
 	case types.Nothing:
 		node.SetType(types.Nothing{})
@@ -2919,10 +3007,20 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 	}
 }
 
-func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]types.Type) types.Type {
+func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
 	switch t := typ.(type) {
+	case types.Self:
+		arg := typeArgMap[symbol.M_self]
+		if arg == nil {
+			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+		}
+		return arg.Type
 	case *types.TypeParameter:
-		return typeArgMap[t.Name]
+		arg := typeArgMap[t.Name]
+		if arg == nil {
+			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+		}
+		return arg.Type
 	case *types.Nilable:
 		return types.NewNilable(c.replaceTypeParameters(t.Type, typeArgMap))
 	case *types.Not:
@@ -2948,11 +3046,11 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 	typ, _ := c.resolveType(name, span)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), span)
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, span)
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(typ, len(t.TypeParameters), span)
+			c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, span)
 			typ = types.Nothing{}
 		}
 	case nil:
@@ -3037,6 +3135,9 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.Float32LiteralNode:
 		n.SetType(types.NewFloat32Literal(n.Value))
+		return n
+	case *ast.SelfLiteralNode:
+		n.SetType(types.Self{})
 		return n
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.VoidTypeNode,
 		*ast.NeverTypeNode, *ast.AnyTypeNode, *ast.NilLiteralNode, *ast.BoolLiteralNode:
@@ -3125,11 +3226,11 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 	typ, name := c.resolveConstantLookupType(node)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
+		c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, node.Span())
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(typ, len(t.TypeParameters), node.Span())
+			c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, node.Span())
 			typ = types.Nothing{}
 		}
 	case nil:

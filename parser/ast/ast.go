@@ -396,6 +396,7 @@ type TypeNode interface {
 }
 
 func (*InvalidNode) typeNode()                   {}
+func (*SelfLiteralNode) typeNode()               {}
 func (*AnyTypeNode) typeNode()                   {}
 func (*NeverTypeNode) typeNode()                 {}
 func (*VoidTypeNode) typeNode()                  {}

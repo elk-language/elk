@@ -148,6 +148,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		b = c.StdTrue()
 	case types.False:
 		b = c.StdFalse()
+	case types.Self:
+		b = c.selfType
 	}
 
 	if types.IsAny(a) || types.IsVoid(a) {
@@ -169,6 +171,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 			return c.isSubtype(bNot.Type, a.Type, nil)
 		}
 		return false
+	case *types.Self:
+		return c.isSubtype(c.selfType, b, errSpan)
 	}
 
 	if bIntersection, ok := b.(*types.Intersection); ok {
@@ -345,9 +349,40 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return a.Value == b.Value
 	case *types.TypeParameter:
 		return false
+	case *types.Generic:
+		genericB, ok := b.(*types.Generic)
+		if !ok {
+			return c.isSubtype(a.Type, b, errSpan)
+		}
+		return c.isSubtype(a.Type, genericB.Type, errSpan) &&
+			c.typeArgsAreSubtype(a.TypeArguments, genericB.TypeArguments, errSpan)
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}
+}
+
+func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *position.Span) bool {
+	for i := range b.ArgumentOrder {
+		argB := b.ArgumentMap[b.ArgumentOrder[i]]
+		argA := a.ArgumentMap[a.ArgumentOrder[i]]
+
+		switch argA.Variance {
+		case types.INVARIANT:
+			if !c.isTheSameType(argA.Type, argB.Type, errSpan) {
+				return false
+			}
+		case types.COVARIANT:
+			if !c.isSubtype(argA.Type, argB.Type, errSpan) {
+				return false
+			}
+		case types.CONTRAVARIANT:
+			if !c.isSubtype(argB.Type, argA.Type, errSpan) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {

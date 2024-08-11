@@ -711,10 +711,10 @@ func (c *Checker) checkSimpleMethodCall(
 	var method *types.Method
 	switch op {
 	case token.DOT, token.DOT_DOT:
-		method = c.getMethod(receiverType, methodName, span)
+		method = c.getMethod(receiverType, methodName, nil, span)
 	case token.QUESTION_DOT, token.QUESTION_DOT_DOT:
 		nonNilableReceiverType := c.toNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, methodName, span)
+		method = c.getMethod(nonNilableReceiverType, methodName, nil, span)
 	default:
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
@@ -1140,12 +1140,12 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {
-	return c._getMethod(typ, name, errSpan, false)
+func (c *Checker) getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span) *types.Method {
+	return c._getMethod(typ, name, typeArgs, errSpan, false)
 }
 
-func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
-	method := types.GetMethodInNamespace(container, name)
+func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+	method := types.GetMethodInNamespace(namespace, name)
 	if method != nil {
 		return method
 	}
@@ -1155,26 +1155,67 @@ func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type
 	return nil
 }
 
-func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+	method := c._getMethodInNamespace(namespace, typ, name, typeArgs, errSpan, inParent)
+	if method == nil {
+		return nil
+	}
+	m := map[value.Symbol]*types.TypeArgument{
+		symbol.M_self: types.NewTypeArgument(
+			namespace,
+			types.INVARIANT,
+		),
+	}
+	return c.replaceTypeParametersInMethod(method.Copy(), m)
+}
+
+func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
+	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgs)
+	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgs)
+
+	for _, param := range method.Params {
+		param.Type = c.replaceTypeParameters(param.Type, typeArgs)
+	}
+	return method
+}
+
+func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
 	typ = c.toNonLiteral(typ, true)
 
 	switch t := typ.(type) {
+	case types.Self:
+		return c._getMethod(c.selfType, name, typeArgs, errSpan, inParent)
 	case *types.NamedType:
-		return c._getMethod(t.Type, name, errSpan, inParent)
+		return c._getMethod(t.Type, name, typeArgs, errSpan, inParent)
+	case *types.Generic:
+		var method *types.Method
+		switch genericType := t.Type.(type) {
+		case *types.Class:
+			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
+		case *types.Mixin:
+			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
+		case *types.Interface:
+			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
+		}
+		if method == nil {
+			return nil
+		}
+
+		return c.replaceTypeParametersInMethod(method.Copy(), t.TypeArguments.ArgumentMap)
 	case *types.Class:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.SingletonClass:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.Interface:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.InterfaceProxy:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.Module:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.Mixin:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.MixinProxy:
-		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
 	case *types.Intersection:
 		var methods []*types.Method
 		var baseMethod *types.Method
@@ -1184,20 +1225,20 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 			case *types.Not:
 				switch t := e.Type.(type) {
 				case *types.Interface:
-					elementMethod := c.getMethod(t, name, nil)
+					elementMethod := c.getMethod(t, name, typeArgs, nil)
 					if elementMethod == nil {
 						continue
 					}
 					return nil
 				case *types.Mixin:
-					elementMethod := c.getMethod(t, name, nil)
+					elementMethod := c.getMethod(t, name, typeArgs, nil)
 					if elementMethod == nil {
 						continue
 					}
 					return nil
 				}
 			default:
-				elementMethod := c.getMethod(element, name, nil)
+				elementMethod := c.getMethod(element, name, typeArgs, nil)
 				if elementMethod == nil {
 					continue
 				}
@@ -1236,7 +1277,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		if nilMethod == nil {
 			c.addMissingMethodError(nilType, name.String(), errSpan)
 		}
-		nonNilMethod := c.getMethod(t.Type, name, errSpan)
+		nonNilMethod := c.getMethod(t.Type, name, typeArgs, errSpan)
 		if nilMethod == nil || nonNilMethod == nil {
 			return nil
 		}
@@ -1260,7 +1301,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		var baseMethod *types.Method
 
 		for _, element := range t.Elements {
-			elementMethod := c.getMethod(element, name, errSpan)
+			elementMethod := c.getMethod(element, name, typeArgs, errSpan)
 			if elementMethod == nil {
 				continue
 			}

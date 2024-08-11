@@ -1998,6 +1998,96 @@ func TestConstructorCall(t *testing.T) {
 				foo.bar
 			`,
 		},
+		"instantiate a generic class": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				Foo::[String]("foo")
+			`,
+		},
+		"instantiate a generic class without type arguments": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				Foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 5, 5), P(53, 5, 7)), "generic type `Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
+		"instantiate a generic class with valid type arguments": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				Foo::[String]("foo")
+			`,
+		},
+		"instantiate a generic class with valid type arguments and invalid arguments": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				Foo::[String](1)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(65, 5, 19), P(65, 5, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+			},
+		},
+		"instantiate a generic class with satisfied upper bound": {
+			input: `
+				class Bar; end
+				class Baz < Bar; end
+
+				class Foo[V < Bar]
+					init(a: V); end
+				end
+				Foo::[Bar](Bar())
+				Foo::[Baz](Baz())
+			`,
+		},
+		"instantiate a generic class with unsatisfied upper bound": {
+			input: `
+				class Bar; end
+				class Baz < Bar; end
+
+				class Foo[V < Bar]
+					init(a: V); end
+				end
+				Foo::[String]("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 8, 11), P(113, 8, 16)), "type `Std::String` does not satisfy the upper bound `Bar`"),
+			},
+		},
+		"instantiate a generic class with satisfied lower bound": {
+			input: `
+				class Bar; end
+				class Baz < Bar; end
+
+				class Foo[V > Baz]
+					init(a: V); end
+				end
+				Foo::[Bar](Bar())
+				Foo::[Object](Object())
+			`,
+		},
+		"instantiate a generic class with unsatisfied lower bound": {
+			input: `
+				class Bar; end
+				class Baz < Bar; end
+
+				class Foo[V > Baz]
+					init(a: V); end
+				end
+				Foo::[Int](1)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 8, 11), P(110, 8, 13)), "type `Std::Int` does not satisfy the lower bound `Baz`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

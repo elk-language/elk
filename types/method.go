@@ -37,6 +37,15 @@ type Parameter struct {
 	InstanceVariable bool
 }
 
+func (p *Parameter) Copy() *Parameter {
+	return &Parameter{
+		Name:             p.Name,
+		Type:             p.Type,
+		Kind:             p.Kind,
+		InstanceVariable: p.InstanceVariable,
+	}
+}
+
 func NewParameter(name value.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
 	return &Parameter{
 		Name:             name,
@@ -101,6 +110,30 @@ type Method struct {
 	DefinedUnder       Namespace
 	Bytecode           *vm.BytecodeFunction
 	span               *position.Span
+}
+
+func (m *Method) Copy() *Method {
+	newParams := make([]*Parameter, len(m.Params))
+	for i, param := range m.Params {
+		newParams[i] = param.Copy()
+	}
+
+	return &Method{
+		Name:               m.Name,
+		DocComment:         m.DocComment,
+		Params:             newParams,
+		OptionalParamCount: m.OptionalParamCount,
+		PostParamCount:     m.PostParamCount,
+		abstract:           m.abstract,
+		sealed:             m.sealed,
+		native:             m.native,
+		HasNamedRestParam:  m.HasNamedRestParam,
+		ReturnType:         m.ReturnType,
+		ThrowType:          m.ThrowType,
+		DefinedUnder:       m.DefinedUnder,
+		Bytecode:           m.Bytecode,
+		span:               m.span,
+	}
 }
 
 func (m *Method) Span() *position.Span {

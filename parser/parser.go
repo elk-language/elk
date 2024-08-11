@@ -3860,6 +3860,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Span())
+	case token.SELF:
+		return p.selfLiteral()
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:

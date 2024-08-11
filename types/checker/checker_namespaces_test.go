@@ -296,7 +296,6 @@ func TestClass(t *testing.T) {
 			input: `class Foo < Bar; end`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
-				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
 			},
 		},
 		"class with superclass": {
@@ -572,7 +571,7 @@ func TestClass(t *testing.T) {
 				class Foo < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "type `Foo` circularly references itself"),
 			},
 		},
 		"declare a class inheriting from its child": {
@@ -581,8 +580,203 @@ func TestClass(t *testing.T) {
 				class Bar < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 17), P(44, 3, 19)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(42, 3, 17), P(44, 3, 19)), "type `Foo` circularly references itself"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestGenericClass(t *testing.T) {
+	tests := testTable{
+		"return self type from instance method": {
+			input: `
+				class Foo
+					def foo: self then self
+				end
+
+				var a: 9 = Foo().foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 6, 16), P(76, 6, 24)), "type `Foo` cannot be assigned to type `9`"),
+			},
+		},
+		"return self type from instance method of child": {
+			input: `
+				class Foo
+					def foo: self then self
+				end
+				class Bar < Foo; end
+
+				var a: 9 = Bar().foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 7, 16), P(101, 7, 24)), "type `Bar` cannot be assigned to type `9`"),
+			},
+		},
+		"return self type from singleton method": {
+			input: `
+				class Foo
+					singleton
+						def foo: self then self
+					end
+				end
+
+				var a: 9 = Foo.foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 8, 16), P(99, 8, 22)), "type `&Foo` cannot be assigned to type `9`"),
+			},
+		},
+		"return self type from singleton method of child": {
+			input: `
+				class Foo
+					singleton
+						def foo: self then self
+					end
+				end
+				class Bar < Foo; end
+
+				var a: 9 = Bar.foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(118, 9, 16), P(124, 9, 22)), "type `&Bar` cannot be assigned to type `9`"),
+			},
+		},
+
+		"declare a generic class": {
+			input: `
+				class Foo[V]; end
+			`,
+		},
+		"declare a generic class with bounds": {
+			input: `
+				class Foo[V > Baz < Object]; end
+				class Bar; end
+				class Baz < Bar; end
+			`,
+		},
+		"declare a generic class with invalid bounds": {
+			input: `
+				class Foo[V > Baz < Bar]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(19, 2, 19), P(21, 2, 21)), "undefined type `Baz`"),
+				error.NewFailure(L("<main>", P(25, 2, 25), P(27, 2, 27)), "undefined type `Bar`"),
+			},
+		},
+		"assign related generic class to its parent with the same type argument": {
+			input: `
+				class Foo[V]; end
+				class Bar[V] < Foo; end
+
+				var a = Foo::[Int]()
+				a = Bar::[Int]()
+			`,
+		},
+		"assign related generic class to its child with the same type argument": {
+			input: `
+				class Foo[V]; end
+				class Bar[V] < Foo; end
+
+				var a = Bar::[Int]()
+				a = Foo::[Int]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 6, 9), P(96, 6, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::Int]`"),
+			},
+		},
+
+		"invariant type param - assign to self": {
+			input: `
+				class Foo[V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Int]()
+			`,
+		},
+		"invariant type param - assign to parent": {
+			input: `
+				class Foo[V]; end
+
+				var a = Foo::[Value]()
+				a = Foo::[Int]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 5, 9), P(70, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
+			},
+		},
+		"invariant type param - assign to child": {
+			input: `
+				class Foo[V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Value]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 5, 9), P(70, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
+			},
+		},
+
+		"covariant type param - assign to self": {
+			input: `
+				class Foo[+V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Int]()
+			`,
+		},
+		"covariant type param - assign to parent": {
+			input: `
+				class Foo[+V]; end
+
+				var a = Foo::[Value]()
+				a = Foo::[Int]()
+			`,
+		},
+		"covariant type param - assign to child": {
+			input: `
+				class Foo[+V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Value]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 5, 9), P(71, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
+			},
+		},
+
+		"contravariant type param - assign to self": {
+			input: `
+				class Foo[-V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Int]()
+			`,
+		},
+		"contravariant type param - assign to parent": {
+			input: `
+				class Foo[-V]; end
+
+				var a = Foo::[Value]()
+				a = Foo::[Int]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 5, 9), P(71, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
+			},
+		},
+		"contravariant type param - assign to child": {
+			input: `
+				class Foo[-V]; end
+
+				var a = Foo::[Int]()
+				a = Foo::[Value]()
+			`,
 		},
 	}
 
@@ -1166,7 +1360,6 @@ func TestImplement(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "undefined type `Bar`"),
-				error.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement in top level": {
@@ -1511,7 +1704,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 14), P(30, 3, 16)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(28, 3, 14), P(30, 3, 16)), "type `Foo` circularly references itself"),
 			},
 		},
 		"circular include": {
@@ -1525,7 +1718,7 @@ func TestMixin(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 7, 14), P(70, 7, 16)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(68, 7, 14), P(70, 7, 16)), "type `Foo` circularly references itself"),
 			},
 		},
 	}
@@ -1596,7 +1789,7 @@ func TestInterface(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Foo` circularly references itself"),
 			},
 		},
 		"circular implement": {
@@ -1610,7 +1803,7 @@ func TestInterface(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 7, 16), P(82, 7, 18)), "Type `Foo` circularly references itself"),
+				error.NewFailure(L("<main>", P(80, 7, 16), P(82, 7, 18)), "type `Foo` circularly references itself"),
 			},
 		},
 	}
