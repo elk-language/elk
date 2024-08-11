@@ -326,6 +326,7 @@ func (c *Checker) checkMethod(
 	span *position.Span,
 ) (ast.TypeNode, ast.TypeNode) {
 	name := checkedMethod.Name
+	prevMode := c.mode
 
 	currentMethod := types.GetMethodInNamespace(methodNamespace, name)
 	if checkedMethod != currentMethod && checkedMethod.IsSealed() {
@@ -351,6 +352,7 @@ func (c *Checker) checkMethod(
 	c.pushIsolatedLocalEnv()
 	defer c.popLocalEnv()
 
+	c.mode = paramTypeMode
 	for _, param := range paramNodes {
 		switch p := param.(type) {
 		case *ast.MethodParameterNode:
@@ -390,11 +392,15 @@ func (c *Checker) checkMethod(
 		}
 	}
 
+	c.mode = returnTypeMode
+
 	returnType := checkedMethod.ReturnType
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 	}
+
+	c.mode = throwTypeMode
 
 	throwType := checkedMethod.ThrowType
 	var typedThrowTypeNode ast.TypeNode
@@ -412,9 +418,7 @@ func (c *Checker) checkMethod(
 		)
 	}
 
-	previousMode := c.mode
 	c.mode = methodMode
-	defer c.setMode(previousMode)
 	c.returnType = returnType
 	c.throwType = throwType
 	bodyReturnType, returnSpan := c.checkStatements(body)
@@ -426,6 +430,7 @@ func (c *Checker) checkMethod(
 	}
 	c.returnType = nil
 	c.throwType = nil
+	c.mode = prevMode
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
@@ -797,6 +802,7 @@ func (c *Checker) declareMethod(
 	throwTypeNode ast.TypeNode,
 	span *position.Span,
 ) *types.Method {
+	prevMode := c.mode
 	if c.mode == interfaceMode {
 		abstract = true
 	}
@@ -853,6 +859,7 @@ func (c *Checker) declareMethod(
 		}
 	}
 
+	c.mode = paramTypeMode
 	var params []*types.Parameter
 	for i, param := range paramNodes {
 		switch p := param.(type) {
@@ -989,6 +996,8 @@ func (c *Checker) declareMethod(
 		}
 	}
 
+	c.mode = returnTypeMode
+
 	var returnType types.Type
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
@@ -999,6 +1008,8 @@ func (c *Checker) declareMethod(
 	} else {
 		returnType = types.Void{}
 	}
+
+	c.mode = throwTypeMode
 
 	var throwType types.Type
 	var typedThrowTypeNode ast.TypeNode
@@ -1022,6 +1033,7 @@ func (c *Checker) declareMethod(
 	newMethod.SetSpan(span)
 
 	methodNamespace.SetMethod(name, newMethod)
+	c.mode = prevMode
 
 	return newMethod
 }

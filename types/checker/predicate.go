@@ -149,7 +149,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.False:
 		b = c.StdFalse()
 	case types.Self:
-		b = c.selfType
+		return types.IsSelf(a)
 	}
 
 	if types.IsAny(a) || types.IsVoid(a) {
@@ -171,7 +171,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 			return c.isSubtype(bNot.Type, a.Type, nil)
 		}
 		return false
-	case *types.Self:
+	case types.Self:
 		return c.isSubtype(c.selfType, b, errSpan)
 	}
 

@@ -46,6 +46,9 @@ const (
 	interfaceMode
 	methodMode
 	singletonMode
+	returnTypeMode
+	throwTypeMode
+	paramTypeMode
 )
 
 type phase uint8
@@ -436,7 +439,12 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		}
 		return n
 	case *ast.SelfLiteralNode:
-		n.SetType(c.selfType)
+		switch c.mode {
+		case methodMode:
+			n.SetType(types.Self{})
+		default:
+			n.SetType(c.selfType)
+		}
 		return n
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
@@ -3137,7 +3145,19 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		n.SetType(types.NewFloat32Literal(n.Value))
 		return n
 	case *ast.SelfLiteralNode:
-		n.SetType(types.Self{})
+		switch c.mode {
+		case methodMode, returnTypeMode, throwTypeMode:
+			n.SetType(types.Self{})
+		default:
+			c.addFailure(
+				fmt.Sprintf(
+					"type `%s` can appear only in method throw types, method return types and method bodies",
+					types.InspectWithColor(types.Self{}),
+				),
+				n.Span(),
+			)
+			n.SetType(types.Nothing{})
+		}
 		return n
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.VoidTypeNode,
 		*ast.NeverTypeNode, *ast.AnyTypeNode, *ast.NilLiteralNode, *ast.BoolLiteralNode:
