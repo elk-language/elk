@@ -3836,22 +3836,38 @@ func (p *Parser) intersectionType() ast.TypeNode {
 	return p.binaryTypeExpression(p.differenceType, token.AND)
 }
 
-// differenceType = notType | differenceType "/" notType
+// differenceType = unaryType | differenceType "/" unaryType
 func (p *Parser) differenceType() ast.TypeNode {
-	return p.binaryTypeExpression(p.notType, token.SLASH)
+	return p.binaryTypeExpression(p.unaryType, token.SLASH)
 }
 
-// notType = ["~"] nilableType
-func (p *Parser) notType() ast.TypeNode {
-	if andTok, ok := p.matchOk(token.TILDE); ok {
-		typ := p.nilableType()
+// unaryType = ("~" | "&" | "^") unaryType | nilableType
+func (p *Parser) unaryType() ast.TypeNode {
+	switch p.lookahead.Type {
+	case token.TILDE:
+		opTok := p.advance()
+		typ := p.unaryType()
 		return ast.NewNotTypeNode(
-			andTok.Span().Join(typ.Span()),
+			opTok.Span().Join(typ.Span()),
 			typ,
 		)
+	case token.AND:
+		opTok := p.advance()
+		typ := p.unaryType()
+		return ast.NewSingletonTypeNode(
+			opTok.Span().Join(typ.Span()),
+			typ,
+		)
+	case token.XOR:
+		opTok := p.advance()
+		typ := p.unaryType()
+		return ast.NewInstanceOfTypeNode(
+			opTok.Span().Join(typ.Span()),
+			typ,
+		)
+	default:
+		return p.nilableType()
 	}
-
-	return p.nilableType()
 }
 
 // nilableType = primaryType ["?"]
@@ -3992,21 +4008,8 @@ func (p *Parser) closureType() ast.TypeNode {
 	)
 }
 
-// namedType = singletonType
+// namedType = genericConstant
 func (p *Parser) namedType() ast.TypeNode {
-	return p.singletonType()
-}
-
-// singletonType = "&" strictConstantLookup | genericConstant
-func (p *Parser) singletonType() ast.TypeNode {
-	if andTok, ok := p.matchOk(token.AND); ok {
-		typ := p.strictConstantLookup()
-		return ast.NewSingletonTypeNode(
-			andTok.Span().Join(typ.Span()),
-			typ,
-		)
-	}
-
 	return p.genericConstant()
 }
 

@@ -405,6 +405,7 @@ func (*UnionTypeNode) typeNode()                 {}
 func (*IntersectionTypeNode) typeNode()          {}
 func (*BinaryTypeExpressionNode) typeNode()      {}
 func (*NilableTypeNode) typeNode()               {}
+func (*InstanceOfTypeNode) typeNode()            {}
 func (*SingletonTypeNode) typeNode()             {}
 func (*ClosureTypeNode) typeNode()               {}
 func (*NotTypeNode) typeNode()                   {}
@@ -2781,6 +2782,24 @@ func (*NilableTypeNode) IsStatic() bool {
 // Create a new nilable type node eg. `String?`
 func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		TypeNode:      typ,
+	}
+}
+
+// Represents an instance type eg. `^self`
+type InstanceOfTypeNode struct {
+	TypedNodeBase
+	TypeNode TypeNode // right hand side
+}
+
+func (*InstanceOfTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new instance of type node eg. `^self`
+func NewInstanceOfTypeNode(span *position.Span, typ TypeNode) *InstanceOfTypeNode {
+	return &InstanceOfTypeNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		TypeNode:      typ,
 	}

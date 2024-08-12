@@ -1979,10 +1979,10 @@ func TestVariableDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(13, 1, 14)),
 							"",
 							"foo",
-							ast.NewNilableTypeNode(
+							ast.NewSingletonTypeNode(
 								S(P(9, 1, 10), P(13, 1, 14)),
-								ast.NewSingletonTypeNode(
-									S(P(9, 1, 10), P(12, 1, 13)),
+								ast.NewNilableTypeNode(
+									S(P(10, 1, 11), P(13, 1, 14)),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
 								),
 							),
