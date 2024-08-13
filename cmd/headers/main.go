@@ -358,6 +358,8 @@ func typeToCode(typ types.Type, init bool) string {
 		return "nil"
 	case types.Any:
 		return "Any{}"
+	case types.Self:
+		return "Self{}"
 	case types.Void:
 		return "Void{}"
 	case types.Nil:
@@ -472,6 +474,10 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf("NewUInt16Literal(%q)", t.Value)
 	case *types.UInt8Literal:
 		return fmt.Sprintf("NewUInt8Literal(%q)", t.Value)
+	case *types.SingletonOf:
+		return fmt.Sprintf("NewSingletonOf(%s)", typeToCode(t.Type, init))
+	case *types.InstanceOf:
+		return fmt.Sprintf("NewInstanceOf(%s)", typeToCode(t.Type, init))
 	default:
 		panic(
 			fmt.Sprintf("invalid type: %T", typ),

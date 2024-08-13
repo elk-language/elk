@@ -2,10 +2,76 @@
 package checker
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
+
+func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+	return c.normaliseType(c._replaceTypeParameters(typ, typeArgMap))
+}
+
+func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+	switch t := typ.(type) {
+	case types.Self:
+		arg := typeArgMap[symbol.M_self]
+		if arg == nil {
+			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+		}
+		return arg.Type
+	case *types.SingletonOf:
+		return types.NewSingletonOf(
+			c.replaceTypeParameters(t.Type, typeArgMap),
+		)
+	case *types.InstanceOf:
+		return types.NewInstanceOf(
+			c.replaceTypeParameters(t.Type, typeArgMap),
+		)
+	case *types.Generic:
+		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+		for key, arg := range t.ArgumentMap {
+			newMap[key] = types.NewTypeArgument(
+				c.replaceTypeParameters(arg.Type, typeArgMap),
+				arg.Variance,
+			)
+		}
+		return types.NewGeneric(
+			c.replaceTypeParameters(t.Type, typeArgMap),
+			types.NewTypeArguments(
+				newMap,
+				t.ArgumentOrder,
+			),
+		)
+	case *types.TypeParameter:
+		arg := typeArgMap[t.Name]
+		if arg == nil {
+			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+		}
+		return arg.Type
+	case *types.Nilable:
+		return types.NewNilable(c.replaceTypeParameters(t.Type, typeArgMap))
+	case *types.Not:
+		return types.NewNot(c.replaceTypeParameters(t.Type, typeArgMap))
+	case *types.Union:
+		newElements := make([]types.Type, 0, len(t.Elements))
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+		}
+		return types.NewUnion(newElements...)
+	case *types.Intersection:
+		newElements := make([]types.Type, 0, len(t.Elements))
+		for _, element := range t.Elements {
+			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+		}
+		return types.NewIntersection(newElements...)
+	default:
+		return t
+	}
+}
 
 func (c *Checker) normaliseType(typ types.Type) types.Type {
 	switch t := typ.(type) {
@@ -13,6 +79,28 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		return c.newNormalisedUnion(t.Elements...)
 	case *types.Intersection:
 		return c.newNormalisedIntersection(t.Elements...)
+	case *types.SingletonOf:
+		switch nestedType := t.Type.(type) {
+		case *types.InstanceOf:
+			return nestedType.Type
+		case *types.Class:
+			return nestedType.Singleton()
+		case *types.Mixin:
+			return nestedType.Singleton()
+		case *types.Interface:
+			return nestedType.Singleton()
+		default:
+			return t
+		}
+	case *types.InstanceOf:
+		switch nestedType := t.Type.(type) {
+		case *types.SingletonOf:
+			return nestedType.Type
+		case *types.SingletonClass:
+			return nestedType.AttachedObject
+		default:
+			return t
+		}
 	case *types.Nilable:
 		t.Type = c.normaliseType(t.Type)
 		switch t.Type.(type) {

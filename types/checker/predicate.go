@@ -247,6 +247,18 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return c.mixinIsSubtype(a, b, errSpan)
 	case *types.Interface:
 		return c.interfaceIsSubtype(a, b, errSpan)
+	case *types.InstanceOf:
+		b, ok := b.(*types.InstanceOf)
+		if !ok {
+			return false
+		}
+		return c.isSubtype(a.Type, b.Type, errSpan)
+	case *types.SingletonOf:
+		b, ok := b.(*types.SingletonOf)
+		if !ok {
+			return false
+		}
+		return c.isSubtype(a.Type, b.Type, errSpan)
 	case *types.Module:
 		b, ok := b.(*types.Module)
 		if !ok {

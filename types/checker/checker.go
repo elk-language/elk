@@ -630,6 +630,10 @@ func (c *Checker) StdBigFloat() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.BigFloat)
 }
 
+func (c *Checker) StdClass() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.Class)
+}
+
 func (c *Checker) StdStringConvertible() types.Type {
 	return c.GlobalEnv.StdSubtype(symbol.StringConvertible)
 }
@@ -2128,6 +2132,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 
 func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.ExpressionNode {
 	var class *types.Class
+	var isSingleton bool
 	switch t := c.selfType.(type) {
 	case *types.Class:
 		class = t
@@ -2135,6 +2140,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		if attached, ok := t.AttachedObject.(*types.Class); ok {
 			class = attached
 		}
+		isSingleton = true
 	}
 
 	if class == nil {
@@ -2191,7 +2197,11 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
-	node.SetType(types.Self{})
+	if isSingleton {
+		node.SetType(types.NewInstanceOf(types.Self{}))
+	} else {
+		node.SetType(types.Self{})
+	}
 	return node
 }
 
@@ -3078,56 +3088,6 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 	}
 }
 
-func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
-	switch t := typ.(type) {
-	case types.Self:
-		arg := typeArgMap[symbol.M_self]
-		if arg == nil {
-			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
-		}
-		return arg.Type
-	case *types.Generic:
-		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
-		for key, arg := range t.ArgumentMap {
-			newMap[key] = types.NewTypeArgument(
-				c.replaceTypeParameters(arg.Type, typeArgMap),
-				arg.Variance,
-			)
-		}
-		return types.NewGeneric(
-			c.replaceTypeParameters(t.Type, typeArgMap),
-			types.NewTypeArguments(
-				newMap,
-				t.ArgumentOrder,
-			),
-		)
-	case *types.TypeParameter:
-		arg := typeArgMap[t.Name]
-		if arg == nil {
-			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
-		}
-		return arg.Type
-	case *types.Nilable:
-		return types.NewNilable(c.replaceTypeParameters(t.Type, typeArgMap))
-	case *types.Not:
-		return types.NewNot(c.replaceTypeParameters(t.Type, typeArgMap))
-	case *types.Union:
-		newElements := make([]types.Type, 0, len(t.Elements))
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
-		}
-		return c.newNormalisedUnion(newElements...)
-	case *types.Intersection:
-		newElements := make([]types.Type, 0, len(t.Elements))
-		for _, element := range t.Elements {
-			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
-		}
-		return c.newNormalisedIntersection(newElements...)
-	default:
-		return t
-	}
-}
-
 func (c *Checker) checkSimpleConstantType(name string, span *position.Span) types.Type {
 	typ, _ := c.resolveType(name, span)
 	switch t := typ.(type) {
@@ -3251,30 +3211,9 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		n.SetType(typ)
 		return n
 	case *ast.SingletonTypeNode:
-		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := c.typeOf(n.TypeNode)
-		t, ok := typ.(types.Namespace)
-		if !ok {
-			c.addFailure(
-				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
-				n.Span(),
-			)
-			n.SetType(types.Nothing{})
-			return n
-		}
-
-		singleton := t.Singleton()
-		if singleton == nil {
-			c.addFailure(
-				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
-				n.Span(),
-			)
-			n.SetType(types.Nothing{})
-			return n
-		}
-
-		n.SetType(singleton)
-		return n
+		return c.checkSingletonTypeNode(n)
+	case *ast.InstanceOfTypeNode:
+		return c.checkInstanceOfTypeNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
@@ -3282,6 +3221,128 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		)
 		return n
 	}
+}
+
+func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNode {
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+	typ := c.typeOf(node.TypeNode)
+	var singleton *types.SingletonClass
+	switch t := typ.(type) {
+	case *types.Class:
+		singleton = t.Singleton()
+	case *types.Mixin:
+		singleton = t.Singleton()
+	case *types.Interface:
+		singleton = t.Singleton()
+	case *types.TypeParameter:
+		switch t.UpperBound.(type) {
+		case *types.Class, *types.Interface, *types.Mixin:
+		default:
+			c.addFailure(
+				fmt.Sprintf("type parameter `%s` must have an upper bound that is a class, mixin or interface to be used with the singleton type", types.InspectWithColor(typ)),
+				node.Span(),
+			)
+			node.SetType(types.Nothing{})
+			return node
+		}
+		singletonOf := types.NewSingletonOf(t)
+		node.SetType(singletonOf)
+		return node
+	case types.Self:
+		switch c.selfType.(type) {
+		case *types.Class, *types.Mixin:
+		default:
+			c.addFailure(
+				fmt.Sprintf("type `%s` must be a class or mixin to be used with the singleton type", types.InspectWithColor(c.selfType)),
+				node.Span(),
+			)
+			node.SetType(types.Nothing{})
+			return node
+		}
+		singletonOf := types.NewSingletonOf(t)
+		node.SetType(singletonOf)
+		return node
+	case types.Nothing:
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	if singleton == nil {
+		c.addFailure(
+			fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
+			node.Span(),
+		)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	node.SetType(singleton)
+	return node
+}
+
+func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.TypeNode {
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+	typ := c.typeOf(node.TypeNode)
+	var namespace types.Namespace
+
+	switch t := typ.(type) {
+	case *types.SingletonClass:
+		namespace = t.AttachedObject
+	case *types.TypeParameter:
+		switch upper := t.UpperBound.(type) {
+		case *types.SingletonClass:
+		case *types.Class:
+			switch upper.Name() {
+			case "Std::Class", "Std::Mixin", "Std::Interface":
+			default:
+				c.addFailure(
+					fmt.Sprintf("type parameter `%s` must have an upper bound that is a singleton class to be used with the instance of type", types.InspectWithColor(typ)),
+					node.Span(),
+				)
+				node.SetType(types.Nothing{})
+				return node
+			}
+		default:
+			c.addFailure(
+				fmt.Sprintf("type parameter `%s` must have an upper bound that is a singleton class to be used with the instance of type", types.InspectWithColor(typ)),
+				node.Span(),
+			)
+			node.SetType(types.Nothing{})
+			return node
+		}
+		instanceOf := types.NewInstanceOf(t)
+		node.SetType(instanceOf)
+		return node
+	case types.Self:
+		switch c.selfType.(type) {
+		case *types.SingletonClass:
+		default:
+			c.addFailure(
+				fmt.Sprintf("type `%s` must be a singleton class to be used with the instance of type", types.InspectWithColor(c.selfType)),
+				node.Span(),
+			)
+			node.SetType(types.Nothing{})
+			return node
+		}
+		instanceOf := types.NewInstanceOf(t)
+		node.SetType(instanceOf)
+		return node
+	case types.Nothing:
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	if namespace == nil {
+		c.addFailure(
+			fmt.Sprintf("cannot get instance of `%s`", types.InspectWithColor(typ)),
+			node.Span(),
+		)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	node.SetType(namespace)
+	return node
 }
 
 func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNode) ast.TypeNode {
@@ -4440,9 +4501,12 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	}
 
 	previousMode := c.mode
+	previousSelf := c.selfType
 	c.mode = classMode
+	c.selfType = class
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
+	c.selfType = previousSelf
 	if ok {
 		c.popConstScope()
 		c.popMethodScope()
@@ -4457,9 +4521,12 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 	}
 
 	previousMode := c.mode
+	previousSelf := c.selfType
 	c.mode = moduleMode
+	c.selfType = module
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
+	c.selfType = previousSelf
 
 	if ok {
 		c.popConstScope()
@@ -4475,9 +4542,12 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 	}
 
 	previousMode := c.mode
+	previousSelf := c.selfType
 	c.mode = mixinMode
+	c.selfType = mixin
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
+	c.selfType = previousSelf
 
 	if ok {
 		c.popConstScope()
@@ -4486,16 +4556,19 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Interface)
+	iface, ok := c.typeOf(node).(*types.Interface)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
+		c.pushConstScope(makeLocalConstantScope(iface))
+		c.pushMethodScope(makeLocalMethodScope(iface))
 	}
 
 	previousMode := c.mode
+	previousSelf := c.selfType
 	c.mode = interfaceMode
+	c.selfType = iface
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
+	c.selfType = previousSelf
 
 	if ok {
 		c.popConstScope()
@@ -4511,9 +4584,12 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.pushMethodScope(makeLocalMethodScope(singleton))
 
 	previousMode := c.mode
+	previousSelf := c.selfType
 	c.mode = singletonMode
+	c.selfType = singleton
 	c.hoistMethodDefinitions(expr.Body)
 	c.setMode(previousMode)
+	c.selfType = previousSelf
 
 	c.popConstScope()
 	c.popMethodScope()

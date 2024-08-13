@@ -26,4 +26,9 @@ primitive class ::Std::Value < nil
 		for debugging etc.
 	]##
 	def inspect: String; end
+
+  ##[
+		Returns the class of the value.
+	]##
+	def class: &self; end
 end

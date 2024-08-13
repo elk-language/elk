@@ -1391,6 +1391,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
 				namespace.DefineMethod("Compares this value with another value.\nReturns `true` when they are equal.\n\nInstances of different (but similar) classes\nmay be treated as equal.", false, false, true, value.ToSymbol("=~"), []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), nil)
+				namespace.DefineMethod("Returns the class of the value.", false, false, true, value.ToSymbol("class"), nil, NewSingletonOf(Self{}), nil)
 				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, NameToType("Std::String", env), nil)
 
 				// Define constants

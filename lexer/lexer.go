@@ -1550,37 +1550,33 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			if l.matchChar('[') {
 				return l.token(token.HASH_SET_LITERAL_BEG)
 			}
-			if l.matchChar('w') {
-				if l.matchChar('[') {
+			if l.acceptChar('w') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(wordHashSetLiteralMode)
 					return l.token(token.WORD_HASH_SET_BEG)
 				}
-
-				return l.lexError("invalid word collection literal delimiters `%w`")
 			}
-			if l.matchChar('s') {
-				if l.matchChar('[') {
+			if l.acceptChar('s') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(symbolHashSetLiteralMode)
 					return l.token(token.SYMBOL_HASH_SET_BEG)
 				}
-
-				return l.lexError("invalid symbol collection literal delimiters `%s`")
 			}
-			if l.matchChar('x') {
-				if l.matchChar('[') {
+			if l.acceptChar('x') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(hexHashSetLiteralMode)
 					return l.token(token.HEX_HASH_SET_BEG)
 				}
-
-				return l.lexError("invalid hex collection literal delimiters `%x`")
 			}
-			if l.matchChar('b') {
-				if l.matchChar('[') {
+			if l.acceptChar('b') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(binHashSetLiteralMode)
 					return l.token(token.BIN_HASH_SET_BEG)
 				}
-
-				return l.lexError("invalid binary collection literal delimiters `%b`")
 			}
 			return l.token(token.XOR)
 		case '*':
@@ -1757,37 +1753,33 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.BANG)
 		case '\\':
-			if l.matchChar('w') {
-				if l.matchChar('[') {
+			if l.acceptChar('w') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(wordArrayListLiteralMode)
 					return l.token(token.WORD_ARRAY_LIST_BEG)
 				}
-
-				return l.lexError("invalid word collection literal delimiters `%w`")
 			}
-			if l.matchChar('s') {
-				if l.matchChar('[') {
+			if l.acceptChar('s') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(symbolArrayListLiteralMode)
 					return l.token(token.SYMBOL_ARRAY_LIST_BEG)
 				}
-
-				return l.lexError("invalid symbol collection literal delimiters `%s`")
 			}
-			if l.matchChar('x') {
-				if l.matchChar('[') {
+			if l.acceptChar('x') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(hexArrayListLiteralMode)
 					return l.token(token.HEX_ARRAY_LIST_BEG)
 				}
-
-				return l.lexError("invalid hex collection literal delimiters `%x`")
 			}
-			if l.matchChar('b') {
-				if l.matchChar('[') {
+			if l.acceptChar('b') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(binArrayListLiteralMode)
 					return l.token(token.BIN_ARRAY_LIST_BEG)
 				}
-
-				return l.lexError("invalid binary collection literal delimiters `%b`")
 			}
 			fallthrough
 		case '%':
@@ -1804,40 +1796,35 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			if l.matchChar('=') {
 				return l.token(token.PERCENT_EQUAL)
 			}
-			if l.matchChar('w') {
-				if l.matchChar('[') {
+			if l.acceptChar('w') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(wordArrayTupleLiteralMode)
 					return l.token(token.WORD_ARRAY_TUPLE_BEG)
 				}
-
-				return l.lexError("invalid word collection literal delimiters `%w`")
 			}
-			if l.matchChar('s') {
-				if l.matchChar('[') {
+			if l.acceptChar('s') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(symbolArrayTupleLiteralMode)
 					return l.token(token.SYMBOL_ARRAY_TUPLE_BEG)
 				}
-
-				return l.lexError("invalid symbol collection literal delimiters `%s`")
 			}
-			if l.matchChar('x') {
-				if l.matchChar('[') {
+			if l.acceptChar('x') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(hexArrayTupleLiteralMode)
 					return l.token(token.HEX_ARRAY_TUPLE_BEG)
 				}
-
-				return l.lexError("invalid hex collection literal delimiters `%x`")
 			}
-			if l.matchChar('b') {
-				if l.matchChar('[') {
+			if l.acceptChar('b') {
+				if l.acceptNextChar('[') {
+					l.advanceChars(2)
 					l.pushMode(binArrayTupleLiteralMode)
 					return l.token(token.BIN_ARRAY_TUPLE_BEG)
 				}
-
-				return l.lexError("invalid binary collection literal delimiters `%b`")
 			}
 			return l.token(token.PERCENT)
-
 		case '\n':
 			l.foldNewLines()
 			return l.token(token.NEWLINE)

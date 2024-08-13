@@ -6,62 +6,6 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
-func TestCollectionLiteral(t *testing.T) {
-	tests := testTable{
-		"incorrect word delimiters": {
-			input: "%w<foo bar   baz>",
-			want: []*token.Token{
-				V(S(P(0, 1, 1), P(1, 1, 2)), token.ERROR, "invalid word collection literal delimiters `%w`"),
-				T(S(P(2, 1, 3), P(2, 1, 3)), token.LESS),
-				V(S(P(3, 1, 4), P(5, 1, 6)), token.PUBLIC_IDENTIFIER, "foo"),
-				V(S(P(7, 1, 8), P(9, 1, 10)), token.PUBLIC_IDENTIFIER, "bar"),
-				V(S(P(13, 1, 14), P(15, 1, 16)), token.PUBLIC_IDENTIFIER, "baz"),
-				T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
-			},
-		},
-		"incorrect symbol delimiters": {
-			input: "%s<foo bar   baz>",
-			want: []*token.Token{
-				V(S(P(0, 1, 1), P(1, 1, 2)), token.ERROR, "invalid symbol collection literal delimiters `%s`"),
-				T(S(P(2, 1, 3), P(2, 1, 3)), token.LESS),
-				V(S(P(3, 1, 4), P(5, 1, 6)), token.PUBLIC_IDENTIFIER, "foo"),
-				V(S(P(7, 1, 8), P(9, 1, 10)), token.PUBLIC_IDENTIFIER, "bar"),
-				V(S(P(13, 1, 14), P(15, 1, 16)), token.PUBLIC_IDENTIFIER, "baz"),
-				T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
-			},
-		},
-		"incorrect hex delimiters": {
-			input: "%x<45a 101   fff>",
-			want: []*token.Token{
-				V(S(P(0, 1, 1), P(1, 1, 2)), token.ERROR, "invalid hex collection literal delimiters `%x`"),
-				T(S(P(2, 1, 3), P(2, 1, 3)), token.LESS),
-				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "45"),
-				V(S(P(5, 1, 6), P(5, 1, 6)), token.PUBLIC_IDENTIFIER, "a"),
-				V(S(P(7, 1, 8), P(9, 1, 10)), token.INT, "101"),
-				V(S(P(13, 1, 14), P(15, 1, 16)), token.PUBLIC_IDENTIFIER, "fff"),
-				T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
-			},
-		},
-		"incorrect binary delimiters": {
-			input: "%b<110 101   111>",
-			want: []*token.Token{
-				V(S(P(0, 1, 1), P(1, 1, 2)), token.ERROR, "invalid binary collection literal delimiters `%b`"),
-				T(S(P(2, 1, 3), P(2, 1, 3)), token.LESS),
-				V(S(P(3, 1, 4), P(5, 1, 6)), token.INT, "110"),
-				V(S(P(7, 1, 8), P(9, 1, 10)), token.INT, "101"),
-				V(S(P(13, 1, 14), P(15, 1, 16)), token.INT, "111"),
-				T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
-			},
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			tokenTest(tc, t)
-		})
-	}
-}
-
 func TestArrayList(t *testing.T) {
 	tests := testTable{
 		"regular list": {
