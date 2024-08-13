@@ -8,24 +8,57 @@ import (
 
 func TestSingletonType(t *testing.T) {
 	tests := testTable{
-		"singleton of class": {
+		"assign a singleton type of a class to Class": {
+			input: `
+				var a: Class = String
+			`,
+		},
+		"assign a singleton type of a class to Mixin": {
+			input: `
+				var a: Mixin = String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 2, 20), P(25, 2, 25)), "type `&Std::String` cannot be assigned to type `Std::Mixin`"),
+			},
+		},
+		"assign a singleton type of a mixin to Mixin": {
+			input: `
+				mixin Foo; end
+				var a: Mixin = Foo
+			`,
+		},
+		"assign a singleton type of an interface to Interface": {
+			input: `
+				interface Foo; end
+				var a: Interface = Foo
+			`,
+		},
+		"assign class of child to singleton type of parent": {
+			input: `
+				class Foo; end
+				class Bar < Foo; end
+				var a: &Foo = Bar
+			`,
+		},
+
+		"assign a class to a singleton type of the class": {
 			input: `
 				var a: &String = String
 			`,
 		},
-		"singleton of mixin": {
+		"assign a mixin to a singleton type of the mixin": {
 			input: `
 				mixin Foo; end
 				var a: &Foo = Foo
 			`,
 		},
-		"singleton of interface": {
+		"assign an interface to a singleton type of the interface": {
 			input: `
 				interface Foo; end
 				var a: &Foo = Foo
 			`,
 		},
-		"singleton of module": {
+		"assign a module to a singleton type of the module": {
 			input: `
 				module Foo; end
 				var a: &Foo = Foo
@@ -34,7 +67,7 @@ func TestSingletonType(t *testing.T) {
 				error.NewFailure(L("<main>", P(32, 3, 12), P(35, 3, 15)), "cannot get singleton class of `Foo`"),
 			},
 		},
-		"singleton of literal": {
+		"singleton type of a literal": {
 			input: `
 				var a: &1
 			`,
@@ -43,7 +76,7 @@ func TestSingletonType(t *testing.T) {
 			},
 		},
 
-		"singleton of class self": {
+		"can get the singleton of self in a class": {
 			input: `
 				class Foo
 					def foo
@@ -52,7 +85,7 @@ func TestSingletonType(t *testing.T) {
 				end
 			`,
 		},
-		"singleton of mixin self": {
+		"can get the singleton of self in a mixin": {
 			input: `
 				mixin Foo
 					def foo
@@ -61,7 +94,7 @@ func TestSingletonType(t *testing.T) {
 				end
 			`,
 		},
-		"singleton of module self": {
+		"can get the singleton of self in a module": {
 			input: `
 				module Foo
 					def foo

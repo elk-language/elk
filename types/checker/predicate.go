@@ -236,11 +236,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.False:
 		return types.IsFalse(b) || b == c.StdFalse()
 	case *types.SingletonClass:
-		b, ok := b.(*types.SingletonClass)
-		if !ok {
-			return false
-		}
-		return a.AttachedObject == b.AttachedObject
+		return c.singletonClassIsSubtype(a, b, errSpan)
 	case *types.Class:
 		return c.classIsSubtype(a, b, errSpan)
 	case *types.Mixin:
@@ -407,6 +403,31 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *positio
 	}
 
 	return true
+}
+
+func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type, errSpan *position.Span) bool {
+	switch b := b.(type) {
+	case *types.SingletonClass:
+		return c.isSubtype(a.AttachedObject, b.AttachedObject, errSpan)
+	case *types.Class:
+		var currentClass types.Namespace = a
+		for {
+			if currentClass == nil {
+				return false
+			}
+			if currentClass == b {
+				return true
+			}
+
+			currentClass = currentClass.Parent()
+		}
+	case *types.Mixin:
+		return c.isSubtypeOfMixin(a, b, errSpan)
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, b, errSpan)
+	default:
+		return false
+	}
 }
 
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
