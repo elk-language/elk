@@ -327,6 +327,19 @@ func TestInstanceOfType(t *testing.T) {
 				error.NewFailure(L("<main>", P(53, 4, 14), P(54, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
+		"return the instance of self in singleton context": {
+			input: `
+				class Foo
+					singleton
+						def create: ^self
+							new
+						end
+					end
+				end
+
+				var a: Foo = Foo.create
+			`,
+		},
 	}
 
 	for name, tc := range tests {

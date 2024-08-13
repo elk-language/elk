@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/parser/ast"
@@ -1167,18 +1168,22 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 	return nil
 }
 
-func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, self types.Type, errSpan *position.Span, inParent bool) *types.Method {
 	method := c._getMethodInNamespace(namespace, typ, name, typeArgs, errSpan, inParent)
 	if method == nil {
 		return nil
 	}
 	m := map[value.Symbol]*types.TypeArgument{
 		symbol.M_self: types.NewTypeArgument(
-			namespace,
+			self,
 			types.INVARIANT,
 		),
 	}
 	return c.replaceTypeParametersInMethod(method.Copy(), m)
+}
+
+func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+	return c.getMethodInNamespaceWithSelf(namespace, typ, name, typeArgs, namespace, errSpan, inParent)
 }
 
 func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
@@ -1191,6 +1196,41 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs m
 	return method
 }
 
+func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+	switch upper := typ.UpperBound.(type) {
+	case *types.Class:
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+	case *types.Mixin:
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+	case *types.Interface:
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+	case *types.SingletonClass:
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+	case *types.Generic:
+		var method *types.Method
+		switch genericType := upper.Type.(type) {
+		case *types.Class:
+			method = c._getMethodInNamespace(genericType, typ, name, nil, errSpan, inParent)
+		case *types.Mixin:
+			method = c._getMethodInNamespace(genericType, typ, name, nil, errSpan, inParent)
+		case *types.Interface:
+			method = c._getMethodInNamespace(genericType, typ, name, nil, errSpan, inParent)
+		}
+		if method == nil {
+			return nil
+		}
+
+		typeArgMap := maps.Clone(upper.TypeArguments.ArgumentMap)
+		typeArgMap[symbol.M_self] = types.NewTypeArgument(
+			typ,
+			types.INVARIANT,
+		)
+		return c.replaceTypeParametersInMethod(method.Copy(), typeArgMap)
+	default:
+		return c._getMethod(typ.UpperBound, name, typeArgs, errSpan, inParent)
+	}
+}
+
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
 	typ = c.toNonLiteral(typ, true)
 
@@ -1200,7 +1240,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 	case *types.NamedType:
 		return c._getMethod(t.Type, name, typeArgs, errSpan, inParent)
 	case *types.TypeParameter:
-		return c._getMethod(t.UpperBound, name, typeArgs, errSpan, inParent)
+		return c.getMethodForTypeParameter(t, name, typeArgs, errSpan, inParent)
 	case *types.Generic:
 		var method *types.Method
 		switch genericType := t.Type.(type) {

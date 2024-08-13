@@ -175,6 +175,20 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 		},
+		"call a method on a type parameter and return its singleton type": {
+			input: `
+				class Lol[V < Value]
+					def foo(a: V): &V
+						a.class
+					end
+				end
+
+				var a: 9 = Lol::[String]().foo("bar")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(96, 8, 16), P(121, 8, 41)), "type `&Std::String` cannot be assigned to type `9`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
