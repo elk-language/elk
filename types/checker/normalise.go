@@ -20,7 +20,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 	case types.Self:
 		arg := typeArgMap[symbol.M_self]
 		if arg == nil {
-			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+			return t
 		}
 		return arg.Type
 	case *types.SingletonOf:

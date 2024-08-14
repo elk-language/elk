@@ -1154,7 +1154,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 }
 
 func (c *Checker) getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span) *types.Method {
-	return c._getMethod(typ, name, typeArgs, errSpan, false)
+	return c._getMethod(typ, name, typeArgs, errSpan, false, false)
 }
 
 func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
@@ -1168,10 +1168,13 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 	return nil
 }
 
-func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, self types.Type, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, self types.Type, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	method := c._getMethodInNamespace(namespace, typ, name, typeArgs, errSpan, inParent)
 	if method == nil {
 		return nil
+	}
+	if inSelf {
+		return method
 	}
 	m := map[value.Symbol]*types.TypeArgument{
 		symbol.M_self: types.NewTypeArgument(
@@ -1182,8 +1185,8 @@ func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ ty
 	return c.replaceTypeParametersInMethod(method.Copy(), m)
 }
 
-func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
-	return c.getMethodInNamespaceWithSelf(namespace, typ, name, typeArgs, namespace, errSpan, inParent)
+func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent, inSelf bool) *types.Method {
+	return c.getMethodInNamespaceWithSelf(namespace, typ, name, typeArgs, namespace, errSpan, inParent, inSelf)
 }
 
 func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
@@ -1196,16 +1199,16 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs m
 	return method
 }
 
-func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	switch upper := typ.UpperBound.(type) {
 	case *types.Class:
-		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Mixin:
-		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Interface:
-		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
-		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent)
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Generic:
 		var method *types.Method
 		switch genericType := upper.Type.(type) {
@@ -1227,20 +1230,20 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		)
 		return c.replaceTypeParametersInMethod(method.Copy(), typeArgMap)
 	default:
-		return c._getMethod(typ.UpperBound, name, typeArgs, errSpan, inParent)
+		return c._getMethod(typ.UpperBound, name, typeArgs, errSpan, inParent, inSelf)
 	}
 }
 
-func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	typ = c.toNonLiteral(typ, true)
 
 	switch t := typ.(type) {
 	case types.Self:
-		return c._getMethod(c.selfType, name, typeArgs, errSpan, inParent)
+		return c._getMethod(c.selfType, name, typeArgs, errSpan, inParent, true)
 	case *types.NamedType:
-		return c._getMethod(t.Type, name, typeArgs, errSpan, inParent)
+		return c._getMethod(t.Type, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.TypeParameter:
-		return c.getMethodForTypeParameter(t, name, typeArgs, errSpan, inParent)
+		return c.getMethodForTypeParameter(t, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Generic:
 		var method *types.Method
 		switch genericType := t.Type.(type) {
@@ -1257,19 +1260,19 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 
 		return c.replaceTypeParametersInMethod(method.Copy(), t.TypeArguments.ArgumentMap)
 	case *types.Class:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Interface:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.InterfaceProxy:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Module:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Mixin:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.MixinProxy:
-		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Intersection:
 		var methods []*types.Method
 		var baseMethod *types.Method

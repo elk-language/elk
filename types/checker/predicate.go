@@ -250,11 +250,14 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		}
 		return c.isSubtype(a.Type, b.Type, errSpan)
 	case *types.SingletonOf:
-		b, ok := b.(*types.SingletonOf)
-		if !ok {
+		switch narrowB := b.(type) {
+		case *types.SingletonOf:
+			return c.isSubtype(a.Type, narrowB.Type, errSpan)
+		case *types.SingletonClass:
+			return c.isSubtype(a.Type, narrowB.AttachedObject, errSpan)
+		default:
 			return false
 		}
-		return c.isSubtype(a.Type, b.Type, errSpan)
 	case *types.Module:
 		b, ok := b.(*types.Module)
 		if !ok {
@@ -409,6 +412,8 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 	switch b := b.(type) {
 	case *types.SingletonClass:
 		return c.isSubtype(a.AttachedObject, b.AttachedObject, errSpan)
+	case *types.SingletonOf:
+		return c.isSubtype(a.AttachedObject, b.Type, errSpan)
 	case *types.Class:
 		var currentClass types.Namespace = a
 		for {
