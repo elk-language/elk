@@ -43,7 +43,7 @@ type Namespace interface {
 	DefineInstanceVariable(name value.Symbol, val Type)
 
 	DefineClass(docComment string, primitive, abstract, sealed bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
-	DefineModule(docComment string, name value.Symbol) *Module
+	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }

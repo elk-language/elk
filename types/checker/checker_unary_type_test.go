@@ -33,6 +33,12 @@ func TestSingletonType(t *testing.T) {
 				var a: Interface = Foo
 			`,
 		},
+		"assign a module to Module": {
+			input: `
+				module Foo; end
+				var a: Module = Foo
+			`,
+		},
 		"assign class of child to singleton type of parent": {
 			input: `
 				class Foo; end

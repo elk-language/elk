@@ -36,12 +36,16 @@ func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	// -- Bootstrapping --
 
-	rootModule := NewModule("", "Root")
+	rootModule := &Module{
+		NamespaceBase: MakeNamespaceBase("", "Root"),
+	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
 	}
 
-	stdModule := NewModule("", "Std")
+	stdModule := &Module{
+		NamespaceBase: MakeNamespaceBase("", "Std"),
+	}
 	rootModule.DefineConstant(symbol.Std, stdModule)
 	rootModule.DefineSubtype(symbol.Std, stdModule)
 
@@ -74,7 +78,10 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	// -- End of Bootstrapping --
 
-	stdModule.DefineClass("", false, false, false, symbol.Module, objectClass, env)
+	moduleClass := stdModule.DefineClass("", false, false, false, symbol.Module, objectClass, env)
+	rootModule.parent = moduleClass
+	stdModule.parent = moduleClass
+
 	stdModule.DefineClass("", false, false, false, symbol.Mixin, objectClass, env)
 	stdModule.DefineClass("", false, false, false, symbol.Interface, objectClass, env)
 

@@ -241,6 +241,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return c.classIsSubtype(a, b, errSpan)
 	case *types.Mixin:
 		return c.mixinIsSubtype(a, b, errSpan)
+	case *types.Module:
+		return c.moduleIsSubtype(a, b, errSpan)
 	case *types.Interface:
 		return c.interfaceIsSubtype(a, b, errSpan)
 	case *types.InstanceOf:
@@ -265,12 +267,6 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		default:
 			return false
 		}
-	case *types.Module:
-		b, ok := b.(*types.Module)
-		if !ok {
-			return false
-		}
-		return a == b
 	case *types.Method:
 		b, ok := b.(*types.Method)
 		if !ok {
@@ -465,6 +461,31 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position
 	}
 }
 
+func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *position.Span) bool {
+	switch b := b.(type) {
+	case *types.Class:
+		var currentClass types.Namespace = a
+		for {
+			if currentClass == nil {
+				return false
+			}
+			if currentClass == b {
+				return true
+			}
+
+			currentClass = currentClass.Parent()
+		}
+	case *types.Mixin:
+		return c.isSubtypeOfMixin(a, b, errSpan)
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.Module:
+		return a == b
+	default:
+		return false
+	}
+}
+
 func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin, errSpan *position.Span) bool {
 	var currentContainer types.Namespace = a
 	for {
@@ -486,12 +507,26 @@ func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin, errSpan *p
 }
 
 func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position.Span) bool {
-	bMixin, ok := b.(*types.Mixin)
-	if !ok {
+	switch b := b.(type) {
+	case *types.Class:
+		var currentClass types.Namespace = a
+		for {
+			if currentClass == nil {
+				return false
+			}
+			if currentClass == b {
+				return true
+			}
+
+			currentClass = currentClass.Parent()
+		}
+	case *types.Mixin:
+		return c.isSubtypeOfMixin(a, b, errSpan)
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, b, errSpan)
+	default:
 		return false
 	}
-
-	return c.isSubtypeOfMixin(a, bMixin, errSpan)
 }
 
 type methodOverride struct {

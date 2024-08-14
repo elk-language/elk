@@ -317,7 +317,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineModule(%q, value.ToSymbol(%q))
+		`namespace.TryDefineModule(%q, value.ToSymbol(%q), env)
 		`,
 		module.DocComment(),
 		constantName,

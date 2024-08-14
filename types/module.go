@@ -1,12 +1,12 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Module struct {
+	parent Namespace
 	NamespaceBase
 }
 
@@ -14,12 +14,12 @@ func (*Module) Singleton() *SingletonClass {
 	return nil
 }
 
-func (*Module) Parent() Namespace {
-	return nil
+func (m *Module) Parent() Namespace {
+	return m.parent
 }
 
-func (m *Module) SetParent(Namespace) {
-	panic(fmt.Sprintf("cannot set the parent of module `%s`", m.Name()))
+func (m *Module) SetParent(parent Namespace) {
+	m.parent = parent
 }
 
 func (m *Module) IsAbstract() bool {
@@ -34,8 +34,9 @@ func (m *Module) IsPrimitive() bool {
 	return false
 }
 
-func NewModule(docComment, name string) *Module {
+func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
+		parent:        env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 }
@@ -46,8 +47,10 @@ func NewModuleWithDetails(
 	consts *TypeMap,
 	subtypes *TypeMap,
 	methods *MethodMap,
+	env *GlobalEnvironment,
 ) *Module {
 	return &Module{
+		parent: env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,

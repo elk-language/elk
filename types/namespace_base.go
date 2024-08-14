@@ -188,10 +188,10 @@ func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primiti
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol) *Module {
+func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
 	subtype := c.Subtype(name)
 	if subtype == nil {
-		return c.DefineModule(docComment, name)
+		return c.DefineModule(docComment, name, env)
 	}
 
 	module := subtype.(*Module)
@@ -200,8 +200,8 @@ func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol) *M
 }
 
 // Define a new module.
-func (c *NamespaceBase) DefineModule(docComment string, name value.Symbol) *Module {
-	m := NewModule(docComment, MakeFullConstantName(c.Name(), name.String()))
+func (c *NamespaceBase) DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
+	m := NewModule(docComment, MakeFullConstantName(c.Name(), name.String()), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m

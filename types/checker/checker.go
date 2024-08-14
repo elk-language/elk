@@ -3855,6 +3855,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
+				c.GlobalEnv,
 			)
 			t.Replacement = module
 			namespace.DefineConstant(constantName, module)
@@ -3864,12 +3865,12 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewModule(docComment, fullConstantName)
+			return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewModule(docComment, fullConstantName)
+		return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
 	} else {
-		return namespace.DefineModule(docComment, constantName)
+		return namespace.DefineModule(docComment, constantName, c.GlobalEnv)
 	}
 }
 

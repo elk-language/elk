@@ -13,7 +13,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 	// Define all namespaces
 	{
-		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"))
+		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))))
 		{
