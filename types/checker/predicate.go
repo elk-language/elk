@@ -244,11 +244,18 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Interface:
 		return c.interfaceIsSubtype(a, b, errSpan)
 	case *types.InstanceOf:
-		b, ok := b.(*types.InstanceOf)
-		if !ok {
+		switch narrowB := b.(type) {
+		case *types.InstanceOf:
+			return c.isSubtype(a.Type, narrowB.Type, errSpan)
+		case *types.Class:
+			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+		case *types.Mixin:
+			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+		case *types.Interface:
+			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+		default:
 			return false
 		}
-		return c.isSubtype(a.Type, b.Type, errSpan)
 	case *types.SingletonOf:
 		switch narrowB := b.(type) {
 		case *types.SingletonOf:

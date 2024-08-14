@@ -142,6 +142,43 @@ func TestSelfType(t *testing.T) {
 				error.NewFailure(L("<main>", P(73, 5, 21), P(82, 5, 30)), "type `&self` cannot be assigned to type `&Bar`"),
 			},
 		},
+		"assign ^self to the class instance": {
+			input: `
+				class Foo
+					singleton
+						def foo
+							var a: Foo = new
+						end
+					end
+				end
+			`,
+		},
+		"assign ^self to parent instance": {
+			input: `
+				class Foo
+					singleton
+						def foo
+							var a: Object = new
+						end
+					end
+				end
+			`,
+		},
+		"assign ^self to child instance": {
+			input: `
+				class Bar < Foo; end
+				class Foo
+					singleton
+						def foo
+							var a: Bar = new
+						end
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `^self` cannot be assigned to type `Bar`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
