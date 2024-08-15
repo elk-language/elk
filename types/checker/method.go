@@ -490,6 +490,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					),
 					posArg.Span(),
 				)
+				param.Type = types.Nothing{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
 			}

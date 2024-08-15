@@ -45,7 +45,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if !c.isSubtype(g.Type, p.Type, nil) {
 			return nil
 		}
-		if len(g.ArgumentOrder) != len(p.ArgumentOrder) {
+		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
 			return nil
 		}
 
@@ -117,20 +117,75 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return nil
 		}
 	case *types.InstanceOf:
-		g, ok := givenType.(*types.InstanceOf)
-		if !ok {
+		nonLiteral := c.toNonLiteral(givenType, false)
+		switch g := nonLiteral.(type) {
+		case *types.InstanceOf:
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			switch r := result.(type) {
+			case *types.SingletonClass:
+				return r.AttachedObject
+			case *types.SingletonOf:
+				return r.Type
+			}
+			return nil
+		case *types.Class:
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			switch r := result.(type) {
+			case *types.SingletonClass:
+				return r.AttachedObject
+			case *types.SingletonOf:
+				return r.Type
+			}
+			return nil
+		case *types.Mixin:
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			switch r := result.(type) {
+			case *types.SingletonClass:
+				return r.AttachedObject
+			case *types.SingletonOf:
+				return r.Type
+			}
+			return nil
+		case *types.Interface:
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			switch r := result.(type) {
+			case *types.SingletonClass:
+				return r.AttachedObject
+			case *types.SingletonOf:
+				return r.Type
+			}
+			return nil
+		default:
 			return nil
 		}
-
-		result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
-		if result == nil {
-			return nil
-		}
-		if p.Type == result {
-			return p
-		}
-
-		return types.NewInstanceOf(result)
 	case *types.Not:
 		g, ok := givenType.(*types.Not)
 		if !ok {
@@ -318,7 +373,14 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewNilable(result)
 		default:
-			return nil
+			result := c.inferTypeArguments(givenType, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+			return types.NewNilable(result)
 		}
 	default:
 		return paramType

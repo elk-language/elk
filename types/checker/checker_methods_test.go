@@ -2315,7 +2315,192 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("foo")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 5, 16), P(77, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(63, 5, 16), P(72, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param and argument are nilable": {
+			input: `
+				class Foo[V]
+					init(a: V?); end
+				end
+				var a: String? = "foo"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(90, 6, 16), P(95, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is nilable, argument is a union with nil": {
+			input: `
+				class Foo[V]
+					init(a: V?); end
+				end
+				var a: String | nil = "foo"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is nilable, argument is a union with Nil": {
+			input: `
+				class Foo[V]
+					init(a: V?); end
+				end
+				var a: String | Nil = "foo"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is nilable, argument is a broad union with Nil": {
+			input: `
+				class Foo[V]
+					init(a: V?); end
+				end
+				var a: String | Int | Nil = "foo"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(101, 6, 16), P(106, 6, 21)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"param is a generic, argument is also": {
+			input: `
+				class Bar[V]
+					init(a: V); end
+				end
+
+				class Foo[V]
+					init(a: Bar[V]); end
+				end
+				a := Bar::[String]("foo")
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(144, 10, 16), P(149, 10, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a generic, argument is a subtype": {
+			input: `
+				class Bar[V]
+					init(a: V); end
+				end
+				class Baz[V] < Bar; end
+
+				class Foo[V]
+					init(a: Bar[V]); end
+				end
+				a := Baz::[String]("foo")
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(172, 11, 16), P(177, 11, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a generic, argument is a subtype with more type parameters": {
+			input: `
+				class Bar[V]
+					init(a: V); end
+				end
+				class Baz[V, T] < Bar; end
+
+				class Foo[V]
+					init(a: Bar[V]); end
+				end
+				a := Baz::[Int, Float](1)
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(175, 11, 16), P(180, 11, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a generic, argument is not": {
+			input: `
+				class Bar[V]
+					init(a: V); end
+				end
+
+				class Foo[V]
+					init(a: Bar[V]); end
+				end
+				var b: 9 = Foo(1)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "could not infer type parameters in call to `#init`"),
+			},
+		},
+
+		"param is a singleton, argument is also": {
+			input: `
+				class Foo[V < Value]
+					init(a: &V); end
+				end
+				var b: 9 = Foo(String)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a singleton, argument is not": {
+			input: `
+				class Foo[V < Value]
+					init(a: &V); end
+				end
+				class Bar; end
+				var b: 9 = Foo("")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "could not infer type parameters in call to `#init`"),
+			},
+		},
+
+		"param is an instance, argument is a class instance": {
+			input: `
+				class Foo[V < Class]
+					init(a: ^V); end
+				end
+				var b: 9 = Foo("")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 16), P(77, 5, 22)), "type `Foo[&Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is an instance, argument is not": {
+			input: `
+				class Foo[V < Class]
+					init(a: ^V); end
+				end
+				var b: 9 = Foo(String)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "could not infer type parameters in call to `#init`"),
+			},
+		},
+
+		"param is a not type, argument is also": {
+			input: `
+				class Foo[V]
+					init(a: ~V); end
+				end
+				var a: ~Int = 2.9
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 6, 16), P(90, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a not type, argument is not": {
+			input: `
+				class Foo[V]
+					init(a: ~V); end
+				end
+				var b: 9 = Foo(2.9)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 	}

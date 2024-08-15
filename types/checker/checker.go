@@ -2348,7 +2348,10 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Nothing{})
 		return node
 	}
-
+	if len(typeArgMap) != len(class.TypeParameters) {
+		node.SetType(types.Nothing{})
+		return node
+	}
 	typeArgOrder := make([]value.Symbol, len(class.TypeParameters))
 	for i, param := range class.TypeParameters {
 		typeArgOrder[i] = param.Name
@@ -3114,6 +3117,21 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 		}
 
 		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap))
+		return node
+	case *types.Class:
+		typeArgumentMap, ok := c.checkTypeArguments(
+			constantType,
+			node.TypeArguments,
+			t.TypeParameters,
+			node.Constant.Span(),
+		)
+		if !ok {
+			node.SetType(types.Nothing{})
+			return node
+		}
+
+		generic := types.NewGeneric(t, typeArgumentMap)
+		node.SetType(generic)
 		return node
 	case types.Nothing:
 		node.SetType(types.Nothing{})
