@@ -109,7 +109,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		return false
 	case *types.Mixin, *types.Interface:
 		switch b.(type) {
-		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType:
+		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType, *types.TypeParameter:
 			return true
 		}
 		return false

@@ -2270,6 +2270,18 @@ func TestConstructorCallInference(t *testing.T) {
 				error.NewFailure(L("<main>", P(68, 5, 16), P(80, 5, 28)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
+		"infer two type arguments": {
+			input: `
+				class Foo[V, T]
+					init(a: V | T); end
+				end
+				var a: Int | Float = 2
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `Foo[Std::Int | Std::Float, Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 
 		"param is a union, argument is an exact match": {
 			input: `
@@ -2501,6 +2513,19 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "could not infer type parameters in call to `#init`"),
+			},
+		},
+
+		"param is an intersection, argument is also": {
+			input: `
+				class Foo[V]
+					init(a: V & StringConvertible); end
+				end
+				var a: Int & StringConvertible = 2
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(121, 6, 16), P(126, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 	}
