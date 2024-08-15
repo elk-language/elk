@@ -2054,17 +2054,6 @@ func TestConstructorCall(t *testing.T) {
 				Foo::[String]("foo")
 			`,
 		},
-		"instantiate a generic class without type arguments": {
-			input: `
-				class Foo[V]
-					init(a: V); end
-				end
-				Foo("foo")
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 5, 5), P(53, 5, 7)), "generic type `Foo` requires 1 type argument(s), got: 0"),
-			},
-		},
 		"instantiate a generic class with valid type arguments": {
 			input: `
 				class Foo[V]
@@ -2245,6 +2234,88 @@ func TestConstructorCall(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(69, 6, 11), P(73, 6, 15)), "expected type `V` for parameter `a` in call to `#init`, got type `\"foo\"`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestConstructorCallInference(t *testing.T) {
+	tests := testTable{
+		"infer simple type argument": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				var a: 9 = Foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 5, 16), P(71, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer based on first argument": {
+			input: `
+				class Foo[V]
+					init(a: V, b: V); end
+				end
+				var b: 9 = Foo("foo", 2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 5, 27), P(79, 5, 27)), "expected type `Std::String` for parameter `b` in call to `#init`, got type `2`"),
+				error.NewFailure(L("<main>", P(68, 5, 16), P(80, 5, 28)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"param is a union, argument is an exact match": {
+			input: `
+				class Foo[V]
+					init(a: V | Int); end
+				end
+				var a: Int | String = "lol"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(100, 6, 16), P(105, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a union, argument is a union with additional types": {
+			input: `
+				class Foo[V]
+					init(a: V | Int); end
+				end
+				var a: Int | String | Float = "lol"
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 6, 16), P(113, 6, 21)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a union, argument is not": {
+			input: `
+				class Foo[V]
+					init(a: V | Int); end
+				end
+				var b: 9 = Foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 5, 16), P(77, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"param is nilable, argument is not": {
+			input: `
+				class Foo[V]
+					init(a: V?); end
+				end
+				var b: 9 = Foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 5, 16), P(77, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 	}

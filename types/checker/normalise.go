@@ -11,6 +11,320 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+	switch p := paramType.(type) {
+	case types.Self:
+		arg := typeArgMap[symbol.M_self]
+		if arg == nil {
+			return p
+		}
+		return arg.Type
+	case *types.TypeParameter:
+		typeArg := typeArgMap[p.Name]
+		if typeArg != nil {
+			return typeArg.Type
+		}
+
+		nonLiteral := c.toNonLiteral(givenType, false)
+		if !c.isSubtype(nonLiteral, p.UpperBound, nil) {
+			return nil
+		}
+		if !c.isSubtype(p.LowerBound, nonLiteral, nil) {
+			return nil
+		}
+		typeArgMap[p.Name] = types.NewTypeArgument(
+			nonLiteral,
+			p.Variance,
+		)
+		return nonLiteral
+	case *types.Generic:
+		g, ok := givenType.(*types.Generic)
+		if !ok {
+			return nil
+		}
+		if !c.isSubtype(g.Type, p.Type, nil) {
+			return nil
+		}
+		if len(g.ArgumentOrder) != len(p.ArgumentOrder) {
+			return nil
+		}
+
+		newArgMap := make(map[value.Symbol]*types.TypeArgument, len(p.ArgumentMap))
+		for _, argName := range p.ArgumentOrder {
+			pArg := p.ArgumentMap[argName]
+			gArg := g.ArgumentMap[argName]
+			result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			newArgMap[argName] = types.NewTypeArgument(result, gArg.Variance)
+		}
+		return types.NewGeneric(
+			p.Type,
+			types.NewTypeArguments(
+				newArgMap,
+				p.ArgumentOrder,
+			),
+		)
+	case *types.SingletonOf:
+		switch g := givenType.(type) {
+		case *types.SingletonClass:
+			result := c.inferTypeArguments(g.AttachedObject, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			return types.NewSingletonOf(result)
+		case *types.SingletonOf:
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			return types.NewSingletonOf(result)
+		default:
+			return nil
+		}
+	case *types.SingletonClass:
+		switch g := givenType.(type) {
+		case *types.SingletonClass:
+			result := c.inferTypeArguments(g.AttachedObject, p.AttachedObject, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.AttachedObject == result {
+				return p
+			}
+
+			return types.NewSingletonClass(result.(types.Namespace), p.Parent())
+		case *types.SingletonOf:
+			result := c.inferTypeArguments(g.Type, p.AttachedObject, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.AttachedObject == result {
+				return p
+			}
+
+			return types.NewSingletonClass(result.(types.Namespace), p.Parent())
+		default:
+			return nil
+		}
+	case *types.InstanceOf:
+		g, ok := givenType.(*types.InstanceOf)
+		if !ok {
+			return nil
+		}
+
+		result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+		if result == nil {
+			return nil
+		}
+		if p.Type == result {
+			return p
+		}
+
+		return types.NewInstanceOf(result)
+	case *types.Not:
+		g, ok := givenType.(*types.Not)
+		if !ok {
+			return nil
+		}
+
+		result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+		if result == nil {
+			return nil
+		}
+		if p.Type == result {
+			return p
+		}
+
+		return types.NewNot(result)
+	case *types.Intersection:
+		switch g := givenType.(type) {
+		case *types.Intersection:
+			gElementsToSkip := make([]bool, len(g.Elements))
+			for _, pElement := range p.Elements {
+				for j, gElement := range g.Elements {
+					if c.isSubtype(gElement, pElement, nil) {
+						gElementsToSkip[j] = true
+						break
+					}
+				}
+			}
+
+			newGElements := make([]types.Type, 0, len(g.Elements))
+			for j, gElement := range g.Elements {
+				if gElementsToSkip[j] {
+					continue
+				}
+				newGElements = append(newGElements, gElement)
+			}
+			var newG types.Type
+			switch len(newGElements) {
+			case 0:
+				return p
+			case 1:
+				newG = newGElements[0]
+			default:
+				newG = types.NewIntersection(newGElements...)
+			}
+
+			newPElements := make([]types.Type, 0, len(p.Elements))
+			var isDifferent bool
+			for _, pElement := range p.Elements {
+				result := c.inferTypeArguments(newG, pElement, typeArgMap)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+				newPElements = append(newPElements, result)
+			}
+			if isDifferent {
+				return types.NewIntersection(newPElements...)
+			}
+			return p
+		default:
+			newElements := make([]types.Type, 0, len(p.Elements))
+			var isDifferent bool
+			for _, pElement := range p.Elements {
+				result := c.inferTypeArguments(g, pElement, typeArgMap)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+				newElements = append(newElements, result)
+			}
+
+			if isDifferent {
+				return types.NewIntersection(newElements...)
+			}
+			return p
+		}
+	case *types.Union:
+		switch g := givenType.(type) {
+		case *types.Union:
+			narrowedGivenElements := make([]types.Type, 0, len(g.Elements))
+			for _, gElement := range g.Elements {
+				if c.isSubtype(gElement, p, nil) {
+					continue
+				}
+				narrowedGivenElements = append(narrowedGivenElements, gElement)
+			}
+			if len(narrowedGivenElements) == 0 {
+				return p
+			}
+			var narrowedG types.Type
+			if len(narrowedGivenElements) == 1 {
+				narrowedG = narrowedGivenElements[0]
+			} else {
+				narrowedG = types.NewUnion(narrowedGivenElements...)
+			}
+
+			var isDifferent bool
+			newPElements := make([]types.Type, 0, len(p.Elements))
+			for _, pElement := range p.Elements {
+				result := c.inferTypeArguments(narrowedG, pElement, typeArgMap)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+
+				newPElements = append(newPElements, result)
+			}
+			if !isDifferent {
+				return p
+			}
+
+			return types.NewUnion(newPElements...)
+		case *types.Nilable:
+			return c.inferTypeArguments(types.NewUnion(types.Nil{}, g.Type), p, typeArgMap)
+		default:
+			newElements := make([]types.Type, 0, len(p.Elements))
+			var isDifferent bool
+			for _, pElement := range p.Elements {
+				result := c.inferTypeArguments(g, pElement, typeArgMap)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+				newElements = append(newElements, result)
+			}
+
+			if isDifferent {
+				return types.NewUnion(newElements...)
+			}
+			return p
+		}
+	case *types.Nilable:
+		switch g := givenType.(type) {
+		case *types.Nilable:
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			return types.NewNilable(result)
+		case *types.Union:
+			var withoutNil []types.Type
+			for _, element := range g.Elements {
+				switch e := element.(type) {
+				case types.Nil:
+					continue
+				case *types.Class:
+					if e.Name() == "Std::Nil" {
+						continue
+					}
+					withoutNil = append(withoutNil, e)
+				default:
+					withoutNil = append(withoutNil, e)
+				}
+			}
+			var t types.Type
+			if len(withoutNil) == len(g.Elements) {
+				t = g
+			} else if len(withoutNil) == 0 {
+				t = types.Never{}
+			} else if len(withoutNil) == 1 {
+				t = withoutNil[0]
+			} else {
+				t = types.NewUnion(withoutNil...)
+			}
+
+			result := c.inferTypeArguments(t, p.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if p.Type == result {
+				return p
+			}
+
+			return types.NewNilable(result)
+		default:
+			return nil
+		}
+	default:
+		return paramType
+	}
+}
+
 func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
 	return c.normaliseType(c._replaceTypeParameters(typ, typeArgMap))
 }

@@ -435,6 +435,284 @@ func (c *Checker) checkMethod(
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
+func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	span *position.Span,
+) (
+	_posArgs []ast.ExpressionNode,
+	typeArgs map[value.Symbol]*types.TypeArgument,
+) {
+	prevMode := c.mode
+	c.mode = inferTypeArgumentMode
+	defer c.setMode(prevMode)
+	reqParamCount := method.RequiredParamCount()
+	requiredPosParamCount := len(method.Params) - method.OptionalParamCount
+	if method.PostParamCount != -1 {
+		requiredPosParamCount -= method.PostParamCount + 1
+	}
+	positionalRestParamIndex := method.PositionalRestParamIndex()
+	var typedPositionalArguments []ast.ExpressionNode
+
+	typeArgMap := make(map[value.Symbol]*types.TypeArgument)
+	var currentParamIndex int
+	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
+		posArg := positionalArguments[currentParamIndex]
+		if currentParamIndex == positionalRestParamIndex {
+			break
+		}
+		if currentParamIndex >= len(method.Params) {
+			c.addWrongArgumentCountError(
+				len(positionalArguments)+len(namedArguments),
+				method,
+				span,
+			)
+			break
+		}
+		param := method.Params[currentParamIndex]
+
+		var typedPosArg ast.ExpressionNode
+		var posArgType types.Type
+		if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
+			typedPosArg = c.checkExpressionWithType(posArg, param.Type)
+			posArgType = c.typeOf(typedPosArg)
+			typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
+		} else {
+			typedPosArg = c.checkExpression(posArg)
+			posArgType = c.typeOf(typedPosArg)
+			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
+			if inferredParamType == nil {
+				c.addFailure(
+					fmt.Sprintf(
+						"could not infer type parameters in call to `%s`",
+						method.Name,
+					),
+					posArg.Span(),
+				)
+			} else if inferredParamType != param.Type {
+				param.Type = inferredParamType
+			}
+		}
+		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
+
+		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+					types.InspectWithColor(param.Type),
+					param.Name,
+					method.Name,
+					types.InspectWithColor(posArgType),
+				),
+				posArg.Span(),
+			)
+		}
+	}
+
+	if method.HasPositionalRestParam() {
+		if len(positionalArguments) < requiredPosParamCount {
+			c.addFailure(
+				fmt.Sprintf(
+					"expected %d... positional arguments in call to `%s`, got %d",
+					requiredPosParamCount,
+					method.Name,
+					len(positionalArguments),
+				),
+				span,
+			)
+			return nil, nil
+		}
+		restPositionalArguments := ast.NewArrayTupleLiteralNode(
+			span,
+			nil,
+		)
+		posRestParam := method.Params[positionalRestParamIndex]
+
+		currentArgIndex := currentParamIndex
+		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
+			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
+			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
+			posArgType := c.typeOf(typedPosArg)
+			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(posRestParam.Type),
+						posRestParam.Name,
+						method.Name,
+						types.InspectWithColor(posArgType),
+					),
+					posArg.Span(),
+				)
+			}
+		}
+		typedPositionalArguments = append(typedPositionalArguments, restPositionalArguments)
+
+		currentParamIndex = positionalRestParamIndex
+		for ; currentArgIndex < len(positionalArguments); currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
+			currentParamIndex++
+			param := method.Params[currentParamIndex]
+
+			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
+			posArgType := c.typeOf(typedPosArg)
+			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(param.Type),
+						param.Name,
+						method.Name,
+						types.InspectWithColor(posArgType),
+					),
+					posArg.Span(),
+				)
+			}
+		}
+		currentParamIndex++
+
+		if method.PostParamCount > 0 {
+			reqParamCount++
+		}
+	}
+
+	firstNamedParamIndex := currentParamIndex
+	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
+
+	for i := 0; i < len(method.Params); i++ {
+		param := method.Params[i]
+		switch param.Kind {
+		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+			continue
+		}
+		paramName := param.Name.String()
+		var found bool
+
+		for namedArgIndex, namedArgI := range namedArguments {
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			if namedArg.Name != paramName {
+				continue
+			}
+			if found || i < firstNamedParamIndex {
+				c.addFailure(
+					fmt.Sprintf(
+						"duplicated argument `%s` in call to `%s`",
+						paramName,
+						method.Name,
+					),
+					namedArg.Span(),
+				)
+			}
+			found = true
+			definedNamedArgumentsSlice[namedArgIndex] = true
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
+			namedArgType := c.typeOf(typedNamedArgValue)
+			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
+			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(param.Type),
+						param.Name,
+						method.Name,
+						types.InspectWithColor(namedArgType),
+					),
+					namedArg.Span(),
+				)
+			}
+		}
+
+		if i < firstNamedParamIndex {
+			continue
+		}
+		if found {
+			continue
+		}
+
+		if i < reqParamCount {
+			// the parameter is required
+			// but is not present in the call
+			c.addFailure(
+				fmt.Sprintf(
+					"argument `%s` is missing in call to `%s`",
+					paramName,
+					method.Name,
+				),
+				span,
+			)
+		} else {
+			// the parameter is missing and is optional
+			// we push undefined as its value
+			typedPositionalArguments = append(
+				typedPositionalArguments,
+				ast.NewUndefinedLiteralNode(span),
+			)
+		}
+	}
+
+	if method.HasNamedRestParam {
+		namedRestArgs := ast.NewHashRecordLiteralNode(
+			span,
+			nil,
+		)
+		namedRestParam := method.Params[len(method.Params)-1]
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+			namedRestArgs.Elements = append(
+				namedRestArgs.Elements,
+				ast.NewSymbolKeyValueExpressionNode(
+					namedArg.Span(),
+					namedArg.Name,
+					typedNamedArgValue,
+				),
+			)
+			namedArgType := c.typeOf(typedNamedArgValue)
+			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(namedRestParam.Type),
+						namedRestParam.Name,
+						method.Name,
+						types.InspectWithColor(namedArgType),
+					),
+					namedArg.Span(),
+				)
+			}
+		}
+
+		typedPositionalArguments = append(typedPositionalArguments, namedRestArgs)
+	} else {
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			c.addFailure(
+				fmt.Sprintf(
+					"nonexistent parameter `%s` given in call to `%s`",
+					namedArg.Name,
+					method.Name,
+				),
+				namedArg.Span(),
+			)
+		}
+	}
+
+	return typedPositionalArguments, typeArgMap
+}
+
 func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
 	reqParamCount := method.RequiredParamCount()
 	requiredPosParamCount := len(method.Params) - method.OptionalParamCount

@@ -135,6 +135,9 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 }
 
 func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok bool) {
+	if c.phase != initPhase {
+		return true
+	}
 	typedefCheck, ok := c.typeDefinitionChecks.m[name]
 	if !ok {
 		return true

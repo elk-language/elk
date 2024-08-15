@@ -174,6 +174,13 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.Self:
 		return c.isSubtype(c.selfType, b, errSpan)
 	case *types.TypeParameter:
+		if c.mode == inferTypeArgumentMode {
+			b, ok := b.(*types.TypeParameter)
+			if !ok {
+				return false
+			}
+			return a.Name == b.Name
+		}
 		if c.isSubtype(a.UpperBound, b, errSpan) {
 			return true
 		}

@@ -49,6 +49,7 @@ const (
 	returnTypeMode
 	throwTypeMode
 	paramTypeMode
+	inferTypeArgumentMode
 )
 
 type phase uint8
@@ -747,9 +748,6 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		return node
 	case token.BANG:
 		return c.checkNotOperator(node)
-	// case token.AND:
-	// 	// get singleton class
-	// 	return c.checkGetSingleton(node)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid unary operator %s", node.Op.String()),
@@ -2274,9 +2272,10 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 }
 
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
-	classNode := c.checkComplexConstantType(node.Class)
-	node.Class = classNode
-	classType := c.typeOf(classNode)
+	classType, _ := c.resolveConstantType(node.Class)
+	if classType == nil {
+		classType = types.Nothing{}
+	}
 
 	if types.IsNothing(classType) {
 		c.checkExpressions(node.PositionalArguments)
@@ -2303,7 +2302,31 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		)
 	}
 
-	method := c.getMethod(class, symbol.M_init, nil, nil)
+	if !class.IsGeneric() {
+		method := c.getMethod(class, symbol.M_init, nil, nil)
+		if method == nil {
+			method = types.NewMethod(
+				"",
+				false,
+				false,
+				true,
+				symbol.M_init,
+				nil,
+				nil,
+				nil,
+				class,
+			)
+		}
+
+		typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+
+		node.PositionalArguments = typedPositionalArguments
+		node.NamedArguments = nil
+		node.SetType(class)
+		return node
+	}
+
+	method := c._getMethodInNamespace(class, class, symbol.M_init, nil, nil, false)
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -2316,13 +2339,30 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			nil,
 			class,
 		)
+	} else {
+		method = method.Copy()
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	if typedPositionalArguments == nil {
+		node.SetType(types.Nothing{})
+		return node
+	}
 
+	typeArgOrder := make([]value.Symbol, len(class.TypeParameters))
+	for i, param := range class.TypeParameters {
+		typeArgOrder[i] = param.Name
+	}
+	generic := types.NewGeneric(
+		class,
+		types.NewTypeArguments(
+			typeArgMap,
+			typeArgOrder,
+		),
+	)
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
-	node.SetType(class)
+	node.SetType(generic)
 	return node
 }
 
