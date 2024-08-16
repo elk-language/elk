@@ -158,10 +158,10 @@ func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
 func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) bool {
 	namedType := c.typeOf(node).(*types.GenericNamedType)
 
-	typeVars := make([]*types.TypeParameter, 0, len(node.TypeVariables))
+	typeVars := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", namedType.Name), c.GlobalEnv)
-	for _, typeVarNode := range node.TypeVariables {
-		varNode, ok := typeVarNode.(*ast.VariantTypeVariableNode)
+	for _, typeVarNode := range node.TypeParameters {
+		varNode, ok := typeVarNode.(*ast.VariantTypeParameterNode)
 		if !ok {
 			continue
 		}
@@ -302,13 +302,13 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		)
 	}
 
-	if len(node.TypeVariables) < 1 {
+	if len(node.TypeParameters) < 1 {
 		return
 	}
 
-	typeVars := make([]*types.TypeParameter, 0, len(node.TypeVariables))
-	for _, typeVarNode := range node.TypeVariables {
-		varNode, ok := typeVarNode.(*ast.VariantTypeVariableNode)
+	typeVars := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+	for _, typeVarNode := range node.TypeParameters {
+		varNode, ok := typeVarNode.(*ast.VariantTypeParameterNode)
 		if !ok {
 			continue
 		}
@@ -322,7 +322,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	class.TypeParameters = typeVars
 }
 
-func (c *Checker) checkTypeVariableNode(node *ast.VariantTypeVariableNode) *types.TypeParameter {
+func (c *Checker) checkTypeVariableNode(node *ast.VariantTypeParameterNode) *types.TypeParameter {
 	var variance types.Variance
 	switch node.Variance {
 	case ast.INVARIANT:

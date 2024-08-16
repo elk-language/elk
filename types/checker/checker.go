@@ -4504,6 +4504,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		false,
 		false,
 		"#init",
+		nil,
 		initNode.Parameters,
 		nil,
 		initNode.ThrowType,

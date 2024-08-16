@@ -658,13 +658,13 @@ func IsNamedRestParam(p ParameterNode) bool {
 }
 
 // Represents a type variable in generics like `class Foo[+V]; end`
-type TypeVariableNode interface {
+type TypeParameterNode interface {
 	Node
 	typeVariableNode()
 }
 
-func (*InvalidNode) typeVariableNode()             {}
-func (*VariantTypeVariableNode) typeVariableNode() {}
+func (*InvalidNode) typeVariableNode()              {}
+func (*VariantTypeParameterNode) typeVariableNode() {}
 
 // All nodes that should be valid in constant lookups
 // should implement this interface.
@@ -3032,13 +3032,13 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 type ClassDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Abstract      bool
-	Sealed        bool
-	Primitive     bool
-	Constant      ExpressionNode     // The constant that will hold the class value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Superclass    ExpressionNode     // the super/parent class of this class
-	Body          []StatementNode    // body of the class
+	Abstract       bool
+	Sealed         bool
+	Primitive      bool
+	Constant       ExpressionNode      // The constant that will hold the class value
+	TypeParameters []TypeParameterNode // Generic type variable definitions
+	Superclass     ExpressionNode      // the super/parent class of this class
+	Body           []StatementNode     // body of the class
 }
 
 func (*ClassDeclarationNode) SkipTypechecking() bool {
@@ -3057,7 +3057,7 @@ func NewClassDeclarationNode(
 	sealed bool,
 	primitive bool,
 	constant ExpressionNode,
-	typeVars []TypeVariableNode,
+	typeParams []TypeParameterNode,
 	superclass ExpressionNode,
 	body []StatementNode,
 ) *ClassDeclarationNode {
@@ -3067,13 +3067,13 @@ func NewClassDeclarationNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Abstract:      abstract,
-		Sealed:        sealed,
-		Primitive:     primitive,
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Superclass:    superclass,
-		Body:          body,
+		Abstract:       abstract,
+		Sealed:         sealed,
+		Primitive:      primitive,
+		Constant:       constant,
+		TypeParameters: typeParams,
+		Superclass:     superclass,
+		Body:           body,
 	}
 }
 
@@ -3116,9 +3116,9 @@ type MixinDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	Abstract              bool
-	Constant              ExpressionNode     // The constant that will hold the mixin value
-	TypeVariables         []TypeVariableNode // Generic type variable definitions
-	Body                  []StatementNode    // body of the mixin
+	Constant              ExpressionNode      // The constant that will hold the mixin value
+	TypeParameters        []TypeParameterNode // Generic type variable definitions
+	Body                  []StatementNode     // body of the mixin
 	IncludesAndImplements []ExpressionNode
 }
 
@@ -3136,7 +3136,7 @@ func NewMixinDeclarationNode(
 	docComment string,
 	abstract bool,
 	constant ExpressionNode,
-	typeVars []TypeVariableNode,
+	typeParams []TypeParameterNode,
 	body []StatementNode,
 ) *MixinDeclarationNode {
 
@@ -3145,10 +3145,10 @@ func NewMixinDeclarationNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Abstract:      abstract,
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Body:          body,
+		Abstract:       abstract,
+		Constant:       constant,
+		TypeParameters: typeParams,
+		Body:           body,
 	}
 }
 
@@ -3156,10 +3156,10 @@ func NewMixinDeclarationNode(
 type InterfaceDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Constant      ExpressionNode     // The constant that will hold the interface value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Body          []StatementNode    // body of the interface
-	Implements    []*ImplementExpressionNode
+	Constant       ExpressionNode      // The constant that will hold the interface value
+	TypeParameters []TypeParameterNode // Generic type variable definitions
+	Body           []StatementNode     // body of the interface
+	Implements     []*ImplementExpressionNode
 }
 
 func (*InterfaceDeclarationNode) SkipTypechecking() bool {
@@ -3175,7 +3175,7 @@ func NewInterfaceDeclarationNode(
 	span *position.Span,
 	docComment string,
 	constant ExpressionNode,
-	typeVars []TypeVariableNode,
+	typeParams []TypeParameterNode,
 	body []StatementNode,
 ) *InterfaceDeclarationNode {
 
@@ -3184,9 +3184,9 @@ func NewInterfaceDeclarationNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Body:          body,
+		Constant:       constant,
+		TypeParameters: typeParams,
+		Body:           body,
 	}
 }
 
@@ -3194,9 +3194,9 @@ func NewInterfaceDeclarationNode(
 type StructDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Constant      ExpressionNode            // The constant that will hold the struct value
-	TypeVariables []TypeVariableNode        // Generic type variable definitions
-	Body          []StructBodyStatementNode // body of the struct
+	Constant       ExpressionNode            // The constant that will hold the struct value
+	TypeParameters []TypeParameterNode       // Generic type variable definitions
+	Body           []StructBodyStatementNode // body of the struct
 }
 
 func (*StructDeclarationNode) IsStatic() bool {
@@ -3208,7 +3208,7 @@ func NewStructDeclarationNode(
 	span *position.Span,
 	docComment string,
 	constant ExpressionNode,
-	typeVars []TypeVariableNode,
+	typeParams []TypeParameterNode,
 	body []StructBodyStatementNode,
 ) *StructDeclarationNode {
 
@@ -3217,13 +3217,13 @@ func NewStructDeclarationNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Body:          body,
+		Constant:       constant,
+		TypeParameters: typeParams,
+		Body:           body,
 	}
 }
 
-// Represents the variance of a type variable.
+// Represents the variance of a type parameter.
 type Variance uint8
 
 const (
@@ -3232,22 +3232,22 @@ const (
 	CONTRAVARIANT
 )
 
-// Represents a type variable eg. `+V`
-type VariantTypeVariableNode struct {
+// Represents a type parameter eg. `+V`
+type VariantTypeParameterNode struct {
 	TypedNodeBase
-	Variance   Variance // Variance level of this type variable
-	Name       string   // Name of the type variable eg. `T`
+	Variance   Variance // Variance level of this type parameter
+	Name       string   // Name of the type parameter eg. `T`
 	UpperBound TypeNode
 	LowerBound TypeNode
 }
 
-func (*VariantTypeVariableNode) IsStatic() bool {
+func (*VariantTypeParameterNode) IsStatic() bool {
 	return false
 }
 
 // Create a new type variable node eg. `+V`
-func NewVariantTypeVariableNode(span *position.Span, variance Variance, name string, lower, upper TypeNode) *VariantTypeVariableNode {
-	return &VariantTypeVariableNode{
+func NewVariantTypeParameterNode(span *position.Span, variance Variance, name string, lower, upper TypeNode) *VariantTypeParameterNode {
+	return &VariantTypeParameterNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Variance:      variance,
 		Name:          name,
@@ -3300,13 +3300,14 @@ func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStr
 type MethodDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name       string
-	Parameters []ParameterNode // formal parameters
-	ReturnType TypeNode
-	ThrowType  TypeNode
-	Body       []StatementNode // body of the method
-	Sealed     bool
-	Abstract   bool
+	Name           string
+	TypeParameters []TypeParameterNode
+	Parameters     []ParameterNode // formal parameters
+	ReturnType     TypeNode
+	ThrowType      TypeNode
+	Body           []StatementNode // body of the method
+	Sealed         bool
+	Abstract       bool
 }
 
 func (*MethodDefinitionNode) IsStatic() bool {
@@ -3333,6 +3334,7 @@ func NewMethodDefinitionNode(
 	abstract bool,
 	sealed bool,
 	name string,
+	typeParams []TypeParameterNode,
 	params []ParameterNode,
 	returnType,
 	throwType TypeNode,
@@ -3343,13 +3345,14 @@ func NewMethodDefinitionNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Abstract:   abstract,
-		Sealed:     sealed,
-		Name:       name,
-		Parameters: params,
-		ReturnType: returnType,
-		ThrowType:  throwType,
-		Body:       body,
+		Abstract:       abstract,
+		Sealed:         sealed,
+		Name:           name,
+		TypeParameters: typeParams,
+		Parameters:     params,
+		ReturnType:     returnType,
+		ThrowType:      throwType,
+		Body:           body,
 	}
 }
 
@@ -3380,10 +3383,11 @@ func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwTyp
 type MethodSignatureDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name       string
-	Parameters []ParameterNode // formal parameters
-	ReturnType TypeNode
-	ThrowType  TypeNode
+	Name           string
+	TypeParameters []TypeParameterNode
+	Parameters     []ParameterNode // formal parameters
+	ReturnType     TypeNode
+	ThrowType      TypeNode
 }
 
 func (*MethodSignatureDefinitionNode) IsStatic() bool {
@@ -3391,16 +3395,17 @@ func (*MethodSignatureDefinitionNode) IsStatic() bool {
 }
 
 // Create a method signature node eg. `sig to_string(val: Int): String`
-func NewMethodSignatureDefinitionNode(span *position.Span, docComment, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+func NewMethodSignatureDefinitionNode(span *position.Span, docComment, name string, typeParams []TypeParameterNode, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Name:       name,
-		Parameters: params,
-		ReturnType: returnType,
-		ThrowType:  throwType,
+		Name:           name,
+		TypeParameters: typeParams,
+		Parameters:     params,
+		ReturnType:     returnType,
+		ThrowType:      throwType,
 	}
 }
 
@@ -3428,9 +3433,9 @@ func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, a
 type GenericTypeDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	TypeVariables []TypeVariableNode  // Generic type variable definitions
-	Constant      ComplexConstantNode // new name of the type
-	TypeNode      TypeNode            // the type
+	TypeParameters []TypeParameterNode // Generic type variable definitions
+	Constant       ComplexConstantNode // new name of the type
+	TypeNode       TypeNode            // the type
 }
 
 func (*GenericTypeDefinitionNode) IsStatic() bool {
@@ -3438,15 +3443,15 @@ func (*GenericTypeDefinitionNode) IsStatic() bool {
 }
 
 // Create a generic type definition node eg. `typedef Nilable[T] = T | nil`
-func NewGenericTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typeVars []TypeVariableNode, typ TypeNode) *GenericTypeDefinitionNode {
+func NewGenericTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typeVars []TypeParameterNode, typ TypeNode) *GenericTypeDefinitionNode {
 	return &GenericTypeDefinitionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Constant:      constant,
-		TypeVariables: typeVars,
-		TypeNode:      typ,
+		Constant:       constant,
+		TypeParameters: typeVars,
+		TypeNode:       typ,
 	}
 }
 

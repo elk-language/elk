@@ -2630,6 +2630,24 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	methodName, mSpan := p.methodName()
 	span = span.Join(mSpan)
 
+	var typeParams []ast.TypeParameterNode
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeParams = p.typeVariableList(token.RBRACKET)
+			rbracket, ok := p.consume(token.RBRACKET)
+			if !ok {
+				return ast.NewInvalidNode(
+					rbracket.Span(),
+					rbracket,
+				)
+			}
+			span = span.Join(rbracket.Span())
+		}
+	}
+
 	if p.match(token.LPAREN) {
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
 			span = span.Join(rparen.Span())
@@ -2670,6 +2688,7 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 		span,
 		"",
 		methodName,
+		typeParams,
 		params,
 		returnType,
 		throwType,
@@ -2732,7 +2751,7 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	typedefTok := p.advance()
 
 	name := p.strictConstantLookup()
-	var typeVars []ast.TypeVariableNode
+	var typeVars []ast.TypeParameterNode
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -2826,6 +2845,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	var span *position.Span
 
 	defTok := p.advance()
+	span = defTok.Span()
 	p.swallowNewlines()
 	methodName, methodNameSpan := p.methodName()
 	var isSetter bool
@@ -2841,18 +2861,38 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		}
 	}
 
+	var typeParams []ast.TypeParameterNode
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeParams = p.typeVariableList(token.RBRACKET)
+			rbracket, ok := p.consume(token.RBRACKET)
+			if !ok {
+				return ast.NewInvalidNode(
+					rbracket.Span(),
+					rbracket,
+				)
+			}
+			span = span.Join(rbracket.Span())
+		}
+	}
+
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
 			params = p.methodParameterList(token.RPAREN)
 
 			p.swallowNewlines()
-			if tok, ok := p.consume(token.RPAREN); !ok {
+			rparen, ok := p.consume(token.RPAREN)
+			if !ok {
 				return ast.NewInvalidNode(
-					tok.Span(),
-					tok,
+					rparen.Span(),
+					rparen,
 				)
 			}
+			span = span.Join(rparen.Span())
 		}
 	}
 
@@ -2878,6 +2918,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
+		span = span.Join(returnType.Span())
 		if isSetter || isSubscriptSetter {
 			p.errorMessageSpan("setter methods cannot be defined with custom return types", returnType.Span())
 		}
@@ -2886,13 +2927,12 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	// throw type
 	if p.match(token.BANG) {
 		throwType = p.typeAnnotation()
+		span = span.Join(throwType.Span())
 	}
 
 	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
 	if lastSpan != nil {
-		span = defTok.Span().Join(lastSpan)
-	} else {
-		span = defTok.Span()
+		span = span.Join(lastSpan)
 	}
 
 	if multiline {
@@ -2921,6 +2961,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		false,
 		false,
 		methodName,
+		typeParams,
 		params,
 		returnType,
 		throwType,
@@ -2994,7 +3035,7 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 }
 
 // typeVariable = ["+" | "-"] constant [">" TypeNode] ["<" TypeNode]
-func (p *Parser) typeVariable() ast.TypeVariableNode {
+func (p *Parser) typeVariable() ast.TypeParameterNode {
 	variance := ast.INVARIANT
 	var firstSpan *position.Span
 	var lastSpan *position.Span
@@ -3043,7 +3084,7 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 		lastSpan = upperBound.Span()
 	}
 
-	return ast.NewVariantTypeVariableNode(
+	return ast.NewVariantTypeParameterNode(
 		firstSpan.Join(lastSpan),
 		variance,
 		nameTok.Value,
@@ -3053,7 +3094,7 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 }
 
 // typeVariableList = typeVariable ("," typeVariable)*
-func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeVariableNode {
+func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeParameterNode {
 	return commaSeparatedList(p, p.typeVariable, stopTokens...)
 }
 
@@ -3217,7 +3258,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	classTok := p.advance()
 	var superclass ast.ExpressionNode
 	var constant ast.ExpressionNode
-	var typeVars []ast.TypeVariableNode
+	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LESS, token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
@@ -3379,7 +3420,7 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 	mixinTok := p.advance()
 	var constant ast.ExpressionNode
-	var typeVars []ast.TypeVariableNode
+	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
@@ -3456,7 +3497,7 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 	interfaceTok := p.advance()
 	var constant ast.ExpressionNode
-	var typeVars []ast.TypeVariableNode
+	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
@@ -3532,7 +3573,7 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	structTok := p.advance()
 	var constant ast.ExpressionNode
-	var typeVars []ast.TypeVariableNode
+	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
