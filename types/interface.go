@@ -8,7 +8,6 @@ import (
 type Interface struct {
 	parent    *InterfaceProxy
 	singleton *SingletonClass
-	IsClosure bool
 	NamespaceBase
 }
 
@@ -50,10 +49,9 @@ func (i *Interface) SetParent(parent Namespace) {
 	i.parent = parent.(*InterfaceProxy)
 }
 
-func NewInterface(docComment string, name string, isClosure bool, env *GlobalEnvironment) *Interface {
+func NewInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
 	iface := &Interface{
 		NamespaceBase: MakeNamespaceBase(docComment, name),
-		IsClosure:     isClosure,
 	}
 	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.Interface))
 

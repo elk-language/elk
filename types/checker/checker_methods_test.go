@@ -2441,7 +2441,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 
@@ -2465,7 +2465,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 
@@ -2488,7 +2488,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(String)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 
@@ -2512,7 +2512,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(2.9)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 
@@ -2526,6 +2526,56 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(121, 6, 16), P(126, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"param is a closure with a type param in one param, argument is also": {
+			input: `
+				class Foo[V]
+					init(a: |a: V|: void); end
+				end
+				a := |a: Int| -> a
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a closure with a type param in the return type, argument is also": {
+			input: `
+				class Foo[V]
+					init(a: |a: Int|: V); end
+				end
+				a := |a: Int|: String -> a.to_string
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(113, 6, 16), P(118, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a closure with a type param in the throw type, argument is also": {
+			input: `
+				class Foo[V]
+					init(a: |a: Int| ! V); end
+				end
+				a := |a: Int| ! String -> a.to_string
+				var b: 9 = Foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(115, 6, 16), P(120, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"param is a closure with a type param in one param, argument is not": {
+			input: `
+				class Foo[V]
+					init(a: |a: V|: void); end
+				end
+				var b: 9 = Foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement closure `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
+				error.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `#init`, got type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "could not infer type parameters in call to `#init`"),
 			},
 		},
 	}
@@ -2695,7 +2745,7 @@ func TestClosureLiteral(t *testing.T) {
 				a = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `Std::Int` does not implement interface `|a: Std::Int|: Std::Int`:\n\n  - missing method `call` with signature: `def call(a: Std::Int): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `Std::Int` does not implement closure `|a: Std::Int|: Std::Int`:\n\n  - missing method `call` with signature: `def call(a: Std::Int): Std::Int`\n"),
 				error.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `3` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
 			},
 		},
@@ -2711,7 +2761,7 @@ func TestClosureLiteral(t *testing.T) {
 				a = |a: Float, b: String = "foo"|: String -> b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` does not implement interface `|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` does not implement closure `|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
 				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
 			},
 		},
@@ -2727,8 +2777,9 @@ func TestClosureLiteral(t *testing.T) {
 				foo() |i| -> 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 3, 12), P(51, 3, 12)), "cannot override method `call` with invalid parameter name, is `i`, should be `a`\n  previous definition found in `|a: Std::String|: Std::Int`, with signature: `abstract def call(a: Std::String): Std::Int`"),
 				error.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `2.5` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: Std::Int` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): Std::Int`\n      should be: `def call(a: Std::String): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: Std::Int`"),
 			},
 		},
 		"call a closure": {

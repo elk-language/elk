@@ -372,10 +372,8 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		switch t := typ.(type) {
 		case *types.NamedType:
 			return c.checkExpressionWithType(node, t.Type)
-		case *types.Interface:
-			if t.IsClosure {
-				return c.checkClosureLiteralNodeWithType(n, t)
-			}
+		case *types.Closure:
+			return c.checkClosureLiteralNodeWithType(n, t)
 		}
 	}
 
@@ -2343,7 +2341,13 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		method = method.Copy()
 	}
 
-	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
+		method,
+		node.PositionalArguments,
+		node.NamedArguments,
+		class.TypeParameters,
+		node.Span(),
+	)
 	if typedPositionalArguments == nil {
 		node.SetType(types.Nothing{})
 		return node
@@ -2401,13 +2405,12 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 	node.SetType(typ)
 }
 
-func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Interface) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
 	baseMethod := closureType.Method(symbol.M_call)
-	iface := types.NewInterface("", "", true, c.GlobalEnv)
-	iface.ImplementInterface(closureType)
+	closure := types.NewClosure(types.Method{})
 	method := c.declareMethod(
 		baseMethod,
-		iface,
+		closure,
 		"",
 		false,
 		false,
@@ -2418,7 +2421,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		node.Span(),
 	)
 	returnTypeNode, throwTypeNode := c.checkMethod(
-		iface,
+		closure,
 		method,
 		node.Parameters,
 		node.ReturnType,
@@ -2426,20 +2429,21 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		node.Body,
 		node.Span(),
 	)
+	closure.Body = *method
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
-	node.SetType(iface)
+	node.SetType(closure)
 	return node
 }
 
 func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
-	iface := types.NewInterface("", "", true, c.GlobalEnv)
+	closure := types.NewClosure(types.Method{})
 	method := c.declareMethod(
 		nil,
-		iface,
+		closure,
 		"",
 		false,
-		true,
+		false,
 		symbol.M_call,
 		node.Parameters,
 		node.ReturnType,
@@ -2447,7 +2451,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		node.Span(),
 	)
 	returnTypeNode, throwTypeNode := c.checkMethod(
-		iface,
+		nil,
 		method,
 		node.Parameters,
 		node.ReturnType,
@@ -2457,8 +2461,8 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	)
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
-	iface.SetName(method.InspectClosure())
-	node.SetType(iface)
+	closure.Body = *method
+	node.SetType(closure)
 	return node
 }
 
@@ -2963,6 +2967,10 @@ func (c *Checker) getLocal(name string) *local {
 
 // Get the instance variable with the specified name
 func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) (types.Type, types.Namespace) {
+	if typ == nil {
+		return nil, typ
+	}
+
 	currentContainer := typ
 	for currentContainer != nil {
 		ivar := currentContainer.InstanceVariable(name)
@@ -3421,12 +3429,12 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 }
 
 func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
-	iface := types.NewInterface("", "", true, c.GlobalEnv)
+	closure := types.NewClosure(types.Method{})
 	method := c.declareMethod(
 		nil,
-		iface,
+		closure,
 		"",
-		true,
+		false,
 		false,
 		symbol.M_call,
 		node.Parameters,
@@ -3434,8 +3442,8 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 		node.ThrowType,
 		node.Span(),
 	)
-	iface.SetName(method.InspectClosure())
-	node.SetType(iface)
+	closure.Body = *method
+	node.SetType(closure)
 	return node
 }
 
@@ -4757,7 +4765,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
@@ -4781,10 +4789,10 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, false, c.GlobalEnv)
+		return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
 	} else {
 		return namespace.DefineInterface(docComment, constantName, c.GlobalEnv)
 	}

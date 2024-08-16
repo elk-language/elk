@@ -329,24 +329,26 @@ func (c *Checker) checkMethod(
 	name := checkedMethod.Name
 	prevMode := c.mode
 
-	currentMethod := types.GetMethodInNamespace(methodNamespace, name)
-	if checkedMethod != currentMethod && checkedMethod.IsSealed() {
-		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
-	}
+	if methodNamespace != nil {
+		currentMethod := types.GetMethodInNamespace(methodNamespace, name)
+		if checkedMethod != currentMethod && checkedMethod.IsSealed() {
+			c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
+		}
 
-	parent := methodNamespace.Parent()
+		parent := methodNamespace.Parent()
 
-	if parent != nil {
-		baseMethod := types.GetMethodInNamespace(parent, name)
-		if baseMethod != nil {
-			c.checkMethodOverride(
-				checkedMethod,
-				baseMethod,
-				paramNodes,
-				returnTypeNode,
-				throwTypeNode,
-				span,
-			)
+		if parent != nil {
+			baseMethod := types.GetMethodInNamespace(parent, name)
+			if baseMethod != nil {
+				c.checkMethodOverride(
+					checkedMethod,
+					baseMethod,
+					paramNodes,
+					returnTypeNode,
+					throwTypeNode,
+					span,
+				)
+			}
 		}
 	}
 
@@ -439,6 +441,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
+	typeParams []*types.TypeParameter,
 	span *position.Span,
 ) (
 	_posArgs []ast.ExpressionNode,
@@ -483,13 +486,6 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			posArgType = c.typeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
 			if inferredParamType == nil {
-				c.addFailure(
-					fmt.Sprintf(
-						"could not infer type parameters in call to `%s`",
-						method.Name,
-					),
-					posArg.Span(),
-				)
 				param.Type = types.Nothing{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
@@ -509,6 +505,16 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				posArg.Span(),
 			)
 		}
+	}
+
+	if len(typeArgMap) != len(typeParams) {
+		c.addFailure(
+			fmt.Sprintf(
+				"could not infer type parameters in call to `%s`",
+				method.Name,
+			),
+			span,
+		)
 	}
 
 	if method.HasPositionalRestParam() {
@@ -1086,56 +1092,58 @@ func (c *Checker) declareMethod(
 	if c.mode == interfaceMode {
 		abstract = true
 	}
-	oldMethod := methodNamespace.Method(name)
-	if oldMethod != nil {
-		if oldMethod.IsNative() && oldMethod.IsSealed() {
-			c.addOverrideSealedMethodError(oldMethod, span)
-		} else if sealed && !oldMethod.IsSealed() {
-			c.addFailure(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
-					name,
-					types.InspectModifier(abstract, sealed, false),
-					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
-				),
-				span,
-			)
+	if methodNamespace != nil {
+		oldMethod := methodNamespace.Method(name)
+		if oldMethod != nil {
+			if oldMethod.IsNative() && oldMethod.IsSealed() {
+				c.addOverrideSealedMethodError(oldMethod, span)
+			} else if sealed && !oldMethod.IsSealed() {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
+						name,
+						types.InspectModifier(abstract, sealed, false),
+						types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
+					),
+					span,
+				)
+			}
 		}
-	}
 
-	switch namespace := methodNamespace.(type) {
-	case *types.Interface:
-	case *types.Class:
-		if abstract && !namespace.IsAbstract() {
-			c.addFailure(
-				fmt.Sprintf(
-					"cannot declare abstract method `%s` in non-abstract class `%s`",
-					name,
-					types.InspectWithColor(methodNamespace),
-				),
-				span,
-			)
-		}
-	case *types.Mixin:
-		if abstract && !namespace.IsAbstract() {
-			c.addFailure(
-				fmt.Sprintf(
-					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
-					name,
-					types.InspectWithColor(methodNamespace),
-				),
-				span,
-			)
-		}
-	default:
-		if abstract {
-			c.addFailure(
-				fmt.Sprintf(
-					"cannot declare abstract method `%s` in this context",
-					name,
-				),
-				span,
-			)
+		switch namespace := methodNamespace.(type) {
+		case *types.Interface:
+		case *types.Class:
+			if abstract && !namespace.IsAbstract() {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot declare abstract method `%s` in non-abstract class `%s`",
+						name,
+						types.InspectWithColor(methodNamespace),
+					),
+					span,
+				)
+			}
+		case *types.Mixin:
+			if abstract && !namespace.IsAbstract() {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot declare abstract method `%s` in non-abstract mixin `%s`",
+						name,
+						types.InspectWithColor(methodNamespace),
+					),
+					span,
+				)
+			}
+		default:
+			if abstract {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot declare abstract method `%s` in this context",
+						name,
+					),
+					span,
+				)
+			}
 		}
 	}
 
@@ -1298,7 +1306,10 @@ func (c *Checker) declareMethod(
 		throwType = c.typeOf(typedThrowTypeNode)
 	} else if baseMethod != nil && baseMethod.ThrowType != nil {
 		throwType = baseMethod.ThrowType
+	} else {
+		throwType = types.Never{}
 	}
+
 	newMethod := types.NewMethod(
 		docComment,
 		abstract,
@@ -1312,7 +1323,9 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.SetSpan(span)
 
-	methodNamespace.SetMethod(name, newMethod)
+	if methodNamespace != nil {
+		methodNamespace.SetMethod(name, newMethod)
+	}
 	c.mode = prevMode
 
 	return newMethod
@@ -1486,6 +1499,8 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Interface:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
+	case *types.Closure:
+		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Generic:
@@ -1543,6 +1558,8 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 	case *types.SingletonClass:
 		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Interface:
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
+	case *types.Closure:
 		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.InterfaceProxy:
 		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)

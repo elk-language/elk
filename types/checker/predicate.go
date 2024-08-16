@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Type can be `nil`
@@ -252,6 +253,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return c.moduleIsSubtype(a, b, errSpan)
 	case *types.Interface:
 		return c.interfaceIsSubtype(a, b, errSpan)
+	case *types.Closure:
+		return c.closureIsSubtype(a, b, errSpan)
 	case *types.InstanceOf:
 		switch narrowB := b.(type) {
 		case *types.InstanceOf:
@@ -440,6 +443,8 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 		return c.isSubtypeOfMixin(a, b, errSpan)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, b, errSpan)
 	default:
 		return false
 	}
@@ -463,6 +468,8 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position
 		return c.isSubtypeOfMixin(a, b, errSpan)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, b, errSpan)
 	default:
 		return false
 	}
@@ -486,6 +493,8 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *positi
 		return c.isSubtypeOfMixin(a, b, errSpan)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, b, errSpan)
 	case *types.Module:
 		return a == b
 	default:
@@ -531,6 +540,8 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 		return c.isSubtypeOfMixin(a, b, errSpan)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, b, errSpan)
 	default:
 		return false
 	}
@@ -628,11 +639,63 @@ func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, er
 	return true
 }
 
-func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errSpan *position.Span) bool {
-	bInterface, ok := b.(*types.Interface)
-	if !ok {
+func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpan *position.Span) bool {
+	abstractMethod := &b.Body
+	method := types.GetMethodInNamespace(a, symbol.M_call)
+
+	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
+		methodDetailsBuff := new(strings.Builder)
+		if method == nil {
+			fmt.Fprintf(
+				methodDetailsBuff,
+				"\n  - missing method `%s` with signature: `%s`\n",
+				types.InspectWithColor(abstractMethod),
+				abstractMethod.InspectSignatureWithColor(false),
+			)
+		} else {
+			fmt.Fprintf(
+				methodDetailsBuff,
+				"\n  - incorrect implementation of `%s`\n      is:        `%s`\n      should be: `%s`\n",
+				types.InspectWithColor(abstractMethod),
+				method.InspectSignatureWithColor(false),
+				abstractMethod.InspectSignatureWithColor(false),
+			)
+		}
+
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` does not implement closure `%s`:\n%s",
+				types.InspectWithColor(a),
+				types.InspectWithColor(b),
+				methodDetailsBuff.String(),
+			),
+			errSpan,
+		)
+
 		return false
 	}
 
-	return c.isSubtypeOfInterface(a, bInterface, errSpan)
+	return true
+}
+
+func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errSpan *position.Span) bool {
+	switch narrowedB := b.(type) {
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
+	default:
+		return false
+	}
+}
+
+func (c *Checker) closureIsSubtype(a *types.Closure, b types.Type, errSpan *position.Span) bool {
+	switch narrowedB := b.(type) {
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+	case *types.Closure:
+		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
+	default:
+		return false
+	}
 }

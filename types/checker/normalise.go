@@ -19,6 +19,69 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return p
 		}
 		return arg.Type
+	case *types.Closure:
+		g, ok := givenType.(*types.Closure)
+		if !ok {
+			return p
+		}
+
+		gMethod := &g.Body
+		pMethod := &p.Body
+		var isDifferent bool
+		newParams := make([]*types.Parameter, len(pMethod.Params))
+		for i := range pMethod.Params {
+			pParam := pMethod.Params[i]
+			gParam := gMethod.Params[i]
+			if pParam.Kind != gParam.Kind || pParam.Name != gParam.Name {
+				return p
+			}
+			result := c.inferTypeArguments(gParam.Type, pParam.Type, typeArgMap)
+			if result == nil {
+				return nil
+			}
+			if result != pParam.Type {
+				isDifferent = true
+				newParam := pParam.Copy()
+				newParam.Type = result
+				newParams[i] = newParam
+			} else {
+				newParams[i] = pParam
+			}
+		}
+
+		returnType := c.inferTypeArguments(gMethod.ReturnType, pMethod.ReturnType, typeArgMap)
+		if returnType == nil {
+			return nil
+		}
+		if returnType != pMethod.ReturnType {
+			isDifferent = true
+		}
+
+		throwType := c.inferTypeArguments(gMethod.ThrowType, pMethod.ThrowType, typeArgMap)
+		if throwType == nil {
+			return nil
+		}
+		if throwType != pMethod.ThrowType {
+			isDifferent = true
+		}
+
+		if isDifferent {
+			closure := types.NewClosure(types.Method{})
+			newMethod := types.NewMethod(
+				pMethod.DocComment,
+				pMethod.IsAbstract(),
+				pMethod.IsSealed(),
+				pMethod.IsNative(),
+				pMethod.Name,
+				newParams,
+				returnType,
+				throwType,
+				closure,
+			)
+			closure.Body = *newMethod
+			return closure
+		}
+		return p
 	case *types.TypeParameter:
 		typeArg := typeArgMap[p.Name]
 		if typeArg != nil {
@@ -401,22 +464,33 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		return arg.Type
 	case *types.SingletonOf:
 		return types.NewSingletonOf(
-			c.replaceTypeParameters(t.Type, typeArgMap),
+			c._replaceTypeParameters(t.Type, typeArgMap),
 		)
 	case *types.InstanceOf:
 		return types.NewInstanceOf(
-			c.replaceTypeParameters(t.Type, typeArgMap),
+			c._replaceTypeParameters(t.Type, typeArgMap),
 		)
+	case *types.Closure:
+		method := (&t.Body).Copy()
+		for _, param := range method.Params {
+			param.Type = c._replaceTypeParameters(param.Type, typeArgMap)
+		}
+
+		method.ReturnType = c._replaceTypeParameters(method.ReturnType, typeArgMap)
+		method.ThrowType = c._replaceTypeParameters(method.ThrowType, typeArgMap)
+		closure := types.NewClosure(*method)
+		method.DefinedUnder = closure
+		return closure
 	case *types.Generic:
 		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
 		for key, arg := range t.ArgumentMap {
 			newMap[key] = types.NewTypeArgument(
-				c.replaceTypeParameters(arg.Type, typeArgMap),
+				c._replaceTypeParameters(arg.Type, typeArgMap),
 				arg.Variance,
 			)
 		}
 		return types.NewGeneric(
-			c.replaceTypeParameters(t.Type, typeArgMap),
+			c._replaceTypeParameters(t.Type, typeArgMap),
 			types.NewTypeArguments(
 				newMap,
 				t.ArgumentOrder,
@@ -429,19 +503,19 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		}
 		return arg.Type
 	case *types.Nilable:
-		return types.NewNilable(c.replaceTypeParameters(t.Type, typeArgMap))
+		return types.NewNilable(c._replaceTypeParameters(t.Type, typeArgMap))
 	case *types.Not:
-		return types.NewNot(c.replaceTypeParameters(t.Type, typeArgMap))
+		return types.NewNot(c._replaceTypeParameters(t.Type, typeArgMap))
 	case *types.Union:
 		newElements := make([]types.Type, 0, len(t.Elements))
 		for _, element := range t.Elements {
-			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+			newElements = append(newElements, c._replaceTypeParameters(element, typeArgMap))
 		}
 		return types.NewUnion(newElements...)
 	case *types.Intersection:
 		newElements := make([]types.Type, 0, len(t.Elements))
 		for _, element := range t.Elements {
-			newElements = append(newElements, c.replaceTypeParameters(element, typeArgMap))
+			newElements = append(newElements, c._replaceTypeParameters(element, typeArgMap))
 		}
 		return types.NewIntersection(newElements...)
 	default:
