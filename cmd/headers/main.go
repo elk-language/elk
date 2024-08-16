@@ -202,6 +202,24 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			method.IsNative(),
 			method.Name,
 		)
+
+		if len(method.TypeParameters) > 0 {
+			buffer.WriteString("[]*TypeParameter{")
+			for _, param := range method.TypeParameters {
+				fmt.Fprintf(
+					buffer,
+					"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s),",
+					param.Name,
+					typeToCode(param.LowerBound, false),
+					typeToCode(param.UpperBound, false),
+					param.Variance.String(),
+				)
+			}
+			buffer.WriteString("}, ")
+		} else {
+			buffer.WriteString("nil, ")
+		}
+
 		if len(method.Params) > 0 {
 			buffer.WriteString("[]*Parameter{")
 			for _, param := range method.Params {
@@ -478,6 +496,58 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf("NewSingletonOf(%s)", typeToCode(t.Type, init))
 	case *types.InstanceOf:
 		return fmt.Sprintf("NewInstanceOf(%s)", typeToCode(t.Type, init))
+	case *types.Closure:
+		buff := new(strings.Builder)
+		fmt.Fprintf(
+			buff,
+			"NewClosureWithMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
+			t.Body.DocComment,
+			t.Body.IsAbstract(),
+			t.Body.IsSealed(),
+			t.Body.IsNative(),
+			t.Body.Name.String(),
+		)
+		if len(t.Body.TypeParameters) > 0 {
+			buff.WriteString("[]*TypeParameter{")
+			for _, param := range t.Body.TypeParameters {
+				fmt.Fprintf(
+					buff,
+					"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s),",
+					param.Name,
+					typeToCode(param.LowerBound, false),
+					typeToCode(param.UpperBound, false),
+					param.Variance.String(),
+				)
+			}
+			buff.WriteString("}, ")
+		} else {
+			buff.WriteString("nil, ")
+		}
+
+		if len(t.Body.Params) > 0 {
+			buff.WriteString("[]*Parameter{")
+			for _, param := range t.Body.Params {
+				fmt.Fprintf(
+					buff,
+					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
+					param.Name,
+					typeToCode(param.Type, false),
+					param.Kind,
+					param.InstanceVariable,
+				)
+			}
+			buff.WriteString("}, ")
+		} else {
+			buff.WriteString("nil, ")
+		}
+
+		fmt.Fprintf(
+			buff,
+			"%s, %s)\n",
+			typeToCode(t.Body.ReturnType, false),
+			typeToCode(t.Body.ThrowType, false),
+		)
+		return buff.String()
 	default:
 		panic(
 			fmt.Sprintf("invalid type: %T", typ),

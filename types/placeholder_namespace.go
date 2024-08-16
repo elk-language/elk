@@ -75,8 +75,8 @@ func (p *PlaceholderNamespace) inspect() string {
 	return p.Name()
 }
 
-func (p *PlaceholderNamespace) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, abstract, sealed, native, name, params, returnType, throwType, p)
+func (p *PlaceholderNamespace) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, typeParams, params, returnType, throwType, p)
 	p.SetMethod(name, method)
 	return method
 }

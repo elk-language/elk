@@ -2185,6 +2185,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			nil,
 			nil,
 			nil,
+			nil,
 			class,
 		)
 	}
@@ -2257,6 +2258,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 			nil,
 			nil,
 			nil,
+			nil,
 			class,
 		)
 	}
@@ -2312,6 +2314,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 				nil,
 				nil,
 				nil,
+				nil,
 				class,
 			)
 		}
@@ -2332,6 +2335,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			false,
 			true,
 			symbol.M_init,
+			nil,
 			nil,
 			nil,
 			nil,

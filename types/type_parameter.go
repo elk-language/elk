@@ -4,11 +4,21 @@ import "github.com/elk-language/elk/value"
 
 type Variance uint8
 
+func (v Variance) String() string {
+	return varianceString[v]
+}
+
 const (
 	INVARIANT Variance = iota
 	COVARIANT
 	CONTRAVARIANT
 )
+
+var varianceString = []string{
+	INVARIANT:     "INVARIANT",
+	COVARIANT:     "COVARIANT",
+	CONTRAVARIANT: "CONTRAVARIANT",
+}
 
 type TypeParameter struct {
 	Name       value.Symbol

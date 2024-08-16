@@ -73,6 +73,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 				pMethod.IsSealed(),
 				pMethod.IsNative(),
 				pMethod.Name,
+				pMethod.TypeParameters,
 				newParams,
 				returnType,
 				throwType,

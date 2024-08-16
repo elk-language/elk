@@ -1318,6 +1318,7 @@ func (c *Checker) declareMethod(
 		sealed,
 		c.IsHeader,
 		name,
+		nil,
 		params,
 		returnType,
 		throwType,

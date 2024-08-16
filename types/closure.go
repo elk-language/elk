@@ -17,6 +17,24 @@ func NewClosure(method Method) *Closure {
 	}
 }
 
+func NewClosureWithMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type) *Closure {
+	closure := NewClosure(Method{})
+	method := NewMethod(
+		docComment,
+		abstract,
+		sealed,
+		native,
+		name,
+		typeParams,
+		params,
+		returnType,
+		throwType,
+		closure,
+	)
+	closure.Body = *method
+	return closure
+}
+
 func (c *Closure) Name() string {
 	return c.inspect()
 }
@@ -109,7 +127,7 @@ func (c *Closure) MethodString(name string) *Method {
 	return nil
 }
 
-func (c *Closure) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Closure) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on closures")
 }
 

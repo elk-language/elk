@@ -104,6 +104,7 @@ type Method struct {
 	abstract           bool
 	sealed             bool
 	native             bool
+	TypeParameters     []*TypeParameter
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type
@@ -171,7 +172,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -198,6 +199,7 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		sealed:             sealed,
 		native:             native,
 		Name:               name,
+		TypeParameters:     typeParams,
 		DocComment:         docComment,
 		Params:             params,
 		ReturnType:         returnType,
@@ -294,6 +296,35 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 	}
 	buffer.WriteString("def ")
 	buffer.WriteString(m.Name.String())
+
+	if len(m.TypeParameters) > 0 {
+		buffer.WriteRune('[')
+		firstIteration := true
+		for _, param := range m.TypeParameters {
+			if !firstIteration {
+				buffer.WriteString(", ")
+			} else {
+				firstIteration = false
+			}
+			switch param.Variance {
+			case COVARIANT:
+				buffer.WriteRune('+')
+			case CONTRAVARIANT:
+				buffer.WriteRune('-')
+			}
+			buffer.WriteString(param.Name.String())
+			if !IsNever(param.LowerBound) {
+				buffer.WriteString(" > ")
+				buffer.WriteString(Inspect(param.LowerBound))
+			}
+			if IsAny(param.UpperBound) {
+				buffer.WriteString(" < ")
+				buffer.WriteString(Inspect(param.UpperBound))
+			}
+		}
+		buffer.WriteRune(']')
+	}
+
 	buffer.WriteRune('(')
 	firstIteration := true
 	for _, param := range m.Params {

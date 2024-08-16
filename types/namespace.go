@@ -34,7 +34,7 @@ type Namespace interface {
 	Methods() *MethodMap
 	Method(name value.Symbol) *Method
 	MethodString(name string) *Method
-	DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, params []*Parameter, returnType, throwType Type) *Method
+	DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name value.Symbol, method *Method)
 
 	InstanceVariables() *TypeMap
