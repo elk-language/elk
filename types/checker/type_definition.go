@@ -158,26 +158,27 @@ func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
 func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) bool {
 	namedType := c.typeOf(node).(*types.GenericNamedType)
 
-	typeVars := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-	typeVarMod := types.NewModule("", fmt.Sprintf("Type Variable Container of %s", namedType.Name), c.GlobalEnv)
-	for _, typeVarNode := range node.TypeParameters {
-		varNode, ok := typeVarNode.(*ast.VariantTypeParameterNode)
+	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+	typeParamMod := types.NewModule("", fmt.Sprintf("Type Parameter Container of %s", namedType.Name), c.GlobalEnv)
+	for _, typeParamNode := range node.TypeParameters {
+		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
 			continue
 		}
 
-		t := c.checkTypeVariableNode(varNode)
-		typeVars = append(typeVars, t)
-		typeVarNode.SetType(t)
-		typeVarMod.DefineSubtype(t.Name, t)
+		t := c.checkTypeParameterNode(varNode)
+		typeParams = append(typeParams, t)
+		typeParamNode.SetType(t)
+		typeParamMod.DefineSubtype(t.Name, t)
+		typeParamMod.DefineConstant(t.Name, types.Void{})
 	}
 
-	c.pushConstScope(makeConstantScope(typeVarMod))
+	c.pushConstScope(makeConstantScope(typeParamMod))
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	typ := c.typeOf(node.TypeNode)
 	namedType.Type = typ
-	namedType.TypeParameters = typeVars
+	namedType.TypeParameters = typeParams
 
 	c.popConstScope()
 
@@ -306,23 +307,23 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		return
 	}
 
-	typeVars := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-	for _, typeVarNode := range node.TypeParameters {
-		varNode, ok := typeVarNode.(*ast.VariantTypeParameterNode)
+	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+	for _, typeParamNode := range node.TypeParameters {
+		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
 			continue
 		}
 
-		t := c.checkTypeVariableNode(varNode)
-		typeVars = append(typeVars, t)
-		typeVarNode.SetType(t)
+		t := c.checkTypeParameterNode(varNode)
+		typeParams = append(typeParams, t)
+		typeParamNode.SetType(t)
 		class.DefineSubtype(t.Name, t)
 	}
 
-	class.TypeParameters = typeVars
+	class.TypeParameters = typeParams
 }
 
-func (c *Checker) checkTypeVariableNode(node *ast.VariantTypeParameterNode) *types.TypeParameter {
+func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode) *types.TypeParameter {
 	var variance types.Variance
 	switch node.Variance {
 	case ast.INVARIANT:

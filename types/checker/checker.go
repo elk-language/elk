@@ -2412,13 +2412,14 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
 func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
 	baseMethod := closureType.Method(symbol.M_call)
 	closure := types.NewClosure(types.Method{})
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		baseMethod,
 		closure,
 		"",
 		false,
 		false,
 		symbol.M_call,
+		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -2437,18 +2438,22 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
+	if mod != nil {
+		c.popConstScope()
+	}
 	return node
 }
 
 func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
 	closure := types.NewClosure(types.Method{})
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		closure,
 		"",
 		false,
 		false,
 		symbol.M_call,
+		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -2467,6 +2472,9 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	node.ThrowType = throwTypeNode
 	closure.Body = *method
 	node.SetType(closure)
+	if mod != nil {
+		c.popConstScope()
+	}
 	return node
 }
 
@@ -3434,18 +3442,22 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 
 func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	closure := types.NewClosure(types.Method{})
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		closure,
 		"",
 		false,
 		false,
 		symbol.M_call,
+		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
 		node.Span(),
 	)
+	if mod != nil {
+		c.popConstScope()
+	}
 	closure.Body = *method
 	node.SetType(closure)
 	return node
@@ -4489,13 +4501,14 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 			initNode.Span(),
 		)
 	}
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
 		initNode.DocComment(),
 		false,
 		false,
 		symbol.M_init,
+		nil,
 		initNode.Parameters,
 		nil,
 		initNode.ThrowType,
@@ -4516,6 +4529,9 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	)
 	newNode.SetType(method)
 	c.registerMethodCheck(method, newNode)
+	if mod != nil {
+		c.popConstScope()
+	}
 	return newNode
 }
 
@@ -4533,13 +4549,14 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,
 		value.ToSymbol(node.Name),
+		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -4547,21 +4564,28 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	)
 	node.SetType(method)
 	c.registerMethodCheck(method, node)
+	if mod != nil {
+		c.popConstScope()
+	}
 }
 
 func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
 		false,
 		value.ToSymbol(node.Name),
+		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
 		node.Span(),
 	)
+	if mod != nil {
+		c.popConstScope()
+	}
 	node.SetType(method)
 }
 

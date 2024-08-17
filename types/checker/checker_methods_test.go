@@ -843,6 +843,30 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(18, 3, 6), P(29, 3, 17)), "method definitions cannot appear in this context"),
 			},
 		},
+		"declare with type parameters": {
+			input: `
+				def foo[V](a: V): V
+					a
+				end
+			`,
+		},
+		"typecheck bounds of type params": {
+			input: `
+				def foo[V < Foo](a: V): V
+					a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "undefined type `Foo`"),
+			},
+		},
+		"call methods on type params with upper bounds": {
+			input: `
+				def foo[V < Int](a: V): String
+					a.to_string
+				end
+			`,
+		},
 		"declare with an invalid implicit return value": {
 			input: `
 				def foo: String
@@ -905,6 +929,23 @@ func TestMethodDefinition(t *testing.T) {
 					sig baz(a: Int)
 				end
 			`,
+		},
+		"declare sig with type parameters": {
+			input: `
+				interface Bar
+					sig foo[V](a: V): V
+				end
+			`,
+		},
+		"typecheck bounds of type params in sig": {
+			input: `
+				interface Bar
+					sig foo[V < Foo](a: V): V
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 18), P(38, 3, 20)), "undefined type `Foo`"),
+			},
 		},
 		"declare an abstract method in a non-abstract class": {
 			input: `

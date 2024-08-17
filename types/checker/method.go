@@ -58,13 +58,14 @@ func (c *Checker) checkMethods() {
 }
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
 		docComment,
 		false,
 		false,
 		value.ToSymbol(node.Name),
+		nil,
 		nil,
 		node.TypeNode,
 		nil,
@@ -106,6 +107,9 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		method,
 		methodNode,
 	)
+	if mod != nil {
+		c.popConstScope()
+	}
 }
 
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docComment string) {
@@ -122,13 +126,14 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 			ast.NormalParameterKind,
 		),
 	}
-	method := c.declareMethod(
+	method, mod := c.declareMethod(
 		nil,
 		methodScope.container,
 		docComment,
 		false,
 		false,
 		value.ToSymbol(setterName),
+		nil,
 		params,
 		nil,
 		nil,
@@ -152,6 +157,9 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		method,
 		methodNode,
 	)
+	if mod != nil {
+		c.popConstScope()
+	}
 }
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
@@ -1085,11 +1093,12 @@ func (c *Checker) declareMethod(
 	abstract bool,
 	sealed bool,
 	name value.Symbol,
+	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
 	span *position.Span,
-) *types.Method {
+) (*types.Method, *types.Module) {
 	prevMode := c.mode
 	if c.mode == interfaceMode {
 		abstract = true
@@ -1147,6 +1156,26 @@ func (c *Checker) declareMethod(
 				)
 			}
 		}
+	}
+
+	var typeParams []*types.TypeParameter
+	var typeParamMod *types.Module
+	if len(typeParamNodes) > 0 {
+		typeParams = make([]*types.TypeParameter, 0, len(typeParamNodes))
+		typeParamMod := types.NewModule("", fmt.Sprintf("Type Parameter Container of %s", name), c.GlobalEnv)
+		for _, typeParamNode := range typeParamNodes {
+			node, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+			if !ok {
+				continue
+			}
+
+			t := c.checkTypeParameterNode(node)
+			typeParams = append(typeParams, t)
+			typeParamNode.SetType(t)
+			typeParamMod.DefineSubtype(t.Name, t)
+			typeParamMod.DefineConstant(t.Name, types.Void{})
+		}
+		c.pushConstScope(makeConstantScope(typeParamMod))
 	}
 
 	c.mode = paramTypeMode
@@ -1318,7 +1347,7 @@ func (c *Checker) declareMethod(
 		sealed,
 		c.IsHeader,
 		name,
-		nil,
+		typeParams,
 		params,
 		returnType,
 		throwType,
@@ -1331,7 +1360,7 @@ func (c *Checker) declareMethod(
 	}
 	c.mode = prevMode
 
-	return newMethod
+	return newMethod, typeParamMod
 }
 
 // Checks whether two methods are compatible.
