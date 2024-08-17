@@ -552,14 +552,15 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.AssignmentExpressionNode:
 		return c.checkAssignmentExpressionNode(n)
 	case *ast.ReceiverlessMethodCallNode:
-		c.checkReceiverlessMethodCallNode(n)
-		return n
+		return c.checkReceiverlessMethodCallNode(n)
+	case *ast.GenericReceiverlessMethodCallNode:
+		return c.checkGenericReceiverlessMethodCallNode(n)
 	case *ast.MethodCallNode:
-		c.checkMethodCallNode(n)
-		return n
+		return c.checkMethodCallNode(n)
+	case *ast.GenericMethodCallNode:
+		return c.checkGenericMethodCallNode(n)
 	case *ast.CallNode:
-		c.checkCallNode(n)
-		return n
+		return c.checkCallNode(n)
 	case *ast.ClosureLiteralNode:
 		return c.checkClosureLiteralNode(n)
 	case *ast.NewExpressionNode:
@@ -715,6 +716,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			symbol.OpUnaryPlus,
 			nil,
 			nil,
+			nil,
 			node.Span(),
 		)
 		node.Right = receiver
@@ -727,6 +729,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			symbol.OpNegate,
 			nil,
 			nil,
+			nil,
 			node.Span(),
 		)
 		node.Right = receiver
@@ -737,6 +740,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			node.Right,
 			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
+			nil,
 			nil,
 			nil,
 			node.Span(),
@@ -1323,6 +1327,7 @@ func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscript
 		node.Receiver,
 		token.QUESTION_DOT,
 		symbol.OpSubscript,
+		nil,
 		[]ast.ExpressionNode{node.Key},
 		nil,
 		node.Span(),
@@ -1339,6 +1344,7 @@ func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode
 		node.Receiver,
 		token.DOT,
 		symbol.OpSubscript,
+		nil,
 		[]ast.ExpressionNode{node.Key},
 		nil,
 		node.Span(),
@@ -1526,6 +1532,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 			node.Left,
 			token.DOT,
 			symbol.OpLaxEqual,
+			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
 			node.Span(),
@@ -1536,6 +1543,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 			node.Left,
 			token.DOT,
 			symbol.OpEqual,
+			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
 			node.Span(),
@@ -1551,6 +1559,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 			node.Left,
 			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
+			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
 			node.Span(),
@@ -2050,18 +2059,63 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 	return typ
 }
 
-func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) {
+func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
 	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), nil, node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Nothing{})
-		return
+		return node
+	}
+
+	if len(node.TypeArguments) > 0 {
+		typeArgs, ok := c.checkTypeArguments(
+			method,
+			node.TypeArguments,
+			method.TypeParameters,
+			node.Span(),
+		)
+		if !ok {
+			c.checkExpressions(node.PositionalArguments)
+			c.checkNamedArguments(node.NamedArguments)
+			node.SetType(types.Nothing{})
+			return node
+		}
+
+		method = c.replaceTypeParametersInMethod(method, typeArgs.ArgumentMap)
+	} else if len(method.TypeParameters) > 0 {
+		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(node.TypeArguments), node.Span())
+		node.SetType(types.Nothing{})
+		return node
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(method.ReturnType)
+	return node
+}
+
+func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
+	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), nil, node.Span())
+	if method == nil {
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	if len(method.TypeParameters) > 0 {
+		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), 0, node.Span())
+		node.SetType(types.Nothing{})
+		return node
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(method.ReturnType)
+	return node
 }
 
 func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
@@ -2077,7 +2131,7 @@ func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
 
 func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []*types.TypeParameter, span *position.Span) (*types.TypeArguments, bool) {
 	if len(typeArgs) != len(typeParams) {
-		c.addTypeArgumentCountError(typ, len(typeParams), len(typeArgs), span)
+		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(typeParams), len(typeArgs), span)
 		return nil, false
 	}
 
@@ -2377,7 +2431,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	return node
 }
 
-func (c *Checker) checkCallNode(node *ast.CallNode) {
+func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 	var typ types.Type
 	var op token.Type
 	if node.NilSafe {
@@ -2389,24 +2443,43 @@ func (c *Checker) checkCallNode(node *ast.CallNode) {
 		node.Receiver,
 		op,
 		value.ToSymbol("call"),
+		nil,
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.Span(),
 	)
 	node.SetType(typ)
+	return node
 }
 
-func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) {
+func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) ast.ExpressionNode {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		value.ToSymbol(node.MethodName),
+		nil,
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.Span(),
 	)
 	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) ast.ExpressionNode {
+	var typ types.Type
+	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+		node.Receiver,
+		node.Op.Type,
+		value.ToSymbol(node.MethodName),
+		node.TypeArguments,
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Span(),
+	)
+	node.SetType(typ)
+	return node
 }
 
 func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
@@ -2629,6 +2702,7 @@ func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressio
 		subscriptNode.Receiver,
 		token.DOT,
 		symbol.OpSubscriptSet,
+		nil,
 		[]ast.ExpressionNode{subscriptNode.Key, assignmentNode.Right},
 		nil,
 		assignmentNode.Span(),
@@ -2646,6 +2720,7 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 		attributeNode.Receiver,
 		token.DOT,
 		value.ToSymbol(attributeNode.AttributeName+"="),
+		nil,
 		[]ast.ExpressionNode{assignmentNode.Right},
 		nil,
 		assignmentNode.Span(),
@@ -3106,12 +3181,9 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.Com
 	}
 }
 
-func (c *Checker) addTypeArgumentCountError(typ types.Type, paramCount, argCount int, span *position.Span) {
-	if paramCount == 0 {
-		return
-	}
+func (c *Checker) addTypeArgumentCountError(name string, paramCount, argCount int, span *position.Span) {
 	c.addFailure(
-		fmt.Sprintf("generic type `%s` requires %d type argument(s), got: %d", types.InspectWithColor(typ), paramCount, argCount),
+		fmt.Sprintf("`%s` requires %d type argument(s), got: %d", name, paramCount, argCount),
 		span,
 	)
 }
@@ -3170,11 +3242,11 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 	typ, _ := c.resolveType(name, span)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, span)
+		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, span)
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 			typ = types.Nothing{}
 		}
 	case nil:
@@ -3467,11 +3539,11 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 	typ, name := c.resolveConstantLookupType(node)
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, node.Span())
+		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(typ, len(t.TypeParameters), 0, node.Span())
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
 			typ = types.Nothing{}
 		}
 	case nil:

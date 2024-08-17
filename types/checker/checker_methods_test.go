@@ -1969,6 +1969,148 @@ func TestMethodCalls(t *testing.T) {
 	}
 }
 
+func TestGenericMethodCalls(t *testing.T) {
+	tests := testTable{
+		"call a generic method with explicit type arguments": {
+			input: `
+				module Foo
+					def baz[V](a: V): V then a
+				end
+				var a: Int = Foo.baz::[Int](5)
+			`,
+		},
+		"call a generic method with explicit type argument that satisfies the upper bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V < Bar](a: V): V then a
+				end
+				var a: Bar = Foo.baz::[Bar](Bar())
+			`,
+		},
+		"call a generic method with explicit type argument that does not satisfy the upper bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V < Bar](a: V): V then a
+				end
+				var a: Int = Foo.baz::[Int](5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 6, 28), P(110, 6, 30)), "type `Std::Int` does not satisfy the upper bound `Bar`"),
+			},
+		},
+		"call a generic method with explicit type argument that satisfies the lower bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V > Bar](a: V): V then a
+				end
+				var a: Bar = Foo.baz::[Object](Object())
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(98, 6, 18), P(124, 6, 44)), "type `Std::Object` cannot be assigned to type `Bar`"),
+			},
+		},
+		"call a generic method with explicit type argument that does not satisfy the lower bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V > Bar](a: V): V then a
+				end
+				var a: Int = Foo.baz::[3](3)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 6, 28), P(108, 6, 28)), "type `3` does not satisfy the lower bound `Bar`"),
+			},
+		},
+		"call a non-generic method with explicit type argument": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz(a: String): String then a
+				end
+				var a: Int = Foo.baz::[3](3)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 6, 18), P(113, 6, 32)), "`Foo::baz` requires 0 type argument(s), got: 1"),
+			},
+		},
+
+		"call a generic receiverless method with explicit type arguments": {
+			input: `
+				module Foo
+					def baz[V](a: V): V then a
+					var a: Int = baz::[Int](5)
+				end
+			`,
+		},
+		"call a generic receiverless method with explicit type argument that satisfies the upper bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V < Bar](a: V): V then a
+					var a: Bar = baz::[Bar](Bar())
+				end
+			`,
+		},
+		"call a generic receiverless method with explicit type argument that does not satisfy the upper bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V < Bar](a: V): V then a
+					var a: Int = baz::[Int](5)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(97, 5, 25), P(99, 5, 27)), "type `Std::Int` does not satisfy the upper bound `Bar`"),
+			},
+		},
+		"call a generic receiverless method with explicit type argument that satisfies the lower bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V > Bar](a: V): V then a
+					var a: Bar = baz::[Object](Object())
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(91, 5, 19), P(113, 5, 41)), "type `Std::Object` cannot be assigned to type `Bar`"),
+			},
+		},
+		"call a generic receiverless method with explicit type argument that does not satisfy the lower bound": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz[V > Bar](a: V): V then a
+					var a: Int = baz::[3](3)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(97, 5, 25), P(97, 5, 25)), "type `3` does not satisfy the lower bound `Bar`"),
+			},
+		},
+		"call a non-generic receiverless method with explicit type argument": {
+			input: `
+				class Bar; end
+				module Foo
+					def baz(a: String): String then a
+					var a: Int = baz::[3](3)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 5, 19), P(102, 5, 29)), "`Foo::baz` requires 0 type argument(s), got: 1"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestInitDefinition(t *testing.T) {
 	tests := testTable{
 		"define within a method": {

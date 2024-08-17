@@ -128,6 +128,7 @@ func (m *Method) Copy() *Method {
 		abstract:           m.abstract,
 		sealed:             m.sealed,
 		native:             m.native,
+		TypeParameters:     m.TypeParameters,
 		HasNamedRestParam:  m.HasNamedRestParam,
 		ReturnType:         m.ReturnType,
 		ThrowType:          m.ThrowType,

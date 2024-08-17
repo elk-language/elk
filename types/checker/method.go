@@ -979,8 +979,9 @@ func (c *Checker) checkSimpleMethodCall(
 	receiver ast.ExpressionNode,
 	op token.Type,
 	methodName value.Symbol,
-	positionalArguments []ast.ExpressionNode,
-	namedArguments []ast.NamedArgumentNode,
+	typeArgumentNodes []ast.TypeNode,
+	positionalArgumentNodes []ast.ExpressionNode,
+	namedArgumentNodes []ast.NamedArgumentNode,
 	span *position.Span,
 ) (
 	_receiver ast.ExpressionNode,
@@ -995,10 +996,10 @@ func (c *Checker) checkSimpleMethodCall(
 	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
 		var typedPositionalArguments []ast.ExpressionNode
 
-		for _, argument := range positionalArguments {
+		for _, argument := range positionalArgumentNodes {
 			typedPositionalArguments = append(typedPositionalArguments, c.checkExpression(argument))
 		}
-		for _, argument := range namedArguments {
+		for _, argument := range namedArgumentNodes {
 			arg, ok := argument.(*ast.NamedCallArgumentNode)
 			if !ok {
 				continue
@@ -1020,11 +1021,31 @@ func (c *Checker) checkSimpleMethodCall(
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
 	if method == nil {
-		c.checkExpressions(positionalArguments)
-		return receiver, positionalArguments, types.Nothing{}
+		c.checkExpressions(positionalArgumentNodes)
+		c.checkNamedArguments(namedArgumentNodes)
+		return receiver, positionalArgumentNodes, types.Nothing{}
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, positionalArguments, namedArguments, span)
+	if len(typeArgumentNodes) > 0 {
+		typeArgs, ok := c.checkTypeArguments(
+			method,
+			typeArgumentNodes,
+			method.TypeParameters,
+			span,
+		)
+		if !ok {
+			c.checkExpressions(positionalArgumentNodes)
+			c.checkNamedArguments(namedArgumentNodes)
+			return receiver, positionalArgumentNodes, types.Nothing{}
+		}
+
+		method = c.replaceTypeParametersInMethod(method, typeArgs.ArgumentMap)
+	} else if len(method.TypeParameters) > 0 {
+		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(typeArgumentNodes), span)
+		return receiver, positionalArgumentNodes, types.Nothing{}
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	var returnType types.Type
 	switch op {
 	case token.DOT:
@@ -1064,6 +1085,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 		left,
 		token.DOT,
 		methodName,
+		nil,
 		[]ast.ExpressionNode{right},
 		nil,
 		span,

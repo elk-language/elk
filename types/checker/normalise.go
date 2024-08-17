@@ -2,8 +2,6 @@
 package checker
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
@@ -500,7 +498,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 	case *types.TypeParameter:
 		arg := typeArgMap[t.Name]
 		if arg == nil {
-			panic(fmt.Sprintf("invalid generic type parameter `%s`", types.InspectWithColor(t)))
+			return t
 		}
 		return arg.Type
 	case *types.Nilable:

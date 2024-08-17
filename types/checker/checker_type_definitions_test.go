@@ -174,7 +174,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Foo[Int, Float] = 2.4
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "generic type `Foo[V]` requires 1 type argument(s), got: 2"),
+				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "`Foo[V]` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"use a generic type with a satisfied upper bound": {
@@ -223,7 +223,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Dupa = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "generic type `Dupa[V]` requires 1 type argument(s), got: 0"),
+				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "`Dupa[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"use a generic type under a namespace without type arguments": {
@@ -234,7 +234,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				var a: Foo::Bar = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "generic type `Foo::Bar[V]` requires 1 type argument(s), got: 0"),
+				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "`Foo::Bar[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"define within a method": {
