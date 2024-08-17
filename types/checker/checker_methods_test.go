@@ -2037,6 +2037,42 @@ func TestGenericMethodCalls(t *testing.T) {
 			},
 		},
 
+		"infer simple type argument": {
+			input: `
+				module Foo
+					def foo[V](a: V): V then a
+				end
+				var a: 9 = Foo.foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 5, 16), P(84, 5, 29)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"infer based on first argument": {
+			input: `
+				module Foo
+					def foo[V](a: V, b: V): V then b
+				end
+				var b: 9 = Foo.foo("foo", 2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 5, 31), P(92, 5, 31)), "expected type `Std::String` for parameter `b` in call to `foo`, got type `2`"),
+				error.NewFailure(L("<main>", P(77, 5, 16), P(93, 5, 32)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"infer two type arguments": {
+			input: `
+				module Foo
+					def foo[V, T](a: V | T): V | T then a
+				end
+				var a: Int | Float = 2
+				var b: 9 = Foo.foo(a)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(109, 6, 16), P(118, 6, 25)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+			},
+		},
+
 		"call a generic receiverless method with explicit type arguments": {
 			input: `
 				module Foo
@@ -2100,6 +2136,42 @@ func TestGenericMethodCalls(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(92, 5, 19), P(102, 5, 29)), "`Foo::baz` requires 0 type argument(s), got: 1"),
+			},
+		},
+
+		"infer simple type argument in receiverless call": {
+			input: `
+				module Foo
+					def foo[V](a: V): V then a
+					var a: 9 = foo("foo")
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(64, 4, 17), P(73, 4, 26)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"infer based on first argument in receiverless call": {
+			input: `
+				module Foo
+					def foo[V](a: V, b: V): V then b
+					var b: 9 = foo("foo", 2)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 4, 28), P(81, 4, 28)), "expected type `Std::String` for parameter `b` in call to `foo`, got type `2`"),
+				error.NewFailure(L("<main>", P(70, 4, 17), P(82, 4, 29)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"infer two type arguments in receiverless call": {
+			input: `
+				module Foo
+					def foo[V, T](a: V | T): V | T then a
+					var a: Int | Float = 2
+					var b: 9 = foo(a)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(103, 5, 17), P(108, 5, 22)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
 			},
 		},
 	}

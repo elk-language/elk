@@ -549,9 +549,23 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		currentArgIndex := currentParamIndex
 		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
-			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
+			var typedPosArg ast.ExpressionNode
+			var posArgType types.Type
+			if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
+				typedPosArg = c.checkExpressionWithType(posArg, posRestParam.Type)
+				posArgType = c.typeOf(typedPosArg)
+				typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
+			} else {
+				typedPosArg = c.checkExpression(posArg)
+				posArgType = c.typeOf(typedPosArg)
+				inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap)
+				if inferredParamType == nil {
+					posRestParam.Type = types.Nothing{}
+				} else if inferredParamType != posRestParam.Type {
+					posRestParam.Type = inferredParamType
+				}
+			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
-			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -573,9 +587,23 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			var typedPosArg ast.ExpressionNode
+			var posArgType types.Type
+			if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
+				typedPosArg = c.checkExpressionWithType(posArg, param.Type)
+				posArgType = c.typeOf(typedPosArg)
+				typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
+			} else {
+				typedPosArg = c.checkExpression(posArg)
+				posArgType = c.typeOf(typedPosArg)
+				inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
+				if inferredParamType == nil {
+					param.Type = types.Nothing{}
+				} else if inferredParamType != param.Type {
+					param.Type = inferredParamType
+				}
+			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-			posArgType := c.typeOf(typedPosArg)
 			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -625,8 +653,22 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			}
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
-			namedArgType := c.typeOf(typedNamedArgValue)
+			var typedNamedArgValue ast.ExpressionNode
+			var namedArgType types.Type
+			if _, ok := namedArg.Value.(*ast.ClosureLiteralNode); ok {
+				typedNamedArgValue = c.checkExpressionWithType(namedArg.Value, param.Type)
+				namedArgType = c.typeOf(typedNamedArgValue)
+				typedNamedArgValue.SetType(c.replaceTypeParameters(namedArgType, typeArgMap))
+			} else {
+				typedNamedArgValue = c.checkExpression(namedArg.Value)
+				namedArgType = c.typeOf(typedNamedArgValue)
+				inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap)
+				if inferredParamType == nil {
+					param.Type = types.Nothing{}
+				} else if inferredParamType != param.Type {
+					param.Type = inferredParamType
+				}
+			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
 				c.addFailure(
@@ -683,7 +725,23 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 
 			namedArgI := namedArguments[i]
 			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+
+			var typedNamedArgValue ast.ExpressionNode
+			var posArgType types.Type
+			if _, ok := namedArg.Value.(*ast.ClosureLiteralNode); ok {
+				typedNamedArgValue = c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+				posArgType = c.typeOf(typedNamedArgValue)
+				typedNamedArgValue.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
+			} else {
+				typedNamedArgValue = c.checkExpression(namedArg.Value)
+				posArgType = c.typeOf(typedNamedArgValue)
+				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap)
+				if inferredParamType == nil {
+					namedRestParam.Type = types.Nothing{}
+				} else if inferredParamType != namedRestParam.Type {
+					namedRestParam.Type = inferredParamType
+				}
+			}
 			namedRestArgs.Elements = append(
 				namedRestArgs.Elements,
 				ast.NewSymbolKeyValueExpressionNode(
@@ -1026,6 +1084,7 @@ func (c *Checker) checkSimpleMethodCall(
 		return receiver, positionalArgumentNodes, types.Nothing{}
 	}
 
+	var typedPositionalArguments []ast.ExpressionNode
 	if len(typeArgumentNodes) > 0 {
 		typeArgs, ok := c.checkTypeArguments(
 			method,
@@ -1040,12 +1099,29 @@ func (c *Checker) checkSimpleMethodCall(
 		}
 
 		method = c.replaceTypeParametersInMethod(method, typeArgs.ArgumentMap)
+		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	} else if len(method.TypeParameters) > 0 {
-		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(typeArgumentNodes), span)
-		return receiver, positionalArgumentNodes, types.Nothing{}
+		var typeArgMap map[value.Symbol]*types.TypeArgument
+		method = method.Copy()
+		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+			method,
+			positionalArgumentNodes,
+			namedArgumentNodes,
+			method.TypeParameters,
+			span,
+		)
+		if typedPositionalArguments == nil {
+			return receiver, positionalArgumentNodes, types.Nothing{}
+		}
+		if len(typeArgMap) != len(method.TypeParameters) {
+			return receiver, positionalArgumentNodes, types.Nothing{}
+		}
+		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
+		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
+	} else {
+		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	var returnType types.Type
 	switch op {
 	case token.DOT:
@@ -1206,10 +1282,9 @@ func (c *Checker) declareMethod(
 		switch p := param.(type) {
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
-			var declaredTypeNode ast.TypeNode
 			if p.TypeNode != nil {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
+				p.TypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {
@@ -1240,7 +1315,6 @@ func (c *Checker) declareMethod(
 			))
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
-			var declaredTypeNode ast.TypeNode
 			if p.SetInstanceVariable {
 				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(p.Name), methodNamespace)
 				if p.TypeNode == nil {
@@ -1256,17 +1330,17 @@ func (c *Checker) declareMethod(
 
 					declaredType = currentIvar
 				} else {
-					declaredTypeNode = c.checkTypeNode(p.TypeNode)
-					declaredType = c.typeOf(declaredTypeNode)
+					p.TypeNode = c.checkTypeNode(p.TypeNode)
+					declaredType = c.typeOf(p.TypeNode)
 					if currentIvar != nil {
-						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, declaredTypeNode.Span())
+						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Span())
 					} else {
 						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Span())
 					}
 				}
 			} else if p.TypeNode != nil {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
+				p.TypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {
@@ -1297,10 +1371,9 @@ func (c *Checker) declareMethod(
 			))
 		case *ast.SignatureParameterNode:
 			var declaredType types.Type
-			var declaredTypeNode ast.TypeNode
 			if p.TypeNode != nil {
-				declaredTypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(declaredTypeNode)
+				p.TypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {

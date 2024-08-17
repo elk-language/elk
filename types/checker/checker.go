@@ -2105,13 +2105,31 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		return node
 	}
 
+	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
-		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), 0, node.Span())
-		node.SetType(types.Nothing{})
-		return node
+		var typeArgMap map[value.Symbol]*types.TypeArgument
+		method = method.Copy()
+		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+			method,
+			node.PositionalArguments,
+			node.NamedArguments,
+			method.TypeParameters,
+			node.Span(),
+		)
+		if typedPositionalArguments == nil {
+			node.SetType(types.Nothing{})
+			return node
+		}
+		if len(typeArgMap) != len(method.TypeParameters) {
+			node.SetType(types.Nothing{})
+			return node
+		}
+		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
+		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
+	} else {
+		typedPositionalArguments = c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(method.ReturnType)
@@ -2414,6 +2432,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Nothing{})
 		return node
 	}
+	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
+	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
 	typeArgOrder := make([]value.Symbol, len(class.TypeParameters))
 	for i, param := range class.TypeParameters {
 		typeArgOrder[i] = param.Name
@@ -2552,34 +2572,15 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.ExpressionNode {
-	receiver := c.checkExpression(node.Receiver)
-	receiverType := c.typeOfGuardVoid(receiver)
-
-	// Allow arbitrary method calls on `never` and `nothing`.
-	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
-		node.SetType(types.Nothing{})
-		return node
-	}
-
-	method := c.getMethod(receiverType, value.ToSymbol(node.AttributeName), nil, node.Span())
-	if method == nil {
-		node.Receiver = receiver
-		node.SetType(types.Nothing{})
-		return node
-	}
-
-	typedPositionalArguments := c.checkMethodArguments(method, nil, nil, node.Span())
-
-	newNode := ast.NewMethodCallNode(
+	var newNode ast.ExpressionNode = ast.NewMethodCallNode(
 		node.Span(),
-		receiver,
+		node.Receiver,
 		token.New(node.Span(), token.DOT),
 		node.AttributeName,
-		typedPositionalArguments,
+		nil,
 		nil,
 	)
-	newNode.SetType(method.ReturnType)
-	return newNode
+	return c.checkExpression(newNode)
 }
 
 func (c *Checker) checkLogicalOperatorAssignmentExpression(node *ast.AssignmentExpressionNode, operator token.Type) ast.ExpressionNode {
