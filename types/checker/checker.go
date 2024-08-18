@@ -46,6 +46,7 @@ const (
 	interfaceMode
 	methodMode
 	singletonMode
+	namedTypeDefinitionMode
 	returnTypeMode
 	throwTypeMode
 	paramTypeMode
@@ -3251,17 +3252,28 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 			typ = types.Nothing{}
 		}
 	case *types.TypeParameter:
-		if t.Variance == types.COVARIANT && c.mode == paramTypeMode {
+		switch c.mode {
+		case paramTypeMode:
+			if t.Variance == types.COVARIANT {
+				c.addFailure(
+					fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
+					span,
+				)
+				typ = types.Nothing{}
+				break
+			}
+		case returnTypeMode, throwTypeMode:
+			if t.Variance == types.CONTRAVARIANT {
+				c.addFailure(
+					fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
+					span,
+				)
+				typ = types.Nothing{}
+			}
+		case methodMode, namedTypeDefinitionMode:
+		default:
 			c.addFailure(
-				fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
-				span,
-			)
-			typ = types.Nothing{}
-			break
-		}
-		if t.Variance == types.CONTRAVARIANT && (c.mode == returnTypeMode || c.mode == throwTypeMode) {
-			c.addFailure(
-				fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
+				fmt.Sprintf("type parameter `%s` cannot be used outside of method and type definitions", types.InspectWithColor(t)),
 				span,
 			)
 			typ = types.Nothing{}

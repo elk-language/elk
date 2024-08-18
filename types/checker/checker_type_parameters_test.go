@@ -8,6 +8,17 @@ import (
 
 func TestTypeParameters(t *testing.T) {
 	tests := testTable{
+		"use type parameter outside of methods": {
+			input: `
+				class Foo[V]
+					var a: V
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used outside of method and type definitions"),
+			},
+		},
+
 		"invariant type parameter in method parameters": {
 			input: `
 				class Foo[V]

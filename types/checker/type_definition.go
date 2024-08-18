@@ -147,10 +147,15 @@ func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok boo
 }
 
 func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
+	prevMode := c.mode
+	c.mode = namedTypeDefinitionMode
+
 	namedType := c.typeOf(node).(*types.NamedType)
 	typeNode := c.checkTypeNode(node.TypeNode)
 	typ := c.typeOf(typeNode)
 	namedType.Type = typ
+
+	c.mode = prevMode
 
 	return true
 }
@@ -173,6 +178,8 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		typeParamMod.DefineConstant(t.Name, types.Void{})
 	}
 
+	prevMode := c.mode
+	c.mode = namedTypeDefinitionMode
 	c.pushConstScope(makeConstantScope(typeParamMod))
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
@@ -180,6 +187,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	namedType.Type = typ
 	namedType.TypeParameters = typeParams
 
+	c.mode = prevMode
 	c.popConstScope()
 
 	return true
