@@ -1632,7 +1632,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typeArgs, typ, errSpan, inParent, inSelf)
 	case *types.Generic:
 		var method *types.Method
-		switch genericType := upper.Type.(type) {
+		switch genericType := upper.Namespace.(type) {
 		case *types.Class:
 			method = c._getMethodInNamespace(genericType, typ, name, nil, errSpan, inParent)
 		case *types.Mixin:
@@ -1667,7 +1667,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 		return c.getMethodForTypeParameter(t, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Generic:
 		var method *types.Method
-		switch genericType := t.Type.(type) {
+		switch genericType := t.Namespace.(type) {
 		case *types.Class:
 			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
 		case *types.Mixin:

@@ -3305,11 +3305,11 @@ func (c *Checker) addTypeArgumentCountError(name string, paramCount, argCount in
 	)
 }
 
-func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.TypeNode {
-	constantType, _ := c.resolveConstantType(node.Constant)
+func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.TypeNode, string) {
+	constantType, fullName := c.resolveConstantType(node.Constant)
 	if constantType == nil {
 		node.SetType(types.Nothing{})
-		return node
+		return node, fullName
 	}
 
 	switch t := constantType.(type) {
@@ -3322,11 +3322,11 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 		)
 		if !ok {
 			node.SetType(types.Nothing{})
-			return node
+			return node, fullName
 		}
 
 		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap))
-		return node
+		return node, fullName
 	case *types.Class:
 		typeArgumentMap, ok := c.checkTypeArguments(
 			constantType,
@@ -3336,22 +3336,22 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) ast.Ty
 		)
 		if !ok {
 			node.SetType(types.Nothing{})
-			return node
+			return node, fullName
 		}
 
 		generic := types.NewGeneric(t, typeArgumentMap)
 		node.SetType(generic)
-		return node
+		return node, fullName
 	case types.Nothing:
 		node.SetType(types.Nothing{})
-		return node
+		return node, fullName
 	default:
 		c.addFailure(
 			fmt.Sprintf("type `%s` is not generic", types.InspectWithColor(constantType)),
 			node.Constant.Span(),
 		)
 		node.SetType(types.Nothing{})
-		return node
+		return node, fullName
 	}
 }
 
@@ -3394,7 +3394,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		c.checkPrivateConstantType(n)
 		return n
 	case *ast.GenericConstantNode:
-		return c.checkGenericConstantType(n)
+		typeNode, _ := c.checkGenericConstantType(n)
+		return typeNode
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
 	case *ast.ClosureTypeNode:
@@ -3686,6 +3687,9 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		return c.resolveType(constant.Value, constant.Span())
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupType(constant)
+	case *ast.GenericConstantNode:
+		typeNode, name := c.checkGenericConstantType(constant)
+		return c.typeOf(typeNode), name
 	default:
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}

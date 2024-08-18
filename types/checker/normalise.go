@@ -104,7 +104,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if !ok {
 			return nil
 		}
-		if !c.isSubtype(g.Type, p.Type, nil) {
+		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
 			return nil
 		}
 		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
@@ -122,7 +122,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			newArgMap[argName] = types.NewTypeArgument(result, gArg.Variance)
 		}
 		return types.NewGeneric(
-			p.Type,
+			p.Namespace,
 			types.NewTypeArguments(
 				newArgMap,
 				p.ArgumentOrder,
@@ -528,8 +528,8 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 			)
 			isDifferent = true
 		}
-		result := c._replaceTypeParameters(t.Type, typeArgMap)
-		if result != t.Type {
+		result := c._replaceTypeParameters(t.Namespace, typeArgMap)
+		if result != t.Namespace {
 			isDifferent = true
 		}
 		if !isDifferent {
@@ -537,7 +537,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		}
 
 		return types.NewGeneric(
-			result,
+			result.(types.Namespace),
 			types.NewTypeArguments(
 				newMap,
 				t.ArgumentOrder,

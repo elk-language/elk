@@ -388,9 +388,9 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Generic:
 		genericB, ok := b.(*types.Generic)
 		if !ok {
-			return c.isSubtype(a.Type, b, errSpan)
+			return c.isSubtype(a.Namespace, b, errSpan)
 		}
-		return c.isSubtype(a.Type, genericB.Type, errSpan) &&
+		return c.isSubtype(a.Namespace, genericB.Namespace, errSpan) &&
 			c.typeArgsAreSubtype(a.TypeArguments, genericB.TypeArguments, errSpan)
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))

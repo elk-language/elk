@@ -32,13 +32,13 @@ func NewTypeArguments(m map[value.Symbol]*TypeArgument, order []value.Symbol) *T
 }
 
 type Generic struct {
-	Type Type
+	Namespace
 	*TypeArguments
 }
 
-func NewGeneric(typ Type, typeArgs *TypeArguments) *Generic {
+func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 	generic := &Generic{
-		Type:          typ,
+		Namespace:     typ,
 		TypeArguments: typeArgs,
 	}
 	typeArgs.ArgumentMap[symbol.M_self] = NewTypeArgument(
@@ -60,7 +60,7 @@ func (*Generic) IsLiteral() bool {
 func (g *Generic) inspect() string {
 	buffer := new(strings.Builder)
 
-	buffer.WriteString(Inspect(g.Type))
+	buffer.WriteString(Inspect(g.Namespace))
 	buffer.WriteRune('[')
 	for i, argName := range g.ArgumentOrder {
 		arg := g.ArgumentMap[argName]
