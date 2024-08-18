@@ -2108,7 +2108,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap map[value.Symbol]*types.TypeArgument
-		method = method.Copy()
+		method = method.DeepCopy()
 		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			node.PositionalArguments,
@@ -2414,7 +2414,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			class,
 		)
 	} else {
-		method = method.Copy()
+		method = method.DeepCopy()
 	}
 
 	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(

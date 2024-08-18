@@ -1102,7 +1102,7 @@ func (c *Checker) checkSimpleMethodCall(
 		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	} else if len(method.TypeParameters) > 0 {
 		var typeArgMap map[value.Symbol]*types.TypeArgument
-		method = method.Copy()
+		method = method.DeepCopy()
 		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			positionalArgumentNodes,
@@ -1601,7 +1601,7 @@ func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ ty
 			types.INVARIANT,
 		),
 	}
-	return c.replaceTypeParametersInMethod(method.Copy(), m)
+	return c.replaceTypeParametersInMethod(method.DeepCopy(), m)
 }
 
 func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent, inSelf bool) *types.Method {
@@ -1649,7 +1649,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 			typ,
 			types.INVARIANT,
 		)
-		return c.replaceTypeParametersInMethod(method.Copy(), typeArgMap)
+		return c.replaceTypeParametersInMethod(method.DeepCopy(), typeArgMap)
 	default:
 		return c._getMethod(typ.UpperBound, name, typeArgs, errSpan, inParent, inSelf)
 	}
@@ -1679,7 +1679,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 			return nil
 		}
 
-		return c.replaceTypeParametersInMethod(method.Copy(), t.TypeArguments.ArgumentMap)
+		return c.replaceTypeParametersInMethod(method.DeepCopy(), t.TypeArguments.ArgumentMap)
 	case *types.Class:
 		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.SingletonClass:

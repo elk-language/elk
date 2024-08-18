@@ -462,34 +462,82 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		}
 		return arg.Type
 	case *types.SingletonOf:
+		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		if result == t.Type {
+			return t
+		}
 		return types.NewSingletonOf(
-			c._replaceTypeParameters(t.Type, typeArgMap),
+			result,
 		)
 	case *types.InstanceOf:
+		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		if result == t.Type {
+			return t
+		}
 		return types.NewInstanceOf(
-			c._replaceTypeParameters(t.Type, typeArgMap),
+			result,
 		)
 	case *types.Closure:
-		method := (&t.Body).Copy()
-		for _, param := range method.Params {
-			param.Type = c._replaceTypeParameters(param.Type, typeArgMap)
+		newParams := make([]*types.Parameter, len(t.Body.Params))
+		var isDifferent bool
+		for i, param := range t.Body.Params {
+			result := c._replaceTypeParameters(param.Type, typeArgMap)
+			if result == param.Type {
+				newParams[i] = param
+				continue
+			}
+
+			newParam := param.Copy()
+			newParam.Type = result
+			newParams[i] = newParam
+			isDifferent = true
 		}
 
-		method.ReturnType = c._replaceTypeParameters(method.ReturnType, typeArgMap)
-		method.ThrowType = c._replaceTypeParameters(method.ThrowType, typeArgMap)
+		returnType := c._replaceTypeParameters(t.Body.ReturnType, typeArgMap)
+		if returnType != t.Body.ReturnType {
+			isDifferent = true
+		}
+		throwType := c._replaceTypeParameters(t.Body.ThrowType, typeArgMap)
+		if throwType != t.Body.ThrowType {
+			isDifferent = true
+		}
+
+		if !isDifferent {
+			return t
+		}
+		method := (&t.Body).Copy()
+		method.Params = newParams
+		method.ReturnType = returnType
+		method.ThrowType = throwType
+
 		closure := types.NewClosure(*method)
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
 		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+		var isDifferent bool
 		for key, arg := range t.ArgumentMap {
+			result := c._replaceTypeParameters(arg.Type, typeArgMap)
+			if result != arg.Type {
+				newMap[key] = arg
+				continue
+			}
 			newMap[key] = types.NewTypeArgument(
-				c._replaceTypeParameters(arg.Type, typeArgMap),
+				result,
 				arg.Variance,
 			)
+			isDifferent = true
 		}
+		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		if result != t.Type {
+			isDifferent = true
+		}
+		if !isDifferent {
+			return t
+		}
+
 		return types.NewGeneric(
-			c._replaceTypeParameters(t.Type, typeArgMap),
+			result,
 			types.NewTypeArguments(
 				newMap,
 				t.ArgumentOrder,
@@ -502,19 +550,43 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		}
 		return arg.Type
 	case *types.Nilable:
-		return types.NewNilable(c._replaceTypeParameters(t.Type, typeArgMap))
+		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		if result == t.Type {
+			return t
+		}
+		return types.NewNilable(result)
 	case *types.Not:
-		return types.NewNot(c._replaceTypeParameters(t.Type, typeArgMap))
+		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		if result == t.Type {
+			return t
+		}
+		return types.NewNot(result)
 	case *types.Union:
-		newElements := make([]types.Type, 0, len(t.Elements))
-		for _, element := range t.Elements {
-			newElements = append(newElements, c._replaceTypeParameters(element, typeArgMap))
+		newElements := make([]types.Type, len(t.Elements))
+		var isDifferent bool
+		for i, element := range t.Elements {
+			result := c._replaceTypeParameters(element, typeArgMap)
+			if result != element {
+				isDifferent = true
+			}
+			newElements[i] = result
+		}
+		if !isDifferent {
+			return t
 		}
 		return types.NewUnion(newElements...)
 	case *types.Intersection:
-		newElements := make([]types.Type, 0, len(t.Elements))
-		for _, element := range t.Elements {
-			newElements = append(newElements, c._replaceTypeParameters(element, typeArgMap))
+		newElements := make([]types.Type, len(t.Elements))
+		var isDifferent bool
+		for i, element := range t.Elements {
+			result := c._replaceTypeParameters(element, typeArgMap)
+			if result != element {
+				isDifferent = true
+			}
+			newElements[i] = result
+		}
+		if !isDifferent {
+			return t
 		}
 		return types.NewIntersection(newElements...)
 	default:

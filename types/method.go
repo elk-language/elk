@@ -113,16 +113,22 @@ type Method struct {
 	span               *position.Span
 }
 
-func (m *Method) Copy() *Method {
+func (m *Method) DeepCopy() *Method {
 	newParams := make([]*Parameter, len(m.Params))
 	for i, param := range m.Params {
 		newParams[i] = param.Copy()
 	}
 
+	copy := m.Copy()
+	copy.Params = newParams
+	return copy
+}
+
+func (m *Method) Copy() *Method {
 	return &Method{
 		Name:               m.Name,
 		DocComment:         m.DocComment,
-		Params:             newParams,
+		Params:             m.Params,
 		OptionalParamCount: m.OptionalParamCount,
 		PostParamCount:     m.PostParamCount,
 		abstract:           m.abstract,
