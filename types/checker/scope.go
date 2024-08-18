@@ -97,6 +97,13 @@ func (c *Checker) currentConstScope() constantScope {
 	panic("no local constant scopes!")
 }
 
+func (c *Checker) enclosingConstScope() constantScope {
+	if len(c.constantScopes) < 1 {
+		panic("no local constant scopes!")
+	}
+	return c.constantScopes[len(c.constantScopes)-1]
+}
+
 func (c *Checker) popMethodScope() {
 	c.methodScopes = c.methodScopes[:len(c.methodScopes)-1]
 	c.clearMethodScopeCopyCache()

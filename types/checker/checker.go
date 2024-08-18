@@ -46,7 +46,7 @@ const (
 	interfaceMode
 	methodMode
 	singletonMode
-	namedTypeDefinitionMode
+	namedGenericTypeDefinitionMode
 	returnTypeMode
 	throwTypeMode
 	paramTypeMode
@@ -3262,6 +3262,22 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 				typ = types.Nothing{}
 				break
 			}
+			enclosingScope := c.enclosingConstScope().container
+			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+				if e.Subtype(t.Name) != nil {
+					break
+				}
+			}
+			currentScope := c.currentConstScope().container
+			if currentScope.Subtype(t.Name) != nil {
+				break
+			}
+
+			c.addFailure(
+				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+				span,
+			)
+			typ = types.Nothing{}
 		case returnTypeMode, throwTypeMode:
 			if t.Variance == types.CONTRAVARIANT {
 				c.addFailure(
@@ -3270,7 +3286,48 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 				)
 				typ = types.Nothing{}
 			}
-		case methodMode, namedTypeDefinitionMode:
+			enclosingScope := c.enclosingConstScope().container
+			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+				if e.Subtype(t.Name) != nil {
+					break
+				}
+			}
+			currentScope := c.currentConstScope().container
+			if currentScope.Subtype(t.Name) != nil {
+				break
+			}
+
+			c.addFailure(
+				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+				span,
+			)
+			typ = types.Nothing{}
+		case namedGenericTypeDefinitionMode:
+			enclosingScope := c.enclosingConstScope().container
+			if enclosingScope.Subtype(t.Name) == nil {
+				c.addFailure(
+					fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+					span,
+				)
+				typ = types.Nothing{}
+			}
+		case methodMode:
+			enclosingScope := c.enclosingConstScope().container
+			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+				if e.Subtype(t.Name) != nil {
+					break
+				}
+			}
+			currentScope := c.currentConstScope().container
+			if currentScope.Subtype(t.Name) != nil {
+				break
+			}
+
+			c.addFailure(
+				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+				span,
+			)
+			typ = types.Nothing{}
 		default:
 			c.addFailure(
 				fmt.Sprintf("type parameter `%s` cannot be used outside of method and type definitions", types.InspectWithColor(t)),
