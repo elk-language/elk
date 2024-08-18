@@ -1260,7 +1260,7 @@ func (c *Checker) declareMethod(
 	var typeParamMod *types.Module
 	if len(typeParamNodes) > 0 {
 		typeParams = make([]*types.TypeParameter, 0, len(typeParamNodes))
-		typeParamMod := types.NewModule("", fmt.Sprintf("Type Parameter Container of %s", name), c.GlobalEnv)
+		typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name))
 		for _, typeParamNode := range typeParamNodes {
 			node, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 			if !ok {

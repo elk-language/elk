@@ -164,7 +164,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	namedType := c.typeOf(node).(*types.GenericNamedType)
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-	typeParamMod := types.NewModule("", fmt.Sprintf("Type Parameter Container of %s", namedType.Name), c.GlobalEnv)
+	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name))
 	for _, typeParamNode := range node.TypeParameters {
 		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
