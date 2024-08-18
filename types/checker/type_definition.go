@@ -248,8 +248,9 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	}
 
 	var superclassType types.Type
-	var superclass *types.Class
+	var superclass types.Namespace
 
+nodeSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
@@ -257,16 +258,27 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		superclassType = superclass
 	default:
 		superclassType, _ = c.resolveConstantType(node.Superclass)
-		var ok bool
-		superclass, ok = superclassType.(*types.Class)
-		if !ok {
+
+		switch s := superclassType.(type) {
+		case *types.Class:
+			superclass = s
+		case *types.Generic:
+			superclass = s
+			if _, ok := s.Namespace.(*types.Class); !ok {
+				c.addFailure(
+					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
+					node.Superclass.Span(),
+				)
+				break nodeSwitch
+			}
+		default:
 			if !types.IsNothing(superclassType) && superclassType != nil {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
 				)
 			}
-			break
+			break nodeSwitch
 		}
 
 		if superclass.IsSealed() {
