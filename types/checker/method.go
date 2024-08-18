@@ -340,7 +340,7 @@ func (c *Checker) checkMethod(
 	prevMode := c.mode
 
 	if methodNamespace != nil {
-		currentMethod := types.GetMethodInNamespace(methodNamespace, name)
+		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
 		if checkedMethod != currentMethod && checkedMethod.IsSealed() {
 			c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
 		}
@@ -348,7 +348,7 @@ func (c *Checker) checkMethod(
 		parent := methodNamespace.Parent()
 
 		if parent != nil {
-			baseMethod := types.GetMethodInNamespace(parent, name)
+			baseMethod := c.resolveMethodInNamespace(parent, name)
 			if baseMethod != nil {
 				c.checkMethodOverride(
 					checkedMethod,
@@ -1576,8 +1576,34 @@ func (c *Checker) getMethod(typ types.Type, name value.Symbol, typeArgs *types.T
 	return c._getMethod(typ, name, typeArgs, errSpan, false, false)
 }
 
+func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+	currentNamespace := namespace
+	var generics []*types.Generic
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		if generic, ok := currentNamespace.(*types.Generic); ok {
+			generics = append(generics, generic)
+		}
+		method := currentNamespace.Method(name)
+		if method != nil {
+			if len(generics) < 1 {
+				return method
+			}
+
+			method = method.DeepCopy()
+			for i := len(generics) - 1; i >= 0; i-- {
+				generic := generics[i]
+				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+			}
+			return method
+		}
+	}
+
+	return nil
+}
+
 func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, typeArgs *types.TypeArguments, errSpan *position.Span, inParent bool) *types.Method {
-	method := types.GetMethodInNamespace(namespace, name)
+	method := c.resolveMethodInNamespace(namespace, name)
 	if method != nil {
 		return method
 	}
@@ -1666,20 +1692,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, typeArgs *types.
 	case *types.TypeParameter:
 		return c.getMethodForTypeParameter(t, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Generic:
-		var method *types.Method
-		switch genericType := t.Namespace.(type) {
-		case *types.Class:
-			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
-		case *types.Mixin:
-			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
-		case *types.Interface:
-			method = c._getMethodInNamespace(genericType, t, name, nil, errSpan, inParent)
-		}
-		if method == nil {
-			return nil
-		}
-
-		return c.replaceTypeParametersInMethod(method.DeepCopy(), t.TypeArguments.ArgumentMap)
+		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.Class:
 		return c.getMethodInNamespace(t, typ, name, typeArgs, errSpan, inParent, inSelf)
 	case *types.SingletonClass:

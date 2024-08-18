@@ -1775,7 +1775,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 				continue
 			}
 
-			method := types.GetMethodInNamespace(namespace, parentMethod.Name)
+			method := c.resolveMethodInNamespace(namespace, parentMethod.Name)
 			if method == nil || method.IsAbstract() {
 				c.addFailure(
 					fmt.Sprintf(
@@ -1841,7 +1841,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 
 		var incompatibleMethods []methodOverride
 		types.ForeachMethod(includedMixin, func(name value.Symbol, includedMethod *types.Method) {
-			superMethod := types.GetMethodInNamespace(parentOfMixin, name)
+			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
 			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
 					superMethod: superMethod,
@@ -4742,7 +4742,7 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 	node.SetType(types.Nothing{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
-		method := types.GetMethodInNamespace(namespace, value.ToSymbol(entry.OldName))
+		method := c.resolveMethodInNamespace(namespace, value.ToSymbol(entry.OldName))
 		if method == nil {
 			c.addMissingMethodError(namespace, entry.OldName, entry.Span())
 			continue

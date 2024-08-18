@@ -594,6 +594,32 @@ func TestClass(t *testing.T) {
 
 func TestGenericClass(t *testing.T) {
 	tests := testTable{
+		"inherit from generic class specifying type arguments": {
+			input: `
+				class Foo[V]; end
+				class Bar < Foo[String]; end
+			`,
+		},
+		"inherit from generic class specifying too many type arguments": {
+			input: `
+				class Foo[V]; end
+				class Bar < Foo[String, Float]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 2"),
+			},
+		},
+		"call a method on a class that inherits from a generic class with specified type arguments": {
+			input: `
+				class Foo[V]
+					def foo(a: V): V then a
+				end
+				class Bar < Foo[String]; end
+
+				var a: String = Bar().foo("elo")
+			`,
+		},
+
 		"return self type from instance method": {
 			input: `
 				class Foo
