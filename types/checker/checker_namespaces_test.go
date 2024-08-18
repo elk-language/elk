@@ -654,6 +654,36 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 			`,
 		},
+		"use a type parameter as a value": {
+			input: `
+				class Foo[V]
+					V
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(23, 3, 6), P(23, 3, 6)), "type `Foo::V` cannot be used as a value in expressions"),
+			},
+		},
+		"use a type parameter from the outside": {
+			input: `
+				class Foo[V]; end
+				var a: Foo::V
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used outside of method and type definitions"),
+			},
+		},
+		"use a type parameter from the outside within a method": {
+			input: `
+				class Foo[V]; end
+				def foo
+					var a: Foo::V
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(52, 4, 18), P(52, 4, 18)), "undefined type `V`"),
+			},
+		},
 		"declare a generic class with bounds": {
 			input: `
 				class Foo[V > Baz < Object]; end

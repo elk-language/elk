@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -2985,12 +2986,20 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.ConstantString(name)
 		if constant != nil {
-			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
+			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
+			if types.IsNoValue(constant) {
+				c.addFailure(
+					fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
+					span,
+				)
+				return nil, fullName
+			}
+			return constant, fullName
 		}
 	}
 
 	c.addFailure(
-		fmt.Sprintf("undefined constant `%s`", name),
+		fmt.Sprintf("undefined constant `%s`", lexer.Colorize(name)),
 		span,
 	)
 	return nil, name
@@ -3005,7 +3014,15 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		}
 		constant := constScope.container.ConstantString(name)
 		if constant != nil {
-			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
+			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
+			if types.IsNoValue(constant) {
+				c.addFailure(
+					fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
+					span,
+				)
+				return nil, fullName
+			}
+			return constant, fullName
 		}
 	}
 
@@ -3014,6 +3031,97 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		span,
 	)
 	return nil, name
+}
+
+func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.Span) bool {
+	t, ok := typ.(*types.TypeParameter)
+	if !ok {
+		return true
+	}
+
+	switch c.mode {
+	case paramTypeMode:
+		if t.Variance == types.COVARIANT {
+			c.addFailure(
+				fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
+				span,
+			)
+			return false
+		}
+		enclosingScope := c.enclosingConstScope().container
+		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+			if e.Subtype(t.Name) != nil {
+				break
+			}
+		}
+		currentScope := c.currentConstScope().container
+		if currentScope.Subtype(t.Name) != nil {
+			break
+		}
+
+		c.addFailure(
+			fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+			span,
+		)
+		return false
+	case returnTypeMode, throwTypeMode:
+		if t.Variance == types.CONTRAVARIANT {
+			c.addFailure(
+				fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
+				span,
+			)
+			return false
+		}
+		enclosingScope := c.enclosingConstScope().container
+		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+			if e.Subtype(t.Name) != nil {
+				break
+			}
+		}
+		currentScope := c.currentConstScope().container
+		if currentScope.Subtype(t.Name) != nil {
+			break
+		}
+
+		c.addFailure(
+			fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+			span,
+		)
+		return false
+	case namedGenericTypeDefinitionMode:
+		enclosingScope := c.enclosingConstScope().container
+		if enclosingScope.Subtype(t.Name) == nil {
+			c.addFailure(
+				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+				span,
+			)
+			return false
+		}
+	case methodMode:
+		enclosingScope := c.enclosingConstScope().container
+		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
+			if e.Subtype(t.Name) != nil {
+				break
+			}
+		}
+		currentScope := c.currentConstScope().container
+		if currentScope.Subtype(t.Name) != nil {
+			break
+		}
+
+		c.addFailure(
+			fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
+			span,
+		)
+		return false
+	default:
+		c.addFailure(
+			fmt.Sprintf("type parameter `%s` cannot be used outside of method and type definitions", types.InspectWithColor(t)),
+			span,
+		)
+		return false
+	}
+	return true
 }
 
 // Get the type with the given name
@@ -3026,7 +3134,11 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 			if !c.checkTypeIfNecessary(fullName, span) {
 				return nil, fullName
 			}
-			return constant, fullName
+
+			if c.checkIfTypeParameterIsAllowed(constant, span) {
+				return constant, fullName
+			}
+			return nil, fullName
 		}
 	}
 
@@ -3157,6 +3269,9 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		)
 		return nil, typeName
 	}
+	if !c.checkIfTypeParameterIsAllowed(constant, node.Right.Span()) {
+		return nil, typeName
+	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Span()) {
 		return types.Nothing{}, typeName
@@ -3249,90 +3364,6 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 	case *types.Class:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
-			typ = types.Nothing{}
-		}
-	case *types.TypeParameter:
-		switch c.mode {
-		case paramTypeMode:
-			if t.Variance == types.COVARIANT {
-				c.addFailure(
-					fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
-					span,
-				)
-				typ = types.Nothing{}
-				break
-			}
-			enclosingScope := c.enclosingConstScope().container
-			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-				if e.Subtype(t.Name) != nil {
-					break
-				}
-			}
-			currentScope := c.currentConstScope().container
-			if currentScope.Subtype(t.Name) != nil {
-				break
-			}
-
-			c.addFailure(
-				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
-				span,
-			)
-			typ = types.Nothing{}
-		case returnTypeMode, throwTypeMode:
-			if t.Variance == types.CONTRAVARIANT {
-				c.addFailure(
-					fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
-					span,
-				)
-				typ = types.Nothing{}
-			}
-			enclosingScope := c.enclosingConstScope().container
-			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-				if e.Subtype(t.Name) != nil {
-					break
-				}
-			}
-			currentScope := c.currentConstScope().container
-			if currentScope.Subtype(t.Name) != nil {
-				break
-			}
-
-			c.addFailure(
-				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
-				span,
-			)
-			typ = types.Nothing{}
-		case namedGenericTypeDefinitionMode:
-			enclosingScope := c.enclosingConstScope().container
-			if enclosingScope.Subtype(t.Name) == nil {
-				c.addFailure(
-					fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
-					span,
-				)
-				typ = types.Nothing{}
-			}
-		case methodMode:
-			enclosingScope := c.enclosingConstScope().container
-			if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-				if e.Subtype(t.Name) != nil {
-					break
-				}
-			}
-			currentScope := c.currentConstScope().container
-			if currentScope.Subtype(t.Name) != nil {
-				break
-			}
-
-			c.addFailure(
-				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
-				span,
-			)
-			typ = types.Nothing{}
-		default:
-			c.addFailure(
-				fmt.Sprintf("type parameter `%s` cannot be used outside of method and type definitions", types.InspectWithColor(t)),
-				span,
-			)
 			typ = types.Nothing{}
 		}
 	case nil:
@@ -3720,6 +3751,13 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 
 	constant := leftContainer.ConstantString(rightName)
 	if constant == nil {
+		if types.IsNoValue(constant) {
+			c.addFailure(
+				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(constantName)),
+				node.Right.Span(),
+			)
+			return nil, constantName
+		}
 		c.addFailure(
 			fmt.Sprintf("undefined constant `%s`", constantName),
 			node.Right.Span(),

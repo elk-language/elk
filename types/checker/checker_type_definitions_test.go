@@ -8,6 +8,15 @@ import (
 
 func TestTypeDefinition(t *testing.T) {
 	tests := testTable{
+		"use a named type as a value": {
+			input: `
+				typedef Foo = 1
+				a := Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "type `Foo` cannot be used as a value in expressions"),
+			},
+		},
 		"define types with circular dependencies": {
 			input: `
 				typedef Foo = Bar
@@ -81,6 +90,15 @@ func TestTypeDefinition(t *testing.T) {
 
 func TestGenericTypeDefinition(t *testing.T) {
 	tests := testTable{
+		"use a generic named type as a value": {
+			input: `
+				typedef Foo[V] = V?
+				a := Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 10), P(36, 3, 12)), "type `Foo` cannot be used as a value in expressions"),
+			},
+		},
 		"define generic types with circular dependencies": {
 			input: `
 				typedef Foo[V] = V | Bar

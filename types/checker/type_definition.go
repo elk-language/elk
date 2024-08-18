@@ -87,8 +87,8 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 		)
 	}
 
-	container.DefineConstant(constantName, types.Void{})
 	namedType := types.NewNamedType(fullConstantName, nil)
+	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 
@@ -114,12 +114,12 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 		)
 	}
 
-	container.DefineConstant(constantName, types.Void{})
 	namedType := types.NewGenericNamedType(
 		fullConstantName,
 		nil,
 		nil,
 	)
+	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 
@@ -170,7 +170,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
-		typeParamMod.DefineConstant(t.Name, types.Void{})
+		typeParamMod.DefineConstant(t.Name, types.NoValue{})
 	}
 
 	prevMode := c.mode
@@ -321,6 +321,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		class.DefineSubtype(t.Name, t)
+		class.DefineConstant(t.Name, types.NoValue{})
 	}
 
 	class.TypeParameters = typeParams

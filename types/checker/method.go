@@ -1271,7 +1271,7 @@ func (c *Checker) declareMethod(
 			typeParams = append(typeParams, t)
 			typeParamNode.SetType(t)
 			typeParamMod.DefineSubtype(t.Name, t)
-			typeParamMod.DefineConstant(t.Name, types.Void{})
+			typeParamMod.DefineConstant(t.Name, types.NoValue{})
 		}
 		c.pushConstScope(makeConstantScope(typeParamMod))
 	}
