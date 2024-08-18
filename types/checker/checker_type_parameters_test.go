@@ -8,6 +8,84 @@ import (
 
 func TestTypeParameters(t *testing.T) {
 	tests := testTable{
+		"invariant type parameter in method parameters": {
+			input: `
+				class Foo[V]
+					def foo(a: V); end
+				end
+			`,
+		},
+		"invariant type parameter in method return type": {
+			input: `
+				class Foo[V]
+					def foo(a: V): V then a
+				end
+			`,
+		},
+		"invariant type parameter in method throw type": {
+			input: `
+				class Foo[V]
+					def foo(a: V)! V; end
+				end
+			`,
+		},
+
+		"covariant type parameter in method parameters": {
+			input: `
+				class Foo[+V]
+					def foo(a: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 17), P(35, 3, 17)), "covariant type parameter `V` cannot appear in method parameters"),
+			},
+		},
+		"covariant type parameter in method return type": {
+			input: `
+				class Foo[+V]
+					def foo: V; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 6), P(38, 3, 20)), "type `nil` cannot be assigned to type `V`"),
+			},
+		},
+		"covariant type parameter in method throw type": {
+			input: `
+				class Foo[+V]
+					def foo! V; end
+				end
+			`,
+		},
+
+		"contravariant type parameter in method parameters": {
+			input: `
+				class Foo[-V]
+					def foo(a: V); end
+				end
+			`,
+		},
+		"contravariant type parameter in method return type": {
+			input: `
+				class Foo[-V]
+					def foo: V; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in return and throw types"),
+			},
+		},
+		"contravariant type parameter in method throw type": {
+			input: `
+				class Foo[-V]
+					def foo! V; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in return and throw types"),
+			},
+		},
+
 		"assign type variable to its upper bound": {
 			input: `
 				class Foo; end

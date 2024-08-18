@@ -3250,6 +3250,22 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 			typ = types.Nothing{}
 		}
+	case *types.TypeParameter:
+		if t.Variance == types.COVARIANT && c.mode == paramTypeMode {
+			c.addFailure(
+				fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
+				span,
+			)
+			typ = types.Nothing{}
+			break
+		}
+		if t.Variance == types.CONTRAVARIANT && (c.mode == returnTypeMode || c.mode == throwTypeMode) {
+			c.addFailure(
+				fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
+				span,
+			)
+			typ = types.Nothing{}
+		}
 	case nil:
 		typ = types.Nothing{}
 	}
@@ -3267,6 +3283,9 @@ func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
 }
 
 func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
+	if node.SkipTypechecking() {
+		return node
+	}
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
 		c.checkPublicConstantType(n)
