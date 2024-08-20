@@ -600,6 +600,21 @@ func TestGenericClass(t *testing.T) {
 				class Bar < Foo[String]; end
 			`,
 		},
+		"inherit from generic class forwarding type arguments": {
+			input: `
+				class Foo[V]; end
+				class Bar[V] < Foo[V]; end
+			`,
+		},
+		"inherit from generic class without type arguments": {
+			input: `
+				class Foo[V]; end
+				class Bar < Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
 		"inherit from generic class specifying too many type arguments": {
 			input: `
 				class Foo[V]; end
@@ -729,7 +744,7 @@ func TestGenericClass(t *testing.T) {
 		"assign related generic class to its parent with the same type argument": {
 			input: `
 				class Foo[V]; end
-				class Bar[V] < Foo; end
+				class Bar[V] < Foo[V]; end
 
 				var a = Foo::[Int]()
 				a = Bar::[Int]()
@@ -738,13 +753,13 @@ func TestGenericClass(t *testing.T) {
 		"assign related generic class to its child with the same type argument": {
 			input: `
 				class Foo[V]; end
-				class Bar[V] < Foo; end
+				class Bar[V] < Foo[V]; end
 
 				var a = Bar::[Int]()
 				a = Foo::[Int]()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(85, 6, 9), P(96, 6, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::Int]`"),
+				error.NewFailure(L("<main>", P(88, 6, 9), P(99, 6, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::Int]`"),
 			},
 		},
 

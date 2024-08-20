@@ -8,6 +8,17 @@ func (v Variance) String() string {
 	return varianceString[v]
 }
 
+func (v Variance) Name() string {
+	switch v {
+	case COVARIANT:
+		return "covariant"
+	case CONTRAVARIANT:
+		return "contravariant"
+	default:
+		return "invariant"
+	}
+}
+
 const (
 	INVARIANT Variance = iota
 	COVARIANT

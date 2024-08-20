@@ -246,6 +246,25 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	if !ok {
 		return
 	}
+	c.pushConstScope(makeLocalConstantScope(class))
+
+	if len(node.TypeParameters) > 0 {
+		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+		for _, typeParamNode := range node.TypeParameters {
+			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+			if !ok {
+				continue
+			}
+
+			t := c.checkTypeParameterNode(varNode)
+			typeParams = append(typeParams, t)
+			typeParamNode.SetType(t)
+			class.DefineSubtype(t.Name, t)
+			class.DefineConstant(t.Name, types.NoValue{})
+		}
+
+		class.TypeParameters = typeParams
+	}
 
 	var superclassType types.Type
 	var superclass types.Namespace
@@ -257,7 +276,13 @@ nodeSwitch:
 		superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
 		superclassType = superclass
 	default:
-		superclassType, _ = c.resolveConstantType(node.Superclass)
+		prevMode := c.mode
+		c.mode = inheritanceMode
+
+		node.Superclass = c.checkComplexConstantType(node.Superclass)
+		superclassType = c.typeOf(node.Superclass)
+
+		c.mode = prevMode
 
 		switch s := superclassType.(type) {
 		case *types.Class:
@@ -318,25 +343,7 @@ nodeSwitch:
 		)
 	}
 
-	if len(node.TypeParameters) < 1 {
-		return
-	}
-
-	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-	for _, typeParamNode := range node.TypeParameters {
-		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
-		if !ok {
-			continue
-		}
-
-		t := c.checkTypeParameterNode(varNode)
-		typeParams = append(typeParams, t)
-		typeParamNode.SetType(t)
-		class.DefineSubtype(t.Name, t)
-		class.DefineConstant(t.Name, types.NoValue{})
-	}
-
-	class.TypeParameters = typeParams
+	c.popConstScope()
 }
 
 func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode) *types.TypeParameter {

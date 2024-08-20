@@ -453,16 +453,21 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		var currentClass types.Namespace = a
+		var currentParent types.Namespace = a
 		for {
-			if currentClass == nil {
-				return false
-			}
-			if currentClass == b {
+			if currentParent == b {
 				return true
 			}
+			switch p := currentParent.(type) {
+			case nil:
+				return false
+			case *types.Generic:
+				if p.Namespace == b {
+					return true
+				}
+			}
 
-			currentClass = currentClass.Parent()
+			currentParent = currentParent.Parent()
 		}
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b, errSpan)

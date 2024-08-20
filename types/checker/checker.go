@@ -51,6 +51,7 @@ const (
 	returnTypeMode
 	throwTypeMode
 	paramTypeMode
+	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
 )
 
@@ -2192,6 +2193,20 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 			)
 			fail = true
 		}
+		switch t := typeArgument.(type) {
+		case *types.TypeParameter:
+			if t.Variance != types.INVARIANT && t.Variance != typeParameter.Variance {
+				c.addFailure(
+					fmt.Sprintf(
+						"%s type `%s` cannot appear in %s position",
+						t.Variance.Name(),
+						types.InspectWithColor(typeArgument),
+						typeParameter.Variance.Name(),
+					),
+					typeArgumentNode.Span(),
+				)
+			}
+		}
 	}
 	if fail {
 		return nil, false
@@ -3088,7 +3103,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			span,
 		)
 		return false
-	case namedGenericTypeDefinitionMode:
+	case namedGenericTypeDefinitionMode, inheritanceMode:
 		enclosingScope := c.enclosingConstScope().container
 		if enclosingScope.Subtype(t.Name) == nil {
 			c.addFailure(
@@ -3279,16 +3294,17 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	return constant, typeName
 }
 
-func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.ComplexConstantNode {
+func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		c.checkPublicConstantType(n)
-		return n
+		return c.checkPublicConstantType(n)
 	case *ast.PrivateConstantNode:
-		c.checkPrivateConstantType(n)
-		return n
+		return c.checkPrivateConstantType(n)
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
+	case *ast.GenericConstantNode:
+		c.checkGenericConstantType(n)
+		return n
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant type node %T", node),
@@ -3372,14 +3388,16 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 	return typ
 }
 
-func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
+func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) ast.ExpressionNode {
 	typ := c.checkSimpleConstantType(node.Value, node.Span())
 	node.SetType(typ)
+	return node
 }
 
-func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
+func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) ast.ExpressionNode {
 	typ := c.checkSimpleConstantType(node.Value, node.Span())
 	node.SetType(typ)
+	return node
 }
 
 func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {

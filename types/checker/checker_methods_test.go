@@ -2655,7 +2655,7 @@ func TestConstructorCallInference(t *testing.T) {
 				class Bar[V]
 					init(a: V); end
 				end
-				class Baz[V] < Bar; end
+				class Baz[V] < Bar[V]; end
 
 				class Foo[V]
 					init(a: Bar[V]); end
@@ -2664,7 +2664,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(172, 11, 16), P(177, 11, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(175, 11, 16), P(180, 11, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a generic, argument is a subtype with more type parameters": {
@@ -2672,7 +2672,7 @@ func TestConstructorCallInference(t *testing.T) {
 				class Bar[V]
 					init(a: V); end
 				end
-				class Baz[V, T] < Bar; end
+				class Baz[V, T] < Bar[V]; end
 
 				class Foo[V]
 					init(a: Bar[V]); end
@@ -2681,7 +2681,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(175, 11, 16), P(180, 11, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(178, 11, 16), P(183, 11, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a generic, argument is not": {
