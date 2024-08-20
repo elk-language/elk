@@ -2062,7 +2062,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 }
 
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), nil, node.Span())
+	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -2099,7 +2099,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), nil, node.Span())
+	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -2244,9 +2244,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			class,
 			typeArgs,
 		)
-		method = c.getMethod(generic, symbol.M_init, nil, nil)
+		method = c.getMethod(generic, symbol.M_init, nil)
 	} else {
-		method = c.getMethod(class, symbol.M_init, nil, nil)
+		method = c.getMethod(class, symbol.M_init, nil)
 	}
 
 	if method == nil {
@@ -2321,7 +2321,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	}
 
 	generic := types.NewGeneric(class, typeArgs)
-	method := c.getMethod(generic, symbol.M_init, nil, nil)
+	method := c.getMethod(generic, symbol.M_init, nil)
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -2377,7 +2377,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	}
 
 	if !class.IsGeneric() {
-		method := c.getMethod(class, symbol.M_init, nil, nil)
+		method := c.getMethod(class, symbol.M_init, nil)
 		if method == nil {
 			method = types.NewMethod(
 				"",
@@ -2401,7 +2401,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		return node
 	}
 
-	method := c._getMethodInNamespace(class, class, symbol.M_init, nil, nil, false)
+	method := c._getMethodInNamespace(class, class, symbol.M_init, nil, false)
 	if method == nil {
 		method = types.NewMethod(
 			"",
