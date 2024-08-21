@@ -48,6 +48,48 @@ type Namespace interface {
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
+func implementInterface(target Namespace, iface *Interface) {
+	headProxy, tailProxy := iface.CreateProxy()
+	tailProxy.SetParent(target.Parent())
+	target.SetParent(headProxy)
+}
+
+func ImplementInterface(target, interfaceNamespace Namespace) {
+	switch implemented := interfaceNamespace.(type) {
+	case *Interface:
+		implementInterface(target, implemented)
+	case *Generic:
+		iface := implemented.Namespace.(*Interface)
+		headProxy, tailProxy := iface.CreateProxy()
+		head := NewGeneric(headProxy, implemented.TypeArguments)
+		tailProxy.SetParent(target.Parent())
+		target.SetParent(head)
+	default:
+		panic(fmt.Sprintf("wrong interface type: %T", interfaceNamespace))
+	}
+}
+
+func includeMixin(target Namespace, mixin *Mixin) {
+	headProxy, tailProxy := mixin.CreateProxy()
+	tailProxy.SetParent(target.Parent())
+	target.SetParent(headProxy)
+}
+
+func IncludeMixin(target, includedNamespace Namespace) {
+	switch included := includedNamespace.(type) {
+	case *Mixin:
+		includeMixin(target, included)
+	case *Generic:
+		includedMixin := included.Namespace.(*Mixin)
+		headProxy, tailProxy := includedMixin.CreateProxy()
+		head := NewGeneric(headProxy, included.TypeArguments)
+		tailProxy.SetParent(target.Parent())
+		target.SetParent(head)
+	default:
+		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
+	}
+}
+
 func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
 	var currentNamespace Namespace = namespace
 

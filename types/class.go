@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -19,33 +17,6 @@ type Class struct {
 
 func (c *Class) IsGeneric() bool {
 	return len(c.TypeParameters) > 0
-}
-
-func (c *Class) IncludeMixin(mixin *Mixin) {
-	headProxy, tailProxy := mixin.CreateProxy()
-	tailProxy.SetParent(c.Parent())
-	c.SetParent(headProxy)
-}
-
-func (c *Class) IncludeGenericMixin(mixinNamespace Namespace) {
-	switch m := mixinNamespace.(type) {
-	case *Mixin:
-		c.IncludeMixin(m)
-	case *Generic:
-		mixin := m.Namespace.(*Mixin)
-		headProxy, tailProxy := mixin.CreateProxy()
-		head := NewGeneric(headProxy, m.TypeArguments)
-		tailProxy.SetParent(c.Parent())
-		c.SetParent(head)
-	default:
-		panic(fmt.Sprintf("wrong mixin type: %T", mixinNamespace))
-	}
-}
-
-func (c *Class) ImplementInterface(iface *Interface) {
-	headProxy, tailProxy := iface.CreateProxy()
-	tailProxy.SetParent(c.Parent())
-	c.SetParent(headProxy)
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {

@@ -894,7 +894,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins
 
 				// Implement interfaces
-				namespace.ImplementInterface(NameToType("Std::Iterable", env).(*Interface))
+				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("iterator"), nil, nil, NameToType("Std::Iterator", env), Never{})

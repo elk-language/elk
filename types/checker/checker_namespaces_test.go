@@ -1324,7 +1324,23 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(44, 4, 6), P(54, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
-		"include generic mixin without type arguments": {
+		"include in class": {
+			input: `
+				mixin Foo; end
+			  class  Bar
+					include Foo
+				end
+			`,
+		},
+		"include generic mixin with type arguments in class": {
+			input: `
+				mixin Foo[V]; end
+			  class Bar
+					include Foo[String]
+				end
+			`,
+		},
+		"include generic mixin without type arguments in class": {
 			input: `
 				mixin Foo[V]; end
 			  class Bar
@@ -1335,7 +1351,7 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
-		"include generic mixin with too many type arguments": {
+		"include generic mixin with too many type arguments in class": {
 			input: `
 				mixin Foo[V]; end
 			  class Bar
@@ -1346,19 +1362,11 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
-		"include generic mixin forwarding type arguments": {
+		"include generic mixin forwarding type arguments in class": {
 			input: `
 				mixin Foo[V]; end
 			  class Bar[V]
 					include Foo[V]
-				end
-			`,
-		},
-		"include in class": {
-			input: `
-				mixin Foo; end
-			  class  Bar
-					include Foo
 				end
 			`,
 		},
@@ -1377,6 +1385,44 @@ func TestInclude(t *testing.T) {
 				mixin Foo; end
 				mixin Bar
 					include Foo
+				end
+			`,
+		},
+		"include generic mixin with type arguments in mixin": {
+			input: `
+				mixin Foo[V]; end
+			  mixin Bar
+					include Foo[String]
+				end
+			`,
+		},
+		"include generic mixin without type arguments in mixin": {
+			input: `
+				mixin Foo[V]; end
+			  mixin Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
+		"include generic mixin with too many type arguments in mixin": {
+			input: `
+				mixin Foo[V]; end
+			  mixin Bar
+					include Foo[String, Int]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
+			},
+		},
+		"include generic mixin forwarding type arguments in mixin": {
+			input: `
+				mixin Foo[V]; end
+			  mixin Bar[V]
+					include Foo[V]
 				end
 			`,
 		},
@@ -1565,11 +1611,87 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 		},
+		"implement generic interface without type arguments in class": {
+			input: `
+				interface Foo[V]; end
+			  class Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
+		"implement generic interface with type arguments in class": {
+			input: `
+				interface Foo[V]; end
+			  class Bar
+					implement Foo[String]
+				end
+			`,
+		},
+		"implement generic interface with too many type arguments in class": {
+			input: `
+				interface Foo[V]; end
+			  class Bar
+					implement Foo[String, Int]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
+			},
+		},
+		"implement generic interface forwarding type arguments in class": {
+			input: `
+				interface Foo[V]; end
+			  class Bar[V]
+					implement Foo[V]
+				end
+			`,
+		},
 		"implement in mixin": {
 			input: `
 				interface Foo; end
 				mixin Bar
 					implement Foo
+				end
+			`,
+		},
+		"implement generic interface without type arguments in mixin": {
+			input: `
+				interface Foo[V]; end
+			  mixin Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
+		"implement generic interface with too many type arguments in mixin": {
+			input: `
+				interface Foo[V]; end
+			  mixin Bar
+					implement Foo[String, Int]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
+			},
+		},
+		"implement generic interface with type arguments in mixin": {
+			input: `
+				interface Foo[V]; end
+			  mixin Bar
+					implement Foo[String]
+				end
+			`,
+		},
+		"implement generic interface forwarding type arguments in mixin": {
+			input: `
+				interface Foo[V]; end
+			  mixin Bar[V]
+					implement Foo[V]
 				end
 			`,
 		},

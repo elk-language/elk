@@ -236,6 +236,8 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 			c.checkClassInheritance(n)
 		case *ast.MixinDeclarationNode:
 			c.checkMixinTypeParameters(n)
+		case *ast.InterfaceDeclarationNode:
+			c.checkInterfaceTypeParameters(n)
 		}
 	}
 
@@ -295,11 +297,11 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 
 	switch t := target.(type) {
 	case *types.Class:
-		t.IncludeGenericMixin(constantNamespace)
+		types.IncludeMixin(t, constantNamespace)
 	case *types.SingletonClass:
-		t.IncludeGenericMixin(constantNamespace)
+		types.IncludeMixin(t, constantNamespace)
 	case *types.Mixin:
-		t.IncludeGenericMixin(constantNamespace)
+		types.IncludeMixin(t, constantNamespace)
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -313,13 +315,31 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 }
 
 func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
-	constantType, _ := c.resolveConstantType(node)
+	prevMode := c.mode
+	c.mode = inheritanceMode
+
+	n := c.checkComplexConstantType(node)
+	constantType := c.typeOf(n)
+
+	c.mode = prevMode
 
 	if types.IsNothing(constantType) || constantType == nil {
 		return
 	}
-	constantInterface, constantIsInterface := constantType.(*types.Interface)
-	if !constantIsInterface {
+	var constantNamespace types.Namespace
+	switch con := constantType.(type) {
+	case *types.Interface:
+		constantNamespace = con
+	case *types.Generic:
+		if _, ok := con.Namespace.(*types.Interface); !ok {
+			c.addFailure(
+				"only interfaces can be implemented",
+				node.Span(),
+			)
+			return
+		}
+		constantNamespace = con
+	default:
 		c.addFailure(
 			"only interfaces can be implemented",
 			node.Span(),
@@ -328,17 +348,18 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	}
 
 	target := c.currentConstScope().container
-	if c.implementsInterface(target, constantInterface) {
-		return
-	}
+	// TODO
+	// if c.implementsInterface(target, constantNamespace) {
+	// 	return
+	// }
 
 	switch t := target.(type) {
 	case *types.Class:
-		t.ImplementInterface(constantInterface)
+		types.ImplementInterface(t, constantNamespace)
 	case *types.Mixin:
-		t.ImplementInterface(constantInterface)
+		types.ImplementInterface(t, constantNamespace)
 	case *types.Interface:
-		t.ImplementInterface(constantInterface)
+		types.ImplementInterface(t, constantNamespace)
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -349,6 +370,34 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 			node.Span(),
 		)
 	}
+}
+
+func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNode) {
+	iface, ok := c.typeOf(node).(*types.Interface)
+	if !ok {
+		return
+	}
+	c.pushConstScope(makeLocalConstantScope(iface))
+
+	if len(node.TypeParameters) > 0 {
+		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+		for _, typeParamNode := range node.TypeParameters {
+			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+			if !ok {
+				continue
+			}
+
+			t := c.checkTypeParameterNode(varNode)
+			typeParams = append(typeParams, t)
+			typeParamNode.SetType(t)
+			iface.DefineSubtype(t.Name, t)
+			iface.DefineConstant(t.Name, types.NoValue{})
+		}
+
+		iface.TypeParameters = typeParams
+	}
+
+	c.popConstScope()
 }
 
 func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {

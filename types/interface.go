@@ -1,25 +1,26 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type Interface struct {
-	parent    *InterfaceProxy
-	singleton *SingletonClass
+	parent         Namespace
+	singleton      *SingletonClass
+	TypeParameters []*TypeParameter
 	NamespaceBase
+}
+
+func (i *Interface) IsGeneric() bool {
+	return len(i.TypeParameters) > 0
 }
 
 func IsInterface(typ Type) bool {
 	_, ok := typ.(*Interface)
 	return ok
-}
-
-func (i *Interface) ImplementInterface(implementedInterface *Interface) {
-	headProxy, tailProxy := implementedInterface.CreateProxy()
-	tailProxy.SetParent(i.Parent())
-	i.SetParent(headProxy)
 }
 
 func (i *Interface) Singleton() *SingletonClass {
@@ -39,14 +40,11 @@ func (*Interface) IsPrimitive() bool {
 }
 
 func (i *Interface) Parent() Namespace {
-	if i.parent == nil {
-		return nil
-	}
 	return i.parent
 }
 
 func (i *Interface) SetParent(parent Namespace) {
-	i.parent = parent.(*InterfaceProxy)
+	i.parent = parent
 }
 
 func NewInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
@@ -75,24 +73,47 @@ func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMa
 // Returns two values, the head and tail proxies.
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
-func (i *Interface) CreateProxy() (head, tail *InterfaceProxy) {
+func (i *Interface) CreateProxy() (head *InterfaceProxy, tail Namespace) {
 	var headParent Namespace
 	if i.parent != nil {
 		headParent = i.parent
 	}
 	headProxy := NewInterfaceProxy(i, headParent)
 
-	tailProxy := headProxy
+	var tailProxy Namespace = headProxy
 	baseProxy := i.parent
-	for baseProxy != nil {
-		proxyCopy := NewInterfaceProxy(baseProxy.Interface, nil)
-		tailProxy.parent = proxyCopy
-		tailProxy = proxyCopy
 
-		if baseProxy.parent == nil {
-			break
+loop:
+	for baseProxy != nil {
+		switch base := baseProxy.(type) {
+		case *InterfaceProxy:
+			proxyCopy := NewInterfaceProxy(base.Interface, nil)
+			tailProxy.SetParent(proxyCopy)
+			tailProxy = proxyCopy
+
+			if base.parent == nil {
+				break loop
+			}
+			baseProxy = base.parent
+		case *Generic:
+			switch n := base.Namespace.(type) {
+			case *InterfaceProxy:
+				var proxyCopy Namespace
+				proxyCopy = NewInterfaceProxy(n.Interface, nil)
+				proxyCopy = NewGeneric(proxyCopy, base.TypeArguments)
+				tailProxy.SetParent(proxyCopy)
+				tailProxy = proxyCopy
+
+				if n.parent == nil {
+					break loop
+				}
+				baseProxy = n.parent
+			default:
+				panic(fmt.Sprintf("invalid interface ancestor: %T", base.Namespace))
+			}
+		default:
+			panic(fmt.Sprintf("invalid interface ancestor: %T", baseProxy))
 		}
-		baseProxy = baseProxy.parent.(*InterfaceProxy)
 	}
 
 	return headProxy, tailProxy

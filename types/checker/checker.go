@@ -3283,6 +3283,21 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 		generic := types.NewGeneric(t, typeArgumentMap)
 		node.SetType(generic)
 		return node, fullName
+	case *types.Interface:
+		typeArgumentMap, ok := c.checkTypeArguments(
+			constantType,
+			node.TypeArguments,
+			t.TypeParameters,
+			node.Constant.Span(),
+		)
+		if !ok {
+			node.SetType(types.Nothing{})
+			return node, fullName
+		}
+
+		generic := types.NewGeneric(t, typeArgumentMap)
+		node.SetType(generic)
+		return node, fullName
 	case types.Nothing:
 		node.SetType(types.Nothing{})
 		return node, fullName
@@ -3308,6 +3323,11 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 			typ = types.Nothing{}
 		}
 	case *types.Mixin:
+		if t.IsGeneric() {
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
+			typ = types.Nothing{}
+		}
+	case *types.Interface:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 			typ = types.Nothing{}
@@ -4554,6 +4574,7 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 		node.Span(),
 	)
 	node.SetType(iface)
+	c.registerNamespaceDeclarationCheck(fullConstantName, node, iface)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	prevMode := c.mode
