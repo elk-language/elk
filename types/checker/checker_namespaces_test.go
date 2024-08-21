@@ -606,6 +606,72 @@ func TestGenericClass(t *testing.T) {
 				class Bar[V] < Foo[V]; end
 			`,
 		},
+		"inherit from generic class forwarding covariant type argument as covariant": {
+			input: `
+				class Foo[+V]; end
+				class Bar[+V] < Foo[V]; end
+			`,
+		},
+		"inherit from generic class forwarding contravariant type argument as contravariant": {
+			input: `
+				class Foo[-V]; end
+				class Bar[-V] < Foo[V]; end
+			`,
+		},
+		"inherit from generic class forwarding invariant type argument as covariant": {
+			input: `
+				class Foo[+V]; end
+				class Bar[V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 24), P(47, 3, 24)), "invariant type `V` cannot appear in covariant position"),
+			},
+		},
+		"inherit from generic class forwarding invariant type argument as contravariant": {
+			input: `
+				class Foo[-V]; end
+				class Bar[V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 24), P(47, 3, 24)), "invariant type `V` cannot appear in contravariant position"),
+			},
+		},
+		"inherit from generic class forwarding covariant type argument as invariant": {
+			input: `
+				class Foo[V]; end
+				class Bar[+V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "covariant type `V` cannot appear in invariant position"),
+			},
+		},
+		"inherit from generic class forwarding contravariant type argument as invariant": {
+			input: `
+				class Foo[V]; end
+				class Bar[-V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "contravariant type `V` cannot appear in invariant position"),
+			},
+		},
+		"inherit from generic class forwarding covariant type argument as contravariant": {
+			input: `
+				class Foo[-V]; end
+				class Bar[+V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "covariant type `V` cannot appear in contravariant position"),
+			},
+		},
+		"inherit from generic class forwarding contravariant type argument as covariant": {
+			input: `
+				class Foo[+V]; end
+				class Bar[-V] < Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "contravariant type `V` cannot appear in covariant position"),
+			},
+		},
 		"inherit from generic class without type arguments": {
 			input: `
 				class Foo[V]; end

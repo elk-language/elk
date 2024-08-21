@@ -2195,7 +2195,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		}
 		switch t := typeArgument.(type) {
 		case *types.TypeParameter:
-			if t.Variance != types.INVARIANT && t.Variance != typeParameter.Variance {
+			if t.Variance != typeParameter.Variance {
 				c.addFailure(
 					fmt.Sprintf(
 						"%s type `%s` cannot appear in %s position",
