@@ -244,8 +244,13 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 }
 
 func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
+	prevMode := c.mode
+	c.mode = inheritanceMode
+
 	n := c.checkComplexConstantType(node)
 	constantType := c.typeOf(n)
+
+	c.mode = prevMode
 
 	if types.IsNothing(constantType) || constantType == nil {
 		return

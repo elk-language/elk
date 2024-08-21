@@ -1346,6 +1346,14 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
+		"include generic mixin forwarding type arguments": {
+			input: `
+				mixin Foo[V]; end
+			  class Bar[V]
+					include Foo[V]
+				end
+			`,
+		},
 		"include in class": {
 			input: `
 				mixin Foo; end
