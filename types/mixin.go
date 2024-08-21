@@ -1,15 +1,22 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type Mixin struct {
-	parent    Namespace
-	abstract  bool
-	singleton *SingletonClass
+	parent         Namespace
+	abstract       bool
+	singleton      *SingletonClass
+	TypeParameters []*TypeParameter
 	NamespaceBase
+}
+
+func (m *Mixin) IsGeneric() bool {
+	return len(m.TypeParameters) > 0
 }
 
 func IsMixin(typ Type) bool {
@@ -21,6 +28,21 @@ func (m *Mixin) IncludeMixin(includedMixin *Mixin) {
 	headProxy, tailProxy := includedMixin.CreateProxy()
 	tailProxy.SetParent(m.Parent())
 	m.SetParent(headProxy)
+}
+
+func (m *Mixin) IncludeGenericMixin(includedNamespace Namespace) {
+	switch included := includedNamespace.(type) {
+	case *Mixin:
+		m.IncludeMixin(included)
+	case *Generic:
+		includedMixin := included.Namespace.(*Mixin)
+		headProxy, tailProxy := includedMixin.CreateProxy()
+		head := NewGeneric(headProxy, included.TypeArguments)
+		tailProxy.SetParent(m.Parent())
+		m.SetParent(head)
+	default:
+		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
+	}
 }
 
 func (m *Mixin) ImplementInterface(iface *Interface) {
@@ -56,18 +78,6 @@ func (m *Mixin) Parent() Namespace {
 
 func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
-}
-
-func (m *Mixin) DeclaresInstanceVariables() bool {
-	var currentNamespace Namespace = m
-
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if currentNamespace.InstanceVariables().Len() > 0 {
-			return true
-		}
-	}
-
-	return false
 }
 
 func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
@@ -132,6 +142,35 @@ loop:
 				break loop
 			}
 			baseProxy = base.parent
+		case *Generic:
+			switch n := base.Namespace.(type) {
+			case *MixinProxy:
+				var proxyCopy Namespace
+				proxyCopy = NewMixinProxy(n.Mixin, nil)
+				proxyCopy = NewGeneric(proxyCopy, base.TypeArguments)
+				tailProxy.SetParent(proxyCopy)
+				tailProxy = proxyCopy
+
+				if n.parent == nil {
+					break loop
+				}
+				baseProxy = n.parent
+			case *InterfaceProxy:
+				var proxyCopy Namespace
+				proxyCopy = NewInterfaceProxy(n.Interface, nil)
+				proxyCopy = NewGeneric(proxyCopy, base.TypeArguments)
+				tailProxy.SetParent(proxyCopy)
+				tailProxy = proxyCopy
+
+				if n.parent == nil {
+					break loop
+				}
+				baseProxy = n.parent
+			default:
+				panic(fmt.Sprintf("invalid mixin ancestor: %T", base.Namespace))
+			}
+		default:
+			panic(fmt.Sprintf("invalid mixin ancestor: %T", baseProxy))
 		}
 	}
 

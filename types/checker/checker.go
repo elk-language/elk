@@ -1950,96 +1950,6 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 	}
 }
 
-func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
-	constantType, _ := c.resolveConstantType(node)
-
-	if types.IsNothing(constantType) || constantType == nil {
-		return
-	}
-	constantMixin, constantIsMixin := constantType.(*types.Mixin)
-	if !constantIsMixin {
-		c.addFailure(
-			"only mixins can be included",
-			node.Span(),
-		)
-		return
-	}
-	node.SetType(constantMixin)
-
-	target := c.currentConstScope().container
-	if c.isSubtypeOfMixin(target, constantMixin, nil) {
-		return
-	}
-
-	if target.IsPrimitive() && constantMixin.DeclaresInstanceVariables() {
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot include mixin with instance variables `%s` in primitive `%s`",
-				types.InspectWithColor(constantType),
-				types.InspectWithColor(target),
-			),
-			node.Span(),
-		)
-	}
-
-	switch t := target.(type) {
-	case *types.Class:
-		t.IncludeMixin(constantMixin)
-	case *types.SingletonClass:
-		t.IncludeMixin(constantMixin)
-	case *types.Mixin:
-		t.IncludeMixin(constantMixin)
-	default:
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot include `%s` in `%s`",
-				types.InspectWithColor(constantType),
-				types.InspectWithColor(t),
-			),
-			node.Span(),
-		)
-	}
-}
-
-func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
-	constantType, _ := c.resolveConstantType(node)
-
-	if types.IsNothing(constantType) || constantType == nil {
-		return
-	}
-	constantInterface, constantIsInterface := constantType.(*types.Interface)
-	if !constantIsInterface {
-		c.addFailure(
-			"only interfaces can be implemented",
-			node.Span(),
-		)
-		return
-	}
-
-	target := c.currentConstScope().container
-	if c.implementsInterface(target, constantInterface) {
-		return
-	}
-
-	switch t := target.(type) {
-	case *types.Class:
-		t.ImplementInterface(constantInterface)
-	case *types.Mixin:
-		t.ImplementInterface(constantInterface)
-	case *types.Interface:
-		t.ImplementInterface(constantInterface)
-	default:
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot implement `%s` in `%s`",
-				types.InspectWithColor(constantType),
-				types.InspectWithColor(t),
-			),
-			node.Span(),
-		)
-	}
-}
-
 func (c *Checker) typeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
@@ -3358,6 +3268,21 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 		generic := types.NewGeneric(t, typeArgumentMap)
 		node.SetType(generic)
 		return node, fullName
+	case *types.Mixin:
+		typeArgumentMap, ok := c.checkTypeArguments(
+			constantType,
+			node.TypeArguments,
+			t.TypeParameters,
+			node.Constant.Span(),
+		)
+		if !ok {
+			node.SetType(types.Nothing{})
+			return node, fullName
+		}
+
+		generic := types.NewGeneric(t, typeArgumentMap)
+		node.SetType(generic)
+		return node, fullName
 	case types.Nothing:
 		node.SetType(types.Nothing{})
 		return node, fullName
@@ -3378,6 +3303,11 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 		typ = types.Nothing{}
 	case *types.Class:
+		if t.IsGeneric() {
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
+			typ = types.Nothing{}
+		}
+	case *types.Mixin:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
 			typ = types.Nothing{}
@@ -4590,6 +4520,7 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 		node.Span(),
 	)
 	node.SetType(mixin)
+	c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin)
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	prevMode := c.mode

@@ -234,11 +234,144 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 			n.SetType(types.Nothing{})
 		case *ast.ClassDeclarationNode:
 			c.checkClassInheritance(n)
+		case *ast.MixinDeclarationNode:
+			c.checkMixinTypeParameters(n)
 		}
 	}
 
 	typedefCheck.state = CHECKED_TYPEDEF
 	return true
+}
+
+func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
+	n := c.checkComplexConstantType(node)
+	constantType := c.typeOf(n)
+
+	if types.IsNothing(constantType) || constantType == nil {
+		return
+	}
+	var constantNamespace types.Namespace
+	switch con := constantType.(type) {
+	case *types.Mixin:
+		constantNamespace = con
+	case *types.Generic:
+		if _, ok := con.Namespace.(*types.Mixin); !ok {
+			c.addFailure(
+				"only mixins can be included",
+				node.Span(),
+			)
+			return
+		}
+		constantNamespace = con
+	default:
+		c.addFailure(
+			"only mixins can be included",
+			node.Span(),
+		)
+		return
+	}
+	node.SetType(constantNamespace)
+
+	target := c.currentConstScope().container
+	if c.isSubtype(target, constantNamespace, nil) {
+		return
+	}
+
+	if target.IsPrimitive() && types.NamespaceDeclaresInstanceVariables(constantNamespace) {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot include mixin with instance variables `%s` in primitive `%s`",
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(target),
+			),
+			node.Span(),
+		)
+	}
+
+	switch t := target.(type) {
+	case *types.Class:
+		t.IncludeGenericMixin(constantNamespace)
+	case *types.SingletonClass:
+		t.IncludeGenericMixin(constantNamespace)
+	case *types.Mixin:
+		t.IncludeGenericMixin(constantNamespace)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot include `%s` in `%s`",
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(t),
+			),
+			node.Span(),
+		)
+	}
+}
+
+func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
+	constantType, _ := c.resolveConstantType(node)
+
+	if types.IsNothing(constantType) || constantType == nil {
+		return
+	}
+	constantInterface, constantIsInterface := constantType.(*types.Interface)
+	if !constantIsInterface {
+		c.addFailure(
+			"only interfaces can be implemented",
+			node.Span(),
+		)
+		return
+	}
+
+	target := c.currentConstScope().container
+	if c.implementsInterface(target, constantInterface) {
+		return
+	}
+
+	switch t := target.(type) {
+	case *types.Class:
+		t.ImplementInterface(constantInterface)
+	case *types.Mixin:
+		t.ImplementInterface(constantInterface)
+	case *types.Interface:
+		t.ImplementInterface(constantInterface)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot implement `%s` in `%s`",
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(t),
+			),
+			node.Span(),
+		)
+	}
+}
+
+func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
+	mixin, ok := c.typeOf(node).(*types.Mixin)
+	if !ok {
+		return
+	}
+	c.pushConstScope(makeLocalConstantScope(mixin))
+
+	if len(node.TypeParameters) > 0 {
+		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+		for _, typeParamNode := range node.TypeParameters {
+			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+			if !ok {
+				continue
+			}
+
+			t := c.checkTypeParameterNode(varNode)
+			typeParams = append(typeParams, t)
+			typeParamNode.SetType(t)
+			mixin.DefineSubtype(t.Name, t)
+			mixin.DefineConstant(t.Name, types.NoValue{})
+		}
+
+		mixin.TypeParameters = typeParams
+	}
+
+	c.popConstScope()
 }
 
 func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {

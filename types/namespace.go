@@ -48,6 +48,18 @@ type Namespace interface {
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
+func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
+	var currentNamespace Namespace = namespace
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		if currentNamespace.InstanceVariables().Len() > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (Type, Namespace) {
 	currentNamespace := namespace
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {

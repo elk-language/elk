@@ -1324,6 +1324,28 @@ func TestInclude(t *testing.T) {
 				error.NewFailure(L("<main>", P(44, 4, 6), P(54, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
+		"include generic mixin without type arguments": {
+			input: `
+				mixin Foo[V]; end
+			  class Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
+			},
+		},
+		"include generic mixin with too many type arguments": {
+			input: `
+				mixin Foo[V]; end
+			  class Bar
+					include Foo[String, Int]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
+			},
+		},
 		"include in class": {
 			input: `
 				mixin Foo; end

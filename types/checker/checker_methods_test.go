@@ -2844,6 +2844,17 @@ func TestConstructorCallInference(t *testing.T) {
 
 func TestMethodInheritance(t *testing.T) {
 	tests := testTable{
+		"call a method inherited from generic superclass": {
+			input: `
+				class Foo[V]
+					def baz(a: V): V then a
+				end
+
+				class Bar < Foo[Int]; end
+				var bar = Bar()
+				bar.baz(5)
+			`,
+		},
 		"call a method inherited from superclass": {
 			input: `
 				class Foo
@@ -2867,6 +2878,38 @@ func TestMethodInheritance(t *testing.T) {
 
 				var foo = Foo()
 				foo.baz(5)
+			`,
+		},
+		"call a method inherited from generic mixin": {
+			input: `
+				mixin Bar[V]
+					def baz(a: V): V then a
+				end
+
+				class Foo
+					include Bar[Int]
+				end
+
+				var foo = Foo()
+				foo.baz(5)
+			`,
+		},
+		"call a method inherited from generic mixin included in mixin": {
+			input: `
+				mixin Bar[V]
+					def bar(a: V): V then a
+				end
+
+				mixin Baz
+					include Bar[Int]
+				end
+
+				class Foo
+					include Baz
+				end
+
+				var foo = Foo()
+				foo.bar(5)
 			`,
 		},
 		"call a method on a mixin type": {
