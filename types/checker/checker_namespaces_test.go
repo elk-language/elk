@@ -1749,6 +1749,29 @@ func TestImplement(t *testing.T) {
 
 func TestMixinType(t *testing.T) {
 	tests := testTable{
+		"assign class to generic mixin": {
+			input: `
+				mixin Bar[V]; end
+				class Foo
+					include Bar[String]
+				end
+
+				var a: Bar[String] = Foo()
+			`,
+		},
+		"assign class to generic mixin with wrong parameters": {
+			input: `
+				mixin Bar[V]; end
+				class Foo
+					include Bar[String]
+				end
+
+				var a: Bar[Int] = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 7, 23), P(97, 7, 27)), "type `Foo` cannot be assigned to type `Bar[Std::Int]`"),
+			},
+		},
 		"assign instance of related class to mixin": {
 			input: `
 				mixin Bar; end
