@@ -1196,7 +1196,7 @@ func (c *Checker) declareMethod(
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
 	span *position.Span,
-) (*types.Method, *types.Module) {
+) (*types.Method, *types.TypeParamNamespace) {
 	prevMode := c.mode
 	if c.mode == interfaceMode {
 		abstract = true
@@ -1257,10 +1257,11 @@ func (c *Checker) declareMethod(
 	}
 
 	var typeParams []*types.TypeParameter
-	var typeParamMod *types.Module
+	var typeParamMod *types.TypeParamNamespace
 	if len(typeParamNodes) > 0 {
 		typeParams = make([]*types.TypeParameter, 0, len(typeParamNodes))
-		typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name))
+		typeParamMod = types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name))
+		c.pushConstScope(makeConstantScope(typeParamMod))
 		for _, typeParamNode := range typeParamNodes {
 			node, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 			if !ok {
@@ -1273,7 +1274,6 @@ func (c *Checker) declareMethod(
 			typeParamMod.DefineSubtype(t.Name, t)
 			typeParamMod.DefineConstant(t.Name, types.NoValue{})
 		}
-		c.pushConstScope(makeConstantScope(typeParamMod))
 	}
 
 	c.mode = paramTypeMode

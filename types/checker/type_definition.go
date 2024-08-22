@@ -160,6 +160,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name))
+	c.pushConstScope(makeConstantScope(typeParamMod))
 	for _, typeParamNode := range node.TypeParameters {
 		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
@@ -175,7 +176,6 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 
 	prevMode := c.mode
 	c.mode = namedGenericTypeDefinitionMode
-	c.pushConstScope(makeConstantScope(typeParamMod))
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	typ := c.typeOf(node.TypeNode)
@@ -189,14 +189,10 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 }
 
 func (c *Checker) checkTypeDefinitions() {
-	oldFilename := c.Filename
-	oldConstantScopes := c.constantScopes
 	for _, typeName := range c.typeDefinitionChecks.order {
 		typedefCheck := c.typeDefinitionChecks.m[typeName]
 		c.checkTypeDefinition(typedefCheck, nil)
 	}
-	c.Filename = oldFilename
-	c.constantScopes = oldConstantScopes
 	c.typeDefinitionChecks = newTypeDefinitionChecks()
 }
 
@@ -214,6 +210,8 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 
 	typedefCheck.state = CHECKING_TYPEDEF
 
+	oldFilename := c.Filename
+	oldConstantScopes := c.constantScopes
 	for _, entry := range typedefCheck.entries {
 		c.Filename = entry.filename
 		c.constantScopes = entry.constantScopes
@@ -240,6 +238,8 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 			c.checkInterfaceTypeParameters(n)
 		}
 	}
+	c.Filename = oldFilename
+	c.constantScopes = oldConstantScopes
 
 	typedefCheck.state = CHECKED_TYPEDEF
 	return true
@@ -556,8 +556,10 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode) *ty
 		upperType = c.typeOf(node.UpperBound)
 	}
 
+	namespace := c.currentConstScope().container
 	return types.NewTypeParameter(
 		value.ToSymbol(node.Name),
+		namespace,
 		lowerType,
 		upperType,
 		variance,

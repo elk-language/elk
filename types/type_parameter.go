@@ -33,14 +33,16 @@ var varianceString = []string{
 
 type TypeParameter struct {
 	Name       value.Symbol
+	Namespace  Namespace
 	LowerBound Type
 	UpperBound Type
 	Variance   Variance
 }
 
-func NewTypeParameter(name value.Symbol, lowerBound, upperBound Type, variance Variance) *TypeParameter {
+func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound Type, variance Variance) *TypeParameter {
 	return &TypeParameter{
 		Name:       name,
+		Namespace:  namespace,
 		LowerBound: lowerBound,
 		UpperBound: upperBound,
 		Variance:   variance,
