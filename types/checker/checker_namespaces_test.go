@@ -594,6 +594,48 @@ func TestClass(t *testing.T) {
 
 func TestGenericClass(t *testing.T) {
 	tests := testTable{
+		"assign to related generic mixin with correct type args": {
+			input: `
+				mixin Bar[K, V]; end
+
+				class Foo[V]
+					include Bar[String, V]
+				end
+
+				var a: Bar[String, Int] = Foo::[Int]()
+			`,
+		},
+		"assign to related generic mixin with incorrect type args": {
+			input: `
+				mixin Bar[K, V]; end
+
+				class Foo[V]
+					include Bar[String, V]
+				end
+
+				var a: Bar[String, Float] = Foo::[Int]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(113, 8, 33), P(124, 8, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
+			},
+		},
+		"assign to distantly related generic mixin with correct type args": {
+			input: `
+				mixin Qux[E]; end
+				mixin Baz[F]
+					include Qux[F]
+				end
+				mixin Bar[K, V]
+					include Baz[V]
+				end
+
+				class Foo[V]
+					include Bar[String, V]
+				end
+
+				var a: Qux[Int] = Foo::[Int]()
+			`,
+		},
 		"inherit from generic class specifying type arguments": {
 			input: `
 				class Foo[V]; end

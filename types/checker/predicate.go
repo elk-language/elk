@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/position"
@@ -267,7 +268,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
 		case *types.Mixin:
 			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+		case *types.MixinProxy:
+			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
 		case *types.Interface:
+			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+		case *types.InterfaceProxy:
 			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
 		default:
 			return false
@@ -288,12 +293,12 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		}
 		return a.Name == b.Name
 	case *types.Generic:
-		genericB, ok := b.(*types.Generic)
-		if !ok {
+		switch narrowedB := b.(type) {
+		case *types.Generic:
+			return c.isSubtypeOfGeneric(a, narrowedB, errSpan)
+		default:
 			return c.isSubtype(a.Namespace, b, errSpan)
 		}
-		return c.isSubtype(a.Namespace, genericB.Namespace, errSpan) &&
-			c.typeArgsAreSubtype(a.TypeArguments, genericB.TypeArguments, errSpan)
 	case *types.Method:
 		b, ok := b.(*types.Method)
 		if !ok {
@@ -432,17 +437,7 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 	case *types.SingletonOf:
 		return c.isSubtype(a.AttachedObject, b.Type, errSpan)
 	case *types.Class:
-		var currentClass types.Namespace = a
-		for {
-			if currentClass == nil {
-				return false
-			}
-			if currentClass == b {
-				return true
-			}
-
-			currentClass = currentClass.Parent()
-		}
+		return c.isSubtypeOfClass(a, b)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.Generic:
@@ -459,28 +454,17 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		var currentParent types.Namespace = a
-		for {
-			if currentParent == b {
-				return true
-			}
-			switch p := currentParent.(type) {
-			case nil:
-				return false
-			case *types.Generic:
-				if p.Namespace == b {
-					return true
-				}
-			}
-
-			currentParent = currentParent.Parent()
-		}
+		return c.isSubtypeOfClass(a, b)
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, b, errSpan)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
+	case *types.MixinProxy:
+		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.InterfaceProxy:
+		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
 	case *types.Closure:
 		return c.isSubtypeOfClosure(a, b, errSpan)
 	default:
@@ -491,21 +475,17 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position
 func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		var currentClass types.Namespace = a
-		for {
-			if currentClass == nil {
-				return false
-			}
-			if currentClass == b {
-				return true
-			}
-
-			currentClass = currentClass.Parent()
-		}
+		return c.isSubtypeOfClass(a, b)
+	case *types.Generic:
+		return c.isSubtypeOfGeneric(a, b, errSpan)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
+	case *types.MixinProxy:
+		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.InterfaceProxy:
+		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
 	case *types.Closure:
 		return c.isSubtypeOfClosure(a, b, errSpan)
 	case *types.Module:
@@ -518,23 +498,17 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *positi
 func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		var currentClass types.Namespace = a
-		for {
-			if currentClass == nil {
-				return false
-			}
-			if currentClass == b {
-				return true
-			}
-
-			currentClass = currentClass.Parent()
-		}
+		return c.isSubtypeOfClass(a, b)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
+	case *types.MixinProxy:
+		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, b, errSpan)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errSpan)
+	case *types.InterfaceProxy:
+		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
 	case *types.Closure:
 		return c.isSubtypeOfClosure(a, b, errSpan)
 	default:
@@ -543,40 +517,74 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 }
 
 func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
-	var currentContainer types.Namespace = a
-	for currentContainer != nil {
-		cont, ok := currentContainer.(*types.Generic)
+	var currentParent types.Namespace = a
+	var generics []*types.Generic
+
+	for currentParent != nil {
+		parent, ok := currentParent.(*types.Generic)
 		if !ok {
-			currentContainer = currentContainer.Parent()
+			currentParent = currentParent.Parent()
 			continue
 		}
-		if c.isSubtype(cont, b, errSpan) {
-			return true
-		}
 
-		currentContainer = currentContainer.Parent()
+		if c.isTheSameType(parent.Namespace, b.Namespace, nil) {
+			var target types.Type = parent
+			for _, generic := range slices.Backward(generics) {
+				target = c.replaceTypeParametersOfGeneric(target, generic)
+				if target == nil {
+					return false
+				}
+			}
+			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan)
+		}
+		generics = append(generics, parent)
+
+		currentParent = currentParent.Parent()
 	}
 
 	return false
 }
 
-func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
-	var currentContainer types.Namespace = a
+func (c *Checker) isSubtypeOfClass(a types.Namespace, b *types.Class) bool {
+	var currentParent types.Namespace = a
 	for {
-		switch cont := currentContainer.(type) {
+		if currentParent == b {
+			return true
+		}
+		switch p := currentParent.(type) {
+		case nil:
+			return false
+		case *types.Generic:
+			if p.Namespace == b {
+				return true
+			}
+		}
+
+		currentParent = currentParent.Parent()
+	}
+}
+
+func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
+	var currentParent types.Namespace = a
+	for {
+		switch p := currentParent.(type) {
 		case *types.Mixin:
-			if cont == b {
+			if p == b {
 				return true
 			}
 		case *types.MixinProxy:
-			if cont.Mixin == b {
+			if p.Mixin == b {
+				return true
+			}
+		case *types.Generic:
+			if p.Namespace == b {
 				return true
 			}
 		case nil:
 			return false
 		}
 
-		currentContainer = currentContainer.Parent()
+		currentParent = currentParent.Parent()
 	}
 }
 
@@ -586,23 +594,27 @@ type methodOverride struct {
 }
 
 func (c *Checker) implementsInterface(a types.Namespace, b *types.Interface) bool {
-	var currentContainer types.Namespace = a
+	var currentParent types.Namespace = a
 loop:
 	for {
-		switch cont := currentContainer.(type) {
+		switch p := currentParent.(type) {
 		case *types.Interface:
-			if cont == b {
+			if p == b {
 				return true
 			}
 		case *types.InterfaceProxy:
-			if cont.Interface == b {
+			if p.Interface == b {
+				return true
+			}
+		case *types.Generic:
+			if p.Namespace == b {
 				return true
 			}
 		case nil:
 			break loop
 		}
 
-		currentContainer = currentContainer.Parent()
+		currentParent = currentParent.Parent()
 	}
 
 	return false

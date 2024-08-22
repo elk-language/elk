@@ -449,6 +449,154 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	}
 }
 
+func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.Generic) types.Type {
+	switch t := typ.(type) {
+	case types.Self:
+		arg := generic.ArgumentMap[symbol.M_self]
+		if arg == nil {
+			return t
+		}
+		return arg.Type
+	case *types.TypeParameter:
+		if !c.isTheSameType(t.Namespace, generic.Namespace, nil) {
+			return t
+		}
+		arg := generic.ArgumentMap[t.Name]
+		if arg == nil {
+			return t
+		}
+		return arg.Type
+	case *types.SingletonOf:
+		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
+		if result == t.Type {
+			return t
+		}
+		return types.NewSingletonOf(
+			result,
+		)
+	case *types.InstanceOf:
+		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
+		if result == t.Type {
+			return t
+		}
+		return types.NewInstanceOf(
+			result,
+		)
+	case *types.Closure:
+		newParams := make([]*types.Parameter, len(t.Body.Params))
+		var isDifferent bool
+		for i, param := range t.Body.Params {
+			result := c.replaceTypeParametersOfGeneric(param.Type, generic)
+			if result == param.Type {
+				newParams[i] = param
+				continue
+			}
+
+			newParam := param.Copy()
+			newParam.Type = result
+			newParams[i] = newParam
+			isDifferent = true
+		}
+
+		returnType := c.replaceTypeParametersOfGeneric(t.Body.ReturnType, generic)
+		if returnType != t.Body.ReturnType {
+			isDifferent = true
+		}
+		throwType := c.replaceTypeParametersOfGeneric(t.Body.ThrowType, generic)
+		if throwType != t.Body.ThrowType {
+			isDifferent = true
+		}
+
+		if !isDifferent {
+			return t
+		}
+		method := (&t.Body).Copy()
+		method.Params = newParams
+		method.ReturnType = returnType
+		method.ThrowType = throwType
+
+		closure := types.NewClosure(*method)
+		method.DefinedUnder = closure
+		return closure
+	case *types.Generic:
+		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+		var isDifferent bool
+		for key, arg := range t.ArgumentMap {
+			if key == symbol.M_self {
+				continue
+			}
+
+			result := c.replaceTypeParametersOfGeneric(arg.Type, generic)
+			if result == arg.Type {
+				newMap[key] = arg
+				continue
+			}
+			newMap[key] = types.NewTypeArgument(
+				result,
+				arg.Variance,
+			)
+			isDifferent = true
+		}
+		result := c.replaceTypeParametersOfGeneric(t.Namespace, generic)
+		if result != t.Namespace {
+			isDifferent = true
+		}
+		if !isDifferent {
+			return t
+		}
+
+		return types.NewGeneric(
+			result.(types.Namespace),
+			types.NewTypeArguments(
+				newMap,
+				t.ArgumentOrder,
+			),
+		)
+	case *types.Nilable:
+		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
+		if result == t.Type {
+			return t
+		}
+		return types.NewNilable(result)
+	case *types.Not:
+		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
+		if result == t.Type {
+			return t
+		}
+		return types.NewNot(result)
+	case *types.Union:
+		newElements := make([]types.Type, len(t.Elements))
+		var isDifferent bool
+		for i, element := range t.Elements {
+			result := c.replaceTypeParametersOfGeneric(element, generic)
+			if result != element {
+				isDifferent = true
+			}
+			newElements[i] = result
+		}
+		if !isDifferent {
+			return t
+		}
+		return types.NewUnion(newElements...)
+	case *types.Intersection:
+		newElements := make([]types.Type, len(t.Elements))
+		var isDifferent bool
+		for i, element := range t.Elements {
+			result := c.replaceTypeParametersOfGeneric(element, generic)
+			if result != element {
+				isDifferent = true
+			}
+			newElements[i] = result
+		}
+		if !isDifferent {
+			return t
+		}
+		return types.NewIntersection(newElements...)
+	default:
+		return t
+	}
+}
+
 func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
 	return c.normaliseType(c._replaceTypeParameters(typ, typeArgMap))
 }
@@ -517,8 +665,11 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
 		var isDifferent bool
 		for key, arg := range t.ArgumentMap {
+			if key == symbol.M_self {
+				continue
+			}
 			result := c._replaceTypeParameters(arg.Type, typeArgMap)
-			if result != arg.Type {
+			if result == arg.Type {
 				newMap[key] = arg
 				continue
 			}
