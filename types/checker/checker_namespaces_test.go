@@ -636,6 +636,37 @@ func TestGenericClass(t *testing.T) {
 				var a: Qux[Int] = Foo::[Int]()
 			`,
 		},
+
+		"assign to related generic class with correct type args": {
+			input: `
+				class Bar[K, V]; end
+				class Foo[V] < Bar[String, V]; end
+
+				var a: Bar[String, Int] = Foo::[Int]()
+			`,
+		},
+		"assign to related generic class with incorrect type args": {
+			input: `
+				class Bar[K, V]; end
+				class Foo[V] < Bar[String, V]; end
+
+				var a: Bar[String, Float] = Foo::[Int]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(98, 5, 33), P(109, 5, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
+			},
+		},
+		"assign to distantly related generic class with correct type args": {
+			input: `
+				class Qux[E]; end
+				class Baz[F] < Qux[F]; end
+				class Bar[K, V] < Baz[V]; end
+				class Foo[V] < Bar[String, V]; end
+
+				var a: Qux[Int] = Foo::[Int]()
+			`,
+		},
+
 		"inherit from generic class specifying type arguments": {
 			input: `
 				class Foo[V]; end
@@ -1791,6 +1822,61 @@ func TestImplement(t *testing.T) {
 
 func TestMixinType(t *testing.T) {
 	tests := testTable{
+		"assign to related generic mixin with correct type args": {
+			input: `
+				mixin Baz[K, V]; end
+
+				mixin Bar[V]
+					include Baz[String, V]
+				end
+
+				class Foo
+					include Bar[Int]
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Int] = a
+			`,
+		},
+		"assign to related generic mixin with incorrect type args": {
+			input: `
+				mixin Baz[K, V]; end
+
+				mixin Bar[V]
+					include Baz[String, V]
+				end
+
+				class Foo
+					include Bar[Int]
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Float] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(186, 13, 33), P(186, 13, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			},
+		},
+		"assign to distantly related generic mixin with correct type args": {
+			input: `
+				mixin Qux[E]; end
+				mixin Baz[F]
+					include Qux[F]
+				end
+				mixin Bar[K, V]
+					include Baz[V]
+				end
+				mixin Foob[V]
+					include Bar[String, V]
+				end
+				class Foo
+					include Foob[Int]
+				end
+
+				var a: Foob[Int] = Foo()
+				var b: Qux[Int] = a
+			`,
+		},
 		"assign class to generic mixin": {
 			input: `
 				mixin Bar[V]; end
