@@ -7,6 +7,7 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -517,6 +518,19 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 }
 
 func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
+	if c.isSubtypeOfGenericNamespace(a, b, errSpan) {
+		return true
+	}
+
+	switch b.Namespace.(type) {
+	case *types.Interface:
+		return c.isImplicitSubtypeOfInterface(a, b, errSpan)
+	default:
+		return false
+	}
+}
+
+func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
 	var currentParent types.Namespace = a
 	var generics []*types.Generic
 
@@ -593,7 +607,7 @@ type methodOverride struct {
 	override    *types.Method
 }
 
-func (c *Checker) implementsInterface(a types.Namespace, b *types.Interface) bool {
+func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Interface) bool {
 	var currentParent types.Namespace = a
 loop:
 	for {
@@ -607,7 +621,7 @@ loop:
 				return true
 			}
 		case *types.Generic:
-			if p.Namespace == b {
+			if c.isTheSameType(p.Namespace, b, nil) {
 				return true
 			}
 		case nil:
@@ -621,28 +635,27 @@ loop:
 }
 
 func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
-	if c.implementsInterface(a, b) {
+	if c.isExplicitSubtypeOfInterface(a, b) {
 		return true
 	}
 
+	return c.isImplicitSubtypeOfInterface(a, b, errSpan)
+}
+
+func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namespace, errSpan *position.Span) bool {
 	if c.phase == initPhase && len(b.Methods().Map) < 1 {
 		return false
 	}
 	var incorrectMethods []methodOverride
-	var currentInterface types.Namespace = b
-	for currentInterface != nil {
-		for _, abstractMethod := range currentInterface.Methods().Map {
-			method := c.resolveMethodInNamespace(a, abstractMethod.Name)
-			if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
-				incorrectMethods = append(incorrectMethods, methodOverride{
-					superMethod: abstractMethod,
-					override:    method,
-				})
-			}
+	c.foreachMethodInGenericNamespace(b, func(_ value.Symbol, abstractMethod *types.Method) {
+		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
+		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
+			incorrectMethods = append(incorrectMethods, methodOverride{
+				superMethod: abstractMethod,
+				override:    method,
+			})
 		}
-
-		currentInterface = currentInterface.Parent()
-	}
+	})
 
 	if len(incorrectMethods) > 0 {
 		methodDetailsBuff := new(strings.Builder)
@@ -727,8 +740,12 @@ func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errSpan *
 	switch narrowedB := b.(type) {
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+	case *types.InterfaceProxy:
+		return c.isSubtypeOfInterface(a, narrowedB.Interface, errSpan)
 	case *types.Closure:
 		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
+	case *types.Generic:
+		return c.isSubtypeOfGeneric(a, narrowedB, errSpan)
 	default:
 		return false
 	}
@@ -738,6 +755,8 @@ func (c *Checker) closureIsSubtype(a *types.Closure, b types.Type, errSpan *posi
 	switch narrowedB := b.(type) {
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+	case *types.InterfaceProxy:
+		return c.isSubtypeOfInterface(a, narrowedB.Interface, errSpan)
 	case *types.Closure:
 		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
 	default:

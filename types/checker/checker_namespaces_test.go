@@ -2257,6 +2257,129 @@ func TestInterface(t *testing.T) {
 
 func TestInterfaceType(t *testing.T) {
 	tests := testTable{
+		"assign to related generic interface with correct type args": {
+			input: `
+				interface Baz[K, V]
+					def baz: V; end
+				end
+
+				interface Bar[V]
+					implement Baz[String, V]
+				end
+
+				class Foo
+					implement Bar[Int]
+
+					def baz: Int then 3
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Int] = a
+			`,
+		},
+		"assign to implicit generic interface with correct type args": {
+			input: `
+				interface Baz[K, V]
+					def baz: V; end
+				end
+
+				interface Bar[V]
+					implement Baz[String, V]
+				end
+
+				class Foo
+					def baz: Int then 3
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Int] = a
+			`,
+		},
+		"assign to related generic interface with incorrect type args": {
+			input: `
+				interface Baz[K, V]
+					def baz: V; end
+				end
+
+				interface Bar[V]
+					implement Baz[String, V]
+				end
+
+				class Foo
+					implement Bar[Int]
+
+					def baz: Int then 3
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Float] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			},
+		},
+		"assign to implicit generic interface with incorrect type args": {
+			input: `
+				interface Baz[K, V]
+					def baz: V; end
+				end
+
+				interface Bar[V]
+					implement Baz[String, V]
+				end
+
+				class Foo
+					def baz: Int then 3
+				end
+
+				var a: Bar[Int] = Foo()
+				var b: Baz[String, Float] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			},
+		},
+		"assign to distantly related generic interface with correct type args": {
+			input: `
+				interface Qux[E]; end
+				interface Baz[F]
+					implement Qux[F]
+				end
+				interface Bar[K, V]
+					implement Baz[V]
+				end
+				interface Foob[V]
+					implement Bar[String, V]
+				end
+				class Foo
+					implement Foob[Int]
+				end
+
+				var a: Foob[Int] = Foo()
+				var b: Qux[Int] = a
+			`,
+		},
+		"assign to distantly implicitly related generic interface with correct type args": {
+			input: `
+				interface Qux[E]; end
+				interface Baz[F]
+					implement Qux[F]
+				end
+				interface Bar[K, V]
+					implement Baz[V]
+				end
+				interface Foob[V]
+					implement Bar[String, V]
+				end
+				class Foo; end
+
+				var a: Foob[Int] = Foo()
+				var b: Qux[Int] = a
+			`,
+		},
+
 		"assign instance of class that implements the interface explicitly": {
 			input: `
 				interface Foo
