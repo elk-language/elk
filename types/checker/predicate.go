@@ -647,7 +647,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 		return false
 	}
 	var incorrectMethods []methodOverride
-	c.foreachMethodInGenericNamespace(b, func(_ value.Symbol, abstractMethod *types.Method) {
+	c.foreachMethodInNamespace(b, func(_ value.Symbol, abstractMethod *types.Method) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
 		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
 			incorrectMethods = append(incorrectMethods, methodOverride{

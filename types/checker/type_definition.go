@@ -359,10 +359,6 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	}
 
 	target := c.currentConstScope().container
-	// TODO
-	// if c.implementsInterface(target, constantNamespace) {
-	// 	return
-	// }
 
 	switch t := target.(type) {
 	case *types.Class:

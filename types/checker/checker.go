@@ -1765,32 +1765,19 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 		return
 	}
 
-	parent := namespace.Parent()
-
-	for parent != nil {
-		if !parent.IsAbstract() {
-			parent = parent.Parent()
-			continue
+	c.foreachAbstractMethodInNamespace(namespace.Parent(), func(name value.Symbol, parentMethod *types.Method) {
+		method := c.resolveMethodInNamespace(namespace, parentMethod.Name)
+		if method == nil || method.IsAbstract() {
+			c.addFailure(
+				fmt.Sprintf(
+					"missing abstract method implementation `%s` with signature: `%s`",
+					types.InspectWithColor(parentMethod),
+					parentMethod.InspectSignatureWithColor(false),
+				),
+				span,
+			)
 		}
-		for _, parentMethod := range parent.Methods().Map {
-			if !parentMethod.IsAbstract() {
-				continue
-			}
-
-			method := c.resolveMethodInNamespace(namespace, parentMethod.Name)
-			if method == nil || method.IsAbstract() {
-				c.addFailure(
-					fmt.Sprintf(
-						"missing abstract method implementation `%s` with signature: `%s`",
-						types.InspectWithColor(parentMethod),
-						parentMethod.InspectSignatureWithColor(false),
-					),
-					span,
-				)
-			}
-		}
-		parent = parent.Parent()
-	}
+	})
 }
 
 // Search through the ancestor chain of the current namespace
@@ -1847,7 +1834,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		}
 
 		var incompatibleMethods []methodOverride
-		c.foreachMethodInGenericNamespace(includedMixin, func(name value.Symbol, includedMethod *types.Method) {
+		c.foreachMethodInNamespace(includedMixin, func(name value.Symbol, includedMethod *types.Method) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
 			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
@@ -1858,7 +1845,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		})
 
 		var incompatibleIvars []instanceVariableOverride
-		c.foreachInstanceVariableInGenericNamespace(includedMixin, func(name value.Symbol, includedIvar types.Type, includedNamespace types.Namespace) {
+		c.foreachInstanceVariableInNamespace(includedMixin, func(name value.Symbol, includedIvar types.Type, includedNamespace types.Namespace) {
 			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
 			if superIvar == nil {
 				return
@@ -3127,7 +3114,7 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 	return nil, typ
 }
 
-func (c *Checker) foreachInstanceVariableInGenericNamespace(namespace types.Namespace, f func(name value.Symbol, typ types.Type, namespace types.Namespace)) {
+func (c *Checker) foreachInstanceVariableInNamespace(namespace types.Namespace, f func(name value.Symbol, typ types.Type, namespace types.Namespace)) {
 	currentNamespace := namespace
 	var generics []*types.Generic
 	seenIvars := make(map[value.Symbol]bool)

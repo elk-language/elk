@@ -378,6 +378,18 @@ func TestClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): void`"),
 			},
 		},
+		"report errors for missing abstract methods from generic parent": {
+			input: `
+				abstract class Foo[V]
+					abstract def foo(): V; end
+					def bar; end
+				end
+				class Bar < Foo[String]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(95, 6, 11), P(97, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): Std::String`"),
+			},
+		},
 		"report errors for missing abstract methods from parents": {
 			input: `
 				abstract class Foo
@@ -413,6 +425,24 @@ func TestClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): void`"),
 			},
 		},
+		"report errors for missing abstract methods from generic interfaces in parents": {
+			input: `
+				interface Foo[V]
+					sig foo(): V
+				end
+				abstract class Bar
+					implement Foo[Int]
+
+					abstract def bar(); end
+					def barr; end
+				end
+				class Baz < Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(162, 11, 11), P(164, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: `def bar(): void`"),
+				error.NewFailure(L("<main>", P(162, 11, 11), P(164, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): Std::Int`"),
+			},
+		},
 		"report errors for missing abstract methods from mixin": {
 			input: `
 				abstract mixin Foo
@@ -425,6 +455,20 @@ func TestClass(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): void`"),
+			},
+		},
+		"report errors for missing abstract methods from generic mixin": {
+			input: `
+				abstract mixin Foo[V]
+					abstract def foo(): V; end
+					def fooo(); end
+				end
+				class Bar
+					include Foo[Float]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(98, 6, 11), P(100, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: `def foo(): Std::Float`"),
 			},
 		},
 		"report errors for missing abstract methods from mixins": {
