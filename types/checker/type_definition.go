@@ -257,6 +257,8 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	if types.IsNothing(constantType) || constantType == nil {
 		return
 	}
+	target := c.currentConstScope().container
+
 	var constantNamespace types.Namespace
 	var mixin *types.Mixin
 	switch con := constantType.(type) {
@@ -273,6 +275,19 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 			)
 			return
 		}
+		isAlreadyIncluded, includedNamespace := c.includesMixin(target, mixin)
+		includedGeneric, isGeneric := includedNamespace.(*types.Generic)
+		if isAlreadyIncluded && isGeneric && !c.isTheSameType(con, includedGeneric, nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot include mixin `%s` since `%s` has already been included",
+					types.InspectWithColor(con),
+					types.InspectWithColor(includedGeneric),
+				),
+				node.Span(),
+			)
+			return
+		}
 		constantNamespace = con
 	default:
 		c.addFailure(
@@ -283,15 +298,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 	node.SetType(constantNamespace)
 
-	target := c.currentConstScope().container
 	if c.isSubtypeOfMixin(target, mixin) {
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot include mixin `%s` multiple times",
-				types.InspectWithColor(mixin),
-			),
-			node.Span(),
-		)
 		return
 	}
 

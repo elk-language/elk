@@ -579,23 +579,28 @@ func (c *Checker) isSubtypeOfClass(a types.Namespace, b *types.Class) bool {
 }
 
 func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
+	ok, _ := c.includesMixin(a, b)
+	return ok
+}
+
+func (c *Checker) includesMixin(a types.Namespace, b *types.Mixin) (bool, types.Namespace) {
 	var currentParent types.Namespace = a
 	for {
 		switch p := currentParent.(type) {
 		case *types.Mixin:
 			if p == b {
-				return true
+				return true, p
 			}
 		case *types.MixinProxy:
 			if p.Mixin == b {
-				return true
+				return true, p
 			}
 		case *types.Generic:
 			if c.isTheSameType(p.Namespace, b, nil) {
-				return true
+				return true, p
 			}
 		case nil:
-			return false
+			return false, nil
 		}
 
 		currentParent = currentParent.Parent()

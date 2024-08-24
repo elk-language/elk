@@ -1495,7 +1495,16 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 		},
-		"include generic mixin multiple times": {
+		"include mixin multiple times": {
+			input: `
+				mixin Foo; end
+			  class Bar
+					include Foo, Foo
+					include Foo
+				end
+			`,
+		},
+		"include generic mixin multiple times with different type args": {
 			input: `
 				mixin Foo[V]; end
 			  class Bar
@@ -1503,8 +1512,17 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(64, 4, 27), P(71, 4, 34)), "cannot include mixin `Foo` multiple times"),
+				error.NewFailure(L("<main>", P(64, 4, 27), P(71, 4, 34)), "cannot include mixin `Foo[Std::Int]` since `Foo[Std::String]` has already been included"),
 			},
+		},
+		"include generic mixin multiple times with the same type args": {
+			input: `
+				mixin Foo[V]; end
+			  class Bar
+					include Foo[String], Foo[String]
+					include Foo[String]
+				end
+			`,
 		},
 		"include generic mixin with type arguments in class": {
 			input: `
