@@ -8,6 +8,40 @@ import (
 
 func TestTypeParameters(t *testing.T) {
 	tests := testTable{
+		"use invariant type parameter in instance variable": {
+			input: `
+				class Foo[V]
+					var @a: V
+				end
+			`,
+		},
+		"use covariant type parameter in instance variable": {
+			input: `
+				class Foo[+V]
+					var @a: V
+				end
+			`,
+		},
+		"use contravariant type parameter in instance variable": {
+			input: `
+				class Foo[-V]
+					var @a: V
+				end
+			`,
+		},
+		"use type parameter of enclosing namespace in an instance variable": {
+			input: `
+				class Foo[V]
+					class Bar[W]
+						var @a: V
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 4, 15), P(50, 4, 15)), "undefined type `V`"),
+			},
+		},
+
 		"use type parameter outside of methods": {
 			input: `
 				class Foo[V]
@@ -15,7 +49,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used outside of method and type definitions"),
+				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used outside of method, instance variable and type definitions"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method parameter": {

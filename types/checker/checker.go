@@ -51,6 +51,7 @@ const (
 	returnTypeMode
 	throwTypeMode
 	paramTypeMode
+	instanceVariableMode
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
 )
@@ -3013,7 +3014,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			span,
 		)
 		return false
-	case namedGenericTypeDefinitionMode, inheritanceMode:
+	case namedGenericTypeDefinitionMode, inheritanceMode, instanceVariableMode:
 		enclosingScope := c.enclosingConstScope().container
 		if enclosingScope.Subtype(t.Name) == nil {
 			c.addFailure(
@@ -3041,7 +3042,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 		return false
 	default:
 		c.addFailure(
-			fmt.Sprintf("type parameter `%s` cannot be used outside of method and type definitions", types.InspectWithColor(t)),
+			fmt.Sprintf("type parameter `%s` cannot be used outside of method, instance variable and type definitions", types.InspectWithColor(t)),
 			span,
 		)
 		return false
@@ -3916,7 +3917,13 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 
 		declaredType = types.Nothing{}
 	} else {
+		prevMode := c.mode
+		c.mode = instanceVariableMode
+
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+
+		c.mode = prevMode
+
 		declaredType = c.typeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
 		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {

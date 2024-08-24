@@ -850,7 +850,7 @@ func TestGenericClass(t *testing.T) {
 				var a: Foo::V
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used outside of method and type definitions"),
+				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used outside of method, instance variable and type definitions"),
 			},
 		},
 		"use a type parameter from the outside within a method": {
