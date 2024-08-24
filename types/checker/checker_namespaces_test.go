@@ -1803,6 +1803,14 @@ func TestImplement(t *testing.T) {
 				end
 			`,
 		},
+		"implement multiple times": {
+			input: `
+				interface Foo; end
+			  class  Bar
+					implement Foo, Foo
+				end
+			`,
+		},
 		"implement generic interface without type arguments in class": {
 			input: `
 				interface Foo[V]; end
