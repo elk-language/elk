@@ -3098,14 +3098,25 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 		return nil, typ
 	}
 
-	currentContainer := typ
-	for currentContainer != nil {
-		ivar := currentContainer.InstanceVariable(name)
-		if ivar != nil {
-			return ivar, currentContainer
-		}
+	currentNamespace := typ
+	var generics []*types.Generic
 
-		currentContainer = currentContainer.Parent()
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		if generic, ok := currentNamespace.(*types.Generic); ok {
+			generics = append(generics, generic)
+		}
+		ivar := currentNamespace.InstanceVariable(name)
+		if ivar != nil {
+			if len(generics) < 1 {
+				return ivar, currentNamespace
+			}
+
+			for i := len(generics) - 1; i >= 0; i-- {
+				generic := generics[i]
+				ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
+			}
+			return ivar, currentNamespace
+		}
 	}
 
 	return nil, typ

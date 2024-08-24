@@ -1207,6 +1207,27 @@ func TestInstanceVariables(t *testing.T) {
 				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "instance variable definitions cannot appear in this context"),
 			},
 		},
+		"resolve an instance variable inherited from a generic parent": {
+			input: `
+				class Foo[V]
+					var @foo: V
+				end
+				class Bar < Foo[String]
+					def bar: String then @foo
+				end
+			`,
+		},
+		"resolve an instance variable inherited from a distant generic parent": {
+			input: `
+				class Qux[E]
+					var @foo: E
+				end
+				class Foo[V] < Qux[V]; end
+				class Bar < Foo[String]
+					def bar: String then @foo
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
