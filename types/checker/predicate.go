@@ -591,7 +591,7 @@ func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
 				return true
 			}
 		case *types.Generic:
-			if p.Namespace == b {
+			if c.isTheSameType(p.Namespace, b, nil) {
 				return true
 			}
 		case nil:
