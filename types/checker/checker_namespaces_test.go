@@ -1250,6 +1250,31 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 		},
+		"generic superclass matches": {
+			input: `
+				class Foo[V]; end
+
+				class Bar < Foo[String]; end
+
+				class Bar < Foo[String]
+					def bar; end
+				end
+			`,
+		},
+		"generic superclass has a different type argument": {
+			input: `
+				class Foo[V]; end
+
+				class Bar < Foo[String]; end
+
+				class Bar < Foo[Int]
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(74, 6, 17), P(81, 6, 24)), "superclass mismatch in `Bar`, got `Foo[Std::Int]`, expected `Foo[Std::String]`"),
+			},
+		},
 		"sealed modifier matches": {
 			input: `
 				class Foo; end

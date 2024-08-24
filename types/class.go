@@ -54,14 +54,19 @@ func (c *Class) Singleton() *SingletonClass {
 	return c.singleton
 }
 
-func (c *Class) Superclass() *Class {
+func (c *Class) Superclass() Namespace {
 	var currentParent Namespace = c.parent
 	for {
 		if currentParent == nil {
 			return nil
 		}
-		if currentClass, ok := currentParent.(*Class); ok {
-			return currentClass
+		switch narrowedParent := currentParent.(type) {
+		case *Class:
+			return narrowedParent
+		case *Generic:
+			if _, ok := narrowedParent.Namespace.(*Class); ok {
+				return narrowedParent
+			}
 		}
 
 		currentParent = currentParent.Parent()
@@ -72,7 +77,7 @@ func (c *Class) SetParent(parent Namespace) {
 	c.parent = parent
 	superclass := c.Superclass()
 	if superclass != nil && c.singleton != nil {
-		c.singleton.parent = superclass.singleton
+		c.singleton.parent = superclass.Singleton()
 	}
 }
 

@@ -511,7 +511,7 @@ nodeSwitch:
 	parent := class.Superclass()
 	if parent == nil && superclass != nil {
 		class.SetParent(superclass)
-	} else if parent != nil && parent != superclass {
+	} else if parent != nil && !c.isTheSameType(parent, superclass, nil) {
 		var span *position.Span
 		if node.Superclass == nil {
 			span = node.Span()
@@ -522,9 +522,9 @@ nodeSwitch:
 		c.addFailure(
 			fmt.Sprintf(
 				"superclass mismatch in `%s`, got `%s`, expected `%s`",
-				class.Name(),
+				types.InspectWithColor(class),
 				types.InspectWithColor(superclassType),
-				parent.Name(),
+				types.InspectWithColor(parent),
 			),
 			span,
 		)
