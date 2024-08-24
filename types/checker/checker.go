@@ -2424,7 +2424,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) as
 
 func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
 	baseMethod := closureType.Method(symbol.M_call)
-	closure := types.NewClosure(types.Method{})
+	closure := types.NewClosure(nil)
 	method, mod := c.declareMethod(
 		baseMethod,
 		closure,
@@ -2447,7 +2447,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		node.Body,
 		node.Span(),
 	)
-	closure.Body = *method
+	closure.Body = method
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
@@ -2458,7 +2458,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 }
 
 func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
-	closure := types.NewClosure(types.Method{})
+	closure := types.NewClosure(nil)
 	method, mod := c.declareMethod(
 		nil,
 		closure,
@@ -2483,7 +2483,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	)
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
-	closure.Body = *method
+	closure.Body = method
 	node.SetType(closure)
 	if mod != nil {
 		c.popConstScope()
@@ -3635,7 +3635,7 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 }
 
 func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
-	closure := types.NewClosure(types.Method{})
+	closure := types.NewClosure(nil)
 	method, mod := c.declareMethod(
 		nil,
 		closure,
@@ -3652,7 +3652,7 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	if mod != nil {
 		c.popConstScope()
 	}
-	closure.Body = *method
+	closure.Body = method
 	node.SetType(closure)
 	return node
 }

@@ -23,8 +23,8 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return p
 		}
 
-		gMethod := &g.Body
-		pMethod := &p.Body
+		gMethod := g.Body
+		pMethod := p.Body
 		var isDifferent bool
 		newParams := make([]*types.Parameter, len(pMethod.Params))
 		for i := range pMethod.Params {
@@ -64,7 +64,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		}
 
 		if isDifferent {
-			closure := types.NewClosure(types.Method{})
+			closure := types.NewClosure(nil)
 			newMethod := types.NewMethod(
 				pMethod.DocComment,
 				pMethod.IsAbstract(),
@@ -77,7 +77,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 				throwType,
 				closure,
 			)
-			closure.Body = *newMethod
+			closure.Body = newMethod
 			return closure
 		}
 		return p
@@ -510,12 +510,12 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		if !isDifferent {
 			return t
 		}
-		method := (&t.Body).Copy()
+		method := t.Body.Copy()
 		method.Params = newParams
 		method.ReturnType = returnType
 		method.ThrowType = throwType
 
-		closure := types.NewClosure(*method)
+		closure := types.NewClosure(method)
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
@@ -653,12 +653,12 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		if !isDifferent {
 			return t
 		}
-		method := (&t.Body).Copy()
+		method := t.Body.Copy()
 		method.Params = newParams
 		method.ReturnType = returnType
 		method.ThrowType = throwType
 
-		closure := types.NewClosure(*method)
+		closure := types.NewClosure(method)
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:

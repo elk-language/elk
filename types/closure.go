@@ -8,17 +8,17 @@ import (
 )
 
 type Closure struct {
-	Body Method
+	Body *Method
 }
 
-func NewClosure(method Method) *Closure {
+func NewClosure(method *Method) *Closure {
 	return &Closure{
 		Body: method,
 	}
 }
 
 func NewClosureWithMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type) *Closure {
-	closure := NewClosure(Method{})
+	closure := NewClosure(nil)
 	method := NewMethod(
 		docComment,
 		abstract,
@@ -31,7 +31,7 @@ func NewClosureWithMethod(docComment string, abstract, sealed, native bool, name
 		throwType,
 		closure,
 	)
-	closure.Body = *method
+	closure.Body = method
 	return closure
 }
 
@@ -108,21 +108,24 @@ func (c *Closure) DefineSubtype(name value.Symbol, val Type) {
 }
 
 func (c *Closure) Methods() *MethodMap {
+	if c.Body == nil {
+		return NewMethodMap()
+	}
 	m := NewMethodMap()
-	m.Set(symbol.M_call, &c.Body)
+	m.Set(symbol.M_call, c.Body)
 	return m
 }
 
 func (c *Closure) Method(name value.Symbol) *Method {
 	if name == symbol.M_call {
-		return &c.Body
+		return c.Body
 	}
 	return nil
 }
 
 func (c *Closure) MethodString(name string) *Method {
 	if name == "call" {
-		return &c.Body
+		return c.Body
 	}
 	return nil
 }

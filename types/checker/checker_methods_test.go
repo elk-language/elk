@@ -79,6 +79,8 @@ func TestAttrDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String?`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::String?): void`"),
+				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String?`\n  previous definition found in `Foo`, with signature: `def foo(): Std::String?`"),
 				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 				error.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
@@ -273,6 +275,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 18), P(59, 4, 20)), "cannot override method `foo` with a different return type, is `Std::Int`, should be `Std::String?`\n  previous definition found in `Foo`, with signature: `def foo(): Std::String?`"),
 				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
@@ -443,6 +446,7 @@ func TestSetterDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(57, 4, 18), P(59, 4, 20)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
+				error.NewFailure(L("<main>", P(57, 4, 18), P(59, 4, 20)), "cannot override method `foo=` with invalid parameter type, is `Std::Int`, should be `Std::String?`\n  previous definition found in `Foo`, with signature: `def foo=(foo: Std::String?): void`"),
 				error.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
@@ -658,6 +662,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed def baz(a: Std::Int): Std::Int`"),
+				error.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare method with a new sealed modifier": {
@@ -678,6 +683,9 @@ func TestMethodDefinitionOverride(t *testing.T) {
 					abstract def baz(a: Int): Int; end
 				end
 			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 4, 6), P(95, 4, 39)), "cannot override method `baz` with a different modifier, is `abstract`, should be `default`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::Int): Std::Int`"),
+			},
 		},
 		"override method with a new abstract modifier": {
 			input: `
@@ -891,6 +899,10 @@ func TestMethodDefinition(t *testing.T) {
 					def baz(): void; end
 				end
 			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 4, 17), P(72, 4, 20)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::String`"),
+				error.NewFailure(L("<main>", P(58, 4, 6), P(77, 4, 25)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: `def baz(a: Std::Int): Std::String`"),
+			},
 		},
 		"declare an abstract method with a body": {
 			input: `

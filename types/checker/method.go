@@ -1201,58 +1201,54 @@ func (c *Checker) declareMethod(
 	if c.mode == interfaceMode {
 		abstract = true
 	}
-	if methodNamespace != nil {
-		oldMethod := methodNamespace.Method(name)
-		if oldMethod != nil {
-			if oldMethod.IsNative() && oldMethod.IsSealed() {
-				c.addOverrideSealedMethodError(oldMethod, span)
-			} else if sealed && !oldMethod.IsSealed() {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
-						name,
-						types.InspectModifier(abstract, sealed, false),
-						types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
-					),
-					span,
-				)
-			}
+	oldMethod := methodNamespace.Method(name)
+	if oldMethod != nil {
+		if sealed && !oldMethod.IsSealed() {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
+					name,
+					types.InspectModifier(abstract, sealed, false),
+					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
+				),
+				span,
+			)
 		}
+	}
 
-		switch namespace := methodNamespace.(type) {
-		case *types.Interface:
-		case *types.Class:
-			if abstract && !namespace.IsAbstract() {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot declare abstract method `%s` in non-abstract class `%s`",
-						name,
-						types.InspectWithColor(methodNamespace),
-					),
-					span,
-				)
-			}
-		case *types.Mixin:
-			if abstract && !namespace.IsAbstract() {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot declare abstract method `%s` in non-abstract mixin `%s`",
-						name,
-						types.InspectWithColor(methodNamespace),
-					),
-					span,
-				)
-			}
-		default:
-			if abstract {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot declare abstract method `%s` in this context",
-						name,
-					),
-					span,
-				)
-			}
+	switch namespace := methodNamespace.(type) {
+	case *types.Interface:
+	case *types.Class:
+		if abstract && !namespace.IsAbstract() {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract class `%s`",
+					name,
+					types.InspectWithColor(methodNamespace),
+				),
+				span,
+			)
+		}
+	case *types.Mixin:
+		if abstract && !namespace.IsAbstract() {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
+					name,
+					types.InspectWithColor(methodNamespace),
+				),
+				span,
+			)
+		}
+	default:
+		if abstract {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in this context",
+					name,
+				),
+				span,
+			)
 		}
 	}
 
@@ -1450,9 +1446,11 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.SetSpan(span)
 
-	if methodNamespace != nil {
-		methodNamespace.SetMethod(name, newMethod)
+	if oldMethod != nil {
+		c.checkMethodOverride(newMethod, oldMethod, paramNodes, returnTypeNode, throwTypeNode, span)
 	}
+	methodNamespace.SetMethod(name, newMethod)
+
 	c.mode = prevMode
 
 	return newMethod, typeParamMod
