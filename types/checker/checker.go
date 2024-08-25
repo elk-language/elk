@@ -54,7 +54,7 @@ const (
 	instanceVariableMode
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
-	methodCompatibilityMode
+	methodCompatibilityInAlgebraicTypeMode
 )
 
 type phase uint8

@@ -184,7 +184,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 				return false
 			}
 			return a.Name == b.Name
-		case methodCompatibilityMode:
+		case methodCompatibilityInAlgebraicTypeMode:
 			if b, ok := b.(*types.TypeParameter); ok {
 				if c.typesIntersect(a.UpperBound, b.UpperBound) &&
 					c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
@@ -230,7 +230,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return !c.typesIntersect(a, b.Type)
 	case *types.TypeParameter:
 		switch c.mode {
-		case methodCompatibilityMode:
+		case methodCompatibilityInAlgebraicTypeMode:
 			if a, ok := a.(*types.TypeParameter); ok {
 				if c.typesIntersect(a.UpperBound, b.UpperBound) &&
 					c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
