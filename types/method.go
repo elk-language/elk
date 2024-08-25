@@ -324,7 +324,7 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 				buffer.WriteString(" > ")
 				buffer.WriteString(Inspect(param.LowerBound))
 			}
-			if IsAny(param.UpperBound) {
+			if !IsAny(param.UpperBound) {
 				buffer.WriteString(" < ")
 				buffer.WriteString(Inspect(param.UpperBound))
 			}

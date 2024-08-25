@@ -2441,6 +2441,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
 		method,
+		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -2475,6 +2476,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		nil,
 		method,
+		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,

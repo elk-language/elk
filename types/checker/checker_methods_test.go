@@ -830,6 +830,250 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 		},
+
+		"override with more type parameters": {
+			input: `
+				class Bar
+					def baz(a: String); end
+				end
+				class Foo < Bar
+					def baz[V](a: String): String then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(77, 6, 6), P(112, 6, 41)), "cannot override method `baz` with a different number of type parameters, has `1`, should have `0`\n  previous definition found in `Bar`, with signature: `def baz(a: Std::String): void`"),
+			},
+		},
+		"override with less type parameters": {
+			input: `
+				class Bar
+					def baz[V, T](a: String); end
+				end
+				class Foo < Bar
+					def baz[V](a: String): String then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(83, 6, 6), P(118, 6, 41)), "cannot override method `baz` with a different number of type parameters, has `1`, should have `2`\n  previous definition found in `Bar`, with signature: `def baz[V, T](a: Std::String): void`"),
+			},
+		},
+		"override with different names of type parameters": {
+			input: `
+				class Bar
+					def baz[V, T]; end
+				end
+				class Foo < Bar
+					def baz[E, L]; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 6, 14), P(80, 6, 14)), "cannot override method `baz` with an incompatible type parameter, is `E`, should be `V`\n  previous definition found in `Bar`, with signature: `def baz[V, T](): void`"),
+				error.NewFailure(L("<main>", P(83, 6, 17), P(83, 6, 17)), "cannot override method `baz` with an incompatible type parameter, is `L`, should be `T`\n  previous definition found in `Bar`, with signature: `def baz[V, T](): void`"),
+			},
+		},
+
+		"override with the same invariant type parameter": {
+			input: `
+				class Bar
+					def baz[V](a: V); end
+				end
+				class Foo < Bar
+					def baz[V](a: V); end
+				end
+			`,
+		},
+		"override with invariant type parameter and the same upper bound": {
+			input: `
+				class Bar
+					def baz[V < Object](a: V); end
+				end
+				class Foo < Bar
+					def baz[V < Object](a: V); end
+				end
+			`,
+		},
+		"override with invariant type parameter and wider upper bound": {
+			input: `
+				class Bar
+					def baz[V < String](a: V); end
+				end
+				class Foo < Bar
+					def baz[V < Object](a: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 6, 14), P(101, 6, 23)), "cannot override method `baz` with an incompatible type parameter, is `V < Std::Object`, should be `V < Std::String`\n  previous definition found in `Bar`, with signature: `def baz[V < Std::String](a: V): void`"),
+			},
+		},
+		"override with invariant type parameter and narrower upper bound": {
+			input: `
+				class Bar
+					def baz[V < Object](a: V); end
+				end
+				class Foo < Bar
+					def baz[V < String](a: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 6, 14), P(101, 6, 23)), "cannot override method `baz` with an incompatible type parameter, is `V < Std::String`, should be `V < Std::Object`\n  previous definition found in `Bar`, with signature: `def baz[V < Std::Object](a: V): void`"),
+			},
+		},
+
+		"override with the same covariant type parameter": {
+			input: `
+				class Bar
+					def baz[+V]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V]: V then loop; end
+				end
+			`,
+		},
+		"override with covariant type parameter and the same upper bound": {
+			input: `
+				class Bar
+					def baz[+V < Object]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V < Object]: V then loop; end
+				end
+			`,
+		},
+		"override with covariant type parameter and wider upper bound": {
+			input: `
+				class Bar
+					def baz[+V < String]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V < Value]: V then loop; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(100, 6, 14), P(109, 6, 23)), "cannot override method `baz` with an incompatible type parameter, is `+V < Std::Value`, should be `+V < Std::String`\n  previous definition found in `Bar`, with signature: `def baz[+V < Std::String](): V`"),
+			},
+		},
+		"override with covariant type parameter and narrower upper bound": {
+			input: `
+				class Bar
+					def baz[+V < Value]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V < String]: V then loop; end
+				end
+			`,
+		},
+
+		"override with covariant type parameter and the same lower bound": {
+			input: `
+				class Bar
+					def baz[+V > Object]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V > Object]: V then loop; end
+				end
+			`,
+		},
+		"override with covariant type parameter and wider lower bound": {
+			input: `
+				class Bar
+					def baz[+V > String]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V > Value]: V then loop; end
+				end
+			`,
+		},
+		"override with covariant type parameter and narrower lower bound": {
+			input: `
+				class Bar
+					def baz[+V > Value]: V then loop; end
+				end
+				class Foo < Bar
+					def baz[+V > String]: V then loop; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 6, 14), P(109, 6, 24)), "cannot override method `baz` with an incompatible type parameter, is `+V > Std::String`, should be `+V > Std::Value`\n  previous definition found in `Bar`, with signature: `def baz[+V > Std::Value](): V`"),
+			},
+		},
+
+		"override with the same contravariant type parameter": {
+			input: `
+				class Bar
+					def baz[-V](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V](a: V); end
+				end
+			`,
+		},
+		"override with contravariant type parameter and the same upper bound": {
+			input: `
+				class Bar
+					def baz[-V < Object](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V < Object](a: V); end
+				end
+			`,
+		},
+		"override with contravariant type parameter and wider upper bound": {
+			input: `
+				class Bar
+					def baz[-V < String](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V < Value](a: V); end
+				end
+			`,
+		},
+		"override with contravariant type parameter and narrower upper bound": {
+			input: `
+				class Bar
+					def baz[-V < Value](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V < String](a: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 6, 14), P(102, 6, 24)), "cannot override method `baz` with an incompatible type parameter, is `-V < Std::String`, should be `-V < Std::Value`\n  previous definition found in `Bar`, with signature: `def baz[-V < Std::Value](a: V): void`"),
+			},
+		},
+
+		"override with contravariant type parameter and the same lower bound": {
+			input: `
+				class Bar
+					def baz[-V > Object](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V > Object](a: V); end
+				end
+			`,
+		},
+		"override with contravariant type parameter and wider lower bound": {
+			input: `
+				class Bar
+					def baz[-V > String](a: V); end
+				end
+				class Foo < Bar
+					def baz[V > Value](a: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 6, 14), P(101, 6, 22)), "cannot override method `baz` with an incompatible type parameter, is `V > Std::Value`, should be `-V > Std::String`\n  previous definition found in `Bar`, with signature: `def baz[-V > Std::String](a: V): void`"),
+			},
+		},
+		"override with contravariant type parameter and narrower lower bound": {
+			input: `
+				class Bar
+					def baz[-V > Value](a: V); end
+				end
+				class Foo < Bar
+					def baz[-V > String](a: V); end
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {

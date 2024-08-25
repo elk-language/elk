@@ -184,6 +184,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *p
 func (c *Checker) checkMethodOverride(
 	overrideMethod,
 	baseMethod *types.Method,
+	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
@@ -205,6 +206,62 @@ func (c *Checker) checkMethodOverride(
 			),
 			span,
 		)
+	}
+
+	if len(overrideMethod.TypeParameters) != len(baseMethod.TypeParameters) {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different number of type parameters, has `%d`, should have `%d`\n  previous definition found in `%s`, with signature: `%s`",
+				name,
+				len(overrideMethod.TypeParameters),
+				len(baseMethod.TypeParameters),
+				types.InspectWithColor(baseMethod.DefinedUnder),
+				baseMethod.InspectSignatureWithColor(true),
+			),
+			span,
+		)
+	} else {
+		for i := range overrideMethod.TypeParameters {
+			overrideTypeParam := overrideMethod.TypeParameters[i]
+			baseTypeParam := baseMethod.TypeParameters[i]
+
+			var isInvalid bool
+			if overrideTypeParam.Name != baseTypeParam.Name || overrideTypeParam.Variance != baseTypeParam.Variance {
+				isInvalid = true
+			}
+
+			switch baseTypeParam.Variance {
+			case types.INVARIANT:
+				if !c.isTheSameType(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
+					!c.isTheSameType(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+					isInvalid = true
+				}
+			case types.COVARIANT:
+				if !c.isSubtype(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
+					!c.isSubtype(baseTypeParam.LowerBound, overrideTypeParam.LowerBound, nil) {
+					isInvalid = true
+				}
+			case types.CONTRAVARIANT:
+				if !c.isSubtype(baseTypeParam.UpperBound, overrideTypeParam.UpperBound, nil) ||
+					!c.isSubtype(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+					isInvalid = true
+				}
+			}
+
+			if isInvalid {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot override method `%s` with an incompatible type parameter, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
+						name,
+						overrideTypeParam.InspectSignature(),
+						baseTypeParam.InspectSignature(),
+						types.InspectWithColor(baseMethod.DefinedUnder),
+						baseMethod.InspectSignatureWithColor(true),
+					),
+					typeParamNodes[i].Span(),
+				)
+			}
+		}
 	}
 
 	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
@@ -330,6 +387,7 @@ func (c *Checker) checkMethodOverride(
 func (c *Checker) checkMethod(
 	methodNamespace types.Namespace,
 	checkedMethod *types.Method,
+	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
@@ -353,6 +411,7 @@ func (c *Checker) checkMethod(
 				c.checkMethodOverride(
 					checkedMethod,
 					baseMethod,
+					typeParamNodes,
 					paramNodes,
 					returnTypeNode,
 					throwTypeNode,
@@ -1174,6 +1233,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	returnType, throwType := c.checkMethod(
 		c.currentMethodScope().container,
 		c.typeOf(node).(*types.Method),
+		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -1447,7 +1507,15 @@ func (c *Checker) declareMethod(
 	newMethod.SetSpan(span)
 
 	if oldMethod != nil {
-		c.checkMethodOverride(newMethod, oldMethod, paramNodes, returnTypeNode, throwTypeNode, span)
+		c.checkMethodOverride(
+			newMethod,
+			oldMethod,
+			typeParamNodes,
+			paramNodes,
+			returnTypeNode,
+			throwTypeNode,
+			span,
+		)
 	}
 	methodNamespace.SetMethod(name, newMethod)
 

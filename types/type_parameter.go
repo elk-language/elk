@@ -1,6 +1,10 @@
 package types
 
-import "github.com/elk-language/elk/value"
+import (
+	"strings"
+
+	"github.com/elk-language/elk/value"
+)
 
 type Variance uint8
 
@@ -59,4 +63,27 @@ func (*TypeParameter) IsLiteral() bool {
 
 func (t *TypeParameter) inspect() string {
 	return t.Name.String()
+}
+
+func (t *TypeParameter) InspectSignature() string {
+	buffer := new(strings.Builder)
+	switch t.Variance {
+	case COVARIANT:
+		buffer.WriteRune('+')
+	case CONTRAVARIANT:
+		buffer.WriteRune('-')
+	}
+	buffer.WriteString(t.Name.String())
+
+	if !IsNever(t.LowerBound) {
+		buffer.WriteString(" > ")
+		buffer.WriteString(Inspect(t.LowerBound))
+	}
+
+	if !IsAny(t.UpperBound) {
+		buffer.WriteString(" < ")
+		buffer.WriteString(Inspect(t.UpperBound))
+	}
+
+	return buffer.String()
 }
