@@ -177,15 +177,32 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.Self:
 		return c.isSubtype(c.selfType, b, errSpan)
 	case *types.TypeParameter:
-		if c.mode == inferTypeArgumentMode {
+		switch c.mode {
+		case inferTypeArgumentMode:
 			b, ok := b.(*types.TypeParameter)
 			if !ok {
 				return false
 			}
 			return a.Name == b.Name
-		}
-		if c.isSubtype(a.UpperBound, b, errSpan) {
-			return true
+		case methodCompatibilityMode:
+			if b, ok := b.(*types.TypeParameter); ok {
+				if c.typesIntersect(a.UpperBound, b.UpperBound) &&
+					c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
+					return true
+				}
+
+				return false
+			}
+			if (c.isSubtype(a.UpperBound, b, nil) || c.isSubtype(b, a.UpperBound, nil)) &&
+				(c.isSubtype(a.LowerBound, b, nil)) {
+				return true
+			}
+
+			return false
+		default:
+			if c.isSubtype(a.UpperBound, b, errSpan) {
+				return true
+			}
 		}
 	}
 
@@ -212,8 +229,26 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Not:
 		return !c.typesIntersect(a, b.Type)
 	case *types.TypeParameter:
-		if c.isSubtype(a, b.LowerBound, errSpan) {
-			return true
+		switch c.mode {
+		case methodCompatibilityMode:
+			if a, ok := a.(*types.TypeParameter); ok {
+				if c.typesIntersect(a.UpperBound, b.UpperBound) &&
+					c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
+					return true
+				}
+
+				return false
+			}
+			if (c.isSubtype(b.UpperBound, a, nil) || c.isSubtype(a, b.UpperBound, nil)) &&
+				(c.isSubtype(b.LowerBound, a, nil)) {
+				return true
+			}
+
+			return false
+		default:
+			if c.isSubtype(a, b.LowerBound, errSpan) {
+				return true
+			}
 		}
 	}
 

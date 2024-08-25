@@ -288,6 +288,156 @@ func TestUnionTypeSubtype(t *testing.T) {
 
 func TestUnionTypeMethodCall(t *testing.T) {
 	tests := testTable{
+		"generic and non generic method with compatible type param": {
+			input: `
+			  class Foo
+					def baz[V](a: V); end
+				end
+
+				class Bar
+					def baz(a: String); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic and non generic method with compatible type param reversed": {
+			input: `
+			  class Foo
+					def baz(a: String); end
+				end
+
+				class Bar
+					def baz[V](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic and non generic method with incompatible type param": {
+			input: `
+			  class Foo
+					def baz(a: String); end
+				end
+
+				class Bar
+					def baz[V < Int](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `Std::String`"),
+			},
+		},
+		"generic and non generic method with compatible type param with upper bound": {
+			input: `
+			  class Foo
+					def baz(a: String); end
+				end
+
+				class Bar
+					def baz[V < String](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic and non generic method with compatible type param with upper bound that is a parent": {
+			input: `
+			  class Foo
+					def baz(a: String); end
+				end
+
+				class Bar
+					def baz[V < Value](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic and non generic method with compatible type param with lower bound": {
+			input: `
+			  class Foo
+					def baz(a: String); end
+				end
+
+				class Bar
+					def baz[V > String](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic methods with compatible type params": {
+			input: `
+			 	class Foo
+					def baz[V](a: V); end
+				end
+
+				class Bar
+					def baz[V](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic methods with non-intersecting upper bounds": {
+			input: `
+			 	class Foo
+					def baz[V < String](a: V); end
+				end
+
+				class Bar
+					def baz[V < Int](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `V`"),
+			},
+		},
+		"generic methods with intersecting upper bounds": {
+			input: `
+			 	class Foo
+					def baz[V < Value](a: V); end
+				end
+
+				class Bar
+					def baz[V < Int](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+		},
+		"generic methods with different lower bounds": {
+			input: `
+			 	class Foo
+					def baz[V > String](a: V); end
+				end
+
+				class Bar
+					def baz[V > Int](a: V); end
+				end
+
+				var a: Foo | Bar = Bar()
+				a.baz("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `V`"),
+			},
+		},
+
 		"missing method": {
 			input: `
 			  class Foo

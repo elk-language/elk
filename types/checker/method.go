@@ -1526,6 +1526,9 @@ func (c *Checker) declareMethod(
 
 // Checks whether two methods are compatible.
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+	prevMode := c.mode
+	c.mode = methodCompatibilityMode
+
 	areCompatible := true
 	if baseMethod != nil {
 		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
@@ -1634,6 +1637,8 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		}
 
 	}
+
+	c.mode = prevMode
 
 	return areCompatible
 }

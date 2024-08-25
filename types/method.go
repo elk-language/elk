@@ -152,6 +152,10 @@ func (m *Method) SetSpan(span *position.Span) {
 	m.span = span
 }
 
+func (m *Method) IsGeneric() bool {
+	return len(m.TypeParameters) > 0
+}
+
 func (m *Method) IsAbstract() bool {
 	return m.abstract
 }
