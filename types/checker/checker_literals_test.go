@@ -27,7 +27,7 @@ func TestRegexLiteral(t *testing.T) {
 				var b: Regex = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(38, 3, 19), P(42, 3, 23)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`\n"),
+				error.NewFailure(L("<main>", P(38, 3, 19), P(42, 3, 23)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`"),
 			},
 		},
 	}
@@ -78,7 +78,7 @@ func TestStringLiteral(t *testing.T) {
 				var b: String = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 18), P(41, 3, 22)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`\n"),
+				error.NewFailure(L("<main>", P(37, 3, 18), P(41, 3, 22)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`"),
 			},
 		},
 		"interpolate uninspectable value": {
@@ -88,7 +88,7 @@ func TestStringLiteral(t *testing.T) {
 				var b: String = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 18), P(47, 3, 22)), "type `Foo` does not implement interface `Std::Inspectable`:\n\n  - missing method `Std::Inspectable.:inspect` with signature: `def inspect(): Std::String`\n"),
+				error.NewFailure(L("<main>", P(43, 3, 18), P(47, 3, 22)), "type `Foo` does not implement interface `Std::Inspectable`:\n\n  - missing method `Std::Inspectable.:inspect` with signature: `def inspect(): Std::String`"),
 			},
 		},
 	}

@@ -185,42 +185,37 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *p
 func (c *Checker) checkMethodOverride(
 	overrideMethod,
 	baseMethod *types.Method,
-	typeParamNodes []ast.TypeParameterNode,
-	paramNodes []ast.ParameterNode,
-	returnTypeNode,
-	throwTypeNode ast.TypeNode,
 	span *position.Span,
 ) {
-	name := baseMethod.Name
+	var areIncompatible bool
+	errDetailsBuff := new(strings.Builder)
+
 	if baseMethod.IsSealed() {
-		c.addOverrideSealedMethodError(baseMethod, span)
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` is sealed and cannot be overridden",
+			types.InspectWithColor(baseMethod),
+		)
+		areIncompatible = true
 	}
 	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() {
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-				name,
-				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false),
-				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false),
-				types.InspectWithColor(baseMethod.DefinedUnder),
-				baseMethod.InspectSignatureWithColor(true),
-			),
-			span,
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - has a different modifier, is `%s`, should be `%s`",
+			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false),
+			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false),
 		)
+		areIncompatible = true
 	}
 
 	if len(overrideMethod.TypeParameters) != len(baseMethod.TypeParameters) {
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot override method `%s` with a different number of type parameters, has `%d`, should have `%d`\n  previous definition found in `%s`, with signature: `%s`",
-				name,
-				len(overrideMethod.TypeParameters),
-				len(baseMethod.TypeParameters),
-				types.InspectWithColor(baseMethod.DefinedUnder),
-				baseMethod.InspectSignatureWithColor(true),
-			),
-			span,
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - has a different number of type parameters, has `%d`, should have `%d`",
+			len(overrideMethod.TypeParameters),
+			len(baseMethod.TypeParameters),
 		)
+		areIncompatible = true
 	} else {
 		for i := range overrideMethod.TypeParameters {
 			overrideTypeParam := overrideMethod.TypeParameters[i]
@@ -250,137 +245,78 @@ func (c *Checker) checkMethodOverride(
 			}
 
 			if isInvalid {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot override method `%s` with an incompatible type parameter, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-						name,
-						overrideTypeParam.InspectSignature(),
-						baseTypeParam.InspectSignature(),
-						types.InspectWithColor(baseMethod.DefinedUnder),
-						baseMethod.InspectSignatureWithColor(true),
-					),
-					typeParamNodes[i].Span(),
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - has an incompatible type parameter, is `%s`, should be `%s`",
+					overrideTypeParam.InspectSignature(),
+					baseTypeParam.InspectSignature(),
 				)
+				areIncompatible = true
 			}
 		}
 	}
 
 	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
-		var returnSpan *position.Span
-		if returnTypeNode != nil {
-			returnSpan = returnTypeNode.Span()
-		} else {
-			returnSpan = span
-		}
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-				name,
-				types.InspectWithColor(overrideMethod.ReturnType),
-				types.InspectWithColor(baseMethod.ReturnType),
-				types.InspectWithColor(baseMethod.DefinedUnder),
-				baseMethod.InspectSignatureWithColor(true),
-			),
-			returnSpan,
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - has a different return type, is `%s`, should be `%s`",
+			types.InspectWithColor(overrideMethod.ReturnType),
+			types.InspectWithColor(baseMethod.ReturnType),
 		)
+		areIncompatible = true
 	}
 	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, nil) {
-		var throwSpan *position.Span
-		if throwTypeNode != nil {
-			throwSpan = throwTypeNode.Span()
-		} else {
-			throwSpan = span
-		}
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-				name,
-				types.InspectWithColor(overrideMethod.ThrowType),
-				types.InspectWithColor(baseMethod.ThrowType),
-				types.InspectWithColor(baseMethod.DefinedUnder),
-				baseMethod.InspectSignatureWithColor(true),
-			),
-			throwSpan,
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - has different throw type, is `%s`, should be `%s`",
+			types.InspectWithColor(overrideMethod.ThrowType),
+			types.InspectWithColor(baseMethod.ThrowType),
 		)
+		areIncompatible = true
 	}
 
 	if len(baseMethod.Params) > len(overrideMethod.Params) {
-		paramSpan := position.JoinSpanOfCollection(paramNodes)
-		if paramSpan == nil {
-			paramSpan = span
-		}
-		c.addFailure(
-			fmt.Sprintf(
-				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: `%s`",
-				name,
-				types.InspectWithColor(baseMethod.DefinedUnder),
-				baseMethod.InspectSignatureWithColor(true),
-			),
-			paramSpan,
-		)
+		errDetailsBuff.WriteString("\n  - has less parameters")
 	} else {
 		for i := range len(baseMethod.Params) {
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
-			if oldParam.Name != newParam.Name {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-						name,
-						newParam.Name,
-						oldParam.Name,
-						types.InspectWithColor(baseMethod.DefinedUnder),
-						baseMethod.InspectSignatureWithColor(true),
-					),
-					paramNodes[i].Span(),
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, nil) {
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - has an incompatible parameter, is `%s`, should be `%s`",
+					types.InspectWithColor(newParam),
+					types.InspectWithColor(oldParam),
 				)
-				continue
-			}
-			if oldParam.Kind != newParam.Kind {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-						name,
-						newParam.NameWithKind(),
-						oldParam.NameWithKind(),
-						types.InspectWithColor(baseMethod.DefinedUnder),
-						baseMethod.InspectSignatureWithColor(true),
-					),
-					paramNodes[i].Span(),
-				)
-				continue
-			}
-			if !c.isSubtype(oldParam.Type, newParam.Type, paramNodes[i].Span()) {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: `%s`",
-						name,
-						types.InspectWithColor(newParam.Type),
-						types.InspectWithColor(oldParam.Type),
-						types.InspectWithColor(baseMethod.DefinedUnder),
-						baseMethod.InspectSignatureWithColor(true),
-					),
-					paramNodes[i].Span(),
-				)
-				continue
+				areIncompatible = true
 			}
 		}
 
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
 			param := overrideMethod.Params[i]
 			if !param.IsOptional() {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: `%s`",
-						name,
-						param.Name,
-						types.InspectWithColor(baseMethod.DefinedUnder),
-						baseMethod.InspectSignatureWithColor(true),
-					),
-					paramNodes[i].Span(),
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - has an additional required parameter `%s`",
+					types.InspectWithColor(param),
 				)
+				areIncompatible = true
 			}
 		}
+	}
+
+	if areIncompatible {
+		c.addFailure(
+			fmt.Sprintf(
+				"method `%s` is not a valid override of `%s`\n  is:        `%s`\n  should be: `%s`\n%s",
+				types.InspectWithColor(overrideMethod),
+				types.InspectWithColor(baseMethod),
+				overrideMethod.InspectSignatureWithColor(true),
+				baseMethod.InspectSignatureWithColor(true),
+				errDetailsBuff.String(),
+			),
+			span,
+		)
 	}
 
 }
@@ -412,10 +348,6 @@ func (c *Checker) checkMethod(
 				c.checkMethodOverride(
 					checkedMethod,
 					baseMethod,
-					typeParamNodes,
-					paramNodes,
-					returnTypeNode,
-					throwTypeNode,
 					span,
 				)
 			}
@@ -1511,10 +1443,6 @@ func (c *Checker) declareMethod(
 		c.checkMethodOverride(
 			newMethod,
 			oldMethod,
-			typeParamNodes,
-			paramNodes,
-			returnTypeNode,
-			throwTypeNode,
 			span,
 		)
 	}
@@ -1544,7 +1472,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
 			fmt.Fprintf(
 				errDetailsBuff,
-				"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`\n",
+				"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
 				types.InspectWithColor(overrideMethod),
 				types.InspectWithColor(baseMethod),
 				types.InspectWithColor(overrideMethod.ReturnType),
@@ -1555,7 +1483,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
 			fmt.Fprintf(
 				errDetailsBuff,
-				"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`\n",
+				"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
 				types.InspectWithColor(overrideMethod),
 				types.InspectWithColor(baseMethod),
 				types.InspectWithColor(overrideMethod.ThrowType),
@@ -1567,7 +1495,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		if len(baseMethod.Params) > len(overrideMethod.Params) {
 			fmt.Fprintf(
 				errDetailsBuff,
-				"\n  - method `%s` has less parameters than `%s`, has `%d`, should have `%d`\n",
+				"\n  - method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
 				types.InspectWithColor(overrideMethod),
 				types.InspectWithColor(baseMethod),
 				len(overrideMethod.Params),
@@ -1582,7 +1510,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 				if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
 					fmt.Fprintf(
 						errDetailsBuff,
-						"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`\n",
+						"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
 						types.InspectWithColor(overrideMethod),
 						types.InspectWithColor(baseMethod),
 						types.InspectWithColor(newParam),
@@ -1597,7 +1525,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 				if !param.IsOptional() {
 					fmt.Fprintf(
 						errDetailsBuff,
-						"\n  - method `%s` has a required parameter missing in `%s`, got `%s`\n",
+						"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
 						types.InspectWithColor(overrideMethod),
 						types.InspectWithColor(baseMethod),
 						param.Name,

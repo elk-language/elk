@@ -705,7 +705,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 			if implementation == nil {
 				fmt.Fprintf(
 					methodDetailsBuff,
-					"\n  - missing method `%s` with signature: `%s`\n",
+					"\n  - missing method `%s` with signature: `%s`",
 					types.InspectWithColor(abstractMethod),
 					abstractMethod.InspectSignatureWithColor(false),
 				)
@@ -714,7 +714,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 
 			fmt.Fprintf(
 				methodDetailsBuff,
-				"\n  - incorrect implementation of `%s`\n      is:        `%s`\n      should be: `%s`\n",
+				"\n  - incorrect implementation of `%s`\n      is:        `%s`\n      should be: `%s`",
 				types.InspectWithColor(abstractMethod),
 				implementation.InspectSignatureWithColor(false),
 				abstractMethod.InspectSignatureWithColor(false),

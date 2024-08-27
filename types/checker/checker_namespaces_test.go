@@ -2442,7 +2442,7 @@ func TestInterfaceType(t *testing.T) {
 				var b: Baz[String, Float] = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`"),
 				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
@@ -2464,7 +2464,7 @@ func TestInterfaceType(t *testing.T) {
 				var b: Baz[String, Float] = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`\n"),
+				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`"),
 				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
@@ -2543,7 +2543,7 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`\n"),
+				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
 				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
@@ -2632,7 +2632,7 @@ func TestInterfaceType(t *testing.T) {
 				var b: Foo = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`\n"),
+				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
 				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
