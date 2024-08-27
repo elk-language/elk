@@ -73,6 +73,25 @@ func (p *Parameter) NameWithKind() string {
 		panic("invalid parameter kind")
 	}
 }
+func (p *Parameter) inspect() string {
+	buffer := new(strings.Builder)
+	switch p.Kind {
+	case PositionalRestParameterKind:
+		buffer.WriteRune('*')
+	case NamedRestParameterKind:
+		buffer.WriteString("**")
+	}
+	buffer.WriteString(p.Name.String())
+
+	switch p.Kind {
+	case DefaultValueParameterKind:
+		buffer.WriteRune('?')
+	}
+
+	buffer.WriteString(": ")
+	buffer.WriteString(Inspect(p.Type))
+	return buffer.String()
+}
 
 func (p *Parameter) IsPositionalRest() bool {
 	return p.Kind == PositionalRestParameterKind
@@ -84,6 +103,14 @@ func (p *Parameter) IsNamedRest() bool {
 
 func (p *Parameter) HasDefaultValue() bool {
 	return p.Kind == DefaultValueParameterKind
+}
+
+func (p *Parameter) ToNonLiteral(env *GlobalEnvironment) Type {
+	return p
+}
+
+func (*Parameter) IsLiteral() bool {
+	return false
 }
 
 func (p *Parameter) IsOptional() bool {

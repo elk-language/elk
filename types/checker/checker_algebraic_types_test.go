@@ -103,7 +103,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(164, 9, 5), P(168, 9, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(164, 9, 5), P(168, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n"),
 			},
 		},
 		"method with different return types": {
@@ -118,7 +118,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`\n"),
 			},
 		},
 		"method with different param types": {
@@ -133,7 +133,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`\n"),
 			},
 		},
 		"method with additional optional params": {
@@ -175,7 +175,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(178, 9, 5), P(190, 9, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(178, 9, 5), P(190, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`\n"),
 			},
 		},
 		"method with additional named rest param": {
@@ -190,7 +190,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(179, 9, 5), P(194, 9, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(179, 9, 5), P(194, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`\n"),
 			},
 		},
 	}
@@ -330,7 +330,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `Std::String`"),
+				error.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz(a: Std::String): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: Std::String`\n"),
 			},
 		},
 		"generic and non generic method with compatible type param with upper bound": {
@@ -403,7 +403,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `V`"),
+				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz[V < Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`\n"),
 			},
 		},
 		"generic methods with intersecting upper bounds": {
@@ -434,7 +434,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` has a different type for parameter `a` than `Foo.:baz`, has `V`, should have `V`"),
+				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V > Std::Int](a: V): void`\n  should be: `def baz[V > Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`\n"),
 			},
 		},
 
@@ -468,9 +468,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`\n"),
 			},
 		},
 		"method with different return types": {
@@ -488,8 +487,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`\n"),
+				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`\n"),
 			},
 		},
 		"method with different param types": {
@@ -507,8 +506,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Bar.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`\n"),
+				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`\n"),
 			},
 		},
 		"method with wider param type": {
@@ -535,7 +534,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo("b")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` has a different type for parameter `a` than `Bar.:foo`, has `Std::String`, should have `Std::Object`"),
+				error.NewFailure(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` is incompatible with `Bar.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Object): Std::Int`\n\n  - method `Foo.:foo` has an incompatible parameter with `Bar.:foo`, has `a: Std::String`, should have `a: Std::Object`\n"),
 			},
 		},
 		"method with wider return type": {
@@ -550,7 +549,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo("b")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`\n"),
 			},
 		},
 		"method with narrower return type": {
@@ -613,7 +612,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(244, 12, 5), P(256, 12, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(244, 12, 5), P(256, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`\n"),
 			},
 		},
 		"method with additional named rest param": {
@@ -631,7 +630,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(245, 12, 5), P(260, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(260, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`\n"),
 			},
 		},
 	}
