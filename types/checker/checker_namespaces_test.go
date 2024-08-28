@@ -716,6 +716,7 @@ func TestGenericClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
 			},
 		},
+
 		"assign to related generic mixin with correct type args": {
 			input: `
 				mixin Bar[K, V]; end
@@ -2200,6 +2201,85 @@ func TestMixinType(t *testing.T) {
 
 func TestMixinOverride(t *testing.T) {
 	tests := testTable{
+		"redeclare non generic mixin as generic": {
+			input: `
+				mixin Foo; end
+				mixin Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			},
+		},
+		"redeclare generic mixin as non generic": {
+			input: `
+				mixin Foo[V]; end
+				mixin Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			},
+		},
+		"redeclare generic mixin with missing type parameter": {
+			input: `
+				mixin Foo[V, T]; end
+				mixin Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			},
+		},
+		"redeclare generic mixin with additional type parameter": {
+			input: `
+				mixin Foo[V]; end
+				mixin Foo[V, T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			},
+		},
+		"redeclare generic mixin with matching type parameters": {
+			input: `
+				mixin Foo[+V < String]; end
+				mixin Foo[+V < String]; end
+			`,
+		},
+		"redeclare generic mixin with wrong type param name": {
+			input: `
+				mixin Foo[V]; end
+				mixin Foo[T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			},
+		},
+		"redeclare generic mixin with wrong type param variance": {
+			input: `
+				mixin Foo[-V]; end
+				mixin Foo[+V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			},
+		},
+		"redeclare generic mixin with wrong type param upper bound": {
+			input: `
+				mixin Foo[V < String]; end
+				mixin Foo[V < Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			},
+		},
+		"redeclare generic mixin with wrong type param lower bound": {
+			input: `
+				mixin Foo[V > String]; end
+				mixin Foo[V > Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			},
+		},
+
 		"default modifier matches": {
 			input: `
 				mixin Bar; end
@@ -2391,6 +2471,85 @@ func TestMixin(t *testing.T) {
 
 func TestInterface(t *testing.T) {
 	tests := testTable{
+		"redeclare non generic interface as generic": {
+			input: `
+				interface Foo; end
+				interface Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 5), P(48, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			},
+		},
+		"redeclare generic interface as non generic": {
+			input: `
+				interface Foo[V]; end
+				interface Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 5), P(48, 3, 22)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			},
+		},
+		"redeclare generic interface with missing type parameter": {
+			input: `
+				interface Foo[V, T]; end
+				interface Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 5), P(54, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			},
+		},
+		"redeclare generic interface with additional type parameter": {
+			input: `
+				interface Foo[V]; end
+				interface Foo[V, T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 5), P(54, 3, 28)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			},
+		},
+		"redeclare generic interface with matching type parameters": {
+			input: `
+				interface Foo[+V < String]; end
+				interface Foo[+V < String]; end
+			`,
+		},
+		"redeclare generic interface with wrong type param name": {
+			input: `
+				interface Foo[V]; end
+				interface Foo[T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 5), P(51, 3, 25)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			},
+		},
+		"redeclare generic interface with wrong type param variance": {
+			input: `
+				interface Foo[-V]; end
+				interface Foo[+V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 5), P(53, 3, 26)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			},
+		},
+		"redeclare generic interface with wrong type param upper bound": {
+			input: `
+				interface Foo[V < String]; end
+				interface Foo[V < Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			},
+		},
+		"redeclare generic interface with wrong type param lower bound": {
+			input: `
+				interface Foo[V > String]; end
+				interface Foo[V > Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			},
+		},
+
 		"has its own local scope": {
 			input: `
 				a := 5

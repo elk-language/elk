@@ -10,6 +10,7 @@ import (
 type Mixin struct {
 	parent         Namespace
 	abstract       bool
+	Checked        bool
 	singleton      *SingletonClass
 	TypeParameters []*TypeParameter
 	NamespaceBase

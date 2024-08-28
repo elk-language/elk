@@ -10,6 +10,7 @@ import (
 type Interface struct {
 	parent         Namespace
 	singleton      *SingletonClass
+	Checked        bool
 	TypeParameters []*TypeParameter
 	NamespaceBase
 }

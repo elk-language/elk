@@ -393,23 +393,17 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 	}
 	c.pushConstScope(makeLocalConstantScope(iface))
 
-	if len(node.TypeParameters) > 0 {
-		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-		for _, typeParamNode := range node.TypeParameters {
-			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
-			if !ok {
-				continue
-			}
-
-			t := c.checkTypeParameterNode(varNode)
-			typeParams = append(typeParams, t)
-			typeParamNode.SetType(t)
-			iface.DefineSubtype(t.Name, t)
-			iface.DefineConstant(t.Name, types.NoValue{})
-		}
-
+	typeParams := c.checkNamespaceTypeParameters(
+		iface.Checked,
+		node.TypeParameters,
+		iface,
+		iface.TypeParameters,
+		node.Span(),
+	)
+	if typeParams != nil {
 		iface.TypeParameters = typeParams
 	}
+	iface.Checked = true
 
 	c.popConstScope()
 }
@@ -421,23 +415,17 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	}
 	c.pushConstScope(makeLocalConstantScope(mixin))
 
-	if len(node.TypeParameters) > 0 {
-		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-		for _, typeParamNode := range node.TypeParameters {
-			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
-			if !ok {
-				continue
-			}
-
-			t := c.checkTypeParameterNode(varNode)
-			typeParams = append(typeParams, t)
-			typeParamNode.SetType(t)
-			mixin.DefineSubtype(t.Name, t)
-			mixin.DefineConstant(t.Name, types.NoValue{})
-		}
-
+	typeParams := c.checkNamespaceTypeParameters(
+		mixin.Checked,
+		node.TypeParameters,
+		mixin,
+		mixin.TypeParameters,
+		node.Span(),
+	)
+	if typeParams != nil {
 		mixin.TypeParameters = typeParams
 	}
+	mixin.Checked = true
 
 	c.popConstScope()
 }
