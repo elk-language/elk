@@ -10,6 +10,7 @@ type Class struct {
 	abstract       bool
 	sealed         bool
 	primitive      bool
+	Checked        bool
 	singleton      *SingletonClass
 	TypeParameters []*TypeParameter
 	NamespaceBase

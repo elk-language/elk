@@ -638,6 +638,84 @@ func TestClass(t *testing.T) {
 
 func TestGenericClass(t *testing.T) {
 	tests := testTable{
+		"redeclare non generic class as generic": {
+			input: `
+				class Foo; end
+				class Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			},
+		},
+		"redeclare generic class as non generic": {
+			input: `
+				class Foo[V]; end
+				class Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			},
+		},
+		"redeclare generic class with missing type parameter": {
+			input: `
+				class Foo[V, T]; end
+				class Foo[V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			},
+		},
+		"redeclare generic class with additional type parameter": {
+			input: `
+				class Foo[V]; end
+				class Foo[V, T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			},
+		},
+		"redeclare generic class with matching type parameters": {
+			input: `
+				class Foo[+V < String]; end
+				class Foo[+V < String]; end
+			`,
+		},
+		"redeclare generic class with wrong type param name": {
+			input: `
+				class Foo[V]; end
+				class Foo[T]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			},
+		},
+		"redeclare generic class with wrong type param variance": {
+			input: `
+				class Foo[-V]; end
+				class Foo[+V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			},
+		},
+		"redeclare generic class with wrong type param upper bound": {
+			input: `
+				class Foo[V < String]; end
+				class Foo[V < Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			},
+		},
+		"redeclare generic class with wrong type param lower bound": {
+			input: `
+				class Foo[V > String]; end
+				class Foo[V > Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			},
+		},
 		"assign to related generic mixin with correct type args": {
 			input: `
 				mixin Bar[K, V]; end
@@ -1283,6 +1361,20 @@ func TestInstanceVariables(t *testing.T) {
 
 func TestClassOverride(t *testing.T) {
 	tests := testTable{
+		"superclass was nil, is Foo": {
+			input: `
+				class Foo; end
+
+				class Bar < nil; end
+
+				class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 6, 17), P(65, 6, 19)), "superclass mismatch in `Bar`, got `Foo`, expected `nil`"),
+			},
+		},
 		"superclass matches": {
 			input: `
 				class Foo; end

@@ -442,35 +442,92 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	c.popConstScope()
 }
 
+func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []ast.TypeParameterNode, namespace types.Namespace, oldTypeParams []*types.TypeParameter, span *position.Span) []*types.TypeParameter {
+	if !checked {
+		if len(typeParamNodes) > 0 {
+			typeParams := make([]*types.TypeParameter, 0, len(typeParamNodes))
+			for _, typeParamNode := range typeParamNodes {
+				varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+				if !ok {
+					continue
+				}
+
+				t := c.checkTypeParameterNode(varNode)
+				typeParams = append(typeParams, t)
+				typeParamNode.SetType(t)
+				namespace.DefineSubtype(t.Name, t)
+				namespace.DefineConstant(t.Name, types.NoValue{})
+			}
+
+			return typeParams
+		}
+	}
+
+	if len(typeParamNodes) != len(oldTypeParams) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type parameter count mismatch in `%s`, got: %d, expected: %d",
+				types.InspectWithColor(namespace),
+				len(typeParamNodes),
+				len(oldTypeParams),
+			),
+			span,
+		)
+		return nil
+	}
+
+	for i := range len(oldTypeParams) {
+		typeParamNode := typeParamNodes[i]
+		oldTypeParam := oldTypeParams[i]
+
+		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
+		if !ok {
+			continue
+		}
+
+		newTypeParam := c.checkTypeParameterNode(varNode)
+		typeParamNode.SetType(newTypeParam)
+
+		if newTypeParam.Name != oldTypeParam.Name ||
+			newTypeParam.Variance != oldTypeParam.Variance ||
+			!c.isTheSameType(newTypeParam.LowerBound, oldTypeParam.LowerBound, nil) ||
+			!c.isTheSameType(newTypeParam.UpperBound, oldTypeParam.UpperBound, nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"type parameter mismatch in `%s`, is `%s`, should be `%s`",
+					types.InspectWithColor(namespace),
+					newTypeParam.InspectSignature(),
+					oldTypeParam.InspectSignature(),
+				),
+				span,
+			)
+		}
+	}
+
+	return nil
+}
+
 func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 	class, ok := c.typeOf(node).(*types.Class)
 	if !ok {
 		return
 	}
 	c.pushConstScope(makeLocalConstantScope(class))
-
-	if len(node.TypeParameters) > 0 {
-		typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-		for _, typeParamNode := range node.TypeParameters {
-			varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
-			if !ok {
-				continue
-			}
-
-			t := c.checkTypeParameterNode(varNode)
-			typeParams = append(typeParams, t)
-			typeParamNode.SetType(t)
-			class.DefineSubtype(t.Name, t)
-			class.DefineConstant(t.Name, types.NoValue{})
-		}
-
+	typeParams := c.checkNamespaceTypeParameters(
+		class.Checked,
+		node.TypeParameters,
+		class,
+		class.TypeParameters,
+		node.Span(),
+	)
+	if typeParams != nil {
 		class.TypeParameters = typeParams
 	}
 
 	var superclassType types.Type
 	var superclass types.Namespace
 
-nodeSwitch:
+superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
@@ -495,7 +552,7 @@ nodeSwitch:
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
 				)
-				break nodeSwitch
+				break superclassSwitch
 			}
 		default:
 			if !types.IsNothing(superclassType) && superclassType != nil {
@@ -504,7 +561,7 @@ nodeSwitch:
 					node.Superclass.Span(),
 				)
 			}
-			break nodeSwitch
+			break superclassSwitch
 		}
 
 		if superclass.IsSealed() {
@@ -522,10 +579,10 @@ nodeSwitch:
 
 	}
 
-	parent := class.Superclass()
-	if parent == nil && superclass != nil {
+	var previousSuperclass types.Type = class.Superclass()
+	if !class.Checked && superclass != nil {
 		class.SetParent(superclass)
-	} else if parent != nil && !c.isTheSameType(parent, superclass, nil) {
+	} else if !c.isTheSameType(previousSuperclass, superclass, nil) {
 		var span *position.Span
 		if node.Superclass == nil {
 			span = node.Span()
@@ -533,16 +590,21 @@ nodeSwitch:
 			span = node.Superclass.Span()
 		}
 
+		if previousSuperclass == nil {
+			previousSuperclass = types.Nil{}
+		}
+
 		c.addFailure(
 			fmt.Sprintf(
 				"superclass mismatch in `%s`, got `%s`, expected `%s`",
 				types.InspectWithColor(class),
 				types.InspectWithColor(superclassType),
-				types.InspectWithColor(parent),
+				types.InspectWithColor(previousSuperclass),
 			),
 			span,
 		)
 	}
+	class.Checked = true
 
 	c.popConstScope()
 }
