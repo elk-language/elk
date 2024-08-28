@@ -572,13 +572,52 @@ func repeatedProductionWithStop[Element ast.Node](p *Parser, subProduction repea
 
 // ==== Productions ====
 
-// program = statements
+// program = topLevelStatements
 func (p *Parser) program() *ast.ProgramNode {
-	statements := p.statements()
+	statements := p.topLevelStatements()
 	lastSpan := position.SpanOfLastElement(statements)
 	return ast.NewProgramNode(
 		position.NewSpanFromPosition(position.New(0, 1, 1)).Join(lastSpan),
 		statements,
+	)
+}
+
+// topLevelStatements = topLevelStatement*
+func (p *Parser) topLevelStatements(stopTokens ...token.Type) []ast.StatementNode {
+	return repeatedProductionWithStop(p, p.topLevelStatement, stopTokens...)
+}
+
+// topLevelStatement = emptyStatement | expressionStatement | importStatement
+func (p *Parser) topLevelStatement(separators ...token.Type) ast.StatementNode {
+	if p.lookahead.IsStatementSeparator() {
+		return p.emptyStatement()
+	}
+
+	if p.accept(token.IMPORT) {
+		return p.importStatement()
+	}
+
+	return p.expressionStatement(separators...)
+}
+
+func (p *Parser) importStatement() ast.StatementNode {
+	importTok := p.advance()
+
+	var stringLiteral ast.StringLiteralNode
+	switch p.lookahead.Type {
+	case token.STRING_BEG:
+		stringLiteral = p.stringLiteral(false)
+	case token.RAW_STRING:
+		stringLiteral = p.rawStringLiteral()
+	default:
+		p.errorExpected("a string literal")
+		errTok := p.advance()
+		return ast.NewInvalidNode(errTok.Span(), errTok)
+	}
+
+	return ast.NewImportStatementNode(
+		importTok.Span().Join(stringLiteral.Span()),
+		stringLiteral,
 	)
 }
 

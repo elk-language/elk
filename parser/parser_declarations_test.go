@@ -8,6 +8,107 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestImport(t *testing.T) {
+	tests := testTable{
+		"import without a path": {
+			input: "import",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewInvalidNode(
+						S(P(6, 1, 7), P(5, 1, 6)),
+						T(S(P(6, 1, 7), P(5, 1, 6)), token.END_OF_FILE),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected a string literal"),
+			},
+		},
+		"import with a non string path": {
+			input: "import 3",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewInvalidNode(
+						S(P(7, 1, 8), P(7, 1, 8)),
+						V(S(P(7, 1, 8), P(7, 1, 8)), token.INT, "3"),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(7, 1, 8), P(7, 1, 8)), "unexpected INT, expected a string literal"),
+			},
+		},
+		"import with a raw string": {
+			input: "import 'foo'",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewImportStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewRawStringLiteralNode(
+							S(P(7, 1, 8), P(11, 1, 12)),
+							"foo",
+						),
+					),
+				},
+			),
+		},
+		"import with a double quoted string": {
+			input: `import "foo"`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewImportStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewDoubleQuotedStringLiteralNode(
+							S(P(7, 1, 8), P(11, 1, 12)),
+							"foo",
+						),
+					),
+				},
+			),
+		},
+		"import with an interpolated string": {
+			input: `import "foo${1}"`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewImportStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewInterpolatedStringLiteralNode(
+							S(P(7, 1, 8), P(15, 1, 16)),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(
+									S(P(8, 1, 9), P(10, 1, 11)),
+									"foo",
+								),
+								ast.NewStringInterpolationNode(
+									S(P(11, 1, 12), P(14, 1, 15)),
+									ast.NewIntLiteralNode(
+										S(P(13, 1, 14), P(13, 1, 14)),
+										"1",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(7, 1, 8), P(15, 1, 16)), "cannot interpolate strings in this context"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSingletonBlock(t *testing.T) {
 	tests := testTable{
 		"can have a multiline body": {

@@ -219,6 +219,7 @@ type StatementNode interface {
 func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
+func (*ImportStatementNode) statementNode()     {}
 
 // Represents a single statement of a struct body
 // optionally terminated with a newline or semicolon.
@@ -786,6 +787,24 @@ func (*EmptyStatementNode) IsStatic() bool {
 func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 	return &EmptyStatementNode{
 		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Expression optionally terminated with a newline or a semicolon.
+type ImportStatementNode struct {
+	NodeBase
+	Path StringLiteralNode
+}
+
+func (i *ImportStatementNode) IsStatic() bool {
+	return false
+}
+
+// Create a new import statement node eg. `import "foo"`
+func NewImportStatementNode(span *position.Span, path StringLiteralNode) *ImportStatementNode {
+	return &ImportStatementNode{
+		NodeBase: NodeBase{span: span},
+		Path:     path,
 	}
 }
 

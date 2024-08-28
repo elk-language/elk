@@ -496,6 +496,7 @@ const (
 	MACRO             // Keyword `macro`
 	BOOL              // Keyword `bool`
 	NEW               // Keyword `new`
+	IMPORT            // Keyword `import`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -576,6 +577,7 @@ var Keywords = map[string]Type{
 	"macro":      MACRO,
 	"bool":       BOOL,
 	"new":        NEW,
+	"import":     IMPORT,
 }
 
 var tokenNames = [...]string{
@@ -820,4 +822,5 @@ var tokenNames = [...]string{
 	MACRO:      "macro",
 	BOOL:       "bool",
 	NEW:        "new",
+	IMPORT:     "import",
 }
