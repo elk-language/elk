@@ -751,6 +751,14 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		return c.newNormalisedUnion(t.Elements...)
 	case *types.Intersection:
 		return c.newNormalisedIntersection(t.Elements...)
+	case *types.Generic:
+		for name, arg := range t.TypeArguments.ArgumentMap {
+			if name == symbol.M_self {
+				continue
+			}
+			arg.Type = c.normaliseType(arg.Type)
+		}
+		return t
 	case *types.SingletonOf:
 		switch nestedType := t.Type.(type) {
 		case *types.InstanceOf:

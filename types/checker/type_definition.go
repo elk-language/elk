@@ -167,7 +167,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 			continue
 		}
 
-		t := c.checkTypeParameterNode(varNode)
+		t := c.checkTypeParameterNode(varNode, typeParamMod)
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
@@ -397,11 +397,11 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 		iface.Checked,
 		node.TypeParameters,
 		iface,
-		iface.TypeParameters,
+		iface.TypeParameters(),
 		node.Span(),
 	)
 	if typeParams != nil {
-		iface.TypeParameters = typeParams
+		iface.SetTypeParameters(typeParams)
 	}
 	iface.Checked = true
 
@@ -419,11 +419,11 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 		mixin.Checked,
 		node.TypeParameters,
 		mixin,
-		mixin.TypeParameters,
+		mixin.TypeParameters(),
 		node.Span(),
 	)
 	if typeParams != nil {
-		mixin.TypeParameters = typeParams
+		mixin.SetTypeParameters(typeParams)
 	}
 	mixin.Checked = true
 
@@ -440,7 +440,7 @@ func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []as
 					continue
 				}
 
-				t := c.checkTypeParameterNode(varNode)
+				t := c.checkTypeParameterNode(varNode, namespace)
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
@@ -473,7 +473,7 @@ func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []as
 			continue
 		}
 
-		newTypeParam := c.checkTypeParameterNode(varNode)
+		newTypeParam := c.checkTypeParameterNode(varNode, namespace)
 		typeParamNode.SetType(newTypeParam)
 
 		if newTypeParam.Name != oldTypeParam.Name ||
@@ -505,11 +505,11 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		class.Checked,
 		node.TypeParameters,
 		class,
-		class.TypeParameters,
+		class.TypeParameters(),
 		node.Span(),
 	)
 	if typeParams != nil {
-		class.TypeParameters = typeParams
+		class.SetTypeParameters(typeParams)
 	}
 
 	var superclassType types.Type
@@ -597,7 +597,7 @@ superclassSwitch:
 	c.popConstScope()
 }
 
-func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode) *types.TypeParameter {
+func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace) *types.TypeParameter {
 	var variance types.Variance
 	switch node.Variance {
 	case ast.INVARIANT:
@@ -620,7 +620,6 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode) *ty
 		upperType = c.typeOf(node.UpperBound)
 	}
 
-	namespace := c.currentConstScope().container
 	return types.NewTypeParameter(
 		value.ToSymbol(node.Name),
 		namespace,

@@ -12,12 +12,20 @@ type Mixin struct {
 	abstract       bool
 	Checked        bool
 	singleton      *SingletonClass
-	TypeParameters []*TypeParameter
+	typeParameters []*TypeParameter
 	NamespaceBase
 }
 
 func (m *Mixin) IsGeneric() bool {
-	return len(m.TypeParameters) > 0
+	return len(m.typeParameters) > 0
+}
+
+func (m *Mixin) TypeParameters() []*TypeParameter {
+	return m.typeParameters
+}
+
+func (m *Mixin) SetTypeParameters(t []*TypeParameter) {
+	m.typeParameters = t
 }
 
 func IsMixin(typ Type) bool {

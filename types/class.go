@@ -12,12 +12,20 @@ type Class struct {
 	primitive      bool
 	Checked        bool
 	singleton      *SingletonClass
-	TypeParameters []*TypeParameter
+	typeParameters []*TypeParameter
 	NamespaceBase
 }
 
 func (c *Class) IsGeneric() bool {
-	return len(c.TypeParameters) > 0
+	return len(c.typeParameters) > 0
+}
+
+func (c *Class) TypeParameters() []*TypeParameter {
+	return c.typeParameters
+}
+
+func (c *Class) SetTypeParameters(t []*TypeParameter) {
+	c.typeParameters = t
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {

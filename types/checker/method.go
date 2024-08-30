@@ -1257,7 +1257,7 @@ func (c *Checker) declareMethod(
 				continue
 			}
 
-			t := c.checkTypeParameterNode(node)
+			t := c.checkTypeParameterNode(node, typeParamMod)
 			typeParams = append(typeParams, t)
 			typeParamNode.SetType(t)
 			typeParamMod.DefineSubtype(t.Name, t)

@@ -1,4 +1,6 @@
 sealed primitive class ::Std::String < Value
+	implement Hashable
+
 	##[
 		Concatenate this `String`
 		with another `String` or `Char`.
@@ -115,6 +117,11 @@ sealed primitive class ::Std::String < Value
 		Iterates over all bytes of a `String`.
 	]##
 	def byte_iterator: ByteIterator; end
+
+	##[
+		Calculates a hash of the string.
+	]##
+	def hash: UInt64; end
 
 	##[
 		Iterates over all unicode code points of a `String`.

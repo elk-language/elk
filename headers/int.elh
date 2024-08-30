@@ -198,4 +198,9 @@ sealed primitive class ::Std::Int < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Calculates a hash of the int.
+	]##
+	def hash: UInt64; end
+
 end

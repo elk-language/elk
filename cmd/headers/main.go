@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/elk-language/elk/types"
@@ -14,30 +15,17 @@ import (
 
 // Compiles Elk headers
 
-const pathToHeaders = "./headers/"
-
 func main() {
 	env := types.NewGlobalEnvironmentWithoutHeaders()
-	items, _ := os.ReadDir(pathToHeaders)
-	for _, item := range items {
-		if item.IsDir() {
-			continue
-		}
-		if !strings.HasSuffix(item.Name(), ".elh") {
-			continue
-		}
-
-		pathToFile := pathToHeaders + item.Name()
-		bytes, err := os.ReadFile(pathToFile)
-		if err != nil {
-			panic(err)
-		}
-		source := string(bytes)
-		_, errList := checker.CheckSource(pathToFile, source, env, true)
-		if len(errList) > 0 {
-			fmt.Println(errList.HumanStringWithSource(source, true))
-			os.Exit(1)
-		}
+	workingDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
+	_, errList := checker.CheckFile(pathToMainFile, env, true)
+	if len(errList) > 0 {
+		fmt.Println(errList.HumanString(true))
+		os.Exit(1)
 	}
 	buffer := new(bytes.Buffer)
 	buffer.WriteString(
@@ -120,6 +108,21 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		)
 	}
 	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
+	if namespace.IsGeneric() {
+		buffer.WriteString(`namespace.SetTypeParameters([]*TypeParameter{`)
+		for _, param := range namespace.TypeParameters() {
+			fmt.Fprintf(
+				buffer,
+				"%s,",
+				typeToCode(param, true),
+			)
+		}
+		buffer.WriteString("})\n")
+
+		for _, param := range namespace.TypeParameters() {
+			defineSubtype(buffer, param, param.Name.String())
+		}
+	}
 	if namespaceIsClass {
 		superclass := namespaceClass.Superclass()
 		if superclass != nil && superclass != objectClass {
@@ -208,11 +211,8 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			for _, param := range method.TypeParameters {
 				fmt.Fprintf(
 					buffer,
-					"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s),",
-					param.Name,
-					typeToCode(param.LowerBound, false),
-					typeToCode(param.UpperBound, false),
-					param.Variance.String(),
+					"%s,",
+					typeToCode(param, true),
 				)
 			}
 			buffer.WriteString("}, ")
@@ -257,6 +257,7 @@ func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespa
 			defineModule(buffer, s, name.String())
 		case *types.Interface:
 			defineInterface(buffer, s, name.String())
+		case *types.TypeParameter:
 		default:
 			defineSubtype(buffer, s, name.String())
 		}
@@ -370,6 +371,49 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 }
 
 // Serialise the type to Go code
+func namespaceToCode(typ types.Namespace) string {
+	switch t := typ.(type) {
+	case nil:
+		return "nil"
+	case *types.Class:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Class)",
+			t.Name(),
+		)
+	case *types.SingletonClass:
+		return fmt.Sprintf(
+			"NameToNamespace(%q, env).Singleton()",
+			t.AttachedObject.Name(),
+		)
+	case *types.Mixin:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Mixin)",
+			t.Name(),
+		)
+	case *types.Module:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Module)",
+			t.Name(),
+		)
+	case *types.Interface:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Interface)",
+			t.Name(),
+		)
+	case *types.Generic:
+		return typeToCode(typ, false)
+	case *types.TypeParamNamespace:
+		return "nil"
+	case *types.Closure:
+		return typeToCode(typ, false)
+	default:
+		panic(
+			fmt.Sprintf("invalid type: %T", typ),
+		)
+	}
+}
+
+// Serialise the type to Go code
 func typeToCode(typ types.Type, init bool) string {
 	switch t := typ.(type) {
 	case nil:
@@ -407,6 +451,15 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf(
 			"NameToType(%q, env)",
 			t.Name,
+		)
+	case *types.TypeParameter:
+		return fmt.Sprintf(
+			"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s)",
+			t.Name,
+			namespaceToCode(t.Namespace),
+			typeToCode(t.LowerBound, false),
+			typeToCode(t.UpperBound, false),
+			t.Variance.String(),
 		)
 	case *types.Class:
 		return fmt.Sprintf(
@@ -496,6 +549,39 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf("NewSingletonOf(%s)", typeToCode(t.Type, init))
 	case *types.InstanceOf:
 		return fmt.Sprintf("NewInstanceOf(%s)", typeToCode(t.Type, init))
+	case *types.Generic:
+		buff := new(strings.Builder)
+		fmt.Fprintf(
+			buff,
+			"NewGeneric(%s, NewTypeArguments(map[value.Symbol]*TypeArgument{",
+			namespaceToCode(t.Namespace),
+		)
+		for name, arg := range t.TypeArguments.ArgumentMap {
+			if name == symbol.M_self {
+				continue
+			}
+			fmt.Fprintf(
+				buff,
+				"value.ToSymbol(%q): NewTypeArgument(%s, %s),",
+				name.String(),
+				typeToCode(arg.Type, init),
+				arg.Variance.String(),
+			)
+		}
+		buff.WriteString("}, []value.Symbol{")
+
+		for _, name := range t.TypeArguments.ArgumentOrder {
+			fmt.Fprintf(
+				buff,
+				"value.ToSymbol(%q),",
+				name.String(),
+			)
+		}
+		buff.WriteString("}))")
+
+		return buff.String()
+	case *types.TypeParamNamespace:
+		return "nil"
 	case *types.Closure:
 		buff := new(strings.Builder)
 		fmt.Fprintf(
@@ -512,11 +598,8 @@ func typeToCode(typ types.Type, init bool) string {
 			for _, param := range t.Body.TypeParameters {
 				fmt.Fprintf(
 					buff,
-					"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s),",
-					param.Name,
-					typeToCode(param.LowerBound, false),
-					typeToCode(param.UpperBound, false),
-					param.Variance.String(),
+					"%s.(*TypeParameter),",
+					typeToCode(param, false),
 				)
 			}
 			buff.WriteString("}, ")
@@ -543,7 +626,7 @@ func typeToCode(typ types.Type, init bool) string {
 
 		fmt.Fprintf(
 			buff,
-			"%s, %s)\n",
+			"%s, %s)",
 			typeToCode(t.Body.ReturnType, false),
 			typeToCode(t.Body.ThrowType, false),
 		)

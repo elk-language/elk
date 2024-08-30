@@ -5,6 +5,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 // ::Std::Char
@@ -72,6 +74,12 @@ func (c Char) Inspect() string {
 
 func (Char) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (c Char) Hash() UInt64 {
+	d := xxhash.New()
+	d.WriteString(string(c))
+	return UInt64(d.Sum64())
 }
 
 // Returns the number of bytes

@@ -4,10 +4,7 @@
 
 	It is an unordered collection of key-value pairs.
 ]##
-sealed primitive class ::Std::HashMap < ::Std::Value
-	typedef Key = any
-	typedef Value = any
-
+sealed primitive class ::Std::HashMap[Key < Hashable, Value] < ::Std::Value
 	##[
 		Mutates the map.
 
@@ -16,7 +13,7 @@ sealed primitive class ::Std::HashMap < ::Std::Value
 
 		Expands the `capacity` of the list by `new_slots`
 	]##
-	def grow(new_slots: Int): HashMap; end
+	def grow(new_slots: Int): self; end
 
 	##[
 		Returns the number of key-value pairs that can be
@@ -61,12 +58,12 @@ sealed primitive class ::Std::HashMap < ::Std::Value
 		Create a new `HashMap` containing the pairs of `self`
 		and another given `HashMap` or `HashRecord`.
 	]##
-	sealed def +(other: HashMap | HashRecord): HashMap; end
+	sealed def +[K < Hashable, V](other: HashMap[K, V] | HashRecord[K, V]): HashMap[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this map.
 	]##
-	def contains(pair: Pair): Bool; end
+	def contains(pair: Pair[Key, Value]): Bool; end
 
 	##[
 		Check whether the given `key` is present in this map.
@@ -90,31 +87,51 @@ sealed primitive class ::Std::HashMap < ::Std::Value
 	]##
 	sealed def =~(other: any): Bool; end
 
-	# TODO
-	def map; end
-	# TODO
-	def map_values; end
-	# TODO
-	def map_values_mut; end
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the key value pairs returned
+		by the given closure.
+	]##
+	def map[K < Hashable, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the values returned
+		by the given closure.
+	]##
+	def map_values[V](fn: |value: Value|: V): HashMap[Key, V]; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Mutates the map in place replacing the values with the ones
+		returned by the given closure.
+	]##
+	def map_values_mut(fn: |value: Value|: Value): self; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the map.
 	]##
-	def iterator: Iterator; end
+	def iterator: Iterator[Key, Value]; end
 
-	sealed primitive class Iterator
-		typedef Element = any
+	sealed primitive class Iterator[Key, Value]
+		implement ::Std::Iterator[Pair[Key, Value]]
 
 		##[
 			Get the next pair of the map.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
-		def next: Element ! :stop_iteration; end
+		def next: Pair[Key, Value] ! :stop_iteration; end
 
 		##[
 			Returns `self`.
 		]##
-		def iterator: Iterator; end
+		def iterator: self; end
 	end
 end

@@ -32,14 +32,27 @@ func (m *Map[K, V]) Get(key K) (val V, ok bool) {
 	return val, ok
 }
 
+func (m *Map[K, V]) GetUnsafe(key K) (val V, ok bool) {
+	val, ok = m.Map[key]
+	return val, ok
+}
+
 func (m *Map[K, V]) Delete(key K) {
 	m.mu.Lock()
 	delete(m.Map, key)
 	m.mu.Unlock()
 }
 
+func (m *Map[K, V]) DeleteUnsafe(key K) {
+	delete(m.Map, key)
+}
+
 func (m *Map[K, V]) Set(key K, value V) {
 	m.mu.Lock()
 	m.Map[key] = value
 	m.mu.Unlock()
+}
+
+func (m *Map[K, V]) SetUnsafe(key K, value V) {
+	m.Map[key] = value
 }

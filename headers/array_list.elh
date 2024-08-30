@@ -4,8 +4,8 @@
 
 	It is an ordered collection of integer indexed values.
 ]##
-sealed primitive class ::Std::ArrayList < Value
-	typedef Element = any
+sealed primitive class ::Std::ArrayList[Element] < Value
+	implement List[Element]
 
 	##[
 		Mutates the list.
@@ -15,7 +15,7 @@ sealed primitive class ::Std::ArrayList < Value
 
 		Expands the `capacity` of the list by `new_slots`
 	]##
-	def grow(new_slots: Int): ArrayList; end
+	def grow(new_slots: Int): self; end
 
 	##[
 		Returns the number of elements that can be
@@ -62,13 +62,13 @@ sealed primitive class ::Std::ArrayList < Value
 		Create a new `ArrayList` containing the elements of `self`
 		and another given `ArrayList` or `ArrayTuple`.
 	]##
-	sealed def +(other: ArrayList | ArrayTuple): ArrayList; end
+	sealed def +[E](other: ArrayList[E] | ArrayTuple[E]): ArrayList[Element | E]; end
 
 	##[
 		Create a new `ArrayList` containing the elements of `self`
 		repeated `n` times.
 	]##
-	sealed def *(n: Int): ArrayList; end
+	sealed def *(n: Int): ArrayList[Element]; end
 
 	##[
 		Check whether the given `value` is present in this list.
@@ -93,7 +93,7 @@ sealed primitive class ::Std::ArrayList < Value
 		Reallocates the underlying array if it is
 		too small to hold them.
 	]##
-	def append(*values: Element): ArrayList; end
+	def append(*values: Element): self; end
 
 	##[
 		Adds the given value to the list.
@@ -101,22 +101,33 @@ sealed primitive class ::Std::ArrayList < Value
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def <<(value: Element): ArrayList; end
+	def <<(value: Element): self; end
 
-	# TODO
-	def map_mut; end
-	# TODO
-	def map; end
+	##[
+		Iterates over the elements of this list,
+		yielding them to the given closure.
+
+		Mutates the list in place replacing the elements with the ones
+		returned by the given closure.
+	]##
+	def map_mut(fn: |element: Element|: Element): self; end
+
+	##[
+		Iterates over the elements of this list,
+		yielding them to the given closure.
+
+		Returns a new List that consists of the elements returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Element|: E): ArrayList[E]; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the list.
 	]##
-	def iterator: Iterator; end
+	def iterator: Iterator[Element]; end
 
-	sealed primitive class Iterator
-		typedef Element = any
-
+	sealed primitive class Iterator[Element]
 		##[
 			Get the next element of the list.
 			Throws `:stop_iteration` when there are no more elements.
@@ -126,6 +137,6 @@ sealed primitive class ::Std::ArrayList < Value
 		##[
 			Returns `self`.
 		]##
-		def iterator: Iterator; end
+		def iterator: self; end
 	end
 end

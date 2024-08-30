@@ -2,6 +2,13 @@
 	Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).
 ]##
 sealed primitive class ::Std::Int64 < Value
+	implement Hashable
+
+	##[
+		Calculates a hash of the value.
+	]##
+	def hash: UInt64; end
+
 	##[
 		Returns itself.
 

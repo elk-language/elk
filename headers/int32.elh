@@ -2,6 +2,13 @@
 	Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).
 ]##
 sealed primitive class ::Std::Int32 < Value
+	implement Hashable
+
+	##[
+		Calculates a hash of the value.
+	]##
+	def hash: UInt64; end
+
 	##[
 		Returns itself.
 

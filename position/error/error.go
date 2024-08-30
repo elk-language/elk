@@ -269,7 +269,7 @@ func (e *ErrorList) AddWarning(message string, loc *position.Location) {
 func (e ErrorList) Error() string {
 	switch len(e) {
 	case 0:
-		return "no errors"
+		return "<empty ErrorList>"
 	case 1:
 		return e[0].Error()
 	}
@@ -360,6 +360,26 @@ func (e *SyncErrorList) Append(err *Error) {
 	e.mutex.Unlock()
 }
 
+func (e *SyncErrorList) Join(other *SyncErrorList) {
+	e.mutex.Lock()
+	other.mutex.Lock()
+
+	e.ErrorList = append(e.ErrorList, other.ErrorList...)
+
+	other.mutex.Unlock()
+	e.mutex.Unlock()
+}
+
+func (e *SyncErrorList) JoinErrList(other ErrorList) {
+	e.mutex.Lock()
+	e.ErrorList = append(e.ErrorList, other...)
+	e.mutex.Unlock()
+}
+
 func (e *SyncErrorList) IsFailure() bool {
 	return e.ErrorList.IsFailure()
+}
+
+func (e *SyncErrorList) Error() string {
+	return e.ErrorList.Error()
 }

@@ -215,3 +215,15 @@ func (c *Closure) ToNonLiteral(env *GlobalEnvironment) Type {
 func (*Closure) IsLiteral() bool {
 	return false
 }
+
+func (c *Closure) IsGeneric() bool {
+	return false
+}
+
+func (c *Closure) TypeParameters() []*TypeParameter {
+	return nil
+}
+
+func (c *Closure) SetTypeParameters(t []*TypeParameter) {
+	panic("cannot set type parameters on a closure")
+}

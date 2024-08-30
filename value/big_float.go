@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ALTree/bigfloat"
+	"github.com/cespare/xxhash/v2"
 )
 
 var BigFloatClass *Class // ::Std::BigFloat
@@ -87,6 +88,16 @@ func (f *BigFloat) SetFloat64(x Float64) *BigFloat {
 	}
 	f.AsGoBigFloat().SetFloat64(float64(x))
 	return f
+}
+
+func (f *BigFloat) Hash() UInt64 {
+	d := xxhash.New()
+	bytes, err := f.AsGoBigFloat().GobEncode()
+	if err != nil {
+		panic(fmt.Sprintf("could not create a hash for big float: %s", err))
+	}
+	d.Write(bytes)
+	return UInt64(d.Sum64())
 }
 
 // Convert to a Float value.

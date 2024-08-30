@@ -1,5 +1,7 @@
 package value
 
+import "github.com/cespare/xxhash/v2"
+
 var FalseClass *Class // ::Std::False
 
 type FalseType struct{}
@@ -17,6 +19,12 @@ func (FalseType) DirectClass() *Class {
 
 func (FalseType) SingletonClass() *Class {
 	return nil
+}
+
+func (FalseType) Hash() UInt64 {
+	d := xxhash.New()
+	d.Write([]byte{0})
+	return UInt64(d.Sum64())
 }
 
 func (f FalseType) Copy() Value {

@@ -1,0 +1,11 @@
+##[
+	Represents an empty value.
+]##
+sealed primitive class ::Std::Nil < Value
+	implement Hashable
+
+	##[
+		Calculates a hash of the string.
+	]##
+	def hash: UInt64; end
+end

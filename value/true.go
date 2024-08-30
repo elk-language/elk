@@ -1,5 +1,7 @@
 package value
 
+import "github.com/cespare/xxhash/v2"
+
 var TrueClass *Class // ::Std::True
 
 type TrueType struct{}
@@ -13,6 +15,12 @@ func (TrueType) Class() *Class {
 
 func (TrueType) DirectClass() *Class {
 	return TrueClass
+}
+
+func (TrueType) Hash() UInt64 {
+	d := xxhash.New()
+	d.Write([]byte{1})
+	return UInt64(d.Sum64())
 }
 
 func (TrueType) SingletonClass() *Class {

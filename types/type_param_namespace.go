@@ -62,6 +62,18 @@ func (t *TypeParamNamespace) IsPrimitive() bool {
 	return true
 }
 
+func (t *TypeParamNamespace) IsGeneric() bool {
+	return false
+}
+
+func (t *TypeParamNamespace) TypeParameters() []*TypeParameter {
+	return nil
+}
+
+func (t *TypeParamNamespace) SetTypeParameters([]*TypeParameter) {
+	panic("cannot set type parameters on a type parameter namespace")
+}
+
 func (t *TypeParamNamespace) Constants() *TypeMap {
 	return t.constants
 }

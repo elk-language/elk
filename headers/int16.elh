@@ -2,6 +2,13 @@
 	Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).
 ]##
 sealed primitive class ::Std::Int16 < Value
+	implement Hashable
+
+	##[
+		Calculates a hash of the value.
+	]##
+	def hash: UInt64; end
+
 	##[
 		Returns itself.
 

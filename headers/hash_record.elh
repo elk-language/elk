@@ -4,10 +4,7 @@
 	It is an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-sealed primitive class ::Std::HashRecord < ::Std::Value
-	typedef Key = any
-	typedef Value = any
-
+sealed primitive class ::Std::HashRecord[Key < Hashable, Value] < ::Std::Value
 	##[
 		Returns the number of key-value pairs present in the record.
 	]##
@@ -23,12 +20,12 @@ sealed primitive class ::Std::HashRecord < ::Std::Value
 		Create a new `HashRecord` containing the pairs of `self`
 		and another given `HashRecord`.
 	]##
-	sealed def +(other: HashRecord): HashRecord; end
+	sealed def +[K < Hashable, V](other: HashRecord[K, V]): HashRecord[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains(pair: Pair): Bool; end
+	def contains(pair: Pair[Key, Value]): Bool; end
 
 	##[
 		Check whether the given `key` is present in this record.
@@ -52,29 +49,42 @@ sealed primitive class ::Std::HashRecord < ::Std::Value
 	]##
 	sealed def =~(other: any): Bool; end
 
-	# TODO
-	def map; end
-	# TODO
-	def map_values; end
+	##[
+		Iterates over the key value pairs of this record,
+		yielding them to the given closure.
+
+		Returns a new HashRecord that consists of the key value pairs returned
+		by the given closure.
+	]##
+	def map[K < Hashable, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashRecord[K, V]; end
+
+	##[
+		Iterates over the values of this record,
+		yielding them to the given closure.
+
+		Returns a new HashRecord that consists of the values returned
+		by the given closure.
+	]##
+	def map_values[V](fn: |value: Value|: V): HashRecord[Key, V]; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the record.
 	]##
-	def iterator: Iterator; end
+	def iterator: Iterator[Key, Value]; end
 
-	sealed primitive class Iterator
-		typedef Element = any
+	sealed primitive class Iterator[Key, Value]
+		implement ::Std::Iterator[Pair[Key, Value]]
 
 		##[
 			Get the next pair of the record.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
-		def next: Element ! :stop_iteration; end
+		def next: Pair[Key, Value] ! :stop_iteration; end
 
 		##[
 			Returns `self`.
 		]##
-		def iterator: Iterator; end
+		def iterator: self; end
 	end
 end

@@ -4,8 +4,8 @@
 	It is an ordered, immutable collection of integer indexed values.
 	A tuple is an immutable list.
 ]##
-sealed primitive class ::Std::ArrayTuple < Value
-	typedef Element = any
+sealed primitive class ::Std::ArrayTuple[Element] < Value
+	implement Tuple[Element]
 
 	##[
 		Returns the number of elements present in the tuple.
@@ -24,13 +24,13 @@ sealed primitive class ::Std::ArrayTuple < Value
 		Create a new `ArrayTuple` containing the elements of `self`
 		and another given `ArrayTuple`.
 	]##
-	sealed def +(other: ArrayTuple): ArrayTuple; end
+	sealed def +[E](other: ArrayTuple[E]): ArrayTuple[Element | E]; end
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`
 		repeated `n` times.
 	]##
-	sealed def *(n: Int): ArrayList; end
+	sealed def *(n: Int): ArrayTuple[Element]; end
 
 	##[
 		Check whether the given `value` is present in this tuple.
@@ -49,18 +49,22 @@ sealed primitive class ::Std::ArrayTuple < Value
 	]##
 	sealed def =~(other: any): Bool; end
 
-	# TODO
-	def map; end
+	##[
+		Iterates over the elements of this tuple,
+		yielding them to the given closure.
+
+		Returns a new Tuple that consists of the elements returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Element|: E): ArrayTuple[E]; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the tuple.
 	]##
-	def iterator: Iterator; end
+	def iterator: Iterator[Element]; end
 
-	sealed primitive class Iterator
-		typedef Element = any
-
+	sealed primitive class Iterator[Element]
 		##[
 			Get the next element of the tuple.
 			Throws `:stop_iteration` when there are no more elements.
@@ -70,6 +74,6 @@ sealed primitive class ::Std::ArrayTuple < Value
 		##[
 			Returns `self`.
 		]##
-		def iterator: Iterator; end
+		def iterator: self; end
 	end
 end

@@ -1,0 +1,8 @@
+sealed primitive class ::Std::True < Value
+	implement Hashable
+
+	##[
+		Calculates a hash of the value.
+	]##
+	def hash: UInt64; end
+end

@@ -1,70 +1,69 @@
 ##[
 	Represents a floating point number (a fraction like `1.2`, `0.1`).
 
-	This float type has 64 bits on 64 bit platforms
-	and 32 bit on 32 bit platforms.
+	This float type has 64 bits.
 ]##
-sealed primitive class ::Std::Float < Value
+sealed primitive class ::Std::Float32 < Value
 	implement Hashable
 
 	##[
 		Returns itself.
 
 		```
-			var a = 1.2
-			+a #=> 1.2
+			var a = 1.2f32
+			+a #=> 1.2f32
 		```
 	]##
-	sealed def +@: Float; end
+	sealed def +@: Float32; end
 
 	##[
 		Returns the result of negating the number.
 
 		```
-			var a = 1.2
-			-a #=> -1.2
+			var a = 1.2f32
+			-a #=> -1.2f32
 		```
 	]##
-	sealed def -@: Float; end
+	sealed def -@: Float32; end
 
 	##[
 		Add `other` to this float.
 	]##
-	sealed def +(other: Float): Float; end
+	sealed def +(other: Float32): Float32; end
 
 	##[
 		Subtract `other` from this float.
 	]##
-	sealed def -(other: Float): Float; end
+	sealed def -(other: Float32): Float32; end
 
 	##[
 		Multiply this float by `other`.
 	]##
-	sealed def *(other: Float): Float; end
+	sealed def *(other: Float32): Float32; end
 
 	##[
 		Divide this float by another float.
 	]##
-	sealed def /(other: Float): Float; end
+	sealed def /(other: Float32): Float32; end
 
 	##[
 		Exponentiate this float, raise it to the power of `other`.
 	]##
-	sealed def **(other: Float): Float; end
+	sealed def **(other: Float32): Float32; end
 
 	##[
-		Compare this float with another number.
+		Compare this float with another float.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: CoercibleNumeric): Int; end
+	sealed def <=>(other: Float32): Int; end
 
-	sealed def >=(other: CoercibleNumeric): Bool; end
+	sealed def >=(other: Float32): Bool; end
 
-	sealed def >(other: CoercibleNumeric): Bool; end
+	sealed def >(other: Float32): Bool; end
 
-	sealed def <=(other: CoercibleNumeric): Bool; end
+	sealed def <=(other: Float32): Bool; end
 
-	sealed def <(other: CoercibleNumeric): Bool; end
+	sealed def <(other: Float32): Bool; end
 
 	sealed def ==(other: any): Bool; end
 
@@ -77,10 +76,10 @@ sealed primitive class ::Std::Float < Value
 			a % b #=> 1
 		```
 	]##
-	sealed def %(other: Float): Float; end
+	sealed def %(other: Float32): Float32; end
 
 	##[
-		Returns itself.
+		Converts the float to a coercible floating point number.
 	]##
 	def to_float: Float; end
 
@@ -100,7 +99,7 @@ sealed primitive class ::Std::Float < Value
 	def to_float64: Float64; end
 
 	##[
-		Converts the float to a 32-bit floating point number.
+		Returns itself.
 	]##
 	def to_float32: Float32; end
 

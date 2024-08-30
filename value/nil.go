@@ -39,7 +39,7 @@ func (NilType) InstanceVariables() SymbolMap {
 
 func (NilType) Hash() UInt64 {
 	d := xxhash.New()
-	d.Write([]byte{0})
+	d.Write([]byte{2})
 	return UInt64(d.Sum64())
 }
 

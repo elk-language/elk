@@ -15,6 +15,8 @@
 	Exponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.
 ]##
 sealed primitive class ::Std::BigFloat < Value
+	implement Hashable
+
 	##[
 		Sets the precision to the given integer.
 	]##
@@ -163,4 +165,8 @@ sealed primitive class ::Std::BigFloat < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Calculates a hash of the float.
+	]##
+	def hash: UInt64; end
 end

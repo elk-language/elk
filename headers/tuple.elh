@@ -1,0 +1,50 @@
+##[
+	An interface that represents an ordered, immutable collection
+	of elements indexed by integers starting at `0`.
+]##
+interface ::Std::Tuple[Element]
+	##[
+		Returns the number of elements present in the tuple.
+	]##
+	def length: Int; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def [](index: AnyInt): Element; end
+
+	##[
+		Check whether the given `value` is present in this tuple.
+	]##
+	def contains(value: Element): Bool; end
+
+	##[
+		Check whether the given value is a list
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is a list
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	##[
+		Iterates over the elements of this tuple,
+		yielding them to the given closure.
+
+		Returns a new Tuple that consists of the elements returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Element|: E): List[E]; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the list.
+	]##
+	def iterator: Iterator[Element]; end
+end

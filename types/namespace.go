@@ -20,6 +20,10 @@ type Namespace interface {
 	IsAbstract() bool
 	IsSealed() bool
 	IsPrimitive() bool
+	IsGeneric() bool
+
+	TypeParameters() []*TypeParameter
+	SetTypeParameters([]*TypeParameter)
 
 	Constants() *TypeMap
 	Constant(name value.Symbol) Type

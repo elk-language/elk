@@ -1,0 +1,9 @@
+##[
+	Represents a value that can be iterated over in a `for` loop.
+]##
+interface ::Std::Iterable[Element]
+	##[
+		Returns an iterator for this structure.
+	]##
+	def iterator: Iterator[Element]; end
+end

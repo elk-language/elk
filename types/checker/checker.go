@@ -3,8 +3,11 @@ package checker
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/lexer"
@@ -33,8 +36,15 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 // Check the types of an Elk AST.
 func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
 	checker := newChecker(sourceName, globalEnv, headerMode)
-	typedAst := checker.checkProgram(ast)
-	return typedAst, checker.Errors.ErrorList
+	bytecode := checker.checkProgram(ast)
+	return bytecode, checker.Errors.ErrorList
+}
+
+// Check the types of an Elk file.
+func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
+	checker := newChecker(fileName, globalEnv, headerMode)
+	bytecode := checker.checkFile(fileName)
+	return bytecode, checker.Errors.ErrorList
 }
 
 type mode uint8
@@ -84,6 +94,7 @@ type Checker struct {
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
 	typeDefinitionChecks    *typeDefinitionChecks
+	astCache                *concurrent.Map[string, *ast.ProgramNode]
 }
 
 // Instantiate a new Checker instance.
@@ -112,6 +123,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
 		typeDefinitionChecks:  newTypeDefinitionChecks(),
+		astCache:              concurrent.NewMap[string, *ast.ProgramNode](),
 	}
 }
 
@@ -171,6 +183,184 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	return bytecodeFunc, c.Errors.ErrorList
 }
 
+func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
+	statements := node.Body
+
+	c.hoistNamespaceDefinitions(statements)
+	for _, placeholder := range c.placeholderNamespaces.Slice {
+		replacement := placeholder.Replacement
+		if replacement != nil {
+			continue
+		}
+
+		for _, location := range placeholder.Locations.Slice {
+			c.addFailureWithLocation(
+				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
+				location,
+			)
+		}
+	}
+
+	c.checkTypeDefinitions()
+	c.hoistMethodDefinitions(statements)
+	c.phase = expressionPhase
+	c.checkMethods()
+	c.checkStatements(statements)
+
+	return nil
+}
+
+func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot read file: %s",
+				filename,
+			),
+			position.NewSpan(position.New(0, 1, 1), position.New(0, 1, 1)),
+		)
+	}
+
+	source := string(bytes)
+	ast, errList := parser.Parse(filename, source)
+	if errList != nil {
+		c.Errors.ErrorList.Join(errList)
+		return nil
+	}
+
+	var wg sync.WaitGroup
+	// parse all files of the project concurrently
+	c.checkImportsForFile(filename, ast, &wg)
+	wg.Wait()
+
+	c.hoistNamespaceDefinitionsInFile(filename, ast)
+	for _, placeholder := range c.placeholderNamespaces.Slice {
+		replacement := placeholder.Replacement
+		if replacement != nil {
+			continue
+		}
+
+		for _, location := range placeholder.Locations.Slice {
+			c.addFailureWithLocation(
+				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
+				location,
+			)
+		}
+	}
+
+	c.checkTypeDefinitions()
+	c.hoistMethodDefinitionsInFile(filename, ast)
+	c.phase = expressionPhase
+	c.checkMethods()
+	c.checkExpressionsInFile(filename, ast)
+
+	return nil
+}
+
+func (c *Checker) hoistNamespaceDefinitionsInFile(filename string, node *ast.ProgramNode) {
+	node.State = ast.CHECKING_NAMESPACES
+	for _, importPath := range node.ImportPaths {
+		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		if !ok {
+			continue
+		}
+		switch importedAst.State {
+		case ast.CHECKING_NAMESPACES, ast.CHECKED_NAMESPACES:
+			continue
+		}
+		c.hoistNamespaceDefinitionsInFile(importPath, importedAst)
+	}
+
+	prevFilename := c.Filename
+	c.Filename = filename
+	c.hoistNamespaceDefinitions(node.Body)
+	c.Filename = prevFilename
+	node.State = ast.CHECKED_NAMESPACES
+}
+
+func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.ProgramNode) {
+	node.State = ast.CHECKING_METHODS
+	for _, importPath := range node.ImportPaths {
+		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		if !ok {
+			continue
+		}
+		switch importedAst.State {
+		case ast.CHECKING_METHODS, ast.CHECKED_METHODS:
+			continue
+		}
+		c.hoistMethodDefinitionsInFile(importPath, importedAst)
+	}
+
+	prevFilename := c.Filename
+	c.Filename = filename
+	c.hoistMethodDefinitions(node.Body)
+	c.Filename = prevFilename
+	node.State = ast.CHECKED_METHODS
+}
+
+func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode) {
+	node.State = ast.CHECKING_EXPRESSIONS
+	for _, importPath := range node.ImportPaths {
+		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		if !ok {
+			continue
+		}
+		switch importedAst.State {
+		case ast.CHECKING_EXPRESSIONS, ast.CHECKED_EXPRESSIONS:
+			continue
+		}
+		c.checkExpressionsInFile(importPath, importedAst)
+	}
+
+	prevFilename := c.Filename
+	c.Filename = filename
+	c.checkStatements(node.Body)
+	c.Filename = prevFilename
+	node.State = ast.CHECKED_EXPRESSIONS
+}
+
+func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
+	c.astCache.Set(fileName, ast)
+
+	imports := c.hoistImports(ast.Body)
+	for _, importStmt := range imports {
+		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
+		for _, importPath := range importStmt.FsPaths {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				_, ok := c.astCache.Get(importPath)
+				if ok {
+					return
+				}
+				bytes, err := os.ReadFile(importPath)
+				if err != nil {
+					c.addFailure(
+						fmt.Sprintf(
+							"cannot read file: %s (%s)",
+							importPath,
+							err,
+						),
+						importStmt.Span(),
+					)
+					return
+				}
+
+				ast, errList := parser.Parse(importPath, string(bytes))
+				if errList != nil {
+					c.Errors.JoinErrList(errList)
+					return
+				}
+
+				c.checkImportsForFile(importPath, ast, wg)
+			}()
+		}
+	}
+
+}
+
 func (c *Checker) setMode(mode mode) {
 	c.mode = mode
 }
@@ -225,6 +415,8 @@ func (c *Checker) checkStatement(node ast.Node) (types.Type, *position.Span) {
 	case *ast.ExpressionStatementNode:
 		node.Expression = c.checkExpression(node.Expression)
 		return c.typeOf(node.Expression), node.Expression.Span()
+	case *ast.ImportStatementNode:
+		return nil, nil
 	default:
 		c.addFailure(
 			fmt.Sprintf("incorrect statement type %#v", node),
@@ -2145,10 +2337,10 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 
 	var typeArgs *types.TypeArguments
 	var method *types.Method
-	if len(class.TypeParameters) > 0 {
-		typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(class.TypeParameters))
-		typeArgumentOrder := make([]value.Symbol, len(class.TypeParameters))
-		for i, param := range class.TypeParameters {
+	if len(class.TypeParameters()) > 0 {
+		typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(class.TypeParameters()))
+		typeArgumentOrder := make([]value.Symbol, len(class.TypeParameters()))
+		for i, param := range class.TypeParameters() {
 			typeArgumentMap[param.Name] = types.NewTypeArgument(
 				param,
 				param.Variance,
@@ -2229,7 +2421,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	typeArgs, ok := c.checkTypeArguments(
 		class,
 		node.TypeArguments,
-		class.TypeParameters,
+		class.TypeParameters(),
 		node.Class.Span(),
 	)
 	if !ok {
@@ -2342,21 +2534,21 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
-		class.TypeParameters,
+		class.TypeParameters(),
 		node.Span(),
 	)
 	if typedPositionalArguments == nil {
 		node.SetType(types.Nothing{})
 		return node
 	}
-	if len(typeArgMap) != len(class.TypeParameters) {
+	if len(typeArgMap) != len(class.TypeParameters()) {
 		node.SetType(types.Nothing{})
 		return node
 	}
 	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
 	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
-	typeArgOrder := make([]value.Symbol, len(class.TypeParameters))
-	for i, param := range class.TypeParameters {
+	typeArgOrder := make([]value.Symbol, len(class.TypeParameters()))
+	for i, param := range class.TypeParameters() {
 		typeArgOrder[i] = param.Name
 	}
 	generic := types.NewGeneric(
@@ -3293,7 +3485,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 		typeArgumentMap, ok := c.checkTypeArguments(
 			constantType,
 			node.TypeArguments,
-			t.TypeParameters,
+			t.TypeParameters(),
 			node.Constant.Span(),
 		)
 		if !ok {
@@ -3308,7 +3500,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 		typeArgumentMap, ok := c.checkTypeArguments(
 			constantType,
 			node.TypeArguments,
-			t.TypeParameters,
+			t.TypeParameters(),
 			node.Constant.Span(),
 		)
 		if !ok {
@@ -3323,7 +3515,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 		typeArgumentMap, ok := c.checkTypeArguments(
 			constantType,
 			node.TypeArguments,
-			t.TypeParameters,
+			t.TypeParameters(),
 			node.Constant.Span(),
 		)
 		if !ok {
@@ -3355,17 +3547,17 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
 			typ = types.Nothing{}
 		}
 	case *types.Mixin:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
 			typ = types.Nothing{}
 		}
 	case *types.Interface:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
 			typ = types.Nothing{}
 		}
 	case nil:
@@ -3668,7 +3860,7 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 		typ = types.Nothing{}
 	case *types.Class:
 		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
+			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, node.Span())
 			typ = types.Nothing{}
 		}
 	case nil:
@@ -4269,33 +4461,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 	}
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
-	statements := node.Body
-
-	c.hoistNamespaceDefinitions(statements)
-	for _, placeholder := range c.placeholderNamespaces.Slice {
-		replacement := placeholder.Replacement
-		if replacement != nil {
-			continue
-		}
-
-		for _, location := range placeholder.Locations.Slice {
-			c.addFailureWithLocation(
-				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
-				location,
-			)
-		}
-	}
-
-	c.checkTypeDefinitions()
-	c.hoistMethodDefinitions(statements)
-	c.phase = expressionPhase
-	c.checkMethods()
-	c.checkStatements(statements)
-
-	return nil
-}
-
 func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
@@ -4654,57 +4819,121 @@ func (c *Checker) hoistSingletonDeclaration(node *ast.SingletonBlockExpressionNo
 	c.mode = prevMode
 }
 
-func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
-	for _, statement := range statements {
-		stmt, ok := statement.(*ast.ExpressionStatementNode)
-		if !ok {
-			continue
-		}
-		expression := stmt.Expression
+func (c *Checker) hoistImports(statements []ast.StatementNode) []*ast.ImportStatementNode {
+	var imports []*ast.ImportStatementNode
 
-		switch expr := expression.(type) {
-		case *ast.StructDeclarationNode:
-			stmt.Expression = c.hoistStructDeclaration(expr)
-		case *ast.ModuleDeclarationNode:
-			c.hoistModuleDeclaration(expr)
-		case *ast.ClassDeclarationNode:
-			c.hoistClassDeclaration(expr)
-		case *ast.MixinDeclarationNode:
-			c.hoistMixinDeclaration(expr)
-		case *ast.InterfaceDeclarationNode:
-			c.hoistInterfaceDeclaration(expr)
-		case *ast.ConstantDeclarationNode:
-			c.checkConstantDeclaration(expr)
-		case *ast.SingletonBlockExpressionNode:
-			c.hoistSingletonDeclaration(expr)
-		case *ast.TypeDefinitionNode:
-			c.registerNamedTypeCheck(expr)
-		case *ast.GenericTypeDefinitionNode:
-			c.registerGenericNamedTypeCheck(expr)
-		case *ast.ImplementExpressionNode:
-			switch c.mode {
-			case classMode, mixinMode, interfaceMode:
-			default:
-				return
-			}
-			namespace := c.currentMethodScope().container
-			expr.SetType(types.Nothing{})
-			c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
-		case *ast.IncludeExpressionNode:
-			switch c.mode {
-			case classMode, mixinMode, singletonMode:
-			default:
-				return
-			}
-			namespace := c.currentMethodScope().container
-			expr.SetType(types.Nothing{})
-			c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
-		case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
-			*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
-			namespace := c.currentMethodScope().container
-			namespace.DefineInstanceVariable(symbol.Empty, nil) // placeholder
+	for _, statement := range statements {
+		switch stmt := statement.(type) {
+		case *ast.ImportStatementNode:
+			imports = append(imports, stmt)
+			c.checkImport(stmt)
 		}
 	}
+
+	return imports
+}
+
+func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
+	for _, statement := range statements {
+		switch stmt := statement.(type) {
+		case *ast.ExpressionStatementNode:
+			expression := stmt.Expression
+
+			switch expr := expression.(type) {
+			case *ast.StructDeclarationNode:
+				stmt.Expression = c.hoistStructDeclaration(expr)
+			case *ast.ModuleDeclarationNode:
+				c.hoistModuleDeclaration(expr)
+			case *ast.ClassDeclarationNode:
+				c.hoistClassDeclaration(expr)
+			case *ast.MixinDeclarationNode:
+				c.hoistMixinDeclaration(expr)
+			case *ast.InterfaceDeclarationNode:
+				c.hoistInterfaceDeclaration(expr)
+			case *ast.ConstantDeclarationNode:
+				c.checkConstantDeclaration(expr)
+			case *ast.SingletonBlockExpressionNode:
+				c.hoistSingletonDeclaration(expr)
+			case *ast.TypeDefinitionNode:
+				c.registerNamedTypeCheck(expr)
+			case *ast.GenericTypeDefinitionNode:
+				c.registerGenericNamedTypeCheck(expr)
+			case *ast.ImplementExpressionNode:
+				switch c.mode {
+				case classMode, mixinMode, interfaceMode:
+				default:
+					break
+				}
+				namespace := c.currentMethodScope().container
+				expr.SetType(types.Nothing{})
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+			case *ast.IncludeExpressionNode:
+				switch c.mode {
+				case classMode, mixinMode, singletonMode:
+				default:
+					break
+				}
+				namespace := c.currentMethodScope().container
+				expr.SetType(types.Nothing{})
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+				namespace := c.currentMethodScope().container
+				namespace.DefineInstanceVariable(symbol.Empty, nil) // placeholder
+			}
+		}
+	}
+}
+
+func (c *Checker) checkImport(node *ast.ImportStatementNode) {
+	var path string
+
+	switch pathNode := node.Path.(type) {
+	case *ast.DoubleQuotedStringLiteralNode:
+		path = pathNode.Value
+	case *ast.RawStringLiteralNode:
+		path = pathNode.Value
+	}
+
+	if !filepath.IsAbs(path) {
+		dirPath := filepath.Dir(c.Filename)
+		path = filepath.Join(dirPath, path)
+	}
+
+	filePaths, err := filepath.Glob(path)
+	if err != nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid glob pattern: %s (%s)",
+				path,
+				err,
+			),
+			node.Span(),
+		)
+		return
+	}
+
+	for _, filePath := range filePaths {
+		if !fileExists(filePath) {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot find file: %s",
+					path,
+				),
+				node.Span(),
+			)
+			continue
+		}
+		node.FsPaths = append(node.FsPaths, filePath)
+	}
+}
+
+func fileExists(fileName string) bool {
+	info, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {

@@ -2,6 +2,8 @@
 	Represents a single Unicode code point.
 ]##
 sealed primitive class ::Std::Char < Value
+	implement Hashable
+
 	##[
 		Get the next Unicode codepoint by incrementing by 1.
 	]##
@@ -96,4 +98,9 @@ sealed primitive class ::Std::Char < Value
 		For better compatibility with `String`.
 	]##
 	def is_empty: Bool; end
+
+	##[
+		Calculates a hash of the char.
+	]##
+	def hash: UInt64; end
 end

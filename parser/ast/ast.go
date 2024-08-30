@@ -756,10 +756,26 @@ type NamedArgumentNode interface {
 func (*InvalidNode) namedArgumentNode()           {}
 func (*NamedCallArgumentNode) namedArgumentNode() {}
 
+type ProgramState uint8
+
+const (
+	UNCHECKED ProgramState = iota
+	CHECKING_NAMESPACES
+	CHECKED_NAMESPACES
+
+	CHECKING_METHODS
+	CHECKED_METHODS
+
+	CHECKING_EXPRESSIONS
+	CHECKED_EXPRESSIONS
+)
+
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
 	NodeBase
-	Body []StatementNode
+	Body        []StatementNode
+	ImportPaths []string
+	State       ProgramState
 }
 
 func (*ProgramNode) IsStatic() bool {
@@ -793,7 +809,8 @@ func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 // Expression optionally terminated with a newline or a semicolon.
 type ImportStatementNode struct {
 	NodeBase
-	Path StringLiteralNode
+	Path    StringLiteralNode
+	FsPaths []string // resolved file system paths
 }
 
 func (i *ImportStatementNode) IsStatic() bool {

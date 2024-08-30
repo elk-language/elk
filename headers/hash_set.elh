@@ -4,9 +4,7 @@
 
 	It is an unordered collection of unique values.
 ]##
-sealed primitive class ::Std::HashSet < Value
-	typedef Element = any
-
+sealed primitive class ::Std::HashSet[Element < Hashable] < Value
 	##[
 		Mutates the set.
 
@@ -15,7 +13,7 @@ sealed primitive class ::Std::HashSet < Value
 
 		Expands the `capacity` of the list by `new_slots`
 	]##
-	def grow(new_slots: Int): HashSet; end
+	def grow(new_slots: Int): self; end
 
 	##[
 		Returns the number of elements that can be
@@ -64,7 +62,7 @@ sealed primitive class ::Std::HashSet < Value
 		Create a new `HashSet` containing all the elements
 		present in `self` and `other`.
 	]##
-	sealed def +(other: HashSet): HashSet; end
+	sealed def +[E < Hashable](other: HashSet[E]): HashSet[Element | E]; end
 	alias | +, union +
 
 	##[
@@ -73,7 +71,7 @@ sealed primitive class ::Std::HashSet < Value
 		Create a new `HashSet` containing only the elements
 		present both in `self` and `other`.
 	]##
-	sealed def &(other: HashSet): HashSet; end
+	sealed def &[E < Hashable](other: HashSet[E]): HashSet[Element & E]; end
 
 	##[
 		Check whether the given `value` is present in this set.
@@ -95,7 +93,7 @@ sealed primitive class ::Std::HashSet < Value
 		Reallocates the underlying array if it is
 		too small to hold them.
 	]##
-	def append(*values: Element): HashSet; end
+	def append(*values: Element): self; end
 
 	##[
 		Adds the given value to the set.
@@ -105,19 +103,25 @@ sealed primitive class ::Std::HashSet < Value
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def <<(value: Element): HashSet; end
+	def <<(value: Element): self; end
 
-	# TODO
-	def map; end
+	##[
+		Iterates over the elements of this set,
+		yielding them to the given closure.
+
+		Returns a new HashSet that consists of the elements returned
+		by the given closure.
+	]##
+	def map[E < Hashable](fn: |element: Element|: E): HashSet[E]; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the set.
 	]##
-	def iterator: Iterator; end
+	def iterator: Iterator[Element]; end
 
-	sealed primitive class Iterator
-		typedef Element = any
+	sealed primitive class Iterator[Element]
+		implement ::Std::Iterator[Element]
 
 		##[
 			Get the next element of the set.
@@ -128,6 +132,6 @@ sealed primitive class ::Std::HashSet < Value
 		##[
 			Returns `self`.
 		]##
-		def iterator: Iterator; end
+		def iterator: self; end
 	end
 end

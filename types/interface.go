@@ -11,12 +11,20 @@ type Interface struct {
 	parent         Namespace
 	singleton      *SingletonClass
 	Checked        bool
-	TypeParameters []*TypeParameter
+	typeParameters []*TypeParameter
 	NamespaceBase
 }
 
 func (i *Interface) IsGeneric() bool {
-	return len(i.TypeParameters) > 0
+	return len(i.typeParameters) > 0
+}
+
+func (i *Interface) TypeParameters() []*TypeParameter {
+	return i.typeParameters
+}
+
+func (i *Interface) SetTypeParameters(t []*TypeParameter) {
+	i.typeParameters = t
 }
 
 func IsInterface(typ Type) bool {

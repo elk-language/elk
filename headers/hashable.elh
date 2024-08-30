@@ -1,0 +1,10 @@
+##[
+	Represents a value that can compute its own hash for use in
+	data structures like hashmaps, hashrecords, hashsets.
+]##
+interface ::Std::Hashable
+	##[
+		Returns a hash.
+	]##
+	sealed def hash: UInt64; end
+end

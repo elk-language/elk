@@ -16,6 +16,18 @@ type PlaceholderNamespace struct {
 	Locations   *concurrent.Slice[*position.Location]
 }
 
+func (p *PlaceholderNamespace) IsGeneric() bool {
+	return false
+}
+
+func (p *PlaceholderNamespace) TypeParameters() []*TypeParameter {
+	return nil
+}
+
+func (p *PlaceholderNamespace) SetTypeParameters(t []*TypeParameter) {
+	panic("cannot set type parameters on a placeholder namespace")
+}
+
 func (*PlaceholderNamespace) IsAbstract() bool {
 	return false
 }

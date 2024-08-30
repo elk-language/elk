@@ -324,10 +324,11 @@ func SubscriptSet(collection, key, val Value) (Value, *Error) {
 // When there are no builtin addition functions for the given type returns (0, NotBuiltinError).
 func Hash(key Value) (UInt64, *Error) {
 	var result UInt64
-	var err *Error
 
 	switch k := key.(type) {
 	case String:
+		result = k.Hash()
+	case Char:
 		result = k.Hash()
 	case Symbol:
 		result = k.Hash()
@@ -337,7 +338,13 @@ func Hash(key Value) (UInt64, *Error) {
 		result = k.Hash()
 	case Float:
 		result = k.Hash()
+	case *BigFloat:
+		result = k.Hash()
 	case NilType:
+		result = k.Hash()
+	case TrueType:
+		result = k.Hash()
+	case FalseType:
 		result = k.Hash()
 	case Float64:
 		result = k.Hash()
@@ -363,9 +370,6 @@ func Hash(key Value) (UInt64, *Error) {
 		return 0, NotBuiltinError
 	}
 
-	if err != nil {
-		return 0, err
-	}
 	return result, nil
 }
 

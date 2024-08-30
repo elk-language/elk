@@ -24,6 +24,10 @@ type TypeArguments struct {
 	ArgumentOrder []value.Symbol
 }
 
+func (t *TypeArguments) Len() int {
+	return len(t.ArgumentOrder)
+}
+
 func NewTypeArguments(m map[value.Symbol]*TypeArgument, order []value.Symbol) *TypeArguments {
 	return &TypeArguments{
 		ArgumentMap:   m,

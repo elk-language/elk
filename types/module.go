@@ -10,6 +10,18 @@ type Module struct {
 	NamespaceBase
 }
 
+func (m *Module) IsGeneric() bool {
+	return false
+}
+
+func (m *Module) TypeParameters() []*TypeParameter {
+	return nil
+}
+
+func (m *Module) SetTypeParameters(t []*TypeParameter) {
+	panic("cannot set type parameters on a module")
+}
+
 func (*Module) Singleton() *SingletonClass {
 	return nil
 }

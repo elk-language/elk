@@ -1,6 +1,10 @@
 package position
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
 
 // Describes an arbitrary source position
 // in a particular file.
@@ -29,11 +33,29 @@ func NewLocationWithSpan(filename string, span *Span) *Location {
 	}
 }
 
+// Returns a path to the file that is relative to the current working directory.
+// if it's impossible to get the working directory or the file path cannot
+// be transformed into a relative one, the original file path is returned instead.
+func (l *Location) RelFilename() string {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return l.Filename
+	}
+
+	relPath, err := filepath.Rel(workingDir, l.Filename)
+	if err != nil {
+		return l.Filename
+	}
+
+	return relPath
+}
+
 // String representation of the location.
 func (l *Location) String() string {
 	if l == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", l.Filename, l.StartPos.String())
+	l.RelFilename()
+	return fmt.Sprintf("%s:%s", l.RelFilename(), l.StartPos.String())
 }
