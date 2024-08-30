@@ -1,4 +1,4 @@
-sealed primitive class ::Std::False < Value
+sealed primitive class ::Std::False < Bool
 	implement Hashable
 
 	##[

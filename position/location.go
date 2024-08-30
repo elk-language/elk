@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Describes an arbitrary source position
@@ -44,6 +45,9 @@ func (l *Location) RelFilename() string {
 
 	relPath, err := filepath.Rel(workingDir, l.Filename)
 	if err != nil {
+		return l.Filename
+	}
+	if strings.HasPrefix(relPath, "..") {
 		return l.Filename
 	}
 

@@ -4862,7 +4862,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 				switch c.mode {
 				case classMode, mixinMode, interfaceMode:
 				default:
-					break
+					continue
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Nothing{})
@@ -4871,7 +4871,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 				switch c.mode {
 				case classMode, mixinMode, singletonMode:
 				default:
-					break
+					continue
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Nothing{})

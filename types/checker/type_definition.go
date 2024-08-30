@@ -552,7 +552,7 @@ superclassSwitch:
 			break superclassSwitch
 		}
 
-		if superclass.IsSealed() {
+		if superclass.IsSealed() && !c.IsHeader {
 			c.addFailure(
 				fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
 				node.Superclass.Span(),
@@ -568,7 +568,7 @@ superclassSwitch:
 	}
 
 	var previousSuperclass types.Type = class.Superclass()
-	if !class.Checked && superclass != nil {
+	if !class.Checked && previousSuperclass == nil && superclass != nil {
 		class.SetParent(superclass)
 	} else if !c.isTheSameType(previousSuperclass, superclass, nil) {
 		var span *position.Span

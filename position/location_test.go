@@ -25,7 +25,7 @@ func TestLocationString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.in.String()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
