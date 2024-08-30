@@ -65,6 +65,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		docComment,
 		false,
 		false,
+		false,
 		value.ToSymbol(node.Name),
 		nil,
 		nil,
@@ -131,6 +132,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		methodScope.container,
 		docComment,
+		false,
 		false,
 		false,
 		value.ToSymbol(setterName),
@@ -333,6 +335,7 @@ func (c *Checker) checkMethod(
 ) (ast.TypeNode, ast.TypeNode) {
 	name := checkedMethod.Name
 	prevMode := c.mode
+	isClosure := types.IsClosure(methodNamespace)
 
 	if methodNamespace != nil {
 		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
@@ -423,20 +426,38 @@ func (c *Checker) checkMethod(
 		)
 	}
 
-	c.mode = methodMode
+	if isClosure && returnType == nil {
+		c.mode = closureInferReturnTypeMode
+	} else {
+		c.mode = methodMode
+	}
 	c.returnType = returnType
 	c.throwType = throwType
 	bodyReturnType, returnSpan := c.checkStatements(body)
 	if !checkedMethod.IsAbstract() && !c.IsHeader {
-		if returnSpan == nil {
-			returnSpan = span
+		if c.mode == closureInferReturnTypeMode {
+			c.addToReturnType(bodyReturnType)
+			checkedMethod.ReturnType = c.returnType
+		} else {
+			if returnSpan == nil {
+				returnSpan = span
+			}
+			c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 		}
-		c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 	}
 	c.returnType = nil
 	c.throwType = nil
 	c.mode = prevMode
 	return typedReturnTypeNode, typedThrowTypeNode
+}
+
+func (c *Checker) addToReturnType(typ types.Type) {
+	if c.returnType == nil {
+		c.returnType = typ
+		return
+	}
+
+	c.returnType = c.newNormalisedUnion(c.returnType, typ)
 }
 
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
@@ -1183,6 +1204,7 @@ func (c *Checker) declareMethod(
 	docComment string,
 	abstract bool,
 	sealed bool,
+	inferReturnType bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -1408,6 +1430,7 @@ func (c *Checker) declareMethod(
 		returnType = c.typeOf(typedReturnTypeNode)
 	} else if baseMethod != nil && baseMethod.ReturnType != nil {
 		returnType = baseMethod.ReturnType
+	} else if inferReturnType {
 	} else {
 		returnType = types.Void{}
 	}

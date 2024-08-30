@@ -35,6 +35,11 @@ func NewClosureWithMethod(docComment string, abstract, sealed, native bool, name
 	return closure
 }
 
+func IsClosure(namespace Namespace) bool {
+	_, ok := namespace.(*Closure)
+	return ok
+}
+
 func (c *Closure) Name() string {
 	return c.inspect()
 }

@@ -56,6 +56,7 @@ const (
 	mixinMode
 	interfaceMode
 	methodMode
+	closureInferReturnTypeMode
 	singletonMode
 	namedGenericTypeDefinitionMode
 	returnTypeMode
@@ -636,7 +637,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case methodMode:
+		case methodMode, closureInferReturnTypeMode:
 			n.SetType(types.Self{})
 		default:
 			n.SetType(c.selfType)
@@ -1017,6 +1018,19 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 }
 
 func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
+	if c.mode == closureInferReturnTypeMode {
+		var typ types.Type
+		if node.Value == nil {
+			typ = types.Nil{}
+		} else {
+			node.Value = c.checkExpression(node.Value)
+			typ = c.typeOfGuardVoid(node.Value)
+		}
+
+		c.addToReturnType(typ)
+		return node
+	}
+
 	var typ types.Type
 	if node.Value == nil {
 		typ = types.Nil{}
@@ -2624,6 +2638,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		"",
 		false,
 		false,
+		true,
 		symbol.M_call,
 		nil,
 		node.Parameters,
@@ -2659,6 +2674,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		"",
 		false,
 		false,
+		true,
 		symbol.M_call,
 		nil,
 		node.Parameters,
@@ -2667,7 +2683,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		node.Span(),
 	)
 	returnTypeNode, throwTypeNode := c.checkMethod(
-		nil,
+		closure,
 		method,
 		nil,
 		node.Parameters,
@@ -3210,7 +3226,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			)
 			return false
 		}
-	case methodMode:
+	case methodMode, closureInferReturnTypeMode:
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
 			if e.Subtype(t.Name) != nil {
@@ -3651,7 +3667,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case methodMode, returnTypeMode, throwTypeMode:
+		case closureInferReturnTypeMode, methodMode, returnTypeMode, throwTypeMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(
@@ -3835,6 +3851,7 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 		nil,
 		closure,
 		"",
+		false,
 		false,
 		false,
 		symbol.M_call,
@@ -4951,6 +4968,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		initNode.DocComment(),
 		false,
 		false,
+		false,
 		symbol.M_init,
 		nil,
 		initNode.Parameters,
@@ -4999,6 +5017,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,
+		false,
 		value.ToSymbol(node.Name),
 		node.TypeParameters,
 		node.Parameters,
@@ -5019,6 +5038,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
+		false,
 		false,
 		value.ToSymbol(node.Name),
 		node.TypeParameters,

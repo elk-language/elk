@@ -3271,6 +3271,26 @@ func TestClosureLiteral(t *testing.T) {
 				a := |a: Int|: Int -> a
 			`,
 		},
+		"infer return type": {
+			input: `
+				var a: 8 = |a: Int| -> 9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(30, 2, 30)), "type `|a: Std::Int|: 9.2` cannot be assigned to type `8`"),
+			},
+		},
+		"infer return type in multiline closure": {
+			input: `
+				var a: 8 = |a: Int| ->
+					return 9.2 if a == 9
+
+					nil
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(70, 6, 7)), "type `|a: Std::Int|: 9.2 | nil` cannot be assigned to type `8`"),
+			},
+		},
 		"invalid parameter default value and return value": {
 			input: `
 				a := |a: Int = 2.3|: String -> a
