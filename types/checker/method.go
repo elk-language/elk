@@ -498,21 +498,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 		param := method.Params[currentParamIndex]
 
-		var typedPosArg ast.ExpressionNode
-		var posArgType types.Type
-		if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
-			typedPosArg = c.checkExpressionWithType(posArg, param.Type)
-			posArgType = c.typeOf(typedPosArg)
-			typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
-		} else {
-			typedPosArg = c.checkExpression(posArg)
-			posArgType = c.typeOf(typedPosArg)
-			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
-			if inferredParamType == nil {
-				param.Type = types.Nothing{}
-			} else if inferredParamType != param.Type {
-				param.Type = inferredParamType
-			}
+		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+		posArgType := c.typeOf(typedPosArg)
+
+		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
+		if inferredParamType == nil {
+			param.Type = types.Nothing{}
+		} else if inferredParamType != param.Type {
+			param.Type = inferredParamType
 		}
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
@@ -562,21 +555,13 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		currentArgIndex := currentParamIndex
 		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
-			var typedPosArg ast.ExpressionNode
-			var posArgType types.Type
-			if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
-				typedPosArg = c.checkExpressionWithType(posArg, posRestParam.Type)
-				posArgType = c.typeOf(typedPosArg)
-				typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
-			} else {
-				typedPosArg = c.checkExpression(posArg)
-				posArgType = c.typeOf(typedPosArg)
-				inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap)
-				if inferredParamType == nil {
-					posRestParam.Type = types.Nothing{}
-				} else if inferredParamType != posRestParam.Type {
-					posRestParam.Type = inferredParamType
-				}
+			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
+			posArgType := c.typeOf(typedPosArg)
+			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap)
+			if inferredParamType == nil {
+				posRestParam.Type = types.Nothing{}
+			} else if inferredParamType != posRestParam.Type {
+				posRestParam.Type = inferredParamType
 			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
@@ -600,21 +585,13 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			var typedPosArg ast.ExpressionNode
-			var posArgType types.Type
-			if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
-				typedPosArg = c.checkExpressionWithType(posArg, param.Type)
-				posArgType = c.typeOf(typedPosArg)
-				typedPosArg.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
-			} else {
-				typedPosArg = c.checkExpression(posArg)
-				posArgType = c.typeOf(typedPosArg)
-				inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
-				if inferredParamType == nil {
-					param.Type = types.Nothing{}
-				} else if inferredParamType != param.Type {
-					param.Type = inferredParamType
-				}
+			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			posArgType := c.typeOf(typedPosArg)
+			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap)
+			if inferredParamType == nil {
+				param.Type = types.Nothing{}
+			} else if inferredParamType != param.Type {
+				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
@@ -666,21 +643,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			}
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
-			var typedNamedArgValue ast.ExpressionNode
-			var namedArgType types.Type
-			if _, ok := namedArg.Value.(*ast.ClosureLiteralNode); ok {
-				typedNamedArgValue = c.checkExpressionWithType(namedArg.Value, param.Type)
-				namedArgType = c.typeOf(typedNamedArgValue)
-				typedNamedArgValue.SetType(c.replaceTypeParameters(namedArgType, typeArgMap))
-			} else {
-				typedNamedArgValue = c.checkExpression(namedArg.Value)
-				namedArgType = c.typeOf(typedNamedArgValue)
-				inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap)
-				if inferredParamType == nil {
-					param.Type = types.Nothing{}
-				} else if inferredParamType != param.Type {
-					param.Type = inferredParamType
-				}
+
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
+			namedArgType := c.typeOf(typedNamedArgValue)
+			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap)
+			if inferredParamType == nil {
+				param.Type = types.Nothing{}
+			} else if inferredParamType != param.Type {
+				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
@@ -739,21 +709,13 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
 
-			var typedNamedArgValue ast.ExpressionNode
-			var posArgType types.Type
-			if _, ok := namedArg.Value.(*ast.ClosureLiteralNode); ok {
-				typedNamedArgValue = c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
-				posArgType = c.typeOf(typedNamedArgValue)
-				typedNamedArgValue.SetType(c.replaceTypeParameters(posArgType, typeArgMap))
-			} else {
-				typedNamedArgValue = c.checkExpression(namedArg.Value)
-				posArgType = c.typeOf(typedNamedArgValue)
-				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap)
-				if inferredParamType == nil {
-					namedRestParam.Type = types.Nothing{}
-				} else if inferredParamType != namedRestParam.Type {
-					namedRestParam.Type = inferredParamType
-				}
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+			posArgType := c.typeOf(typedNamedArgValue)
+			inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap)
+			if inferredParamType == nil {
+				namedRestParam.Type = types.Nothing{}
+			} else if inferredParamType != namedRestParam.Type {
+				namedRestParam.Type = inferredParamType
 			}
 			namedRestArgs.Elements = append(
 				namedRestArgs.Elements,
@@ -1428,9 +1390,9 @@ func (c *Checker) declareMethod(
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 		returnType = c.typeOf(typedReturnTypeNode)
+	} else if inferReturnType {
 	} else if baseMethod != nil && baseMethod.ReturnType != nil {
 		returnType = baseMethod.ReturnType
-	} else if inferReturnType {
 	} else {
 		returnType = types.Void{}
 	}

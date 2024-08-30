@@ -283,7 +283,7 @@ func (e ErrorList) Error() string {
 }
 
 const (
-	maxSourceExampleLength = 32
+	maxSourceExampleLength = 80
 	ellipsis               = "..."
 )
 

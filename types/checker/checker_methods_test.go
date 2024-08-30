@@ -2222,6 +2222,14 @@ func TestMethodCalls(t *testing.T) {
 
 func TestGenericMethodCalls(t *testing.T) {
 	tests := testTable{
+		"infer type parameter from closure's return type": {
+			input: `
+				var a: 9 = HashMap::[String, Int]().map() |pair| -> Pair(1u8, 1.2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(70, 2, 70)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 		"call a generic method with explicit type arguments": {
 			input: `
 				module Foo
@@ -3346,9 +3354,8 @@ func TestClosureLiteral(t *testing.T) {
 				foo() |i| -> 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `2.5` cannot be assigned to type `Std::Int`"),
-				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: Std::Int` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): Std::Int`\n      should be: `def call(a: Std::String): Std::Int`\n"),
-				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: Std::Int`"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: 2.5` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): 2.5`\n      should be: `def call(a: Std::String): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: 2.5`"),
 			},
 		},
 		"call a closure": {
