@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -51,6 +52,34 @@ func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 	)
 
 	return generic
+}
+
+func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
+	if len(namespace.TypeParameters()) != len(args) {
+		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
+	}
+
+	typeArgMap := make(map[value.Symbol]*TypeArgument, len(args))
+	typeArgOrder := make([]value.Symbol, len(args))
+
+	for i, typeParam := range namespace.TypeParameters() {
+		arg := args[i]
+
+		typeArg := NewTypeArgument(
+			arg,
+			typeParam.Variance,
+		)
+		typeArgMap[typeParam.Name] = typeArg
+		typeArgOrder[i] = typeParam.Name
+	}
+
+	return NewGeneric(
+		namespace,
+		NewTypeArguments(
+			typeArgMap,
+			typeArgOrder,
+		),
+	)
 }
 
 func (g *Generic) ToNonLiteral(env *GlobalEnvironment) Type {

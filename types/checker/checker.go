@@ -807,6 +807,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkBreakExpressionNode(n)
 	case *ast.ContinueExpressionNode:
 		return c.checkContinueExpressionNode(n)
+	case *ast.ArrayListLiteralNode:
+		return c.checkArrayListLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -842,6 +844,14 @@ func (c *Checker) StdInspectable() types.Type {
 
 func (c *Checker) StdBool() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.Bool)
+}
+
+func (c *Checker) StdArrayList() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayList)
+}
+
+func (c *Checker) StdArrayTuple() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayTuple)
 }
 
 func (c *Checker) StdNil() *types.Class {
@@ -973,6 +983,21 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+}
+
+func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
+	var elementTypes []types.Type
+	for i, elementNode := range node.Elements {
+		elementNode := c.checkExpression(elementNode)
+		node.Elements[i] = elementNode
+		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+	}
+
+	elementType := c.newNormalisedUnion(elementTypes...)
+	generic := types.NewGenericWithTypeArgs(c.StdArrayList(), elementType)
+	node.SetType(generic)
+
+	return node
 }
 
 func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) ast.ExpressionNode {

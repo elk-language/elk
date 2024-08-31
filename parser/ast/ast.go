@@ -4017,7 +4017,7 @@ func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *Ke
 
 // Represents a ArrayList literal eg. `[1, 5, -6]`
 type ArrayListLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
 	static   bool
@@ -4036,10 +4036,10 @@ func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, cap
 		static = isExpressionSliceStatic(elements)
 	}
 	return &ArrayListLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 

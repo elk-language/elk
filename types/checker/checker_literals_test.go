@@ -6,6 +6,32 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestArrayListLiteral(t *testing.T) {
+	tests := testTable{
+		"infer array list": {
+			input: `
+				var foo = [1, 2]
+				var a: ArrayList[Int] = foo
+			`,
+		},
+		"infer array lis with different argument types": {
+			input: `
+				var a = [1, 2.2, "foo"]
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 16), P(44, 3, 16)), "type `Std::ArrayList[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestRegexLiteral(t *testing.T) {
 	tests := testTable{
 		"infer regex": {
