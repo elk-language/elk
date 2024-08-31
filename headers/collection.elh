@@ -1,0 +1,71 @@
+##[
+	An interface that represents a finite, mutable collection
+	of elements.
+]##
+interface ::Std::Collection[Element]
+	implement ImmutableCollection[Element]
+
+	##[
+		Returns the number of elements present in the collection.
+	]##
+	sig length: Int
+
+	##[
+		Adds the given value to the collection.
+	]##
+	sig push(value: Element)
+
+	##[
+		Removes the element from the collection.
+
+		Returns `true` if the element has been removed,
+		otherwise returns `false.
+	]##
+	sig remove(value: Element): bool
+
+	##[
+		Removes all elements from the collection.
+	]##
+	sig clear()
+
+	# Base methods
+
+	##[
+		Removes all given elements from the collection.
+
+		Returns `true` if any elements have been removed,
+		otherwise returns `false.
+	]##
+	sig remove_all(*values: Element): bool
+
+	##[
+		Iterates over the elements of this collection,
+		yielding them to the given closure.
+
+		Returns a new collection that consists of the elements returned
+		by the given closure.
+	]##
+	sig map[E](fn: |element: Element|: E): Collection[E]
+
+	##[
+		Adds the given values to the collection.
+	]##
+	sig append(*values: Element): self
+
+	##[
+		Adds the given value to the collection.
+	]##
+	sig <<(value: Element): self
+
+	##[
+		Provides default implementations of most collection methods.
+	]##
+	abstract mixin Base[Element]
+		include ImmutableCollection::Base[Element]
+
+		def remove_all(*values: Element): bool; end
+		def map[E](fn: |element: Element|: E): Collection[E]; end
+		def append(*values: Element): self; end
+		def <<(value: Element): self; end
+	end
+end

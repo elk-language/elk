@@ -1,12 +1,8 @@
 ##[
-	A record data structure backed by an array with a hashing algorithm.
-
-	It is an unordered immutable collection of key-value pairs.
+	An interface that represents an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
-	implement Record[Key, Value]
-
+interface ::Std::Record[Key, Value]
 	##[
 		Returns the number of key-value pairs present in the record.
 	]##
@@ -19,10 +15,10 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	def [](key: Key): Value?; end
 
 	##[
-		Create a new `HashRecord` containing the pairs of `self`
+		Create a new record containing the pairs of `self`
 		and another given record.
 	]##
-	sealed def +[K, V](other: Record[K, V]): HashRecord[Key | K, Value | V]; end
+	sealed def +[K, V](other: Record[K, V]): Record[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this record.
@@ -40,13 +36,13 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	def contains_value(value: Value): bool; end
 
 	##[
-		Check whether the given value is a `HashRecord`
+		Check whether the given value is the same type of record
 		with the same elements.
 	]##
 	sealed def ==(other: any): bool; end
 
 	##[
-		Check whether the given value is an `HashRecord` or `HashMap`
+		Check whether the given value is a record
 		with the same elements.
 	]##
 	sealed def =~(other: any): bool; end
@@ -55,33 +51,23 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Iterates over the key value pairs of this record,
 		yielding them to the given closure.
 
-		Returns a new HashRecord that consists of the key value pairs returned
+		Returns a new record that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashRecord[K, V]; end
+	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): Record[K, V]; end
 
 	##[
 		Iterates over the values of this record,
 		yielding them to the given closure.
 
-		Returns a new HashRecord that consists of the values returned
+		Returns a new record that consists of the values returned
 		by the given closure.
 	]##
-	def map_values[V](fn: |value: Value|: V): HashRecord[Key, V]; end
+	def map_values[V](fn: |value: Value|: V): Record[Key, V]; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the record.
 	]##
-	def iterator: Iterator[Key, Value]; end
-
-	sealed primitive class Iterator[Key, Value]
-		include ::Std::Iterator::Base[Pair[Key, Value]]
-
-		##[
-			Get the next pair of the record.
-			Throws `:stop_iteration` when there are no more elements.
-		]##
-		def next: Pair[Key, Value] ! :stop_iteration; end
-	end
+	def iterator: Iterator[Pair[Key, Value]]; end
 end

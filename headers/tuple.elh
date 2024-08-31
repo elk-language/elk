@@ -3,10 +3,7 @@
 	of elements indexed by integers starting at `0`.
 ]##
 interface ::Std::Tuple[Element]
-	##[
-		Returns the number of elements present in the tuple.
-	]##
-	def length: Int; end
+	implement ImmutableCollection[Element]
 
 	##[
 		Get the element under the given index.
@@ -14,37 +11,33 @@ interface ::Std::Tuple[Element]
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def [](index: AnyInt): Element; end
+	sig [](index: AnyInt): Element
+
+	# Base methods
 
 	##[
-		Check whether the given `value` is present in this tuple.
+		Get the element under the given index.
+
+		Throws an error if the index is a negative number
+		or is greater or equal to `length`.
 	]##
-	def contains(value: Element): Bool; end
+	sig at(index: AnyInt): Element ! OutOfRangeError
 
 	##[
-		Check whether the given value is a list
-		with the same elements.
+		Get the element under the given index.
+
+		Returns `nil` if the index is a negative number
+		or is greater or equal to `length`.
 	]##
-	sealed def ==(other: any): Bool; end
+	sig try_at(index: AnyInt): Element?
 
 	##[
-		Check whether the given value is a list
-		with the same elements.
+		Provides default implementations of optional tuple methods.
 	]##
-	sealed def =~(other: any): Bool; end
+	abstract mixin Base[Element]
+		include ImmutableCollection::Base[Element]
 
-	##[
-		Iterates over the elements of this tuple,
-		yielding them to the given closure.
-
-		Returns a new Tuple that consists of the elements returned
-		by the given closure.
-	]##
-	def map[E](fn: |element: Element|: E): List[E]; end
-
-	##[
-		Returns an iterator that iterates
-		over each element of the list.
-	]##
-	def iterator: Iterator[Element]; end
+		def at(index: AnyInt): Element ! OutOfRangeError; end
+		def try_at(index: AnyInt): Element?; end
+	end
 end

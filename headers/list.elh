@@ -4,6 +4,7 @@
 ]##
 interface ::Std::List[Element]
 	implement Tuple[Element]
+	implement Collection[Element]
 
 	##[
 		Set the element under the given index to the given value.
@@ -11,15 +12,36 @@ interface ::Std::List[Element]
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def []=(index: AnyInt, value: Element); end
+	sig []=(index: AnyInt, value: Element)
+
+	# Base methods
 
 	##[
-		Adds the given values to the list.
+		Iterates over the elements of this collection,
+		yielding them to the given closure.
+
+		Mutates the collection in place replacing the elements with the ones
+		returned by the given closure.
 	]##
-	def append(*values: Element): self; end
+	sig map_mut(fn: |element: Element|: Element): self
 
 	##[
-		Adds the given value to the list.
+		Iterates over the elements of this list,
+		yielding them to the given closure.
+
+		Returns a new list that consists of the elements returned
+		by the given closure.
 	]##
-	def <<(value: Element): self; end
+	sig map[E](fn: |element: Element|: E): List[E]
+
+	##[
+		Provides default implementations of most list methods.
+	]##
+	abstract mixin Base[Element]
+		include Tuple::Base[Element]
+		include Collection::Base[Element]
+
+		def map_mut(fn: |element: Element|: Element): self; end
+		def map[E](fn: |element: Element|: E): List[E]; end
+	end
 end

@@ -4,7 +4,7 @@
 
 	It is an unordered collection of key-value pairs.
 ]##
-sealed primitive class ::Std::HashMap[Key < Hashable, Value] < ::Std::Value
+sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 	##[
 		Mutates the map.
 
@@ -48,44 +48,41 @@ sealed primitive class ::Std::HashMap[Key < Hashable, Value] < ::Std::Value
 
 	##[
 		Set the element under the given index to the given value.
-
-		Throws an unchecked error if the index is a negative number
-		or is greater or equal to `length`.
 	]##
 	def []=(key: Key, value: Value); end
 
 	##[
 		Create a new `HashMap` containing the pairs of `self`
-		and another given `HashMap` or `HashRecord`.
+		and another given record/map.
 	]##
-	sealed def +[K < Hashable, V](other: HashMap[K, V] | HashRecord[K, V]): HashMap[Key | K, Value | V]; end
+	sealed def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this map.
 	]##
-	def contains(pair: Pair[Key, Value]): Bool; end
+	def contains(pair: Pair[Key, Value]): bool; end
 
 	##[
 		Check whether the given `key` is present in this map.
 	]##
-	def contains_key(key: Key): Bool; end
+	def contains_key(key: Key): bool; end
 
 	##[
 		Check whether the given `value` is present in this map.
 	]##
-	def contains_value(value: Value): Bool; end
+	def contains_value(value: Value): bool; end
 
 	##[
 		Check whether the given value is a `HashMap`
 		with the same elements.
 	]##
-	sealed def ==(other: any): Bool; end
+	sealed def ==(other: any): bool; end
 
 	##[
 		Check whether the given value is an `HashMap` or `HashRecord`
 		with the same elements.
 	]##
-	sealed def =~(other: any): Bool; end
+	sealed def =~(other: any): bool; end
 
 	##[
 		Iterates over the key value pairs of this map,
@@ -94,7 +91,7 @@ sealed primitive class ::Std::HashMap[Key < Hashable, Value] < ::Std::Value
 		Returns a new HashMap that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map[K < Hashable, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
+	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
 
 	##[
 		Iterates over the values of this map,
@@ -121,17 +118,12 @@ sealed primitive class ::Std::HashMap[Key < Hashable, Value] < ::Std::Value
 	def iterator: Iterator[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
-		implement ::Std::Iterator[Pair[Key, Value]]
+		include ::Std::Iterator::Base[Pair[Key, Value]]
 
 		##[
 			Get the next pair of the map.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Pair[Key, Value] ! :stop_iteration; end
-
-		##[
-			Returns `self`.
-		]##
-		def iterator: self; end
 	end
 end

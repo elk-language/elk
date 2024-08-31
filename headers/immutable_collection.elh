@@ -1,0 +1,33 @@
+##[
+	An interface that represents a finite, immutable collection
+	of elements.
+]##
+interface ::Std::ImmutableCollection[Element]
+	implement Iterable[Element]
+
+	##[
+		Returns the number of elements present in the collection.
+	]##
+	sig length: Int
+
+	# Base methods
+
+	##[
+		Iterates over the elements of this collection,
+		yielding them to the given closure.
+
+		Returns a new collection that consists of the elements returned
+		by the given closure.
+	]##
+	sig map[E](fn: |element: Element|: E): ImmutableCollection[E]
+
+	##[
+		Provides default implementations of most immutable collection methods.
+	]##
+	abstract mixin Base[Element]
+		include Iterable::FiniteBase[Element]
+
+		def map[E](fn: |element: Element|: E): ImmutableCollection[E]; end
+	end
+
+end

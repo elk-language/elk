@@ -1973,7 +1973,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 	}
 
 	c.foreachAbstractMethodInNamespace(namespace.Parent(), func(name value.Symbol, parentMethod *types.Method) {
-		method := c.resolveMethodInNamespace(namespace, parentMethod.Name)
+		method := c.resolveNonAbstractMethodInNamespace(namespace, parentMethod.Name)
 		if method == nil || method.IsAbstract() {
 			c.addFailure(
 				fmt.Sprintf(

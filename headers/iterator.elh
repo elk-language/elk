@@ -11,5 +11,17 @@ interface ::Std::Iterator[Element]
 	]##
 	def next: Element ! :stop_iteration; end
 
+	# Base methods
+
 	def iterator: self; end
+
+	##[
+		Provides default implementations of most iterable methods.
+	]##
+	abstract mixin Base[Element]
+		implement Iterator[Element]
+		include Iterable::Base[Element]
+
+		def iterator: self; end
+	end
 end

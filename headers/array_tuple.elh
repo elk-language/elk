@@ -5,7 +5,7 @@
 	A tuple is an immutable list.
 ]##
 sealed primitive class ::Std::ArrayTuple[Element] < Value
-	implement Tuple[Element]
+	include Tuple::Base[Element]
 
 	##[
 		Returns the number of elements present in the tuple.
@@ -65,15 +65,12 @@ sealed primitive class ::Std::ArrayTuple[Element] < Value
 	def iterator: Iterator[Element]; end
 
 	sealed primitive class Iterator[Element]
+		include ::Std::Iterator::Base[Element]
+
 		##[
 			Get the next element of the tuple.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Element ! :stop_iteration; end
-
-		##[
-			Returns `self`.
-		]##
-		def iterator: self; end
 	end
 end

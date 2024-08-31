@@ -205,6 +205,17 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 		result.WriteString(faintColor.Sprint(ellipsis))
 	}
 	sourceFragment := source[sourceFragmentStartIndex : sourceFragmentEndIndex+1]
+	var sourceFragmentBuff strings.Builder
+	// replace tabs with spaces
+	for _, char := range sourceFragment {
+		if char == '\t' {
+			sourceFragmentBuff.WriteByte(' ')
+			continue
+		}
+		sourceFragmentBuff.WriteRune(char)
+	}
+	sourceFragment = sourceFragmentBuff.String()
+
 	if style {
 		sourceFragment = lexer.Colorize(sourceFragment)
 	}

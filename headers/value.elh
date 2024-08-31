@@ -9,7 +9,7 @@ primitive class ::Std::Value < nil
     Returns `true` when they are instances of the same class,
     and are equal.
   ]##
-  def ==(other: any): Bool; end
+  def ==(other: any): bool; end
 
   ##[
     Compares this value with another value.
@@ -18,7 +18,7 @@ primitive class ::Std::Value < nil
     Instances of different (but similar) classes
     may be treated as equal.
   ]##
-  def =~(other: any): Bool; end
+  def =~(other: any): bool; end
 
   ##[
 		Returns a human readable `String`

@@ -1635,6 +1635,35 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 	return nil
 }
 
+func (c *Checker) resolveNonAbstractMethodInNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+	currentNamespace := namespace
+	var generics []*types.Generic
+
+	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+		if generic, ok := currentNamespace.(*types.Generic); ok {
+			generics = append(generics, generic)
+		}
+		method := currentNamespace.Method(name)
+		if method != nil {
+			if method.IsAbstract() {
+				continue
+			}
+			if len(generics) < 1 {
+				return method
+			}
+
+			method = method.DeepCopy()
+			for i := len(generics) - 1; i >= 0; i-- {
+				generic := generics[i]
+				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+			}
+			return method
+		}
+	}
+
+	return nil
+}
+
 func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
 	method := c.resolveMethodInNamespace(namespace, name)
 	if method != nil {

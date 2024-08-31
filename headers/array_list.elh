@@ -5,7 +5,7 @@
 	It is an ordered collection of integer indexed values.
 ]##
 sealed primitive class ::Std::ArrayList[Element] < Value
-	implement List[Element]
+	include List::Base[Element]
 
 	##[
 		Mutates the list.
@@ -68,7 +68,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Create a new `ArrayList` containing the elements of `self`
 		repeated `n` times.
 	]##
-	sealed def *(n: Int): ArrayList[Element]; end
+	sealed def *(n: Int): self; end
 
 	##[
 		Check whether the given `value` is present in this list.
@@ -128,15 +128,12 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 	def iterator: Iterator[Element]; end
 
 	sealed primitive class Iterator[Element]
+		include ::Std::Iterator::Base[Element]
+
 		##[
 			Get the next element of the list.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Element ! :stop_iteration; end
-
-		##[
-			Returns `self`.
-		]##
-		def iterator: self; end
 	end
 end

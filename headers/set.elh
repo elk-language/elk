@@ -1,0 +1,75 @@
+##[
+	An interface that represents an unordered, mutable collection
+	of unique elements.
+]##
+interface ::Std::Set[Element]
+	implement ImmutableSet[Element]
+	implement Collection[Element]
+
+	##[
+		Adds the given value to the set.
+
+		Returns `false` if the value is already present in the set.
+		Otherwise returns `true`.
+	]##
+	def push(value: Element): bool; end
+
+	# Base methods
+
+	##[
+		Return the union of both sets.
+
+		Create a new set containing all the elements
+		present in `self` and `other`.
+	]##
+	def +[E](other: Set[E]): Set[Element | E]; end
+	alias | +
+
+	##[
+		Return the intersection of both sets.
+
+		Create a new set containing only the elements
+		present both in `self` and `other`.
+	]##
+	def &[E](other: Set[E]): Set[Element & E]; end
+
+	##[
+		Check whether the given `value` is present in this set.
+	]##
+	def contains(value: Element): bool; end
+
+	##[
+		Adds the given values to the set.
+
+		Skips a value if it is already present in the set.
+	]##
+	def append(*values: Element): self; end
+
+	##[
+		Adds the given value to the set.
+
+		Does nothing if the value is already present in the set.
+	]##
+	def <<(value: Element): self; end
+
+	##[
+		Iterates over the elements of this set,
+		yielding them to the given closure.
+
+		Returns a new Set that consists of the elements returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Element|: E): Set[E]; end
+
+	##[
+		Provides default implementations of optional set methods.
+	]##
+	abstract mixin Base[Element]
+		include ImmutableSet::Base[Element]
+		include Collection::Base[Element]
+
+		def &[E](other: Set[E]): Set[Element & E]; end
+		def +[E](other: Set[E]): Set[Element | E]; end
+		def map[E](fn: |element: Element|: E): Set[E]; end
+	end
+end

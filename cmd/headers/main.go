@@ -426,6 +426,8 @@ func typeToCode(typ types.Type, init bool) string {
 		return "Void{}"
 	case types.Nil:
 		return "Nil{}"
+	case types.Bool:
+		return "Bool{}"
 	case types.True:
 		return "True{}"
 	case types.False:
