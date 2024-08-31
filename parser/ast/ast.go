@@ -4466,7 +4466,7 @@ func NewBinHashSetLiteralPatternExpressionNode(span *position.Span, elements []I
 
 // Represents a ArrayTuple literal eg. `%[1, 5, -6]`
 type ArrayTupleLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []ExpressionNode
 	static   bool
 }
@@ -4478,9 +4478,9 @@ func (t *ArrayTupleLiteralNode) IsStatic() bool {
 // Create a ArrayTuple literal node eg. `%[1, 5, -6]`
 func NewArrayTupleLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayTupleLiteralNode {
 	return &ArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		static:   isExpressionSliceStatic(elements),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		static:        isExpressionSliceStatic(elements),
 	}
 }
 

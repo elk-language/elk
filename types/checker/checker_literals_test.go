@@ -6,6 +6,41 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestArrayTupleLiteral(t *testing.T) {
+	tests := testTable{
+		"infer array tuple": {
+			input: `
+				var foo = %[1, 2]
+				var a: ArrayTuple[Int] = foo
+			`,
+		},
+		"infer array tuple with different argument types": {
+			input: `
+				var a = %[1, 2.2, "foo"]
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayTuple[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer empty array tuple": {
+			input: `
+				var foo = %[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::ArrayTuple[never]` cannot be assigned to type `9`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"infer array list": {

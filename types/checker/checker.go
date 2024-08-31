@@ -809,6 +809,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkContinueExpressionNode(n)
 	case *ast.ArrayListLiteralNode:
 		return c.checkArrayListLiteralNode(n)
+	case *ast.ArrayTupleLiteralNode:
+		return c.checkArrayTupleLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1013,6 +1015,22 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 			)
 		}
 	}
+
+	node.SetType(generic)
+
+	return node
+}
+
+func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) ast.ExpressionNode {
+	var elementTypes []types.Type
+	for i, elementNode := range node.Elements {
+		elementNode := c.checkExpression(elementNode)
+		node.Elements[i] = elementNode
+		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+	}
+
+	elementType := c.newNormalisedUnion(elementTypes...)
+	generic := types.NewGenericWithTypeArgs(c.StdArrayTuple(), elementType)
 
 	node.SetType(generic)
 
