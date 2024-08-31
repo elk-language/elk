@@ -811,6 +811,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkArrayListLiteralNode(n)
 	case *ast.ArrayTupleLiteralNode:
 		return c.checkArrayTupleLiteralNode(n)
+	case *ast.HashSetLiteralNode:
+		return c.checkHashSetLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -858,6 +860,10 @@ func (c *Checker) StdArrayList() *types.Class {
 
 func (c *Checker) StdArrayTuple() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayTuple)
+}
+
+func (c *Checker) StdHashSet() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.HashSet)
 }
 
 func (c *Checker) StdNil() *types.Class {
@@ -1009,6 +1015,36 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 			c.addFailure(
 				fmt.Sprintf(
 					"array list's capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				node.Span(),
+			)
+		}
+	}
+
+	node.SetType(generic)
+
+	return node
+}
+
+func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.ExpressionNode {
+	var elementTypes []types.Type
+	for i, elementNode := range node.Elements {
+		elementNode := c.checkExpression(elementNode)
+		node.Elements[i] = elementNode
+		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+	}
+
+	elementType := c.newNormalisedUnion(elementTypes...)
+	generic := types.NewGenericWithTypeArgs(c.StdHashSet(), elementType)
+
+	if node.Capacity != nil {
+		node.Capacity = c.checkExpression(node.Capacity)
+		capacityType := c.typeOf(node.Capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"hash set's capacity must be an integer, got `%s`",
 					types.InspectWithColor(capacityType),
 				),
 				node.Span(),

@@ -41,6 +41,59 @@ func TestArrayTupleLiteral(t *testing.T) {
 	}
 }
 
+func TestHashSetLiteral(t *testing.T) {
+	tests := testTable{
+		"infer array list": {
+			input: `
+				var foo = ^[1, 2]
+				var a: HashSet[Int] = foo
+			`,
+		},
+		"infer array list with different argument types": {
+			input: `
+				var a = ^[1, 2.2, "foo"]
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::HashSet[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer empty array list": {
+			input: `
+				var foo = ^[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashSet[never]` cannot be assigned to type `9`"),
+			},
+		},
+		"int capacity": {
+			input: `
+				var foo: HashSet[Float] = ^[1.2]:9
+			`,
+		},
+		"uint8 capacity": {
+			input: `
+				var foo: HashSet[Float] = ^[1.2]:9u8
+			`,
+		},
+		"invalid capacity": {
+			input: `
+				var foo: HashSet[Float] = ^[1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 2, 31), P(40, 2, 40)), "hash set's capacity must be an integer, got `9.2`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"infer array list": {

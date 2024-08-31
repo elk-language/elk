@@ -4491,7 +4491,7 @@ func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) E
 
 // Represents a HashSet literal eg. `^[1, 5, -6]`
 type HashSetLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
 	static   bool
@@ -4510,10 +4510,10 @@ func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capac
 		static = isExpressionSliceStatic(elements)
 	}
 	return &HashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
