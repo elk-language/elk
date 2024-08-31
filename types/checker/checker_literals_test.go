@@ -82,7 +82,7 @@ func TestHashSetLiteral(t *testing.T) {
 				var foo: HashSet[Float] = ^[1.2]:9.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 2, 31), P(40, 2, 40)), "hash set's capacity must be an integer, got `9.2`"),
+				error.NewFailure(L("<main>", P(31, 2, 31), P(40, 2, 40)), "capacity must be an integer, got `9.2`"),
 			},
 		},
 	}
@@ -135,7 +135,143 @@ func TestArrayListLiteral(t *testing.T) {
 				var foo: ArrayList[Float] = [1.2]:9.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(41, 2, 41)), "array list's capacity must be an integer, got `9.2`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(41, 2, 41)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer word array list": {
+			input: `
+				var foo = \w[foo bar]
+				var a: ArrayList[String] = foo
+			`,
+		},
+		"infer empty word array list": {
+			input: `
+				var foo = \w[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"word array list int capacity": {
+			input: `
+				var foo: ArrayList[String] = \w[1.2]:9
+			`,
+		},
+		"word array list uint8 capacity": {
+			input: `
+				var foo: ArrayList[String] = \w[1.2]:9u8
+			`,
+		},
+		"word array list invalid capacity": {
+			input: `
+				var foo: ArrayList[String] = \w[1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 2, 42), P(44, 2, 44)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer symbol array list": {
+			input: `
+				var foo = \s[foo bar]
+				var a: ArrayList[Symbol] = foo
+			`,
+		},
+		"infer empty symbol array list": {
+			input: `
+				var foo = \s[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::Symbol]` cannot be assigned to type `9`"),
+			},
+		},
+		"symbol array list int capacity": {
+			input: `
+				var foo: ArrayList[Symbol] = \s[1.2]:9
+			`,
+		},
+		"symbol array list uint8 capacity": {
+			input: `
+				var foo: ArrayList[Symbol] = \s[1.2]:9u8
+			`,
+		},
+		"symbol array list invalid capacity": {
+			input: `
+				var foo: ArrayList[Symbol] = \s[1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 2, 42), P(44, 2, 44)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer hex array list": {
+			input: `
+				var foo = \x[1f4 fff]
+				var a: ArrayList[Int] = foo
+			`,
+		},
+		"infer empty hex array list": {
+			input: `
+				var foo = \x[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"hex array list int capacity": {
+			input: `
+				var foo: ArrayList[Int] = \x[1f9]:9
+			`,
+		},
+		"hex array list uint8 capacity": {
+			input: `
+				var foo: ArrayList[Int] = \x[fff]:9u8
+			`,
+		},
+		"hex array list invalid capacity": {
+			input: `
+				var foo: ArrayList[Int] = \x[1ef]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 2, 39), P(41, 2, 41)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer bin array list": {
+			input: `
+				var foo = \b[111 100]
+				var a: ArrayList[Int] = foo
+			`,
+		},
+		"infer empty bin array list": {
+			input: `
+				var foo = \b[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"bin array list int capacity": {
+			input: `
+				var foo: ArrayList[Int] = \b[100]:9
+			`,
+		},
+		"bin array list uint8 capacity": {
+			input: `
+				var foo: ArrayList[Int] = \x[111]:9u8
+			`,
+		},
+		"bin array list invalid capacity": {
+			input: `
+				var foo: ArrayList[Int] = \b[101]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 2, 39), P(41, 2, 41)), "capacity must be an integer, got `9.2`"),
 			},
 		},
 	}

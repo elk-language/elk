@@ -809,6 +809,14 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkContinueExpressionNode(n)
 	case *ast.ArrayListLiteralNode:
 		return c.checkArrayListLiteralNode(n)
+	case *ast.WordArrayListLiteralNode:
+		return c.checkWordArrayListLiteralNode(n)
+	case *ast.SymbolArrayListLiteralNode:
+		return c.checkSymbolArrayListLiteralNode(n)
+	case *ast.HexArrayListLiteralNode:
+		return c.checkHexArrayListLiteralNode(n)
+	case *ast.BinArrayListLiteralNode:
+		return c.checkBinArrayListLiteralNode(n)
 	case *ast.ArrayTupleLiteralNode:
 		return c.checkArrayTupleLiteralNode(n)
 	case *ast.HashSetLiteralNode:
@@ -836,6 +844,14 @@ func (c *Checker) StdBigFloat() *types.Class {
 
 func (c *Checker) StdClass() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.Class)
+}
+
+func (c *Checker) Std(name value.Symbol) types.Type {
+	return c.GlobalEnv.StdSubtype(name)
+}
+
+func (c *Checker) StdString() types.Type {
+	return c.GlobalEnv.StdSubtype(symbol.String)
 }
 
 func (c *Checker) StdStringConvertible() types.Type {
@@ -1014,7 +1030,7 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
-					"array list's capacity must be an integer, got `%s`",
+					"capacity must be an integer, got `%s`",
 					types.InspectWithColor(capacityType),
 				),
 				node.Span(),
@@ -1023,6 +1039,82 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 	}
 
 	node.SetType(generic)
+
+	return node
+}
+
+func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collectionType types.Namespace, elementType types.Type, elements []E, capacity ast.ExpressionNode) types.Type {
+	for _, elementNode := range elements {
+		c.checkExpression(elementNode)
+	}
+
+	generic := types.NewGenericWithTypeArgs(collectionType, elementType)
+
+	if capacity != nil {
+		capacity = c.checkExpression(capacity)
+		capacityType := c.typeOf(capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				capacity.Span(),
+			)
+		}
+	}
+
+	return generic
+}
+
+func (c *Checker) checkBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayList(),
+		c.Std(symbol.Int),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayList(),
+		c.Std(symbol.Int),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkSymbolArrayListLiteralNode(node *ast.SymbolArrayListLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayList(),
+		c.Std(symbol.Symbol),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayList(),
+		c.Std(symbol.String),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
 
 	return node
 }
@@ -1044,7 +1136,7 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
-					"hash set's capacity must be an integer, got `%s`",
+					"capacity must be an integer, got `%s`",
 					types.InspectWithColor(capacityType),
 				),
 				node.Span(),
