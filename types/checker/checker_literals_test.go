@@ -14,13 +14,40 @@ func TestArrayListLiteral(t *testing.T) {
 				var a: ArrayList[Int] = foo
 			`,
 		},
-		"infer array lis with different argument types": {
+		"infer array list with different argument types": {
 			input: `
 				var a = [1, 2.2, "foo"]
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(44, 3, 16), P(44, 3, 16)), "type `Std::ArrayList[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer empty array list": {
+			input: `
+				var foo = []
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::ArrayList[never]` cannot be assigned to type `9`"),
+			},
+		},
+		"int capacity": {
+			input: `
+				var foo: ArrayList[Float] = [1.2]:9
+			`,
+		},
+		"uint8 capacity": {
+			input: `
+				var foo: ArrayList[Float] = [1.2]:9u8
+			`,
+		},
+		"invalid capacity": {
+			input: `
+				var foo: ArrayList[Float] = [1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 2, 33), P(41, 2, 41)), "array list's capacity must be an integer, got `9.2`"),
 			},
 		},
 	}

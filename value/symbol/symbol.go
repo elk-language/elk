@@ -44,6 +44,7 @@ var (
 	Pair              = value.ToSymbol("Pair")
 	StringConvertible = value.ToSymbol("StringConvertible")
 	Inspectable       = value.ToSymbol("Inspectable")
+	AnyInt            = value.ToSymbol("AnyInt")
 )
 
 var (

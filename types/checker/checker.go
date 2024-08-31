@@ -842,6 +842,10 @@ func (c *Checker) StdInspectable() types.Type {
 	return c.GlobalEnv.StdSubtype(symbol.Inspectable)
 }
 
+func (c *Checker) StdAnyInt() types.Type {
+	return c.GlobalEnv.StdSubtype(symbol.AnyInt)
+}
+
 func (c *Checker) StdBool() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.Bool)
 }
@@ -995,6 +999,21 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	generic := types.NewGenericWithTypeArgs(c.StdArrayList(), elementType)
+
+	if node.Capacity != nil {
+		node.Capacity = c.checkExpression(node.Capacity)
+		capacityType := c.typeOf(node.Capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"array list's capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				node.Span(),
+			)
+		}
+	}
+
 	node.SetType(generic)
 
 	return node
