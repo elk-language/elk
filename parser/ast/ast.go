@@ -4088,7 +4088,7 @@ func NewWordArrayListLiteralPatternExpressionNode(span *position.Span, elements 
 
 // Represents a word ArrayTuple literal eg. `%w[foo bar]`
 type WordArrayTupleLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []WordCollectionContentNode
 }
 
@@ -4099,8 +4099,8 @@ func (*WordArrayTupleLiteralNode) IsStatic() bool {
 // Create a word ArrayTuple literal node eg. `%w[foo bar]`
 func NewWordArrayTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayTupleLiteralNode {
 	return &WordArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -4116,7 +4116,7 @@ func NewWordArrayTupleLiteralPatternExpressionNode(span *position.Span, elements
 
 // Represents a word HashSet literal eg. `^w[foo bar]`
 type WordHashSetLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []WordCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
@@ -4135,10 +4135,10 @@ func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionCon
 		static = true
 	}
 	return &WordHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -4192,7 +4192,7 @@ func NewSymbolArrayListLiteralPatternExpressionNode(span *position.Span, element
 
 // Represents a symbol ArrayTuple literal eg. `%s[foo bar]`
 type SymbolArrayTupleLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []SymbolCollectionContentNode
 }
 
@@ -4203,8 +4203,8 @@ func (*SymbolArrayTupleLiteralNode) IsStatic() bool {
 // Create a symbol arrayTuple literal node eg. `%s[foo bar]`
 func NewSymbolArrayTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayTupleLiteralNode {
 	return &SymbolArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -4220,7 +4220,7 @@ func NewSymbolArrayTupleLiteralPatternExpressionNode(span *position.Span, elemen
 
 // Represents a symbol HashSet literal eg. `^s[foo bar]`
 type SymbolHashSetLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []SymbolCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
@@ -4239,10 +4239,10 @@ func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectio
 		static = true
 	}
 	return &SymbolHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -4296,7 +4296,7 @@ func NewHexArrayListLiteralPatternExpressionNode(span *position.Span, elements [
 
 // Represents a hex ArrayTuple literal eg. `%x[ff ee]`
 type HexArrayTupleLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []IntCollectionContentNode
 }
 
@@ -4307,8 +4307,8 @@ func (*HexArrayTupleLiteralNode) IsStatic() bool {
 // Create a hex ArrayTuple literal node eg. `%x[ff ee]`
 func NewHexArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayTupleLiteralNode {
 	return &HexArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -4324,7 +4324,7 @@ func NewHexArrayTupleLiteralPatternExpressionNode(span *position.Span, elements 
 
 // Represents a hex HashSet literal eg. `^x[ff ee}]`
 type HexHashSetLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
@@ -4343,10 +4343,10 @@ func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 		static = true
 	}
 	return &HexHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -4400,7 +4400,7 @@ func NewBinArrayListLiteralPatternExpressionNode(span *position.Span, elements [
 
 // Represents a bin ArrayTuple literal eg. `%b[11 10]`
 type BinArrayTupleLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []IntCollectionContentNode
 }
 
@@ -4411,8 +4411,8 @@ func (*BinArrayTupleLiteralNode) IsStatic() bool {
 // Create a bin ArrayList literal node eg. `%b[11 10]`
 func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
 	return &BinArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -4428,7 +4428,7 @@ func NewBinArrayTupleLiteralPatternExpressionNode(span *position.Span, elements 
 
 // Represents a bin HashSet literal eg. `^b[11 10]`
 type BinHashSetLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
@@ -4447,10 +4447,10 @@ func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 		static = true
 	}
 	return &BinHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -4524,7 +4524,7 @@ func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode, capa
 
 // Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`
 type HashMapLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
 	static   bool
@@ -4543,10 +4543,10 @@ func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capac
 		static = isExpressionSliceStatic(elements)
 	}
 	return &HashMapLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		Capacity: capacity,
-		static:   static,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -4557,7 +4557,7 @@ func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode, capa
 
 // Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`
 type HashRecordLiteralNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []ExpressionNode
 	static   bool
 }
@@ -4569,9 +4569,9 @@ func (r *HashRecordLiteralNode) IsStatic() bool {
 // Create a Record literal node eg. `%{ foo: 1, 'bar' => 5, baz }`
 func NewHashRecordLiteralNode(span *position.Span, elements []ExpressionNode) *HashRecordLiteralNode {
 	return &HashRecordLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-		static:   isExpressionSliceStatic(elements),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+		static:        isExpressionSliceStatic(elements),
 	}
 }
 

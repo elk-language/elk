@@ -819,8 +819,24 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkBinArrayListLiteralNode(n)
 	case *ast.ArrayTupleLiteralNode:
 		return c.checkArrayTupleLiteralNode(n)
+	case *ast.WordArrayTupleLiteralNode:
+		return c.checkWordArrayTupleLiteralNode(n)
+	case *ast.SymbolArrayTupleLiteralNode:
+		return c.checkSymbolArrayTupleLiteralNode(n)
+	case *ast.HexArrayTupleLiteralNode:
+		return c.checkHexArrayTupleLiteralNode(n)
+	case *ast.BinArrayTupleLiteralNode:
+		return c.checkBinArrayTupleLiteralNode(n)
 	case *ast.HashSetLiteralNode:
 		return c.checkHashSetLiteralNode(n)
+	case *ast.WordHashSetLiteralNode:
+		return c.checkWordHashSetLiteralNode(n)
+	case *ast.SymbolHashSetLiteralNode:
+		return c.checkSymbolHashSetLiteralNode(n)
+	case *ast.HexHashSetLiteralNode:
+		return c.checkHexHashSetLiteralNode(n)
+	case *ast.BinHashSetLiteralNode:
+		return c.checkBinHashSetLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1110,6 +1126,110 @@ func (c *Checker) checkWordArrayListLiteralNode(node *ast.WordArrayListLiteralNo
 	typ := checkSpecialCollectionLiteralNode(
 		c,
 		c.StdArrayList(),
+		c.Std(symbol.String),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayTuple(),
+		c.Std(symbol.Int),
+		node.Elements,
+		nil,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayTuple(),
+		c.Std(symbol.Int),
+		node.Elements,
+		nil,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTupleLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayTuple(),
+		c.Std(symbol.Symbol),
+		node.Elements,
+		nil,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdArrayTuple(),
+		c.Std(symbol.String),
+		node.Elements,
+		nil,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkBinHashSetLiteralNode(node *ast.BinHashSetLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdHashSet(),
+		c.Std(symbol.Int),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdHashSet(),
+		c.Std(symbol.Int),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkSymbolHashSetLiteralNode(node *ast.SymbolHashSetLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdHashSet(),
+		c.Std(symbol.Symbol),
+		node.Elements,
+		node.Capacity,
+	)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) ast.ExpressionNode {
+	typ := checkSpecialCollectionLiteralNode(
+		c,
+		c.StdHashSet(),
 		c.Std(symbol.String),
 		node.Elements,
 		node.Capacity,

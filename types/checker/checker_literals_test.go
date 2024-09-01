@@ -32,6 +32,70 @@ func TestArrayTupleLiteral(t *testing.T) {
 				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::ArrayTuple[never]` cannot be assigned to type `9`"),
 			},
 		},
+
+		"infer word array tuple": {
+			input: `
+				var foo = %w[foo bar]
+				var a: ArrayTuple[String] = foo
+			`,
+		},
+		"infer empty word array tuple": {
+			input: `
+				var foo = %w[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"infer symbol array tuple": {
+			input: `
+				var foo = %s[foo bar]
+				var a: ArrayTuple[Symbol] = foo
+			`,
+		},
+		"infer empty symbol array tuple": {
+			input: `
+				var foo = %s[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::Symbol]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"infer hex array tuple": {
+			input: `
+				var foo = %x[1f4 fff]
+				var a: ArrayTuple[Int] = foo
+			`,
+		},
+		"infer empty hex array tuple": {
+			input: `
+				var foo = %x[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"infer bin array tuple": {
+			input: `
+				var foo = %b[111 100]
+				var a: ArrayTuple[Int] = foo
+			`,
+		},
+		"infer empty bin array tuple": {
+			input: `
+				var foo = %b[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -83,6 +147,142 @@ func TestHashSetLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(31, 2, 31), P(40, 2, 40)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer word hash set": {
+			input: `
+				var foo = ^w[foo bar]
+				var a: HashSet[String] = foo
+			`,
+		},
+		"infer empty word hash set": {
+			input: `
+				var foo = ^w[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::HashSet[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"word hash set int capacity": {
+			input: `
+				var foo: HashSet[String] = ^w[1.2]:9
+			`,
+		},
+		"word hash set uint8 capacity": {
+			input: `
+				var foo: HashSet[String] = ^w[1.2]:9u8
+			`,
+		},
+		"word hash set invalid capacity": {
+			input: `
+				var foo: HashSet[String] = ^w[1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 2, 40), P(42, 2, 42)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer symbol hash set": {
+			input: `
+				var foo = ^s[foo bar]
+				var a: HashSet[Symbol] = foo
+			`,
+		},
+		"infer empty symbol hash set": {
+			input: `
+				var foo = ^s[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::HashSet[Std::Symbol]` cannot be assigned to type `9`"),
+			},
+		},
+		"symbol hash set int capacity": {
+			input: `
+				var foo: HashSet[Symbol] = ^s[1.2]:9
+			`,
+		},
+		"symbol hash set uint8 capacity": {
+			input: `
+				var foo: HashSet[Symbol] = ^s[1.2]:9u8
+			`,
+		},
+		"symbol hash set invalid capacity": {
+			input: `
+				var foo: HashSet[Symbol] = ^s[1.2]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 2, 40), P(42, 2, 42)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer hex hash set": {
+			input: `
+				var foo = ^x[1f4 fff]
+				var a: HashSet[Int] = foo
+			`,
+		},
+		"infer empty hex hash set": {
+			input: `
+				var foo = ^x[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"hex hash set int capacity": {
+			input: `
+				var foo: HashSet[Int] = ^x[1f9]:9
+			`,
+		},
+		"hex hash set uint8 capacity": {
+			input: `
+				var foo: HashSet[Int] = ^x[fff]:9u8
+			`,
+		},
+		"hex hash set invalid capacity": {
+			input: `
+				var foo: HashSet[Int] = ^x[1ef]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 2, 37), P(39, 2, 39)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+
+		"infer bin hash set": {
+			input: `
+				var foo = ^b[111 100]
+				var a: HashSet[Int] = foo
+			`,
+		},
+		"infer empty bin hash set": {
+			input: `
+				var foo = ^b[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"bin hash set int capacity": {
+			input: `
+				var foo: HashSet[Int] = ^b[100]:9
+			`,
+		},
+		"bin hash set uint8 capacity": {
+			input: `
+				var foo: HashSet[Int] = ^x[111]:9u8
+			`,
+		},
+		"bin hash set invalid capacity": {
+			input: `
+				var foo: HashSet[Int] = ^b[101]:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 2, 37), P(39, 2, 39)), "capacity must be an integer, got `9.2`"),
 			},
 		},
 	}
