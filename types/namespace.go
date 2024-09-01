@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -197,56 +198,64 @@ func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 }
 
 // iterate over every mixin that is included in the given namespace
-func ForeachIncludedMixin(namespace Namespace, f func(Namespace)) {
-	currentNamespace := namespace.Parent()
-	seenMixins := make(map[string]bool)
+func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(mixin Namespace) bool) {
+		currentNamespace := namespace.Parent()
+		seenMixins := make(map[string]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		switch n := currentNamespace.(type) {
-		case *MixinProxy:
-		case *Generic:
-			if _, ok := n.Namespace.(*MixinProxy); !ok {
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			switch n := currentNamespace.(type) {
+			case *MixinProxy:
+			case *Generic:
+				if _, ok := n.Namespace.(*MixinProxy); !ok {
+					continue
+				}
+			default:
 				continue
 			}
-		default:
-			continue
+
+			name := currentNamespace.Name()
+			if seenMixins[name] {
+				continue
+			}
+
+			if !yield(currentNamespace) {
+				return
+			}
+
+			seenMixins[name] = true
 		}
-
-		name := currentNamespace.Name()
-		if seenMixins[name] {
-			continue
-		}
-
-		f(currentNamespace)
-
-		seenMixins[name] = true
 	}
 }
 
 // iterate over every interface that is implemented in the given namespace
-func ForeachImplementedInterface(namespace Namespace, f func(Namespace)) {
-	currentNamespace := namespace.Parent()
-	seenInterfaces := make(map[string]bool)
+func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(iface Namespace) bool) {
+		currentNamespace := namespace.Parent()
+		seenInterfaces := make(map[string]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		switch n := currentNamespace.(type) {
-		case *InterfaceProxy:
-		case *Generic:
-			if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			switch n := currentNamespace.(type) {
+			case *InterfaceProxy:
+			case *Generic:
+				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+					continue
+				}
+			default:
 				continue
 			}
-		default:
-			continue
+
+			name := currentNamespace.Name()
+			if seenInterfaces[name] {
+				continue
+			}
+
+			if !yield(currentNamespace) {
+				return
+			}
+
+			seenInterfaces[name] = true
 		}
-
-		name := currentNamespace.Name()
-		if seenInterfaces[name] {
-			continue
-		}
-
-		f(currentNamespace)
-
-		seenInterfaces[name] = true
 	}
 }
 
@@ -262,154 +271,207 @@ func FindRootParent(namespace Namespace) Namespace {
 }
 
 // Iterate over every subtype
-func ForeachSubtype(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	for name, typ := range namespace.Subtypes().Map {
-		f(name, typ)
+func AllSubtypes(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		for name, typ := range namespace.Subtypes().Map {
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every subtype, sorted by name
-func ForeachSubtypeSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	subtypes := namespace.Subtypes().Map
-	names := symbol.SortKeys(subtypes)
+func SortedSubtypes(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		subtypes := namespace.Subtypes().Map
+		names := symbol.SortKeys(subtypes)
 
-	for _, name := range names {
-		typ := subtypes[name]
-		f(name, typ)
+		for _, name := range names {
+			typ := subtypes[name]
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every constant that is not a subtype
-func ForeachConstant(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	for name, typ := range namespace.Constants().Map {
-		if namespace.Subtype(name) != nil {
-			continue
-		}
+func AllConstants(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		for name, typ := range namespace.Constants().Map {
+			if namespace.Subtype(name) != nil {
+				continue
+			}
 
-		f(name, typ)
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every constant that is not a subtype, sorted by name
-func ForeachConstantSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	constants := namespace.Constants().Map
-	names := symbol.SortKeys(constants)
-	for _, name := range names {
-		typ := constants[name]
-		if namespace.Subtype(name) != nil {
-			continue
-		}
+func SortedConstants(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		constants := namespace.Constants().Map
+		names := symbol.SortKeys(constants)
+		for _, name := range names {
+			typ := constants[name]
+			if namespace.Subtype(name) != nil {
+				continue
+			}
 
-		f(name, typ)
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every method defined in the given namespace including the inherited ones
-func ForeachMethod(namespace Namespace, f func(name value.Symbol, method *Method)) {
-	currentNamespace := namespace
-	seenMethods := make(map[value.Symbol]bool)
+func AllMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
+	return func(yield func(name value.Symbol, method *Method) bool) {
+		currentNamespace := namespace
+		seenMethods := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		for name, method := range currentNamespace.Methods().Map {
-			if seenMethods[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			for name, method := range currentNamespace.Methods().Map {
+				if seenMethods[name] {
+					continue
+				}
+
+				if !yield(name, method) {
+					return
+				}
+				seenMethods[name] = true
 			}
-
-			f(name, method)
-			seenMethods[name] = true
 		}
 	}
 }
 
 // Iterate over every method defined in the given namespace including the inherited ones, sorted by name
-func ForeachMethodSorted(namespace Namespace, f func(name value.Symbol, method *Method)) {
-	currentNamespace := namespace
-	seenMethods := make(map[value.Symbol]bool)
+func SortedMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
+	return func(yield func(name value.Symbol, method *Method) bool) {
+		currentNamespace := namespace
+		seenMethods := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		methods := currentNamespace.Methods().Map
-		names := symbol.SortKeys(methods)
-		for _, name := range names {
-			method := methods[name]
-			if seenMethods[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			methods := currentNamespace.Methods().Map
+			names := symbol.SortKeys(methods)
+			for _, name := range names {
+				method := methods[name]
+				if seenMethods[name] {
+					continue
+				}
+
+				if !yield(name, method) {
+					return
+				}
+				seenMethods[name] = true
 			}
-
-			f(name, method)
-			seenMethods[name] = true
 		}
 	}
 }
 
 // Iterate over every method defined directly under the given namespace
-func ForeachOwnMethod(namespace Namespace, f func(name value.Symbol, method *Method)) {
-	for name, method := range namespace.Methods().Map {
-		f(name, method)
+func OwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
+	return func(yield func(name value.Symbol, method *Method) bool) {
+		for name, method := range namespace.Methods().Map {
+			if !yield(name, method) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every method defined directly under the given namespace, sorted by name
-func ForeachOwnMethodSorted(namespace Namespace, f func(name value.Symbol, method *Method)) {
-	methods := namespace.Methods().Map
-	names := symbol.SortKeys(methods)
+func SortedOwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
+	return func(yield func(name value.Symbol, method *Method) bool) {
+		methods := namespace.Methods().Map
+		names := symbol.SortKeys(methods)
 
-	for _, name := range names {
-		method := methods[name]
-		f(name, method)
+		for _, name := range names {
+			method := methods[name]
+			if !yield(name, method) {
+				break
+			}
+		}
 	}
 }
 
+type InstanceVariable struct {
+	Type      Type
+	Namespace Namespace
+}
+
 // Iterate over every instance variable defined in the given namespace including the inherited ones
-func ForeachInstanceVariable(namespace Namespace, f func(name value.Symbol, typ Type, namespace Namespace)) {
-	currentNamespace := namespace
-	seenIvars := make(map[value.Symbol]bool)
+func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
+	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
+		currentNamespace := namespace
+		seenIvars := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		for name, typ := range currentNamespace.InstanceVariables().Map {
-			if seenIvars[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			for name, typ := range currentNamespace.InstanceVariables().Map {
+				if seenIvars[name] {
+					continue
+				}
+
+				if !yield(name, InstanceVariable{typ, currentNamespace}) {
+					return
+				}
+				seenIvars[name] = true
 			}
-
-			f(name, typ, currentNamespace)
-			seenIvars[name] = true
 		}
 	}
 }
 
 // Iterate over every instance variable defined in the given namespace including the inherited ones
-func ForeachInstanceVariableSorted(namespace Namespace, f func(name value.Symbol, typ Type, namespace Namespace)) {
-	currentNamespace := namespace
-	seenIvars := make(map[value.Symbol]bool)
+func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
+	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
+		currentNamespace := namespace
+		seenIvars := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		ivars := currentNamespace.InstanceVariables().Map
-		names := symbol.SortKeys(ivars)
-		for _, name := range names {
-			typ := ivars[name]
-			if seenIvars[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			ivars := currentNamespace.InstanceVariables().Map
+			names := symbol.SortKeys(ivars)
+			for _, name := range names {
+				typ := ivars[name]
+				if seenIvars[name] {
+					continue
+				}
+
+				if !yield(name, InstanceVariable{typ, currentNamespace}) {
+					return
+				}
+				seenIvars[name] = true
 			}
-
-			f(name, typ, currentNamespace)
-			seenIvars[name] = true
 		}
 	}
 }
 
 // Iterate over every instance variable defined directly under the given namespace
-func ForeachOwnInstanceVariable(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	for name, typ := range namespace.InstanceVariables().Map {
-		f(name, typ)
+func OwnInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		for name, typ := range namespace.InstanceVariables().Map {
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }
 
 // Iterate over every instance variable defined directly under the given namespace, sorted by name
-func ForeachOwnInstanceVariableSorted(namespace Namespace, f func(name value.Symbol, typ Type)) {
-	ivars := namespace.InstanceVariables().Map
-	names := symbol.SortKeys(ivars)
+func SortedOwnInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Type] {
+	return func(yield func(name value.Symbol, typ Type) bool) {
+		ivars := namespace.InstanceVariables().Map
+		names := symbol.SortKeys(ivars)
 
-	for _, name := range names {
-		typ := ivars[name]
-		f(name, typ)
+		for _, name := range names {
+			typ := ivars[name]
+			if !yield(name, typ) {
+				break
+			}
+		}
 	}
 }

@@ -521,11 +521,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 	case *types.Generic:
 		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
 		var isDifferent bool
-		for key, arg := range t.ArgumentMap {
-			if key == symbol.M_self {
-				continue
-			}
-
+		for key, arg := range t.AllArguments() {
 			result := c.replaceTypeParametersOfGeneric(arg.Type, generic)
 			if result == arg.Type {
 				newMap[key] = arg
@@ -664,10 +660,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 	case *types.Generic:
 		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
 		var isDifferent bool
-		for key, arg := range t.ArgumentMap {
-			if key == symbol.M_self {
-				continue
-			}
+		for key, arg := range t.AllArguments() {
 			result := c._replaceTypeParameters(arg.Type, typeArgMap)
 			if result == arg.Type {
 				newMap[key] = arg
@@ -752,10 +745,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 	case *types.Intersection:
 		return c.newNormalisedIntersection(t.Elements...)
 	case *types.Generic:
-		for name, arg := range t.TypeArguments.ArgumentMap {
-			if name == symbol.M_self {
-				continue
-			}
+		for _, arg := range t.TypeArguments.AllArguments() {
 			arg.Type = c.normaliseType(arg.Type)
 		}
 		return t

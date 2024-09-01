@@ -3,6 +3,7 @@ package checker
 
 import (
 	"fmt"
+	"iter"
 	"os"
 	"path/filepath"
 	"slices"
@@ -2283,7 +2284,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 	}
 
 	errDetailsBuff := new(strings.Builder)
-	c.foreachAbstractMethodInNamespace(namespace.Parent(), func(name value.Symbol, parentMethod *types.Method) {
+	for _, parentMethod := range c.abstractMethodsInNamespace(namespace.Parent()) {
 		method := c.resolveNonAbstractMethodInNamespace(namespace, parentMethod.Name)
 		if method == nil || method.IsAbstract() {
 			fmt.Fprintf(
@@ -2293,7 +2294,7 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 				parentMethod.InspectSignatureWithColor(false),
 			)
 		}
-	})
+	}
 
 	if errDetailsBuff.Len() > 0 {
 		c.addFailure(
@@ -2361,7 +2362,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		}
 
 		var incompatibleMethods []methodOverride
-		c.foreachMethodInNamespace(includedMixin, func(name value.Symbol, includedMethod *types.Method) {
+		for name, includedMethod := range c.methodsInNamespace(includedMixin) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
 			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
@@ -2369,13 +2370,15 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 					override:    includedMethod,
 				})
 			}
-		})
+		}
 
 		var incompatibleIvars []instanceVariableOverride
-		c.foreachInstanceVariableInNamespace(includedMixin, func(name value.Symbol, includedIvar types.Type, includedNamespace types.Namespace) {
+		for name, ivar := range c.instanceVariablesInNamespace(includedMixin) {
+			includedIvar := ivar.Type
+			includedNamespace := ivar.Namespace
 			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
 			if superIvar == nil {
-				return
+				continue
 			}
 			if !c.isTheSameType(superIvar, includedIvar, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
@@ -2386,7 +2389,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 					overrideNamespace: includedNamespace,
 				})
 			}
-		})
+		}
 
 		if len(incompatibleMethods) == 0 && len(incompatibleIvars) == 0 {
 			continue
@@ -3645,31 +3648,39 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 	return nil, typ
 }
 
-func (c *Checker) foreachInstanceVariableInNamespace(namespace types.Namespace, f func(name value.Symbol, typ types.Type, namespace types.Namespace)) {
-	currentNamespace := namespace
-	var generics []*types.Generic
-	seenIvars := make(map[value.Symbol]bool)
+func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, types.InstanceVariable] {
+	return func(yield func(name value.Symbol, ivar types.InstanceVariable) bool) {
+		currentNamespace := namespace
+		var generics []*types.Generic
+		seenIvars := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
-			generics = append(generics, generic)
-		}
-		for name, ivar := range currentNamespace.InstanceVariables().Map {
-			if seenIvars[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			if generic, ok := currentNamespace.(*types.Generic); ok {
+				generics = append(generics, generic)
 			}
-			if len(generics) < 1 {
-				f(name, ivar, currentNamespace)
+			for name, ivar := range currentNamespace.InstanceVariables().Map {
+				if seenIvars[name] {
+					continue
+				}
+				if len(generics) < 1 {
+					ivarStruct := types.InstanceVariable{Type: ivar, Namespace: currentNamespace}
+					if !yield(name, ivarStruct) {
+						return
+					}
+					seenIvars[name] = true
+					continue
+				}
+
+				for i := len(generics) - 1; i >= 0; i-- {
+					generic := generics[i]
+					ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
+				}
+				ivarStruct := types.InstanceVariable{Type: ivar, Namespace: currentNamespace}
+				if !yield(name, ivarStruct) {
+					return
+				}
 				seenIvars[name] = true
-				continue
 			}
-
-			for i := len(generics) - 1; i >= 0; i-- {
-				generic := generics[i]
-				ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
-			}
-			f(name, ivar, currentNamespace)
-			seenIvars[name] = true
 		}
 	}
 }

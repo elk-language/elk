@@ -7,7 +7,6 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -733,7 +732,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	c.throwType = b
 
 	var incorrectMethods []methodOverride
-	c.foreachMethodInNamespace(b, func(_ value.Symbol, abstractMethod *types.Method) {
+	for _, abstractMethod := range c.methodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
 		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
@@ -741,7 +740,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 				override:    method,
 			})
 		}
-	})
+	}
 
 	c.throwType = prevThrow
 	c.selfType = prevSelf

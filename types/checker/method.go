@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"iter"
 	"maps"
 	"strings"
 
@@ -1574,68 +1575,82 @@ func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position
 	return c._getMethod(typ, name, errSpan, false, false)
 }
 
-func (c *Checker) foreachMethodInNamespace(namespace types.Namespace, f func(name value.Symbol, method *types.Method)) {
-	currentNamespace := namespace
-	var generics []*types.Generic
-	seenMethods := make(map[value.Symbol]bool)
+// Iterates over every method of the namespace, resolving type parameters.
+func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
+	return func(yield func(name value.Symbol, method *types.Method) bool) {
+		currentNamespace := namespace
+		var generics []*types.Generic
+		seenMethods := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
-			generics = append(generics, generic)
-		}
-		for name, method := range currentNamespace.Methods().Map {
-			if seenMethods[name] {
-				continue
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			if generic, ok := currentNamespace.(*types.Generic); ok {
+				generics = append(generics, generic)
 			}
-			if len(generics) < 1 {
-				f(name, method)
+			for name, method := range currentNamespace.Methods().Map {
+				if seenMethods[name] {
+					continue
+				}
+				if len(generics) < 1 {
+					if !yield(name, method) {
+						return
+					}
+					seenMethods[name] = true
+					continue
+				}
+
+				method = method.DeepCopy()
+				for i := len(generics) - 1; i >= 0; i-- {
+					generic := generics[i]
+					method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+				}
+				if !yield(name, method) {
+					return
+				}
 				seenMethods[name] = true
-				continue
 			}
-
-			method = method.DeepCopy()
-			for i := len(generics) - 1; i >= 0; i-- {
-				generic := generics[i]
-				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
-			}
-			f(name, method)
-			seenMethods[name] = true
 		}
 	}
 }
 
-func (c *Checker) foreachAbstractMethodInNamespace(namespace types.Namespace, f func(name value.Symbol, method *types.Method)) {
-	currentNamespace := namespace
-	var generics []*types.Generic
-	seenMethods := make(map[value.Symbol]bool)
+// Iterates over every abstract method of the namespace, resolving type parameters.
+func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
+	return func(yield func(name value.Symbol, method *types.Method) bool) {
+		currentNamespace := namespace
+		var generics []*types.Generic
+		seenMethods := make(map[value.Symbol]bool)
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
-			generics = append(generics, generic)
-		}
-		if !currentNamespace.IsAbstract() {
-			continue
-		}
-		for name, method := range currentNamespace.Methods().Map {
-			if !method.IsAbstract() {
+		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
+			if generic, ok := currentNamespace.(*types.Generic); ok {
+				generics = append(generics, generic)
+			}
+			if !currentNamespace.IsAbstract() {
 				continue
 			}
-			if seenMethods[name] {
-				continue
-			}
-			if len(generics) < 1 {
-				f(name, method)
+			for name, method := range currentNamespace.Methods().Map {
+				if !method.IsAbstract() {
+					continue
+				}
+				if seenMethods[name] {
+					continue
+				}
+				if len(generics) < 1 {
+					if !yield(name, method) {
+						return
+					}
+					seenMethods[name] = true
+					continue
+				}
+
+				method = method.DeepCopy()
+				for i := len(generics) - 1; i >= 0; i-- {
+					generic := generics[i]
+					method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+				}
+				if !yield(name, method) {
+					return
+				}
 				seenMethods[name] = true
-				continue
 			}
-
-			method = method.DeepCopy()
-			for i := len(generics) - 1; i >= 0; i-- {
-				generic := generics[i]
-				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
-			}
-			f(name, method)
-			seenMethods[name] = true
 		}
 	}
 }

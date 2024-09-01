@@ -9,7 +9,6 @@ import (
 
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -137,29 +136,29 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	}
 
 	buffer.WriteString("\n// Include mixins\n")
-	types.ForeachIncludedMixin(namespace, func(m types.Namespace) {
+	for m := range types.IncludedMixins(namespace) {
 		fmt.Fprintf(
 			buffer,
 			`IncludeMixin(namespace, NameToType(%q, env).(*Mixin))
 			`,
 			m.Name(),
 		)
-	})
+	}
 
 	buffer.WriteString("\n// Implement interfaces\n")
-	types.ForeachImplementedInterface(namespace, func(i types.Namespace) {
+	for i := range types.ImplementedInterfaces(namespace) {
 		fmt.Fprintf(
 			buffer,
 			`ImplementInterface(namespace, NameToType(%q, env).(*Interface))
 			`,
 			i.Name(),
 		)
-	})
+	}
 
 	defineMethods(buffer, namespace)
 
 	buffer.WriteString("\n// Define constants\n")
-	types.ForeachConstantSorted(namespace, func(name value.Symbol, typ types.Type) {
+	for name, typ := range types.SortedConstants(namespace) {
 		fmt.Fprintf(
 			buffer,
 			`namespace.DefineConstant(value.ToSymbol(%q), %s)
@@ -167,10 +166,10 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			name,
 			typeToCode(typ, false),
 		)
-	})
+	}
 
 	buffer.WriteString("\n// Define instance variables\n")
-	types.ForeachOwnInstanceVariableSorted(namespace, func(name value.Symbol, typ types.Type) {
+	for name, typ := range types.SortedOwnInstanceVariables(namespace) {
 		fmt.Fprintf(
 			buffer,
 			`namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)
@@ -178,16 +177,16 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			name,
 			typeToCode(typ, false),
 		)
-	})
+	}
 
-	types.ForeachSubtypeSorted(namespace, func(name value.Symbol, subtype types.Type) {
+	for _, subtype := range types.SortedSubtypes(namespace) {
 		subtypeNamespace, ok := subtype.(types.Namespace)
 		if !ok {
-			return
+			continue
 		}
 
 		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
-	})
+	}
 
 	buffer.WriteString("}")
 }
@@ -195,7 +194,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
-	types.ForeachOwnMethodSorted(namespace, func(name value.Symbol, method *types.Method) {
+	for _, method := range types.SortedOwnMethods(namespace) {
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
@@ -243,11 +242,11 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			typeToCode(method.ReturnType, false),
 			typeToCode(method.ThrowType, false),
 		)
-	})
+	}
 }
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
-	types.ForeachSubtypeSorted(namespace, func(name value.Symbol, subtype types.Type) {
+	for name, subtype := range types.SortedSubtypes(namespace) {
 		switch s := subtype.(type) {
 		case *types.Class:
 			defineClass(buffer, s, name.String())
@@ -261,7 +260,7 @@ func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespa
 		default:
 			defineSubtype(buffer, s, name.String())
 		}
-	})
+	}
 }
 
 func defineSubtype(buffer *bytes.Buffer, subtype types.Type, name string) {
@@ -558,10 +557,7 @@ func typeToCode(typ types.Type, init bool) string {
 			"NewGeneric(%s, NewTypeArguments(map[value.Symbol]*TypeArgument{",
 			namespaceToCode(t.Namespace),
 		)
-		for name, arg := range t.TypeArguments.ArgumentMap {
-			if name == symbol.M_self {
-				continue
-			}
+		for name, arg := range t.TypeArguments.AllArguments() {
 			fmt.Fprintf(
 				buff,
 				"value.ToSymbol(%q): NewTypeArgument(%s, %s),",

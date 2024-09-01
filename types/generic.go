@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -23,6 +24,18 @@ func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 type TypeArguments struct {
 	ArgumentMap   map[value.Symbol]*TypeArgument
 	ArgumentOrder []value.Symbol
+}
+
+// Iterates over every type argument in definition order.
+func (t *TypeArguments) AllArguments() iter.Seq2[value.Symbol, *TypeArgument] {
+	return func(yield func(name value.Symbol, arg *TypeArgument) bool) {
+		for _, name := range t.ArgumentOrder {
+			arg := t.ArgumentMap[name]
+			if !yield(name, arg) {
+				break
+			}
+		}
+	}
 }
 
 func (t *TypeArguments) Len() int {
@@ -95,10 +108,12 @@ func (g *Generic) inspect() string {
 
 	buffer.WriteString(Inspect(g.Namespace))
 	buffer.WriteRune('[')
-	for i, argName := range g.ArgumentOrder {
-		arg := g.ArgumentMap[argName]
-		if i > 0 {
+	first := true
+	for _, arg := range g.AllArguments() {
+		if !first {
 			buffer.WriteString(", ")
+		} else {
+			first = false
 		}
 
 		buffer.WriteString(Inspect(arg.Type))
