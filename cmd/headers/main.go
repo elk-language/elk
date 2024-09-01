@@ -137,7 +137,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	}
 
 	buffer.WriteString("\n// Include mixins\n")
-	types.ForeachIncludedMixin(namespace, func(m *types.Mixin) {
+	types.ForeachIncludedMixin(namespace, func(m types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			`IncludeMixin(namespace, NameToType(%q, env).(*Mixin))
@@ -147,7 +147,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	})
 
 	buffer.WriteString("\n// Implement interfaces\n")
-	types.ForeachImplementedInterface(namespace, func(i *types.Interface) {
+	types.ForeachImplementedInterface(namespace, func(i types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			`ImplementInterface(namespace, NameToType(%q, env).(*Interface))

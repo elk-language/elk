@@ -197,50 +197,56 @@ func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 }
 
 // iterate over every mixin that is included in the given namespace
-func ForeachIncludedMixin(namespace Namespace, f func(*Mixin)) {
+func ForeachIncludedMixin(namespace Namespace, f func(Namespace)) {
 	currentNamespace := namespace.Parent()
 	seenMixins := make(map[string]bool)
 
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		var mixin *Mixin
 		switch n := currentNamespace.(type) {
 		case *MixinProxy:
-			mixin = n.Mixin
+		case *Generic:
+			if _, ok := n.Namespace.(*MixinProxy); !ok {
+				continue
+			}
 		default:
 			continue
 		}
 
-		if seenMixins[mixin.name] {
+		name := currentNamespace.Name()
+		if seenMixins[name] {
 			continue
 		}
 
-		f(mixin)
+		f(currentNamespace)
 
-		seenMixins[mixin.name] = true
+		seenMixins[name] = true
 	}
 }
 
 // iterate over every interface that is implemented in the given namespace
-func ForeachImplementedInterface(namespace Namespace, f func(*Interface)) {
+func ForeachImplementedInterface(namespace Namespace, f func(Namespace)) {
 	currentNamespace := namespace.Parent()
 	seenInterfaces := make(map[string]bool)
 
 	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		var iface *Interface
 		switch n := currentNamespace.(type) {
 		case *InterfaceProxy:
-			iface = n.Interface
+		case *Generic:
+			if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+				continue
+			}
 		default:
 			continue
 		}
 
-		if seenInterfaces[iface.name] {
+		name := currentNamespace.Name()
+		if seenInterfaces[name] {
 			continue
 		}
 
-		f(iface)
+		f(currentNamespace)
 
-		seenInterfaces[iface.name] = true
+		seenInterfaces[name] = true
 	}
 }
 
