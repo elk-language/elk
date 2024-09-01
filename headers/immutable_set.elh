@@ -2,7 +2,7 @@
 	An interface that represents an unordered, immutable collection
 	of unique elements.
 ]##
-interface ::Std::ImmutableSet[Element]
+interface ::Std::ImmutableSet[+Element]
 	implement ImmutableCollection[Element]
 
 	# Base methods
@@ -25,25 +25,6 @@ interface ::Std::ImmutableSet[Element]
 	def &[E](other: ImmutableSet[E]): ImmutableSet[Element & E]; end
 
 	##[
-		Check whether the given `value` is present in this set.
-	]##
-	def contains(value: Element): bool; end
-
-	##[
-		Adds the given values to the set.
-
-		Skips a value if it is already present in the set.
-	]##
-	def append(*values: Element): self; end
-
-	##[
-		Adds the given value to the set.
-
-		Does nothing if the value is already present in the set.
-	]##
-	def <<(value: Element): self; end
-
-	##[
 		Iterates over the elements of this set,
 		yielding them to the given closure.
 
@@ -55,7 +36,8 @@ interface ::Std::ImmutableSet[Element]
 	##[
 		Provides default implementations of optional set methods.
 	]##
-	abstract mixin Base[Element]
+	abstract mixin Base[+Element]
+		implement ImmutableSet[Element]
 		include ImmutableCollection::Base[Element]
 
 		def &[E](other: ImmutableSet[E]): ImmutableSet[Element & E]; end

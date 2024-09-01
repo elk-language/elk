@@ -123,6 +123,10 @@ func InspectWithColor(typ Type) string {
 	return lexer.Colorize(Inspect(typ))
 }
 
+func I(typ Type) string {
+	return InspectWithColor(typ)
+}
+
 func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {
 	typ = typ.ToNonLiteral(env)
 

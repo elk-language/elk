@@ -961,7 +961,7 @@ func TestGenericClass(t *testing.T) {
 				var a: Foo::V
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used outside of method, instance variable and type definitions"),
+				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used in this context"),
 			},
 		},
 		"use a type parameter from the outside within a method": {
@@ -2621,6 +2621,28 @@ func TestInterface(t *testing.T) {
 
 func TestInterfaceType(t *testing.T) {
 	tests := testTable{
+		"handle circular definitions in return type in implicit interface implementations": {
+			input: `
+				class Foo
+					def foo: Foo then loop; end
+				end
+				interface Bar
+					def foo: Bar; end
+				end
+				var a: Bar = Foo()
+			`,
+		},
+		"handle circular definitions in param type in implicit interface implementations": {
+			input: `
+				class Foo
+					def foo(a: Bar); end
+				end
+				interface Bar
+					def foo(a: Foo); end
+				end
+				var a: Bar = Foo()
+			`,
+		},
 		"assign to related generic interface with correct type args": {
 			input: `
 				interface Baz[K, V]

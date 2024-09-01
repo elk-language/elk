@@ -56,11 +56,12 @@ const (
 	mixinMode
 	interfaceMode
 	methodMode
+	implicitInterfaceSubtypeMode
 	closureInferReturnTypeMode
 	singletonMode
 	namedGenericTypeDefinitionMode
-	outputTypeMode
-	inputTypeMode
+	outputPositionTypeMode
+	inputPositionTypeMode
 	instanceVariableMode
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
@@ -3488,10 +3489,10 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 	}
 
 	switch c.mode {
-	case inputTypeMode:
+	case inputPositionTypeMode:
 		if t.Variance == types.COVARIANT {
 			c.addFailure(
-				fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
+				fmt.Sprintf("covariant type parameter `%s` cannot appear in input positions", types.InspectWithColor(t)),
 				span,
 			)
 			return false
@@ -3512,10 +3513,10 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			span,
 		)
 		return false
-	case outputTypeMode:
+	case outputPositionTypeMode:
 		if t.Variance == types.CONTRAVARIANT {
 			c.addFailure(
-				fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
+				fmt.Sprintf("contravariant type parameter `%s` cannot appear in output positions", types.InspectWithColor(t)),
 				span,
 			)
 			return false
@@ -3564,7 +3565,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 		return false
 	default:
 		c.addFailure(
-			fmt.Sprintf("type parameter `%s` cannot be used outside of method, instance variable and type definitions", types.InspectWithColor(t)),
+			fmt.Sprintf("type parameter `%s` cannot be used in this context", types.InspectWithColor(t)),
 			span,
 		)
 		return false
@@ -3986,7 +3987,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, methodMode, outputTypeMode:
+		case closureInferReturnTypeMode, methodMode, outputPositionTypeMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(

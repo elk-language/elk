@@ -2,7 +2,7 @@
 	An interface that represents a finite, immutable collection
 	of elements.
 ]##
-interface ::Std::ImmutableCollection[Element]
+interface ::Std::ImmutableCollection[+Element]
 	implement Iterable[Element]
 
 	##[
@@ -24,7 +24,8 @@ interface ::Std::ImmutableCollection[Element]
 	##[
 		Provides default implementations of most immutable collection methods.
 	]##
-	abstract mixin Base[Element]
+	abstract mixin Base[+Element]
+		implement ImmutableCollection[Element]
 		include Iterable::FiniteBase[Element]
 
 		def map[E](fn: |element: Element|: E): ImmutableCollection[E]; end

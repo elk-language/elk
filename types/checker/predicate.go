@@ -52,6 +52,25 @@ func (c *Checker) isTheSameType(a, b types.Type, errSpan *position.Span) bool {
 	return c.isSubtype(a, b, errSpan) && c.isSubtype(b, a, errSpan)
 }
 
+func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
+	switch narrowedA := a.(type) {
+	case *types.MixinProxy:
+		return narrowedA.Mixin
+	case *types.InterfaceProxy:
+		return narrowedA.Interface
+	default:
+		return a
+	}
+}
+
+// Check whether the two given types represent the same type.
+// Return true if they do, otherwise false.
+func (c *Checker) isTheSameNamespace(a, b types.Namespace) bool {
+	a = c.toInnerNamespace(a)
+	b = c.toInnerNamespace(b)
+	return a == b
+}
+
 // Check whether the two given types intersect.
 // Return true if they do, otherwise false.
 func (c *Checker) typesIntersect(a, b types.Type) bool {
@@ -130,6 +149,10 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return false
 	}
 	if a == nil && b == nil {
+		return true
+	}
+
+	if c.mode == implicitInterfaceSubtypeMode && c.selfType == a && c.throwType == b {
 		return true
 	}
 
@@ -576,7 +599,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 			continue
 		}
 
-		if c.isTheSameType(parent.Namespace, b.Namespace, nil) {
+		if c.isTheSameNamespace(parent.Namespace, b.Namespace) {
 			var target types.Type = parent
 			for _, generic := range slices.Backward(generics) {
 				target = c.replaceTypeParametersOfGeneric(target, generic)
@@ -661,7 +684,7 @@ loop:
 				return true
 			}
 		case *types.Generic:
-			if c.isTheSameType(p.Namespace, b, nil) {
+			if c.isTheSameNamespace(p.Namespace, b) {
 				return true
 			}
 		case nil:
@@ -686,6 +709,29 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	if c.phase == initPhase && len(b.Methods().Map) < 1 {
 		return false
 	}
+
+	// prevent infinite loops of subtype checking
+	// for code like:
+	//
+	//     class Foo
+	//       def foo: Foo then loop; end
+	//     end
+	//     interface Bar
+	// 	     def foo: Bar; end
+	//     end
+	//     var a: Bar = Foo()
+	//
+	prevMode := c.mode
+	c.mode = implicitInterfaceSubtypeMode
+
+	// use `selfType` to store type `a`
+	prevSelf := c.selfType
+	c.selfType = a
+
+	// use `throwType` to store type `b` (the interface)
+	prevThrow := c.throwType
+	c.throwType = b
+
 	var incorrectMethods []methodOverride
 	c.foreachMethodInNamespace(b, func(_ value.Symbol, abstractMethod *types.Method) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
@@ -696,6 +742,10 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 			})
 		}
 	})
+
+	c.throwType = prevThrow
+	c.selfType = prevSelf
+	c.mode = prevMode
 
 	if len(incorrectMethods) > 0 {
 		methodDetailsBuff := new(strings.Builder)

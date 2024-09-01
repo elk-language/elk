@@ -4,7 +4,7 @@
 	It is an ordered, immutable collection of integer indexed values.
 	A tuple is an immutable list.
 ]##
-sealed primitive class ::Std::ArrayTuple[Element] < Value
+sealed primitive class ::Std::ArrayTuple[+Element] < Value
 	include Tuple::Base[Element]
 
 	##[
@@ -33,11 +33,6 @@ sealed primitive class ::Std::ArrayTuple[Element] < Value
 	sealed def *(n: Int): ArrayTuple[Element]; end
 
 	##[
-		Check whether the given `value` is present in this tuple.
-	]##
-	def contains(value: Element): Bool; end
-
-	##[
 		Check whether the given value is an `ArrayTuple`
 		with the same elements.
 	]##
@@ -64,7 +59,7 @@ sealed primitive class ::Std::ArrayTuple[Element] < Value
 	]##
 	def iterator: Iterator[Element]; end
 
-	sealed primitive class Iterator[Element]
+	sealed primitive class Iterator[+Element]
 		include ::Std::Iterator::Base[Element]
 
 		##[

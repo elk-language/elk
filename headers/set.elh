@@ -65,6 +65,7 @@ interface ::Std::Set[Element]
 		Provides default implementations of optional set methods.
 	]##
 	abstract mixin Base[Element]
+		implement Set[Element]
 		include ImmutableSet::Base[Element]
 		include Collection::Base[Element]
 

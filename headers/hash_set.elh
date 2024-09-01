@@ -8,6 +8,19 @@ sealed primitive class ::Std::HashSet[Element] < Value
 	include Set::Base[Element]
 
 	##[
+		Removes the element from the set.
+
+		Returns `true` if the element has been removed,
+		otherwise returns `false.
+	]##
+	def remove(value: Element): bool; end
+
+	##[
+		Removes all elements from the set.
+	]##
+	def clear; end
+
+	##[
 		Mutates the set.
 
 		Reallocates the underlying array to hold

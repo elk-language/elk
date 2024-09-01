@@ -2,7 +2,7 @@
 	An interface that represents objects
 	that allow for external iteration.
 ]##
-interface ::Std::Iterator[Element]
+interface ::Std::Iterator[+Element]
 	implement Iterable[Element]
 
 	##[
@@ -18,7 +18,7 @@ interface ::Std::Iterator[Element]
 	##[
 		Provides default implementations of most iterable methods.
 	]##
-	abstract mixin Base[Element]
+	abstract mixin Base[+Element]
 		implement Iterator[Element]
 		include Iterable::Base[Element]
 

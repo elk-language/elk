@@ -1,7 +1,7 @@
 ##[
 	Represents a value that can be iterated over in a `for` loop.
 ]##
-interface ::Std::Iterable[Element]
+interface ::Std::Iterable[+Element]
 	class NotFoundError < Error; end
 
 	##[
@@ -17,7 +17,7 @@ interface ::Std::Iterable[Element]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig contains(value: Element): bool
+	sig contains[E > Element](value: E): bool
 
 	##[
 		Checks whether the iterable is empty.
@@ -139,7 +139,7 @@ interface ::Std::Iterable[Element]
 
 		May never return if the iterable is infinite.
 	]##
-	sig index_of(element: Element): Int
+	sig index_of[E > Element](element: E): Int
 
 	##[
 		Returns a new iterable containing all elements except first `n` elements.
@@ -188,7 +188,7 @@ interface ::Std::Iterable[Element]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_list: List[Element]
+	sig to_list[T > Element]: List[T]
 
 	##[
 		Creates a new tuple that contains the elements of this iterable.
@@ -209,7 +209,7 @@ interface ::Std::Iterable[Element]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_collection: Collection[Element]
+	sig to_collection[T > Element]: Collection[T]
 
 	sig ==(other: any): bool
 	sig =~(other: any): bool
@@ -218,10 +218,10 @@ interface ::Std::Iterable[Element]
 		Provides default implementations of most iterable methods
 		for finite iterables.
 	]##
-	abstract mixin FiniteBase[Element]
+	abstract mixin FiniteBase[+Element]
 		implement Iterable[Element]
 
-		def contains(value: Element): bool; end
+		def contains[E > Element](value: E): bool; end
 		def is_empty: bool; end
 		def first: Element; end
 		def try_first: Element?; end
@@ -237,24 +237,23 @@ interface ::Std::Iterable[Element]
 		def every(fn: |element: Element|: bool): bool; end
 		def find(fn: |element: Element|: bool): Element?; end
 		def find_err(fn: |element: Element|: bool): Element ! NotFoundError; end
-		def index_of(element: Element): Int; end
+		def index_of[E > Element](element: E): Int; end
 		def drop(n: Int): self; end
 		def drop_while(fn: |element: Element|: bool): self; end
 		def take(n: Int): self; end
 		def take_while(fn: |element: Element|: bool): self; end
 		def reduce[A](fn: |accum: A, element: Element|: A): A; end
 		def fold[I](initial: I, fn: |accum: I, element: Element|: I): I; end
-		def to_list: List[Element]; end
+		def to_list[T > Element]: List[T]; end
 		def to_tuple: Tuple[Element]; end
 		def to_immutable_collection: ImmutableCollection[Element]; end
-		def to_collection: Collection[Element]; end
+		def to_collection[T > Element]: Collection[T]; end
 	end
 
 	##[
 		Provides default implementations of most iterable methods.
 	]##
-	abstract mixin Base[Element]
-		implement Iterable[Element]
+	abstract mixin Base[+Element]
 		include FiniteBase[Element]
 
 		def length: Int; end

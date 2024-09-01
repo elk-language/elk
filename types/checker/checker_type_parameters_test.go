@@ -49,7 +49,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used outside of method, instance variable and type definitions"),
+				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used in this context"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method parameter": {
@@ -151,23 +151,54 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 17), P(35, 3, 17)), "covariant type parameter `V` cannot appear in method parameters"),
+				error.NewFailure(L("<main>", P(35, 3, 17), P(35, 3, 17)), "covariant type parameter `V` cannot appear in input positions"),
 			},
 		},
 		"covariant type parameter in method return type": {
 			input: `
 				class Foo[+V]
-					def foo: V; end
+					def foo: V then loop; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 6), P(38, 3, 20)), "type `nil` cannot be assigned to type `V`"),
-			},
 		},
 		"covariant type parameter in method throw type": {
 			input: `
 				class Foo[+V]
 					def foo! V; end
+				end
+			`,
+		},
+		"covariant type parameter in closure param's param type": {
+			input: `
+				class Foo[+V]
+					def foo(a: |a: V|); end
+				end
+			`,
+		},
+		"covariant type parameter in closure param's return type": {
+			input: `
+				class Foo[+V]
+					def foo(a: ||: V); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
+			},
+		},
+		"covariant type parameter in closure return type's param type": {
+			input: `
+				class Foo[+V]
+					def foo(): |a: V| then loop; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
+			},
+		},
+		"covariant type parameter in closure return type's return type": {
+			input: `
+				class Foo[+V]
+					def foo(): ||: V then loop; end
 				end
 			`,
 		},
@@ -186,7 +217,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in return and throw types"),
+				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 		"contravariant type parameter in method throw type": {
@@ -196,7 +227,41 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in return and throw types"),
+				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
+			},
+		},
+		"contravariant type parameter in closure param's param type": {
+			input: `
+				class Foo[-V]
+					def foo(a: |a: V|); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
+			},
+		},
+		"contravariant type parameter in closure param's return type": {
+			input: `
+				class Foo[-V]
+					def foo(a: ||: V); end
+				end
+			`,
+		},
+		"contravariant type parameter in closure return type's param type": {
+			input: `
+				class Foo[-V]
+					def foo(): |a: V| then loop; end
+				end
+			`,
+		},
+		"contravariant type parameter in closure return type's return type": {
+			input: `
+				class Foo[-V]
+					def foo(): ||: V then loop; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 

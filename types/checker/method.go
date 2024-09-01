@@ -360,7 +360,8 @@ func (c *Checker) checkMethod(
 	c.pushIsolatedLocalEnv()
 	defer c.popLocalEnv()
 
-	c.mode = inputTypeMode
+	c.mode = prevMode
+	c.setInputPositionTypeMode()
 	for _, param := range paramNodes {
 		switch p := param.(type) {
 		case *ast.MethodParameterNode:
@@ -400,7 +401,8 @@ func (c *Checker) checkMethod(
 		}
 	}
 
-	c.mode = outputTypeMode
+	c.mode = prevMode
+	c.setOutputPositionTypeMode()
 
 	returnType := checkedMethod.ReturnType
 	var typedReturnTypeNode ast.TypeNode
@@ -1248,7 +1250,8 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = inputTypeMode
+	c.mode = prevMode
+	c.setInputPositionTypeMode()
 	var params []*types.Parameter
 	for i, param := range paramNodes {
 		switch p := param.(type) {
@@ -1382,7 +1385,8 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = outputTypeMode
+	c.mode = prevMode
+	c.setOutputPositionTypeMode()
 
 	var returnType types.Type
 	var typedReturnTypeNode ast.TypeNode
@@ -1435,6 +1439,34 @@ func (c *Checker) declareMethod(
 	return newMethod, typeParamMod
 }
 
+// Set the mode of a closure/method output position
+func (c *Checker) setOutputPositionTypeMode() {
+	switch c.mode {
+	case inputPositionTypeMode:
+		// input position of a closure in an output position of a method
+		// is an input position
+		c.mode = inputPositionTypeMode
+	default:
+		// output position of a closure in an output position of a method
+		// is an output position
+		c.mode = outputPositionTypeMode
+	}
+}
+
+// Set the mode of a closure/method input position
+func (c *Checker) setInputPositionTypeMode() {
+	switch c.mode {
+	case inputPositionTypeMode:
+		// input position of a closure in an input position of a method
+		// is an output position
+		c.mode = outputPositionTypeMode
+	default:
+		// output position of a closure in an input position of a method
+		// is an input position
+		c.mode = inputPositionTypeMode
+	}
+}
+
 func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
 	prevMode := c.mode
 	c.mode = methodCompatibilityInAlgebraicTypeMode
@@ -1448,75 +1480,77 @@ func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, override
 
 // Checks whether two methods are compatible.
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+	if baseMethod == nil {
+		return true
+	}
+
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
-	if baseMethod != nil {
-		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
-			fmt.Fprintf(
-				errDetailsBuff,
-				"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
-				types.InspectWithColor(overrideMethod),
-				types.InspectWithColor(baseMethod),
-				types.InspectWithColor(overrideMethod.ReturnType),
-				types.InspectWithColor(baseMethod.ReturnType),
-			)
-			areCompatible = false
-		}
-		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
-			fmt.Fprintf(
-				errDetailsBuff,
-				"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
-				types.InspectWithColor(overrideMethod),
-				types.InspectWithColor(baseMethod),
-				types.InspectWithColor(overrideMethod.ThrowType),
-				types.InspectWithColor(baseMethod.ThrowType),
-			)
-			areCompatible = false
-		}
 
-		if len(baseMethod.Params) > len(overrideMethod.Params) {
-			fmt.Fprintf(
-				errDetailsBuff,
-				"\n  - method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
-				types.InspectWithColor(overrideMethod),
-				types.InspectWithColor(baseMethod),
-				len(overrideMethod.Params),
-				len(baseMethod.Params),
-			)
-			areCompatible = false
-		} else {
-			for i := range len(baseMethod.Params) {
-				oldParam := baseMethod.Params[i]
-				newParam := overrideMethod.Params[i]
+	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			types.InspectWithColor(overrideMethod.ReturnType),
+			types.InspectWithColor(baseMethod.ReturnType),
+		)
+		areCompatible = false
+	}
+	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			types.InspectWithColor(overrideMethod.ThrowType),
+			types.InspectWithColor(baseMethod.ThrowType),
+		)
+		areCompatible = false
+	}
 
-				if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
-					fmt.Fprintf(
-						errDetailsBuff,
-						"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
-						types.InspectWithColor(overrideMethod),
-						types.InspectWithColor(baseMethod),
-						types.InspectWithColor(newParam),
-						types.InspectWithColor(oldParam),
-					)
-					areCompatible = false
-				}
-			}
+	if len(baseMethod.Params) > len(overrideMethod.Params) {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			len(overrideMethod.Params),
+			len(baseMethod.Params),
+		)
+		areCompatible = false
+	} else {
+		for i := range len(baseMethod.Params) {
+			oldParam := baseMethod.Params[i]
+			newParam := overrideMethod.Params[i]
 
-			for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
-				param := overrideMethod.Params[i]
-				if !param.IsOptional() {
-					fmt.Fprintf(
-						errDetailsBuff,
-						"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
-						types.InspectWithColor(overrideMethod),
-						types.InspectWithColor(baseMethod),
-						param.Name,
-					)
-					areCompatible = false
-				}
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					types.InspectWithColor(newParam),
+					types.InspectWithColor(oldParam),
+				)
+				areCompatible = false
 			}
 		}
 
+		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
+			param := overrideMethod.Params[i]
+			if !param.IsOptional() {
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					param.Name,
+				)
+				areCompatible = false
+			}
+		}
 	}
 
 	if !areCompatible {

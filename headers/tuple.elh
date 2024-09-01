@@ -2,7 +2,7 @@
 	An interface that represents an ordered, immutable collection
 	of elements indexed by integers starting at `0`.
 ]##
-interface ::Std::Tuple[Element]
+interface ::Std::Tuple[+Element]
 	implement ImmutableCollection[Element]
 
 	##[
@@ -34,7 +34,8 @@ interface ::Std::Tuple[Element]
 	##[
 		Provides default implementations of optional tuple methods.
 	]##
-	abstract mixin Base[Element]
+	abstract mixin Base[+Element]
+		implement Tuple[Element]
 		include ImmutableCollection::Base[Element]
 
 		def at(index: AnyInt): Element ! OutOfRangeError; end

@@ -38,6 +38,7 @@ interface ::Std::List[Element]
 		Provides default implementations of most list methods.
 	]##
 	abstract mixin Base[Element]
+		implement List[Element]
 		include Tuple::Base[Element]
 		include Collection::Base[Element]
 

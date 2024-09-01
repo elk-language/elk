@@ -26,7 +26,7 @@ interface ::Std::Collection[Element]
 	##[
 		Removes all elements from the collection.
 	]##
-	sig clear()
+	sig clear
 
 	# Base methods
 
@@ -61,6 +61,7 @@ interface ::Std::Collection[Element]
 		Provides default implementations of most collection methods.
 	]##
 	abstract mixin Base[Element]
+		implement Collection[Element]
 		include ImmutableCollection::Base[Element]
 
 		def remove_all(*values: Element): bool; end
