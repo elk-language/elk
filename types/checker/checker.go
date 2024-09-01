@@ -59,9 +59,8 @@ const (
 	closureInferReturnTypeMode
 	singletonMode
 	namedGenericTypeDefinitionMode
-	returnTypeMode
-	throwTypeMode
-	paramTypeMode
+	outputTypeMode
+	inputTypeMode
 	instanceVariableMode
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
@@ -2282,19 +2281,29 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 		return
 	}
 
+	errDetailsBuff := new(strings.Builder)
 	c.foreachAbstractMethodInNamespace(namespace.Parent(), func(name value.Symbol, parentMethod *types.Method) {
 		method := c.resolveNonAbstractMethodInNamespace(namespace, parentMethod.Name)
 		if method == nil || method.IsAbstract() {
-			c.addFailure(
-				fmt.Sprintf(
-					"missing abstract method implementation `%s` with signature: `%s`",
-					types.InspectWithColor(parentMethod),
-					parentMethod.InspectSignatureWithColor(false),
-				),
-				span,
+			fmt.Fprintf(
+				errDetailsBuff,
+				"\n  - method `%s`:\n      `%s`\n",
+				types.InspectWithColor(parentMethod),
+				parentMethod.InspectSignatureWithColor(false),
 			)
 		}
 	})
+
+	if errDetailsBuff.Len() > 0 {
+		c.addFailure(
+			fmt.Sprintf(
+				"missing abstract method implementations in `%s`:\n%s",
+				types.InspectWithColor(namespace),
+				errDetailsBuff.String(),
+			),
+			span,
+		)
+	}
 }
 
 // Search through the ancestor chain of the current namespace
@@ -2615,7 +2624,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		}
 		switch t := typeArgument.(type) {
 		case *types.TypeParameter:
-			if t.Variance != typeParameter.Variance {
+			if t.Variance != types.INVARIANT && t.Variance != typeParameter.Variance {
 				c.addFailure(
 					fmt.Sprintf(
 						"%s type `%s` cannot appear in %s position",
@@ -3479,7 +3488,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 	}
 
 	switch c.mode {
-	case paramTypeMode:
+	case inputTypeMode:
 		if t.Variance == types.COVARIANT {
 			c.addFailure(
 				fmt.Sprintf("covariant type parameter `%s` cannot appear in method parameters", types.InspectWithColor(t)),
@@ -3503,7 +3512,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			span,
 		)
 		return false
-	case returnTypeMode, throwTypeMode:
+	case outputTypeMode:
 		if t.Variance == types.CONTRAVARIANT {
 			c.addFailure(
 				fmt.Sprintf("contravariant type parameter `%s` cannot appear in return and throw types", types.InspectWithColor(t)),
@@ -3977,7 +3986,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, methodMode, returnTypeMode, throwTypeMode:
+		case closureInferReturnTypeMode, methodMode, outputTypeMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(

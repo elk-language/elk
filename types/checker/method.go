@@ -360,7 +360,7 @@ func (c *Checker) checkMethod(
 	c.pushIsolatedLocalEnv()
 	defer c.popLocalEnv()
 
-	c.mode = paramTypeMode
+	c.mode = inputTypeMode
 	for _, param := range paramNodes {
 		switch p := param.(type) {
 		case *ast.MethodParameterNode:
@@ -400,15 +400,13 @@ func (c *Checker) checkMethod(
 		}
 	}
 
-	c.mode = returnTypeMode
+	c.mode = outputTypeMode
 
 	returnType := checkedMethod.ReturnType
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 	}
-
-	c.mode = throwTypeMode
 
 	throwType := checkedMethod.ThrowType
 	var typedThrowTypeNode ast.TypeNode
@@ -1229,6 +1227,7 @@ func (c *Checker) declareMethod(
 		}
 	}
 
+	c.mode = methodMode
 	var typeParams []*types.TypeParameter
 	var typeParamMod *types.TypeParamNamespace
 	if len(typeParamNodes) > 0 {
@@ -1249,7 +1248,7 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = paramTypeMode
+	c.mode = inputTypeMode
 	var params []*types.Parameter
 	for i, param := range paramNodes {
 		switch p := param.(type) {
@@ -1383,7 +1382,7 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = returnTypeMode
+	c.mode = outputTypeMode
 
 	var returnType types.Type
 	var typedReturnTypeNode ast.TypeNode
@@ -1396,8 +1395,6 @@ func (c *Checker) declareMethod(
 	} else {
 		returnType = types.Void{}
 	}
-
-	c.mode = throwTypeMode
 
 	var throwType types.Type
 	var typedThrowTypeNode ast.TypeNode
