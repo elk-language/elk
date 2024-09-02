@@ -1578,15 +1578,14 @@ func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position
 // Iterates over every method of the namespace, resolving type parameters.
 func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
 	return func(yield func(name value.Symbol, method *types.Method) bool) {
-		currentNamespace := namespace
 		var generics []*types.Generic
 		seenMethods := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			if generic, ok := currentNamespace.(*types.Generic); ok {
+		for parent := range types.Parents(namespace) {
+			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			for name, method := range currentNamespace.Methods().Map {
+			for name, method := range parent.Methods().Map {
 				if seenMethods[name] {
 					continue
 				}
@@ -1615,18 +1614,17 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 // Iterates over every abstract method of the namespace, resolving type parameters.
 func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
 	return func(yield func(name value.Symbol, method *types.Method) bool) {
-		currentNamespace := namespace
 		var generics []*types.Generic
 		seenMethods := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			if generic, ok := currentNamespace.(*types.Generic); ok {
+		for parent := range types.Parents(namespace) {
+			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			if !currentNamespace.IsAbstract() {
+			if !parent.IsAbstract() {
 				continue
 			}
-			for name, method := range currentNamespace.Methods().Map {
+			for name, method := range parent.Methods().Map {
 				if !method.IsAbstract() {
 					continue
 				}
@@ -1656,40 +1654,42 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 }
 
 func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
-	currentNamespace := namespace
 	var generics []*types.Generic
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
-			generics = append(generics, generic)
+	for parent := range types.Parents(namespace) {
+		switch p := parent.(type) {
+		case *types.Generic:
+			generics = append(generics, p)
 		}
-		method := currentNamespace.Method(name)
-		if method != nil {
-			if len(generics) < 1 {
-				return method
-			}
 
-			method = method.DeepCopy()
-			for i := len(generics) - 1; i >= 0; i-- {
-				generic := generics[i]
-				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
-			}
+		method := parent.Method(name)
+		if method == nil {
+			continue
+		}
+
+		if len(generics) < 1 {
 			return method
 		}
+
+		method = method.DeepCopy()
+		for i := len(generics) - 1; i >= 0; i-- {
+			generic := generics[i]
+			method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+		}
+		return method
 	}
 
 	return nil
 }
 
 func (c *Checker) resolveNonAbstractMethodInNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
-	currentNamespace := namespace
 	var generics []*types.Generic
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
+	for parent := range types.Parents(namespace) {
+		if generic, ok := parent.(*types.Generic); ok {
 			generics = append(generics, generic)
 		}
-		method := currentNamespace.Method(name)
+		method := parent.Method(name)
 		if method != nil {
 			if method.IsAbstract() {
 				continue

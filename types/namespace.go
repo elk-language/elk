@@ -75,9 +75,8 @@ func ImplementInterface(target, interfaceNamespace Namespace) {
 }
 
 func includeMixin(target Namespace, mixin *Mixin) {
-	headProxy, tailProxy := mixin.CreateProxy()
-	tailProxy.SetParent(target.Parent())
-	target.SetParent(headProxy)
+	proxy := NewMixinProxy(mixin, target.Parent())
+	target.SetParent(proxy)
 }
 
 func IncludeMixin(target, includedNamespace Namespace) {
@@ -86,20 +85,17 @@ func IncludeMixin(target, includedNamespace Namespace) {
 		includeMixin(target, included)
 	case *Generic:
 		includedMixin := included.Namespace.(*Mixin)
-		headProxy, tailProxy := includedMixin.CreateProxy()
-		head := NewGeneric(headProxy, included.TypeArguments)
-		tailProxy.SetParent(target.Parent())
-		target.SetParent(head)
+		proxy := NewMixinProxy(includedMixin, target.Parent())
+		generic := NewGeneric(proxy, included.TypeArguments)
+		target.SetParent(generic)
 	default:
 		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
 	}
 }
 
 func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
-	var currentNamespace Namespace = namespace
-
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if currentNamespace.InstanceVariables().Len() > 0 {
+	for parent := range Parents(namespace) {
+		if parent.InstanceVariables().Len() > 0 {
 			return true
 		}
 	}
@@ -108,11 +104,10 @@ func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
 }
 
 func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (Type, Namespace) {
-	currentNamespace := namespace
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		ivar := currentNamespace.InstanceVariable(name)
+	for parent := range Parents(namespace) {
+		ivar := parent.InstanceVariable(name)
 		if ivar != nil {
-			return ivar, currentNamespace
+			return ivar, parent
 		}
 	}
 
@@ -197,14 +192,67 @@ func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 	return NameToType(fullSubtypePath, env).(Namespace)
 }
 
+// Iterate over every parent of the given namespace (including itself).
+func Parents(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(parent Namespace) bool) {
+		if namespace == nil {
+			return
+		}
+		namespaces := []Namespace{namespace}
+
+		for i := 0; i < len(namespaces); i++ {
+			currentParent := namespaces[i]
+		parentLoop:
+			for {
+				if currentParent == nil {
+					break
+				}
+
+				switch cn := currentParent.(type) {
+				case *MixinProxy:
+					mixinParent := cn.Parent()
+					if mixinParent != nil {
+						namespaces = append(namespaces, mixinParent)
+					}
+					if !yield(currentParent) {
+						return
+					}
+
+					currentParent = cn.Mixin.parent
+					continue parentLoop
+				case *Generic:
+					switch g := cn.Namespace.(type) {
+					case *MixinProxy:
+						genericParent := cn.Parent()
+						if genericParent != nil {
+							namespaces = append(namespaces, genericParent)
+						}
+						if !yield(currentParent) {
+							return
+						}
+
+						currentParent = g.Mixin.parent
+						continue parentLoop
+					}
+				}
+
+				if !yield(currentParent) {
+					return
+				}
+
+				currentParent = currentParent.Parent()
+			}
+		}
+	}
+}
+
 // iterate over every mixin that is included in the given namespace
 func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
-		currentNamespace := namespace.Parent()
 		seenMixins := make(map[string]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			switch n := currentNamespace.(type) {
+		for parent := range Parents(namespace.Parent()) {
+			switch n := parent.(type) {
 			case *MixinProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*MixinProxy); !ok {
@@ -214,12 +262,12 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 				continue
 			}
 
-			name := currentNamespace.Name()
+			name := parent.Name()
 			if seenMixins[name] {
 				continue
 			}
 
-			if !yield(currentNamespace) {
+			if !yield(parent) {
 				return
 			}
 
@@ -231,11 +279,10 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 // iterate over every interface that is implemented in the given namespace
 func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
-		currentNamespace := namespace.Parent()
 		seenInterfaces := make(map[string]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			switch n := currentNamespace.(type) {
+		for parent := range Parents(namespace.Parent()) {
+			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
@@ -245,28 +292,17 @@ func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 				continue
 			}
 
-			name := currentNamespace.Name()
+			name := parent.Name()
 			if seenInterfaces[name] {
 				continue
 			}
 
-			if !yield(currentNamespace) {
+			if !yield(parent) {
 				return
 			}
 
 			seenInterfaces[name] = true
 		}
-	}
-}
-
-func FindRootParent(namespace Namespace) Namespace {
-	currentNamespace := namespace
-	for {
-		parent := currentNamespace.Parent()
-		if parent == nil {
-			return currentNamespace
-		}
-		currentNamespace = parent
 	}
 }
 
@@ -332,11 +368,10 @@ func SortedConstants(namespace Namespace) iter.Seq2[value.Symbol, Type] {
 // Iterate over every method defined in the given namespace including the inherited ones
 func AllMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	return func(yield func(name value.Symbol, method *Method) bool) {
-		currentNamespace := namespace
 		seenMethods := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			for name, method := range currentNamespace.Methods().Map {
+		for parent := range Parents(namespace) {
+			for name, method := range parent.Methods().Map {
 				if seenMethods[name] {
 					continue
 				}
@@ -353,11 +388,10 @@ func AllMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 // Iterate over every method defined in the given namespace including the inherited ones, sorted by name
 func SortedMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	return func(yield func(name value.Symbol, method *Method) bool) {
-		currentNamespace := namespace
 		seenMethods := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			methods := currentNamespace.Methods().Map
+		for parent := range Parents(namespace) {
+			methods := parent.Methods().Map
 			names := symbol.SortKeys(methods)
 			for _, name := range names {
 				method := methods[name]
@@ -408,16 +442,15 @@ type InstanceVariable struct {
 // Iterate over every instance variable defined in the given namespace including the inherited ones
 func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
-		currentNamespace := namespace
 		seenIvars := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			for name, typ := range currentNamespace.InstanceVariables().Map {
+		for parent := range Parents(namespace) {
+			for name, typ := range parent.InstanceVariables().Map {
 				if seenIvars[name] {
 					continue
 				}
 
-				if !yield(name, InstanceVariable{typ, currentNamespace}) {
+				if !yield(name, InstanceVariable{typ, parent}) {
 					return
 				}
 				seenIvars[name] = true
@@ -429,11 +462,10 @@ func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceV
 // Iterate over every instance variable defined in the given namespace including the inherited ones
 func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
-		currentNamespace := namespace
 		seenIvars := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			ivars := currentNamespace.InstanceVariables().Map
+		for parent := range Parents(namespace) {
+			ivars := parent.InstanceVariables().Map
 			names := symbol.SortKeys(ivars)
 			for _, name := range names {
 				typ := ivars[name]
@@ -441,7 +473,7 @@ func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Instan
 					continue
 				}
 
-				if !yield(name, InstanceVariable{typ, currentNamespace}) {
+				if !yield(name, InstanceVariable{typ, parent}) {
 					return
 				}
 				seenIvars[name] = true

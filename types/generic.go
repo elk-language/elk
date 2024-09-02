@@ -54,6 +54,11 @@ type Generic struct {
 	*TypeArguments
 }
 
+func IsGeneric(typ Type) bool {
+	_, ok := typ.(*Generic)
+	return ok
+}
+
 func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 	generic := &Generic{
 		Namespace:     typ,

@@ -2313,10 +2313,9 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace {
 	currentNamespace := c.currentConstScope().container
 	currentParent := currentNamespace.Parent()
-	mixinRootParent := types.FindRootParent(mixin)
 
 	for ; currentParent != nil; currentParent = currentParent.Parent() {
-		if types.NamespacesAreEqual(currentParent, mixinRootParent) {
+		if types.NamespacesAreEqual(currentParent, mixin) {
 			return currentParent.Parent()
 		}
 	}
@@ -3624,25 +3623,26 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 		return nil, typ
 	}
 
-	currentNamespace := typ
 	var generics []*types.Generic
 
-	for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-		if generic, ok := currentNamespace.(*types.Generic); ok {
+	for parent := range types.Parents(typ) {
+		if generic, ok := parent.(*types.Generic); ok {
 			generics = append(generics, generic)
 		}
-		ivar := currentNamespace.InstanceVariable(name)
-		if ivar != nil {
-			if len(generics) < 1 {
-				return ivar, currentNamespace
-			}
-
-			for i := len(generics) - 1; i >= 0; i-- {
-				generic := generics[i]
-				ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
-			}
-			return ivar, currentNamespace
+		ivar := parent.InstanceVariable(name)
+		if ivar == nil {
+			continue
 		}
+
+		if len(generics) < 1 {
+			return ivar, parent
+		}
+
+		for i := len(generics) - 1; i >= 0; i-- {
+			generic := generics[i]
+			ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
+		}
+		return ivar, parent
 	}
 
 	return nil, typ
@@ -3650,20 +3650,19 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 
 func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, types.InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar types.InstanceVariable) bool) {
-		currentNamespace := namespace
 		var generics []*types.Generic
 		seenIvars := make(map[value.Symbol]bool)
 
-		for ; currentNamespace != nil; currentNamespace = currentNamespace.Parent() {
-			if generic, ok := currentNamespace.(*types.Generic); ok {
+		for parent := range types.Parents(namespace) {
+			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			for name, ivar := range currentNamespace.InstanceVariables().Map {
+			for name, ivar := range parent.InstanceVariables().Map {
 				if seenIvars[name] {
 					continue
 				}
 				if len(generics) < 1 {
-					ivarStruct := types.InstanceVariable{Type: ivar, Namespace: currentNamespace}
+					ivarStruct := types.InstanceVariable{Type: ivar, Namespace: parent}
 					if !yield(name, ivarStruct) {
 						return
 					}
@@ -3675,7 +3674,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 					generic := generics[i]
 					ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
 				}
-				ivarStruct := types.InstanceVariable{Type: ivar, Namespace: currentNamespace}
+				ivarStruct := types.InstanceVariable{Type: ivar, Namespace: parent}
 				if !yield(name, ivarStruct) {
 					return
 				}

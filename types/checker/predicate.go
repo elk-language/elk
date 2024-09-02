@@ -588,13 +588,11 @@ func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpa
 }
 
 func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
-	var currentParent types.Namespace = a
 	var generics []*types.Generic
 
-	for currentParent != nil {
-		parent, ok := currentParent.(*types.Generic)
+	for parent := range types.Parents(a) {
+		parent, ok := parent.(*types.Generic)
 		if !ok {
-			currentParent = currentParent.Parent()
 			continue
 		}
 
@@ -609,8 +607,6 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan)
 		}
 		generics = append(generics, parent)
-
-		currentParent = currentParent.Parent()
 	}
 
 	return false
@@ -641,9 +637,8 @@ func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
 }
 
 func (c *Checker) includesMixin(a types.Namespace, b *types.Mixin) (bool, types.Namespace) {
-	var currentParent types.Namespace = a
-	for {
-		switch p := currentParent.(type) {
+	for parent := range types.Parents(a) {
+		switch p := parent.(type) {
 		case *types.Mixin:
 			if p == b {
 				return true, p
@@ -653,15 +648,13 @@ func (c *Checker) includesMixin(a types.Namespace, b *types.Mixin) (bool, types.
 				return true, p
 			}
 		case *types.Generic:
-			if c.isTheSameType(p.Namespace, b, nil) {
+			if c.isTheSameNamespace(p.Namespace, b) {
 				return true, p
 			}
-		case nil:
-			return false, nil
 		}
-
-		currentParent = currentParent.Parent()
 	}
+
+	return false, nil
 }
 
 type methodOverride struct {
@@ -670,10 +663,8 @@ type methodOverride struct {
 }
 
 func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Interface) bool {
-	var currentParent types.Namespace = a
-loop:
-	for {
-		switch p := currentParent.(type) {
+	for parent := range types.Parents(a) {
+		switch p := parent.(type) {
 		case *types.Interface:
 			if p == b {
 				return true
@@ -686,11 +677,7 @@ loop:
 			if c.isTheSameNamespace(p.Namespace, b) {
 				return true
 			}
-		case nil:
-			break loop
 		}
-
-		currentParent = currentParent.Parent()
 	}
 
 	return false
