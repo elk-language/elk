@@ -3263,6 +3263,33 @@ func TestMethodInheritance(t *testing.T) {
 				foo.foo
 			`,
 		},
+		"call method inherited from mixin that was included to the parent mixin afterwards": {
+			input: `
+				mixin Foo
+					def foo; end
+				end
+
+				class Bar
+					include Foo
+				end
+
+				mixin Fuzz
+					def fuzz; end
+				end
+
+				mixin Hejo
+					include Fuzz
+					def hejo; end
+				end
+
+				mixin Foo
+					include Hejo
+				end
+
+				Bar().foo
+				Bar().hejo
+			`,
+		},
 	}
 
 	for name, tc := range tests {
