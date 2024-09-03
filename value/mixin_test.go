@@ -29,7 +29,7 @@ func TestMixin_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.mixin.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -37,9 +37,9 @@ func TestMixin_Inspect(t *testing.T) {
 
 func TestMixin_IncludeMixin(t *testing.T) {
 	tests := map[string]struct {
-		self      *value.Mixin
-		other     *value.Mixin
-		selfAfter *value.Mixin
+		self            *value.Mixin
+		other           *value.Mixin
+		expectedInspect string
 	}{
 		"include mixin with a method": {
 			self: value.NewMixinWithOptions(
@@ -54,22 +54,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 					value.ToSymbol("bar"): nil,
 				}),
 			),
-			selfAfter: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): nil,
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("Bar"),
-						value.ClassWithParent(nil),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("bar"): nil,
-						}),
-					),
-				),
-			),
+			expectedInspect: "Foo < Bar[Bar]",
 		},
 		"include mixin with parent": {
 			self: value.NewMixinWithOptions(
@@ -91,24 +76,9 @@ func TestMixin_IncludeMixin(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("bar_parent"): nil,
 						}),
-					),
-				),
-			),
-			selfAfter: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): nil,
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("Bar"),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("bar"): nil,
-						}),
-						value.ClassWithParent(
+						value.ClassWithMetaClass(
 							value.NewClassWithOptions(
-								value.ClassWithMixinProxy(),
+								value.ClassWithMixin(),
 								value.ClassWithName("BarParent"),
 								value.ClassWithParent(nil),
 								value.ClassWithMethods(value.MethodMap{
@@ -119,6 +89,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 					),
 				),
 			),
+			expectedInspect: "Foo < Bar[Bar < BarParent[BarParent]]",
 		},
 		"include to a mixin with a parent": {
 			self: value.NewMixinWithOptions(
@@ -134,30 +105,9 @@ func TestMixin_IncludeMixin(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_parent"): nil,
 						}),
-					),
-				),
-			),
-			other: value.NewMixinWithOptions(
-				value.MixinWithName("Bar"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("bar"): nil,
-				}),
-			),
-			selfAfter: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): nil,
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("Bar"),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("bar"): nil,
-						}),
-						value.ClassWithParent(
+						value.ClassWithMetaClass(
 							value.NewClassWithOptions(
-								value.ClassWithMixinProxy(),
+								value.ClassWithMixin(),
 								value.ClassWithName("FooParent"),
 								value.ClassWithParent(nil),
 								value.ClassWithMethods(value.MethodMap{
@@ -168,118 +118,21 @@ func TestMixin_IncludeMixin(t *testing.T) {
 					),
 				),
 			),
-		},
-		"include a mixin with a parent to a mixin with a parent": {
-			self: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): nil,
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("FooParent"),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_parent"): nil,
-						}),
-						value.ClassWithParent(
-							value.NewClassWithOptions(
-								value.ClassWithMixinProxy(),
-								value.ClassWithName("FooGrandParent"),
-								value.ClassWithParent(nil),
-								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("foo_grand_parent"): nil,
-								}),
-							),
-						),
-					),
-				),
-			),
 			other: value.NewMixinWithOptions(
 				value.MixinWithName("Bar"),
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("bar"): nil,
 				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("BarParent"),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("bar_parent"): nil,
-						}),
-						value.ClassWithParent(
-							value.NewClassWithOptions(
-								value.ClassWithMixinProxy(),
-								value.ClassWithName("BarGrandParent"),
-								value.ClassWithParent(nil),
-								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("bar_grand_parent"): nil,
-								}),
-							),
-						),
-					),
-				),
 			),
-			selfAfter: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): nil,
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMixinProxy(),
-						value.ClassWithName("Bar"),
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("bar"): nil,
-						}),
-						value.ClassWithParent(
-							value.NewClassWithOptions(
-								value.ClassWithMixinProxy(),
-								value.ClassWithName("BarParent"),
-								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("bar_parent"): nil,
-								}),
-								value.ClassWithParent(
-									value.NewClassWithOptions(
-										value.ClassWithMixinProxy(),
-										value.ClassWithName("BarGrandParent"),
-										value.ClassWithMethods(value.MethodMap{
-											value.ToSymbol("bar_grand_parent"): nil,
-										}),
-										value.ClassWithParent(
-											value.NewClassWithOptions(
-												value.ClassWithMixinProxy(),
-												value.ClassWithName("FooParent"),
-												value.ClassWithMethods(value.MethodMap{
-													value.ToSymbol("foo_parent"): nil,
-												}),
-												value.ClassWithParent(
-													value.NewClassWithOptions(
-														value.ClassWithMixinProxy(),
-														value.ClassWithName("FooGrandParent"),
-														value.ClassWithParent(nil),
-														value.ClassWithMethods(value.MethodMap{
-															value.ToSymbol("foo_grand_parent"): nil,
-														}),
-													),
-												),
-											),
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			),
+			expectedInspect: "Foo < Bar[Bar] < FooParent[FooParent]",
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
-			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Options()...); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.expectedInspect, tc.self.InspectInheritance(), comparer.Options()...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -365,7 +218,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.mixin.LookupMethod(tc.name)
 			if diff := cmp.Diff(tc.want, got, comparer.Options()...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -552,10 +405,10 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Options()...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
