@@ -1553,14 +1553,12 @@ func (vm *VM) includeMixin() (err value.Value) {
 	mixinVal := vm.pop()
 
 	mixin, ok := mixinVal.(*value.Mixin)
-	if !ok {
+	if !ok || !mixin.IsMixin() {
 		return value.NewIsNotMixinError(mixinVal.Inspect())
 	}
 
 	switch target := targetValue.(type) {
 	case *value.Class:
-		target.IncludeMixin(mixin)
-	case *value.Mixin:
 		target.IncludeMixin(mixin)
 	default:
 		return value.Errorf(
@@ -1614,11 +1612,6 @@ func (vm *VM) defineMethod() value.Value {
 			return value.NewCantOverrideASealedMethod(string(name.ToString()))
 		}
 		m.Methods[name] = body
-	case *value.Mixin:
-		if !m.CanOverride(name) {
-			return value.NewCantOverrideASealedMethod(string(name.ToString()))
-		}
-		m.Methods[name] = body
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -1641,8 +1634,6 @@ func (vm *VM) defineMixin() (err value.Value) {
 		parentModule = &m.ConstantContainer
 	case *value.Module:
 		parentModule = &m.ConstantContainer
-	case *value.Mixin:
-		parentModule = &m.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
@@ -1652,7 +1643,7 @@ func (vm *VM) defineMixin() (err value.Value) {
 
 	if mixinVal := parentModule.Constants.Get(constantName); mixinVal != nil {
 		mixin, ok = mixinVal.(*value.Mixin)
-		if !ok {
+		if !ok || !mixin.IsMixin() {
 			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
 		}
 	} else {
@@ -1685,8 +1676,6 @@ func (vm *VM) defineModule() (err value.Value) {
 	case *value.Class:
 		parentModule = &m.ConstantContainer
 	case *value.Module:
-		parentModule = &m.ConstantContainer
-	case *value.Mixin:
 		parentModule = &m.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
@@ -1727,8 +1716,6 @@ func (vm *VM) defineGetter() value.Value {
 	switch methodContainer := methodContainerValue.(type) {
 	case *value.Class:
 		container = &methodContainer.MethodContainer
-	case *value.Mixin:
-		container = &methodContainer.MethodContainer
 	}
 
 	err := DefineGetter(container, name, false)
@@ -1748,8 +1735,6 @@ func (vm *VM) defineSetter() value.Value {
 
 	switch methodContainer := methodContainerValue.(type) {
 	case *value.Class:
-		container = &methodContainer.MethodContainer
-	case *value.Mixin:
 		container = &methodContainer.MethodContainer
 	}
 
@@ -1797,11 +1782,6 @@ func (vm *VM) defineAlias() value.Value {
 		if err != nil {
 			return err
 		}
-	case *value.Mixin:
-		err = methodContainer.DefineAlias(newName, oldName)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -1822,8 +1802,6 @@ func (vm *VM) defineClass() (err value.Value) {
 	case *value.Class:
 		parentModule = &mod.ConstantContainer
 	case *value.Module:
-		parentModule = &mod.ConstantContainer
-	case *value.Mixin:
 		parentModule = &mod.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
@@ -2529,8 +2507,6 @@ func (vm *VM) defModuleConstant(nameIndex int) (err value.Value) {
 		constants = m.Constants
 	case *value.Module:
 		constants = m.Constants
-	case *value.Mixin:
-		constants = m.Constants
 	default:
 		return value.NewIsNotModuleError(mod.Inspect())
 	}
@@ -2770,9 +2746,7 @@ func (vm *VM) isA() (err value.Value) {
 
 	switch class := classVal.(type) {
 	case *value.Class:
-		vm.replace(value.ToElkBool(value.ClassIsA(val, class)))
-	case *value.Mixin:
-		vm.replace(value.ToElkBool(value.MixinIsA(val, class)))
+		vm.replace(value.ToElkBool(value.IsA(val, class)))
 	default:
 		vm.pop()
 		return value.NewIsNotClassOrMixinError(class.Inspect())
@@ -2786,7 +2760,7 @@ func (vm *VM) instanceOf() (err value.Value) {
 	val := vm.peek()
 
 	class, ok := classVal.(*value.Class)
-	if !ok {
+	if !ok || class.IsMixin() || class.IsMixinProxy() {
 		vm.pop()
 		return value.NewIsNotClassError(classVal.Inspect())
 	}

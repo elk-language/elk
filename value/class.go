@@ -1,6 +1,7 @@
 package value
 
 import (
+	"iter"
 	"maps"
 	"strings"
 
@@ -14,6 +15,7 @@ const (
 	CLASS_SEALED_FLAG                                    // Sealed classes cannot be inherited from
 	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag cannot hold instance variables
 	CLASS_MIXIN_PROXY_FLAG                               // This class serves as a proxy to an included mixin
+	CLASS_MIXIN_FLAG                                     // This class serves as a proxy to an included mixin
 )
 
 // Function that creates a new instance.
@@ -91,6 +93,11 @@ func ClassWithMixinProxy() ClassOption {
 		c.SetMixinProxy()
 	}
 }
+func ClassWithMixin() ClassOption {
+	return func(c *Class) {
+		c.SetMixin()
+	}
+}
 
 func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 	return func(c *Class) {
@@ -152,6 +159,28 @@ func ClassConstructor(metaClass *Class) Value {
 
 var docSymbol = SymbolTable.Add("doc")
 
+// Iterates over every parent of the class/mixin (including itself)
+func (c *Class) Parents() iter.Seq[*Class] {
+	return func(yield func(parent *Class) bool) {
+		classes := []*Class{c}
+		for i := 0; i < len(classes); i++ {
+			parent := classes[i]
+			for parent != nil {
+				if parent.IsMixinProxy() {
+					classes = append(classes, parent.Parent)
+					parent = parent.metaClass
+					continue
+				}
+				if !yield(parent) {
+					return
+				}
+
+				parent = parent.Parent
+			}
+		}
+	}
+}
+
 func (c *Class) SetDoc(doc String) {
 	c.Constants.Set(docSymbol, doc)
 }
@@ -167,9 +196,9 @@ func (c *Class) CreateInstance() Value {
 
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
-	headProxy, tailProxy := mixin.CreateProxyClass()
-	tailProxy.Parent = c.Parent
-	c.Parent = headProxy
+	proxy := mixin.CreateProxyClass()
+	proxy.Parent = c.Parent
+	c.Parent = proxy
 }
 
 func (c *Class) IsSingleton() bool {
@@ -202,6 +231,14 @@ func (c *Class) IsMixinProxy() bool {
 
 func (c *Class) SetMixinProxy() {
 	c.Flags.SetFlag(CLASS_MIXIN_PROXY_FLAG)
+}
+
+func (c *Class) IsMixin() bool {
+	return c.Flags.HasFlag(CLASS_MIXIN_FLAG)
+}
+
+func (c *Class) SetMixin() {
+	c.Flags.SetFlag(CLASS_MIXIN_FLAG)
 }
 
 // Whether instances of this class can hold
@@ -274,6 +311,51 @@ func (c *Class) Copy() Value {
 	return newClass
 }
 
+func (c *Class) InspectInheritance() string {
+	result := new(strings.Builder)
+	c.inspectInheritance(result)
+
+	return result.String()
+}
+
+func (c *Class) inspectInheritance(buff *strings.Builder) {
+	first := true
+	parent := c
+	for parent != nil {
+		if first {
+			first = false
+		} else {
+			buff.WriteString(" < ")
+		}
+		buff.WriteString(parent.PrintableName())
+		if parent.IsMixinProxy() {
+			buff.WriteByte('[')
+			parent.metaClass.inspectInheritance(buff)
+			buff.WriteByte(']')
+			parent = parent.Parent
+			continue
+		}
+
+		parent = parent.Parent
+	}
+}
+
+func (c *Class) InspectParents() string {
+	result := new(strings.Builder)
+
+	first := true
+	for parent := range c.Parents() {
+		if first {
+			first = false
+		} else {
+			result.WriteString(" < ")
+		}
+		result.WriteString(parent.PrintableName())
+	}
+
+	return result.String()
+}
+
 func (c *Class) Inspect() string {
 	var result strings.Builder
 	if c.IsAbstract() {
@@ -282,7 +364,11 @@ func (c *Class) Inspect() string {
 	if c.IsSealed() {
 		result.WriteString("sealed ")
 	}
-	result.WriteString("class ")
+	if c.IsMixin() {
+		result.WriteString("mixin ")
+	} else {
+		result.WriteString("class ")
+	}
 	result.WriteString(c.PrintableName())
 
 	s := c.Superclass()

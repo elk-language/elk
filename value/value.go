@@ -245,34 +245,39 @@ func InstanceOf(val Value, class *Class) bool {
 	return class == val.Class()
 }
 
+func IsA(val Value, class *Class) bool {
+	if class.IsMixin() {
+		return mixinIsA(val, class)
+	}
+
+	return classIsA(val, class)
+}
+
 // Check if the given value is an instance of the given class or its subclasses.
-func ClassIsA(val Value, class *Class) bool {
+func classIsA(val Value, class *Class) bool {
 	currentClass := val.Class()
-	for {
-		if currentClass == nil {
-			return false
-		}
+	for currentClass != nil {
 		if currentClass == class {
 			return true
 		}
 
 		currentClass = currentClass.Superclass()
 	}
+
+	return false
 }
 
 // Check if the given value is an instance of the classes that mix in the given mixin.
-func MixinIsA(val Value, mixin *Mixin) bool {
-	currentClass := val.DirectClass()
-	for {
-		if currentClass == nil {
-			return false
-		}
-		if currentClass.IsMixinProxy() && currentClass.Name == mixin.Name {
+func mixinIsA(val Value, mixin *Mixin) bool {
+	class := val.DirectClass()
+
+	for parent := range class.Parents() {
+		if parent == mixin {
 			return true
 		}
-
-		currentClass = currentClass.Parent
 	}
+
+	return false
 }
 
 // Get an element by key.

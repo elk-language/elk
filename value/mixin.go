@@ -1,32 +1,20 @@
 package value
 
-import (
-	"fmt"
-	"maps"
-
-	"github.com/google/go-cmp/cmp"
-)
-
 // Represents an Elk Mixin.
-type Mixin struct {
-	class *Class // Class that this mixin value is an instance of
-	ConstantContainer
-	MethodContainer
-	instanceVariables SymbolMap
-}
+type Mixin = Class
 
 // Mixin constructor option function
-type MixinOption = func(*Mixin)
+type MixinOption = func(*Class)
 
 func MixinWithName(name string) MixinOption {
-	return func(m *Mixin) {
+	return func(m *Class) {
 		m.ConstantContainer.Name = name
 	}
 }
 
 func MixinWithClass(class *Class) MixinOption {
 	return func(m *Mixin) {
-		m.class = class
+		m.metaClass = class
 	}
 }
 
@@ -50,20 +38,22 @@ func MixinWithParent(parent *Class) MixinOption {
 
 // Create a new mixin.
 func NewMixin() *Mixin {
-	return &Mixin{
+	m := &Mixin{
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
 			Methods: make(MethodMap),
 		},
-		class:             MixinClass,
+		metaClass:         MixinClass,
 		instanceVariables: make(SymbolMap),
 	}
+	m.SetMixin()
+	return m
 }
 
 // Create a new mixin.
-func NewMixinWithOptions(opts ...MixinOption) *Mixin {
+func NewMixinWithOptions(opts ...MixinOption) *Class {
 	m := NewMixin()
 
 	for _, opt := range opts {
@@ -82,18 +72,12 @@ func MixinConstructor(class *Class) Value {
 		MethodContainer: MethodContainer{
 			Methods: make(MethodMap),
 		},
-		class:             class,
+		metaClass:         MixinClass,
 		instanceVariables: make(SymbolMap),
 	}
+	m.SetMixin()
 
 	return m
-}
-
-// Include the passed in mixin in this mixin.
-func (m *Mixin) IncludeMixin(otherMixin *Mixin) {
-	headProxy, tailProxy := otherMixin.CreateProxyClass()
-	tailProxy.Parent = m.Parent
-	m.Parent = headProxy
 }
 
 // Create a proxy class that has a pointer to the
@@ -102,97 +86,14 @@ func (m *Mixin) IncludeMixin(otherMixin *Mixin) {
 // Returns two values, the head and tail proxy classes.
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
-func (m *Mixin) CreateProxyClass() (head, tail *Class) {
-	headProxy := NewClass()
-	headProxy.SetMixinProxy()
-	headProxy.Methods = m.Methods
-	headProxy.Name = m.Name
+func (m *Mixin) CreateProxyClass() *Class {
+	proxy := NewClass()
+	proxy.SetMixinProxy()
+	proxy.Methods = m.Methods
+	proxy.Name = m.Name
+	proxy.metaClass = m
 
-	tailProxy := headProxy
-	baseProxy := m.Parent
-	for baseProxy != nil {
-		proxyCopy := NewClass()
-		proxyCopy.SetMixinProxy()
-		proxyCopy.Methods = baseProxy.Methods
-		proxyCopy.Name = baseProxy.Name
-		tailProxy.Parent = proxyCopy
-
-		baseProxy = baseProxy.Parent
-		tailProxy = proxyCopy
-	}
-
-	return headProxy, tailProxy
-}
-
-func (m *Mixin) Class() *Class {
-	if !m.class.IsSingleton() {
-		return m.class
-	}
-
-	return m.class.Class()
-}
-
-func (m *Mixin) DirectClass() *Class {
-	return m.class
-}
-
-func (m *Mixin) SingletonClass() *Class {
-	if m.class.IsSingleton() {
-		return m.class
-	}
-
-	singletonClass := NewSingletonClass(m.class, m.Name)
-	m.class = singletonClass
-	return singletonClass
-}
-
-func (m *Mixin) Copy() Value {
-	newConstants := make(SymbolMap, len(m.Constants))
-	maps.Copy(newConstants, m.Constants)
-
-	newMethods := make(MethodMap, len(m.Methods))
-	maps.Copy(newMethods, m.Methods)
-
-	newInstanceVariables := make(SymbolMap, len(m.instanceVariables))
-	maps.Copy(newInstanceVariables, m.instanceVariables)
-
-	newMixin := &Mixin{
-		ConstantContainer: ConstantContainer{
-			Constants: newConstants,
-			Name:      m.Name,
-		},
-		MethodContainer: MethodContainer{
-			Methods: newMethods,
-			Parent:  m.Parent,
-		},
-		class:             m.class,
-		instanceVariables: newInstanceVariables,
-	}
-
-	return newMixin
-}
-
-func (m *Mixin) Inspect() string {
-	return fmt.Sprintf("mixin %s", m.PrintableName())
-}
-
-func (m *Mixin) InstanceVariables() SymbolMap {
-	return m.instanceVariables
-}
-
-func NewMixinComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y *Mixin) bool {
-		if x == y {
-			return true
-		}
-
-		return x.Name == y.Name &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...) &&
-			cmp.Equal(x.Constants, y.Constants, *opts...) &&
-			cmp.Equal(x.Methods, y.Methods, *opts...) &&
-			cmp.Equal(x.class, y.class, *opts...) &&
-			cmp.Equal(x.Parent, y.Parent, *opts...)
-	})
+	return proxy
 }
 
 var MixinClass *Class // ::Std::Mixin

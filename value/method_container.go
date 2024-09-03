@@ -29,12 +29,10 @@ func (m *MethodContainer) LookupMethod(name Symbol) Method {
 		return method
 	}
 
-	currentClass := m.Parent
-	for currentClass != nil {
+	for currentClass := range m.Parent.Parents() {
 		if method, ok := currentClass.Methods[name]; ok {
 			return method
 		}
-		currentClass = currentClass.Parent
 	}
 
 	return nil

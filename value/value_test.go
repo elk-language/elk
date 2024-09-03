@@ -296,7 +296,7 @@ func TestValue_ClassIsA(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.ClassIsA(tc.val, tc.class)
+			got := value.IsA(tc.val, tc.class)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -329,9 +329,9 @@ func TestValue_MixinIsA(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.MixinIsA(tc.val, tc.mixin)
+			got := value.IsA(tc.val, tc.mixin)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

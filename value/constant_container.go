@@ -26,8 +26,6 @@ func (m *ConstantContainer) AddConstantString(name string, val Value) {
 		m.setObjectName(&v.ConstantContainer, name)
 	case *Class:
 		m.setObjectName(&v.ConstantContainer, name)
-	case *Mixin:
-		m.setObjectName(&v.ConstantContainer, name)
 	}
 	m.Constants.SetString(name, val)
 }
@@ -39,8 +37,6 @@ func (m *ConstantContainer) AddConstant(name Symbol, val Value) {
 	case *Module:
 		m.setObjectName(&v.ConstantContainer, string(name.ToString()))
 	case *Class:
-		m.setObjectName(&v.ConstantContainer, string(name.ToString()))
-	case *Mixin:
 		m.setObjectName(&v.ConstantContainer, string(name.ToString()))
 	}
 	m.Constants.Set(name, val)

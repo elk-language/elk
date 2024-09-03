@@ -172,7 +172,14 @@ func TestClass_IncludeMixin(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("bar"): nil,
 						}),
-						value.ClassWithParent(value.ObjectClass),
+						value.ClassWithMetaClass(
+							value.NewMixinWithOptions(
+								value.MixinWithName("Bar"),
+								value.MixinWithMethods(value.MethodMap{
+									value.ToSymbol("bar"): nil,
+								}),
+							),
+						),
 					),
 				),
 			),
@@ -379,7 +386,8 @@ func TestClass_IncludeMixin(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
 			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Options()...); diff != "" {
-				t.Fatalf(diff)
+				t.Logf("want: %s\ngot: %s\n", tc.selfAfter.InspectInheritance(), tc.self.InspectInheritance())
+				t.Fatal(diff)
 			}
 		})
 	}
