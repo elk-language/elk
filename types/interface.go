@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -75,57 +73,6 @@ func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMa
 			subtypes:  subtypes,
 		},
 	}
-}
-
-// Create a proxy that has a pointer to this interface.
-//
-// Returns two values, the head and tail proxies.
-// This is because of the fact that it's possible to include
-// one mixin in another, so there is an entire inheritance chain.
-func (i *Interface) CreateProxy() (head *InterfaceProxy, tail Namespace) {
-	var headParent Namespace
-	if i.parent != nil {
-		headParent = i.parent
-	}
-	headProxy := NewInterfaceProxy(i, headParent)
-
-	var tailProxy Namespace = headProxy
-	baseProxy := i.parent
-
-loop:
-	for baseProxy != nil {
-		switch base := baseProxy.(type) {
-		case *InterfaceProxy:
-			proxyCopy := NewInterfaceProxy(base.Interface, nil)
-			tailProxy.SetParent(proxyCopy)
-			tailProxy = proxyCopy
-
-			if base.parent == nil {
-				break loop
-			}
-			baseProxy = base.parent
-		case *Generic:
-			switch n := base.Namespace.(type) {
-			case *InterfaceProxy:
-				var proxyCopy Namespace
-				proxyCopy = NewInterfaceProxy(n.Interface, nil)
-				proxyCopy = NewGeneric(proxyCopy, base.TypeArguments)
-				tailProxy.SetParent(proxyCopy)
-				tailProxy = proxyCopy
-
-				if n.parent == nil {
-					break loop
-				}
-				baseProxy = n.parent
-			default:
-				panic(fmt.Sprintf("invalid interface ancestor: %T", base.Namespace))
-			}
-		default:
-			panic(fmt.Sprintf("invalid interface ancestor: %T", baseProxy))
-		}
-	}
-
-	return headProxy, tailProxy
 }
 
 func (i *Interface) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {

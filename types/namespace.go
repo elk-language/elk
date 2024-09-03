@@ -54,9 +54,8 @@ type Namespace interface {
 }
 
 func implementInterface(target Namespace, iface *Interface) {
-	headProxy, tailProxy := iface.CreateProxy()
-	tailProxy.SetParent(target.Parent())
-	target.SetParent(headProxy)
+	proxy := NewInterfaceProxy(iface, target.Parent())
+	target.SetParent(proxy)
 }
 
 func ImplementInterface(target, interfaceNamespace Namespace) {
@@ -65,10 +64,9 @@ func ImplementInterface(target, interfaceNamespace Namespace) {
 		implementInterface(target, implemented)
 	case *Generic:
 		iface := implemented.Namespace.(*Interface)
-		headProxy, tailProxy := iface.CreateProxy()
-		head := NewGeneric(headProxy, implemented.TypeArguments)
-		tailProxy.SetParent(target.Parent())
-		target.SetParent(head)
+		proxy := NewInterfaceProxy(iface, target.Parent())
+		generic := NewGeneric(proxy, implemented.TypeArguments)
+		target.SetParent(generic)
 	default:
 		panic(fmt.Sprintf("wrong interface type: %T", interfaceNamespace))
 	}
@@ -220,6 +218,17 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 
 					currentParent = cn.Mixin.parent
 					continue parentLoop
+				case *InterfaceProxy:
+					ifaceParent := cn.Parent()
+					if ifaceParent != nil {
+						namespaces = append(namespaces, ifaceParent)
+					}
+					if !yield(currentParent) {
+						return
+					}
+
+					currentParent = cn.Interface.parent
+					continue parentLoop
 				case *Generic:
 					switch g := cn.Namespace.(type) {
 					case *MixinProxy:
@@ -232,6 +241,17 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 						}
 
 						currentParent = g.Mixin.parent
+						continue parentLoop
+					case *InterfaceProxy:
+						genericParent := cn.Parent()
+						if genericParent != nil {
+							namespaces = append(namespaces, genericParent)
+						}
+						if !yield(currentParent) {
+							return
+						}
+
+						currentParent = g.Interface.parent
 						continue parentLoop
 					}
 				}

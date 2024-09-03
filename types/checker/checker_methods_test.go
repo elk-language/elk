@@ -3286,8 +3286,45 @@ func TestMethodInheritance(t *testing.T) {
 					include Hejo
 				end
 
-				Bar().foo
-				Bar().hejo
+				b := Bar()
+				b.foo
+				b.hejo
+				b.fuzz
+			`,
+		},
+		"call method inherited from interface that was implemented to the parent interface afterwards": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+
+				interface Bar
+					implement Foo
+				end
+
+				interface Fuzz
+					def fuzz; end
+				end
+
+				interface Hejo
+					implement Fuzz
+					def hejo; end
+				end
+
+				interface Foo
+					implement Hejo
+				end
+
+				class Elo
+					def foo; end
+					def hejo; end
+					def fuzz; end
+				end
+
+				var b: Bar = Elo()
+				b.foo
+				b.hejo
+				b.fuzz
 			`,
 		},
 	}
