@@ -188,9 +188,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 		namespace.Name() // noop - avoid unused variable error
 
-		// Include mixins
-
-		// Implement interfaces
+		// Include mixins and implement interfaces
 
 		// Define methods
 
@@ -203,9 +201,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 			namespace.Name() // noop - avoid unused variable error
 
-			// Include mixins
-
-			// Implement interfaces
+			// Include mixins and implement interfaces
 
 			// Define methods
 
@@ -221,10 +217,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-				IncludeMixin(namespace, NameToType("Std::List::Base", env).(*Mixin))
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::List::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
@@ -258,10 +252,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -279,10 +271,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-				IncludeMixin(namespace, NameToType("Std::Tuple::Base", env).(*Mixin))
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -305,10 +295,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the tuple.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -324,9 +312,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -372,9 +358,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 
@@ -388,9 +372,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -429,10 +411,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
@@ -455,11 +435,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
@@ -478,9 +456,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -496,9 +472,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -541,9 +515,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -586,9 +558,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -634,9 +604,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Create a new `HashMap` containing the pairs of `self`\nand another given record/map.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
@@ -668,10 +636,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 					namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Get the next pair of the map.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
@@ -690,10 +656,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Record", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `HashRecord` containing the pairs of `self`\nand another given record.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
@@ -720,10 +684,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 					namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Get the next pair of the record.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
@@ -741,10 +703,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-				IncludeMixin(namespace, NameToType("Std::Set::Base", env).(*Mixin))
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Set::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\nCreate a new `HashSet` containing only the elements\npresent both in `self` and `other`.", false, true, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -776,10 +736,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the set.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -794,9 +752,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.Name() // noop - avoid unused variable error
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Returns a hash.", true, true, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -812,10 +768,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the number of elements present in the collection.", true, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -832,11 +786,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -853,10 +805,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -875,11 +825,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -896,9 +844,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.Name() // noop - avoid unused variable error
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", true, false, true, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
@@ -913,9 +859,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", false, true, true, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
@@ -966,9 +910,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1021,9 +963,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1076,9 +1016,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1131,9 +1069,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1187,9 +1123,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
@@ -1235,10 +1169,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -1254,10 +1186,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
@@ -1298,9 +1228,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetParent(NameToNamespace("Std::Error", env))
 
-					// Include mixins
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
 
 					// Define methods
 
@@ -1316,10 +1244,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("iterator"), nil, nil, Self{}, Never{})
@@ -1336,11 +1262,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("iterator"), nil, nil, Self{}, Never{})
@@ -1357,11 +1281,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
@@ -1379,12 +1301,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Tuple::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::List", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -1403,10 +1323,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT))
 				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Record", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
 				// Define methods
 				namespace.DefineMethod("Set the element under the given index to the given value.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
@@ -1422,9 +1340,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 
@@ -1438,9 +1354,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1456,9 +1370,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 
@@ -1472,9 +1384,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 
@@ -1491,9 +1401,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT))
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Instantiate the `Pair` with the given key and value.", false, false, true, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
@@ -1516,9 +1424,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT))
 				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Create a new record containing the pairs of `self`\nand another given record.", true, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
@@ -1543,9 +1449,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Creates a new `Regex` that contains the\npattern of `self` repeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
@@ -1564,11 +1468,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -1591,12 +1493,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::ImmutableSet::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Set", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableSet::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -1614,9 +1514,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1658,9 +1556,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					namespace.Name() // noop - avoid unused variable error
 
-					// Include mixins
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
 
 					// Define methods
 					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iterator"), nil, nil, NameToType("Std::String::ByteIterator", env), Never{})
@@ -1675,9 +1571,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					namespace.Name() // noop - avoid unused variable error
 
-					// Include mixins
-
-					// Implement interfaces
+					// Include mixins and implement interfaces
 
 					// Define methods
 					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iterator"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})
@@ -1693,9 +1587,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.Name() // noop - avoid unused variable error
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Convert the value to a string.", true, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
@@ -1710,9 +1602,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1733,9 +1623,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1752,14 +1640,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT)})
 				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT))
 
-				// Include mixins
-
-				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), NameToType("Std::OutOfRangeError", env))
+				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new tuple that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nReturns `nil` if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
 
 				// Define constants
@@ -1773,14 +1660,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
 
-					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-
-					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NameToType("Std::OutOfRangeError", env))
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
 
 					// Define constants
@@ -1794,9 +1680,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1849,9 +1733,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1904,9 +1786,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -1959,9 +1839,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
@@ -2013,9 +1891,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.Name() // noop - avoid unused variable error
 
-				// Include mixins
-
-				// Implement interfaces
+				// Include mixins and implement interfaces
 
 				// Define methods
 				namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})

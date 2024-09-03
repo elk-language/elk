@@ -41,7 +41,7 @@ func IsClosure(namespace Namespace) bool {
 }
 
 func (c *Closure) Name() string {
-	return c.inspect()
+	return "closure"
 }
 
 func (c *Closure) DocComment() string {

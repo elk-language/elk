@@ -604,6 +604,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 					return false
 				}
 			}
+
 			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan)
 		}
 		generics = append(generics, parent)

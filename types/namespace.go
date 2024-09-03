@@ -191,6 +191,17 @@ func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 	return NameToType(fullSubtypePath, env).(Namespace)
 }
 
+// Iterate over direct parents of the given namespace (including itself).
+func SimpleParents(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(parent Namespace) bool) {
+		for parent := namespace; parent != nil; parent = parent.Parent() {
+			if !yield(parent) {
+				return
+			}
+		}
+	}
+}
+
 // Iterate over every parent of the given namespace (including itself).
 func Parents(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(parent Namespace) bool) {
@@ -198,14 +209,25 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 			return
 		}
 		namespaces := []Namespace{namespace}
+		seenParents := make(map[string]bool)
 
-		for i := 0; i < len(namespaces); i++ {
-			currentParent := namespaces[i]
+		for len(namespaces) > 0 {
+			// Pop an element from the stack
+			currentParent := namespaces[len(namespaces)-1]
+			namespaces = namespaces[0 : len(namespaces)-1]
+
 		parentLoop:
 			for {
 				if currentParent == nil {
 					break
 				}
+
+				name := currentParent.Name()
+				if seenParents[name] {
+					currentParent = currentParent.Parent()
+					continue
+				}
+				seenParents[name] = true
 
 				switch cn := currentParent.(type) {
 				case *MixinProxy:
@@ -318,6 +340,40 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 			case *MixinProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*MixinProxy); !ok {
+					continue
+				}
+			default:
+				continue
+			}
+
+			name := parent.Name()
+			if seenMixins[name] {
+				continue
+			}
+
+			if !yield(parent) {
+				return
+			}
+
+			seenMixins[name] = true
+		}
+	}
+}
+
+// iterate over every mixin that is directly included and
+// every interface that is directly implemented in the given namespace
+func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(mixin Namespace) bool) {
+		seenMixins := make(map[string]bool)
+
+		for parent := namespace; parent != nil; parent = parent.Parent() {
+			switch n := parent.(type) {
+			case *MixinProxy:
+			case *InterfaceProxy:
+			case *Generic:
+				switch n.Namespace.(type) {
+				case *MixinProxy, *InterfaceProxy:
+				default:
 					continue
 				}
 			default:

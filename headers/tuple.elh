@@ -32,6 +32,15 @@ interface ::Std::Tuple[+Element]
 	sig try_at(index: AnyInt): Element?
 
 	##[
+		Iterates over the elements of this tuple,
+		yielding them to the given closure.
+
+		Returns a new tuple that consists of the elements returned
+		by the given closure.
+	]##
+	sig map[E](fn: |element: Element|: E): Tuple[E]
+
+	##[
 		Provides default implementations of optional tuple methods.
 	]##
 	abstract mixin Base[+Element]
@@ -40,5 +49,6 @@ interface ::Std::Tuple[+Element]
 
 		def at(index: AnyInt): Element ! OutOfRangeError; end
 		def try_at(index: AnyInt): Element?; end
+		def map[E](fn: |element: Element|: E): Tuple[E]; end
 	end
 end

@@ -135,24 +135,41 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		}
 	}
 
-	buffer.WriteString("\n// Include mixins\n")
-	for m := range types.Backward(types.DirectlyIncludedMixins(namespace)) {
-		fmt.Fprintf(
-			buffer,
-			`IncludeMixin(namespace, NameToType(%q, env).(*Mixin))
-			`,
-			m.Name(),
-		)
-	}
-
-	buffer.WriteString("\n// Implement interfaces\n")
-	for i := range types.Backward(types.DirectlyImplementedInterfaces(namespace)) {
-		fmt.Fprintf(
-			buffer,
-			`ImplementInterface(namespace, NameToType(%q, env).(*Interface))
-			`,
-			i.Name(),
-		)
+	buffer.WriteString("\n// Include mixins and implement interfaces\n")
+	for parent := range types.Backward(types.DirectlyIncludedAndImplemented(namespace)) {
+		switch p := parent.(type) {
+		case *types.MixinProxy:
+			fmt.Fprintf(
+				buffer,
+				`IncludeMixin(namespace, %s)
+				`,
+				namespaceToCode(p),
+			)
+		case *types.InterfaceProxy:
+			fmt.Fprintf(
+				buffer,
+				`ImplementInterface(namespace, %s)
+				`,
+				namespaceToCode(p),
+			)
+		case *types.Generic:
+			switch p.Namespace.(type) {
+			case *types.MixinProxy:
+				fmt.Fprintf(
+					buffer,
+					`IncludeMixin(namespace, %s)
+					`,
+					namespaceToCode(p),
+				)
+			case *types.InterfaceProxy:
+				fmt.Fprintf(
+					buffer,
+					`ImplementInterface(namespace, %s)
+					`,
+					namespaceToCode(p),
+				)
+			}
+		}
 	}
 
 	defineMethods(buffer, namespace)
@@ -389,12 +406,22 @@ func namespaceToCode(typ types.Namespace) string {
 			"NameToType(%q, env).(*Mixin)",
 			t.Name(),
 		)
+	case *types.MixinProxy:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Mixin)",
+			t.Name(),
+		)
 	case *types.Module:
 		return fmt.Sprintf(
 			"NameToType(%q, env).(*Module)",
 			t.Name(),
 		)
 	case *types.Interface:
+		return fmt.Sprintf(
+			"NameToType(%q, env).(*Interface)",
+			t.Name(),
+		)
+	case *types.InterfaceProxy:
 		return fmt.Sprintf(
 			"NameToType(%q, env).(*Interface)",
 			t.Name(),
