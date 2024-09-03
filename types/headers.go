@@ -223,17 +223,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins
 				IncludeMixin(namespace, NameToType("Std::List::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Tuple::Base", env).(*Mixin))
 
 				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::List", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
@@ -269,12 +260,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -294,13 +281,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins
 				IncludeMixin(namespace, NameToType("Std::Tuple::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -325,12 +307,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the tuple.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -455,7 +433,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Implement interfaces
 				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
@@ -480,11 +457,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
 
 					// Define methods
@@ -696,12 +670,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("Get the next pair of the map.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
@@ -752,12 +722,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("Get the next pair of the record.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
@@ -777,17 +743,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins
 				IncludeMixin(namespace, NameToType("Std::Set::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
-				IncludeMixin(namespace, NameToType("Std::ImmutableSet::Base", env).(*Mixin))
 
 				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Set", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\nCreate a new `HashSet` containing only the elements\npresent both in `self` and `other`.", false, true, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -821,12 +778,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterator::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("Get the next element of the set.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
@@ -883,7 +836,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
 
 					// Define methods
@@ -905,7 +857,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Implement interfaces
 				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -926,11 +877,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
 
 					// Define methods
@@ -1291,7 +1239,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -1391,10 +1338,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::Iterable::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::Iterator", env).(*Interface))
 
 					// Define methods
@@ -1415,10 +1360,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins
 
 				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 				ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
+				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
@@ -1437,16 +1380,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
 
 					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 					IncludeMixin(namespace, NameToType("Std::Tuple::Base", env).(*Mixin))
+					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::List", env).(*Interface))
 
 					// Define methods
@@ -1630,10 +1567,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins
 
 				// Implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 				ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
+				ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
@@ -1657,16 +1592,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
 
 					// Include mixins
-					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 					IncludeMixin(namespace, NameToType("Std::ImmutableSet::Base", env).(*Mixin))
+					IncludeMixin(namespace, NameToType("Std::Collection::Base", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::Collection", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableSet", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::Set", env).(*Interface))
 
 					// Define methods
@@ -1827,7 +1756,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Implement interfaces
 				ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
-				ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
@@ -1847,11 +1775,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Include mixins
 					IncludeMixin(namespace, NameToType("Std::ImmutableCollection::Base", env).(*Mixin))
-					IncludeMixin(namespace, NameToType("Std::Iterable::FiniteBase", env).(*Mixin))
 
 					// Implement interfaces
-					ImplementInterface(namespace, NameToType("Std::Iterable", env).(*Interface))
-					ImplementInterface(namespace, NameToType("Std::ImmutableCollection", env).(*Interface))
 					ImplementInterface(namespace, NameToType("Std::Tuple", env).(*Interface))
 
 					// Define methods

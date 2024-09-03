@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -296,12 +297,83 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	}
 }
 
+// iterate backward over an iterator
+func Backward[T any](iterator iter.Seq[T]) iter.Seq[T] {
+	return func(yield func(element T) bool) {
+		for _, element := range slices.Backward(slices.Collect(iterator)) {
+			if !yield(element) {
+				return
+			}
+		}
+	}
+}
+
+// iterate over every mixin that is directly included in the given namespace
+func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(mixin Namespace) bool) {
+		seenMixins := make(map[string]bool)
+
+		for parent := namespace; parent != nil; parent = parent.Parent() {
+			switch n := parent.(type) {
+			case *MixinProxy:
+			case *Generic:
+				if _, ok := n.Namespace.(*MixinProxy); !ok {
+					continue
+				}
+			default:
+				continue
+			}
+
+			name := parent.Name()
+			if seenMixins[name] {
+				continue
+			}
+
+			if !yield(parent) {
+				return
+			}
+
+			seenMixins[name] = true
+		}
+	}
+}
+
 // iterate over every interface that is implemented in the given namespace
 func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
 		seenInterfaces := make(map[string]bool)
 
 		for parent := range Parents(namespace.Parent()) {
+			switch n := parent.(type) {
+			case *InterfaceProxy:
+			case *Generic:
+				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+					continue
+				}
+			default:
+				continue
+			}
+
+			name := parent.Name()
+			if seenInterfaces[name] {
+				continue
+			}
+
+			if !yield(parent) {
+				return
+			}
+
+			seenInterfaces[name] = true
+		}
+	}
+}
+
+// iterate over every interface that is directly implemented in the given namespace
+func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
+	return func(yield func(iface Namespace) bool) {
+		seenInterfaces := make(map[string]bool)
+
+		for parent := namespace; parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
