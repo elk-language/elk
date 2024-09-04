@@ -20,7 +20,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayTuple[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayTuple[1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer empty array tuple": {
@@ -472,6 +472,94 @@ func TestArrayListLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(39, 2, 39), P(41, 2, 41)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestHashMapLiteral(t *testing.T) {
+	tests := testTable{
+		"infer hash map": {
+			input: `
+				var foo = { foo: 1, bar: 2 }
+				var a: HashMap[Symbol, Int] = foo
+			`,
+		},
+		"infer hash map with different key and value types": {
+			input: `
+				var a = { foo: 1, "bar" => 2.2, 1 => "foo" }
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(65, 3, 16), P(65, 3, 16)), "type `Std::HashMap[Std::Symbol | Std::String | Std::Int, Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer empty hash map": {
+			input: `
+				var foo = {}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::HashMap[never, never]` cannot be assigned to type `9`"),
+			},
+		},
+		"int capacity": {
+			input: `
+				var foo: HashMap[Symbol, Float] = { foo: 1.2 }:9
+			`,
+		},
+		"uint8 capacity": {
+			input: `
+				var foo: HashMap[Symbol, Float] = { foo: 1.2 }:9u8
+			`,
+		},
+		"invalid capacity": {
+			input: `
+				var foo: HashMap[Symbol, Float] = { foo: 1.2 }:9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 2, 39), P(54, 2, 54)), "capacity must be an integer, got `9.2`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestHashRecordLiteral(t *testing.T) {
+	tests := testTable{
+		"infer hash record": {
+			input: `
+				var foo = %{ foo: 1, bar: 2 }
+				var a: HashRecord[Symbol, 1 | 2] = foo
+			`,
+		},
+		"infer hash record with different key and value types": {
+			input: `
+				var a = %{ foo: 1, "bar" => 2.2, 1 => "foo" }
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::HashRecord[Std::Symbol | \"bar\" | 1, 1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer empty hash record": {
+			input: `
+				var foo = %{}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashRecord[never, never]` cannot be assigned to type `9`"),
 			},
 		},
 	}

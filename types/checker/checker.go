@@ -839,6 +839,10 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkHexHashSetLiteralNode(n)
 	case *ast.BinHashSetLiteralNode:
 		return c.checkBinHashSetLiteralNode(n)
+	case *ast.HashMapLiteralNode:
+		return c.checkHashMapLiteralNode(n)
+	case *ast.HashRecordLiteralNode:
+		return c.checkHashRecordLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -898,6 +902,14 @@ func (c *Checker) StdArrayTuple() *types.Class {
 
 func (c *Checker) StdHashSet() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashSet)
+}
+
+func (c *Checker) StdHashMap() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.HashMap)
+}
+
+func (c *Checker) StdHashRecord() *types.Class {
+	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
 }
 
 func (c *Checker) StdNil() *types.Class {
@@ -1029,6 +1041,76 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+}
+
+func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
+	var keyTypes []types.Type
+	var valueTypes []types.Type
+	for _, pairNode := range node.Elements {
+		switch p := pairNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			p.Key = c.checkExpression(p.Key)
+			keyTypes = append(keyTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Key), false))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+		case *ast.SymbolKeyValueExpressionNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+		}
+	}
+
+	keyType := c.newNormalisedUnion(keyTypes...)
+	valueType := c.newNormalisedUnion(valueTypes...)
+	generic := types.NewGenericWithTypeArgs(c.StdHashMap(), keyType, valueType)
+
+	if node.Capacity != nil {
+		node.Capacity = c.checkExpression(node.Capacity)
+		capacityType := c.typeOf(node.Capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				node.Span(),
+			)
+		}
+	}
+
+	node.SetType(generic)
+
+	return node
+}
+
+func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) ast.ExpressionNode {
+	var keyTypes []types.Type
+	var valueTypes []types.Type
+	for _, pairNode := range node.Elements {
+		switch p := pairNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			p.Key = c.checkExpression(p.Key)
+			keyTypes = append(keyTypes, c.typeOfGuardVoid(p.Key))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
+		case *ast.SymbolKeyValueExpressionNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
+		}
+	}
+
+	keyType := c.newNormalisedUnion(keyTypes...)
+	valueType := c.newNormalisedUnion(valueTypes...)
+	generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), keyType, valueType)
+
+	node.SetType(generic)
+
+	return node
 }
 
 func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
@@ -1276,7 +1358,7 @@ func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) as
 	for i, elementNode := range node.Elements {
 		elementNode := c.checkExpression(elementNode)
 		node.Elements[i] = elementNode
-		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 	}
 
 	elementType := c.newNormalisedUnion(elementTypes...)
