@@ -166,6 +166,7 @@ func (c *Checker) newMethodChecker(filename string, constScopes []constantScope,
 		constantScopes: constScopes,
 		methodScopes:   methodScopes,
 		Errors:         c.Errors,
+		IsHeader:       c.IsHeader,
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},

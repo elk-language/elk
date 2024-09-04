@@ -37,15 +37,15 @@ sealed primitive class ::Std::Char < Value
 	]##
 	sealed def <=>(other: String | Char): Int; end
 
-	sealed def <=(other: String | Char): Bool; end
+	sealed def <=(other: String | Char): bool; end
 
-	sealed def <(other: String | Char): Bool; end
+	sealed def <(other: String | Char): bool; end
 
-	sealed def >=(other: String | Char): Bool; end
+	sealed def >=(other: String | Char): bool; end
 
-	sealed def >(other: String | Char): Bool; end
+	sealed def >(other: String | Char): bool; end
 
-	sealed def ==(other: Object): Bool; end
+	sealed def ==(other: any): bool; end
 
 	##[
 		Return the uppercase version of this character.

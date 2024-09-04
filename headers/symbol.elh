@@ -12,7 +12,7 @@
 sealed primitive class ::Std::Symbol < Value
 	implement Hashable
 
-	sealed def ==(other: Object): Bool; end
+	sealed def ==(other: any): bool; end
 
 	##[
 		Returns the string associated with this symbol.

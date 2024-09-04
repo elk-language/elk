@@ -24,10 +24,6 @@ type methodCheckEntry struct {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	if c.IsHeader {
-		return
-	}
-
 	c.methodChecks.Append(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
@@ -193,7 +189,7 @@ func (c *Checker) checkMethodOverride(
 	var areIncompatible bool
 	errDetailsBuff := new(strings.Builder)
 
-	if baseMethod.IsSealed() {
+	if !c.IsHeader && baseMethod.IsSealed() {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` is sealed and cannot be overridden",
@@ -427,23 +423,25 @@ func (c *Checker) checkMethod(
 		)
 	}
 
-	if isClosure && returnType == nil {
-		c.mode = closureInferReturnTypeMode
-	} else {
-		c.mode = methodMode
-	}
-	c.returnType = returnType
-	c.throwType = throwType
-	bodyReturnType, returnSpan := c.checkStatements(body)
-	if !checkedMethod.IsAbstract() && !c.IsHeader {
-		if c.mode == closureInferReturnTypeMode {
-			c.addToReturnType(bodyReturnType)
-			checkedMethod.ReturnType = c.returnType
+	if !c.IsHeader {
+		if isClosure && returnType == nil {
+			c.mode = closureInferReturnTypeMode
 		} else {
-			if returnSpan == nil {
-				returnSpan = span
+			c.mode = methodMode
+		}
+		c.returnType = returnType
+		c.throwType = throwType
+		bodyReturnType, returnSpan := c.checkStatements(body)
+		if !checkedMethod.IsAbstract() && !c.IsHeader {
+			if c.mode == closureInferReturnTypeMode {
+				c.addToReturnType(bodyReturnType)
+				checkedMethod.ReturnType = c.returnType
+			} else {
+				if returnSpan == nil {
+					returnSpan = span
+				}
+				c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 			}
-			c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 		}
 	}
 	c.returnType = nil
@@ -1487,6 +1485,8 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
+
+	// fmt.Printf("check methods, a: %s, b: %s\n", baseMethod.InspectSignatureWithColor(false), overrideMethod.InspectSignatureWithColor(false))
 
 	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
 		fmt.Fprintf(

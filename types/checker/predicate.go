@@ -143,6 +143,22 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 	}
 }
 
+func (c *Checker) typesAreIdentical(a, b types.Type) bool {
+	if a == b {
+		return true
+	}
+
+	if a, ok := a.(*types.Generic); ok {
+		b, ok := b.(*types.Generic)
+		if ok {
+			result := a.Namespace == b.Namespace
+			return result
+		}
+	}
+
+	return false
+}
+
 func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false
@@ -151,7 +167,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		return true
 	}
 
-	if c.mode == implicitInterfaceSubtypeMode && c.selfType == a && c.throwType == b {
+	if c.mode == implicitInterfaceSubtypeMode && c.typesAreIdentical(c.selfType, a) && c.typesAreIdentical(c.throwType, b) {
 		return true
 	}
 
@@ -162,7 +178,9 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if types.IsNever(a) || types.IsNothing(a) {
 		return true
 	}
-	switch b.(type) {
+	switch narrowedB := b.(type) {
+	case *types.NamedType:
+		return c.isSubtype(a, narrowedB.Type, errSpan)
 	case types.Any, types.Void, types.Nothing:
 		return true
 	case types.Nil:
@@ -182,6 +200,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	}
 
 	switch a := a.(type) {
+	case *types.NamedType:
+		return c.isSubtype(a.Type, b, errSpan)
 	case *types.Union:
 		for _, aElement := range a.Elements {
 			if !c.isSubtype(aElement, b, errSpan) {
@@ -290,8 +310,6 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 
 	originalA := a
 	switch a := a.(type) {
-	case *types.NamedType:
-		return c.isSubtype(a.Type, b, errSpan)
 	case types.Any:
 		return types.IsAny(b)
 	case types.Nil:

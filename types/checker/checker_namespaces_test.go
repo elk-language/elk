@@ -2632,6 +2632,32 @@ func TestInterfaceType(t *testing.T) {
 				var a: Bar = Foo()
 			`,
 		},
+		"handle circular definitions in return type in implicit generic interface implementations": {
+			input: `
+				interface C[E]
+					def c: C[E]; end
+				end
+
+				class D
+					def c: D then loop; end
+				end
+
+				var a: C[String] = D()
+			`,
+		},
+		"handle circular definitions in return type in implicit generic interface implementations with a generic class": {
+			input: `
+				interface C[E]
+					def c: C[E]; end
+				end
+
+				class D[E]
+					def c: D[E] then loop; end
+				end
+
+				var a: C[String] = D::[String]()
+			`,
+		},
 		"handle circular definitions in param type in implicit interface implementations": {
 			input: `
 				class Foo

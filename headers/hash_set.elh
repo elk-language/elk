@@ -61,7 +61,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Create a new `HashSet` containing all the elements
 		present in `self` and `other`.
 	]##
-	sealed def +[E](other: Set[E]): HashSet[Element | E]; end
+	sealed def +[E](other: ImmutableSet[E]): HashSet[Element | E]; end
 	alias | +
 
 	##[
@@ -69,12 +69,12 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Create a new `HashSet` containing only the elements
 		present both in `self` and `other`.
 	]##
-	sealed def &[E](other: Set[E]): HashSet[Element & E]; end
+	sealed def &[E](other: ImmutableSet[E]): HashSet[Element & E]; end
 
 	##[
 		Check whether the given `value` is present in this set.
 	]##
-	def contains(value: Element): bool; end
+	def contains[E > Element](value: E): bool; end
 
 	##[
 		Check whether the given value is a `HashSet`
