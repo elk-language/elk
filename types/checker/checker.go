@@ -1113,13 +1113,55 @@ func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) as
 	return node
 }
 
-func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
-	var elementTypes []types.Type
-	for i, elementNode := range node.Elements {
-		elementNode := c.checkExpression(elementNode)
-		node.Elements[i] = elementNode
-		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+func (c *Checker) checkModifierInCollection(node *ast.ModifierNode) ast.ExpressionNode {
+	switch node.Modifier.Type {
+	case token.IF:
+		return c.checkCollectionIfModifier(node)
+	case token.UNLESS:
+		return c.checkCollectionUnlessModifier(node)
+	default:
+		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
+}
+
+func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) []types.Type {
+	var elementTypes []types.Type
+	for i, elementNode := range elements {
+		switch e := elementNode.(type) {
+		case *ast.ModifierNode:
+			elementNode := c.checkModifierInCollection(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		default:
+			elementNode := c.checkExpression(elementNode)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		}
+	}
+
+	return elementTypes
+}
+
+func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode) []types.Type {
+	var elementTypes []types.Type
+	for i, elementNode := range elements {
+		switch e := elementNode.(type) {
+		case *ast.ModifierNode:
+			elementNode := c.checkModifierInCollection(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
+		default:
+			elementNode := c.checkExpression(elementNode)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
+		}
+	}
+
+	return elementTypes
+}
+
+func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
+	elementTypes := c.checkMutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	generic := types.NewGenericWithTypeArgs(c.StdArrayList(), elementType)
@@ -1324,12 +1366,7 @@ func (c *Checker) checkWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) 
 }
 
 func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.ExpressionNode {
-	var elementTypes []types.Type
-	for i, elementNode := range node.Elements {
-		elementNode := c.checkExpression(elementNode)
-		node.Elements[i] = elementNode
-		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-	}
+	elementTypes := c.checkMutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	generic := types.NewGenericWithTypeArgs(c.StdHashSet(), elementType)
@@ -1354,12 +1391,7 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) ast.ExpressionNode {
-	var elementTypes []types.Type
-	for i, elementNode := range node.Elements {
-		elementNode := c.checkExpression(elementNode)
-		node.Elements[i] = elementNode
-		elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-	}
+	elementTypes := c.checkImmutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	generic := types.NewGenericWithTypeArgs(c.StdArrayTuple(), elementType)
@@ -1893,6 +1925,88 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 	}
 
 	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	return node
+}
+
+func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Right, assumptionTruthy)
+	node.Left = c.checkExpression(node.Left)
+	thenType := c.typeOfGuardVoid(node.Left)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		node.SetType(thenType)
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		c.addUnreachableCodeError(node.Left.Span())
+		node.SetType(types.Never{})
+		return node
+	}
+
+	node.SetType(thenType)
+	return node
+}
+
+func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Right, assumptionFalsy)
+	node.Left = c.checkExpression(node.Left)
+	thenType := c.typeOfGuardVoid(node.Left)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		c.addUnreachableCodeError(node.Left.Span())
+		node.SetType(types.Never{})
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		node.SetType(thenType)
+		return node
+	}
+
+	node.SetType(thenType)
 	return node
 }
 

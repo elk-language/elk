@@ -8,6 +8,88 @@ import (
 
 func TestArrayTupleLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if": {
+			input: `
+				var a: bool = false
+				var foo = %[1, 2.5 if a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 4, 16), P(71, 4, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = %[1, a.lol if a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"truthy modifier if": {
+			input: `
+				var foo = %[1, 2.5 if  5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(28, 2, 28), P(28, 2, 28)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier if": {
+			input: `
+				var foo = %[1, 2.5 if nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 2, 27), P(29, 2, 29)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
+				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[1]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"modifier unless": {
+			input: `
+				var a: bool = false
+				var foo = %[1, 2.5 unless a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(73, 4, 16), P(75, 4, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier unless with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = %[1, a.lol unless a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
+			},
+		},
+		"truthy modifier unless": {
+			input: `
+				var foo = %[1, 2.5 unless 5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(31, 2, 31), P(31, 2, 31)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
+				error.NewFailure(L("<main>", P(49, 3, 16), P(51, 3, 18)), "type `Std::ArrayTuple[1]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier unless": {
+			input: `
+				var foo = %[1, 2.5 unless nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(31, 2, 31), P(33, 2, 33)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer array tuple": {
 			input: `
 				var foo = %[1, 2]
@@ -107,6 +189,88 @@ func TestArrayTupleLiteral(t *testing.T) {
 
 func TestHashSetLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if": {
+			input: `
+				var a: bool = false
+				var foo = ^[1, 2.5 if a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 4, 16), P(71, 4, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = ^[1, a.lol if a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"truthy modifier if": {
+			input: `
+				var foo = ^[1, 2.5 if  5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(28, 2, 28), P(28, 2, 28)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier if": {
+			input: `
+				var foo = ^[1, 2.5 if nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 2, 27), P(29, 2, 29)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
+				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"modifier unless": {
+			input: `
+				var a: bool = false
+				var foo = ^[1, 2.5 unless a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(73, 4, 16), P(75, 4, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier unless with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = ^[1, a.lol unless a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
+			},
+		},
+		"truthy modifier unless": {
+			input: `
+				var foo = ^[1, 2.5 unless 5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(31, 2, 31), P(31, 2, 31)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
+				error.NewFailure(L("<main>", P(49, 3, 16), P(51, 3, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier unless": {
+			input: `
+				var foo = ^[1, 2.5 unless nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(31, 2, 31), P(33, 2, 33)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer array list": {
 			input: `
 				var foo = ^[1, 2]
@@ -296,6 +460,88 @@ func TestHashSetLiteral(t *testing.T) {
 
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if": {
+			input: `
+				var a: bool = false
+				var foo = [1, 2.5 if a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 4, 16), P(70, 4, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = [1, a.lol if a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 19), P(48, 3, 23)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"truthy modifier if": {
+			input: `
+				var foo = [1, 2.5 if  5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(27, 2, 27), P(27, 2, 27)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewFailure(L("<main>", P(45, 3, 16), P(47, 3, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier if": {
+			input: `
+				var foo = [1, 2.5 if nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(26, 2, 26), P(28, 2, 28)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(19, 2, 19), P(21, 2, 21)), "unreachable code"),
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
+		"modifier unless": {
+			input: `
+				var a: bool = false
+				var foo = [1, 2.5 unless a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 4, 16), P(74, 4, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier unless with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = [1, a.lol unless a]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 19), P(48, 3, 23)), "method `lol` is not defined on type `Std::Nil`"),
+			},
+		},
+		"truthy modifier unless": {
+			input: `
+				var foo = [1, 2.5 unless 5]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(30, 2, 30), P(30, 2, 30)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewWarning(L("<main>", P(19, 2, 19), P(21, 2, 21)), "unreachable code"),
+				error.NewFailure(L("<main>", P(48, 3, 16), P(50, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier unless": {
+			input: `
+				var foo = [1, 2.5 unless nil]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(30, 2, 30), P(32, 2, 32)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewFailure(L("<main>", P(50, 3, 16), P(52, 3, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer array list": {
 			input: `
 				var foo = [1, 2]
