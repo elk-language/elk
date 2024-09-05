@@ -1150,6 +1150,10 @@ func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) 
 			elementNode := c.checkModifierInCollection(e)
 			elements[i] = elementNode
 			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		case *ast.ModifierIfElseNode:
+			elementNode := c.checkCollectionIfElseModifier(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
 		default:
 			elementNode := c.checkExpression(elementNode)
 			elements[i] = elementNode
@@ -1166,6 +1170,10 @@ func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode
 		switch e := elementNode.(type) {
 		case *ast.ModifierNode:
 			elementNode := c.checkModifierInCollection(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
+		case *ast.ModifierIfElseNode:
+			elementNode := c.checkCollectionIfElseModifier(e)
 			elements[i] = elementNode
 			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 		default:
@@ -1965,6 +1973,54 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 		if len(node.ThenBody) > 0 {
 			c.addUnreachableCodeError(node.ThenBody[0].Span())
 		}
+		node.SetType(elseType)
+		return node
+	}
+
+	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	return node
+}
+
+func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionTruthy)
+	node.ThenExpression = c.checkExpression(node.ThenExpression)
+	thenType := c.typeOf(node.ThenExpression)
+	c.popLocalEnv()
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionFalsy)
+	node.ElseExpression = c.checkExpression(node.ElseExpression)
+	elseType := c.typeOf(node.ElseExpression)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		c.addUnreachableCodeError(node.ElseExpression.Span())
+		node.SetType(thenType)
+		return node
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		c.addUnreachableCodeError(node.ThenExpression.Span())
 		node.SetType(elseType)
 		return node
 	}

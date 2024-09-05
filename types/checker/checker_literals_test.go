@@ -8,6 +8,16 @@ import (
 
 func TestArrayTupleLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if else": {
+			input: `
+				var a: bool = false
+				var foo = %[1, 2.5 if a else "bar"]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::ArrayTuple[1 | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if": {
 			input: `
 				var a: bool = false
@@ -215,6 +225,16 @@ func TestArrayTupleLiteral(t *testing.T) {
 
 func TestHashSetLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if else": {
+			input: `
+				var a: bool = false
+				var foo = ^[1, 2.5 if a else "bar"]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::HashSet[Std::Int | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if": {
 			input: `
 				var a: bool = false
@@ -512,6 +532,16 @@ func TestHashSetLiteral(t *testing.T) {
 
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if else": {
+			input: `
+				var a: bool = false
+				var foo = [1, 2.5 if a else "bar"]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 4, 16), P(81, 4, 18)), "type `Std::ArrayList[Std::Int | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if": {
 			input: `
 				var a: bool = false

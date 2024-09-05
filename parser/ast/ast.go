@@ -2114,7 +2114,7 @@ func NewModifierNode(span *position.Span, mod *token.Token, left, right Expressi
 
 // Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`
 type ModifierIfElseNode struct {
-	NodeBase
+	TypedNodeBase
 	ThenExpression ExpressionNode // then expression body
 	Condition      ExpressionNode // if condition
 	ElseExpression ExpressionNode // else expression body
@@ -2127,7 +2127,7 @@ func (*ModifierIfElseNode) IsStatic() bool {
 // Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
 func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) *ModifierIfElseNode {
 	return &ModifierIfElseNode{
-		NodeBase:       NodeBase{span: span},
+		TypedNodeBase:  TypedNodeBase{span: span},
 		ThenExpression: then,
 		Condition:      cond,
 		ElseExpression: els,
