@@ -38,6 +38,11 @@ func (t *TypeArguments) AllArguments() iter.Seq2[value.Symbol, *TypeArgument] {
 	}
 }
 
+// Get the type argument under the given index
+func (t *TypeArguments) Get(i int) *TypeArgument {
+	return t.ArgumentMap[t.ArgumentOrder[i]]
+}
+
 func (t *TypeArguments) Len() int {
 	return len(t.ArgumentOrder)
 }

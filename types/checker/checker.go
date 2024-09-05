@@ -575,6 +575,24 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		case *types.Closure:
 			return c.checkClosureLiteralNodeWithType(n, t)
 		}
+	case *ast.ArrayListLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayList(), generic.Namespace, nil) {
+			break
+		}
+		return c.checkArrayListLiteralNodeWithType(n, generic)
+	case *ast.ArrayTupleLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
+			break
+		}
+		return c.checkArrayTupleLiteralNodeWithType(n, generic)
+	case *ast.HashSetLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdHashSet(), generic.Namespace, nil) {
+			break
+		}
+		return c.checkHashSetLiteralNodeWithType(n, generic)
 	}
 
 	return c.checkExpression(node)
@@ -1161,10 +1179,21 @@ func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode
 }
 
 func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
+	return c.checkArrayListLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkMutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
-	generic := types.NewGenericWithTypeArgs(c.StdArrayList(), elementType)
+	if typ != nil {
+		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+		node.SetType(typ)
+	} else if len(elementTypes) == 0 {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), types.Any{}))
+	} else {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), elementType))
+	}
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
@@ -1179,8 +1208,6 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 			)
 		}
 	}
-
-	node.SetType(generic)
 
 	return node
 }
@@ -1366,10 +1393,21 @@ func (c *Checker) checkWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) 
 }
 
 func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.ExpressionNode {
+	return c.checkHashSetLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkMutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
-	generic := types.NewGenericWithTypeArgs(c.StdHashSet(), elementType)
+	if typ != nil {
+		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+		node.SetType(typ)
+	} else if len(elementTypes) == 0 {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), types.Any{}))
+	} else {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), elementType))
+	}
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
@@ -1385,18 +1423,25 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 		}
 	}
 
-	node.SetType(generic)
-
 	return node
 }
 
 func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) ast.ExpressionNode {
+	return c.checkArrayTupleLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkImmutableCollectionElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
-	generic := types.NewGenericWithTypeArgs(c.StdArrayTuple(), elementType)
-
-	node.SetType(generic)
+	if typ != nil {
+		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+		node.SetType(typ)
+	} else if len(elementTypes) == 0 {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), types.Any{}))
+	} else {
+		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), elementType))
+	}
 
 	return node
 }

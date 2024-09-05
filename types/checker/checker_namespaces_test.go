@@ -2727,7 +2727,6 @@ func TestInterfaceType(t *testing.T) {
 				var b: Baz[String, Float] = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`"),
 				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
@@ -2749,7 +2748,6 @@ func TestInterfaceType(t *testing.T) {
 				var b: Baz[String, Float] = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` does not implement interface `Baz[Std::String, Std::Float]`:\n\n  - incorrect implementation of `Baz.:baz`\n      is:        `def baz(): Std::Int`\n      should be: `def baz(): Std::Float`"),
 				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},

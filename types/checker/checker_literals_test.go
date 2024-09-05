@@ -111,7 +111,33 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::ArrayTuple[never]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::ArrayTuple[any]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define array tuple type": {
+			input: `
+				var foo: ArrayTuple[Int] = %[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define tuple type": {
+			input: `
+				var foo: Tuple[Int] = %[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::Tuple[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define tuple incompatible type": {
+			input: `
+				var foo: Tuple[Int] = %["", 2.2]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 2, 27), P(36, 2, 36)), "type `\"\" | 2.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
 
@@ -292,7 +318,33 @@ func TestHashSetLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashSet[never]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashSet[any]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define hash set type": {
+			input: `
+				var foo: HashSet[Int] = ^[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 3, 16), P(50, 3, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define Set type": {
+			input: `
+				var foo: Set[Int] = ^[]
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 16), P(46, 3, 18)), "type `Std::Set[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define Set incompatible type": {
+			input: `
+				var foo: Set[Int] = ^["", 2.2]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 2, 25), P(34, 2, 34)), "type `Std::String | Std::Float` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"int capacity": {
@@ -563,7 +615,33 @@ func TestArrayListLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::ArrayList[never]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::ArrayList[any]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define array list type": {
+			input: `
+				var foo: ArrayList[Int] = []
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(49, 3, 16), P(51, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define List type": {
+			input: `
+				var foo: List[Int] = []
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 16), P(46, 3, 18)), "type `Std::List[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define List incompatible type": {
+			input: `
+				var foo: List[Int] = ["", 2.2]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 2, 26), P(34, 2, 34)), "type `Std::String | Std::Float` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"int capacity": {

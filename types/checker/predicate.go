@@ -593,8 +593,12 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 }
 
 func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
-	if c.isSubtypeOfGenericNamespace(a, b, errSpan) {
+	isSubtype, shouldContinue := c.isSubtypeOfGenericNamespace(a, b, errSpan)
+	if isSubtype {
 		return true
+	}
+	if !shouldContinue {
+		return false
 	}
 
 	switch b.Namespace.(type) {
@@ -605,7 +609,7 @@ func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpa
 	}
 }
 
-func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
+func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errSpan *position.Span) (isSubtype bool, shouldContinue bool) {
 	var generics []*types.Generic
 
 	for parent := range types.Parents(a) {
@@ -619,16 +623,16 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 			for _, generic := range slices.Backward(generics) {
 				target = c.replaceTypeParametersOfGeneric(target, generic)
 				if target == nil {
-					return false
+					return false, false
 				}
 			}
 
-			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan)
+			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan), false
 		}
 		generics = append(generics, parent)
 	}
 
-	return false
+	return false, true
 }
 
 func (c *Checker) isSubtypeOfClass(a types.Namespace, b *types.Class) bool {

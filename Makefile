@@ -6,4 +6,4 @@ build: compile-headers
 	go build .
 
 test: compile-headers
-	go test ./...
+	go test ./... -timeout 10s
