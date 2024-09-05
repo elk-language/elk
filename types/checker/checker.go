@@ -1061,10 +1061,92 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 	)
 }
 
-func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
-	var keyTypes []types.Type
-	var valueTypes []types.Type
-	for _, pairNode := range node.Elements {
+func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueType types.Type) {
+	switch node.Modifier.Type {
+	case token.IF:
+		return c.checkRecordIfModifier(node)
+	case token.UNLESS:
+		return c.checkRecordUnlessModifier(node)
+	default:
+		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
+	}
+}
+
+func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyType, valueType types.Type) {
+	c.pushNestedLocalEnv()
+	node.Condition = c.checkExpression(node.Condition)
+	conditionType := c.typeOfGuardVoid(node.Condition)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionTruthy)
+	var thenKeyType, thenValueType types.Type
+	switch l := node.ThenExpression.(type) {
+	case *ast.KeyValueExpressionNode:
+		l.Key = c.checkExpression(l.Key)
+		thenKeyType = c.typeOf(l.Key)
+
+		l.Value = c.checkExpression(l.Value)
+		thenValueType = c.typeOf(l.Value)
+	case *ast.SymbolKeyValueExpressionNode:
+		thenKeyType = c.Std(symbol.Symbol)
+
+		l.Value = c.checkExpression(l.Value)
+		thenValueType = c.typeOf(l.Value)
+	default:
+		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
+	}
+	c.popLocalEnv()
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Condition, assumptionFalsy)
+	var elseKeyType, elseValueType types.Type
+	switch l := node.ElseExpression.(type) {
+	case *ast.KeyValueExpressionNode:
+		l.Key = c.checkExpression(l.Key)
+		elseKeyType = c.typeOf(l.Key)
+
+		l.Value = c.checkExpression(l.Value)
+		elseValueType = c.typeOf(l.Value)
+	case *ast.SymbolKeyValueExpressionNode:
+		elseKeyType = c.Std(symbol.Symbol)
+
+		l.Value = c.checkExpression(l.Value)
+		elseValueType = c.typeOf(l.Value)
+	default:
+		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
+	}
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		c.addUnreachableCodeError(node.ElseExpression.Span())
+		return thenKeyType, thenValueType
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Condition.Span(),
+		)
+		c.addUnreachableCodeError(node.ThenExpression.Span())
+		return elseKeyType, elseValueType
+	}
+
+	return c.newNormalisedUnion(thenKeyType, elseKeyType), c.newNormalisedUnion(thenValueType, elseValueType)
+}
+
+func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
+	for _, pairNode := range pairs {
 		switch p := pairNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			p.Key = c.checkExpression(p.Key)
@@ -1077,8 +1159,58 @@ func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.Expr
 
 			p.Value = c.checkExpression(p.Value)
 			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+		case *ast.ModifierNode:
+			keyType, valueType := c.checkModifierInRecord(p)
+			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
+
+			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+		case *ast.ModifierIfElseNode:
+			keyType, valueType := c.checkRecordIfElseModifier(p)
+
+			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
+			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+		default:
+			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
 		}
 	}
+
+	return keyTypes, valueTypes
+}
+
+func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
+	for _, pairNode := range pairs {
+		switch p := pairNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			p.Key = c.checkExpression(p.Key)
+			keyTypes = append(keyTypes, c.typeOfGuardVoid(p.Key))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
+		case *ast.SymbolKeyValueExpressionNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			p.Value = c.checkExpression(p.Value)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
+		case *ast.ModifierNode:
+			keyType, valueType := c.checkModifierInRecord(p)
+
+			keyTypes = append(keyTypes, keyType)
+			valueTypes = append(valueTypes, valueType)
+		case *ast.ModifierIfElseNode:
+			keyType, valueType := c.checkRecordIfElseModifier(p)
+
+			keyTypes = append(keyTypes, keyType)
+			valueTypes = append(valueTypes, valueType)
+		default:
+			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
+		}
+	}
+
+	return keyTypes, valueTypes
+}
+
+func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
+	keyTypes, valueTypes := c.checkMapPairs(node.Elements)
 
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
@@ -1104,23 +1236,7 @@ func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) ast.ExpressionNode {
-	var keyTypes []types.Type
-	var valueTypes []types.Type
-	for _, pairNode := range node.Elements {
-		switch p := pairNode.(type) {
-		case *ast.KeyValueExpressionNode:
-			p.Key = c.checkExpression(p.Key)
-			keyTypes = append(keyTypes, c.typeOfGuardVoid(p.Key))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
-		case *ast.SymbolKeyValueExpressionNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
-		}
-	}
+	keyTypes, valueTypes := c.checkRecordPairs(node.Elements)
 
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
@@ -2109,6 +2225,108 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode) ast.Expr
 
 	node.SetType(thenType)
 	return node
+}
+
+func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Right, assumptionTruthy)
+	switch l := node.Left.(type) {
+	case *ast.KeyValueExpressionNode:
+		l.Key = c.checkExpression(l.Key)
+		keyType = c.typeOf(l.Key)
+
+		l.Value = c.checkExpression(l.Value)
+		valueType = c.typeOf(l.Value)
+	case *ast.SymbolKeyValueExpressionNode:
+		keyType = c.Std(symbol.Symbol)
+
+		l.Value = c.checkExpression(l.Value)
+		valueType = c.typeOf(l.Value)
+	default:
+		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
+	}
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		return keyType, valueType
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		c.addUnreachableCodeError(node.Left.Span())
+		return types.Never{}, types.Never{}
+	}
+
+	return keyType, valueType
+}
+
+func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
+	c.pushNestedLocalEnv()
+	node.Right = c.checkExpression(node.Right)
+	conditionType := c.typeOfGuardVoid(node.Right)
+
+	c.pushNestedLocalEnv()
+	c.narrowCondition(node.Right, assumptionFalsy)
+	switch l := node.Left.(type) {
+	case *ast.KeyValueExpressionNode:
+		l.Key = c.checkExpression(l.Key)
+		keyType = c.typeOf(l.Key)
+
+		l.Value = c.checkExpression(l.Value)
+		valueType = c.typeOf(l.Value)
+	case *ast.SymbolKeyValueExpressionNode:
+		keyType = c.Std(symbol.Symbol)
+
+		l.Value = c.checkExpression(l.Value)
+		valueType = c.typeOf(l.Value)
+	default:
+		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
+	}
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	if c.isTruthy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is truthy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		c.addUnreachableCodeError(node.Left.Span())
+		return types.Never{}, types.Never{}
+	}
+	if c.isFalsy(conditionType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this condition will always have the same result since type `%s` is falsy",
+				types.InspectWithColor(conditionType),
+			),
+			node.Right.Span(),
+		)
+		return keyType, valueType
+	}
+
+	return keyType, valueType
 }
 
 func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
