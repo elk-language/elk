@@ -386,11 +386,17 @@ func (c *Checker) toNonTruthy(typ types.Type) types.Type {
 
 func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
 	if !widenSingletonTypes {
-		switch typ.(type) {
+		switch t := typ.(type) {
 		case types.Nil, types.Bool:
 			return typ
 		case types.False, types.True:
 			return types.Bool{}
+		case *types.Union:
+			newElements := make([]types.Type, len(t.Elements))
+			for i, element := range t.Elements {
+				newElements[i] = c.toNonLiteral(element, widenSingletonTypes)
+			}
+			return c.newNormalisedUnion(newElements...)
 		}
 	}
 

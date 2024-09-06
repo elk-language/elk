@@ -597,7 +597,7 @@ func TestLoopExpression(t *testing.T) {
 				b = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(114, 10, 9), P(114, 10, 9)), "type `3` cannot be assigned to type `\"\" | 2.5`"),
+				error.NewFailure(L("<main>", P(114, 10, 9), P(114, 10, 9)), "type `3` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 		"break nested labeled loop": {

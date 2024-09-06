@@ -1187,7 +1187,7 @@ func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types
 			p.Value = c.checkExpression(p.Value)
 			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
 		case *ast.SymbolKeyValueExpressionNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+			keyTypes = append(keyTypes, types.NewSymbolLiteral(p.Key))
 
 			p.Value = c.checkExpression(p.Value)
 			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))

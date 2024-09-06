@@ -232,7 +232,7 @@ func TestHashSetLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::HashSet[Std::Int | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::HashSet[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if": {
@@ -539,7 +539,7 @@ func TestArrayListLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(79, 4, 16), P(81, 4, 18)), "type `Std::ArrayList[Std::Int | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(79, 4, 16), P(81, 4, 18)), "type `Std::ArrayList[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if": {
@@ -839,6 +839,57 @@ func TestArrayListLiteral(t *testing.T) {
 
 func TestHashMapLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if else": {
+			input: `
+				var a: bool = false
+				var foo = { foo: 1, "bar" => 2.5 if a else 1 => "lol" }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(100, 4, 16), P(102, 4, 18)), "type `Std::HashMap[Std::Symbol | Std::String | Std::Int, Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if": {
+			input: `
+				var a: bool = false
+				var foo = { foo: 1, "bar" => 2.5 if a }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 4, 16), P(86, 4, 18)), "type `Std::HashMap[Std::Symbol | Std::String, Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = { a: 1, b: a.lol if a }
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 3, 26), P(55, 3, 30)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"truthy modifier if": {
+			input: `
+				var foo = { foo: 1, "bar" => 2.5 if 5 }
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(41, 2, 41), P(41, 2, 41)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewFailure(L("<main>", P(60, 3, 16), P(62, 3, 18)), "type `Std::HashMap[Std::Symbol | Std::String, Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier if": {
+			input: `
+				var foo = { foo: 1, "bar" => 2.5 if nil }
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(41, 2, 41), P(43, 2, 43)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(25, 2, 25), P(36, 2, 36)), "unreachable code"),
+				error.NewFailure(L("<main>", P(62, 3, 16), P(64, 3, 18)), "type `Std::HashMap[Std::Symbol, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer hash map": {
 			input: `
 				var foo = { foo: 1, bar: 2 }
@@ -892,10 +943,61 @@ func TestHashMapLiteral(t *testing.T) {
 
 func TestHashRecordLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier if else": {
+			input: `
+				var a: bool = false
+				var foo = %{ foo: 1, "bar" => 2.5 if a else 1 => "lol" }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(101, 4, 16), P(103, 4, 18)), "type `Std::HashRecord[:foo | \"bar\" | 1, 1 | 2.5 | \"lol\"]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if": {
+			input: `
+				var a: bool = false
+				var foo = %{ foo: 1, "bar" => 2.5 if a }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 4, 16), P(87, 4, 18)), "type `Std::HashRecord[:foo | \"bar\", 1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier if with narrowing": {
+			input: `
+				var a: String? = nil
+				var foo = %{ a: 1, b: a.lol if a }
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(52, 3, 27), P(56, 3, 31)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"truthy modifier if": {
+			input: `
+				var foo = %{ foo: 1, "bar" => 2.5 if 5 }
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(42, 2, 42), P(42, 2, 42)), "this condition will always have the same result since type `5` is truthy"),
+				error.NewFailure(L("<main>", P(61, 3, 16), P(63, 3, 18)), "type `Std::HashRecord[:foo | \"bar\", 1 | 2.5]` cannot be assigned to type `9`"),
+			},
+		},
+		"falsy modifier if": {
+			input: `
+				var foo = %{ foo: 1, "bar" => 2.5 if nil }
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(42, 2, 42), P(44, 2, 44)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L("<main>", P(26, 2, 26), P(37, 2, 37)), "unreachable code"),
+				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::HashRecord[:foo, 1]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer hash record": {
 			input: `
 				var foo = %{ foo: 1, bar: 2 }
-				var a: HashRecord[Symbol, 1 | 2] = foo
+				var a: HashRecord[:foo | :bar, 1 | 2] = foo
 			`,
 		},
 		"infer hash record with different key and value types": {
@@ -904,7 +1006,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::HashRecord[Std::Symbol | \"bar\" | 1, 1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::HashRecord[:foo | \"bar\" | 1, 1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer empty hash record": {
