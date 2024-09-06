@@ -890,6 +890,33 @@ func TestHashMapLiteral(t *testing.T) {
 			},
 		},
 
+		"explicitly define hash map type": {
+			input: `
+				var foo: HashMap[Int, String] = {}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(55, 3, 16), P(57, 3, 18)), "type `Std::HashMap[Std::Int, Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define map type": {
+			input: `
+				var foo: Map[Int, String] = {}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::Map[Std::Int, Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define Map incompatible type": {
+			input: `
+				var foo: Map[Int, String] = { "" => 2.2 }
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 2, 33), P(45, 2, 45)), "type `Std::String` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(45, 2, 45)), "type `Std::Float` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"infer hash map": {
 			input: `
 				var foo = { foo: 1, bar: 2 }
@@ -911,7 +938,7 @@ func TestHashMapLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::HashMap[never, never]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(33, 3, 16), P(35, 3, 18)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
 			},
 		},
 		"int capacity": {
@@ -994,6 +1021,33 @@ func TestHashRecordLiteral(t *testing.T) {
 			},
 		},
 
+		"explicitly define hash record type": {
+			input: `
+				var foo: HashRecord[Int, String] = %{}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 3, 16), P(61, 3, 18)), "type `Std::HashRecord[Std::Int, Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define Record type": {
+			input: `
+				var foo: Record[Int, String] = %{}
+				var a: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(55, 3, 16), P(57, 3, 18)), "type `Std::Record[Std::Int, Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"explicitly define Record incompatible type": {
+			input: `
+				var foo: Record[Int, String] = %{ "" => 2.2 }
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `\"\"` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `2.2` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"infer hash record": {
 			input: `
 				var foo = %{ foo: 1, bar: 2 }
@@ -1015,7 +1069,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashRecord[never, never]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Std::HashRecord[any, any]` cannot be assigned to type `9`"),
 			},
 		},
 	}

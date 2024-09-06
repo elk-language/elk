@@ -593,6 +593,18 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 			break
 		}
 		return c.checkHashSetLiteralNodeWithType(n, generic)
+	case *ast.HashMapLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashMap(), generic.Namespace, nil) {
+			break
+		}
+		return c.checkHashMapLiteralNodeWithType(n, generic)
+	case *ast.HashRecordLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashRecord(), generic.Namespace, nil) {
+			break
+		}
+		return c.checkHashRecordLiteralNodeWithType(n, generic)
 	}
 
 	return c.checkExpression(node)
@@ -1210,11 +1222,25 @@ func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types
 }
 
 func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
+	return c.checkHashMapLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkMapPairs(node.Elements)
 
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
-	generic := types.NewGenericWithTypeArgs(c.StdHashMap(), keyType, valueType)
+	if typ != nil {
+		c.checkCanAssign(keyType, typ.TypeArguments.Get(0).Type, node.Span())
+		c.checkCanAssign(valueType, typ.TypeArguments.Get(1).Type, node.Span())
+		node.SetType(typ)
+	} else if len(keyTypes) == 0 {
+		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), types.Any{}, types.Any{})
+		node.SetType(generic)
+	} else {
+		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), keyType, valueType)
+		node.SetType(generic)
+	}
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
@@ -1230,19 +1256,29 @@ func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.Expr
 		}
 	}
 
-	node.SetType(generic)
-
 	return node
 }
 
 func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) ast.ExpressionNode {
+	return c.checkHashRecordLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkRecordPairs(node.Elements)
 
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
-	generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), keyType, valueType)
-
-	node.SetType(generic)
+	if typ != nil {
+		c.checkCanAssign(keyType, typ.TypeArguments.Get(0).Type, node.Span())
+		c.checkCanAssign(valueType, typ.TypeArguments.Get(1).Type, node.Span())
+		node.SetType(typ)
+	} else if len(keyTypes) == 0 {
+		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), types.Any{}, types.Any{})
+		node.SetType(generic)
+	} else {
+		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), keyType, valueType)
+		node.SetType(generic)
+	}
 
 	return node
 }
