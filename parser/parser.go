@@ -2675,7 +2675,7 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeParams = p.typeVariableList(token.RBRACKET)
+			typeParams = p.typeParameterList(token.RBRACKET)
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
@@ -2797,7 +2797,7 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList()
+			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),
@@ -2906,7 +2906,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeParams = p.typeVariableList(token.RBRACKET)
+			typeParams = p.typeParameterList(token.RBRACKET)
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
@@ -3073,8 +3073,8 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// typeVariable = ["+" | "-"] constant [">" TypeNode] ["<" TypeNode]
-func (p *Parser) typeVariable() ast.TypeParameterNode {
+// typeParameter = ["+" | "-"] constant ("=" TypeNode | [">" TypeNode] ["<" TypeNode])
+func (p *Parser) typeParameter() ast.TypeParameterNode {
 	variance := ast.INVARIANT
 	var firstSpan *position.Span
 	var lastSpan *position.Span
@@ -3113,14 +3113,20 @@ func (p *Parser) typeVariable() ast.TypeParameterNode {
 	}
 	lastSpan = nameTok.Span()
 
-	if p.match(token.GREATER) {
+	if p.match(token.EQUAL_OP) {
 		lowerBound = p.typeAnnotation()
+		upperBound = lowerBound
 		lastSpan = lowerBound.Span()
-	}
+	} else {
+		if p.match(token.GREATER) {
+			lowerBound = p.typeAnnotation()
+			lastSpan = lowerBound.Span()
+		}
 
-	if p.match(token.LESS) {
-		upperBound = p.typeAnnotation()
-		lastSpan = upperBound.Span()
+		if p.match(token.LESS) {
+			upperBound = p.typeAnnotation()
+			lastSpan = upperBound.Span()
+		}
 	}
 
 	return ast.NewVariantTypeParameterNode(
@@ -3132,9 +3138,9 @@ func (p *Parser) typeVariable() ast.TypeParameterNode {
 	)
 }
 
-// typeVariableList = typeVariable ("," typeVariable)*
-func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeParameterNode {
-	return commaSeparatedList(p, p.typeVariable, stopTokens...)
+// typeParameterList = typeParameter ("," typeParameter)*
+func (p *Parser) typeParameterList(stopTokens ...token.Type) []ast.TypeParameterNode {
+	return commaSeparatedList(p, p.typeParameter, stopTokens...)
 }
 
 // attributeParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
@@ -3316,7 +3322,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList(token.RBRACKET)
+			typeVars = p.typeParameterList(token.RBRACKET)
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),
@@ -3400,7 +3406,7 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 			rbracket := p.advance()
 			errPos = errPos.Join(rbracket.Span())
 		} else {
-			p.typeVariableList()
+			p.typeParameterList()
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
@@ -3478,7 +3484,7 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList()
+			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),
@@ -3555,7 +3561,7 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList()
+			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),
@@ -3631,7 +3637,7 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariableList()
+			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Span(),

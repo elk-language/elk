@@ -5238,6 +5238,47 @@ func TestStructDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have type variables with fixed bounds": {
+			input: `struct Foo[V = Std::String, +T > Foo < _Bar]; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(48, 1, 49)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(48, 1, 49)),
+						ast.NewStructDeclarationNode(
+							S(P(0, 1, 1), P(48, 1, 49)),
+							"",
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(11, 1, 12), P(25, 1, 26)),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										S(P(15, 1, 16), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
+										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
+									),
+									ast.NewConstantLookupNode(
+										S(P(15, 1, 16), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
+										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
+									),
+								),
+								ast.NewVariantTypeParameterNode(
+									S(P(28, 1, 29), P(42, 1, 43)),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(S(P(33, 1, 34), P(35, 1, 36)), "Foo"),
+									ast.NewPrivateConstantNode(S(P(39, 1, 40), P(42, 1, 43)), "_Bar"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"cannot have an empty type variable list": {
 			input: `struct Foo[]; end`,
 			want: ast.NewProgramNode(
