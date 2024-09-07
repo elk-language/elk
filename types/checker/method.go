@@ -33,7 +33,7 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 	})
 }
 
-const concurrencyLimit = 1
+var concurrencyLimit = 10_000
 
 func (c *Checker) checkMethods() {
 	concurrent.Foreach(

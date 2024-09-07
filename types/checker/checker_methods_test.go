@@ -2296,6 +2296,30 @@ func TestGenericMethodCalls(t *testing.T) {
 			},
 		},
 
+		"infer type argument incompatible with upper bound": {
+			input: `
+				module Foo
+					def foo[V < Int](a: V): V then a
+				end
+				var a: 9 = Foo.foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 5, 24), P(89, 5, 28)), "type `\"foo\"` does not satisfy the upper bound `Std::Int`"),
+				error.NewFailure(L("<main>", P(77, 5, 16), P(90, 5, 29)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument incompatible with lower bound": {
+			input: `
+				module Foo
+					def foo[V > Int](a: V): V then a
+				end
+				var a: 9 = Foo.foo("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 20), P(75, 5, 20)), "type `9` does not satisfy the lower bound `Std::String`"),
+				error.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
 		"infer simple type argument": {
 			input: `
 				module Foo
@@ -2796,6 +2820,30 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(72, 4, 16), P(76, 4, 20)), "type `Foo[Bar]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument incompatible with upper bound": {
+			input: `
+				class Foo[V < String]
+					init(a: V); end
+				end
+				var a: 9 = Foo(9)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 20), P(75, 5, 20)), "type `9` does not satisfy the upper bound `Std::String`"),
+				error.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument incompatible with lower bound": {
+			input: `
+				class Foo[V > String]
+					init(a: V); end
+				end
+				var a: 9 = Foo(9)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 5, 20), P(75, 5, 20)), "type `9` does not satisfy the lower bound `Std::String`"),
+				error.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer simple type argument": {

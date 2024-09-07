@@ -2,6 +2,7 @@
 package checker
 
 import (
+	"os"
 	"testing"
 
 	"github.com/elk-language/elk/bitfield"
@@ -14,6 +15,12 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"
 )
+
+func TestMain(m *testing.M) {
+	concurrencyLimit = 1
+	exitVal := m.Run()
+	os.Exit(exitVal)
+}
 
 // Represents a single checker test case.
 type testCase struct {
