@@ -2761,6 +2761,43 @@ func TestConstructorCall(t *testing.T) {
 
 func TestConstructorCallInference(t *testing.T) {
 	tests := testTable{
+		"infer type argument with empty constructor": {
+			input: `
+				class Foo[V]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 3, 16), P(42, 3, 20)), "type `Foo[any]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument based on upper bound": {
+			input: `
+				class Foo[V < String]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument based on lower bound": {
+			input: `
+				class Foo[V > String]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument based on lower bound and upper bound": {
+			input: `
+				class Bar; end
+				class Foo[V > Bar < Object]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 4, 16), P(76, 4, 20)), "type `Foo[Bar]` cannot be assigned to type `9`"),
+			},
+		},
 		"infer simple type argument": {
 			input: `
 				class Foo[V]
@@ -2955,7 +2992,8 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(1)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "expected type `Bar[V]` for parameter `a` in call to `#init`, got type `1`"),
+				error.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -2979,7 +3017,8 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("")
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "expected type `&V` for parameter `a` in call to `#init`, got type `\"\"`"),
+				error.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "type `Foo[Std::Value]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -3002,7 +3041,8 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(String)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `^V` for parameter `a` in call to `#init`, got type `&Std::String`"),
+				error.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::Class]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -3026,7 +3066,8 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(2.9)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "expected type `~V` for parameter `a` in call to `#init`, got type `2.9`"),
+				error.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -3089,7 +3130,7 @@ func TestConstructorCallInference(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement closure `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
 				error.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `#init`, got type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "could not infer type parameters in call to `#init`"),
+				error.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 	}

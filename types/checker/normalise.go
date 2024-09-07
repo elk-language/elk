@@ -3,13 +3,14 @@ package checker
 
 import (
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
-func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap map[value.Symbol]*types.TypeArgument, errSpan *position.Span) types.Type {
 	switch p := paramType.(type) {
 	case types.Self:
 		arg := typeArgMap[symbol.M_self]
@@ -33,7 +34,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			if pParam.Kind != gParam.Kind || pParam.Name != gParam.Name {
 				return p
 			}
-			result := c.inferTypeArguments(gParam.Type, pParam.Type, typeArgMap)
+			result := c.inferTypeArguments(gParam.Type, pParam.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -47,7 +48,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			}
 		}
 
-		returnType := c.inferTypeArguments(gMethod.ReturnType, pMethod.ReturnType, typeArgMap)
+		returnType := c.inferTypeArguments(gMethod.ReturnType, pMethod.ReturnType, typeArgMap, errSpan)
 		if returnType == nil {
 			return nil
 		}
@@ -55,7 +56,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			isDifferent = true
 		}
 
-		throwType := c.inferTypeArguments(gMethod.ThrowType, pMethod.ThrowType, typeArgMap)
+		throwType := c.inferTypeArguments(gMethod.ThrowType, pMethod.ThrowType, typeArgMap, errSpan)
 		if throwType == nil {
 			return nil
 		}
@@ -88,10 +89,12 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		}
 
 		nonLiteral := c.toNonLiteral(givenType, false)
-		if !c.isSubtype(nonLiteral, p.UpperBound, nil) {
+		if !c.isSubtype(givenType, p.UpperBound, nil) {
+			c.addUpperBoundError(givenType, p.UpperBound, errSpan)
 			return nil
 		}
 		if !c.isSubtype(p.LowerBound, nonLiteral, nil) {
+			c.addLowerBoundError(givenType, p.LowerBound, errSpan)
 			return nil
 		}
 		typeArgMap[p.Name] = types.NewTypeArgument(
@@ -102,20 +105,20 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	case *types.Generic:
 		g, ok := givenType.(*types.Generic)
 		if !ok {
-			return nil
+			return p
 		}
 		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
-			return nil
+			return p
 		}
 		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
-			return nil
+			return p
 		}
 
 		newArgMap := make(map[value.Symbol]*types.TypeArgument, len(p.ArgumentMap))
 		for _, argName := range p.ArgumentOrder {
 			pArg := p.ArgumentMap[argName]
 			gArg := g.ArgumentMap[argName]
-			result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap)
+			result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -131,7 +134,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	case *types.SingletonOf:
 		switch g := givenType.(type) {
 		case *types.SingletonClass:
-			result := c.inferTypeArguments(g.AttachedObject, p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.AttachedObject, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -141,7 +144,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewSingletonOf(result)
 		case *types.SingletonOf:
-			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -151,12 +154,12 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewSingletonOf(result)
 		default:
-			return nil
+			return p
 		}
 	case *types.SingletonClass:
 		switch g := givenType.(type) {
 		case *types.SingletonClass:
-			result := c.inferTypeArguments(g.AttachedObject, p.AttachedObject, typeArgMap)
+			result := c.inferTypeArguments(g.AttachedObject, p.AttachedObject, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -166,7 +169,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewSingletonClass(result.(types.Namespace), p.Parent())
 		case *types.SingletonOf:
-			result := c.inferTypeArguments(g.Type, p.AttachedObject, typeArgMap)
+			result := c.inferTypeArguments(g.Type, p.AttachedObject, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -176,13 +179,13 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewSingletonClass(result.(types.Namespace), p.Parent())
 		default:
-			return nil
+			return p
 		}
 	case *types.InstanceOf:
 		nonLiteral := c.toNonLiteral(givenType, false)
 		switch g := nonLiteral.(type) {
 		case *types.InstanceOf:
-			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -196,9 +199,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			case *types.SingletonOf:
 				return r.Type
 			}
-			return nil
+			return p
 		case *types.Class:
-			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -212,9 +215,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			case *types.SingletonOf:
 				return r.Type
 			}
-			return nil
+			return p
 		case *types.Mixin:
-			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -228,9 +231,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			case *types.SingletonOf:
 				return r.Type
 			}
-			return nil
+			return p
 		case *types.Interface:
-			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Singleton(), p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -244,17 +247,17 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			case *types.SingletonOf:
 				return r.Type
 			}
-			return nil
+			return p
 		default:
-			return nil
+			return p
 		}
 	case *types.Not:
 		g, ok := givenType.(*types.Not)
 		if !ok {
-			return nil
+			return p
 		}
 
-		result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+		result := c.inferTypeArguments(g.Type, p.Type, typeArgMap, errSpan)
 		if result == nil {
 			return nil
 		}
@@ -296,7 +299,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			newPElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
 			for _, pElement := range p.Elements {
-				result := c.inferTypeArguments(newG, pElement, typeArgMap)
+				result := c.inferTypeArguments(newG, pElement, typeArgMap, errSpan)
 				if result == nil {
 					return nil
 				}
@@ -313,7 +316,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			newElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
 			for _, pElement := range p.Elements {
-				result := c.inferTypeArguments(g, pElement, typeArgMap)
+				result := c.inferTypeArguments(g, pElement, typeArgMap, errSpan)
 				if result == nil {
 					return nil
 				}
@@ -351,7 +354,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			var isDifferent bool
 			newPElements := make([]types.Type, 0, len(p.Elements))
 			for _, pElement := range p.Elements {
-				result := c.inferTypeArguments(narrowedG, pElement, typeArgMap)
+				result := c.inferTypeArguments(narrowedG, pElement, typeArgMap, errSpan)
 				if result == nil {
 					return nil
 				}
@@ -367,12 +370,12 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewUnion(newPElements...)
 		case *types.Nilable:
-			return c.inferTypeArguments(types.NewUnion(types.Nil{}, g.Type), p, typeArgMap)
+			return c.inferTypeArguments(types.NewUnion(types.Nil{}, g.Type), p, typeArgMap, errSpan)
 		default:
 			newElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
 			for _, pElement := range p.Elements {
-				result := c.inferTypeArguments(g, pElement, typeArgMap)
+				result := c.inferTypeArguments(g, pElement, typeArgMap, errSpan)
 				if result == nil {
 					return nil
 				}
@@ -390,7 +393,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	case *types.Nilable:
 		switch g := givenType.(type) {
 		case *types.Nilable:
-			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap)
+			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -425,7 +428,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 				t = types.NewUnion(withoutNil...)
 			}
 
-			result := c.inferTypeArguments(t, p.Type, typeArgMap)
+			result := c.inferTypeArguments(t, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}
@@ -435,7 +438,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 
 			return types.NewNilable(result)
 		default:
-			result := c.inferTypeArguments(givenType, p.Type, typeArgMap)
+			result := c.inferTypeArguments(givenType, p.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil
 			}

@@ -43,6 +43,16 @@ type TypeParameter struct {
 	Variance   Variance
 }
 
+func (m *TypeParameter) Copy() *TypeParameter {
+	return &TypeParameter{
+		Name:       m.Name,
+		Namespace:  m.Namespace,
+		LowerBound: m.LowerBound,
+		UpperBound: m.UpperBound,
+		Variance:   m.Variance,
+	}
+}
+
 func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound Type, variance Variance) *TypeParameter {
 	return &TypeParameter{
 		Name:       name,

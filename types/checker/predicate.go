@@ -100,6 +100,9 @@ func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	case *types.NamedType:
 		return c.canBeIsA(a.Type, b)
 	default:
+		if bTypeParam, ok := b.(*types.TypeParameter); ok {
+			return c.isSubtype(a, bTypeParam.UpperBound, nil) && c.isSubtype(bTypeParam.LowerBound, a, nil)
+		}
 		return c.isSubtype(a, b, nil)
 	}
 }

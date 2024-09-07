@@ -3069,7 +3069,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 			return node
 		}
 
-		method = c.replaceTypeParametersInMethod(method, typeArgs.ArgumentMap)
+		method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
 	} else if len(method.TypeParameters) > 0 {
 		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(node.TypeArguments), node.Span())
 		node.SetType(types.Nothing{})
@@ -3095,7 +3095,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap map[value.Symbol]*types.TypeArgument
-		method = method.DeepCopy()
+		method = c.deepCopyMethod(method)
 		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			node.PositionalArguments,
@@ -3134,6 +3134,26 @@ func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
 	}
 }
 
+func (c *Checker) addTypeParamBoundError(arg, boundType types.Type, boundName string, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf(
+			"type `%s` does not satisfy the %s bound `%s`",
+			types.InspectWithColor(arg),
+			boundName,
+			types.InspectWithColor(boundType),
+		),
+		span,
+	)
+}
+
+func (c *Checker) addUpperBoundError(arg, bound types.Type, span *position.Span) {
+	c.addTypeParamBoundError(arg, bound, "upper", span)
+}
+
+func (c *Checker) addLowerBoundError(arg, bound types.Type, span *position.Span) {
+	c.addTypeParamBoundError(arg, bound, "lower", span)
+}
+
 func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []*types.TypeParameter, span *position.Span) (*types.TypeArguments, bool) {
 	if len(typeArgs) != len(typeParams) {
 		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(typeParams), len(typeArgs), span)
@@ -3156,25 +3176,11 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
 
 		if !c.isSubtype(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span()) {
-			c.addFailure(
-				fmt.Sprintf(
-					"type `%s` does not satisfy the upper bound `%s`",
-					types.InspectWithColor(typeArgument),
-					types.InspectWithColor(typeParameter.UpperBound),
-				),
-				typeArgumentNode.Span(),
-			)
+			c.addUpperBoundError(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span())
 			fail = true
 		}
 		if !c.isSubtype(typeParameter.LowerBound, typeArgument, typeArgumentNode.Span()) {
-			c.addFailure(
-				fmt.Sprintf(
-					"type `%s` does not satisfy the lower bound `%s`",
-					types.InspectWithColor(typeArgument),
-					types.InspectWithColor(typeParameter.LowerBound),
-				),
-				typeArgumentNode.Span(),
-			)
+			c.addLowerBoundError(typeArgument, typeParameter.LowerBound, typeArgumentNode.Span())
 			fail = true
 		}
 		switch t := typeArgument.(type) {
@@ -3415,7 +3421,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			class,
 		)
 	} else {
-		method = method.DeepCopy()
+		method = c.deepCopyMethod(method)
 	}
 
 	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
@@ -3425,10 +3431,6 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		class.TypeParameters(),
 		node.Span(),
 	)
-	if typedPositionalArguments == nil {
-		node.SetType(types.Nothing{})
-		return node
-	}
 	if len(typeArgMap) != len(class.TypeParameters()) {
 		node.SetType(types.Nothing{})
 		return node
