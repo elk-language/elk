@@ -67,6 +67,8 @@ const (
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
 	methodCompatibilityInAlgebraicTypeMode
+	variablePatternMode
+	valuePatternMode
 )
 
 type phase uint8
@@ -5278,7 +5280,10 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	initType := c.typeOf(node.Initialiser)
 
+	prevMode := c.mode
+	c.mode = variablePatternMode
 	c.checkPattern(node.Pattern, initType)
+	c.mode = prevMode
 	return node
 }
 
@@ -5309,11 +5314,12 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 func (c *Checker) checkIdentifierPattern(name string, typ types.Type, span *position.Span) {
 	variable := c.getLocal(name)
 	if variable == nil {
-		c.addLocal(name, newLocal(typ, false, false))
+		c.addLocal(name, newLocal(typ, true, c.mode == valuePatternMode))
 		return
 	}
 
-	c.checkCanAssign(variable.typ, typ, span)
+	variable.initialised = true
+	c.checkCanAssign(typ, variable.typ, span)
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
