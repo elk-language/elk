@@ -36,6 +36,8 @@ var (
 	Nil               = value.ToSymbol("Nil")
 	Method            = value.ToSymbol("Method")
 	Regex             = value.ToSymbol("Regex")
+	List              = value.ToSymbol("List")
+	Tuple             = value.ToSymbol("Tuple")
 	ArrayList         = value.ToSymbol("ArrayList")
 	ArrayTuple        = value.ToSymbol("ArrayTuple")
 	HashMap           = value.ToSymbol("HashMap")

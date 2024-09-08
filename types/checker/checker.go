@@ -5288,6 +5288,21 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		c.checkIdentifierPattern(n.Value, typ, n.Span())
 	case *ast.PrivateIdentifierNode:
 		c.checkIdentifierPattern(n.Value, typ, n.Span())
+	case *ast.RestPatternNode:
+		c.checkPattern(n.Identifier, typ)
+	case *ast.ListPatternNode:
+		typeGeneric, ok := typ.(*types.Generic)
+		if !ok || !c.isExplicitSubtypeOfInterface(typeGeneric, c.Std(symbol.List).(*types.Interface)) || typeGeneric.TypeArguments.Len() != 1 {
+			c.addFailure(
+				fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
+				node.Span(),
+			)
+			return
+		}
+		typeArg := typeGeneric.TypeArguments.Get(0)
+		for _, element := range n.Elements {
+			c.checkPattern(element, typeArg.Type)
+		}
 	}
 }
 
