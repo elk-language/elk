@@ -47,6 +47,19 @@ func (c *Checker) popConstScope() {
 	c.clearConstScopeCopyCache()
 }
 
+func (c *Checker) popLocalConstScope() {
+	for i := len(c.constantScopes) - 1; i >= 0; i-- {
+		constScope := c.constantScopes[i]
+		if constScope.local {
+			c.constantScopes = c.constantScopes[:i]
+			c.clearConstScopeCopyCache()
+			return
+		}
+	}
+
+	panic("no local constant scopes!")
+}
+
 func (c *Checker) pushConstScope(constScope constantScope) {
 	c.constantScopes = append(c.constantScopes, constScope)
 	c.clearConstScopeCopyCache()
