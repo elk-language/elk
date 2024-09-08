@@ -316,6 +316,204 @@ func TestDocComment(t *testing.T) {
 	}
 }
 
+func TestUsingExpression(t *testing.T) {
+	tests := testTable{
+		"cannot omit the argument": {
+			input: "using",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							[]ast.ComplexConstantNode{
+								ast.NewInvalidNode(
+									S(P(5, 1, 6), P(4, 1, 5)),
+									T(S(P(5, 1, 6), P(4, 1, 5)), token.END_OF_FILE),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a constant"),
+			},
+		},
+		"can have a public constant as the argument": {
+			input: "using Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(6, 1, 7), P(15, 1, 16)),
+									"Enumerable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot appear in expressions": {
+			input: "var a = using Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(23, 1, 24)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(23, 1, 24)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(23, 1, 24)),
+							"",
+							"a",
+							nil,
+							ast.NewUsingExpressionNode(
+								S(P(8, 1, 9), P(23, 1, 24)),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(
+										S(P(14, 1, 15), P(23, 1, 24)),
+										"Enumerable",
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(8, 1, 9), P(12, 1, 13)), "using declarations cannot appear in expressions"),
+			},
+		},
+		"can have many arguments": {
+			input: "using Enumerable, Memoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(6, 1, 7), P(15, 1, 16)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(18, 1, 19), P(27, 1, 28)),
+									"Memoizable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the comma": {
+			input: "using Enumerable,\nMemoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 2, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 2, 10)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(27, 2, 10)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(6, 1, 7), P(15, 1, 16)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(18, 2, 1), P(27, 2, 10)),
+									"Memoizable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the argument": {
+			input: "using _Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							[]ast.ComplexConstantNode{
+								ast.NewPrivateConstantNode(
+									S(P(6, 1, 7), P(16, 1, 17)),
+									"_Enumerable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as the argument": {
+			input: "using Std::Memoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							[]ast.ComplexConstantNode{
+								ast.NewConstantLookupNode(
+									S(P(6, 1, 7), P(20, 1, 21)),
+									ast.NewPublicConstantNode(
+										S(P(6, 1, 7), P(8, 1, 9)),
+										"Std",
+									),
+									ast.NewPublicConstantNode(
+										S(P(11, 1, 12), P(20, 1, 21)),
+										"Memoizable",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant as the argument": {
+			input: "using Enumerable[String]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(S(P(6, 1, 7), P(15, 1, 16)), "Enumerable"),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 1, 17), P(16, 1, 17)), "unexpected [, expected a statement separator `\\n`, `;`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestIncludeExpression(t *testing.T) {
 	tests := testTable{
 		"cannot omit the argument": {

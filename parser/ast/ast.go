@@ -354,6 +354,7 @@ func (*AliasDeclarationNode) expressionNode()              {}
 func (*GetterDeclarationNode) expressionNode()             {}
 func (*SetterDeclarationNode) expressionNode()             {}
 func (*AttrDeclarationNode) expressionNode()               {}
+func (*UsingExpressionNode) expressionNode()               {}
 func (*IncludeExpressionNode) expressionNode()             {}
 func (*ExtendExpressionNode) expressionNode()              {}
 func (*EnhanceExpressionNode) expressionNode()             {}
@@ -3616,6 +3617,28 @@ func NewAttrDeclarationNode(span *position.Span, docComment string, entries []Pa
 			comment: docComment,
 		},
 		Entries: entries,
+	}
+}
+
+// Represents a using expression eg. `using Foo`
+type UsingExpressionNode struct {
+	TypedNodeBase
+	Constants []ComplexConstantNode
+}
+
+func (*UsingExpressionNode) SkipTypechecking() bool {
+	return false
+}
+
+func (*UsingExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a using expression node eg. `using Foo`
+func NewUsingExpressionNode(span *position.Span, consts []ComplexConstantNode) *UsingExpressionNode {
+	return &UsingExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Constants:     consts,
 	}
 }
 

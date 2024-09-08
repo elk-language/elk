@@ -684,6 +684,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.methodSignatureDefinition(allowed)
 	case token.INIT:
 		return p.initDefinition(allowed)
+	case token.USING:
+		return p.usingDeclaration(allowed)
 	case token.CLASS:
 		return p.classDeclaration(allowed)
 	case token.MODULE:
@@ -2149,6 +2151,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.setterDeclaration(false)
 	case token.ATTR:
 		return p.attrDeclaration(false)
+	case token.USING:
+		return p.usingDeclaration(false)
 	case token.CLASS:
 		return p.classDeclaration(false)
 	case token.MODULE:
@@ -2629,6 +2633,11 @@ func (p *Parser) selfLiteral() *ast.SelfLiteralNode {
 // genericConstantList = genericConstant ("," genericConstant)*
 func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
 	return commaSeparatedListWithoutTerminator(p, p.genericConstant, stopTokens...)
+}
+
+// constantList = constant ("," constant)*
+func (p *Parser) constantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
+	return commaSeparatedListWithoutTerminator(p, p.strictConstantLookup, stopTokens...)
 }
 
 // typeAnnotationList = typeAnnotation ("," typeAnnotation)*
@@ -3295,6 +3304,25 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 		position.JoinSpanOfLastElement(attrTok.Span(), attrList),
 		"",
 		attrList,
+	)
+}
+
+// usingDeclaration = "using" constantList
+func (p *Parser) usingDeclaration(allowed bool) ast.ExpressionNode {
+	usingTok := p.advance()
+	p.swallowNewlines()
+	constList := p.constantList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"using declarations cannot appear in expressions",
+			usingTok.Span(),
+		)
+	}
+
+	return ast.NewUsingExpressionNode(
+		position.JoinSpanOfLastElement(usingTok.Span(), constList),
+		constList,
 	)
 }
 
