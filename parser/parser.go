@@ -4845,11 +4845,11 @@ func (p *Parser) andPattern() ast.PatternNode {
 	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
-func (p *Parser) objectPatternAttributes(stopTokens ...token.Type) []ast.PatternNode {
+func (p *Parser) objectAttributePatternList(stopTokens ...token.Type) []ast.PatternNode {
 	return commaSeparatedList(p, p.objectAttributePattern, stopTokens...)
 }
 
-// objectElementPattern = (identifier | constant) |
+// objectAttributePattern = (identifier | constant) |
 // (identifier | constant) ":" pattern
 func (p *Parser) objectAttributePattern() ast.PatternNode {
 	if p.accept(
@@ -4897,7 +4897,7 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 		)
 	}
 
-	elements := p.objectPatternAttributes(token.RPAREN)
+	elements := p.objectAttributePatternList(token.RPAREN)
 	p.swallowNewlines()
 	rparen, ok := p.consume(token.RPAREN)
 	span := constant.Span()

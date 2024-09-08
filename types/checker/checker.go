@@ -746,6 +746,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.VariableDeclarationNode:
 		c.checkVariableDeclarationNode(n)
 		return n
+	case *ast.VariablePatternDeclarationNode:
+		return c.checkVariablePatternDeclarationNode(n)
 	case *ast.ValueDeclarationNode:
 		c.checkValueDeclarationNode(n)
 		return n
@@ -5270,6 +5272,33 @@ func (c *Checker) checkVariableDeclaration(
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	return init, declaredTypeNode, declaredType
+}
+
+func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *ast.VariablePatternDeclarationNode {
+	node.Initialiser = c.checkExpression(node.Initialiser)
+	initType := c.typeOf(node.Initialiser)
+
+	c.checkPattern(node.Pattern, initType)
+	return node
+}
+
+func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
+	switch n := node.(type) {
+	case *ast.PublicIdentifierNode:
+		c.checkIdentifierPattern(n.Value, typ, n.Span())
+	case *ast.PrivateIdentifierNode:
+		c.checkIdentifierPattern(n.Value, typ, n.Span())
+	}
+}
+
+func (c *Checker) checkIdentifierPattern(name string, typ types.Type, span *position.Span) {
+	variable := c.getLocal(name)
+	if variable == nil {
+		c.addLocal(name, newLocal(typ, false, false))
+		return
+	}
+
+	c.checkCanAssign(variable.typ, typ, span)
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
