@@ -186,13 +186,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	return bytecodeFunc, c.Errors.ErrorList
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
-	statements := node.Body
-
-	c.hoistNamespaceDefinitions(statements)
+func (c *Checker) checkPlaceholderNamespaces() {
 	for _, placeholder := range c.placeholderNamespaces.Slice {
-		replacement := placeholder.Replacement
-		if replacement != nil {
+		replacement := placeholder.Namespace
+		if _, ok := replacement.(*types.PlaceholderModule); !ok {
 			continue
 		}
 
@@ -203,7 +200,13 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 			)
 		}
 	}
+}
 
+func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
+	statements := node.Body
+
+	c.hoistNamespaceDefinitions(statements)
+	c.checkPlaceholderNamespaces()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.phase = expressionPhase
@@ -238,20 +241,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	wg.Wait()
 
 	c.hoistNamespaceDefinitionsInFile(filename, ast)
-	for _, placeholder := range c.placeholderNamespaces.Slice {
-		replacement := placeholder.Replacement
-		if replacement != nil {
-			continue
-		}
-
-		for _, location := range placeholder.Locations.Slice {
-			c.addFailureWithLocation(
-				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
-				location,
-			)
-		}
-	}
-
+	c.checkPlaceholderNamespaces()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitionsInFile(filename, ast)
 	c.phase = expressionPhase
@@ -5245,7 +5235,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Methods(),
 				c.GlobalEnv,
 			)
-			t.Replacement = module
+			t.Namespace = module
 			namespace.DefineConstant(constantName, module)
 			return module
 		default:
@@ -5321,7 +5311,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				t.Methods(),
 				c.GlobalEnv,
 			)
-			t.Replacement = class
+			t.Namespace = class
 			namespace.DefineConstant(constantName, class)
 			return class
 		default:
@@ -6117,7 +6107,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Methods(),
 				c.GlobalEnv,
 			)
-			t.Replacement = mixin
+			t.Namespace = mixin
 			namespace.DefineConstant(constantName, mixin)
 			return mixin
 		default:
@@ -6158,7 +6148,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Subtypes(),
 				t.Methods(),
 			)
-			t.Replacement = iface
+			t.Namespace = iface
 			namespace.DefineConstant(constantName, iface)
 			return iface
 		default:
