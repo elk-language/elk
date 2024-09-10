@@ -1880,20 +1880,36 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 	return left
 }
 
+func (p *Parser) publicConstant() *ast.PublicConstantNode {
+	tok, ok := p.matchOk(token.PUBLIC_CONSTANT)
+	if !ok {
+		panic(fmt.Sprintf("invalid public constant token: %#v", tok))
+	}
+	return ast.NewPublicConstantNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) privateConstant() *ast.PrivateConstantNode {
+	tok, ok := p.matchOk(token.PRIVATE_CONSTANT)
+	if !ok {
+		panic(fmt.Sprintf("invalid private constant token: %#v", tok))
+	}
+	return ast.NewPrivateConstantNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
 // constant = privateConstant | publicConstant
 func (p *Parser) constant() ast.ConstantNode {
-	if tok, ok := p.matchOk(token.PRIVATE_CONSTANT); ok {
-		return ast.NewPrivateConstantNode(
-			tok.Span(),
-			tok.Value,
-		)
+	if p.accept(token.PRIVATE_CONSTANT) {
+		return p.privateConstant()
 	}
 
-	if tok, ok := p.matchOk(token.PUBLIC_CONSTANT); ok {
-		return ast.NewPublicConstantNode(
-			tok.Span(),
-			tok.Value,
-		)
+	if p.accept(token.PUBLIC_CONSTANT) {
+		return p.publicConstant()
 	}
 
 	p.errorExpected("a constant")
@@ -2640,6 +2656,16 @@ func (p *Parser) constantList(stopTokens ...token.Type) []ast.ComplexConstantNod
 	return commaSeparatedListWithoutTerminator(p, p.strictConstantLookup, stopTokens...)
 }
 
+// usingEntryList = usingEntry ("," usingEntry)*
+func (p *Parser) usingEntryList(stopTokens ...token.Type) []ast.UsingEntryNode {
+	return commaSeparatedListWithoutTerminator(p, p.usingEntry, stopTokens...)
+}
+
+// usingSubentryList = usingSubentry ("," usingSubentry)*
+func (p *Parser) usingSubentryList(stopTokens ...token.Type) []ast.UsingSubentryNode {
+	return commaSeparatedList(p, p.usingSubentry, stopTokens...)
+}
+
 // typeAnnotationList = typeAnnotation ("," typeAnnotation)*
 func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
 	return commaSeparatedList(p, p.typeAnnotation, stopTokens...)
@@ -3307,11 +3333,125 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// usingDeclaration = "using" constantList
+// usingSubentry = publicConstant ["as" publicConstant] | publicIdentifier ["as" publicIdentifier]
+func (p *Parser) usingSubentry() ast.UsingSubentryNode {
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER:
+		identTok := p.advance()
+		if !p.accept(token.AS) {
+			return ast.NewPublicIdentifierNode(
+				identTok.Span(),
+				identTok.Value,
+			)
+		}
+
+		p.advance() // as
+		asIdentTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
+		if !ok {
+			return ast.NewInvalidNode(asIdentTok.Span(), asIdentTok)
+		}
+		return ast.NewPublicIdentifierAsNode(
+			identTok.Span().Join(asIdentTok.Span()),
+			identTok.Value,
+			asIdentTok.Value,
+		)
+	case token.PUBLIC_CONSTANT:
+		constTok := p.advance()
+		if !p.accept(token.AS) {
+			return ast.NewPublicConstantNode(
+				constTok.Span(),
+				constTok.Value,
+			)
+		}
+
+		p.advance() // as
+		asConstTok, ok := p.consume(token.PUBLIC_CONSTANT)
+		if !ok {
+			return ast.NewInvalidNode(asConstTok.Span(), asConstTok)
+		}
+		return ast.NewPublicConstantAsNode(
+			constTok.Span().Join(asConstTok.Span()),
+			constTok.Value,
+			asConstTok.Value,
+		)
+	default:
+		p.errorExpected("a public identifier or public constant")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Span(), tok)
+	}
+}
+
+// usingEntry = strictConstantLookup ["::" (publicIdentifier | "*" | "{" usingSubentryList "}")]
+func (p *Parser) usingEntry() ast.UsingEntryNode {
+	var left ast.UsingEntryNode
+	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Span().Join(right.Span()),
+			nil,
+			right,
+		)
+	} else {
+		left = p.constant()
+	}
+
+	for p.lookahead.Type == token.SCOPE_RES_OP {
+		p.advance()
+
+		p.swallowNewlines()
+		if p.accept(token.PUBLIC_IDENTIFIER) {
+			nameTok := p.advance()
+			return ast.NewMethodLookupNode(
+				left.Span().Join(nameTok.Span()),
+				left,
+				nameTok.Value,
+			)
+		}
+		if p.accept(token.STAR) {
+			starTok := p.advance()
+			return ast.NewUsingAllEntryNode(
+				left.Span().Join(starTok.Span()),
+				left,
+			)
+		}
+		if p.accept(token.LBRACE) {
+			p.advance()
+			subentryList := p.usingSubentryList(token.RBRACE)
+			rbrace, ok := p.consume(token.RBRACE)
+			if !ok {
+				ast.NewInvalidNode(rbrace.Span(), rbrace)
+			}
+
+			return ast.NewUsingEntryWithSubentriesNode(
+				left.Span().Join(rbrace.Span()),
+				left,
+				subentryList,
+			)
+		}
+
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+
+		left = ast.NewConstantLookupNode(
+			left.Span().Join(right.Span()),
+			left,
+			right,
+		)
+	}
+
+	return left
+}
+
+// usingDeclaration = "using" usingEntryList
 func (p *Parser) usingDeclaration(allowed bool) ast.ExpressionNode {
 	usingTok := p.advance()
 	p.swallowNewlines()
-	constList := p.constantList()
+	constList := p.usingEntryList()
 
 	if !allowed {
 		p.errorMessageSpan(
@@ -6065,21 +6205,35 @@ func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 	return expr
 }
 
+func (p *Parser) publicIdentifier() *ast.PublicIdentifierNode {
+	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER)
+	if !ok {
+		panic(fmt.Sprintf("invalid public identifier token: %#v", ident))
+	}
+	return ast.NewPublicIdentifierNode(
+		ident.Span(),
+		ident.Value,
+	)
+}
+
+func (p *Parser) privateIdentifier() *ast.PrivateIdentifierNode {
+	ident, ok := p.matchOk(token.PRIVATE_IDENTIFIER)
+	if !ok {
+		panic(fmt.Sprintf("invalid private identifier token: %#v", ident))
+	}
+	return ast.NewPrivateIdentifierNode(
+		ident.Span(),
+		ident.Value,
+	)
+}
+
 // identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER
 func (p *Parser) identifier() ast.IdentifierNode {
 	if p.accept(token.PUBLIC_IDENTIFIER) {
-		ident := p.advance()
-		return ast.NewPublicIdentifierNode(
-			ident.Span(),
-			ident.Value,
-		)
+		return p.publicIdentifier()
 	}
 	if p.accept(token.PRIVATE_IDENTIFIER) {
-		ident := p.advance()
-		return ast.NewPrivateIdentifierNode(
-			ident.Span(),
-			ident.Value,
-		)
+		return p.privateIdentifier()
 	}
 
 	p.errorExpected("an identifier")

@@ -317,8 +317,10 @@ func (*InterpolatedStringLiteralNode) expressionNode()     {}
 func (*VariableDeclarationNode) expressionNode()           {}
 func (*ValueDeclarationNode) expressionNode()              {}
 func (*PublicIdentifierNode) expressionNode()              {}
+func (*PublicIdentifierAsNode) expressionNode()            {}
 func (*PrivateIdentifierNode) expressionNode()             {}
 func (*PublicConstantNode) expressionNode()                {}
+func (*PublicConstantAsNode) expressionNode()              {}
 func (*PrivateConstantNode) expressionNode()               {}
 func (*SelfLiteralNode) expressionNode()                   {}
 func (*DoExpressionNode) expressionNode()                  {}
@@ -338,6 +340,9 @@ func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
+func (*MethodLookupNode) expressionNode()                  {}
+func (*UsingAllEntryNode) expressionNode()                 {}
+func (*UsingEntryWithSubentriesNode) expressionNode()      {}
 func (*ClosureLiteralNode) expressionNode()                {}
 func (*ClassDeclarationNode) expressionNode()              {}
 func (*ModuleDeclarationNode) expressionNode()             {}
@@ -686,12 +691,40 @@ func (*ConstantLookupNode) complexConstantNode()  {}
 func (*GenericConstantNode) complexConstantNode() {}
 func (*NilLiteralNode) complexConstantNode()      {}
 
+// Represents all nodes that are valid in using declarations
+type UsingEntryNode interface {
+	TypedNode
+	ExpressionNode
+	usingEntryNode()
+}
+
+func (*InvalidNode) usingEntryNode()                  {}
+func (*PublicConstantNode) usingEntryNode()           {}
+func (*PrivateConstantNode) usingEntryNode()          {}
+func (*ConstantLookupNode) usingEntryNode()           {}
+func (*MethodLookupNode) usingEntryNode()             {}
+func (*UsingAllEntryNode) usingEntryNode()            {}
+func (*UsingEntryWithSubentriesNode) usingEntryNode() {}
+
+type UsingSubentryNode interface {
+	TypedNode
+	ExpressionNode
+	usingSubentryNode()
+}
+
+func (*InvalidNode) usingSubentryNode()            {}
+func (*PublicConstantNode) usingSubentryNode()     {}
+func (*PublicConstantAsNode) usingSubentryNode()   {}
+func (*PublicIdentifierNode) usingSubentryNode()   {}
+func (*PublicIdentifierAsNode) usingSubentryNode() {}
+
 // All nodes that should be valid constants
 // should implement this interface.
 type ConstantNode interface {
 	Node
 	TypeNode
 	ExpressionNode
+	UsingEntryNode
 	ComplexConstantNode
 	constantNode()
 }
@@ -2898,6 +2931,106 @@ func NewConstantLookupNode(span *position.Span, left ExpressionNode, right Compl
 	}
 }
 
+// Represents a method lookup expression eg. `Foo::bar`, `a::c`
+type MethodLookupNode struct {
+	TypedNodeBase
+	Receiver ExpressionNode
+	Name     string
+}
+
+func (*MethodLookupNode) IsStatic() bool {
+	return false
+}
+
+// Create a new method lookup expression node eg. `Foo::bar`, `a::c`
+func NewMethodLookupNode(span *position.Span, receiver ExpressionNode, name string) *MethodLookupNode {
+	return &MethodLookupNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Receiver:      receiver,
+		Name:          name,
+	}
+}
+
+// Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
+type UsingAllEntryNode struct {
+	NodeBase
+	Namespace ExpressionNode
+}
+
+func (*UsingAllEntryNode) IsStatic() bool {
+	return false
+}
+
+// Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
+func NewUsingAllEntryNode(span *position.Span, namespace UsingEntryNode) *UsingAllEntryNode {
+	return &UsingAllEntryNode{
+		NodeBase:  NodeBase{span: span},
+		Namespace: namespace,
+	}
+}
+
+// Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
+type UsingEntryWithSubentriesNode struct {
+	NodeBase
+	Namespace  ExpressionNode
+	Subentries []UsingSubentryNode
+}
+
+func (*UsingEntryWithSubentriesNode) IsStatic() bool {
+	return false
+}
+
+// Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
+func NewUsingEntryWithSubentriesNode(span *position.Span, namespace UsingEntryNode, subentries []UsingSubentryNode) *UsingEntryWithSubentriesNode {
+	return &UsingEntryWithSubentriesNode{
+		NodeBase:   NodeBase{span: span},
+		Namespace:  namespace,
+		Subentries: subentries,
+	}
+}
+
+// Represents an identifier with as in using declarations
+// eg. `foo as bar`.
+type PublicIdentifierAsNode struct {
+	NodeBase
+	TargetName string
+	AsName     string
+}
+
+func (*PublicIdentifierAsNode) IsStatic() bool {
+	return false
+}
+
+// Create a new identifier with as eg. `foo as bar`.
+func NewPublicIdentifierAsNode(span *position.Span, target, as string) *PublicIdentifierAsNode {
+	return &PublicIdentifierAsNode{
+		NodeBase:   NodeBase{span: span},
+		TargetName: target,
+		AsName:     as,
+	}
+}
+
+// Represents a constant with as in using declarations
+// eg. `Foo as Bar`.
+type PublicConstantAsNode struct {
+	NodeBase
+	TargetName string
+	AsName     string
+}
+
+func (*PublicConstantAsNode) IsStatic() bool {
+	return false
+}
+
+// Create a new identifier with as eg. `Foo as Bar`.
+func NewPublicConstantAsNode(span *position.Span, target, as string) *PublicConstantAsNode {
+	return &PublicConstantAsNode{
+		NodeBase:   NodeBase{span: span},
+		TargetName: target,
+		AsName:     as,
+	}
+}
+
 // Indicates whether the parameter is a rest param
 type ParameterKind uint8
 
@@ -3623,7 +3756,7 @@ func NewAttrDeclarationNode(span *position.Span, docComment string, entries []Pa
 // Represents a using expression eg. `using Foo`
 type UsingExpressionNode struct {
 	TypedNodeBase
-	Constants []ComplexConstantNode
+	Constants []UsingEntryNode
 }
 
 func (*UsingExpressionNode) SkipTypechecking() bool {
@@ -3635,7 +3768,7 @@ func (*UsingExpressionNode) IsStatic() bool {
 }
 
 // Create a using expression node eg. `using Foo`
-func NewUsingExpressionNode(span *position.Span, consts []ComplexConstantNode) *UsingExpressionNode {
+func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *UsingExpressionNode {
 	return &UsingExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Constants:     consts,

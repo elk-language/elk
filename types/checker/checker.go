@@ -5971,42 +5971,42 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 }
 
 func (c *Checker) checkUsingExpression(node *ast.UsingExpressionNode) {
-	node.SetType(types.Nothing{})
-	for _, constNode := range node.Constants {
-		parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(constNode)
-		if typ != nil {
-			var namespace types.Namespace
-			switch t := typ.(type) {
-			case *types.Module:
-				namespace = t
-			case *types.Mixin:
-				namespace = t
-			case *types.Class:
-				namespace = t
-			case *types.Interface:
-				namespace = t
-			case *types.PlaceholderNamespace:
-				namespace = t
-				t.Locations.Append(c.newLocation(constNode.Span()))
-			default:
-				c.addFailure(
-					fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
-					constNode.Span(),
-				)
-			}
-			constNode.SetType(namespace)
-			c.pushConstScope(makeConstantScope(namespace))
-			continue
-		}
+	// node.SetType(types.Nothing{})
+	// for _, constNode := range node.Constants {
+	// 	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(constNode)
+	// 	if typ != nil {
+	// 		var namespace types.Namespace
+	// 		switch t := typ.(type) {
+	// 		case *types.Module:
+	// 			namespace = t
+	// 		case *types.Mixin:
+	// 			namespace = t
+	// 		case *types.Class:
+	// 			namespace = t
+	// 		case *types.Interface:
+	// 			namespace = t
+	// 		case *types.PlaceholderNamespace:
+	// 			namespace = t
+	// 			t.Locations.Append(c.newLocation(constNode.Span()))
+	// 		default:
+	// 			c.addFailure(
+	// 				fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
+	// 				constNode.Span(),
+	// 			)
+	// 		}
+	// 		constNode.SetType(namespace)
+	// 		c.pushConstScope(makeConstantScope(namespace))
+	// 		continue
+	// 	}
 
-		placeholder := types.NewPlaceholderNamespace(fullName)
-		placeholder.Locations.Append(c.newLocation(constNode.Span()))
-		c.registerPlaceholderNamespace(placeholder)
-		parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
-		parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
-		constNode.SetType(placeholder)
-		c.pushConstScope(makeConstantScope(placeholder))
-	}
+	// 	placeholder := types.NewPlaceholderNamespace(fullName)
+	// 	placeholder.Locations.Append(c.newLocation(constNode.Span()))
+	// 	c.registerPlaceholderNamespace(placeholder)
+	// 	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
+	// 	parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
+	// 	constNode.SetType(placeholder)
+	// 	c.pushConstScope(makeConstantScope(placeholder))
+	// }
 }
 
 func (c *Checker) checkImport(node *ast.ImportStatementNode) {

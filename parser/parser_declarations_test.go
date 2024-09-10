@@ -327,7 +327,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewInvalidNode(
 									S(P(5, 1, 6), P(4, 1, 5)),
 									T(S(P(5, 1, 6), P(4, 1, 5)), token.END_OF_FILE),
@@ -350,10 +350,101 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewPublicConstantNode(
 									S(P(6, 1, 7), P(15, 1, 16)),
 									"Enumerable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can specify all members of a namespace": {
+			input: "using Enumerable::*",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							[]ast.UsingEntryNode{
+								ast.NewUsingAllEntryNode(
+									S(P(6, 1, 7), P(18, 1, 19)),
+									ast.NewPublicConstantNode(
+										S(P(6, 1, 7), P(15, 1, 16)),
+										"Enumerable",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can specify members of a namespace": {
+			input: "using Enumerable::{Foo, bar}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.UsingEntryNode{
+								ast.NewUsingEntryWithSubentriesNode(
+									S(P(6, 1, 7), P(27, 1, 28)),
+									ast.NewPublicConstantNode(
+										S(P(6, 1, 7), P(15, 1, 16)),
+										"Enumerable",
+									),
+									[]ast.UsingSubentryNode{
+										ast.NewPublicConstantNode(
+											S(P(19, 1, 20), P(21, 1, 22)),
+											"Foo",
+										),
+										ast.NewPublicIdentifierNode(
+											S(P(24, 1, 25), P(26, 1, 27)),
+											"bar",
+										),
+									},
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can specify members of a namespace with changed names": {
+			input: "using Enumerable::{Foo as F, bar as b}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 1, 38)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(37, 1, 38)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(37, 1, 38)),
+							[]ast.UsingEntryNode{
+								ast.NewUsingEntryWithSubentriesNode(
+									S(P(6, 1, 7), P(37, 1, 38)),
+									ast.NewPublicConstantNode(
+										S(P(6, 1, 7), P(15, 1, 16)),
+										"Enumerable",
+									),
+									[]ast.UsingSubentryNode{
+										ast.NewPublicConstantAsNode(
+											S(P(19, 1, 20), P(26, 1, 27)),
+											"Foo",
+											"F",
+										),
+										ast.NewPublicIdentifierAsNode(
+											S(P(29, 1, 30), P(36, 1, 37)),
+											"bar",
+											"b",
+										),
+									},
 								),
 							},
 						),
@@ -375,7 +466,7 @@ func TestUsingExpression(t *testing.T) {
 							nil,
 							ast.NewUsingExpressionNode(
 								S(P(8, 1, 9), P(23, 1, 24)),
-								[]ast.ComplexConstantNode{
+								[]ast.UsingEntryNode{
 									ast.NewPublicConstantNode(
 										S(P(14, 1, 15), P(23, 1, 24)),
 										"Enumerable",
@@ -399,7 +490,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(27, 1, 28)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewPublicConstantNode(
 									S(P(6, 1, 7), P(15, 1, 16)),
 									"Enumerable",
@@ -423,7 +514,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(27, 2, 10)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(27, 2, 10)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewPublicConstantNode(
 									S(P(6, 1, 7), P(15, 1, 16)),
 									"Enumerable",
@@ -447,7 +538,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(16, 1, 17)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewPrivateConstantNode(
 									S(P(6, 1, 7), P(16, 1, 17)),
 									"_Enumerable",
@@ -467,7 +558,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewConstantLookupNode(
 									S(P(6, 1, 7), P(20, 1, 21)),
 									ast.NewPublicConstantNode(
@@ -485,6 +576,37 @@ func TestUsingExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have a method lookup as the argument": {
+			input: "using Std::Memoizable::memo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupNode(
+									S(P(6, 1, 7), P(26, 1, 27)),
+									ast.NewConstantLookupNode(
+										S(P(6, 1, 7), P(20, 1, 21)),
+										ast.NewPublicConstantNode(
+											S(P(6, 1, 7), P(8, 1, 9)),
+											"Std",
+										),
+										ast.NewPublicConstantNode(
+											S(P(11, 1, 12), P(20, 1, 21)),
+											"Memoizable",
+										),
+									),
+									"memo",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have a generic constant as the argument": {
 			input: "using Enumerable[String]",
 			want: ast.NewProgramNode(
@@ -494,7 +616,7 @@ func TestUsingExpression(t *testing.T) {
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewUsingExpressionNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
-							[]ast.ComplexConstantNode{
+							[]ast.UsingEntryNode{
 								ast.NewPublicConstantNode(S(P(6, 1, 7), P(15, 1, 16)), "Enumerable"),
 							},
 						),
