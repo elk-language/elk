@@ -4148,7 +4148,7 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		if !constScope.local {
+		if constScope.kind != scopeLocalKind {
 			continue
 		}
 		constant := constScope.container.ConstantString(name)
@@ -5971,42 +5971,58 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 }
 
 func (c *Checker) checkUsingExpression(node *ast.UsingExpressionNode) {
-	// node.SetType(types.Nothing{})
-	// for _, constNode := range node.Constants {
-	// 	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(constNode)
-	// 	if typ != nil {
-	// 		var namespace types.Namespace
-	// 		switch t := typ.(type) {
-	// 		case *types.Module:
-	// 			namespace = t
-	// 		case *types.Mixin:
-	// 			namespace = t
-	// 		case *types.Class:
-	// 			namespace = t
-	// 		case *types.Interface:
-	// 			namespace = t
-	// 		case *types.PlaceholderNamespace:
-	// 			namespace = t
-	// 			t.Locations.Append(c.newLocation(constNode.Span()))
-	// 		default:
-	// 			c.addFailure(
-	// 				fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
-	// 				constNode.Span(),
-	// 			)
-	// 		}
-	// 		constNode.SetType(namespace)
-	// 		c.pushConstScope(makeConstantScope(namespace))
-	// 		continue
-	// 	}
+	node.SetType(types.Nothing{})
+	for i, entry := range node.Entries {
+		node.Entries[i] = c.checkUsingEntryNode(entry)
+	}
+}
 
-	// 	placeholder := types.NewPlaceholderNamespace(fullName)
-	// 	placeholder.Locations.Append(c.newLocation(constNode.Span()))
-	// 	c.registerPlaceholderNamespace(placeholder)
-	// 	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
-	// 	parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
-	// 	constNode.SetType(placeholder)
-	// 	c.pushConstScope(makeConstantScope(placeholder))
-	// }
+func (c *Checker) checkUsingEntryNode(node ast.UsingEntryNode) ast.UsingEntryNode {
+	switch n := node.(type) {
+	case *ast.UsingAllEntryNode:
+		return c.checkUsingAllEntryNode(n)
+	// case *ast.PublicConstantNode:
+	default:
+		panic(fmt.Sprintf("invalid using entry node: %T", node))
+	}
+}
+
+func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
+	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(node.Namespace)
+	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Span(), fullName)
+	if typ != nil {
+		var namespace types.Namespace
+		switch t := typ.(type) {
+		case *types.Module:
+			namespace = t
+		case *types.Mixin:
+			namespace = t
+		case *types.Class:
+			namespace = t
+		case *types.Interface:
+			namespace = t
+		case *types.PlaceholderNamespace:
+			namespace = t
+			t.Locations.Append(c.newLocation(node.Span()))
+		default:
+			c.addFailure(
+				fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
+				node.Span(),
+			)
+		}
+		node.SetType(namespace)
+		c.pushConstScope(makeConstantScope(namespace))
+		return node
+	}
+
+	placeholder := types.NewPlaceholderNamespace(fullName)
+	placeholder.Locations.Append(c.newLocation(node.Span()))
+	c.registerPlaceholderNamespace(placeholder)
+	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
+	parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
+	node.SetType(placeholder)
+	c.pushConstScope(makeConstantScope(placeholder))
+	return node
 }
 
 func (c *Checker) checkImport(node *ast.ImportStatementNode) {
@@ -6305,9 +6321,10 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 }
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
-	for _, constNode := range node.Constants {
+	for _, constNode := range node.Entries {
 		var namespace types.Namespace
-		switch t := c.typeOf(constNode).(type) {
+		typ := c.typeOf(constNode)
+		switch t := typ.(type) {
 		case *types.Module:
 			namespace = t
 		case *types.Mixin:

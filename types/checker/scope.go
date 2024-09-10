@@ -4,42 +4,81 @@ import (
 	"github.com/elk-language/elk/types"
 )
 
+type scopeKind uint8
+
+const (
+	scopeDefaultKind scopeKind = iota
+	scopeLocalKind
+	scopeUsingKind
+)
+
 type constantScope struct {
 	container types.Namespace
-	local     bool
+	kind      scopeKind
+}
+
+func makeUsingConstantScope(container types.Namespace) constantScope {
+	return constantScope{
+		container: container,
+		kind:      scopeUsingKind,
+	}
 }
 
 func makeLocalConstantScope(container types.Namespace) constantScope {
 	return constantScope{
 		container: container,
-		local:     true,
+		kind:      scopeLocalKind,
 	}
 }
 
 func makeConstantScope(container types.Namespace) constantScope {
 	return constantScope{
 		container: container,
-		local:     false,
 	}
 }
 
 type methodScope struct {
 	container types.Namespace
-	local     bool
+	kind      scopeKind
+}
+
+func makeUsingMethodScope(container types.Namespace) methodScope {
+	return methodScope{
+		container: container,
+		kind:      scopeUsingKind,
+	}
 }
 
 func makeLocalMethodScope(container types.Namespace) methodScope {
 	return methodScope{
 		container: container,
-		local:     true,
+		kind:      scopeLocalKind,
 	}
 }
 
 func makeMethodScope(container types.Namespace) methodScope {
 	return methodScope{
 		container: container,
-		local:     false,
 	}
+}
+
+func (c *Checker) createUsingNamespace() types.Namespace {
+	mod := types.NewModule("", "Using namespace", c.GlobalEnv)
+	c.pushConstScope(constantScope(makeUsingConstantScope(mod)))
+	return mod
+}
+
+func (c *Checker) getUsingNamespace() types.Namespace {
+	if len(c.constantScopes) == 0 {
+		return c.createUsingNamespace()
+	}
+
+	scope := c.enclosingConstScope()
+	if scope.kind == scopeUsingKind {
+		return scope.container
+	}
+
+	return c.createUsingNamespace()
 }
 
 func (c *Checker) popConstScope() {
@@ -50,7 +89,7 @@ func (c *Checker) popConstScope() {
 func (c *Checker) popLocalConstScope() {
 	for i := len(c.constantScopes) - 1; i >= 0; i-- {
 		constScope := c.constantScopes[i]
-		if constScope.local {
+		if constScope.kind == scopeLocalKind {
 			c.constantScopes = c.constantScopes[:i]
 			c.clearConstScopeCopyCache()
 			return
@@ -102,7 +141,7 @@ func (c *Checker) clearMethodScopeCopyCache() {
 func (c *Checker) currentConstScope() constantScope {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		if constScope.local {
+		if constScope.kind == scopeLocalKind {
 			return constScope
 		}
 	}
@@ -130,7 +169,7 @@ func (c *Checker) pushMethodScope(methodScope methodScope) {
 func (c *Checker) currentMethodScope() methodScope {
 	for i := range len(c.methodScopes) {
 		methodScope := c.methodScopes[len(c.methodScopes)-i-1]
-		if methodScope.local {
+		if methodScope.kind == scopeLocalKind {
 			return methodScope
 		}
 	}

@@ -2953,7 +2953,7 @@ func NewMethodLookupNode(span *position.Span, receiver ExpressionNode, name stri
 
 // Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
 type UsingAllEntryNode struct {
-	NodeBase
+	TypedNodeBase
 	Namespace ExpressionNode
 }
 
@@ -2964,8 +2964,8 @@ func (*UsingAllEntryNode) IsStatic() bool {
 // Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
 func NewUsingAllEntryNode(span *position.Span, namespace UsingEntryNode) *UsingAllEntryNode {
 	return &UsingAllEntryNode{
-		NodeBase:  NodeBase{span: span},
-		Namespace: namespace,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Namespace:     namespace,
 	}
 }
 
@@ -3756,7 +3756,7 @@ func NewAttrDeclarationNode(span *position.Span, docComment string, entries []Pa
 // Represents a using expression eg. `using Foo`
 type UsingExpressionNode struct {
 	TypedNodeBase
-	Constants []UsingEntryNode
+	Entries []UsingEntryNode
 }
 
 func (*UsingExpressionNode) SkipTypechecking() bool {
@@ -3771,7 +3771,7 @@ func (*UsingExpressionNode) IsStatic() bool {
 func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *UsingExpressionNode {
 	return &UsingExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
-		Constants:     consts,
+		Entries:       consts,
 	}
 }
 
