@@ -120,6 +120,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", value.ToSymbol("Kernel"), env)
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents an ordered, mutable collection\nof elements indexed by integers starting at `0`.", value.ToSymbol("List"), env)
 			{
@@ -1273,6 +1274,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtype("Kernel").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout.", false, false, true, value.ToSymbol("print"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout with a newline.", false, false, true, value.ToSymbol("println"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("List").(*Interface)

@@ -1839,6 +1839,31 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	}
 }
 
+func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) *types.Method {
+	method := c.getMethod(c.selfType, name, nil)
+	if method != nil {
+		return method
+	}
+
+	for _, methodScope := range c.methodScopes {
+		switch methodScope.kind {
+		case scopeUsingBufferKind, scopeUsingKind:
+		default:
+			continue
+		}
+
+		namespace := methodScope.container
+		method := c.getMethod(namespace, name, nil)
+		if method != nil {
+			return method
+		}
+	}
+
+	c.addMissingMethodError(c.selfType, name.String(), span)
+
+	return nil
+}
+
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	typ = c.toNonLiteral(typ, true)
 

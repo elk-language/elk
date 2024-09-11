@@ -24,6 +24,11 @@ func (g *GlobalEnvironment) StdSubtypeClass(name value.Symbol) *Class {
 	return s.Type.(*Class)
 }
 
+func (g *GlobalEnvironment) StdSubtypeModule(name value.Symbol) *Module {
+	s, _ := g.Std().Subtype(name)
+	return s.Type.(*Module)
+}
+
 func (g *GlobalEnvironment) StdSubtypeString(name string) Type {
 	s, _ := g.Std().SubtypeString(name)
 	return s.Type
@@ -90,6 +95,8 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	stdModule.DefineClass("", false, false, false, symbol.Mixin, objectClass, env)
 	stdModule.DefineClass("", false, false, false, symbol.Interface, objectClass, env)
+
+	stdModule.DefineModule("", symbol.Kernel, env)
 
 	boolClass := stdModule.DefineClass("", false, true, true, symbol.Bool, valueClass, env)
 	stdModule.DefineClass("", false, true, true, symbol.True, boolClass, env)

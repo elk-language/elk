@@ -120,6 +120,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		},
 		methodScopes: []methodScope{
 			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
+			makeUsingMethodScope(globalEnv.StdSubtypeModule(symbol.Kernel)),
 		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -146,6 +147,7 @@ func New() *Checker {
 		},
 		methodScopes: []methodScope{
 			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
+			makeUsingMethodScope(globalEnv.StdSubtypeModule(symbol.Kernel)),
 		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -3090,7 +3092,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
+	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -3123,10 +3125,26 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		typedPositionalArguments = c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	}
 
-	node.PositionalArguments = typedPositionalArguments
-	node.NamedArguments = nil
-	node.SetType(method.ReturnType)
-	return node
+	var receiver ast.ExpressionNode
+	switch method.DefinedUnder.(type) {
+	case *types.Module, *types.SingletonClass:
+		// from using
+		receiver = ast.NewPublicConstantNode(node.Span(), method.DefinedUnder.Name())
+	default:
+		// from self
+		receiver = ast.NewSelfLiteralNode(node.Span())
+	}
+
+	newNode := ast.NewMethodCallNode(
+		node.Span(),
+		receiver,
+		token.New(node.Span(), token.DOT),
+		method.Name.String(),
+		typedPositionalArguments,
+		nil,
+	)
+	newNode.SetType(method.ReturnType)
+	return newNode
 }
 
 func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
@@ -3859,21 +3877,21 @@ func (c *Checker) addUnreachableCodeError(span *position.Span) {
 }
 
 // Get the type of the subtype with the given name
-func (c *Checker) resolveConstantTypeInRoot(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string, string) {
+func (c *Checker) resolveTypeInRoot(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleConstantTypeInRoot(constant.Value), constant.Value, constant.Value
+		return c.GlobalEnv.Root, c.resolveSimpleTypeInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.PrivateConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleConstantTypeInRoot(constant.Value), constant.Value, constant.Value
+		return c.GlobalEnv.Root, c.resolveSimpleTypeInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.ConstantLookupNode:
-		return c.resolveConstantLookupTypeInRoot(constant)
+		return c.resolveTypeLookupInRoot(constant)
 	default:
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
 
 // Get the type of the constant with the given name
-func (c *Checker) resolveSimpleConstantTypeInRoot(name string) types.Type {
+func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
 	root := c.GlobalEnv.Root
 	constant, ok := root.SubtypeString(name)
 	if ok {
@@ -3882,7 +3900,17 @@ func (c *Checker) resolveSimpleConstantTypeInRoot(name string) types.Type {
 	return nil
 }
 
-func (c *Checker) resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string, string) {
+// Get the type of the constant with the given name
+func (c *Checker) resolveSimpleConstantInRoot(name string) types.Type {
+	root := c.GlobalEnv.Root
+	constant, ok := root.ConstantString(name)
+	if ok {
+		return constant.Type
+	}
+	return nil
+}
+
+func (c *Checker) resolveTypeLookupInRoot(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string, string) {
 	return c._resolveConstantLookupTypeInRoot(node, true)
 }
 
@@ -6027,8 +6055,14 @@ func (c *Checker) checkUsingEntryNode(node ast.UsingEntryNode) ast.UsingEntryNod
 	switch n := node.(type) {
 	case *ast.UsingAllEntryNode:
 		return c.checkUsingAllEntryNode(n)
-	case *ast.PublicConstantNode:
-		return c.checkUsingPublicConstantEntryNode(n)
+	case *ast.PublicConstantNode, *ast.PrivateConstantNode:
+		c.addFailure(
+			"this using statement wil have no effect",
+			node.Span(),
+		)
+		return node
+	// case *ast.ConstantLookupNode:
+	// 	return c.checkUsingConstantLookupEntryNode(n)
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
@@ -6056,7 +6090,6 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 			)
 		}
 
-		c.pushConstScope(makeConstantScope(namespace))
 		return namespace
 	}
 
@@ -6065,25 +6098,40 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 	c.registerPlaceholderNamespace(placeholder)
 	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
 	parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
-	c.pushConstScope(makeConstantScope(placeholder))
 	return placeholder
 }
 
-func (c *Checker) checkUsingPublicConstantEntryNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
-	constName := node.Value
-	typ := c.resolveSimpleConstantTypeInRoot(node.Value)
-	namespace := c.checkSimpleUsingEntry(typ, constName, constName, c.GlobalEnv.Root, node.Span())
-	node.SetType(namespace)
-	c.pushConstScope(makeConstantScope(namespace))
-	return node
-}
+// func (c *Checker) checkUsingConstantLookupEntryNode(node *ast.ConstantLookupNode) ast.UsingEntryNode {
+// 	parentNamespace, typ, fullName, constName := c.resolveTypeInRoot(node)
+// 	newNode := ast.NewPublicConstantNode(node.Span(), fullName)
+// 	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Span())
+// 	node.SetType(namespace)
+// 	c.pushConstScope(makeUsingConstantScope(namespace))
+// 	singleton := namespace.Singleton()
+// 	if singleton == nil {
+// 		c.pushMethodScope(makeUsingMethodScope(namespace))
+// 	} else {
+// 		c.pushMethodScope(makeUsingMethodScope(singleton))
+// 	}
+
+// 	return newNode
+// }
 
 func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
-	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(node.Namespace)
+	parentNamespace, typ, fullName, constName := c.resolveTypeInRoot(node.Namespace)
 	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Span(), fullName)
 	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Span())
+	if namespace == nil {
+		return node
+	}
 	node.SetType(namespace)
-	c.pushConstScope(makeConstantScope(namespace))
+	c.pushConstScope(makeUsingConstantScope(namespace))
+	singleton := namespace.Singleton()
+	if singleton == nil {
+		c.pushMethodScope(makeUsingMethodScope(namespace))
+	} else {
+		c.pushMethodScope(makeUsingMethodScope(singleton))
+	}
 	return node
 }
 

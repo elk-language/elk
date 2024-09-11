@@ -47,6 +47,7 @@ var (
 	StringConvertible = value.ToSymbol("StringConvertible")
 	Inspectable       = value.ToSymbol("Inspectable")
 	AnyInt            = value.ToSymbol("AnyInt")
+	Kernel            = value.ToSymbol("Kernel")
 )
 
 var (
