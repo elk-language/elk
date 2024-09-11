@@ -109,6 +109,10 @@ func (t *TypeParamNamespace) Subtype(name value.Symbol) (Constant, bool) {
 	return result, ok
 }
 
+func (t *TypeParamNamespace) MustSubtype(name string) Type {
+	return t.subtypes[value.ToSymbol(name)].Type
+}
+
 func (t *TypeParamNamespace) SubtypeString(name string) (Constant, bool) {
 	return t.Subtype(value.ToSymbol(name))
 }

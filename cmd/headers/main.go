@@ -61,9 +61,9 @@ func main() {
 
 func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment) bool {
 	objectClass := env.StdSubtypeClass(symbol.Object)
-	return namespace.Constants().Len() > 0 ||
-		namespace.Methods().Len() > 0 ||
-		namespace.InstanceVariables().Len() > 0 ||
+	return len(namespace.Constants()) > 0 ||
+		len(namespace.Methods()) > 0 ||
+		len(namespace.InstanceVariables()) > 0 ||
 		namespace.Parent() != nil && namespace.Parent() != objectClass
 }
 
@@ -100,7 +100,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			buffer,
 			`
 				{
-					namespace := namespace.SubtypeString(%q).(*%s)
+					namespace := namespace.MustSubtype(%q).(*%s)
 			`,
 			types.GetConstantName(namespace.Name()),
 			namespaceType,
@@ -181,7 +181,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			`namespace.DefineConstant(value.ToSymbol(%q), %s)
 			`,
 			name,
-			typeToCode(typ, false),
+			typeToCode(typ.Type, false),
 		)
 	}
 
@@ -197,7 +197,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	}
 
 	for _, subtype := range types.SortedSubtypes(namespace) {
-		subtypeNamespace, ok := subtype.(types.Namespace)
+		subtypeNamespace, ok := subtype.Type.(types.Namespace)
 		if !ok {
 			continue
 		}
@@ -264,7 +264,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
 	for name, subtype := range types.SortedSubtypes(namespace) {
-		switch s := subtype.(type) {
+		switch s := subtype.Type.(type) {
 		case *types.Class:
 			defineClass(buffer, s, name.String())
 		case *types.Mixin:
@@ -291,7 +291,7 @@ func defineSubtype(buffer *bytes.Buffer, subtype types.Type, name string) {
 }
 
 func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) {
-	hasSubtypes := class.Subtypes().Len() > 0
+	hasSubtypes := len(class.Subtypes()) > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
 	}
@@ -323,7 +323,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 }
 
 func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) {
-	hasSubtypes := mixin.Subtypes().Len() > 0
+	hasSubtypes := len(mixin.Subtypes()) > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
 	}
@@ -345,7 +345,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 }
 
 func defineModule(buffer *bytes.Buffer, module *types.Module, constantName string) {
-	hasSubtypes := module.Subtypes().Len() > 0
+	hasSubtypes := len(module.Subtypes()) > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
 	}
@@ -366,7 +366,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 }
 
 func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName string) {
-	hasSubtypes := iface.Subtypes().Len() > 0
+	hasSubtypes := len(iface.Subtypes()) > 0
 	if hasSubtypes {
 		buffer.WriteString(`{ namespace :=`)
 	}

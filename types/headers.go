@@ -197,7 +197,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		// Define instance variables
 
 		{
-			namespace := namespace.SubtypeString("Std").(*Module)
+			namespace := namespace.MustSubtype("Std").(*Module)
 
 			namespace.Name() // noop - avoid unused variable error
 
@@ -210,7 +210,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			// Define instance variables
 
 			{
-				namespace := namespace.SubtypeString("ArrayList").(*Class)
+				namespace := namespace.MustSubtype("ArrayList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -246,7 +246,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Iterator").(*Class)
+					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -264,7 +264,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("ArrayTuple").(*Class)
+				namespace := namespace.MustSubtype("ArrayTuple").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT)})
@@ -289,7 +289,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Iterator").(*Class)
+					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT)})
@@ -307,7 +307,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("BigFloat").(*Class)
+				namespace := namespace.MustSubtype("BigFloat").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -353,7 +353,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Bool").(*Class)
+				namespace := namespace.MustSubtype("Bool").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -367,7 +367,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Char").(*Class)
+				namespace := namespace.MustSubtype("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -405,7 +405,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Collection").(*Interface)
+				namespace := namespace.MustSubtype("Collection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT)})
@@ -429,7 +429,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
@@ -451,7 +451,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("False").(*Class)
+				namespace := namespace.MustSubtype("False").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
@@ -467,7 +467,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Float").(*Class)
+				namespace := namespace.MustSubtype("Float").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -510,7 +510,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Float32").(*Class)
+				namespace := namespace.MustSubtype("Float32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -553,7 +553,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Float64").(*Class)
+				namespace := namespace.MustSubtype("Float64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -596,7 +596,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("HashMap").(*Class)
+				namespace := namespace.MustSubtype("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -629,7 +629,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Iterator").(*Class)
+					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -648,7 +648,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("HashRecord").(*Class)
+				namespace := namespace.MustSubtype("HashRecord").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -677,7 +677,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Iterator").(*Class)
+					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -696,7 +696,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("HashSet").(*Class)
+				namespace := namespace.MustSubtype("HashSet").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -730,7 +730,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Iterator").(*Class)
+					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -748,7 +748,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("Hashable").(*Interface)
+				namespace := namespace.MustSubtype("Hashable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -762,7 +762,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("ImmutableCollection").(*Interface)
+				namespace := namespace.MustSubtype("ImmutableCollection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT)})
@@ -780,7 +780,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -799,7 +799,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("ImmutableSet").(*Interface)
+				namespace := namespace.MustSubtype("ImmutableSet").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT)})
@@ -819,7 +819,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -840,7 +840,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("Inspectable").(*Interface)
+				namespace := namespace.MustSubtype("Inspectable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -854,7 +854,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Int").(*Class)
+				namespace := namespace.MustSubtype("Int").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -905,7 +905,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Int16").(*Class)
+				namespace := namespace.MustSubtype("Int16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -958,7 +958,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Int32").(*Class)
+				namespace := namespace.MustSubtype("Int32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1011,7 +1011,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Int64").(*Class)
+				namespace := namespace.MustSubtype("Int64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1064,7 +1064,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Int8").(*Class)
+				namespace := namespace.MustSubtype("Int8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1117,7 +1117,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Iterable").(*Interface)
+				namespace := namespace.MustSubtype("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)})
@@ -1163,7 +1163,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -1180,7 +1180,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.SubtypeString("FiniteBase").(*Mixin)
+					namespace := namespace.MustSubtype("FiniteBase").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -1223,7 +1223,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.SubtypeString("NotFoundError").(*Class)
+					namespace := namespace.MustSubtype("NotFoundError").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -1238,7 +1238,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("Iterator").(*Interface)
+				namespace := namespace.MustSubtype("Iterator").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT)})
@@ -1256,7 +1256,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -1275,7 +1275,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("List").(*Interface)
+				namespace := namespace.MustSubtype("List").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT)})
@@ -1295,7 +1295,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
@@ -1316,7 +1316,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("Map").(*Interface)
+				namespace := namespace.MustSubtype("Map").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT)})
@@ -1335,7 +1335,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Method").(*Class)
+				namespace := namespace.MustSubtype("Method").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1349,7 +1349,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Nil").(*Class)
+				namespace := namespace.MustSubtype("Nil").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1365,7 +1365,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Object").(*Class)
+				namespace := namespace.MustSubtype("Object").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1379,7 +1379,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("OutOfRangeError").(*Class)
+				namespace := namespace.MustSubtype("OutOfRangeError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -1393,7 +1393,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Pair").(*Class)
+				namespace := namespace.MustSubtype("Pair").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT)})
@@ -1417,7 +1417,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Record").(*Interface)
+				namespace := namespace.MustSubtype("Record").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT)})
@@ -1444,7 +1444,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Regex").(*Class)
+				namespace := namespace.MustSubtype("Regex").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1462,7 +1462,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Set").(*Interface)
+				namespace := namespace.MustSubtype("Set").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT)})
@@ -1487,7 +1487,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
@@ -1509,7 +1509,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("String").(*Class)
+				namespace := namespace.MustSubtype("String").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1552,7 +1552,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("ByteIterator").(*Class)
+					namespace := namespace.MustSubtype("ByteIterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1567,7 +1567,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.SubtypeString("CharIterator").(*Class)
+					namespace := namespace.MustSubtype("CharIterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1583,7 +1583,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("StringConvertible").(*Interface)
+				namespace := namespace.MustSubtype("StringConvertible").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1597,7 +1597,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Symbol").(*Class)
+				namespace := namespace.MustSubtype("Symbol").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1618,7 +1618,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("True").(*Class)
+				namespace := namespace.MustSubtype("True").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
@@ -1634,7 +1634,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Tuple").(*Interface)
+				namespace := namespace.MustSubtype("Tuple").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT)})
@@ -1654,7 +1654,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.SubtypeString("Base").(*Mixin)
+					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
@@ -1675,7 +1675,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.SubtypeString("UInt16").(*Class)
+				namespace := namespace.MustSubtype("UInt16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1728,7 +1728,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("UInt32").(*Class)
+				namespace := namespace.MustSubtype("UInt32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1781,7 +1781,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("UInt64").(*Class)
+				namespace := namespace.MustSubtype("UInt64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1834,7 +1834,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("UInt8").(*Class)
+				namespace := namespace.MustSubtype("UInt8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1887,7 +1887,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.SubtypeString("Value").(*Class)
+				namespace := namespace.MustSubtype("Value").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 

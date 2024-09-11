@@ -12,7 +12,6 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"
 )
 
@@ -91,10 +90,6 @@ var cmpOpts = []cmp.Option{
 		types.Class{},
 		types.Mixin{},
 		types.MixinProxy{},
-	),
-	cmpopts.IgnoreUnexported(
-		types.MethodMap{},
-		types.TypeMap{},
 	),
 }
 

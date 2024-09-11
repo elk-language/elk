@@ -112,6 +112,10 @@ func (c *Closure) SubtypeString(name string) (Constant, bool) {
 	return Constant{}, false
 }
 
+func (c *Closure) MustSubtype(name string) Type {
+	return nil
+}
+
 func (c *Closure) DefineSubtype(name value.Symbol, val Type) {
 	panic("cannot define subtypes on closures")
 }

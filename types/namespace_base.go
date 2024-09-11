@@ -113,6 +113,10 @@ func (c *NamespaceBase) SubtypeString(name string) (Constant, bool) {
 	return c.Subtype(value.ToSymbol(name))
 }
 
+func (c *NamespaceBase) MustSubtype(name string) Type {
+	return c.subtypes[value.ToSymbol(name)].Type
+}
+
 // Get the method with the given name.
 func (c *NamespaceBase) Method(name value.Symbol) *Method {
 	return c.methods[name]

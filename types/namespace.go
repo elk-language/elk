@@ -36,6 +36,7 @@ type Namespace interface {
 	Subtypes() ConstantMap
 	Subtype(name value.Symbol) (Constant, bool)
 	SubtypeString(name string) (Constant, bool)
+	MustSubtype(name string) Type
 	DefineSubtype(name value.Symbol, val Type)
 	DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type)
 

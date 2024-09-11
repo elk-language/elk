@@ -3893,9 +3893,10 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
 		namespace := c.GlobalEnv.Root
-		leftContainerType = namespace.ConstantString(l.Value)
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
-		if leftContainerType == nil {
+		if !ok {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
@@ -3906,9 +3907,10 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 		}
 	case *ast.PrivateConstantNode:
 		namespace := c.GlobalEnv.Root
-		leftContainerType = namespace.ConstantString(l.Value)
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
-		if leftContainerType == nil {
+		if !ok {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
@@ -3972,18 +3974,22 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	}
 
 	rightSymbol := value.ToSymbol(rightName)
-	constant := leftContainer.Constant(rightSymbol)
-	if constant == nil && !firstCall {
+	constant, ok := leftContainer.Constant(rightSymbol)
+	if len(constant.FullName) > 0 {
+		fullName = constant.FullName
+	}
+	constantType := constant.Type
+	if !ok && !firstCall {
 		placeholder := types.NewPlaceholderNamespace(fullName)
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
-		constant = placeholder
+		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
-	} else if placeholder, ok := constant.(*types.PlaceholderNamespace); ok {
+	} else if placeholder, ok := constantType.(*types.PlaceholderNamespace); ok {
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 	}
 
-	return leftContainer, constant, fullName, rightName
+	return leftContainer, constantType, fullName, rightName
 }
 
 // Get the type of the constant with the given name
@@ -4015,9 +4021,10 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
-		leftContainerType = namespace.ConstantString(l.Value)
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
-		if leftContainerType == nil {
+		if !ok {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
@@ -4028,9 +4035,10 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		}
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
-		leftContainerType = namespace.ConstantString(l.Value)
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
-		if leftContainerType == nil {
+		if !ok {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
@@ -4094,27 +4102,34 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	}
 
 	rightSymbol := value.ToSymbol(rightName)
-	constant := leftContainer.Constant(rightSymbol)
-	if constant == nil && !firstCall {
+	constant, ok := leftContainer.Constant(rightSymbol)
+	constantType := constant.Type
+	if !ok && !firstCall {
 		placeholder := types.NewPlaceholderNamespace(constantName)
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
-		constant = placeholder
+		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
-	} else if placeholder, ok := constant.(*types.PlaceholderNamespace); ok {
+	} else if placeholder, ok := constantType.(*types.PlaceholderNamespace); ok {
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 	}
 
-	return leftContainer, constant, constantName
+	return leftContainer, constantType, constantName
 }
 
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, types.Type, string) {
 	namespace := c.currentConstScope().container
-	constant := namespace.ConstantString(name)
-	fullName := types.MakeFullConstantName(namespace.Name(), name)
-	if constant != nil {
-		return namespace, constant, fullName
+	constant, ok := namespace.ConstantString(name)
+	var fullName string
+	if len(constant.FullName) > 0 {
+		fullName = constant.FullName
+	} else {
+		fullName = types.MakeFullConstantName(namespace.Name(), name)
+	}
+
+	if ok {
+		return namespace, constant.Type, constant.FullName
 	}
 	return namespace, nil, fullName
 }
@@ -4123,18 +4138,27 @@ func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, 
 func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant := constScope.container.ConstantString(name)
-		if constant != nil {
-			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
-			if types.IsNoValue(constant) {
-				c.addFailure(
-					fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
-					span,
-				)
-				return nil, fullName
-			}
-			return constant, fullName
+		constant, ok := constScope.container.ConstantString(name)
+		if !ok {
+			continue
 		}
+
+		var fullName string
+		if len(constant.FullName) > 0 {
+			fullName = constant.FullName
+		} else {
+			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+		}
+
+		if types.IsNoValue(constant.Type) {
+			c.addFailure(
+				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
+				span,
+			)
+			return nil, fullName
+		}
+		return constant.Type, fullName
+
 	}
 
 	c.addFailure(
@@ -4151,18 +4175,27 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		if constScope.kind != scopeLocalKind {
 			continue
 		}
-		constant := constScope.container.ConstantString(name)
-		if constant != nil {
-			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
-			if types.IsNoValue(constant) {
-				c.addFailure(
-					fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
-					span,
-				)
-				return nil, fullName
-			}
-			return constant, fullName
+		constant, ok := constScope.container.ConstantString(name)
+		if !ok {
+			continue
 		}
+
+		var fullName string
+		if len(constant.FullName) > 0 {
+			fullName = constant.FullName
+		} else {
+			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+		}
+
+		if types.IsNoValue(constant.Type) {
+			c.addFailure(
+				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
+				span,
+			)
+			return nil, fullName
+		}
+		return constant.Type, fullName
+
 	}
 
 	c.addFailure(
@@ -4189,12 +4222,12 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 		}
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-			if e.Subtype(t.Name) != nil {
+			if _, ok := e.Subtype(t.Name); ok {
 				break
 			}
 		}
 		currentScope := c.currentConstScope().container
-		if currentScope.Subtype(t.Name) != nil {
+		if _, ok := currentScope.Subtype(t.Name); ok {
 			break
 		}
 
@@ -4213,12 +4246,12 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 		}
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-			if e.Subtype(t.Name) != nil {
+			if _, ok := e.Subtype(t.Name); ok {
 				break
 			}
 		}
 		currentScope := c.currentConstScope().container
-		if currentScope.Subtype(t.Name) != nil {
+		if _, ok := currentScope.Subtype(t.Name); ok {
 			break
 		}
 
@@ -4229,7 +4262,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 		return false
 	case namedGenericTypeDefinitionMode, inheritanceMode, instanceVariableMode:
 		enclosingScope := c.enclosingConstScope().container
-		if enclosingScope.Subtype(t.Name) == nil {
+		if _, ok := enclosingScope.Subtype(t.Name); !ok {
 			c.addFailure(
 				fmt.Sprintf("undefined type `%s`", types.InspectWithColor(t)),
 				span,
@@ -4239,12 +4272,12 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 	case methodMode, closureInferReturnTypeMode:
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
-			if e.Subtype(t.Name) != nil {
+			if _, ok := e.Subtype(t.Name); ok {
 				break
 			}
 		}
 		currentScope := c.currentConstScope().container
-		if currentScope.Subtype(t.Name) != nil {
+		if _, ok := currentScope.Subtype(t.Name); ok {
 			break
 		}
 
@@ -4267,18 +4300,25 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant := constScope.container.SubtypeString(name)
-		if constant != nil {
-			fullName := types.MakeFullConstantName(constScope.container.Name(), name)
-			if !c.checkTypeIfNecessary(fullName, span) {
-				return nil, fullName
-			}
+		constant, ok := constScope.container.SubtypeString(name)
+		if !ok {
+			continue
+		}
 
-			if c.checkIfTypeParameterIsAllowed(constant, span) {
-				return constant, fullName
-			}
+		var fullName string
+		if len(constant.FullName) > 0 {
+			fullName = constant.FullName
+		} else {
+			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+		}
+		if !c.checkTypeIfNecessary(fullName, span) {
 			return nil, fullName
 		}
+
+		if c.checkIfTypeParameterIsAllowed(constant.Type, span) {
+			return constant.Type, fullName
+		}
+		return nil, fullName
 	}
 
 	c.addFailure(
