@@ -56,9 +56,9 @@ func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 func NewModuleWithDetails(
 	docComment string,
 	name string,
-	consts *TypeMap,
-	subtypes *TypeMap,
-	methods *MethodMap,
+	consts ConstantMap,
+	subtypes ConstantMap,
+	methods MethodMap,
 	env *GlobalEnvironment,
 ) *Module {
 	return &Module{

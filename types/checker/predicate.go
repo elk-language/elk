@@ -718,7 +718,7 @@ func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, er
 }
 
 func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namespace, errSpan *position.Span) bool {
-	if c.phase == initPhase && len(b.Methods().Map) < 1 {
+	if c.phase == initPhase && len(b.Methods()) < 1 {
 		return false
 	}
 

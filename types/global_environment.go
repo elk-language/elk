@@ -10,27 +10,33 @@ type GlobalEnvironment struct {
 }
 
 func (g *GlobalEnvironment) Std() *Module {
-	return g.Root.Subtype(symbol.Std).(*Module)
+	s, _ := g.Root.Subtype(symbol.Std)
+	return s.Type.(*Module)
 }
 
 func (g *GlobalEnvironment) StdSubtype(name value.Symbol) Type {
-	return g.Std().Subtype(name)
+	s, _ := g.Std().Subtype(name)
+	return s.Type
 }
 
 func (g *GlobalEnvironment) StdSubtypeClass(name value.Symbol) *Class {
-	return g.Std().Subtype(name).(*Class)
+	s, _ := g.Std().Subtype(name)
+	return s.Type.(*Class)
 }
 
 func (g *GlobalEnvironment) StdSubtypeString(name string) Type {
-	return g.Std().SubtypeString(name)
+	s, _ := g.Std().SubtypeString(name)
+	return s.Type
 }
 
 func (g *GlobalEnvironment) StdConstString(name string) Type {
-	return g.Std().ConstantString(name)
+	s, _ := g.Std().ConstantString(name)
+	return s.Type
 }
 
 func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
-	return g.Std().Constant(name)
+	s, _ := g.Std().Constant(name)
+	return s.Type
 }
 
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {

@@ -6,15 +6,15 @@ import (
 
 type TypeParamNamespace struct {
 	name      string
-	constants *TypeMap
-	subtypes  *TypeMap
+	constants ConstantMap
+	subtypes  ConstantMap
 }
 
 func NewTypeParamNamespace(name string) *TypeParamNamespace {
 	return &TypeParamNamespace{
 		name:      name,
-		constants: NewTypeMap(),
-		subtypes:  NewTypeMap(),
+		constants: make(ConstantMap),
+		subtypes:  make(ConstantMap),
 	}
 }
 
@@ -74,41 +74,58 @@ func (t *TypeParamNamespace) SetTypeParameters([]*TypeParameter) {
 	panic("cannot set type parameters on a type parameter namespace")
 }
 
-func (t *TypeParamNamespace) Constants() *TypeMap {
+func (t *TypeParamNamespace) Constants() ConstantMap {
 	return t.constants
 }
 
-func (t *TypeParamNamespace) Constant(name value.Symbol) Type {
-	result, _ := t.constants.Get(name)
-	return result
+func (t *TypeParamNamespace) Constant(name value.Symbol) (Constant, bool) {
+	result, ok := t.constants[name]
+	return result, ok
 }
 
-func (t *TypeParamNamespace) ConstantString(name string) Type {
+func (t *TypeParamNamespace) ConstantString(name string) (Constant, bool) {
 	return t.Constant(value.ToSymbol(name))
 }
 
 func (t *TypeParamNamespace) DefineConstant(name value.Symbol, val Type) {
-	t.constants.Set(name, val)
+	t.constants[name] = Constant{
+		Type: val,
+	}
 }
 
-func (t *TypeParamNamespace) Subtypes() *TypeMap {
+func (t *TypeParamNamespace) DefineConstantWithFullName(name value.Symbol, fullName string, val Type) {
+	t.constants[name] = Constant{
+		Type:     val,
+		FullName: fullName,
+	}
+}
+
+func (t *TypeParamNamespace) Subtypes() ConstantMap {
 	return nil
 }
 
-func (t *TypeParamNamespace) Subtype(name value.Symbol) Type {
-	result, _ := t.subtypes.Get(name)
-	return result
+func (t *TypeParamNamespace) Subtype(name value.Symbol) (Constant, bool) {
+	result, ok := t.subtypes[name]
+	return result, ok
 }
 
-func (t *TypeParamNamespace) SubtypeString(name string) Type {
+func (t *TypeParamNamespace) SubtypeString(name string) (Constant, bool) {
 	return t.Subtype(value.ToSymbol(name))
 }
 
 func (t *TypeParamNamespace) DefineSubtype(name value.Symbol, val Type) {
-	t.subtypes.Set(name, val)
+	t.subtypes[name] = Constant{
+		Type: val,
+	}
 }
 
-func (t *TypeParamNamespace) Methods() *MethodMap {
+func (t *TypeParamNamespace) DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type) {
+	t.subtypes[name] = Constant{
+		Type: val,
+	}
+}
+
+func (t *TypeParamNamespace) Methods() MethodMap {
 	return nil
 }
 
@@ -127,7 +144,7 @@ func (t *TypeParamNamespace) DefineMethod(docComment string, abstract, sealed, n
 func (t *TypeParamNamespace) SetMethod(name value.Symbol, method *Method) {
 }
 
-func (t *TypeParamNamespace) InstanceVariables() *TypeMap {
+func (t *TypeParamNamespace) InstanceVariables() TypeMap {
 	return nil
 }
 

@@ -3875,9 +3875,9 @@ func (c *Checker) resolveConstantTypeInRoot(constantExpression ast.ExpressionNod
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleConstantTypeInRoot(name string) types.Type {
 	root := c.GlobalEnv.Root
-	constant := root.SubtypeString(name)
-	if constant != nil {
-		return constant
+	constant, ok := root.SubtypeString(name)
+	if ok {
+		return constant.Type
 	}
 	return nil
 }
@@ -4345,7 +4345,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			for name, ivar := range parent.InstanceVariables().Map {
+			for name, ivar := range parent.InstanceVariables() {
 				if seenIvars[name] {
 					continue
 				}
@@ -4448,22 +4448,25 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
-	constant := leftContainer.SubtypeString(rightName)
-	if constant == nil {
+	subtype, ok := leftContainer.SubtypeString(rightName)
+	if !ok {
 		c.addFailure(
 			fmt.Sprintf("undefined type `%s`", typeName),
 			node.Right.Span(),
 		)
 		return nil, typeName
 	}
-	if !c.checkIfTypeParameterIsAllowed(constant, node.Right.Span()) {
+	if len(subtype.FullName) > 0 {
+		typeName = subtype.FullName
+	}
+	if !c.checkIfTypeParameterIsAllowed(subtype.Type, node.Right.Span()) {
 		return nil, typeName
 	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Span()) {
 		return types.Nothing{}, typeName
 	}
-	return constant, typeName
+	return subtype.Type, typeName
 }
 
 func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ExpressionNode {
@@ -4984,23 +4987,26 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 		return nil, constantName
 	}
 
-	constant := leftContainer.ConstantString(rightName)
-	if constant == nil {
-		if types.IsNoValue(constant) {
-			c.addFailure(
-				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(constantName)),
-				node.Right.Span(),
-			)
-			return nil, constantName
-		}
+	constant, ok := leftContainer.ConstantString(rightName)
+	if !ok {
 		c.addFailure(
 			fmt.Sprintf("undefined constant `%s`", constantName),
 			node.Right.Span(),
 		)
 		return nil, constantName
 	}
+	if len(constant.FullName) > 0 {
+		constantName = constant.FullName
+	}
+	if types.IsNoValue(constant.Type) {
+		c.addFailure(
+			fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(constantName)),
+			node.Right.Span(),
+		)
+		return nil, constantName
+	}
 
-	return constant, constantName
+	return constant.Type, constantName
 }
 
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
@@ -5981,15 +5987,14 @@ func (c *Checker) checkUsingEntryNode(node ast.UsingEntryNode) ast.UsingEntryNod
 	switch n := node.(type) {
 	case *ast.UsingAllEntryNode:
 		return c.checkUsingAllEntryNode(n)
-	// case *ast.PublicConstantNode:
+	case *ast.PublicConstantNode:
+		return c.checkUsingPublicConstantEntryNode(n)
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
 }
 
-func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
-	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(node.Namespace)
-	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Span(), fullName)
+func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName string, parentNamespace types.Namespace, span *position.Span) types.Namespace {
 	if typ != nil {
 		var namespace types.Namespace
 		switch t := typ.(type) {
@@ -6003,25 +6008,42 @@ func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.Using
 			namespace = t
 		case *types.PlaceholderNamespace:
 			namespace = t
-			t.Locations.Append(c.newLocation(node.Span()))
+			t.Locations.Append(c.newLocation(span))
 		default:
 			c.addFailure(
 				fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
-				node.Span(),
+				span,
 			)
 		}
-		node.SetType(namespace)
+
 		c.pushConstScope(makeConstantScope(namespace))
-		return node
+		return namespace
 	}
 
 	placeholder := types.NewPlaceholderNamespace(fullName)
-	placeholder.Locations.Append(c.newLocation(node.Span()))
+	placeholder.Locations.Append(c.newLocation(span))
 	c.registerPlaceholderNamespace(placeholder)
 	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
 	parentNamespace.DefineConstant(value.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
-	node.SetType(placeholder)
 	c.pushConstScope(makeConstantScope(placeholder))
+	return placeholder
+}
+
+func (c *Checker) checkUsingPublicConstantEntryNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
+	constName := node.Value
+	typ := c.resolveSimpleConstantTypeInRoot(node.Value)
+	namespace := c.checkSimpleUsingEntry(typ, constName, constName, c.GlobalEnv.Root, node.Span())
+	node.SetType(namespace)
+	c.pushConstScope(makeConstantScope(namespace))
+	return node
+}
+
+func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
+	parentNamespace, typ, fullName, constName := c.resolveConstantTypeInRoot(node.Namespace)
+	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Span(), fullName)
+	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Span())
+	node.SetType(namespace)
+	c.pushConstScope(makeConstantScope(namespace))
 	return node
 }
 

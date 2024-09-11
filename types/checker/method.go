@@ -1630,7 +1630,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			for name, method := range parent.Methods().Map {
+			for name, method := range parent.Methods() {
 				if seenMethods[name] {
 					continue
 				}
@@ -1669,7 +1669,7 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 			if !parent.IsAbstract() {
 				continue
 			}
-			for name, method := range parent.Methods().Map {
+			for name, method := range parent.Methods() {
 				if !method.IsAbstract() {
 					continue
 				}
