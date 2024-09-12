@@ -70,7 +70,7 @@ func TestConstantDeclarations(t *testing.T) {
 		"declare without initialising": {
 			input: "const Foo: String",
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constant `Foo` has to be initialised"),
+				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constants must be initialised"),
 			},
 		},
 	}

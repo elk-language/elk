@@ -76,7 +76,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 			source: `
 				mixin Foo
 					a := 5
-					const Bar = a - 2
+					const Bar: Int = a - 2
 				end
 			`,
 			wantStackTop: value.NewMixinWithOptions(
@@ -535,7 +535,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			source: `
 				class Foo
 					a := 5
-					const Bar = a - 2
+					const Bar: Int = a - 2
 				end
 			`,
 			wantStackTop: value.NewClassWithOptions(
@@ -678,7 +678,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 			source: `
 				module Foo
 					a := 5
-					const Bar = a - 2
+					const Bar: Int = a - 2
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
