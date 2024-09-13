@@ -80,31 +80,39 @@ func (c *Closure) IsPrimitive() bool {
 	return true
 }
 
-func (c *Closure) Constants() *TypeMap {
+func (c *Closure) Constants() ConstantMap {
 	return nil
 }
 
-func (c *Closure) Constant(name value.Symbol) Type {
-	return nil
+func (c *Closure) Constant(name value.Symbol) (Constant, bool) {
+	return Constant{}, false
 }
 
-func (c *Closure) ConstantString(name string) Type {
-	return nil
+func (c *Closure) ConstantString(name string) (Constant, bool) {
+	return Constant{}, false
 }
 
 func (c *Closure) DefineConstant(name value.Symbol, val Type) {
 	panic("cannot define constants on closures")
 }
 
-func (c *Closure) Subtypes() *TypeMap {
+func (c *Closure) DefineConstantWithFullName(name value.Symbol, fullName string, val Type) {
+	panic("cannot define constants on closures")
+}
+
+func (c *Closure) Subtypes() ConstantMap {
 	return nil
 }
 
-func (c *Closure) Subtype(name value.Symbol) Type {
-	return nil
+func (c *Closure) Subtype(name value.Symbol) (Constant, bool) {
+	return Constant{}, false
 }
 
-func (c *Closure) SubtypeString(name string) Type {
+func (c *Closure) SubtypeString(name string) (Constant, bool) {
+	return Constant{}, false
+}
+
+func (c *Closure) MustSubtype(name string) Type {
 	return nil
 }
 
@@ -112,12 +120,16 @@ func (c *Closure) DefineSubtype(name value.Symbol, val Type) {
 	panic("cannot define subtypes on closures")
 }
 
-func (c *Closure) Methods() *MethodMap {
+func (c *Closure) DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type) {
+	panic("cannot define subtypes on closures")
+}
+
+func (c *Closure) Methods() MethodMap {
 	if c.Body == nil {
-		return NewMethodMap()
+		return make(MethodMap)
 	}
-	m := NewMethodMap()
-	m.Set(symbol.M_call, c.Body)
+	m := make(MethodMap)
+	m[symbol.M_call] = c.Body
 	return m
 }
 
@@ -142,7 +154,7 @@ func (c *Closure) DefineMethod(docComment string, abstract, sealed, native bool,
 func (c *Closure) SetMethod(name value.Symbol, method *Method) {
 }
 
-func (c *Closure) InstanceVariables() *TypeMap {
+func (c *Closure) InstanceVariables() TypeMap {
 	return nil
 }
 

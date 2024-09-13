@@ -7,9 +7,10 @@ import (
 type scopeKind uint8
 
 const (
-	scopeDefaultKind scopeKind = iota
-	scopeLocalKind
-	scopeUsingKind
+	scopeDefaultKind     scopeKind = iota
+	scopeLocalKind                 // Scope that can be used to store new constants and methods
+	scopeUsingKind                 // Scope that contains constants and methods specified in a using declaration containing all members of a namespace eg. `using Foo::*`
+	scopeUsingBufferKind           // Scope that contains constants and methods specified in multiple using declarations
 )
 
 type constantScope struct {
@@ -21,6 +22,13 @@ func makeUsingConstantScope(container types.Namespace) constantScope {
 	return constantScope{
 		container: container,
 		kind:      scopeUsingKind,
+	}
+}
+
+func makeUsingBufferConstantScope(container types.Namespace) constantScope {
+	return constantScope{
+		container: container,
+		kind:      scopeUsingBufferKind,
 	}
 }
 
@@ -49,6 +57,13 @@ func makeUsingMethodScope(container types.Namespace) methodScope {
 	}
 }
 
+func makeUsingBufferMethodScope(container types.Namespace) methodScope {
+	return methodScope{
+		container: container,
+		kind:      scopeUsingBufferKind,
+	}
+}
+
 func makeLocalMethodScope(container types.Namespace) methodScope {
 	return methodScope{
 		container: container,
@@ -62,23 +77,24 @@ func makeMethodScope(container types.Namespace) methodScope {
 	}
 }
 
-func (c *Checker) createUsingNamespace() types.Namespace {
-	mod := types.NewModule("", "Using namespace", c.GlobalEnv)
-	c.pushConstScope(constantScope(makeUsingConstantScope(mod)))
+func (c *Checker) createUsingBufferNamespace() types.Namespace {
+	mod := types.NewModule("", "Using buffer namespace", c.GlobalEnv)
+	c.pushConstScope(makeUsingBufferConstantScope(mod))
+	c.pushMethodScope(makeUsingBufferMethodScope(mod))
 	return mod
 }
 
-func (c *Checker) getUsingNamespace() types.Namespace {
+func (c *Checker) getUsingBufferNamespace() types.Namespace {
 	if len(c.constantScopes) == 0 {
-		return c.createUsingNamespace()
+		return c.createUsingBufferNamespace()
 	}
 
 	scope := c.enclosingConstScope()
-	if scope.kind == scopeUsingKind {
+	if scope.kind == scopeUsingBufferKind {
 		return scope.container
 	}
 
-	return c.createUsingNamespace()
+	return c.createUsingBufferNamespace()
 }
 
 func (c *Checker) popConstScope() {

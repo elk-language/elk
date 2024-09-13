@@ -1,0 +1,16 @@
+##[
+  Contains builtin global functions like `println` etc.
+]##
+module Std::Kernel
+  ##[
+    Converts the values to `String`
+    and prints them to stdout.
+  ]##
+  def print(*values: StringConvertible); end
+
+  ##[
+    Converts the values to `String`
+    and prints them to stdout with a newline.
+  ]##
+  def println(*values: StringConvertible); end
+end

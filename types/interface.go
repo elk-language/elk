@@ -63,7 +63,13 @@ func NewInterface(docComment string, name string, env *GlobalEnvironment) *Inter
 	return iface
 }
 
-func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Interface {
+func NewInterfaceWithDetails(
+	name string,
+	parent *InterfaceProxy,
+	consts ConstantMap,
+	subtypes ConstantMap,
+	methods MethodMap,
+) *Interface {
 	return &Interface{
 		parent: parent,
 		NamespaceBase: NamespaceBase{

@@ -70,7 +70,16 @@ func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironm
 	return mixin
 }
 
-func NewMixinWithDetails(docComment string, abstract bool, name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
+func NewMixinWithDetails(
+	docComment string,
+	abstract bool,
+	name string,
+	parent *MixinProxy,
+	consts ConstantMap,
+	subtypes ConstantMap,
+	methods MethodMap,
+	env *GlobalEnvironment,
+) *Mixin {
 	mixin := &Mixin{
 		parent:   parent,
 		abstract: abstract,

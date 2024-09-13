@@ -1630,7 +1630,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
-			for name, method := range parent.Methods().Map {
+			for name, method := range parent.Methods() {
 				if seenMethods[name] {
 					continue
 				}
@@ -1669,7 +1669,7 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 			if !parent.IsAbstract() {
 				continue
 			}
-			for name, method := range parent.Methods().Map {
+			for name, method := range parent.Methods() {
 				if !method.IsAbstract() {
 					continue
 				}
@@ -1837,6 +1837,31 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	default:
 		return c._getMethod(typ.UpperBound, name, errSpan, inParent, inSelf)
 	}
+}
+
+func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) *types.Method {
+	method := c.getMethod(c.selfType, name, nil)
+	if method != nil {
+		return method
+	}
+
+	for _, methodScope := range c.methodScopes {
+		switch methodScope.kind {
+		case scopeUsingBufferKind, scopeUsingKind:
+		default:
+			continue
+		}
+
+		namespace := methodScope.container
+		method := c.getMethod(namespace, name, nil)
+		if method != nil {
+			return method
+		}
+	}
+
+	c.addMissingMethodError(c.selfType, name.String(), span)
+
+	return nil
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {

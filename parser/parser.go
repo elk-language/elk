@@ -4023,8 +4023,8 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
-	} else if typ == nil {
-		p.errorMessageSpan("constants must have a type", constTok.Span().Join(lastSpan))
+	} else {
+		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
 	span := constTok.Span().Join(lastSpan)
