@@ -2542,7 +2542,6 @@ func TestConstantDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
-				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "non-static constants must have an explicit type"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -2673,7 +2672,7 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"cannot have an initialiser without a type": {
+		"can have an initialiser without a type": {
 			input: "const Foo = f",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(12, 1, 13)),
@@ -2693,9 +2692,6 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(12, 1, 13)), "non-static constants must have an explicit type"),
-			},
 		},
 		"can have newlines after the operator": {
 			input: "const Foo: String =\n5",

@@ -4027,10 +4027,6 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
-	if typ == nil && (init == nil || !init.IsStatic()) {
-		p.errorMessageSpan("non-static constants must have an explicit type", constTok.Span().Join(lastSpan))
-	}
-
 	span := constTok.Span().Join(lastSpan)
 
 	if !allowed {

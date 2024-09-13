@@ -75,6 +75,7 @@ type phase uint8
 
 const (
 	initPhase phase = iota
+	constantCheckPhase
 	expressionPhase
 )
 
@@ -97,6 +98,7 @@ type Checker struct {
 	selfType                types.Type
 	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
+	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
 	astCache                *concurrent.Map[string, *ast.ProgramNode]
 }
@@ -128,34 +130,14 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
 		typeDefinitionChecks:  newTypeDefinitionChecks(),
+		constantChecks:        newConstantDefinitionChecks(),
 		astCache:              concurrent.NewMap[string, *ast.ProgramNode](),
 	}
 }
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	globalEnv := types.NewGlobalEnvironment()
-	return &Checker{
-		GlobalEnv:  globalEnv,
-		selfType:   globalEnv.StdSubtype(symbol.Object),
-		returnType: types.Void{},
-		mode:       topLevelMode,
-		Errors:     new(error.SyncErrorList),
-		constantScopes: []constantScope{
-			makeConstantScope(globalEnv.Std()),
-			makeLocalConstantScope(globalEnv.Root),
-		},
-		methodScopes: []methodScope{
-			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
-			makeUsingMethodScope(globalEnv.StdSubtypeModule(symbol.Kernel)),
-		},
-		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
-		},
-		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:  newTypeDefinitionChecks(),
-	}
+	return newChecker("", nil, false)
 }
 
 func (c *Checker) newMethodChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
@@ -216,6 +198,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.hoistMethodDefinitions(statements)
 	c.phase = expressionPhase
 	c.checkMethods()
+	c.checkConstants()
 	c.checkStatements(statements)
 
 	return nil
@@ -251,6 +234,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	c.hoistMethodDefinitionsInFile(filename, ast)
 	c.phase = expressionPhase
 	c.checkMethods()
+	c.checkConstants()
 	c.checkExpressionsInFile(filename, ast)
 
 	return nil
@@ -4177,6 +4161,9 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 		} else {
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
 		}
+		if !c.checkConstantIfNecessary(fullName, span) {
+			return nil, fullName
+		}
 
 		if types.IsNoValue(constant.Type) {
 			c.addFailure(
@@ -4213,6 +4200,9 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 			fullName = constant.FullName
 		} else {
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+		}
+		if !c.checkConstantIfNecessary(fullName, span) {
+			return nil, fullName
 		}
 
 		if types.IsNoValue(constant.Type) {
@@ -4958,161 +4948,6 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	return node
 }
 
-func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
-	typ, name := c.resolveConstantLookupType(node)
-	switch t := typ.(type) {
-	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
-		typ = types.Nothing{}
-	case *types.Class:
-		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, node.Span())
-			typ = types.Nothing{}
-		}
-	case nil:
-		typ = types.Nothing{}
-	}
-
-	newNode := ast.NewPublicConstantNode(
-		node.Span(),
-		name,
-	)
-	newNode.SetType(typ)
-	return newNode
-}
-
-func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (types.Type, string) {
-	switch constant := constantExpression.(type) {
-	case *ast.PublicConstantNode:
-		return c.resolveType(constant.Value, constant.Span())
-	case *ast.PrivateConstantNode:
-		return c.resolveType(constant.Value, constant.Span())
-	case *ast.ConstantLookupNode:
-		return c.resolveConstantLookupType(constant)
-	case *ast.GenericConstantNode:
-		typeNode, name := c.checkGenericConstantType(constant)
-		return c.typeOf(typeNode), name
-	default:
-		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
-	}
-}
-
-func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Type, string) {
-	var leftContainerType types.Type
-	var leftContainerName string
-
-	switch l := node.Left.(type) {
-	case *ast.PublicConstantNode:
-		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Span())
-	case *ast.PrivateConstantNode:
-		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Span())
-	case nil:
-		leftContainerType = c.GlobalEnv.Root
-	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookup(l)
-	default:
-		c.addFailure(
-			fmt.Sprintf("invalid constant node %T", node),
-			node.Span(),
-		)
-		return nil, ""
-	}
-
-	var rightName string
-	switch r := node.Right.(type) {
-	case *ast.PublicConstantNode:
-		rightName = r.Value
-	case *ast.PrivateConstantNode:
-		rightName = r.Value
-		c.addFailure(
-			fmt.Sprintf("cannot read private constant `%s`", rightName),
-			node.Span(),
-		)
-	default:
-		c.addFailure(
-			fmt.Sprintf("invalid constant node %T", node),
-			node.Span(),
-		)
-		return nil, ""
-	}
-
-	constantName := types.MakeFullConstantName(leftContainerName, rightName)
-	if leftContainerType == nil {
-		return nil, constantName
-	}
-
-	var leftContainer types.Namespace
-	switch l := leftContainerType.(type) {
-	case *types.Module:
-		leftContainer = l
-	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
-	default:
-		c.addFailure(
-			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
-			node.Span(),
-		)
-		return nil, constantName
-	}
-
-	constant, ok := leftContainer.ConstantString(rightName)
-	if !ok {
-		c.addFailure(
-			fmt.Sprintf("undefined constant `%s`", constantName),
-			node.Right.Span(),
-		)
-		return nil, constantName
-	}
-	if len(constant.FullName) > 0 {
-		constantName = constant.FullName
-	}
-	if types.IsNoValue(constant.Type) {
-		c.addFailure(
-			fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(constantName)),
-			node.Right.Span(),
-		)
-		return nil, constantName
-	}
-
-	return constant.Type, constantName
-}
-
-func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
-	typ, name := c.resolveConstantLookup(node)
-	if typ == nil {
-		typ = types.Nothing{}
-	}
-
-	newNode := ast.NewPublicConstantNode(
-		node.Span(),
-		name,
-	)
-	newNode.SetType(typ)
-	return newNode
-}
-
-func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
-	typ, name := c.resolvePublicConstant(node.Value, node.Span())
-	if typ == nil {
-		typ = types.Nothing{}
-	}
-
-	node.Value = name
-	node.SetType(typ)
-	return node
-}
-
-func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
-	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
-	if typ == nil {
-		typ = types.Nothing{}
-	}
-
-	node.Value = name
-	node.SetType(typ)
-	return node
-}
-
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local, _ := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
@@ -5618,78 +5453,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 	}
 }
 
-func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
-
-	if constant != nil {
-		c.addFailure(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			node.Span(),
-		)
-	}
-
-	if node.Initialiser == nil {
-		if !c.IsHeader {
-			c.addFailure(
-				fmt.Sprintf("constant `%s` has to be initialised", constantName),
-				node.Span(),
-			)
-		}
-		if node.TypeNode == nil {
-			c.addFailure(
-				fmt.Sprintf("cannot declare a constant without a type `%s`", constantName),
-				node.Span(),
-			)
-			container.DefineConstant(constantName, types.Nothing{})
-			node.SetType(types.Nothing{})
-			return
-		}
-
-		// without an initialiser but with a type
-		declaredTypeNode := c.checkTypeNode(node.TypeNode)
-		declaredType := c.typeOf(declaredTypeNode)
-		container.DefineConstant(constantName, declaredType)
-		node.TypeNode = declaredTypeNode
-		node.SetType(types.Void{})
-		return
-	}
-	init := c.checkExpression(node.Initialiser)
-
-	if !init.IsStatic() {
-		c.addFailure(
-			"values assigned to constants must be static, known at compile time",
-			init.Span(),
-		)
-	}
-
-	// with an initialiser
-	if node.TypeNode == nil {
-		// without a type, inference
-		actualType := c.typeOfGuardVoid(init)
-		if types.IsVoid(actualType) {
-			c.addFailure(
-				fmt.Sprintf("cannot declare constant `%s` with type `void`", fullConstantName),
-				init.Span(),
-			)
-		}
-		node.Initialiser = init
-		node.SetType(actualType)
-		container.DefineConstant(constantName, actualType)
-		return
-	}
-
-	// with a type and an initializer
-
-	declaredTypeNode := c.checkTypeNode(node.TypeNode)
-	declaredType := c.typeOf(declaredTypeNode)
-	actualType := c.typeOfGuardVoid(init)
-	c.checkCanAssign(actualType, declaredType, init.Span())
-
-	container.DefineConstant(constantName, declaredType)
-}
-
 func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
 	if !c.isSubtype(assignedType, targetType, span) {
 		c.addFailure(
@@ -6007,8 +5770,6 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 				c.hoistMixinDeclaration(expr)
 			case *ast.InterfaceDeclarationNode:
 				c.hoistInterfaceDeclaration(expr)
-			case *ast.ConstantDeclarationNode:
-				c.checkConstantDeclaration(expr)
 			case *ast.SingletonBlockExpressionNode:
 				c.hoistSingletonDeclaration(expr)
 			case *ast.TypeDefinitionNode:
@@ -6398,6 +6159,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
+		case *ast.ConstantDeclarationNode:
+			c.hoistConstantDeclaration(expr)
 		case *ast.AliasDeclarationNode:
 			c.hoistAliasDeclaration(expr)
 		case *ast.MethodDefinitionNode:

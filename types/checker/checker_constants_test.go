@@ -73,6 +73,50 @@ func TestConstantDeclarations(t *testing.T) {
 				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constants must be initialised"),
 			},
 		},
+		"declare with a static initialiser without an explicit type": {
+			input: "const Foo = 3",
+		},
+		"declare with a dynamic initialiser": {
+			input: `
+				const Bar: String = Foo.foo
+				module Foo
+					def foo: String
+						"foo"
+					end
+				end
+			`,
+		},
+		"declare with a dynamic initialiser without an explicit type": {
+			input: `
+				module Foo
+					def foo: String
+						"foo"
+					end
+				end
+				const Bar = Foo.foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 7, 5), P(88, 7, 23)), "non-static constants must have an explicit type"),
+			},
+		},
+		"declare with a simple circular reference": {
+			input: `
+				const Foo: String = Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 2, 25), P(27, 2, 27)), "constant `Foo` circularly references itself"),
+			},
+		},
+		"declare with a complex circular reference": {
+			input: `
+				const Foo: String = Bar
+				const Bar: String = Baz
+				const Baz: String = Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 4, 25), P(83, 4, 27)), "constant `Foo` circularly references itself"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
