@@ -5,12 +5,12 @@ import (
 	"github.com/elk-language/elk/position"
 )
 
-type PlaceholderModule struct {
+type ModulePlaceholder struct {
 	Module
 }
 
-func NewPlaceholderModule(name string) *PlaceholderModule {
-	return &PlaceholderModule{
+func NewModulePlaceholder(name string) *ModulePlaceholder {
+	return &ModulePlaceholder{
 		Module: Module{
 			NamespaceBase: MakeNamespaceBase("", name),
 		},
@@ -19,28 +19,28 @@ func NewPlaceholderModule(name string) *PlaceholderModule {
 
 // Used during typechecking as a placeholder for a future
 // module, class, mixin, interface etc.
-type PlaceholderNamespace struct {
+type NamespacePlaceholder struct {
 	name string
 	Namespace
 	Locations *concurrent.Slice[*position.Location]
 }
 
-func NewPlaceholderNamespace(name string) *PlaceholderNamespace {
-	return &PlaceholderNamespace{
+func NewNamespacePlaceholder(name string) *NamespacePlaceholder {
+	return &NamespacePlaceholder{
 		name:      name,
 		Locations: concurrent.NewSlice[*position.Location](),
-		Namespace: NewPlaceholderModule(name),
+		Namespace: NewModulePlaceholder(name),
 	}
 }
 
-func (p *PlaceholderNamespace) ToNonLiteral(env *GlobalEnvironment) Type {
+func (p *NamespacePlaceholder) ToNonLiteral(env *GlobalEnvironment) Type {
 	return p
 }
 
-func (*PlaceholderNamespace) IsLiteral() bool {
+func (*NamespacePlaceholder) IsLiteral() bool {
 	return false
 }
 
-func (p *PlaceholderNamespace) inspect() string {
+func (p *NamespacePlaceholder) inspect() string {
 	return p.Name()
 }

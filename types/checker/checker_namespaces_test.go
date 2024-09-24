@@ -6,114 +6,6 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
-func TestUsing(t *testing.T) {
-	tests := testTable{
-		"not a namespace with star": {
-			input: `
-				typedef Lol = 3
-				using Lol::*
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 11), P(36, 3, 16)), "type `Lol` is not a namespace"),
-			},
-		},
-		"undefined type with star": {
-			input: `
-				using Lol::*
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(16, 2, 16)), "undefined namespace `Lol`"),
-			},
-		},
-		"star in top level": {
-			input: `
-				using Foo::*
-
-				var a: Bar = 3
-
-				class Foo
-				 	class Bar; end
-				end
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 4, 18), P(36, 4, 18)), "type `3` cannot be assigned to type `Foo::Bar`"),
-			},
-		},
-		"using with star in module, resolve in methods": {
-			input: `
-				module Baz
-					using Foo::*
-
-					def baz: Bar then Bar()
-				end
-
-				class Foo
-				 	class Bar; end
-				end
-
-				var a: 9 = Baz.baz
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(132, 12, 16), P(138, 12, 22)), "type `Foo::Bar` cannot be assigned to type `9`"),
-			},
-		},
-		"using with multiple namespaces with star": {
-			input: `
-				class Foo
-					class Bar; end
-				end
-				class Lol
-					class Grub; end
-				end
-
-				module Baz
-					using Foo::*, Lol::*
-
-					var a: 9 = Bar()
-					var b: 12 = Grub()
-				end
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(145, 12, 17), P(149, 12, 21)), "type `Foo::Bar` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(168, 13, 18), P(173, 13, 23)), "type `Lol::Grub` cannot be assigned to type `12`"),
-			},
-		},
-		"using goes out of scope": {
-			input: `
-				module Baz
-					using Foo::*
-				end
-
-				class Foo
-				 	class Bar; end
-				end
-
-				Bar
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(91, 10, 5), P(93, 10, 7)), "undefined constant `Bar`"),
-			},
-		},
-		"using only accepts absolute constants": {
-			input: `
-				module Baz
-					class Foo; end
-					using Foo::*
-				end
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 4, 12), P(52, 4, 17)), "undefined namespace `Foo`"),
-			},
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
-		})
-	}
-}
-
 func TestSingleton(t *testing.T) {
 	tests := testTable{
 		"has its own local scope": {
@@ -1068,7 +960,7 @@ func TestGenericClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 3, 6), P(23, 3, 6)), "type `Foo::V` cannot be used as a value in expressions"),
+				error.NewFailure(L("<main>", P(23, 3, 6), P(23, 3, 6)), "`Foo::V` cannot be used as a value in expressions"),
 			},
 		},
 		"use a type parameter from the outside": {

@@ -96,7 +96,8 @@ type Checker struct {
 	returnType              types.Type
 	throwType               types.Type
 	selfType                types.Type
-	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
+	namespacePlaceholders   *concurrent.Slice[*types.NamespacePlaceholder]
+	placeholders            *concurrent.Slice[*types.Placeholder]
 	methodChecks            *concurrent.Slice[methodCheckEntry]
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
@@ -127,7 +128,8 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		namespacePlaceholders: concurrent.NewSlice[*types.NamespacePlaceholder](),
+		placeholders:          concurrent.NewSlice[*types.Placeholder](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
 		typeDefinitionChecks:  newTypeDefinitionChecks(),
 		constantChecks:        newConstantDefinitionChecks(),
@@ -172,10 +174,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	return bytecodeFunc, c.Errors.ErrorList
 }
 
-func (c *Checker) checkPlaceholderNamespaces() {
-	for _, placeholder := range c.placeholderNamespaces.Slice {
+func (c *Checker) checkNamespacePlaceholders() {
+	for _, placeholder := range c.namespacePlaceholders.Slice {
 		replacement := placeholder.Namespace
-		if _, ok := replacement.(*types.PlaceholderModule); !ok {
+		if _, ok := replacement.(*types.ModulePlaceholder); !ok {
 			continue
 		}
 
@@ -189,13 +191,32 @@ func (c *Checker) checkPlaceholderNamespaces() {
 	}
 }
 
+func (c *Checker) checkConstantAndTypePlaceholders() {
+	for _, placeholder := range c.placeholders.Slice {
+		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
+			continue
+		}
+		placeholder.Checked = true
+		if placeholder.Replaced || placeholder.Sibling != nil && placeholder.Sibling.Replaced {
+			continue
+		}
+
+		c.addFailureWithLocation(
+			fmt.Sprintf("undefined type or constant `%s`", lexer.Colorize(placeholder.FullName)),
+			placeholder.Location,
+		)
+	}
+	c.placeholders.Slice = nil
+}
+
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	statements := node.Body
 
 	c.hoistNamespaceDefinitions(statements)
-	c.checkPlaceholderNamespaces()
+	c.checkNamespacePlaceholders()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
+	c.checkConstantAndTypePlaceholders()
 	c.phase = expressionPhase
 	c.checkMethods()
 	c.checkConstants()
@@ -229,9 +250,10 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	wg.Wait()
 
 	c.hoistNamespaceDefinitionsInFile(filename, ast)
-	c.checkPlaceholderNamespaces()
+	c.checkNamespacePlaceholders()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitionsInFile(filename, ast)
+	c.checkConstantAndTypePlaceholders()
 	c.phase = expressionPhase
 	c.checkMethods()
 	c.checkConstants()
@@ -466,6 +488,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.popLocalEnv()
 	}
 }
+
 func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	mixin, ok := c.typeOf(node).(*types.Mixin)
 	previousSelf := c.selfType
@@ -3894,7 +3917,7 @@ func (c *Checker) resolveSimpleConstantInRoot(name string) types.Type {
 	return nil
 }
 
-func (c *Checker) resolveTypeLookupInRoot(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string, string) {
+func (c *Checker) resolveTypeLookupInRoot(node *ast.ConstantLookupNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
 	return c._resolveConstantLookupTypeInRoot(node, true)
 }
 
@@ -3909,12 +3932,12 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
-			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
 			namespace.DefineConstant(value.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
-		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
 	case *ast.PrivateConstantNode:
@@ -3923,12 +3946,12 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
-			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
 			namespace.DefineConstant(value.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
-		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
 	case nil:
@@ -3973,7 +3996,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 		leftContainer = l
 	case *types.Mixin:
 		leftContainer = l
-	case *types.PlaceholderNamespace:
+	case *types.NamespacePlaceholder:
 		leftContainer = l
 	case *types.SingletonClass:
 		leftContainer = l.AttachedObject
@@ -3992,12 +4015,12 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	}
 	constantType := constant.Type
 	if !ok && !firstCall {
-		placeholder := types.NewPlaceholderNamespace(fullName)
+		placeholder := types.NewNamespacePlaceholder(fullName)
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
-	} else if placeholder, ok := constantType.(*types.PlaceholderNamespace); ok {
+	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 	}
 
@@ -4018,8 +4041,12 @@ func (c *Checker) resolveConstantForDeclaration(constantExpression ast.Expressio
 	}
 }
 
-func (c *Checker) registerPlaceholderNamespace(placeholder *types.PlaceholderNamespace) {
-	c.placeholderNamespaces.Append(placeholder)
+func (c *Checker) registerPlaceholderNamespace(placeholder *types.NamespacePlaceholder) {
+	c.namespacePlaceholders.Append(placeholder)
+}
+
+func (c *Checker) registerPlaceholder(placeholder *types.Placeholder) {
+	c.placeholders.Append(placeholder)
 }
 
 func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
@@ -4037,12 +4064,12 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
-			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
 			namespace.DefineConstant(value.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
-		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
 	case *ast.PrivateConstantNode:
@@ -4051,12 +4078,12 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
-			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
 			namespace.DefineConstant(value.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
-		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
 	case nil:
@@ -4101,7 +4128,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		leftContainer = l
 	case *types.Mixin:
 		leftContainer = l
-	case *types.PlaceholderNamespace:
+	case *types.NamespacePlaceholder:
 		leftContainer = l
 	case *types.SingletonClass:
 		leftContainer = l.AttachedObject
@@ -4117,12 +4144,12 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	constant, ok := leftContainer.Constant(rightSymbol)
 	constantType := constant.Type
 	if !ok && !firstCall {
-		placeholder := types.NewPlaceholderNamespace(constantName)
+		placeholder := types.NewNamespacePlaceholder(constantName)
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
-	} else if placeholder, ok := constantType.(*types.PlaceholderNamespace); ok {
+	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
 	}
 
@@ -4144,83 +4171,6 @@ func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, 
 		return namespace, constant.Type, constant.FullName
 	}
 	return namespace, nil, fullName
-}
-
-// Get the type of the public constant with the given name
-func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types.Type, string) {
-	for i := range len(c.constantScopes) {
-		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant, ok := constScope.container.ConstantString(name)
-		if !ok {
-			continue
-		}
-
-		var fullName string
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
-		} else {
-			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
-		}
-		if !c.checkConstantIfNecessary(fullName, span) {
-			return nil, fullName
-		}
-
-		if types.IsNoValue(constant.Type) {
-			c.addFailure(
-				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
-				span,
-			)
-			return nil, fullName
-		}
-		return constant.Type, fullName
-
-	}
-
-	c.addFailure(
-		fmt.Sprintf("undefined constant `%s`", lexer.Colorize(name)),
-		span,
-	)
-	return nil, name
-}
-
-// Get the type of the private constant with the given name
-func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (types.Type, string) {
-	for i := range len(c.constantScopes) {
-		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		if constScope.kind != scopeLocalKind {
-			continue
-		}
-		constant, ok := constScope.container.ConstantString(name)
-		if !ok {
-			continue
-		}
-
-		var fullName string
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
-		} else {
-			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
-		}
-		if !c.checkConstantIfNecessary(fullName, span) {
-			return nil, fullName
-		}
-
-		if types.IsNoValue(constant.Type) {
-			c.addFailure(
-				fmt.Sprintf("type `%s` cannot be used as a value in expressions", lexer.Colorize(fullName)),
-				span,
-			)
-			return nil, fullName
-		}
-		return constant.Type, fullName
-
-	}
-
-	c.addFailure(
-		fmt.Sprintf("undefined constant `%s`", name),
-		span,
-	)
-	return nil, name
 }
 
 func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.Span) bool {
@@ -4330,6 +4280,14 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
 		}
 		if !c.checkTypeIfNecessary(fullName, span) {
+			return nil, fullName
+		}
+
+		if types.IsNoValue(constant.Type) || types.IsPlaceholder(constant.Type) {
+			c.addFailure(
+				fmt.Sprintf("undefined type `%s`", lexer.Colorize(fullName)),
+				span,
+			)
 			return nil, fullName
 		}
 
@@ -4517,6 +4475,15 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	if len(subtype.FullName) > 0 {
 		typeName = subtype.FullName
 	}
+
+	if types.IsNoValue(subtype.Type) || types.IsPlaceholder(subtype.Type) {
+		c.addFailure(
+			fmt.Sprintf("undefined type `%s`", lexer.Colorize(typeName)),
+			node.Right.Span(),
+		)
+		return nil, typeName
+	}
+
 	if !c.checkIfTypeParameterIsAllowed(subtype.Type, node.Right.Span()) {
 		return nil, typeName
 	}
@@ -5325,7 +5292,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 		case *types.Module:
 			t.AppendDocComment(docComment)
 			return t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			module := types.NewModuleWithDetails(
 				docComment,
 				t.Name(),
@@ -5338,18 +5305,27 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			namespace.DefineConstant(constantName, module)
 			namespace.DefineSubtype(constantName, module)
 			return module
-		default:
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
+		case *types.Placeholder:
+			module := types.NewModule(
+				docComment,
+				fullConstantName,
+				c.GlobalEnv,
 			)
+			c.replaceSimpleNamespacePlaceholder(t, module, module, constantName)
+			namespace.DefineConstant(constantName, module)
+			namespace.DefineSubtype(constantName, module)
+			return module
+		default:
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
 		}
-	} else if namespace == nil {
-		return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
-	} else {
-		return namespace.DefineModule(docComment, constantName, c.GlobalEnv)
 	}
+
+	if namespace == nil {
+		return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
+	}
+
+	return namespace.DefineModule(docComment, constantName, c.GlobalEnv)
 }
 
 func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, errSpan *position.Span) {
@@ -5365,12 +5341,26 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 
 func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Class {
 	if constantType != nil {
-		ct, ok := constantType.(*types.SingletonClass)
-		if !ok {
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
+		switch ct := constantType.(type) {
+		case *types.SingletonClass:
+			constantType = ct.AttachedObject
+		case *types.Placeholder:
+			class := types.NewClass(
+				docComment,
+				abstract,
+				sealed,
+				primitive,
+				fullConstantName,
+				nil,
+				c.GlobalEnv,
 			)
+			classSingleton := class.Singleton()
+			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton, constantName)
+			namespace.DefineConstant(constantName, class.Singleton())
+			namespace.DefineSubtype(constantName, class)
+			return class
+		default:
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewClass(
 				docComment,
 				abstract,
@@ -5381,7 +5371,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				c.GlobalEnv,
 			)
 		}
-		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Class:
@@ -5398,7 +5387,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			}
 			t.AppendDocComment(docComment)
 			return t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			class := types.NewClassWithDetails(
 				docComment,
 				abstract,
@@ -5416,10 +5405,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			namespace.DefineSubtype(constantName, class)
 			return class
 		default:
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
-			)
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewClass(
 				docComment,
 				abstract,
@@ -5430,7 +5416,9 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				c.GlobalEnv,
 			)
 		}
-	} else if namespace == nil {
+	}
+
+	if namespace == nil {
 		return types.NewClass(
 			docComment,
 			abstract,
@@ -5440,17 +5428,17 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			nil,
 			c.GlobalEnv,
 		)
-	} else {
-		return namespace.DefineClass(
-			docComment,
-			abstract,
-			sealed,
-			primitive,
-			constantName,
-			nil,
-			c.GlobalEnv,
-		)
 	}
+
+	return namespace.DefineClass(
+		docComment,
+		abstract,
+		sealed,
+		primitive,
+		constantName,
+		nil,
+		c.GlobalEnv,
+	)
 }
 
 func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
@@ -5777,7 +5765,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			case *ast.GenericTypeDefinitionNode:
 				c.registerGenericNamedTypeCheck(expr)
 			case *ast.UsingExpressionNode:
-				c.checkUsingExpression(expr)
+				c.checkUsingExpressionForNamespaces(expr)
 			case *ast.ImplementExpressionNode:
 				switch c.mode {
 				case classMode, mixinMode, interfaceMode:
@@ -5805,28 +5793,74 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 	}
 }
 
-func (c *Checker) checkUsingExpression(node *ast.UsingExpressionNode) {
+func (c *Checker) checkUsingExpressionForNamespaces(node *ast.UsingExpressionNode) {
 	node.SetType(types.Nothing{})
 	for i, entry := range node.Entries {
-		node.Entries[i] = c.checkUsingEntryNode(entry)
+		node.Entries[i] = c.checkUsingEntryNodeForNamespaces(entry)
 	}
 }
 
-func (c *Checker) checkUsingEntryNode(node ast.UsingEntryNode) ast.UsingEntryNode {
+func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.UsingEntryNode {
 	switch n := node.(type) {
 	case *ast.UsingAllEntryNode:
 		return c.checkUsingAllEntryNode(n)
 	case *ast.PublicConstantNode, *ast.PrivateConstantNode:
 		c.addFailure(
-			"this using statement wil have no effect",
+			"this using statement will have no effect",
 			node.Span(),
 		)
 		return node
-	// case *ast.ConstantLookupNode:
-	// 	return c.checkUsingConstantLookupEntryNode(n)
+	case *ast.ConstantLookupNode:
+		return c.checkUsingConstantLookupEntryNodeForNamespace(n)
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
+}
+
+func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node *ast.ConstantLookupNode) ast.UsingEntryNode {
+	container, constant, fullConstantName, constantName := c.resolveTypeLookupInRoot(node)
+	constantSymbol := value.ToSymbol(constantName)
+	node.Left.SetType(container)
+	usingNamespace := c.getUsingBufferNamespace()
+	switch n := constant.(type) {
+	case *types.Class:
+		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		return node
+	case *types.Mixin:
+		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		return node
+	case *types.Interface:
+		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		return node
+	case *types.Module:
+		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, constant)
+		return node
+	default:
+		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		return node
+	case nil: // continue
+	}
+
+	placeholderType := types.NewPlaceholder(fullConstantName, usingNamespace.Subtypes(), c.newLocation(node.Span()))
+	c.registerPlaceholder(placeholderType)
+
+	placeholderConstant := types.NewPlaceholder(fullConstantName, usingNamespace.Constants(), c.newLocation(node.Span()))
+	c.registerPlaceholder(placeholderConstant)
+
+	placeholderConstant.Sibling = placeholderType
+	placeholderType.Sibling = placeholderConstant
+
+	container.DefineSubtype(constantSymbol, placeholderType)
+	usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, placeholderType)
+
+	container.DefineConstant(constantSymbol, placeholderConstant)
+	usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, placeholderConstant)
+
+	return node
 }
 
 func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName string, parentNamespace types.Namespace, span *position.Span) types.Namespace {
@@ -5841,7 +5875,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 			namespace = t
 		case *types.Interface:
 			namespace = t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			namespace = t
 			t.Locations.Append(c.newLocation(span))
 		default:
@@ -5854,7 +5888,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 		return namespace
 	}
 
-	placeholder := types.NewPlaceholderNamespace(fullName)
+	placeholder := types.NewNamespacePlaceholder(fullName)
 	placeholder.Locations.Append(c.newLocation(span))
 	c.registerPlaceholderNamespace(placeholder)
 	parentNamespace.DefineSubtype(value.ToSymbol(constName), placeholder)
@@ -6206,7 +6240,7 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 			namespace = t
 		case *types.Interface:
 			namespace = t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			namespace = t
 			t.Locations.Append(c.newLocation(constNode.Span()))
 		default:
@@ -6218,15 +6252,25 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 
 func (c *Checker) declareMixin(docComment string, abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Mixin {
 	if constantType != nil {
-		ct, ok := constantType.(*types.SingletonClass)
-		if !ok {
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
+		switch ct := constantType.(type) {
+		case *types.SingletonClass:
+			constantType = ct.AttachedObject
+		case *types.Placeholder:
+			mixin := types.NewMixin(
+				docComment,
+				abstract,
+				fullConstantName,
+				c.GlobalEnv,
 			)
+			mixinSingleton := mixin.Singleton()
+			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton, constantName)
+			namespace.DefineConstant(constantName, mixinSingleton)
+			namespace.DefineSubtype(constantName, mixin)
+			return mixin
+		default:
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
 		}
-		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Mixin:
@@ -6243,7 +6287,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			}
 			t.AppendDocComment(docComment)
 			return t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			mixin := types.NewMixinWithDetails(
 				docComment,
 				abstract,
@@ -6259,36 +6303,44 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
 		default:
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
-			)
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
 		}
-	} else if namespace == nil {
-		return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
-	} else {
-		return namespace.DefineMixin(docComment, abstract, constantName, c.GlobalEnv)
 	}
+
+	if namespace == nil {
+		return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
+	}
+
+	return namespace.DefineMixin(docComment, abstract, constantName, c.GlobalEnv)
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Interface {
 	if constantType != nil {
-		ct, ok := constantType.(*types.SingletonClass)
-		if !ok {
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
+		switch ct := constantType.(type) {
+		case *types.SingletonClass:
+			constantType = ct.AttachedObject
+		case *types.Placeholder:
+			iface := types.NewInterface(
+				docComment,
+				fullConstantName,
+				c.GlobalEnv,
 			)
+			ifaceSingleton := iface.Singleton()
+			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton, constantName)
+			namespace.DefineConstant(constantName, ifaceSingleton)
+			namespace.DefineSubtype(constantName, iface)
+			return iface
+		default:
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
 		}
-		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Interface:
 			t.AppendDocComment(docComment)
 			return t
-		case *types.PlaceholderNamespace:
+		case *types.NamespacePlaceholder:
 			iface := types.NewInterfaceWithDetails(
 				t.Name(),
 				nil,
@@ -6301,10 +6353,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			namespace.DefineSubtype(constantName, iface)
 			return iface
 		default:
-			c.addFailure(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
-			)
+			c.addRedeclaredConstantError(fullConstantName, span)
 			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
 		}
 	} else if namespace == nil {

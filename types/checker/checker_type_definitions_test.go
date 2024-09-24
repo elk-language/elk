@@ -14,7 +14,7 @@ func TestTypeDefinition(t *testing.T) {
 				a := Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "type `Foo` cannot be used as a value in expressions"),
+				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "`Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"define types with circular dependencies": {
@@ -96,7 +96,7 @@ func TestGenericTypeDefinition(t *testing.T) {
 				a := Foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 10), P(36, 3, 12)), "type `Foo` cannot be used as a value in expressions"),
+				error.NewFailure(L("<main>", P(34, 3, 10), P(36, 3, 12)), "`Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"define generic types with circular dependencies": {

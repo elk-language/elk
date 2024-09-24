@@ -74,7 +74,7 @@ func NewMixinWithDetails(
 	docComment string,
 	abstract bool,
 	name string,
-	parent *MixinProxy,
+	parent Namespace,
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,

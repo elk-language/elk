@@ -64,6 +64,23 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, n
 	}
 }
 
+func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.Placeholder, subtype, constant types.Type, constantName value.Symbol) {
+	placeholder.Replaced = true
+	usingConst := placeholder.Container[constantName]
+	placeholder.Container[constantName] = types.Constant{
+		FullName: usingConst.FullName,
+		Type:     constant,
+	}
+
+	placeholder.Sibling.Replaced = true
+	subtypeContainer := placeholder.Sibling.Container
+	usingSubtype := subtypeContainer[constantName]
+	subtypeContainer[constantName] = types.Constant{
+		FullName: usingSubtype.FullName,
+		Type:     subtype,
+	}
+}
+
 func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type) {
 	c.typeDefinitionChecks.addEntry(
 		name,
@@ -76,21 +93,37 @@ func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.Expres
 	)
 }
 
+func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Type, constantName value.Symbol) {
+	placeholder, ok := previousConstantType.(*types.Placeholder)
+	if !ok {
+		return
+	}
+
+	placeholder = placeholder.Sibling
+	placeholder.Replaced = true
+	usingConst := placeholder.Container[constantName]
+	placeholder.Container[constantName] = types.Constant{
+		FullName: usingConst.FullName,
+		Type:     newType,
+	}
+}
+
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
-	if constant != nil {
-		c.addFailure(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			node.Constant.Span(),
-		)
+
+	switch constant.(type) {
+	case *types.Placeholder, nil:
+	default:
+		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
 	}
 
 	namedType := types.NewNamedType(fullConstantName, nil)
 	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
+	c.replaceTypePlaceholder(constant, namedType, constantName)
 
 	c.typeDefinitionChecks.addEntry(
 		namedType.Name,
@@ -107,11 +140,10 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
-	if constant != nil {
-		c.addFailure(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			node.Constant.Span(),
-		)
+	switch constant.(type) {
+	case *types.Placeholder, nil:
+	default:
+		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
 	}
 
 	namedType := types.NewGenericNamedType(
@@ -122,6 +154,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
+	c.replaceTypePlaceholder(constant, namedType, constantName)
 
 	c.typeDefinitionChecks.addEntry(
 		namedType.Name,
