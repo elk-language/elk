@@ -78,10 +78,15 @@ func makeMethodScope(container types.Namespace) methodScope {
 }
 
 func (c *Checker) createUsingBufferNamespace() types.Namespace {
-	mod := types.NewModule("", "Using buffer namespace", c.GlobalEnv)
+	mod := types.NewUsingBufferNamespace()
 	c.pushConstScope(makeUsingBufferConstantScope(mod))
 	c.pushMethodScope(makeUsingBufferMethodScope(mod))
 	return mod
+}
+
+func (c *Checker) enclosingScopeIsAUsingBuffer() bool {
+	scope := c.enclosingConstScope()
+	return scope.kind == scopeUsingBufferKind
 }
 
 func (c *Checker) getUsingBufferNamespace() types.Namespace {

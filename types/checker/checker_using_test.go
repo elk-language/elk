@@ -168,6 +168,26 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(76, 7, 16), P(78, 7, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
+		"using with a single class goes out of scope": {
+			input: `
+				module Baz
+					using Foo::Bar
+
+					var a: Bar = Bar()
+					var b: Bar = 9
+				end
+
+				class Foo
+				 	class Bar; end
+				end
+
+				Bar
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 6, 19), P(79, 6, 19)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(138, 13, 5), P(140, 13, 7)), "undefined constant `Bar`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

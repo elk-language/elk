@@ -5859,6 +5859,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node *ast.Consta
 
 	container.DefineConstant(constantSymbol, placeholderConstant)
 	usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, placeholderConstant)
+	node.SetType(usingNamespace)
 
 	return node
 }
@@ -6229,24 +6230,31 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 	for _, constNode := range node.Entries {
-		var namespace types.Namespace
 		typ := c.typeOf(constNode)
 		switch t := typ.(type) {
 		case *types.Module:
-			namespace = t
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
 		case *types.Mixin:
-			namespace = t
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
 		case *types.Class:
-			namespace = t
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
 		case *types.Interface:
-			namespace = t
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
 		case *types.NamespacePlaceholder:
-			namespace = t
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
 			t.Locations.Append(c.newLocation(constNode.Span()))
-		default:
-			continue
+		case *types.UsingBufferNamespace:
+			if c.enclosingScopeIsAUsingBuffer() {
+				continue
+			}
+			c.pushConstScope(makeUsingBufferConstantScope(t))
+			c.pushMethodScope(makeUsingBufferMethodScope(t))
 		}
-		c.pushConstScope(makeConstantScope(namespace))
 	}
 }
 
