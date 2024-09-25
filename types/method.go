@@ -124,20 +124,24 @@ func (p *Parameter) IsOptional() bool {
 
 type Method struct {
 	Name               value.Symbol
-	DocComment         string
 	Params             []*Parameter
+	DocComment         string
 	OptionalParamCount int
 	PostParamCount     int
 	abstract           bool
 	sealed             bool
 	native             bool
-	TypeParameters     []*TypeParameter
 	HasNamedRestParam  bool
+	TypeParameters     []*TypeParameter
 	ReturnType         Type
 	ThrowType          Type
 	DefinedUnder       Namespace
 	Bytecode           *vm.BytecodeFunction
-	span               *position.Span
+	location           *position.Location
+	// used to detect methods that circularly reference constants
+	UsedInConstants map[value.Symbol]bool // set of constants in which this method is called
+	UsedConstants   map[value.Symbol]bool // set of constants references in this method's body
+	CalledMethods   []*Method             // list of methods called in this method's body
 }
 
 func (m *Method) Copy() *Method {
@@ -156,16 +160,19 @@ func (m *Method) Copy() *Method {
 		ThrowType:          m.ThrowType,
 		DefinedUnder:       m.DefinedUnder,
 		Bytecode:           m.Bytecode,
-		span:               m.span,
+		location:           m.location,
+		UsedInConstants:    m.UsedInConstants,
+		UsedConstants:      m.UsedConstants,
+		CalledMethods:      m.CalledMethods,
 	}
 }
 
-func (m *Method) Span() *position.Span {
-	return m.span
+func (m *Method) Location() *position.Location {
+	return m.location
 }
 
-func (m *Method) SetSpan(span *position.Span) {
-	m.span = span
+func (m *Method) SetLocation(location *position.Location) {
+	m.location = location
 }
 
 func (m *Method) IsGeneric() bool {
@@ -235,6 +242,8 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		HasNamedRestParam:  hasNamedRestParam,
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
+		UsedInConstants:    make(map[value.Symbol]bool),
+		UsedConstants:      make(map[value.Symbol]bool),
 	}
 }
 

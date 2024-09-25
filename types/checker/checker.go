@@ -76,32 +76,35 @@ type phase uint8
 const (
 	initPhase phase = iota
 	constantCheckPhase
+	methodCheckPhase
 	expressionPhase
 )
 
 // Holds the state of the type checking process
 type Checker struct {
-	Filename                string
-	Errors                  *error.SyncErrorList
+	Filename                string               // name of the current source file
+	Errors                  *error.SyncErrorList // list of typechecking errors
 	GlobalEnv               *types.GlobalEnvironment
-	IsHeader                bool
+	IsHeader                bool // whether the currently checked file is an Elk header file `.elh`
 	phase                   phase
 	mode                    mode
 	constantScopes          []constantScope
 	constantScopesCopyCache []constantScope
 	methodScopes            []methodScope
 	methodScopesCopyCache   []methodScope
-	localEnvs               []*localEnvironment
-	loops                   []*loop
+	localEnvs               []*localEnvironment // stack of local environments containing variable and value declarations
+	loops                   []*loop             // list of loops the current expression falls under
 	returnType              types.Type
 	throwType               types.Type
-	selfType                types.Type
-	namespacePlaceholders   *concurrent.Slice[*types.NamespacePlaceholder]
-	placeholders            *concurrent.Slice[*types.Placeholder]
-	methodChecks            *concurrent.Slice[methodCheckEntry]
+	selfType                types.Type                                     // the type of `self`
+	namespacePlaceholders   *concurrent.Slice[*types.NamespacePlaceholder] // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
+	placeholders            *concurrent.Slice[*types.Placeholder]          // list of constant/subtype placeholders, used in using statements
+	methodChecks            *concurrent.Slice[methodCheckEntry]            // list of methods whose bodies have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
-	astCache                *concurrent.Map[string, *ast.ProgramNode]
+	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
+	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
+	constantCache           map[value.Symbol]bool                     // a set of constant names, used in method body checks to detect methods that circularly reference constants (refer to constants in which they appear)
 }
 
 // Instantiate a new Checker instance.
@@ -134,6 +137,8 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		typeDefinitionChecks:  newTypeDefinitionChecks(),
 		constantChecks:        newConstantDefinitionChecks(),
 		astCache:              concurrent.NewMap[string, *ast.ProgramNode](),
+		methodCache:           concurrent.NewSlice[*types.Method](),
+		constantCache:         make(map[value.Symbol]bool),
 	}
 }
 
@@ -147,7 +152,7 @@ func (c *Checker) newMethodChecker(filename string, constScopes []constantScope,
 		GlobalEnv:      c.GlobalEnv,
 		Filename:       filename,
 		mode:           methodMode,
-		phase:          c.phase,
+		phase:          methodCheckPhase,
 		selfType:       selfType,
 		returnType:     returnType,
 		throwType:      throwType,
@@ -159,6 +164,8 @@ func (c *Checker) newMethodChecker(filename string, constScopes []constantScope,
 			newLocalEnvironment(nil),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
+		methodCache:          concurrent.NewSlice[*types.Method](),
+		constantCache:        make(map[value.Symbol]bool),
 	}
 }
 
@@ -217,9 +224,10 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.checkConstantAndTypePlaceholders()
-	c.phase = expressionPhase
-	c.checkMethods()
 	c.checkConstants()
+	c.checkMethods()
+	c.checkMethodsInConstants()
+	c.phase = expressionPhase
 	c.checkStatements(statements)
 
 	return nil
@@ -255,8 +263,9 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	c.hoistMethodDefinitionsInFile(filename, ast)
 	c.checkConstantAndTypePlaceholders()
 	c.phase = expressionPhase
-	c.checkMethods()
 	c.checkConstants()
+	c.checkMethods()
+	c.checkMethodsInConstants()
 	c.checkExpressionsInFile(filename, ast)
 
 	return nil
@@ -3070,6 +3079,8 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
+	c.addToMethodCache(method)
+
 	if len(node.TypeArguments) > 0 {
 		typeArgs, ok := c.checkTypeArguments(
 			method,
@@ -3106,6 +3117,8 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		node.SetType(types.Nothing{})
 		return node
 	}
+
+	c.addToMethodCache(method)
 
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
@@ -3381,6 +3394,13 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	return node
 }
 
+func (c *Checker) addToMethodCache(method *types.Method) {
+	switch c.phase {
+	case constantCheckPhase, methodCheckPhase:
+		c.methodCache.AppendUnsafe(method)
+	}
+}
+
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
 	classType, _ := c.resolveConstantType(node.Class)
 	if classType == nil {
@@ -3427,6 +3447,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 				nil,
 				class,
 			)
+		} else {
+			c.addToMethodCache(method)
 		}
 
 		typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
@@ -3453,6 +3475,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		)
 	} else {
 		method = c.deepCopyMethod(method)
+		c.addToMethodCache(method)
 	}
 
 	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(

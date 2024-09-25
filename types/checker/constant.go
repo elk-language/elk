@@ -128,6 +128,7 @@ func (c *Checker) checkConstants() {
 		c.constantScopes = constCheck.constantScopes
 		c.methodScopes = constCheck.methodScopes
 		c.checkConstantDeclaration(constName, constCheck, nil)
+		c.methodCache.Slice = nil // reset the method cache
 	}
 
 	c.phase = prevPhase
@@ -168,6 +169,11 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 	init := node.Initialiser
 	actualType := c.typeOfGuardVoid(init)
 	c.checkCanAssign(actualType, declaredType, init.Span())
+
+	symbolName := value.ToSymbol(name)
+	for _, method := range c.methodCache.Slice {
+		method.UsedInConstants[symbolName] = true
+	}
 
 	check.state = CHECKED_CONST
 	return true
@@ -370,10 +376,18 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 	return nil, name
 }
 
+func (c *Checker) addToConstantCache(name value.Symbol) {
+	if c.phase == methodCheckPhase {
+		c.constantCache[name] = true
+	}
+}
+
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node, node.Span())
 	if typ == nil {
 		typ = types.Nothing{}
+	} else {
+		c.addToConstantCache(value.ToSymbol(name))
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -388,6 +402,8 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Nothing{}
+	} else {
+		c.addToConstantCache(value.ToSymbol(name))
 	}
 
 	node.Value = name
@@ -399,6 +415,8 @@ func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.P
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Nothing{}
+	} else {
+		c.addToConstantCache(value.ToSymbol(name))
 	}
 
 	node.Value = name

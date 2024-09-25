@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -40,19 +41,52 @@ func (c *Checker) checkMethods() {
 		concurrencyLimit,
 		c.methodChecks.Slice,
 		func(methodCheck methodCheckEntry) {
+			method := methodCheck.method
 			methodChecker := c.newMethodChecker(
 				methodCheck.filename,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
-				methodCheck.method.DefinedUnder,
-				methodCheck.method.ReturnType,
-				methodCheck.method.ThrowType,
+				method.DefinedUnder,
+				method.ReturnType,
+				method.ThrowType,
 			)
 			node := methodCheck.node
 			methodChecker.checkMethodDefinition(node)
+
+			// method has to be checked if it doesn't
+			// use the constants that use it in their initialisation
+			if len(method.UsedInConstants) > 0 {
+				// use the method cache to store methods
+				// that are used in constant definitions and have to be checked
+				c.methodCache.Append(method)
+			}
 		},
 	)
-	c.methodChecks.Slice = nil
+}
+
+func (c *Checker) checkMethodsInConstants() {
+	for _, method := range c.methodCache.Slice {
+		c.checkMethodInConstant(method, method.UsedInConstants)
+	}
+}
+
+func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants map[value.Symbol]bool) {
+	for _, calledMethod := range method.CalledMethods {
+		c.checkMethodInConstant(calledMethod, usedInConstants)
+	}
+
+	for usedInConstant := range usedInConstants {
+		if method.UsedConstants[usedInConstant] {
+			c.addFailureWithLocation(
+				fmt.Sprintf(
+					"method `%s` circularly refers to constant `%s` because it gets called in its initializer",
+					types.InspectWithColor(method),
+					lexer.Colorize(usedInConstant.String()),
+				),
+				method.Location(),
+			)
+		}
+	}
 }
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
@@ -205,15 +239,15 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
-func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *position.Span) {
-	c.addFailure(
+func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, loc *position.Location) {
+	c.addFailureWithLocation(
 		fmt.Sprintf(
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: `%s`",
 			baseMethod.Name,
 			types.InspectWithColor(baseMethod.DefinedUnder),
 			baseMethod.InspectSignatureWithColor(true),
 		),
-		span,
+		loc,
 	)
 }
 
@@ -373,7 +407,7 @@ func (c *Checker) checkMethod(
 	if methodNamespace != nil {
 		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
 		if checkedMethod != currentMethod && checkedMethod.IsSealed() {
-			c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
+			c.addOverrideSealedMethodError(checkedMethod, currentMethod.Location())
 		}
 
 		parent := methodNamespace.Parent()
@@ -1105,6 +1139,8 @@ func (c *Checker) checkSimpleMethodCall(
 		return receiver, positionalArgumentNodes, types.Nothing{}
 	}
 
+	c.addToMethodCache(method)
+
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(typeArgumentNodes) > 0 {
 		typeArgs, ok := c.checkTypeArguments(
@@ -1192,9 +1228,10 @@ func (c *Checker) checkBinaryOpMethodCall(
 }
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
+	method := c.typeOf(node).(*types.Method)
 	returnType, throwType := c.checkMethod(
 		c.currentMethodScope().container,
-		c.typeOf(node).(*types.Method),
+		method,
 		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
@@ -1204,6 +1241,12 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	)
 	node.ReturnType = returnType
 	node.ThrowType = throwType
+
+	method.UsedConstants = c.constantCache
+	c.constantCache = nil
+
+	method.CalledMethods = c.methodCache.Slice
+	c.methodCache.Slice = nil
 }
 
 func (c *Checker) declareMethod(
@@ -1469,7 +1512,7 @@ func (c *Checker) declareMethod(
 		throwType,
 		methodNamespace,
 	)
-	newMethod.SetSpan(span)
+	newMethod.SetLocation(c.newLocation(span))
 
 	if oldMethod != nil {
 		c.checkMethodOverride(
