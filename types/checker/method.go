@@ -25,7 +25,7 @@ type methodCheckEntry struct {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	c.methodChecks.Append(methodCheckEntry{
+	c.methodChecks.Push(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
@@ -58,7 +58,7 @@ func (c *Checker) checkMethods() {
 			if len(method.UsedInConstants) > 0 {
 				// use the method cache to store methods
 				// that are used in constant definitions and have to be checked
-				c.methodCache.Append(method)
+				c.methodCache.Push(method)
 			}
 		},
 	)
@@ -1155,7 +1155,7 @@ func (c *Checker) checkSimpleMethodCall(
 			return receiver, positionalArgumentNodes, types.Nothing{}
 		}
 
-		method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
+		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap)
 		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
 	} else if len(method.TypeParameters) > 0 {
 		var typeArgMap map[value.Symbol]*types.TypeArgument
@@ -1242,7 +1242,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	node.ReturnType = returnType
 	node.ThrowType = throwType
 
-	method.UsedConstants = c.constantCache
+	maps.Copy(method.UsedConstants, c.constantCache)
 	c.constantCache = nil
 
 	method.CalledMethods = c.methodCache.Slice
@@ -1520,6 +1520,7 @@ func (c *Checker) declareMethod(
 			oldMethod,
 			span,
 		)
+		newMethod.UsedInConstants = oldMethod.UsedInConstants
 	}
 	methodNamespace.SetMethod(name, newMethod)
 
@@ -1685,10 +1686,19 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 					continue
 				}
 
-				method = c.deepCopyMethod(method)
+				var methodCopy *types.Method
 				for i := len(generics) - 1; i >= 0; i-- {
 					generic := generics[i]
-					method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+					if methodCopy != nil {
+						c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
+						continue
+					}
+
+					result := c.replaceTypeParametersInMethodCopy(method, generic.ArgumentMap)
+					if result != method {
+						methodCopy = result
+						method = result
+					}
 				}
 				if !yield(name, method) {
 					return
@@ -1727,10 +1737,19 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 					continue
 				}
 
-				method = c.deepCopyMethod(method)
+				var methodCopy *types.Method
 				for i := len(generics) - 1; i >= 0; i-- {
 					generic := generics[i]
-					method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+					if methodCopy != nil {
+						c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
+						continue
+					}
+
+					result := c.replaceTypeParametersInMethodCopy(method, generic.ArgumentMap)
+					if result != method {
+						methodCopy = result
+						method = result
+					}
 				}
 				if !yield(name, method) {
 					return
@@ -1759,12 +1778,21 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			return method
 		}
 
-		m := c.deepCopyMethod(method)
+		var methodCopy *types.Method
 		for i := len(generics) - 1; i >= 0; i-- {
 			generic := generics[i]
-			m = c.replaceTypeParametersInMethod(m, generic.ArgumentMap)
+			if methodCopy != nil {
+				c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
+				continue
+			}
+
+			result := c.replaceTypeParametersInMethodCopy(method, generic.ArgumentMap)
+			if result != method {
+				methodCopy = result
+				method = result
+			}
 		}
-		return m
+		return method
 	}
 
 	return nil
@@ -1786,10 +1814,19 @@ func (c *Checker) resolveNonAbstractMethodInNamespace(namespace types.Namespace,
 				return method
 			}
 
-			method = c.deepCopyMethod(method)
+			var methodCopy *types.Method
 			for i := len(generics) - 1; i >= 0; i-- {
 				generic := generics[i]
-				method = c.replaceTypeParametersInMethod(method, generic.ArgumentMap)
+				if methodCopy != nil {
+					c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
+					continue
+				}
+
+				result := c.replaceTypeParametersInMethodCopy(method, generic.ArgumentMap)
+				if result != method {
+					methodCopy = result
+					method = methodCopy
+				}
 			}
 			return method
 		}
@@ -1823,11 +1860,61 @@ func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ ty
 			types.INVARIANT,
 		),
 	}
-	return c.replaceTypeParametersInMethod(c.deepCopyMethod(method), m)
+	return c.replaceTypeParametersInMethodCopy(method, m)
 }
 
 func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	return c.getMethodInNamespaceWithSelf(namespace, typ, name, namespace, errSpan, inParent, inSelf)
+}
+
+func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
+	var methodCopy *types.Method
+
+	for i, typeParam := range method.TypeParameters {
+		result := c.replaceTypeParameters(typeParam.LowerBound, typeArgs)
+		if typeParam.LowerBound != result {
+			if methodCopy == nil {
+				methodCopy = c.deepCopyMethod(method)
+			}
+			methodCopy.TypeParameters[i].LowerBound = result
+		}
+		result = c.replaceTypeParameters(typeParam.UpperBound, typeArgs)
+		if typeParam.UpperBound != result {
+			if methodCopy == nil {
+				methodCopy = c.deepCopyMethod(method)
+			}
+			methodCopy.TypeParameters[i].UpperBound = result
+		}
+	}
+	result := c.replaceTypeParameters(method.ReturnType, typeArgs)
+	if method.ReturnType != result {
+		if methodCopy == nil {
+			methodCopy = c.deepCopyMethod(method)
+		}
+		methodCopy.ReturnType = result
+	}
+	result = c.replaceTypeParameters(method.ThrowType, typeArgs)
+	if method.ThrowType != result {
+		if methodCopy == nil {
+			methodCopy = c.deepCopyMethod(method)
+		}
+		methodCopy.ThrowType = result
+	}
+
+	for i, param := range method.Params {
+		result := c.replaceTypeParameters(param.Type, typeArgs)
+		if param.Type != result {
+			if methodCopy == nil {
+				methodCopy = c.deepCopyMethod(method)
+			}
+			methodCopy.Params[i].Type = result
+		}
+	}
+
+	if methodCopy != nil {
+		return methodCopy
+	}
+	return method
 }
 
 func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
@@ -1876,7 +1963,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 			typ,
 			types.INVARIANT,
 		)
-		return c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgMap)
+		return c.replaceTypeParametersInMethodCopy(method, typeArgMap)
 	default:
 		return c._getMethod(typ.UpperBound, name, errSpan, inParent, inSelf)
 	}

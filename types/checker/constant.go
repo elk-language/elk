@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
@@ -30,11 +31,12 @@ const (
 )
 
 type constantDefinitionCheck struct {
-	filename       string
-	constantScopes []constantScope
-	methodScopes   []methodScope
-	node           *ast.ConstantDeclarationNode
-	state          constState
+	filename          string
+	constantScopes    []constantScope
+	methodScopes      []methodScope
+	node              *ast.ConstantDeclarationNode
+	state             constState
+	referencedMethods []*types.Method
 }
 
 func (c *Checker) registerConstantCheck(name string, node *ast.ConstantDeclarationNode) {
@@ -159,6 +161,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		)
 		return false
 	case CHECKED_CONST:
+		c.methodCache.AppendUnsafe(check.referencedMethods...)
 		return true
 	}
 	check.state = CHECKING_CONST
@@ -171,6 +174,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	symbolName := value.ToSymbol(name)
+	check.referencedMethods = slices.Clone(c.methodCache.Slice)
 	for _, method := range c.methodCache.Slice {
 		method.UsedInConstants[symbolName] = true
 	}

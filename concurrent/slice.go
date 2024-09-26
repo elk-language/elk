@@ -61,12 +61,22 @@ func (s *Slice[V]) SetUnsafe(index int, val V) (ok bool) {
 	return ok
 }
 
-func (s *Slice[V]) Append(val V) {
+func (s *Slice[V]) Push(val V) {
 	s.mu.Lock()
 	s.Slice = append(s.Slice, val)
 	s.mu.Unlock()
 }
 
-func (s *Slice[V]) AppendUnsafe(val V) {
+func (s *Slice[V]) PushUnsafe(val V) {
 	s.Slice = append(s.Slice, val)
+}
+
+func (s *Slice[V]) Append(values ...V) {
+	s.mu.Lock()
+	s.Slice = append(s.Slice, values...)
+	s.mu.Unlock()
+}
+
+func (s *Slice[V]) AppendUnsafe(values ...V) {
+	s.Slice = append(s.Slice, values...)
 }

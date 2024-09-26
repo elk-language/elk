@@ -76,6 +76,77 @@ func TestConstantDeclarations(t *testing.T) {
 		"declare with a static initialiser without an explicit type": {
 			input: "const Foo = 3",
 		},
+		"declare with a circular reference in method": {
+			input: `
+				const Bar: String = Foo.foo
+				module Foo
+					def foo: String
+						Bar
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L("<main>", P(53, 4, 6), P(86, 6, 8)),
+					"method `Foo::foo` circularly refers to constant `Bar` because it gets called in its initializer",
+				),
+			},
+		},
+		"declare with a circular reference in method to related constant": {
+			input: `
+				const Baz: String = Bar + "lol"
+				const Bar: String = Foo.foo
+				module Foo
+					def foo: String
+						Baz
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L("<main>", P(89, 5, 6), P(122, 7, 8)),
+					"method `Foo::foo` circularly refers to constant `Baz` because it gets called in its initializer",
+				),
+			},
+		},
+		"declare with a circular reference in method to related constant that is already defined": {
+			input: `
+				const Bar: String = Foo.foo
+				const Baz: String = Bar + "lol"
+				module Foo
+					def foo: String
+						Baz
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L("<main>", P(89, 5, 6), P(122, 7, 8)),
+					"method `Foo::foo` circularly refers to constant `Baz` because it gets called in its initializer",
+				),
+			},
+		},
+		"declare with a circular reference in related method to related constant": {
+			input: `
+				const Baz: String = Bar + "lol"
+				const Bar: String = Foo.foo
+				module Foo
+					def foo: String
+						bar()
+					end
+
+					def bar: String
+						Baz
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L("<main>", P(132, 9, 6), P(165, 11, 8)),
+					"method `Foo::bar` circularly refers to constant `Baz` because it gets called in its initializer",
+				),
+			},
+		},
 		"declare with a dynamic initialiser": {
 			input: `
 				const Bar: String = Foo.foo
