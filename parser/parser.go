@@ -3383,7 +3383,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 
 // usingEntry = strictConstantLookup ["::" (publicIdentifier | "*" | "{" usingSubentryList "}")]
 func (p *Parser) usingEntry() ast.UsingEntryNode {
-	var left ast.UsingEntryNode
+	var left ast.ComplexConstantNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
@@ -3404,11 +3404,26 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		p.swallowNewlines()
 		if p.accept(token.PUBLIC_IDENTIFIER) {
 			nameTok := p.advance()
-			return ast.NewMethodLookupNode(
+			methodLookup := ast.NewMethodLookupNode(
 				left.Span().Join(nameTok.Span()),
 				left,
 				nameTok.Value,
 			)
+			if p.match(token.AS) {
+				asNameTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
+				if !ok {
+					return ast.NewInvalidNode(
+						asNameTok.Span(),
+						asNameTok,
+					)
+				}
+				return ast.NewMethodLookupAsNode(
+					left.Span(),
+					methodLookup,
+					asNameTok.Value,
+				)
+			}
+			return methodLookup
 		}
 		if p.accept(token.STAR) {
 			starTok := p.advance()
@@ -3441,6 +3456,21 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 			left.Span().Join(right.Span()),
 			left,
 			right,
+		)
+	}
+
+	if p.match(token.AS) {
+		asNameTok, ok := p.consume(token.PUBLIC_CONSTANT)
+		if !ok {
+			return ast.NewInvalidNode(
+				asNameTok.Span(),
+				asNameTok,
+			)
+		}
+		return ast.NewConstantAsNode(
+			left.Span(),
+			left,
+			asNameTok.Value,
 		)
 	}
 

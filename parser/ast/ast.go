@@ -316,6 +316,8 @@ func (*DoubleQuotedStringLiteralNode) expressionNode()     {}
 func (*InterpolatedStringLiteralNode) expressionNode()     {}
 func (*VariableDeclarationNode) expressionNode()           {}
 func (*ValueDeclarationNode) expressionNode()              {}
+func (*ConstantAsNode) expressionNode()                    {}
+func (*MethodLookupAsNode) expressionNode()                {}
 func (*PublicIdentifierNode) expressionNode()              {}
 func (*PublicIdentifierAsNode) expressionNode()            {}
 func (*PrivateIdentifierNode) expressionNode()             {}
@@ -681,6 +683,7 @@ type ComplexConstantNode interface {
 	ExpressionNode
 	PatternNode
 	PatternExpressionNode
+	UsingEntryNode
 	complexConstantNode()
 }
 
@@ -705,6 +708,10 @@ func (*ConstantLookupNode) usingEntryNode()           {}
 func (*MethodLookupNode) usingEntryNode()             {}
 func (*UsingAllEntryNode) usingEntryNode()            {}
 func (*UsingEntryWithSubentriesNode) usingEntryNode() {}
+func (*ConstantAsNode) usingEntryNode()               {}
+func (*MethodLookupAsNode) usingEntryNode()           {}
+func (*GenericConstantNode) usingEntryNode()          {}
+func (*NilLiteralNode) usingEntryNode()               {}
 
 type UsingSubentryNode interface {
 	TypedNode
@@ -3028,6 +3035,48 @@ func NewPublicConstantAsNode(span *position.Span, target, as string) *PublicCons
 		NodeBase:   NodeBase{span: span},
 		TargetName: target,
 		AsName:     as,
+	}
+}
+
+// Represents a constant with as in using declarations
+// eg. `Foo::Bar as Bar`.
+type ConstantAsNode struct {
+	NodeBase
+	Constant ComplexConstantNode
+	AsName   string
+}
+
+func (*ConstantAsNode) IsStatic() bool {
+	return false
+}
+
+// Create a new identifier with as eg. `Foo::Bar as Bar`.
+func NewConstantAsNode(span *position.Span, constant ComplexConstantNode, as string) *ConstantAsNode {
+	return &ConstantAsNode{
+		NodeBase: NodeBase{span: span},
+		Constant: constant,
+		AsName:   as,
+	}
+}
+
+// Represents a method lookup with as in using declarations
+// eg. `Foo::bar as Bar`.
+type MethodLookupAsNode struct {
+	NodeBase
+	MethodLookup *MethodLookupNode
+	AsName       string
+}
+
+func (*MethodLookupAsNode) IsStatic() bool {
+	return false
+}
+
+// Create a new identifier with as eg. `Foo::bar as Bar`.
+func NewMethodLookupAsNode(span *position.Span, methodLookup *MethodLookupNode, as string) *MethodLookupAsNode {
+	return &MethodLookupAsNode{
+		NodeBase:     NodeBase{span: span},
+		MethodLookup: methodLookup,
+		AsName:       as,
 	}
 }
 

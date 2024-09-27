@@ -576,6 +576,60 @@ func TestUsingExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have a constant lookup with as": {
+			input: "using Std::Memoizable as M",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							[]ast.UsingEntryNode{
+								ast.NewConstantAsNode(
+									S(P(6, 1, 7), P(20, 1, 21)),
+									ast.NewConstantLookupNode(
+										S(P(6, 1, 7), P(20, 1, 21)),
+										ast.NewPublicConstantNode(
+											S(P(6, 1, 7), P(8, 1, 9)),
+											"Std",
+										),
+										ast.NewPublicConstantNode(
+											S(P(11, 1, 12), P(20, 1, 21)),
+											"Memoizable",
+										),
+									),
+									"M",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup with as and identifier": {
+			input: "using Std::Memoizable as a",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							[]ast.UsingEntryNode{
+								ast.NewInvalidNode(
+									S(P(25, 1, 26), P(25, 1, 26)),
+									V(S(P(25, 1, 26), P(25, 1, 26)), token.PUBLIC_IDENTIFIER, "a"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(25, 1, 26), P(25, 1, 26)), "unexpected PUBLIC_IDENTIFIER, expected PUBLIC_CONSTANT"),
+			},
+		},
 		"can have a method lookup as the argument": {
 			input: "using Std::Memoizable::memo",
 			want: ast.NewProgramNode(
@@ -606,6 +660,64 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can have a method lookup with as and public identifier": {
+			input: "using Std::Memoizable::memo as m",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupAsNode(
+									S(P(6, 1, 7), P(20, 1, 21)),
+									ast.NewMethodLookupNode(
+										S(P(6, 1, 7), P(26, 1, 27)),
+										ast.NewConstantLookupNode(
+											S(P(6, 1, 7), P(20, 1, 21)),
+											ast.NewPublicConstantNode(
+												S(P(6, 1, 7), P(8, 1, 9)),
+												"Std",
+											),
+											ast.NewPublicConstantNode(
+												S(P(11, 1, 12), P(20, 1, 21)),
+												"Memoizable",
+											),
+										),
+										"memo",
+									),
+									"m",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have a method lookup with as and constant": {
+			input: "using Std::Memoizable::memo as M",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewUsingExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							[]ast.UsingEntryNode{
+								ast.NewInvalidNode(
+									S(P(31, 1, 32), P(31, 1, 32)),
+									V(S(P(31, 1, 32), P(31, 1, 32)), token.PUBLIC_CONSTANT, "M"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 1, 32), P(31, 1, 32)), "unexpected PUBLIC_CONSTANT, expected PUBLIC_IDENTIFIER"),
+			},
 		},
 		"can have a generic constant as the argument": {
 			input: "using Enumerable[String]",
