@@ -56,15 +56,15 @@ func (c *Checker) addRedeclaredConstantError(name string, span *position.Span) {
 	)
 }
 
-func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types.Type, constantName value.Symbol) {
+func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types.Type) {
 	placeholder, ok := previousConstantType.(*types.Placeholder)
 	if !ok {
 		return
 	}
 
 	placeholder.Replaced = true
-	usingConst := placeholder.Container[constantName]
-	placeholder.Container[constantName] = types.Constant{
+	usingConst := placeholder.Container[placeholder.AsName]
+	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
 		Type:     newType,
 	}
@@ -96,7 +96,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 		container.DefineConstant(constantName, actualType)
 		node.SetType(typ)
-		c.replaceConstantPlaceholder(constant, typ, constantName)
+		c.replaceConstantPlaceholder(constant, typ)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	container.DefineConstant(constantName, declaredType)
 	node.SetType(declaredType)
 	c.registerConstantCheck(fullConstantName, node)
-	c.replaceConstantPlaceholder(constant, declaredType, constantName)
+	c.replaceConstantPlaceholder(constant, declaredType)
 }
 
 func (c *Checker) checkConstants() {

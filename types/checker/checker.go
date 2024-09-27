@@ -3907,7 +3907,7 @@ func (c *Checker) addUnreachableCodeError(span *position.Span) {
 }
 
 // Get the type of the subtype with the given name
-func (c *Checker) resolveTypeInRoot(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string, string) {
+func (c *Checker) resolveTypeInRoot(constantExpression ast.ExpressionNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
 		return c.GlobalEnv.Root, c.resolveSimpleTypeInRoot(constant.Value), constant.Value, constant.Value
@@ -5833,55 +5833,73 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 			node.Span(),
 		)
 		return node
+	case *ast.ConstantAsNode:
+		n.Constant = c.checkUsingConstantLookupEntryNodeForNamespace(n.Constant, n.AsName)
+		return n
 	case *ast.ConstantLookupNode:
-		return c.checkUsingConstantLookupEntryNodeForNamespace(n)
+		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
 }
 
-func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node *ast.ConstantLookupNode) ast.UsingEntryNode {
-	container, constant, fullConstantName, constantName := c.resolveTypeLookupInRoot(node)
-	constantSymbol := value.ToSymbol(constantName)
-	node.Left.SetType(container)
+func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
+	container, constant, fullConstantName, constantName := c.resolveTypeInRoot(node)
+	originalConstantSymbol := value.ToSymbol(constantName)
+	var newConstantSymbol value.Symbol
+	if asName == "" {
+		newConstantSymbol = originalConstantSymbol
+	} else {
+		newConstantSymbol = value.ToSymbol(asName)
+	}
 	usingNamespace := c.getUsingBufferNamespace()
 	switch n := constant.(type) {
 	case *types.Class:
-		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
 		return node
 	case *types.Mixin:
-		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
 		return node
 	case *types.Interface:
-		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, n.Singleton())
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
 		return node
 	case *types.Module:
-		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node
 	default:
-		usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, constant)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node
 	case nil: // continue
 	}
 
-	placeholderType := types.NewPlaceholder(fullConstantName, usingNamespace.Subtypes(), c.newLocation(node.Span()))
+	placeholderType := types.NewPlaceholder(
+		newConstantSymbol,
+		fullConstantName,
+		usingNamespace.Subtypes(),
+		c.newLocation(node.Span()),
+	)
 	c.registerPlaceholder(placeholderType)
 
-	placeholderConstant := types.NewPlaceholder(fullConstantName, usingNamespace.Constants(), c.newLocation(node.Span()))
+	placeholderConstant := types.NewPlaceholder(
+		newConstantSymbol,
+		fullConstantName,
+		usingNamespace.Constants(),
+		c.newLocation(node.Span()),
+	)
 	c.registerPlaceholder(placeholderConstant)
 
 	placeholderConstant.Sibling = placeholderType
 	placeholderType.Sibling = placeholderConstant
 
-	container.DefineSubtype(constantSymbol, placeholderType)
-	usingNamespace.DefineSubtypeWithFullName(constantSymbol, fullConstantName, placeholderType)
+	container.DefineSubtype(originalConstantSymbol, placeholderType)
+	usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, placeholderType)
 
-	container.DefineConstant(constantSymbol, placeholderConstant)
-	usingNamespace.DefineConstantWithFullName(constantSymbol, fullConstantName, placeholderConstant)
+	container.DefineConstant(originalConstantSymbol, placeholderConstant)
+	usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, placeholderConstant)
 	node.SetType(usingNamespace)
 
 	return node
