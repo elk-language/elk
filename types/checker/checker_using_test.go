@@ -122,6 +122,22 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
+		"using with a single namespace and as": {
+			input: `
+				using Foo::Bar as B
+
+				class Foo
+					class Bar; end
+				end
+
+				var a: B = B()
+				var b: B = 9
+				var c: &B = B
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(103, 9, 16), P(103, 9, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
+			},
+		},
 		"using with a single constant": {
 			input: `
 				using Foo::Bar
@@ -135,6 +151,21 @@ func TestUsing(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(74, 8, 12), P(76, 8, 14)), "undefined type `Foo::Bar`"),
+			},
+		},
+		"using with a single constant and as": {
+			input: `
+				using Foo::Bar as B
+
+				class Foo
+					const Bar = 3
+				end
+
+				var a: B = 9
+				var c: 3 = B
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 8, 12), P(79, 8, 12)), "undefined type `Foo::Bar`"),
 			},
 		},
 		"using with a single type": {
@@ -153,6 +184,22 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(99, 9, 16), P(101, 9, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
+		"using with a single type and as": {
+			input: `
+				using Foo::Bar as B
+
+				class Foo
+					typedef Bar = 3
+				end
+
+				var a: B = 9
+				var c: 3 = B
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 8, 12), P(81, 8, 12)), "undefined type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(102, 9, 16), P(102, 9, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
+			},
+		},
 		"using with a single nonexistent constant": {
 			input: `
 				using Foo::Bar
@@ -166,6 +213,21 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
 				error.NewFailure(L("<main>", P(53, 6, 12), P(55, 6, 14)), "undefined type `Foo::Bar`"),
 				error.NewFailure(L("<main>", P(76, 7, 16), P(78, 7, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
+			},
+		},
+		"using with a single nonexistent constant and as": {
+			input: `
+				using Foo::Bar as B
+
+				module Foo; end
+
+				var a: B = 9
+				var c: 3 = B
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(58, 6, 12), P(58, 6, 12)), "undefined type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(79, 7, 16), P(79, 7, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"using with a single class goes out of scope": {

@@ -64,18 +64,18 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, n
 	}
 }
 
-func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.Placeholder, subtype, constant types.Type, constantName value.Symbol) {
+func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.Placeholder, subtype, constant types.Type) {
 	placeholder.Replaced = true
-	usingConst := placeholder.Container[constantName]
-	placeholder.Container[constantName] = types.Constant{
+	usingConst := placeholder.Container[placeholder.AsName]
+	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
 		Type:     constant,
 	}
 
 	placeholder.Sibling.Replaced = true
 	subtypeContainer := placeholder.Sibling.Container
-	usingSubtype := subtypeContainer[constantName]
-	subtypeContainer[constantName] = types.Constant{
+	usingSubtype := subtypeContainer[placeholder.AsName]
+	subtypeContainer[placeholder.AsName] = types.Constant{
 		FullName: usingSubtype.FullName,
 		Type:     subtype,
 	}

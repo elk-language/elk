@@ -5334,7 +5334,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				fullConstantName,
 				c.GlobalEnv,
 			)
-			c.replaceSimpleNamespacePlaceholder(t, module, module, constantName)
+			c.replaceSimpleNamespacePlaceholder(t, module, module)
 			namespace.DefineConstant(constantName, module)
 			namespace.DefineSubtype(constantName, module)
 			return module
@@ -5378,7 +5378,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				c.GlobalEnv,
 			)
 			classSingleton := class.Singleton()
-			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton, constantName)
+			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
 			namespace.DefineConstant(constantName, class.Singleton())
 			namespace.DefineSubtype(constantName, class)
 			return class
@@ -6312,7 +6312,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				c.GlobalEnv,
 			)
 			mixinSingleton := mixin.Singleton()
-			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton, constantName)
+			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
 			namespace.DefineConstant(constantName, mixinSingleton)
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
@@ -6376,7 +6376,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				c.GlobalEnv,
 			)
 			ifaceSingleton := iface.Singleton()
-			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton, constantName)
+			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
 			namespace.DefineConstant(constantName, ifaceSingleton)
 			namespace.DefineSubtype(constantName, iface)
 			return iface
