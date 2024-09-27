@@ -106,6 +106,51 @@ func TestUsing(t *testing.T) {
 			},
 		},
 
+		"using with a few namespaces": {
+			input: `
+				using Foo::{Bar, Baz}
+
+				class Foo
+					class Bar; end
+					class Baz; end
+				end
+
+				var a: Bar = Bar()
+				var b: Bar = 9
+				var c: &Bar = Bar
+
+				var d: Baz = Baz()
+				var e: Baz = 9
+				var f: &Baz = Baz
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(131, 10, 18), P(131, 10, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(196, 14, 18), P(196, 14, 18)), "type `9` cannot be assigned to type `Foo::Baz`"),
+			},
+		},
+		"using with a few namespaces and as": {
+			input: `
+				using Foo::{Bar as R, Baz as Z}
+
+				class Foo
+					class Bar; end
+					class Baz; end
+				end
+
+				var a: R = R()
+				var b: R = 9
+				var c: &R = R
+
+				var d: Z = Z()
+				var e: Z = 9
+				var f: &Z = Z
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(135, 10, 16), P(135, 10, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(190, 14, 16), P(190, 14, 16)), "type `9` cannot be assigned to type `Foo::Baz`"),
+			},
+		},
+
 		"using with a single namespace": {
 			input: `
 				using Foo::Bar

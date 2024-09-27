@@ -5833,6 +5833,8 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 			node.Span(),
 		)
 		return node
+	case *ast.UsingEntryWithSubentriesNode:
+		return c.checkUsingEntryWithSubentriesForNamespace(n)
 	case *ast.ConstantAsNode:
 		n.Constant = c.checkUsingConstantLookupEntryNodeForNamespace(n.Constant, n.AsName)
 		return n
@@ -5841,6 +5843,33 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
+}
+
+func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntryWithSubentriesNode) ast.UsingEntryNode {
+	for _, subentry := range node.Subentries {
+		switch s := subentry.(type) {
+		case *ast.PublicConstantNode:
+			newNode := ast.NewConstantLookupNode(
+				s.Span(),
+				node.Namespace,
+				s,
+			)
+			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, "")
+			s.SetType(c.typeOf(newNode))
+		case *ast.PublicConstantAsNode:
+			newNode := ast.NewConstantLookupNode(
+				s.Span(),
+				node.Namespace,
+				s.Target,
+			)
+			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, s.AsName)
+			s.SetType(c.typeOf(newNode))
+			// case *ast.PublicIdentifierNode:
+			// case *ast.PublicIdentifierAsNode:
+		}
+	}
+
+	return node
 }
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {

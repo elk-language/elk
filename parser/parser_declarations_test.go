@@ -436,12 +436,18 @@ func TestUsingExpression(t *testing.T) {
 									[]ast.UsingSubentryNode{
 										ast.NewPublicConstantAsNode(
 											S(P(19, 1, 20), P(26, 1, 27)),
-											"Foo",
+											ast.NewPublicConstantNode(
+												S(P(19, 1, 20), P(21, 1, 22)),
+												"Foo",
+											),
 											"F",
 										),
 										ast.NewPublicIdentifierAsNode(
 											S(P(29, 1, 30), P(36, 1, 37)),
-											"bar",
+											ast.NewPublicIdentifierNode(
+												S(P(29, 1, 30), P(31, 1, 32)),
+												"bar",
+											),
 											"b",
 										),
 									},

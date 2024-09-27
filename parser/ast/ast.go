@@ -3000,8 +3000,8 @@ func NewUsingEntryWithSubentriesNode(span *position.Span, namespace UsingEntryNo
 // eg. `foo as bar`.
 type PublicIdentifierAsNode struct {
 	NodeBase
-	TargetName string
-	AsName     string
+	Target *PublicIdentifierNode
+	AsName string
 }
 
 func (*PublicIdentifierAsNode) IsStatic() bool {
@@ -3009,11 +3009,11 @@ func (*PublicIdentifierAsNode) IsStatic() bool {
 }
 
 // Create a new identifier with as eg. `foo as bar`.
-func NewPublicIdentifierAsNode(span *position.Span, target, as string) *PublicIdentifierAsNode {
+func NewPublicIdentifierAsNode(span *position.Span, target *PublicIdentifierNode, as string) *PublicIdentifierAsNode {
 	return &PublicIdentifierAsNode{
-		NodeBase:   NodeBase{span: span},
-		TargetName: target,
-		AsName:     as,
+		NodeBase: NodeBase{span: span},
+		Target:   target,
+		AsName:   as,
 	}
 }
 
@@ -3021,8 +3021,8 @@ func NewPublicIdentifierAsNode(span *position.Span, target, as string) *PublicId
 // eg. `Foo as Bar`.
 type PublicConstantAsNode struct {
 	NodeBase
-	TargetName string
-	AsName     string
+	Target *PublicConstantNode
+	AsName string
 }
 
 func (*PublicConstantAsNode) IsStatic() bool {
@@ -3030,11 +3030,11 @@ func (*PublicConstantAsNode) IsStatic() bool {
 }
 
 // Create a new identifier with as eg. `Foo as Bar`.
-func NewPublicConstantAsNode(span *position.Span, target, as string) *PublicConstantAsNode {
+func NewPublicConstantAsNode(span *position.Span, target *PublicConstantNode, as string) *PublicConstantAsNode {
 	return &PublicConstantAsNode{
-		NodeBase:   NodeBase{span: span},
-		TargetName: target,
-		AsName:     as,
+		NodeBase: NodeBase{span: span},
+		Target:   target,
+		AsName:   as,
 	}
 }
 

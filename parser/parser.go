@@ -3352,7 +3352,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		}
 		return ast.NewPublicIdentifierAsNode(
 			identTok.Span().Join(asIdentTok.Span()),
-			identTok.Value,
+			ast.NewPublicIdentifierNode(identTok.Span(), identTok.Value),
 			asIdentTok.Value,
 		)
 	case token.PUBLIC_CONSTANT:
@@ -3371,7 +3371,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		}
 		return ast.NewPublicConstantAsNode(
 			constTok.Span().Join(asConstTok.Span()),
-			constTok.Value,
+			ast.NewPublicConstantNode(constTok.Span(), constTok.Value),
 			asConstTok.Value,
 		)
 	default:
