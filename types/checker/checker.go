@@ -98,7 +98,7 @@ type Checker struct {
 	throwType               types.Type
 	selfType                types.Type                                     // the type of `self`
 	namespacePlaceholders   *concurrent.Slice[*types.NamespacePlaceholder] // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
-	placeholders            *concurrent.Slice[*types.Placeholder]          // list of constant/subtype placeholders, used in using statements
+	constantPlaceholders    *concurrent.Slice[*types.ConstantPlaceholder]  // list of constant/subtype placeholders, used in using statements
 	methodChecks            *concurrent.Slice[methodCheckEntry]            // list of methods whose bodies have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
@@ -132,7 +132,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 			newLocalEnvironment(nil),
 		},
 		namespacePlaceholders: concurrent.NewSlice[*types.NamespacePlaceholder](),
-		placeholders:          concurrent.NewSlice[*types.Placeholder](),
+		constantPlaceholders:  concurrent.NewSlice[*types.ConstantPlaceholder](),
 		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
 		typeDefinitionChecks:  newTypeDefinitionChecks(),
 		constantChecks:        newConstantDefinitionChecks(),
@@ -198,8 +198,8 @@ func (c *Checker) checkNamespacePlaceholders() {
 	}
 }
 
-func (c *Checker) checkConstantAndTypePlaceholders() {
-	for _, placeholder := range c.placeholders.Slice {
+func (c *Checker) checkConstantPlaceholders() {
+	for _, placeholder := range c.constantPlaceholders.Slice {
 		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
 			continue
 		}
@@ -213,7 +213,7 @@ func (c *Checker) checkConstantAndTypePlaceholders() {
 			placeholder.Location,
 		)
 	}
-	c.placeholders.Slice = nil
+	c.constantPlaceholders.Slice = nil
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
@@ -223,7 +223,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkNamespacePlaceholders()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
-	c.checkConstantAndTypePlaceholders()
+	c.checkConstantPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
 	c.checkMethodsInConstants()
@@ -261,7 +261,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	c.checkNamespacePlaceholders()
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitionsInFile(filename, ast)
-	c.checkConstantAndTypePlaceholders()
+	c.checkConstantPlaceholders()
 	c.phase = expressionPhase
 	c.checkConstants()
 	c.checkMethods()
@@ -4068,8 +4068,8 @@ func (c *Checker) registerPlaceholderNamespace(placeholder *types.NamespacePlace
 	c.namespacePlaceholders.Push(placeholder)
 }
 
-func (c *Checker) registerPlaceholder(placeholder *types.Placeholder) {
-	c.placeholders.Push(placeholder)
+func (c *Checker) registerPlaceholder(placeholder *types.ConstantPlaceholder) {
+	c.constantPlaceholders.Push(placeholder)
 }
 
 func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
@@ -4306,7 +4306,7 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 			return nil, fullName
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsPlaceholder(constant.Type) {
+		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 			c.addFailure(
 				fmt.Sprintf("undefined type `%s`", lexer.Colorize(fullName)),
 				span,
@@ -4499,7 +4499,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		typeName = subtype.FullName
 	}
 
-	if types.IsNoValue(subtype.Type) || types.IsPlaceholder(subtype.Type) {
+	if types.IsNoValue(subtype.Type) || types.IsConstantPlaceholder(subtype.Type) {
 		c.addFailure(
 			fmt.Sprintf("undefined type `%s`", lexer.Colorize(typeName)),
 			node.Right.Span(),
@@ -5328,7 +5328,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			namespace.DefineConstant(constantName, module)
 			namespace.DefineSubtype(constantName, module)
 			return module
-		case *types.Placeholder:
+		case *types.ConstantPlaceholder:
 			module := types.NewModule(
 				docComment,
 				fullConstantName,
@@ -5367,7 +5367,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
 			constantType = ct.AttachedObject
-		case *types.Placeholder:
+		case *types.ConstantPlaceholder:
 			class := types.NewClass(
 				docComment,
 				abstract,
@@ -5840,6 +5840,9 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 		return n
 	case *ast.ConstantLookupNode:
 		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
+	case *ast.MethodLookupNode:
+		c.checkUsingMethodLookupEntryNodeForNamespace(n.Receiver, n.Name, "")
+		return n
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
@@ -5870,6 +5873,10 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 	}
 
 	return node
+}
+
+// TODO
+func (c *Checker) checkUsingMethodLookupEntryNodeForNamespace(receiverNode ast.ExpressionNode, methodName, asName string) {
 }
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
@@ -5905,7 +5912,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	case nil: // continue
 	}
 
-	placeholderType := types.NewPlaceholder(
+	placeholderType := types.NewConstantPlaceholder(
 		newConstantSymbol,
 		fullConstantName,
 		usingNamespace.Subtypes(),
@@ -5913,7 +5920,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	)
 	c.registerPlaceholder(placeholderType)
 
-	placeholderConstant := types.NewPlaceholder(
+	placeholderConstant := types.NewConstantPlaceholder(
 		newConstantSymbol,
 		fullConstantName,
 		usingNamespace.Constants(),
@@ -6333,7 +6340,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
 			constantType = ct.AttachedObject
-		case *types.Placeholder:
+		case *types.ConstantPlaceholder:
 			mixin := types.NewMixin(
 				docComment,
 				abstract,
@@ -6398,7 +6405,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
 			constantType = ct.AttachedObject
-		case *types.Placeholder:
+		case *types.ConstantPlaceholder:
 			iface := types.NewInterface(
 				docComment,
 				fullConstantName,

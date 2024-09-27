@@ -64,7 +64,7 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, n
 	}
 }
 
-func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.Placeholder, subtype, constant types.Type) {
+func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantPlaceholder, subtype, constant types.Type) {
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
 	placeholder.Container[placeholder.AsName] = types.Constant{
@@ -94,7 +94,7 @@ func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.Expres
 }
 
 func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Type, constantName value.Symbol) {
-	placeholder, ok := previousConstantType.(*types.Placeholder)
+	placeholder, ok := previousConstantType.(*types.ConstantPlaceholder)
 	if !ok {
 		return
 	}
@@ -114,7 +114,7 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	switch constant.(type) {
-	case *types.Placeholder, nil:
+	case *types.ConstantPlaceholder, nil:
 	default:
 		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
 	}
@@ -141,7 +141,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 	switch constant.(type) {
-	case *types.Placeholder, nil:
+	case *types.ConstantPlaceholder, nil:
 	default:
 		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
 	}

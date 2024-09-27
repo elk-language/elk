@@ -57,7 +57,7 @@ func (c *Checker) addRedeclaredConstantError(name string, span *position.Span) {
 }
 
 func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types.Type) {
-	placeholder, ok := previousConstantType.(*types.Placeholder)
+	placeholder, ok := previousConstantType.(*types.ConstantPlaceholder)
 	if !ok {
 		return
 	}
@@ -76,7 +76,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
 
 	switch constant.(type) {
-	case *types.Placeholder, nil:
+	case *types.ConstantPlaceholder, nil:
 	default:
 		c.addRedeclaredConstantError(fullConstantName, node.Span())
 	}
@@ -298,7 +298,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, span *posi
 	if len(constant.FullName) > 0 {
 		constantName = constant.FullName
 	}
-	if types.IsNoValue(constant.Type) || types.IsPlaceholder(constant.Type) {
+	if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 		c.addInvalidValueInExpressionError(constantName, node.Right.Span())
 		return nil, constantName
 	}
@@ -328,7 +328,7 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 			return nil, fullName
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsPlaceholder(constant.Type) {
+		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 			c.addInvalidValueInExpressionError(fullName, span)
 			return nil, fullName
 		}
@@ -365,7 +365,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 			return nil, fullName
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsPlaceholder(constant.Type) {
+		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 			c.addInvalidValueInExpressionError(fullName, span)
 			return nil, fullName
 		}
