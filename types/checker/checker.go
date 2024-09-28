@@ -4295,7 +4295,6 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 		if !c.checkTypeIfNecessary(fullName, span) {
 			return nil, fullName
 		}
-
 		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 			c.addFailure(
 				fmt.Sprintf("undefined type `%s`", lexer.Colorize(fullName)),

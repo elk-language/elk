@@ -257,7 +257,7 @@ func TestUsing(t *testing.T) {
 				var c: 3 = B
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(81, 8, 12), P(81, 8, 12)), "undefined type `Foo::Bar`"),
+				error.NewFailure(L("<main>", P(85, 8, 16), P(85, 8, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
 				error.NewFailure(L("<main>", P(102, 9, 16), P(102, 9, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},

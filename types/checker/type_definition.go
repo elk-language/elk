@@ -93,7 +93,7 @@ func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.Expres
 	)
 }
 
-func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Type, constantName value.Symbol) {
+func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Type) {
 	placeholder, ok := previousConstantType.(*types.ConstantPlaceholder)
 	if !ok {
 		return
@@ -101,8 +101,8 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 
 	placeholder = placeholder.Sibling
 	placeholder.Replaced = true
-	usingConst := placeholder.Container[constantName]
-	placeholder.Container[constantName] = types.Constant{
+	usingConst := placeholder.Container[placeholder.AsName]
+	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
 		Type:     newType,
 	}
@@ -123,7 +123,7 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
-	c.replaceTypePlaceholder(constant, namedType, constantName)
+	c.replaceTypePlaceholder(constant, namedType)
 
 	c.typeDefinitionChecks.addEntry(
 		namedType.Name,
@@ -154,7 +154,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	container.DefineConstant(constantName, types.NoValue{})
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
-	c.replaceTypePlaceholder(constant, namedType, constantName)
+	c.replaceTypePlaceholder(constant, namedType)
 
 	c.typeDefinitionChecks.addEntry(
 		namedType.Name,
