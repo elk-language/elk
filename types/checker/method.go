@@ -16,6 +16,24 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+func (c *Checker) checkMethodPlaceholders() {
+	for _, placeholder := range c.methodPlaceholders {
+		if placeholder.Checked {
+			continue
+		}
+		placeholder.Checked = true
+		if placeholder.Replaced {
+			continue
+		}
+
+		c.addFailureWithLocation(
+			fmt.Sprintf("undefined method `%s`", lexer.Colorize(placeholder.FullName)),
+			placeholder.Location(),
+		)
+	}
+	c.methodPlaceholders = nil
+}
+
 type methodCheckEntry struct {
 	filename       string
 	method         *types.Method
@@ -25,7 +43,7 @@ type methodCheckEntry struct {
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	c.methodChecks.Push(methodCheckEntry{
+	c.methodChecks = append(c.methodChecks, methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
@@ -39,7 +57,7 @@ var concurrencyLimit = 10_000
 func (c *Checker) checkMethods() {
 	concurrent.Foreach(
 		concurrencyLimit,
-		c.methodChecks.Slice,
+		c.methodChecks,
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
 			methodChecker := c.newMethodChecker(
@@ -1515,12 +1533,17 @@ func (c *Checker) declareMethod(
 	newMethod.SetLocation(c.newLocation(span))
 
 	if oldMethod != nil {
-		c.checkMethodOverride(
-			newMethod,
-			oldMethod,
-			span,
-		)
-		newMethod.UsedInConstants = oldMethod.UsedInConstants
+		if oldMethod.IsPlaceholder {
+			oldMethod.Replaced = true
+			oldMethod.DefinedUnder.SetMethod(oldMethod.Name, newMethod)
+		} else {
+			c.checkMethodOverride(
+				newMethod,
+				oldMethod,
+				span,
+			)
+			newMethod.UsedInConstants = oldMethod.UsedInConstants
+		}
 	}
 	methodNamespace.SetMethod(name, newMethod)
 

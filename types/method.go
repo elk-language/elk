@@ -123,29 +123,46 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type Method struct {
-	Name               value.Symbol
-	Params             []*Parameter
 	DocComment         string
+	FullName           string
+	Name               value.Symbol
 	OptionalParamCount int
 	PostParamCount     int
 	abstract           bool
 	sealed             bool
 	native             bool
 	HasNamedRestParam  bool
-	TypeParameters     []*TypeParameter
-	ReturnType         Type
-	ThrowType          Type
-	DefinedUnder       Namespace
-	Bytecode           *vm.BytecodeFunction
-	location           *position.Location
+	// used in using expression placeholders
+	IsPlaceholder bool
+	Checked       bool
+	Replaced      bool
+
+	Params         []*Parameter
+	TypeParameters []*TypeParameter
+	ReturnType     Type
+	ThrowType      Type
+	DefinedUnder   Namespace
+	Bytecode       *vm.BytecodeFunction
+	location       *position.Location
 	// used to detect methods that circularly reference constants
 	UsedInConstants map[value.Symbol]bool // set of constants in which this method is called
 	UsedConstants   map[value.Symbol]bool // set of constants references in this method's body
 	CalledMethods   []*Method             // list of methods called in this method's body
 }
 
+func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
+	return &Method{
+		FullName:      fullName,
+		Name:          name,
+		DefinedUnder:  definedUnder,
+		location:      location,
+		IsPlaceholder: true,
+	}
+}
+
 func (m *Method) Copy() *Method {
 	return &Method{
+		FullName:           m.FullName,
 		Name:               m.Name,
 		DocComment:         m.DocComment,
 		Params:             m.Params,
@@ -155,6 +172,7 @@ func (m *Method) Copy() *Method {
 		sealed:             m.sealed,
 		native:             m.native,
 		TypeParameters:     m.TypeParameters,
+		IsPlaceholder:      m.IsPlaceholder,
 		HasNamedRestParam:  m.HasNamedRestParam,
 		ReturnType:         m.ReturnType,
 		ThrowType:          m.ThrowType,

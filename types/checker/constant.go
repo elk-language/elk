@@ -11,6 +11,24 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func (c *Checker) checkConstantPlaceholders() {
+	for _, placeholder := range c.constantPlaceholders {
+		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
+			continue
+		}
+		placeholder.Checked = true
+		if placeholder.Replaced || placeholder.Sibling != nil && placeholder.Sibling.Replaced {
+			continue
+		}
+
+		c.addFailureWithLocation(
+			fmt.Sprintf("undefined type or constant `%s`", lexer.Colorize(placeholder.FullName)),
+			placeholder.Location,
+		)
+	}
+	c.constantPlaceholders = nil
+}
+
 type constantDefinitionChecks struct {
 	m     map[string]*constantDefinitionCheck
 	order []string

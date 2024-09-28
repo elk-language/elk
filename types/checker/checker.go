@@ -96,10 +96,11 @@ type Checker struct {
 	loops                   []*loop             // list of loops the current expression falls under
 	returnType              types.Type
 	throwType               types.Type
-	selfType                types.Type                                     // the type of `self`
-	namespacePlaceholders   *concurrent.Slice[*types.NamespacePlaceholder] // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
-	constantPlaceholders    *concurrent.Slice[*types.ConstantPlaceholder]  // list of constant/subtype placeholders, used in using statements
-	methodChecks            *concurrent.Slice[methodCheckEntry]            // list of methods whose bodies have to be checked
+	selfType                types.Type                    // the type of `self`
+	namespacePlaceholders   []*types.NamespacePlaceholder // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
+	constantPlaceholders    []*types.ConstantPlaceholder  // list of constant/subtype placeholders, used in using statements
+	methodPlaceholders      []*types.Method               // list of method placeholders, used in using statements
+	methodChecks            []methodCheckEntry            // list of methods whose bodies have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
 	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
@@ -131,14 +132,11 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		namespacePlaceholders: concurrent.NewSlice[*types.NamespacePlaceholder](),
-		constantPlaceholders:  concurrent.NewSlice[*types.ConstantPlaceholder](),
-		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
-		typeDefinitionChecks:  newTypeDefinitionChecks(),
-		constantChecks:        newConstantDefinitionChecks(),
-		astCache:              concurrent.NewMap[string, *ast.ProgramNode](),
-		methodCache:           concurrent.NewSlice[*types.Method](),
-		constantCache:         make(map[value.Symbol]bool),
+		typeDefinitionChecks: newTypeDefinitionChecks(),
+		constantChecks:       newConstantDefinitionChecks(),
+		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
+		methodCache:          concurrent.NewSlice[*types.Method](),
+		constantCache:        make(map[value.Symbol]bool),
 	}
 }
 
@@ -176,13 +174,13 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	}
 
 	c.Filename = sourceName
-	c.methodChecks = concurrent.NewSlice[methodCheckEntry]()
+	c.methodChecks = nil
 	bytecodeFunc := c.checkProgram(ast)
 	return bytecodeFunc, c.Errors.ErrorList
 }
 
 func (c *Checker) checkNamespacePlaceholders() {
-	for _, placeholder := range c.namespacePlaceholders.Slice {
+	for _, placeholder := range c.namespacePlaceholders {
 		replacement := placeholder.Namespace
 		if _, ok := replacement.(*types.ModulePlaceholder); !ok {
 			continue
@@ -190,30 +188,12 @@ func (c *Checker) checkNamespacePlaceholders() {
 
 		for _, location := range placeholder.Locations.Slice {
 			c.addFailureWithLocation(
-				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
+				fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(placeholder.Name())),
 				location,
 			)
 		}
 		placeholder.Locations.Slice = nil
 	}
-}
-
-func (c *Checker) checkConstantPlaceholders() {
-	for _, placeholder := range c.constantPlaceholders.Slice {
-		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
-			continue
-		}
-		placeholder.Checked = true
-		if placeholder.Replaced || placeholder.Sibling != nil && placeholder.Sibling.Replaced {
-			continue
-		}
-
-		c.addFailureWithLocation(
-			fmt.Sprintf("undefined type or constant `%s`", lexer.Colorize(placeholder.FullName)),
-			placeholder.Location,
-		)
-	}
-	c.constantPlaceholders.Slice = nil
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
@@ -224,6 +204,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitions(statements)
 	c.checkConstantPlaceholders()
+	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
 	c.checkMethodsInConstants()
@@ -262,10 +243,11 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 	c.hoistMethodDefinitionsInFile(filename, ast)
 	c.checkConstantPlaceholders()
-	c.phase = expressionPhase
+	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
 	c.checkMethodsInConstants()
+	c.phase = expressionPhase
 	c.checkExpressionsInFile(filename, ast)
 
 	return nil
@@ -3111,7 +3093,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
 	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
-	if method == nil {
+	if method == nil || method.IsPlaceholder {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Nothing{})
@@ -4065,11 +4047,15 @@ func (c *Checker) resolveConstantForDeclaration(constantExpression ast.Expressio
 }
 
 func (c *Checker) registerPlaceholderNamespace(placeholder *types.NamespacePlaceholder) {
-	c.namespacePlaceholders.Push(placeholder)
+	c.namespacePlaceholders = append(c.namespacePlaceholders, placeholder)
 }
 
-func (c *Checker) registerPlaceholder(placeholder *types.ConstantPlaceholder) {
-	c.constantPlaceholders.Push(placeholder)
+func (c *Checker) registerConstantPlaceholder(placeholder *types.ConstantPlaceholder) {
+	c.constantPlaceholders = append(c.constantPlaceholders, placeholder)
+}
+
+func (c *Checker) registerMethodPlaceholder(placeholder *types.Method) {
+	c.methodPlaceholders = append(c.methodPlaceholders, placeholder)
 }
 
 func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
@@ -5840,8 +5826,7 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 		return n
 	case *ast.ConstantLookupNode:
 		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
-	case *ast.MethodLookupNode:
-		c.checkUsingMethodLookupEntryNodeForNamespace(n.Receiver, n.Name, "")
+	case *ast.MethodLookupNode, *ast.MethodLookupAsNode:
 		return n
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
@@ -5873,10 +5858,6 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 	}
 
 	return node
-}
-
-// TODO
-func (c *Checker) checkUsingMethodLookupEntryNodeForNamespace(receiverNode ast.ExpressionNode, methodName, asName string) {
 }
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
@@ -5918,7 +5899,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 		usingNamespace.Subtypes(),
 		c.newLocation(node.Span()),
 	)
-	c.registerPlaceholder(placeholderType)
+	c.registerConstantPlaceholder(placeholderType)
 
 	placeholderConstant := types.NewConstantPlaceholder(
 		newConstantSymbol,
@@ -5926,7 +5907,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 		usingNamespace.Constants(),
 		c.newLocation(node.Span()),
 	)
-	c.registerPlaceholder(placeholderConstant)
+	c.registerConstantPlaceholder(placeholderConstant)
 
 	placeholderConstant.Sibling = placeholderType
 	placeholderType.Sibling = placeholderConstant
@@ -6290,7 +6271,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		case *ast.AttrDeclarationNode:
 			c.hoistAttrDeclaration(expr)
 		case *ast.UsingExpressionNode:
-			c.resolveUsingExpression(expr)
+			c.checkUsingExpressionForMethods(expr)
 		case *ast.ModuleDeclarationNode:
 			c.hoistMethodDefinitionsWithinModule(expr)
 		case *ast.ClassDeclarationNode:
@@ -6305,33 +6286,95 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 	}
 }
 
-func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
-	for _, constNode := range node.Entries {
-		typ := c.typeOf(constNode)
-		switch t := typ.(type) {
-		case *types.Module:
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
-		case *types.Mixin:
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
-		case *types.Class:
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
-		case *types.Interface:
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
-		case *types.NamespacePlaceholder:
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
-			t.Locations.Push(c.newLocation(constNode.Span()))
-		case *types.UsingBufferNamespace:
-			if c.enclosingScopeIsAUsingBuffer() {
-				continue
-			}
-			c.pushConstScope(makeUsingBufferConstantScope(t))
-			c.pushMethodScope(makeUsingBufferMethodScope(t))
+func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) {
+	for _, entry := range node.Entries {
+		c.resolveUsingEntry(entry)
+		switch e := entry.(type) {
+		case *ast.MethodLookupNode:
+			c.checkUsingMethodLookupEntryNode(e.Receiver, e.Name, "", e.Span())
 		}
+	}
+}
+
+func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, span *position.Span) {
+	_, constant, fullConstantName, _ := c.resolveTypeInRoot(receiverNode)
+	var namespace types.Namespace
+
+	switch con := constant.(type) {
+	case *types.Module:
+		namespace = con
+	case *types.Class:
+		namespace = con.Singleton()
+	case *types.Mixin:
+		namespace = con.Singleton()
+	case *types.Interface:
+		namespace = con.Singleton()
+	default:
+		c.addFailure(
+			fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(fullConstantName)),
+			receiverNode.Span(),
+		)
+		return
+	}
+
+	originalMethodSymbol := value.ToSymbol(methodName)
+	var newMethodSymbol value.Symbol
+	if asName != "" {
+		newMethodSymbol = value.ToSymbol(asName)
+	} else {
+		newMethodSymbol = value.ToSymbol(methodName)
+	}
+
+	usingNamespace := c.getUsingBufferNamespace()
+
+	method := namespace.MethodString(methodName)
+	if method != nil {
+		usingNamespace.SetMethod(newMethodSymbol, method)
+		return
+	}
+
+	placeholder := types.NewMethodPlaceholder(
+		fmt.Sprintf("%s::%s", fullConstantName, methodName),
+		newMethodSymbol,
+		usingNamespace,
+		c.newLocation(span),
+	)
+	c.registerMethodPlaceholder(placeholder)
+	namespace.SetMethod(originalMethodSymbol, placeholder)
+	usingNamespace.SetMethod(newMethodSymbol, placeholder)
+}
+
+func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
+	for _, entry := range node.Entries {
+		c.resolveUsingEntry(entry)
+	}
+}
+
+func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode) {
+	typ := c.typeOf(entry)
+	switch t := typ.(type) {
+	case *types.Module:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Mixin:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Class:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Interface:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.NamespacePlaceholder:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+		t.Locations.Push(c.newLocation(entry.Span()))
+	case *types.UsingBufferNamespace:
+		if c.enclosingScopeIsAUsingBuffer() {
+			return
+		}
+		c.pushConstScope(makeUsingBufferConstantScope(t))
+		c.pushMethodScope(makeUsingBufferMethodScope(t))
 	}
 }
 

@@ -295,6 +295,44 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(138, 13, 5), P(140, 13, 7)), "undefined constant `Bar`"),
 			},
 		},
+
+		"using with a single method": {
+			input: `
+				using Foo::bar
+
+				module Foo
+					def bar: Int then 3
+				end
+
+				var a: Int = bar()
+				var b: 9 = bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(108, 9, 16), P(112, 9, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"using with a single method under a nonexistent namespace": {
+			input: `
+				using Foo::bar
+
+				var a: Int = bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "undefined namespace `Foo`"),
+				error.NewFailure(L("<main>", P(38, 4, 18), P(42, 4, 22)), "method `bar` is not defined on type `Std::Object`"),
+			},
+		},
+		"using with a single nonexistent method": {
+			input: `
+				using Foo::bar
+				module Foo; end
+
+				var a: Int = bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined method `Foo::bar`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
