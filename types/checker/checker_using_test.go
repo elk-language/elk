@@ -311,6 +311,21 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(108, 9, 16), P(112, 9, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
+		"using with a single method and as": {
+			input: `
+				using Foo::bar as b
+
+				module Foo
+					def bar: Int then 3
+				end
+
+				var a: Int = b()
+				var b: 9 = b()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(111, 9, 16), P(113, 9, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
 		"using with a single method under a nonexistent namespace": {
 			input: `
 				using Foo::bar
@@ -351,6 +366,26 @@ func TestUsing(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(143, 10, 16), P(147, 10, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 				error.NewFailure(L("<main>", P(192, 13, 18), P(196, 13, 22)), "type `Std::Float` cannot be assigned to type `9.2`"),
+			},
+		},
+		"using with a few methods and as": {
+			input: `
+				using Foo::{bar as r, baz as z}
+
+				module Foo
+					def bar: Int then 3
+					def baz: Float then .3
+				end
+
+				var a: Int = r()
+				var b: 9 = r()
+
+				var c: Float = z()
+				var d: 9.2 = z()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(151, 10, 16), P(153, 10, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(196, 13, 18), P(198, 13, 20)), "type `Std::Float` cannot be assigned to type `9.2`"),
 			},
 		},
 	}
