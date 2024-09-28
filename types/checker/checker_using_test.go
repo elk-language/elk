@@ -167,6 +167,22 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
+		"using with a single namespace after its declaration": {
+			input: `
+				class Foo
+					class Bar; end
+				end
+
+				using Foo::Bar
+
+				var a: Bar = Bar()
+				var b: Bar = 9
+				var c: &Bar = Bar
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+			},
+		},
 		"using with a single namespace and as": {
 			input: `
 				using Foo::Bar as B
@@ -309,6 +325,40 @@ func TestUsing(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(108, 9, 16), P(112, 9, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"using with a single class method": {
+			input: `
+				using Foo::bar
+
+				class Foo
+					singleton
+						def bar: Int then 3
+					end
+				end
+
+				var a: Int = bar()
+				var b: 9 = bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"using with a single class method after its declaration": {
+			input: `
+				class Foo
+					singleton
+						def bar: Int then 3
+					end
+				end
+
+				using Foo::bar
+
+				var a: Int = bar()
+				var b: 9 = bar()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"using with a single method and as": {

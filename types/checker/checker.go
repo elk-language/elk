@@ -3888,13 +3888,13 @@ func (c *Checker) addUnreachableCodeError(span *position.Span) {
 	)
 }
 
-// Get the type of the subtype with the given name
-func (c *Checker) resolveTypeInRoot(constantExpression ast.ExpressionNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
+// Get the type of the constant with the given name
+func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleTypeInRoot(constant.Value), constant.Value, constant.Value
+		return c.GlobalEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.PrivateConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleTypeInRoot(constant.Value), constant.Value, constant.Value
+		return c.GlobalEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.ConstantLookupNode:
 		return c.resolveTypeLookupInRoot(constant)
 	default:
@@ -4000,6 +4000,8 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *types.Class:
 		leftContainer = l
 	case *types.Mixin:
+		leftContainer = l
+	case *types.Interface:
 		leftContainer = l
 	case *types.NamespacePlaceholder:
 		leftContainer = l
@@ -4136,6 +4138,8 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	case *types.Class:
 		leftContainer = l
 	case *types.Mixin:
+		leftContainer = l
+	case *types.Interface:
 		leftContainer = l
 	case *types.NamespacePlaceholder:
 		leftContainer = l
@@ -5862,7 +5866,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 }
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
-	container, constant, fullConstantName, constantName := c.resolveTypeInRoot(node)
+	container, constant, fullConstantName, constantName := c.resolveConstantInRoot(node)
 	originalConstantSymbol := value.ToSymbol(constantName)
 	var newConstantSymbol value.Symbol
 	if asName == "" {
@@ -5872,17 +5876,9 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	}
 	usingNamespace := c.getUsingBufferNamespace()
 	switch n := constant.(type) {
-	case *types.Class:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
-		return node
-	case *types.Mixin:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
-		return node
-	case *types.Interface:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
+	case *types.SingletonClass:
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node
 	case *types.Module:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
@@ -5927,6 +5923,8 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 	if typ != nil {
 		var namespace types.Namespace
 		switch t := typ.(type) {
+		case *types.SingletonClass:
+			return c.checkSimpleUsingEntry(t.AttachedObject, constName, fullName, parentNamespace, span)
 		case *types.Module:
 			namespace = t
 		case *types.Mixin:
@@ -5940,7 +5938,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 			t.Locations.Push(c.newLocation(span))
 		default:
 			c.addFailure(
-				fmt.Sprintf("type `%s` is not a namespace", types.InspectWithColor(typ)),
+				fmt.Sprintf("type `%s` is not a namespace", lexer.Colorize(fullName)),
 				span,
 			)
 		}
@@ -5956,24 +5954,8 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 	return placeholder
 }
 
-// func (c *Checker) checkUsingConstantLookupEntryNode(node *ast.ConstantLookupNode) ast.UsingEntryNode {
-// 	parentNamespace, typ, fullName, constName := c.resolveTypeInRoot(node)
-// 	newNode := ast.NewPublicConstantNode(node.Span(), fullName)
-// 	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Span())
-// 	node.SetType(namespace)
-// 	c.pushConstScope(makeUsingConstantScope(namespace))
-// 	singleton := namespace.Singleton()
-// 	if singleton == nil {
-// 		c.pushMethodScope(makeUsingMethodScope(namespace))
-// 	} else {
-// 		c.pushMethodScope(makeUsingMethodScope(singleton))
-// 	}
-
-// 	return newNode
-// }
-
 func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
-	parentNamespace, typ, fullName, constName := c.resolveTypeInRoot(node.Namespace)
+	parentNamespace, typ, fullName, constName := c.resolveConstantInRoot(node.Namespace)
 	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Span(), fullName)
 	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Span())
 	if namespace == nil {
@@ -6316,18 +6298,14 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 }
 
 func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, span *position.Span) {
-	_, constant, fullConstantName, _ := c.resolveTypeInRoot(receiverNode)
+	_, constant, fullConstantName, _ := c.resolveConstantInRoot(receiverNode)
 	var namespace types.Namespace
 
 	switch con := constant.(type) {
 	case *types.Module:
 		namespace = con
-	case *types.Class:
-		namespace = con.Singleton()
-	case *types.Mixin:
-		namespace = con.Singleton()
-	case *types.Interface:
-		namespace = con.Singleton()
+	case *types.SingletonClass:
+		namespace = con
 	default:
 		c.addFailure(
 			fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(fullConstantName)),
