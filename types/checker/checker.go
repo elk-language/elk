@@ -5852,8 +5852,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 			)
 			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, s.AsName)
 			s.SetType(c.typeOf(newNode))
-			// case *ast.PublicIdentifierNode:
-			// case *ast.PublicIdentifierAsNode:
+		case *ast.PublicIdentifierNode, *ast.PublicIdentifierAsNode:
+		default:
+			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}
 
@@ -6292,6 +6293,24 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 		switch e := entry.(type) {
 		case *ast.MethodLookupNode:
 			c.checkUsingMethodLookupEntryNode(e.Receiver, e.Name, "", e.Span())
+		case *ast.MethodLookupAsNode:
+			c.checkUsingMethodLookupEntryNode(e.MethodLookup.Receiver, e.MethodLookup.Name, e.AsName, e.Span())
+		case *ast.UsingEntryWithSubentriesNode:
+			c.checkUsingEntryWithSubentriesForMethods(e)
+		}
+	}
+}
+
+func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWithSubentriesNode) {
+	for _, subentry := range node.Subentries {
+		switch s := subentry.(type) {
+		case *ast.PublicIdentifierNode:
+			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Value, "", s.Span())
+		case *ast.PublicIdentifierAsNode:
+			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Target.Value, s.AsName, s.Span())
+		case *ast.PublicConstantNode, *ast.PublicConstantAsNode:
+		default:
+			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}
 }

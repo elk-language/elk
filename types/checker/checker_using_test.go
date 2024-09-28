@@ -333,6 +333,26 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined method `Foo::bar`"),
 			},
 		},
+		"using with a few methods": {
+			input: `
+				using Foo::{bar, baz}
+
+				module Foo
+					def bar: Int then 3
+					def baz: Float then .3
+				end
+
+				var a: Int = bar()
+				var b: 9 = bar()
+
+				var c: Float = baz()
+				var d: 9.2 = baz()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(143, 10, 16), P(147, 10, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(192, 13, 18), P(196, 13, 22)), "type `Std::Float` cannot be assigned to type `9.2`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
