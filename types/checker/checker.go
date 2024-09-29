@@ -932,20 +932,40 @@ func (c *Checker) StdArrayList() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayList)
 }
 
+func (c *Checker) StdList() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.List).(*types.Interface)
+}
+
 func (c *Checker) StdArrayTuple() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayTuple)
+}
+
+func (c *Checker) StdTuple() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.Tuple).(*types.Interface)
 }
 
 func (c *Checker) StdHashSet() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashSet)
 }
 
+func (c *Checker) StdSet() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.Set).(*types.Interface)
+}
+
 func (c *Checker) StdHashMap() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashMap)
 }
 
+func (c *Checker) StdMap() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.Map).(*types.Interface)
+}
+
 func (c *Checker) StdHashRecord() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
+}
+
+func (c *Checker) StdRecord() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.Record).(*types.Interface)
 }
 
 func (c *Checker) StdNil() *types.Class {
@@ -5187,31 +5207,185 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 	case *ast.RestPatternNode:
 		c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
 	case *ast.ListPatternNode:
-		generic, ok := typ.(*types.Generic)
-		if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.List).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
-			c.addFailure(
-				fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
-				node.Span(),
-			)
-			return
-		}
-		typeArg := generic.TypeArguments.Get(0)
-		for _, element := range n.Elements {
-			c.checkPattern(element, typeArg.Type)
-		}
+		c.checkListPattern(n, typ)
 	case *ast.TuplePatternNode:
-		generic, ok := typ.(*types.Generic)
-		if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.Tuple).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
-			c.addFailure(
-				fmt.Sprintf("type `%s` cannot be matched against a tuple pattern", types.InspectWithColor(typ)),
-				node.Span(),
-			)
-			return
-		}
-		typeArg := generic.TypeArguments.Get(0)
-		for _, element := range n.Elements {
-			c.checkPattern(element, typeArg.Type)
-		}
+		c.checkTuplePattern(n, typ)
+	case *ast.IntLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Int64LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Int32LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Int16LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Int8LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.UInt64LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.UInt32LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.UInt16LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.UInt8LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.FloatLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Float64LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.Float32LiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.BigFloatLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.SimpleSymbolLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.InterpolatedSymbolLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.InterpolatedRegexLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.UninterpolatedRegexLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.DoubleQuotedStringLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.RawStringLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.InterpolatedStringLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.CharLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.RawCharLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.NilLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.TrueLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.FalseLiteralNode:
+		c.checkSimpleLiteralPattern(n, typ)
+	case *ast.BinArrayListLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.HexArrayListLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.SymbolArrayListLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Symbol)),
+			typ,
+			n.Span(),
+		)
+	case *ast.WordArrayListLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.String)),
+			typ,
+			n.Span(),
+		)
+	case *ast.BinArrayTupleLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.HexArrayTupleLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.SymbolArrayTupleLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Symbol)),
+			typ,
+			n.Span(),
+		)
+	case *ast.WordArrayTupleLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.String)),
+			typ,
+			n.Span(),
+		)
+	case *ast.BinHashSetLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.HexHashSetLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
+			typ,
+			n.Span(),
+		)
+	case *ast.SymbolHashSetLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Symbol)),
+			typ,
+			n.Span(),
+		)
+	case *ast.WordHashSetLiteralNode:
+		c.checkSpecialCollectionLiteralPattern(
+			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.String)),
+			typ,
+			n.Span(),
+		)
+	default:
+		panic(fmt.Sprintf("invalid pattern node %T", node))
+	}
+}
+
+func (c *Checker) checkSpecialCollectionLiteralPattern(patternType, typ types.Type, span *position.Span) {
+	c.checkCanMatch(typ, patternType, span)
+}
+
+func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.Type) {
+	node = c.checkExpression(node)
+	c.checkCanMatch(typ, c.typeOf(node), node.Span())
+}
+
+func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) {
+	if !c.canIntersect(assignedType, targetType) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` cannot ever match type `%s`",
+				types.InspectWithColor(assignedType),
+				types.InspectWithColor(targetType),
+			),
+			span,
+		)
+	}
+}
+
+func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) {
+	generic, ok := typ.(*types.Generic)
+	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.Tuple).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
+		c.addFailure(
+			fmt.Sprintf("type `%s` cannot be matched against a tuple pattern", types.InspectWithColor(typ)),
+			node.Span(),
+		)
+		return
+	}
+	typeArg := generic.TypeArguments.Get(0)
+	for _, element := range node.Elements {
+		c.checkPattern(element, typeArg.Type)
+	}
+}
+
+func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
+	generic, ok := typ.(*types.Generic)
+	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.List).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
+		c.addFailure(
+			fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
+			node.Span(),
+		)
+		return
+	}
+	typeArg := generic.TypeArguments.Get(0)
+	for _, element := range node.Elements {
+		c.checkPattern(element, typeArg.Type)
 	}
 }
 
