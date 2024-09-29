@@ -671,6 +671,232 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `42` cannot ever match type `:hello`"),
 			},
 		},
+
+		"pattern with word list literal and array list type": {
+			input: `
+				b := [1, "foo"]
+				var \w[foo bar] as a = b
+			`,
+		},
+		"pattern with word list literal and wrong literal type": {
+			input: `
+				var \w[foo bar] as a = [1]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::Int]` cannot ever match type `Std::List[Std::String]`"),
+			},
+		},
+		"pattern with word list literal and wider type": {
+			input: `
+				var b: String | List[String] = ""
+				var \w[foo bar] as a = b
+			`,
+		},
+		"pattern with word list literal and wrong type": {
+			input: `
+				var \w[foo bar] as a = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `1` cannot ever match type `Std::List[Std::String]`"),
+			},
+		},
+		"pattern with symbol list literal and array list type": {
+			input: `
+				b := [:foo, :bar]
+				var \s[foo bar] as a = b
+			`,
+		},
+		"pattern with symbol list literal and wrong literal type": {
+			input: `
+				var \s[foo bar] as a = ["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Symbol]`"),
+			},
+		},
+		"pattern with symbol list literal and wider type": {
+			input: `
+				var b: Symbol | List[Symbol] = :foo
+				var \s[foo bar] as a = b
+			`,
+		},
+		"pattern with symbol list literal and wrong type": {
+			input: `
+				var \s[foo bar] as a = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `\"foo\"` cannot ever match type `Std::List[Std::Symbol]`"),
+			},
+		},
+		"pattern with binary list literal and array list type": {
+			input: `
+				b := [0b1010, 0b1100]
+				var \b[1010 1100] as a = b
+			`,
+		},
+		"pattern with binary list literal and wrong literal type": {
+			input: `
+				var \b[1010 1100] as a = ["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+			},
+		},
+		"pattern with binary list literal and wider type": {
+			input: `
+				var b: Int | List[Int] = 0b1010
+				var \b[1010 1100] as a = b
+			`,
+		},
+		"pattern with binary list literal and wrong type": {
+			input: `
+				var \b[1010 1100] as a = "1010"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `\"1010\"` cannot ever match type `Std::List[Std::Int]`"),
+			},
+		},
+		"pattern with hex list literal and array list type": {
+			input: `
+				b := [0xA, 0xB]
+				var \x[A B] as a = b
+			`,
+		},
+		"pattern with hex list literal and wrong literal type": {
+			input: `
+				var \x[A B] as a = ["foo"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+			},
+		},
+		"pattern with hex list literal and wider type": {
+			input: `
+				var b: Int | List[Int] = 0xA
+				var \x[A B] as a = b
+			`,
+		},
+		"pattern with hex list literal and wrong type": {
+			input: `
+				var \x[A B] as a = "A"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[Std::Int]`"),
+			},
+		},
+
+		"pattern with word tuple literal and tuple type": {
+			input: `
+				b := %[1, "foo"]
+				var %w[foo bar] as a = b
+			`,
+		},
+		"pattern with word tuple literal and wrong literal type": {
+			input: `
+				var %w[foo bar] as a = %[1, 2]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[1 | 2]` cannot ever match type `Std::Tuple[Std::String]`"),
+			},
+		},
+		"pattern with binary tuple literal and tuple type": {
+			input: `
+				b := %[0b1010, 0b1100]
+				var %b[1010 1100] as a = b
+			`,
+		},
+		"pattern with binary tuple literal and wrong literal type": {
+			input: `
+				var %b[1010 1100] as a = %["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Int]`"),
+			},
+		},
+		"pattern with hex tuple literal and tuple type": {
+			input: `
+				b := %[0xA, 0xB]
+				var %x[A B] as a = b
+			`,
+		},
+		"pattern with hex tuple literal and wrong literal type": {
+			input: `
+				var %x[A B] as a = %["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Int]`"),
+			},
+		},
+		"pattern with symbol tuple literal and tuple type": {
+			input: `
+				b := %[:foo, :bar]
+				var %s[foo bar] as a = b
+			`,
+		},
+		"pattern with symbol tuple literal and wrong literal type": {
+			input: `
+				var %s[foo bar] as a = %["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
+			},
+		},
+		"pattern with word set literal and set type": {
+			input: `
+				b := ^["foo", "bar"]
+				var ^w[foo bar] as a = b
+			`,
+		},
+		"pattern with word set literal and wrong literal type": {
+			input: `
+				var ^w[foo bar] as a = ^[1, 2]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::Int]` cannot ever match type `Std::Set[Std::String]`"),
+			},
+		},
+		"pattern with binary set literal and set type": {
+			input: `
+				b := ^[0b1010, 0b1100]
+				var ^b[1010 1100] as a = b
+			`,
+		},
+		"pattern with binary set literal and wrong literal type": {
+			input: `
+				var ^b[1010 1100] as a = ^["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+			},
+		},
+		"pattern with hex set literal and set type": {
+			input: `
+				b := ^[0xA, 0xB]
+				var ^x[A B] as a = b
+			`,
+		},
+		"pattern with hex set literal and wrong literal type": {
+			input: `
+				var ^x[A B] as a = ^["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+			},
+		},
+		"pattern with symbol set literal and set type": {
+			input: `
+				b := ^[:foo, :bar]
+				var ^s[foo bar] as a = b
+			`,
+		},
+		"pattern with symbol set literal and wrong literal type": {
+			input: `
+				var ^s[foo bar] as a = ^["foo", "bar"]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

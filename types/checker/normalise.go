@@ -661,35 +661,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
-		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
-		var isDifferent bool
-		for key, arg := range t.AllArguments() {
-			result := c._replaceTypeParameters(arg.Type, typeArgMap)
-			if result == arg.Type {
-				newMap[key] = arg
-				continue
-			}
-			newMap[key] = types.NewTypeArgument(
-				result,
-				arg.Variance,
-			)
-			isDifferent = true
-		}
-		result := c._replaceTypeParameters(t.Namespace, typeArgMap)
-		if result != t.Namespace {
-			isDifferent = true
-		}
-		if !isDifferent {
-			return t
-		}
-
-		return types.NewGeneric(
-			result.(types.Namespace),
-			types.NewTypeArguments(
-				newMap,
-				t.ArgumentOrder,
-			),
-		)
+		return c.replaceTypeParametersInGeneric(t, typeArgMap)
 	case *types.TypeParameter:
 		arg := typeArgMap[t.Name]
 		if arg == nil {
@@ -739,6 +711,38 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 	default:
 		return t
 	}
+}
+
+func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap map[value.Symbol]*types.TypeArgument) *types.Generic {
+	newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+	var isDifferent bool
+	for key, arg := range t.AllArguments() {
+		result := c._replaceTypeParameters(arg.Type, typeArgMap)
+		if result == arg.Type {
+			newMap[key] = arg
+			continue
+		}
+		newMap[key] = types.NewTypeArgument(
+			result,
+			arg.Variance,
+		)
+		isDifferent = true
+	}
+	result := c._replaceTypeParameters(t.Namespace, typeArgMap)
+	if result != t.Namespace {
+		isDifferent = true
+	}
+	if !isDifferent {
+		return t
+	}
+
+	return types.NewGeneric(
+		result.(types.Namespace),
+		types.NewTypeArguments(
+			newMap,
+			t.ArgumentOrder,
+		),
+	)
 }
 
 func (c *Checker) normaliseType(typ types.Type) types.Type {

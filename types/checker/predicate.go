@@ -141,6 +141,45 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		return c._canIntersect(a.Type, b)
 	case *types.Not:
 		return !c.isSubtype(b, a.Type, nil)
+	case *types.Generic:
+		genericB, ok := b.(*types.Generic)
+		if !ok {
+			return c.isSubtype(a, b, nil)
+		}
+
+		if !c.isSubtype(a.Namespace, genericB.Namespace, nil) {
+			return false
+		}
+
+		var genericParents []*types.Generic
+		for parent := range types.Parents(a) {
+			genericParent, ok := parent.(*types.Generic)
+			if !ok {
+				continue
+			}
+
+			if !c.isTheSameNamespace(genericParent.Namespace, genericB.Namespace) {
+				genericParents = append(genericParents, genericParent)
+				continue
+			}
+
+			for i := len(genericParents) - 1; i >= 0; i-- {
+				g := genericParents[i]
+				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap)
+			}
+
+			for name, argA := range genericParent.AllArguments() {
+				argB := genericB.ArgumentMap[name]
+
+				if !c.canIntersect(argA.Type, argB.Type) {
+					return false
+				}
+			}
+
+			return true
+		}
+
+		return false
 	default:
 		return c.isSubtype(a, b, nil)
 	}
