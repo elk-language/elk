@@ -79,6 +79,21 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot be matched against a tuple pattern"),
 			},
 		},
+		"pattern with as and new variable": {
+			input: `
+				var %[a as b] = [8]
+				a = b
+			`,
+		},
+		"pattern with as and existing variable": {
+			input: `
+				var b: String
+				var %[a as b] = [8]
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

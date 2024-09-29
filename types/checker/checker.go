@@ -5177,6 +5177,9 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 
 func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 	switch n := node.(type) {
+	case *ast.AsPatternNode:
+		c.checkPattern(n.Pattern, typ)
+		c.checkPattern(n.Name, typ)
 	case *ast.PublicIdentifierNode:
 		c.checkIdentifierPattern(n.Value, typ, n.Span())
 	case *ast.PrivateIdentifierNode:
