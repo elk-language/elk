@@ -88,6 +88,10 @@ func Colorize(source string) string {
 	for {
 		tok := l.Next()
 		if tok.Type == token.END_OF_FILE {
+			missing := source[previousEnd:]
+			if len(missing) > 0 {
+				result.WriteString(missing)
+			}
 			break
 		}
 		span := tok.Span()

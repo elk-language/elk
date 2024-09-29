@@ -613,7 +613,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
-		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
+		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
 		return n
 	case *ast.ImplementExpressionNode:
 		if c.typeOf(node) == nil {
@@ -739,6 +739,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.InterpolatedStringLiteralNode:
 		c.checkInterpolatedStringLiteralNode(n)
 		return n
+	case *ast.InterpolatedSymbolLiteralNode:
+		return c.checkInterpolatedSymbolLiteralNode(n)
 	case *ast.InterpolatedRegexLiteralNode:
 		c.checkInterpolatedRegexLiteralNode(n)
 		return n
@@ -3847,6 +3849,12 @@ func (c *Checker) checkRegexContent(node ast.RegexLiteralContentNode) {
 			node.Span(),
 		)
 	}
+}
+
+func (c *Checker) checkInterpolatedSymbolLiteralNode(node *ast.InterpolatedSymbolLiteralNode) *ast.InterpolatedSymbolLiteralNode {
+	c.checkExpression(node.Content)
+	node.SetType(c.Std(symbol.Symbol))
+	return node
 }
 
 func (c *Checker) checkInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) {

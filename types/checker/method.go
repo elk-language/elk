@@ -252,7 +252,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
 	c.addFailure(
-		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), method.Name, got),
+		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), lexer.Colorize(method.Name.String()), got),
 		span,
 	)
 }
@@ -602,7 +602,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
 					param.Name,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 					types.InspectWithColor(posArgType),
 				),
 				posArg.Span(),
@@ -616,7 +616,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"expected %d... positional arguments in call to `%s`, got %d",
 					requiredPosParamCount,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 					len(positionalArguments),
 				),
 				span,
@@ -647,7 +647,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
 						posRestParam.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
@@ -677,7 +677,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
@@ -713,7 +713,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"duplicated argument `%s` in call to `%s`",
 						paramName,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 					),
 					namedArg.Span(),
 				)
@@ -736,7 +736,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
@@ -758,7 +758,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"argument `%s` is missing in call to `%s`",
 					paramName,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 				),
 				span,
 			)
@@ -809,7 +809,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(namedRestParam.Type),
 						namedRestParam.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
@@ -830,7 +830,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"nonexistent parameter `%s` given in call to `%s`",
 					namedArg.Name,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 				),
 				namedArg.Span(),
 			)
@@ -895,7 +895,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
 					param.Name,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 					types.InspectWithColor(posArgType),
 				),
 				posArg.Span(),
@@ -909,7 +909,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				fmt.Sprintf(
 					"expected %d... positional arguments in call to `%s`, got %d",
 					requiredPosParamCount,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 					len(positionalArguments),
 				),
 				span,
@@ -934,7 +934,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
 						posRestParam.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
@@ -958,7 +958,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
@@ -994,7 +994,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 					fmt.Sprintf(
 						"duplicated argument `%s` in call to `%s`",
 						paramName,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 					),
 					namedArg.Span(),
 				)
@@ -1010,7 +1010,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
@@ -1032,7 +1032,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				fmt.Sprintf(
 					"argument `%s` is missing in call to `%s`",
 					paramName,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 				),
 				span,
 			)
@@ -1075,7 +1075,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(namedRestParam.Type),
 						namedRestParam.Name,
-						method.Name,
+						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
@@ -1096,7 +1096,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				fmt.Sprintf(
 					"nonexistent parameter `%s` given in call to `%s`",
 					namedArg.Name,
-					method.Name,
+					lexer.Colorize(method.Name.String()),
 				),
 				namedArg.Span(),
 			)

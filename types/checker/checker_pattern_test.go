@@ -94,6 +94,583 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
+
+		"pattern with int literal and Int type": {
+			input: `
+				b := 3
+				var 1 as a = b
+			`,
+		},
+		"pattern with int literal and wrong literal type": {
+			input: `
+				var 1 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `3` cannot ever match type `1`"),
+			},
+		},
+		"pattern with int literal and wider type": {
+			input: `
+				var b: String | Int = 3
+				var 1 as a = b
+			`,
+		},
+		"pattern with int literal and wrong type": {
+			input: `
+				var 1 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `1.2` cannot ever match type `1`"),
+			},
+		},
+
+		"pattern with int64 literal and Int64 type": {
+			input: `
+				b := 3i64
+				var 1i64 as a = b
+			`,
+		},
+		"pattern with int64 literal and wrong literal type": {
+			input: `
+				var 1i64 as a = 3i64
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i64` cannot ever match type `1i64`"),
+			},
+		},
+		"pattern with int64 literal and wider type": {
+			input: `
+				var b: String | Int64 = 3i64
+				var 1i64 as a = b
+			`,
+		},
+		"pattern with int64 literal and wrong type": {
+			input: `
+				var 1i64 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i64`"),
+			},
+		},
+		"pattern with int32 literal and Int32 type": {
+			input: `
+				b := 3i32
+				var 1i32 as a = b
+			`,
+		},
+		"pattern with int32 literal and wrong literal type": {
+			input: `
+				var 1i32 as a = 3i32
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i32` cannot ever match type `1i32`"),
+			},
+		},
+		"pattern with int32 literal and wider type": {
+			input: `
+				var b: String | Int32 = 3i32
+				var 1i32 as a = b
+			`,
+		},
+		"pattern with int32 literal and wrong type": {
+			input: `
+				var 1i32 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i32`"),
+			},
+		},
+		"pattern with int16 literal and Int16 type": {
+			input: `
+				b := 3i16
+				var 1i16 as a = b
+			`,
+		},
+		"pattern with int16 literal and wrong literal type": {
+			input: `
+				var 1i16 as a = 3i16
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i16` cannot ever match type `1i16`"),
+			},
+		},
+		"pattern with int16 literal and wider type": {
+			input: `
+				var b: String | Int16 = 3i16
+				var 1i16 as a = b
+			`,
+		},
+		"pattern with int16 literal and wrong type": {
+			input: `
+				var 1i16 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i16`"),
+			},
+		},
+		"pattern with int8 literal and Int8 type": {
+			input: `
+				b := 3i8
+				var 1i8 as a = b
+			`,
+		},
+		"pattern with int8 literal and wrong literal type": {
+			input: `
+				var 1i8 as a = 3i8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3i8` cannot ever match type `1i8`"),
+			},
+		},
+		"pattern with int8 literal and wider type": {
+			input: `
+				var b: String | Int8 = 3i8
+				var 1i8 as a = b
+			`,
+		},
+		"pattern with int8 literal and wrong type": {
+			input: `
+				var 1i8 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1i8`"),
+			},
+		},
+		"pattern with uint64 literal and UInt64 type": {
+			input: `
+				b := 3u64
+				var 1u64 as a = b
+			`,
+		},
+		"pattern with uint64 literal and wrong literal type": {
+			input: `
+				var 1u64 as a = 3u64
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u64` cannot ever match type `1u64`"),
+			},
+		},
+		"pattern with uint64 literal and wider type": {
+			input: `
+				var b: String | UInt64 = 3u64
+				var 1u64 as a = b
+			`,
+		},
+		"pattern with uint64 literal and wrong type": {
+			input: `
+				var 1u64 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u64`"),
+			},
+		},
+		"pattern with uint32 literal and UInt32 type": {
+			input: `
+				b := 3u32
+				var 1u32 as a = b
+			`,
+		},
+		"pattern with uint32 literal and wrong literal type": {
+			input: `
+				var 1u32 as a = 3u32
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u32` cannot ever match type `1u32`"),
+			},
+		},
+		"pattern with uint32 literal and wider type": {
+			input: `
+				var b: String | UInt32 = 3u32
+				var 1u32 as a = b
+			`,
+		},
+		"pattern with uint32 literal and wrong type": {
+			input: `
+				var 1u32 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u32`"),
+			},
+		},
+		"pattern with uint16 literal and UInt16 type": {
+			input: `
+				b := 3u16
+				var 1u16 as a = b
+			`,
+		},
+		"pattern with uint16 literal and wrong literal type": {
+			input: `
+				var 1u16 as a = 3u16
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u16` cannot ever match type `1u16`"),
+			},
+		},
+		"pattern with uint16 literal and wider type": {
+			input: `
+				var b: String | UInt16 = 3u16
+				var 1u16 as a = b
+			`,
+		},
+		"pattern with uint16 literal and wrong type": {
+			input: `
+				var 1u16 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u16`"),
+			},
+		},
+		"pattern with uint8 literal and UInt8 type": {
+			input: `
+				b := 3u8
+				var 1u8 as a = b
+			`,
+		},
+		"pattern with uint8 literal and wrong literal type": {
+			input: `
+				var 1u8 as a = 3u8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3u8` cannot ever match type `1u8`"),
+			},
+		},
+		"pattern with uint8 literal and wider type": {
+			input: `
+				var b: String | UInt8 = 3u8
+				var 1u8 as a = b
+			`,
+		},
+		"pattern with uint8 literal and wrong type": {
+			input: `
+				var 1u8 as a = 1.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1u8`"),
+			},
+		},
+
+		"pattern with float literal and Float type": {
+			input: `
+				b := 3.14
+				var 1.0 as a = b
+			`,
+		},
+		"pattern with float literal and wrong literal type": {
+			input: `
+				var 1.0 as a = 3.14
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3.14` cannot ever match type `1.0`"),
+			},
+		},
+		"pattern with float literal and wider type": {
+			input: `
+				var b: String | Float = 3.14
+				var 1.0 as a = b
+			`,
+		},
+		"pattern with float literal and wrong type": {
+			input: `
+				var 1.0 as a = "1.2"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"1.2\"` cannot ever match type `1.0`"),
+			},
+		},
+		"pattern with float64 literal and Float64 type": {
+			input: `
+				b := 3.14f64
+				var 1.0f64 as a = b
+			`,
+		},
+		"pattern with float64 literal and wrong literal type": {
+			input: `
+				var 1.0f64 as a = 3.14f64
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f64` cannot ever match type `1.0f64`"),
+			},
+		},
+		"pattern with float64 literal and wider type": {
+			input: `
+				var b: String | Float64 = 3.14f64
+				var 1.0f64 as a = b
+			`,
+		},
+		"pattern with float64 literal and wrong type": {
+			input: `
+				var 1.0f64 as a = "1.2"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f64`"),
+			},
+		},
+		"pattern with float32 literal and Float32 type": {
+			input: `
+				b := 3.14f32
+				var 1.0f32 as a = b
+			`,
+		},
+		"pattern with float32 literal and wrong literal type": {
+			input: `
+				var 1.0f32 as a = 3.14f32
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f32` cannot ever match type `1.0f32`"),
+			},
+		},
+		"pattern with float32 literal and wider type": {
+			input: `
+				var b: String | Float32 = 3.14f32
+				var 1.0f32 as a = b
+			`,
+		},
+		"pattern with float32 literal and wrong type": {
+			input: `
+				var 1.0f32 as a = "1.2"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f32`"),
+			},
+		},
+		"pattern with bigfloat literal and BigFloat type": {
+			input: `
+				b := 3.14bf
+				var 1.0bf as a = b
+			`,
+		},
+		"pattern with bigfloat literal and wrong literal type": {
+			input: `
+				var 1.0bf as a = 3.14bf
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `3.14bf` cannot ever match type `1.0bf`"),
+			},
+		},
+		"pattern with bigfloat literal and wider type": {
+			input: `
+				var b: String | BigFloat = 3.14bf
+				var 1.0bf as a = b
+			`,
+		},
+		"pattern with bigfloat literal and wrong type": {
+			input: `
+				var 1.0bf as a = "1.2"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"1.2\"` cannot ever match type `1.0bf`"),
+			},
+		},
+
+		"pattern with char literal and Char type": {
+			input: "b := `a`\nvar `a` as a = b",
+		},
+		"pattern with char literal and wrong literal type": {
+			input: "var `a` as a = `b`",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type ``b`` cannot ever match type ``a``"),
+			},
+		},
+		"pattern with char literal and wider type": {
+			input: "var b: String | Char = `a`\nvar `a` as a = b",
+		},
+		"pattern with char literal and wrong type": {
+			input: "var `a` as a = \"a\"",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type `\"a\"` cannot ever match type ``a``"),
+			},
+		},
+		"pattern with raw char literal and Char type": {
+			input: "b := r`f`\nvar r`f` as a = b",
+		},
+		"pattern with raw char literal and wrong literal type": {
+			input: "var r`f` as a = r`g`",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type ``g`` cannot ever match type ``f``"),
+			},
+		},
+		"pattern with raw char literal and wider type": {
+			input: "var b: String | Char = r`f`\nvar r`f` as a = b",
+		},
+		"pattern with raw char literal and wrong type": {
+			input: "var r`f` as a = \"f\"",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type `\"f\"` cannot ever match type ``f``"),
+			},
+		},
+
+		"pattern with true literal and Bool type": {
+			input: `
+				b := true
+				var true as a = b
+			`,
+		},
+		"pattern with true literal and wrong literal type": {
+			input: `
+				var true as a = false
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `false` cannot ever match type `true`"),
+			},
+		},
+		"pattern with true literal and wider type": {
+			input: `
+				var b: String | Bool = true
+				var true as a = b
+			`,
+		},
+		"pattern with true literal and wrong type": {
+			input: `
+				var true as a = "true"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"true\"` cannot ever match type `true`"),
+			},
+		},
+		"pattern with false literal and Bool type": {
+			input: `
+				b := false
+				var false as a = b
+			`,
+		},
+		"pattern with false literal and wrong literal type": {
+			input: `
+				var false as a = true
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `true` cannot ever match type `false`"),
+			},
+		},
+		"pattern with false literal and wider type": {
+			input: `
+				var b: String | Bool = false
+				var false as a = b
+			`,
+		},
+		"pattern with false literal and wrong type": {
+			input: `
+				var false as a = "false"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"false\"` cannot ever match type `false`"),
+			},
+		},
+		"pattern with nil literal and Nil type": {
+			input: `
+				b := nil
+				var nil as a = b
+			`,
+		},
+		"pattern with nil literal and wrong literal type": {
+			input: `
+				var nil as a = 42
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `42` cannot ever match type `nil`"),
+			},
+		},
+		"pattern with nil literal and wider type": {
+			input: `
+				var b: String | Nil = nil
+				var nil as a = b
+			`,
+		},
+		"pattern with nil literal and wrong type": {
+			input: `
+				var nil as a = "nil"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"nil\"` cannot ever match type `nil`"),
+			},
+		},
+
+		"pattern with interpolated string literal": {
+			input: `
+				b := "hello"
+				var "hello${1 + 2i8}" as a = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+			},
+		},
+		"pattern with raw string literal": {
+			input: `
+				b := "hello"
+				var 'foo' as a = b
+			`,
+		},
+		"pattern with string literal and String type": {
+			input: `
+				b := "hello"
+				var "hello" as a = b
+			`,
+		},
+		"pattern with string literal and wrong literal type": {
+			input: `
+				var "hello" as a = "world"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"world\"` cannot ever match type `\"hello\"`"),
+			},
+		},
+		"pattern with string literal and wider type": {
+			input: `
+				var b: String | Int = "hello"
+				var "hello" as a = b
+			`,
+		},
+		"pattern with string literal and wrong type": {
+			input: `
+				var "hello" as a = 42
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `42` cannot ever match type `\"hello\"`"),
+			},
+		},
+
+		"pattern with interpolated symbol literal": {
+			input: `
+				b := :hello
+				var :"hello${1 + 2i8}" as a = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+			},
+		},
+		"pattern with simple symbol literal": {
+			input: `
+				b := :hello
+				var :foo as a = b
+			`,
+		},
+		"pattern with symbol literal and Symbol type": {
+			input: `
+				b := :hello
+				var :hello as a = b
+			`,
+		},
+		"pattern with symbol literal and wrong literal type": {
+			input: `
+				var :hello as a = :world
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `:world` cannot ever match type `:hello`"),
+			},
+		},
+		"pattern with symbol literal and wider type": {
+			input: `
+				var b: Symbol | Int = :hello
+				var :hello as a = b
+			`,
+		},
+		"pattern with symbol literal and wrong type": {
+			input: `
+				var :hello as a = 42
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `42` cannot ever match type `:hello`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
