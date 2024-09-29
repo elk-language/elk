@@ -881,6 +881,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkHashMapLiteralNode(n)
 	case *ast.HashRecordLiteralNode:
 		return c.checkHashRecordLiteralNode(n)
+	case *ast.RangeLiteralNode:
+		return c.checkRangeLiteralNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -964,6 +966,10 @@ func (c *Checker) StdMap() *types.Interface {
 
 func (c *Checker) StdHashRecord() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
+}
+
+func (c *Checker) StdRange() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Mixin)
 }
 
 func (c *Checker) StdRecord() *types.Interface {
@@ -1282,6 +1288,72 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 				node.Span(),
 			)
 		}
+	}
+
+	return node
+}
+
+func (c *Checker) checkRangeLiteralNode(node *ast.RangeLiteralNode) ast.ExpressionNode {
+	return c.checkRangeLiteralNodeWithType(node, nil)
+}
+
+func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ *types.Generic) ast.ExpressionNode {
+	var valueTypes []types.Type
+	if node.From != nil {
+		node.From = c.checkExpression(node.From)
+		valueTypes = append(valueTypes, c.typeOf(node.From))
+	}
+	if node.To != nil {
+		node.To = c.checkExpression(node.To)
+		valueTypes = append(valueTypes, c.typeOf(node.To))
+	}
+
+	var rangeClassName value.Symbol
+	switch node.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		if node.From == nil {
+			rangeClassName = symbol.BeginlessClosedRange
+		} else if node.To == nil {
+			rangeClassName = symbol.EndlessClosedRange
+		} else {
+			rangeClassName = symbol.ClosedRange
+		}
+	case token.OPEN_RANGE_OP:
+		if node.From == nil {
+			rangeClassName = symbol.BeginlessOpenRange
+		} else if node.To == nil {
+			rangeClassName = symbol.EndlessOpenRange
+		} else {
+			rangeClassName = symbol.OpenRange
+		}
+	case token.LEFT_OPEN_RANGE_OP:
+		if node.From == nil {
+			rangeClassName = symbol.BeginlessClosedRange
+		} else if node.To == nil {
+			rangeClassName = symbol.EndlessOpenRange
+		} else {
+			rangeClassName = symbol.LeftOpenRange
+		}
+	case token.RIGHT_OPEN_RANGE_OP:
+		if node.From == nil {
+			rangeClassName = symbol.BeginlessOpenRange
+		} else if node.To == nil {
+			rangeClassName = symbol.EndlessClosedRange
+		} else {
+			rangeClassName = symbol.RightOpenRange
+		}
+	}
+
+	valueType := c.newNormalisedUnion(valueTypes...)
+	if typ != nil {
+		c.checkCanAssign(valueType, typ.TypeArguments.Get(0).Type, node.Span())
+		node.SetType(typ)
+	} else if len(valueTypes) == 0 {
+		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Any{})
+		node.SetType(generic)
+	} else {
+		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), valueType)
+		node.SetType(generic)
 	}
 
 	return node
