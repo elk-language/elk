@@ -497,8 +497,6 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.initDefinition(node)
 	case *ast.IncludeExpressionNode:
 		c.includeExpression(node)
-	case *ast.ExtendExpressionNode:
-		c.extendExpression(node)
 	case *ast.SingletonBlockExpressionNode:
 		c.singletonBlock(node)
 	case *ast.SwitchExpressionNode:
@@ -3321,40 +3319,6 @@ func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	c.emitValue(value.ToSymbol("#init"), node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
-}
-
-func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
-	switch c.mode {
-	case classMode, mixinMode, moduleMode:
-	case topLevelMode:
-		c.Errors.AddFailure(
-			"cannot extend mixins in the top level",
-			c.newLocation(node.Span()),
-		)
-		return
-	case closureMode:
-		c.Errors.AddFailure(
-			"cannot extend mixins in a method",
-			c.newLocation(node.Span()),
-		)
-		return
-	default:
-		c.Errors.AddFailure(
-			"cannot extend mixins in this context",
-			c.newLocation(node.Span()),
-		)
-		return
-	}
-
-	span := node.Span()
-	for _, constant := range node.Constants {
-		c.compileNode(constant)
-		c.emit(span.StartPos.Line, bytecode.SELF)
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
-		c.emit(span.StartPos.Line, bytecode.INCLUDE)
-	}
-
-	c.emit(span.EndPos.Line, bytecode.NIL)
 }
 
 func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {

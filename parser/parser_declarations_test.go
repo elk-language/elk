@@ -771,6 +771,7 @@ func TestIncludeExpression(t *testing.T) {
 									T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -794,6 +795,7 @@ func TestIncludeExpression(t *testing.T) {
 									"Enumerable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -819,6 +821,7 @@ func TestIncludeExpression(t *testing.T) {
 										"Enumerable",
 									),
 								},
+								nil,
 							),
 						),
 					),
@@ -847,6 +850,92 @@ func TestIncludeExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a where clause": {
+			input: "include Enumerable, Memoizable where E < String",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(46, 1, 47)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(37, 1, 38), P(46, 1, 47)),
+						ast.NewIncludeExpressionNode(
+							S(P(37, 1, 38), P(46, 1, 47)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(8, 1, 9), P(17, 1, 18)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(20, 1, 21), P(29, 1, 30)),
+									"Memoizable",
+								),
+							},
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(37, 1, 38), P(46, 1, 47)),
+									ast.INVARIANT,
+									"E",
+									nil,
+									ast.NewPublicConstantNode(
+										S(P(41, 1, 42), P(46, 1, 47)),
+										"String",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a where clause with multiple type parameters": {
+			input: "include Enumerable, Memoizable where E < String, F > Float < Value",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(65, 1, 66)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(37, 1, 38), P(65, 1, 66)),
+						ast.NewIncludeExpressionNode(
+							S(P(37, 1, 38), P(65, 1, 66)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(8, 1, 9), P(17, 1, 18)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(20, 1, 21), P(29, 1, 30)),
+									"Memoizable",
+								),
+							},
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(37, 1, 38), P(46, 1, 47)),
+									ast.INVARIANT,
+									"E",
+									nil,
+									ast.NewPublicConstantNode(
+										S(P(41, 1, 42), P(46, 1, 47)),
+										"String",
+									),
+								),
+								ast.NewVariantTypeParameterNode(
+									S(P(49, 1, 50), P(65, 1, 66)),
+									ast.INVARIANT,
+									"F",
+									ast.NewPublicConstantNode(
+										S(P(53, 1, 54), P(57, 1, 58)),
+										"Float",
+									),
+									ast.NewPublicConstantNode(
+										S(P(61, 1, 62), P(65, 1, 66)),
+										"Value",
+									),
+								),
+							},
 						),
 					),
 				},
@@ -871,6 +960,7 @@ func TestIncludeExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -891,6 +981,7 @@ func TestIncludeExpression(t *testing.T) {
 									"_Enumerable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -918,6 +1009,7 @@ func TestIncludeExpression(t *testing.T) {
 									),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -941,6 +1033,7 @@ func TestIncludeExpression(t *testing.T) {
 									},
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -962,6 +1055,7 @@ func TestIncludeExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(13, 2, 13), P(15, 2, 15)), "Foo"),
 							},
+							nil,
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -971,6 +1065,7 @@ func TestIncludeExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(29, 3, 13), P(31, 3, 15)), "Bar"),
 							},
+							nil,
 						),
 					),
 				},
@@ -1002,6 +1097,7 @@ func TestImplementExpression(t *testing.T) {
 									T(S(P(9, 1, 10), P(8, 1, 9)), token.END_OF_FILE),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1025,6 +1121,7 @@ func TestImplementExpression(t *testing.T) {
 									"Enumerable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1050,6 +1147,7 @@ func TestImplementExpression(t *testing.T) {
 										"Enumerable",
 									),
 								},
+								nil,
 							),
 						),
 					),
@@ -1078,6 +1176,7 @@ func TestImplementExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1102,6 +1201,7 @@ func TestImplementExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1122,6 +1222,7 @@ func TestImplementExpression(t *testing.T) {
 									"_Enumerable",
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1149,6 +1250,7 @@ func TestImplementExpression(t *testing.T) {
 									),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1172,6 +1274,7 @@ func TestImplementExpression(t *testing.T) {
 									},
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -1193,6 +1296,7 @@ func TestImplementExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(15, 2, 15), P(17, 2, 17)), "Foo"),
 							},
+							nil,
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -1202,350 +1306,7 @@ func TestImplementExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(33, 3, 15), P(35, 3, 17)), "Bar"),
 							},
-						),
-					),
-				},
-			),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			parserTest(tc, t)
-		})
-	}
-}
-
-func TestExtendExpression(t *testing.T) {
-	tests := testTable{
-		"cannot omit the argument": {
-			input: "extend",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(5, 1, 6)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(5, 1, 6)),
-							[]ast.ComplexConstantNode{
-								ast.NewInvalidNode(
-									S(P(6, 1, 7), P(5, 1, 6)),
-									T(S(P(6, 1, 7), P(5, 1, 6)), token.END_OF_FILE),
-								),
-							},
-						),
-					),
-				},
-			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected a constant"),
-			},
-		},
-		"can have a public constant as the argument": {
-			input: "extend Enumerable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(16, 1, 17)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(16, 1, 17)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(16, 1, 17)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(7, 1, 8), P(16, 1, 17)),
-									"Enumerable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have many arguments": {
-			input: "extend Enumerable, Memoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(28, 1, 29)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(28, 1, 29)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(28, 1, 29)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(7, 1, 8), P(16, 1, 17)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(19, 1, 20), P(28, 1, 29)),
-									"Memoizable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have newlines after the comma": {
-			input: "extend Enumerable,\nMemoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(28, 2, 10)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(28, 2, 10)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(28, 2, 10)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(7, 1, 8), P(16, 1, 17)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(19, 2, 1), P(28, 2, 10)),
-									"Memoizable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a private constant as the argument": {
-			input: "extend _Enumerable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(17, 1, 18)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(17, 1, 18)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
-							[]ast.ComplexConstantNode{
-								ast.NewPrivateConstantNode(
-									S(P(7, 1, 8), P(17, 1, 18)),
-									"_Enumerable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a constant lookup as the argument": {
-			input: "extend Std::Memoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(21, 1, 22)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(21, 1, 22)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(21, 1, 22)),
-							[]ast.ComplexConstantNode{
-								ast.NewConstantLookupNode(
-									S(P(7, 1, 8), P(21, 1, 22)),
-									ast.NewPublicConstantNode(
-										S(P(7, 1, 8), P(9, 1, 10)),
-										"Std",
-									),
-									ast.NewPublicConstantNode(
-										S(P(12, 1, 13), P(21, 1, 22)),
-										"Memoizable",
-									),
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a generic constant as the argument": {
-			input: "extend Enumerable[String]",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(24, 1, 25)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(24, 1, 25)),
-						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(24, 1, 25)),
-							[]ast.ComplexConstantNode{
-								ast.NewGenericConstantNode(
-									S(P(7, 1, 8), P(24, 1, 25)),
-									ast.NewPublicConstantNode(S(P(7, 1, 8), P(16, 1, 17)), "Enumerable"),
-									[]ast.TypeNode{
-										ast.NewPublicConstantNode(S(P(18, 1, 19), P(23, 1, 24)), "String"),
-									},
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			parserTest(tc, t)
-		})
-	}
-}
-
-func TestEnhanceExpression(t *testing.T) {
-	tests := testTable{
-		"cannot omit the argument": {
-			input: "enhance",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(6, 1, 7)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(6, 1, 7)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(6, 1, 7)),
-							[]ast.ComplexConstantNode{
-								ast.NewInvalidNode(
-									S(P(7, 1, 8), P(6, 1, 7)),
-									T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
-								),
-							},
-						),
-					),
-				},
-			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected a constant"),
-			},
-		},
-		"can have a public constant as the argument": {
-			input: "enhance Enumerable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(17, 1, 18)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(17, 1, 18)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(8, 1, 9), P(17, 1, 18)),
-									"Enumerable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have many arguments": {
-			input: "enhance Enumerable, Memoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(29, 1, 30)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(29, 1, 30)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(8, 1, 9), P(17, 1, 18)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(20, 1, 21), P(29, 1, 30)),
-									"Memoizable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have newlines after the comma": {
-			input: "enhance Enumerable,\nMemoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(29, 2, 10)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(29, 2, 10)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(29, 2, 10)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(8, 1, 9), P(17, 1, 18)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(20, 2, 1), P(29, 2, 10)),
-									"Memoizable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a private constant as the argument": {
-			input: "enhance _Enumerable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(18, 1, 19)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(18, 1, 19)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(18, 1, 19)),
-							[]ast.ComplexConstantNode{
-								ast.NewPrivateConstantNode(
-									S(P(8, 1, 9), P(18, 1, 19)),
-									"_Enumerable",
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a constant lookup as the argument": {
-			input: "enhance Std::Memoizable",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(22, 1, 23)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(22, 1, 23)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(22, 1, 23)),
-							[]ast.ComplexConstantNode{
-								ast.NewConstantLookupNode(
-									S(P(8, 1, 9), P(22, 1, 23)),
-									ast.NewPublicConstantNode(
-										S(P(8, 1, 9), P(10, 1, 11)),
-										"Std",
-									),
-									ast.NewPublicConstantNode(
-										S(P(13, 1, 14), P(22, 1, 23)),
-										"Memoizable",
-									),
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a generic constant as the argument": {
-			input: "enhance Enumerable[String]",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(25, 1, 26)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(25, 1, 26)),
-						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(25, 1, 26)),
-							[]ast.ComplexConstantNode{
-								ast.NewGenericConstantNode(
-									S(P(8, 1, 9), P(25, 1, 26)),
-									ast.NewPublicConstantNode(S(P(8, 1, 9), P(17, 1, 18)), "Enumerable"),
-									[]ast.TypeNode{
-										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
-									},
-								),
-							},
+							nil,
 						),
 					),
 				},

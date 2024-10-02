@@ -363,8 +363,6 @@ func (*SetterDeclarationNode) expressionNode()             {}
 func (*AttrDeclarationNode) expressionNode()               {}
 func (*UsingExpressionNode) expressionNode()               {}
 func (*IncludeExpressionNode) expressionNode()             {}
-func (*ExtendExpressionNode) expressionNode()              {}
-func (*EnhanceExpressionNode) expressionNode()             {}
 func (*ImplementExpressionNode) expressionNode()           {}
 func (*NewExpressionNode) expressionNode()                 {}
 func (*GenericConstructorCallNode) expressionNode()        {}
@@ -3828,6 +3826,7 @@ func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *Using
 type IncludeExpressionNode struct {
 	TypedNodeBase
 	Constants []ComplexConstantNode
+	Where     []TypeParameterNode
 }
 
 func (*IncludeExpressionNode) SkipTypechecking() bool {
@@ -3839,46 +3838,11 @@ func (*IncludeExpressionNode) IsStatic() bool {
 }
 
 // Create an include expression node eg. `include Enumerable[V]`
-func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
+func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode, where []TypeParameterNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Constants:     consts,
-	}
-}
-
-// Represents an extend expression eg. `extend Enumerable[V]`
-type ExtendExpressionNode struct {
-	NodeBase
-	Constants []ComplexConstantNode
-}
-
-func (*ExtendExpressionNode) IsStatic() bool {
-	return false
-}
-
-// Create an extend expression node eg. `extend Enumerable[V]`
-func NewExtendExpressionNode(span *position.Span, consts []ComplexConstantNode) *ExtendExpressionNode {
-	return &ExtendExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Constants: consts,
-	}
-}
-
-// Represents an enhance expression eg. `enhance Enumerable[V]`
-type EnhanceExpressionNode struct {
-	NodeBase
-	Constants []ComplexConstantNode
-}
-
-func (*EnhanceExpressionNode) IsStatic() bool {
-	return false
-}
-
-// Create an enhance expression node eg. `enhance Enumerable[V]`
-func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode) *EnhanceExpressionNode {
-	return &EnhanceExpressionNode{
-		NodeBase:  NodeBase{span: span},
-		Constants: consts,
+		Where:         where,
 	}
 }
 
@@ -3886,6 +3850,7 @@ func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode)
 type ImplementExpressionNode struct {
 	TypedNodeBase
 	Constants []ComplexConstantNode
+	Where     []TypeParameterNode
 }
 
 func (*ImplementExpressionNode) SkipTypechecking() bool {
@@ -3897,10 +3862,11 @@ func (*ImplementExpressionNode) IsStatic() bool {
 }
 
 // Create an enhance expression node eg. `implement Enumerable[V]`
-func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
+func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode, where []TypeParameterNode) *ImplementExpressionNode {
 	return &ImplementExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Constants:     consts,
+		Where:         where,
 	}
 }
 

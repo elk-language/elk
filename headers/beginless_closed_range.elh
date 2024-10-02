@@ -1,0 +1,11 @@
+##[
+	Represents a closed range from -∞ to a given value.
+]##
+sealed primitive class ::Std::BeginlessClosedRange[+Element] < Value
+	include Range[Element] # where Element > Dupa, Dupa < Object
+
+	##[
+		Returns the upper bound of the range.
+	]##
+	def end: Element; end
+end

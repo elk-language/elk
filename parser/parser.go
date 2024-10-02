@@ -443,13 +443,19 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 
 // Represents an AST Node constructor function for an `include`- like expression
 // eg. `include`, `extend`, `enhance`
-type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode) T
+type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode, []ast.TypeParameterNode) T
 
-// includelikeExpression = keyword genericConstantList
+// includelikeExpression = keyword genericConstantList ["where" typeVariableList]
 func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T], allowed bool) T {
 	keyword := p.advance()
 	consts := p.genericConstantList()
 	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
+
+	var typeParams []ast.TypeParameterNode
+	if p.match(token.WHERE) {
+		typeParams = p.typeParameterListWithoutTerminator()
+		span = position.JoinSpanOfCollection(typeParams)
+	}
 
 	if !allowed {
 		p.errorMessageSpan(
@@ -460,6 +466,7 @@ func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstru
 	return constructor(
 		span,
 		consts,
+		typeParams,
 	)
 }
 
@@ -710,10 +717,6 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.typeDefinition(allowed)
 	case token.INCLUDE:
 		return p.includeExpression(allowed)
-	case token.EXTEND:
-		return p.extendExpression(allowed)
-	case token.ENHANCE:
-		return p.enhanceExpression(allowed)
 	case token.IMPLEMENT:
 		return p.implementExpression(allowed)
 	case token.ABSTRACT:
@@ -2191,10 +2194,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.singletonBlockExpression()
 	case token.INCLUDE:
 		return p.includeExpression(false)
-	case token.EXTEND:
-		return p.extendExpression(false)
-	case token.ENHANCE:
-		return p.enhanceExpression(false)
 	case token.IMPLEMENT:
 		return p.implementExpression(false)
 	case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
@@ -2671,22 +2670,12 @@ func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
 	return commaSeparatedList(p, p.typeAnnotation, stopTokens...)
 }
 
-// includeExpression = "include" genericConstantList
+// includeExpression = "include" genericConstantList [whereGenericBound]
 func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 	return includelikeExpression(p, ast.NewIncludeExpressionNode, allowed)
 }
 
-// extendExpression = "extend" genericConstantList
-func (p *Parser) extendExpression(allowed bool) *ast.ExtendExpressionNode {
-	return includelikeExpression(p, ast.NewExtendExpressionNode, allowed)
-}
-
-// enhanceExpression = "enhance" genericConstantList
-func (p *Parser) enhanceExpression(allowed bool) *ast.EnhanceExpressionNode {
-	return includelikeExpression(p, ast.NewEnhanceExpressionNode, allowed)
-}
-
-// implementExpression = "implement" genericConstantList
+// implementExpression = "implement" genericConstantList [whereGenericBound]
 func (p *Parser) implementExpression(allowed bool) *ast.ImplementExpressionNode {
 	return includelikeExpression(p, ast.NewImplementExpressionNode, allowed)
 }
@@ -3176,6 +3165,11 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 // typeParameterList = typeParameter ("," typeParameter)*
 func (p *Parser) typeParameterList(stopTokens ...token.Type) []ast.TypeParameterNode {
 	return commaSeparatedList(p, p.typeParameter, stopTokens...)
+}
+
+// typeParameterListWithoutTerminator = typeParameter ("," typeParameter)*
+func (p *Parser) typeParameterListWithoutTerminator(stopTokens ...token.Type) []ast.TypeParameterNode {
+	return commaSeparatedListWithoutTerminator(p, p.typeParameter, stopTokens...)
 }
 
 // attributeParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]

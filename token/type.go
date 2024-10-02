@@ -455,7 +455,6 @@ const (
 	INCLUDE           // Keyword `include`
 	IMPLEMENT         // Keyword `implement`
 	EXTEND            // Keyword `extend`
-	ENHANCE           // Keyword `enhance`
 	ENUM              // Keyword `enum`
 	TYPE              // Keyword `type`
 	TYPEDEF           // Keyword `typedef`
@@ -497,6 +496,7 @@ const (
 	BOOL              // Keyword `bool`
 	NEW               // Keyword `new`
 	IMPORT            // Keyword `import`
+	WHERE             // Keyword `where`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -536,7 +536,6 @@ var Keywords = map[string]Type{
 	"include":    INCLUDE,
 	"implement":  IMPLEMENT,
 	"extend":     EXTEND,
-	"enhance":    ENHANCE,
 	"enum":       ENUM,
 	"type":       TYPE,
 	"typedef":    TYPEDEF,
@@ -578,6 +577,7 @@ var Keywords = map[string]Type{
 	"bool":       BOOL,
 	"new":        NEW,
 	"import":     IMPORT,
+	"where":      WHERE,
 }
 
 var tokenNames = [...]string{
@@ -781,7 +781,6 @@ var tokenNames = [...]string{
 	INCLUDE:    "include",
 	IMPLEMENT:  "implement",
 	EXTEND:     "extend",
-	ENHANCE:    "enhance",
 	ENUM:       "enum",
 	TYPE:       "type",
 	TYPEDEF:    "typedef",
@@ -823,4 +822,5 @@ var tokenNames = [...]string{
 	BOOL:       "bool",
 	NEW:        "new",
 	IMPORT:     "import",
+	WHERE:      "where",
 }

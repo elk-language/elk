@@ -1,0 +1,6 @@
+##[
+	Represents a range of values.
+]##
+mixin ::Std::Range[+Element]
+	# include Iterable::Base[Element]
+end

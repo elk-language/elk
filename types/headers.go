@@ -32,6 +32,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		{
+			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value.", false, true, true, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
@@ -141,6 +145,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, value.ToSymbol("Pair"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineMixin("Represents a range of values.", false, value.ToSymbol("Range"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -306,6 +314,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtype("BeginlessClosedRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("BigFloat").(*Class)
@@ -1427,6 +1453,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the key, the first element of the tuple.", false, false, true, value.ToSymbol("key"), nil, nil, NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
 				namespace.DefineMethod("Always returns `2`.\nFor compatibility with `Tuple`.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the value, the second element of the tuple.", false, false, true, value.ToSymbol("value"), nil, nil, NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Range").(*Mixin)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Mixin), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 
