@@ -3850,7 +3850,6 @@ func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode,
 type ImplementExpressionNode struct {
 	TypedNodeBase
 	Constants []ComplexConstantNode
-	Where     []TypeParameterNode
 }
 
 func (*ImplementExpressionNode) SkipTypechecking() bool {
@@ -3862,11 +3861,10 @@ func (*ImplementExpressionNode) IsStatic() bool {
 }
 
 // Create an enhance expression node eg. `implement Enumerable[V]`
-func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode, where []TypeParameterNode) *ImplementExpressionNode {
+func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
 	return &ImplementExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Constants:     consts,
-		Where:         where,
 	}
 }
 

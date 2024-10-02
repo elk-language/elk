@@ -441,35 +441,6 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 	return left
 }
 
-// Represents an AST Node constructor function for an `include`- like expression
-// eg. `include`, `extend`, `enhance`
-type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode, []ast.TypeParameterNode) T
-
-// includelikeExpression = keyword genericConstantList ["where" typeVariableList]
-func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T], allowed bool) T {
-	keyword := p.advance()
-	consts := p.genericConstantList()
-	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
-
-	var typeParams []ast.TypeParameterNode
-	if p.match(token.WHERE) {
-		typeParams = p.typeParameterListWithoutTerminator()
-		span = position.JoinSpanOfCollection(typeParams)
-	}
-
-	if !allowed {
-		p.errorMessageSpan(
-			"this definition cannot appear in expressions",
-			span,
-		)
-	}
-	return constructor(
-		span,
-		consts,
-		typeParams,
-	)
-}
-
 // binaryExpression = subProduction | binaryExpression operators subProduction
 func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
 	return binaryProduction(p, ast.NewBinaryExpressionNodeI, subProduction, operators...)
@@ -2672,12 +2643,45 @@ func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
 
 // includeExpression = "include" genericConstantList [whereGenericBound]
 func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
-	return includelikeExpression(p, ast.NewIncludeExpressionNode, allowed)
+	keyword := p.advance()
+	consts := p.genericConstantList()
+	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
+
+	var typeParams []ast.TypeParameterNode
+	if p.match(token.WHERE) {
+		typeParams = p.typeParameterListWithoutTerminator()
+		span = position.JoinSpanOfCollection(typeParams)
+	}
+
+	if !allowed {
+		p.errorMessageSpan(
+			"this definition cannot appear in expressions",
+			span,
+		)
+	}
+	return ast.NewIncludeExpressionNode(
+		span,
+		consts,
+		typeParams,
+	)
 }
 
-// implementExpression = "implement" genericConstantList [whereGenericBound]
+// implementExpression = "implement" genericConstantList
 func (p *Parser) implementExpression(allowed bool) *ast.ImplementExpressionNode {
-	return includelikeExpression(p, ast.NewImplementExpressionNode, allowed)
+	keyword := p.advance()
+	consts := p.genericConstantList()
+	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
+
+	if !allowed {
+		p.errorMessageSpan(
+			"this definition cannot appear in expressions",
+			span,
+		)
+	}
+	return ast.NewImplementExpressionNode(
+		span,
+		consts,
+	)
 }
 
 // methodDefinition = "sig" methodName ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
