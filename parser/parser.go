@@ -660,6 +660,10 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.methodDefinition(allowed)
 	case token.SIG:
 		return p.methodSignatureDefinition(allowed)
+	case token.SINGLETON:
+		return p.singletonBlockExpression(allowed)
+	case token.EXTEND:
+		return p.extendWhereBlockExpression(allowed)
 	case token.INIT:
 		return p.initDefinition(allowed)
 	case token.USING:
@@ -2161,8 +2165,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.aliasDeclaration(false)
 	case token.SIG:
 		return p.methodSignatureDefinition(false)
+	case token.EXTEND:
+		return p.extendWhereBlockExpression(false)
 	case token.SINGLETON:
-		return p.singletonBlockExpression()
+		return p.singletonBlockExpression(false)
 	case token.INCLUDE:
 		return p.includeExpression(false)
 	case token.IMPLEMENT:
@@ -2641,17 +2647,11 @@ func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
 	return commaSeparatedList(p, p.typeAnnotation, stopTokens...)
 }
 
-// includeExpression = "include" genericConstantList [whereGenericBound]
+// includeExpression = "include" genericConstantList ["where" typeParameterListWithoutTerminator]
 func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 	keyword := p.advance()
 	consts := p.genericConstantList()
 	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
-
-	var typeParams []ast.TypeParameterNode
-	if p.match(token.WHERE) {
-		typeParams = p.typeParameterListWithoutTerminator()
-		span = position.JoinSpanOfCollection(typeParams)
-	}
 
 	if !allowed {
 		p.errorMessageSpan(
@@ -2662,7 +2662,6 @@ func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 	return ast.NewIncludeExpressionNode(
 		span,
 		consts,
-		typeParams,
 	)
 }
 
@@ -4931,7 +4930,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 }
 
 // singletonBlockExpression = "singleton" (expressionWithoutModifier | SEPARATOR statements "end")
-func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
+func (p *Parser) singletonBlockExpression(allowed bool) *ast.SingletonBlockExpressionNode {
 	singletonTok := p.advance()
 	lastSpan, body, multiline := p.statementBlock(token.END)
 
@@ -4960,7 +4959,60 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"singleton definitions cannot appear in expressions",
+			span,
+		)
+	}
+
 	return singletonBlockExpr
+}
+
+// singletonBlockExpression = "extend" "where" typeParameterListWithoutTerminator ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) extendWhereBlockExpression(allowed bool) ast.ExpressionNode {
+	extendTok := p.advance()
+
+	whereTok, ok := p.consume(token.WHERE)
+	if !ok {
+		return ast.NewInvalidNode(whereTok.Span(), whereTok)
+	}
+	typeParams := p.typeParameterListWithoutTerminator()
+	span := position.JoinSpanOfLastElement(extendTok.Span(), typeParams)
+
+	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
+
+	if lastSpan != nil {
+		span = span.Join(lastSpan)
+	}
+
+	extendWhereBlock := ast.NewExtendWhereBlockExpressionNode(
+		span,
+		body,
+		typeParams,
+	)
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			extendWhereBlock.SetSpan(extendWhereBlock.Span().Join(endTok.Span()))
+		}
+	}
+
+	if !allowed {
+		p.errorMessageSpan(
+			"extend where definitions cannot appear in expressions",
+			span,
+		)
+	}
+
+	return extendWhereBlock
 }
 
 // listElementPattern = ("*" [identifier]) | pattern

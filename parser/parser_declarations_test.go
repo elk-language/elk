@@ -165,7 +165,7 @@ end
 				},
 			),
 		},
-		"is an expression": {
+		"cannot appear in expressions": {
 			input: `
 bar =
 	singleton
@@ -205,6 +205,186 @@ nil
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(8, 3, 2), P(28, 4, 11)), "singleton definitions cannot appear in expressions"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+func TestExtendWhereBlock(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+extend where T < String
+	foo += 2
+	nil
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 5, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(43, 5, 4)),
+						ast.NewExtendWhereBlockExpressionNode(
+							S(P(1, 2, 1), P(42, 5, 3)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(26, 3, 2), P(34, 3, 10)),
+									ast.NewAssignmentExpressionNode(
+										S(P(26, 3, 2), P(33, 3, 9)),
+										T(S(P(30, 3, 6), P(31, 3, 7)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(26, 3, 2), P(28, 3, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(33, 3, 9), P(33, 3, 9)), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(36, 4, 2), P(39, 4, 5)),
+									ast.NewNilLiteralNode(S(P(36, 4, 2), P(38, 4, 4))),
+								),
+							},
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(14, 2, 14), P(23, 2, 23)),
+									ast.INVARIANT,
+									"T",
+									nil,
+									ast.NewPublicConstantNode(S(P(18, 2, 18), P(23, 2, 23)), "String"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+extend where T > Float
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 3, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(27, 3, 4)),
+						ast.NewExtendWhereBlockExpressionNode(
+							S(P(1, 2, 1), P(26, 3, 3)),
+							nil,
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(14, 2, 14), P(22, 2, 22)),
+									ast.INVARIANT,
+									"T",
+									ast.NewPublicConstantNode(S(P(18, 2, 18), P(22, 2, 22)), "Float"),
+									nil,
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have multiple type parameters": {
+			input: `
+extend where T > Float, Y > String, Z = Int
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(48, 3, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(48, 3, 4)),
+						ast.NewExtendWhereBlockExpressionNode(
+							S(P(1, 2, 1), P(47, 3, 3)),
+							nil,
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(14, 2, 14), P(22, 2, 22)),
+									ast.INVARIANT,
+									"T",
+									ast.NewPublicConstantNode(S(P(18, 2, 18), P(22, 2, 22)), "Float"),
+									nil,
+								),
+								ast.NewVariantTypeParameterNode(
+									S(P(25, 2, 25), P(34, 2, 34)),
+									ast.INVARIANT,
+									"Y",
+									ast.NewPublicConstantNode(S(P(29, 2, 29), P(34, 2, 34)), "String"),
+									nil,
+								),
+								ast.NewVariantTypeParameterNode(
+									S(P(37, 2, 37), P(43, 2, 43)),
+									ast.INVARIANT,
+									"Z",
+									ast.NewPublicConstantNode(S(P(41, 2, 41), P(43, 2, 43)), "Int"),
+									ast.NewPublicConstantNode(S(P(41, 2, 41), P(43, 2, 43)), "Int"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot appear in expressions": {
+			input: `
+bar =
+	extend where T > Float
+		foo += 2
+	end
+nil
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(50, 6, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(46, 5, 5)),
+						ast.NewAssignmentExpressionNode(
+							S(P(1, 2, 1), P(45, 5, 4)),
+							T(S(P(5, 2, 5), P(5, 2, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 3)), "bar"),
+							ast.NewExtendWhereBlockExpressionNode(
+								S(P(8, 3, 2), P(45, 5, 4)),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										S(P(33, 4, 3), P(41, 4, 11)),
+										ast.NewAssignmentExpressionNode(
+											S(P(33, 4, 3), P(40, 4, 10)),
+											T(S(P(37, 4, 7), P(38, 4, 8)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(33, 4, 3), P(35, 4, 5)), "foo"),
+											ast.NewIntLiteralNode(S(P(40, 4, 10), P(40, 4, 10)), "2"),
+										),
+									),
+								},
+								[]ast.TypeParameterNode{
+									ast.NewVariantTypeParameterNode(
+										S(P(21, 3, 15), P(29, 3, 23)),
+										ast.INVARIANT,
+										"T",
+										ast.NewPublicConstantNode(S(P(25, 3, 19), P(29, 3, 23)), "Float"),
+										nil,
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(47, 6, 1), P(50, 6, 4)),
+						ast.NewNilLiteralNode(S(P(47, 6, 1), P(49, 6, 3))),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(8, 3, 2), P(41, 4, 11)), "extend where definitions cannot appear in expressions"),
+			},
 		},
 	}
 
@@ -771,7 +951,6 @@ func TestIncludeExpression(t *testing.T) {
 									T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -795,7 +974,6 @@ func TestIncludeExpression(t *testing.T) {
 									"Enumerable",
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -821,7 +999,6 @@ func TestIncludeExpression(t *testing.T) {
 										"Enumerable",
 									),
 								},
-								nil,
 							),
 						),
 					),
@@ -850,92 +1027,6 @@ func TestIncludeExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a where clause": {
-			input: "include Enumerable, Memoizable where E < String",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(46, 1, 47)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(37, 1, 38), P(46, 1, 47)),
-						ast.NewIncludeExpressionNode(
-							S(P(37, 1, 38), P(46, 1, 47)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(8, 1, 9), P(17, 1, 18)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(20, 1, 21), P(29, 1, 30)),
-									"Memoizable",
-								),
-							},
-							[]ast.TypeParameterNode{
-								ast.NewVariantTypeParameterNode(
-									S(P(37, 1, 38), P(46, 1, 47)),
-									ast.INVARIANT,
-									"E",
-									nil,
-									ast.NewPublicConstantNode(
-										S(P(41, 1, 42), P(46, 1, 47)),
-										"String",
-									),
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have a where clause with multiple type parameters": {
-			input: "include Enumerable, Memoizable where E < String, F > Float < Value",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(65, 1, 66)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(37, 1, 38), P(65, 1, 66)),
-						ast.NewIncludeExpressionNode(
-							S(P(37, 1, 38), P(65, 1, 66)),
-							[]ast.ComplexConstantNode{
-								ast.NewPublicConstantNode(
-									S(P(8, 1, 9), P(17, 1, 18)),
-									"Enumerable",
-								),
-								ast.NewPublicConstantNode(
-									S(P(20, 1, 21), P(29, 1, 30)),
-									"Memoizable",
-								),
-							},
-							[]ast.TypeParameterNode{
-								ast.NewVariantTypeParameterNode(
-									S(P(37, 1, 38), P(46, 1, 47)),
-									ast.INVARIANT,
-									"E",
-									nil,
-									ast.NewPublicConstantNode(
-										S(P(41, 1, 42), P(46, 1, 47)),
-										"String",
-									),
-								),
-								ast.NewVariantTypeParameterNode(
-									S(P(49, 1, 50), P(65, 1, 66)),
-									ast.INVARIANT,
-									"F",
-									ast.NewPublicConstantNode(
-										S(P(53, 1, 54), P(57, 1, 58)),
-										"Float",
-									),
-									ast.NewPublicConstantNode(
-										S(P(61, 1, 62), P(65, 1, 66)),
-										"Value",
-									),
-								),
-							},
 						),
 					),
 				},
@@ -960,7 +1051,6 @@ func TestIncludeExpression(t *testing.T) {
 									"Memoizable",
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -981,7 +1071,6 @@ func TestIncludeExpression(t *testing.T) {
 									"_Enumerable",
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -1009,7 +1098,6 @@ func TestIncludeExpression(t *testing.T) {
 									),
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -1033,7 +1121,6 @@ func TestIncludeExpression(t *testing.T) {
 									},
 								),
 							},
-							nil,
 						),
 					),
 				},
@@ -1055,7 +1142,6 @@ func TestIncludeExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(13, 2, 13), P(15, 2, 15)), "Foo"),
 							},
-							nil,
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -1065,7 +1151,6 @@ func TestIncludeExpression(t *testing.T) {
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(29, 3, 13), P(31, 3, 15)), "Bar"),
 							},
-							nil,
 						),
 					),
 				},

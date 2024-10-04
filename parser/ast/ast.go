@@ -363,6 +363,7 @@ func (*SetterDeclarationNode) expressionNode()             {}
 func (*AttrDeclarationNode) expressionNode()               {}
 func (*UsingExpressionNode) expressionNode()               {}
 func (*IncludeExpressionNode) expressionNode()             {}
+func (*ExtendWhereBlockExpressionNode) expressionNode()    {}
 func (*ImplementExpressionNode) expressionNode()           {}
 func (*NewExpressionNode) expressionNode()                 {}
 func (*GenericConstructorCallNode) expressionNode()        {}
@@ -2099,6 +2100,38 @@ func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*C
 	}
 }
 
+// Represents an `extend where` block expression eg.
+//
+//	extend where T < Foo
+//		def hello then println("awesome!")
+//	end
+type ExtendWhereBlockExpressionNode struct {
+	TypedNodeBase
+	Body  []StatementNode
+	Where []TypeParameterNode
+}
+
+func (*ExtendWhereBlockExpressionNode) SkipTypechecking() bool {
+	return false
+}
+
+func (*ExtendWhereBlockExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `singleton` block expression node eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+func NewExtendWhereBlockExpressionNode(span *position.Span, body []StatementNode, where []TypeParameterNode) *ExtendWhereBlockExpressionNode {
+	return &ExtendWhereBlockExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Body:          body,
+		Where:         where,
+	}
+}
+
 // Represents a `singleton` block expression eg.
 //
 //	singleton
@@ -3454,8 +3487,8 @@ type VariantTypeParameterNode struct {
 	TypedNodeBase
 	Variance   Variance // Variance level of this type parameter
 	Name       string   // Name of the type parameter eg. `T`
-	UpperBound TypeNode
 	LowerBound TypeNode
+	UpperBound TypeNode
 }
 
 func (*VariantTypeParameterNode) IsStatic() bool {
@@ -3826,7 +3859,6 @@ func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *Using
 type IncludeExpressionNode struct {
 	TypedNodeBase
 	Constants []ComplexConstantNode
-	Where     []TypeParameterNode
 }
 
 func (*IncludeExpressionNode) SkipTypechecking() bool {
@@ -3838,11 +3870,10 @@ func (*IncludeExpressionNode) IsStatic() bool {
 }
 
 // Create an include expression node eg. `include Enumerable[V]`
-func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode, where []TypeParameterNode) *IncludeExpressionNode {
+func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Constants:     consts,
-		Where:         where,
 	}
 }
 
