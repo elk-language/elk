@@ -1,0 +1,24 @@
+##[
+	Represents a right-open range from `start` to `end` *[start, end)*
+]##
+sealed primitive class ::Std::RightOpenRange[+Element] < Value
+	include Range::Base[Element]
+
+	def is_left_closed: true; end
+	def is_right_closed: false; end
+
+	##[
+		Check whether the given `value` is present in this range.
+	]##
+	def contains[E > Element](value: E): bool; end
+
+	##[
+		Returns the lower bound of the range.
+	]##
+	def start: Element; end
+
+	##[
+		Returns the upper bound of the range.
+	]##
+	def end: Element; end
+end

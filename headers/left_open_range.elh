@@ -1,7 +1,7 @@
 ##[
-	Represents a closed range from -∞ to a given value *(-∞, end]*
+	Represents a left-open range from `start` to `end` *(start, end]*
 ]##
-sealed primitive class ::Std::BeginlessClosedRange[+Element] < Value
+sealed primitive class ::Std::LeftOpenRange[+Element] < Value
 	include Range::Base[Element]
 
 	def is_left_closed: false; end
@@ -11,6 +11,11 @@ sealed primitive class ::Std::BeginlessClosedRange[+Element] < Value
 		Check whether the given `value` is present in this range.
 	]##
 	def contains[E > Element](value: E): bool; end
+
+	##[
+		Returns the lower bound of the range.
+	]##
+	def start: Element; end
 
 	##[
 		Returns the upper bound of the range.

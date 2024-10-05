@@ -1,6 +1,56 @@
 ##[
-	Represents a range of values.
+	Represents a range of values, an interval.
+
+	The default implementation of `Range` is `ClosedRange`.
 ]##
-mixin ::Std::Range[+Element]
-	# include Iterable::Base[Element]
+interface ::Std::Range[+Element]
+	implement Container[Element]
+
+	##[
+		Returns `true` when the range is left-open.
+		Otherwise, the range is left-closed.
+	]##
+	sig is_left_open: bool
+
+	##[
+		Returns `true` when the range is left-closed.
+		Otherwise, the range is left-open.
+	]##
+	sig is_left_closed: bool
+
+	##[
+		Returns `true` when the range is right-open.
+		Otherwise, the range is right-closed.
+	]##
+	sig is_right_open: bool
+
+	##[
+		Returns `true` when the range is right-closed.
+		Otherwise, the range is right-open.
+	]##
+	sig is_right_closed: bool
+
+	##[
+		Returns the lower bound of the range.
+		Returns `nil` if the Range is beginless.
+	]##
+	sig start: Element?
+
+	##[
+		Returns the upper bound of the range.
+		Returns `nil` if the range is endless.
+	]##
+	sig end: Element?
+
+	##[
+		Provides default implementations of some Range methods.
+	]##
+	abstract mixin Base[+Element]
+		implement Range[Element]
+
+		def start: Element?; end
+		def end: Element?; end
+		def is_left_open: bool; end
+		def is_right_open: bool; end
+	end
 end

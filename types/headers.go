@@ -33,13 +33,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value.", false, true, true, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Class"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, value.ToSymbol("ClosedRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.DefineSubtype(value.ToSymbol("CoercibleNumeric"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))))
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents a finite, mutable collection\nof elements.", value.ToSymbol("Collection"), env)
@@ -47,6 +55,18 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.TryDefineMixin("Provides default implementations of most collection methods.", true, value.ToSymbol("Base"), env)
 				namespace.Name() // noop - avoid unused variable error
 			}
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineInterface("Represents a data structure that\ncan be used to check if it contains\na value.", value.ToSymbol("Container"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, value.ToSymbol("EndlessClosedRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, value.ToSymbol("EndlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
@@ -130,6 +150,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", value.ToSymbol("Kernel"), env)
 		{
+			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, value.ToSymbol("LeftOpenRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineInterface("An interface that represents an ordered, mutable collection\nof elements indexed by integers starting at `0`.", value.ToSymbol("List"), env)
 			{
 				namespace := namespace.TryDefineMixin("Provides default implementations of most list methods.", true, value.ToSymbol("Base"), env)
@@ -146,13 +170,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Module"), objectClass, env)
 		namespace.TryDefineClass("Represents an empty value.", false, true, true, value.ToSymbol("Nil"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Object"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, value.ToSymbol("OpenRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, value.ToSymbol("Pair"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineMixin("Represents a range of values.", false, value.ToSymbol("Range"), env)
+			namespace := namespace.TryDefineInterface("Represents a range of values, an interval.\n\nThe default implementation of `Range` is `ClosedRange`.", value.ToSymbol("Range"), env)
+			{
+				namespace := namespace.TryDefineMixin("Provides default implementations of some Range methods.", true, value.ToSymbol("Base"), env)
+				namespace.Name() // noop - avoid unused variable error
+			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -160,6 +192,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, value.ToSymbol("Regex"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, value.ToSymbol("RightOpenRange"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents an unordered, mutable collection\nof unique elements.", value.ToSymbol("Set"), env)
 			{
@@ -328,10 +364,34 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("BeginlessOpenRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
 
 				// Define constants
 
@@ -436,6 +496,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("ClosedRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Collection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -480,6 +562,64 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtype("Container").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this container.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("EndlessClosedRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("EndlessOpenRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("False").(*Class)
@@ -1337,6 +1477,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("LeftOpenRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("List").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1441,6 +1603,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("OpenRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("OutOfRangeError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1479,19 +1663,47 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Range").(*Mixin)
+				namespace := namespace.MustSubtype("Range").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Mixin), Never{}, Any{}, COVARIANT))
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT))
 
 				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Container", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
+				namespace.DefineMethod("Returns the upper bound of the range.\nReturns `nil` if the range is endless.", true, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
+				namespace.DefineMethod("Returns `true` when the range is left-closed.\nOtherwise, the range is left-open.", true, false, true, value.ToSymbol("is_left_closed"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns `true` when the range is left-open.\nOtherwise, the range is left-closed.", true, false, true, value.ToSymbol("is_left_open"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns `true` when the range is right-closed.\nOtherwise, the range is right-open.", true, false, true, value.ToSymbol("is_right_closed"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns `true` when the range is right-open.\nOtherwise, the range is right-closed.", true, false, true, value.ToSymbol("is_right_open"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.\nReturns `nil` if the Range is beginless.", true, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
 
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Base").(*Mixin)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
+					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Range", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+					// Define methods
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_open"), nil, nil, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_open"), nil, nil, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("Record").(*Interface)
@@ -1533,6 +1745,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Create a new regex that contains\nthe patterns present in both operands.", false, true, true, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Regex", env), NormalParameterKind, false)}, NameToType("Std::Regex", env), Never{})
 				namespace.DefineMethod("Check whether the pattern matches\nthe given string.\n\nReturns `true` if it matches, otherwise `false`.", false, false, true, value.ToSymbol("matches"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Creates a new string with this character.", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("RightOpenRange").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+				// Define methods
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
 
 				// Define constants
 

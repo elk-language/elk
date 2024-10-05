@@ -1,0 +1,19 @@
+##[
+	Represents a closed range from a given value to +∞ *[start, +∞)*
+]##
+sealed primitive class ::Std::EndlessClosedRange[+Element] < Value
+	include Range::Base[Element]
+
+	def is_left_closed: true; end
+	def is_right_closed: false; end
+
+	##[
+		Check whether the given `value` is present in this range.
+	]##
+	def contains[E > Element](value: E): bool; end
+
+	##[
+		Returns the lower bound of the range.
+	]##
+	def start: Element; end
+end

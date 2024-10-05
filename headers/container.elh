@@ -1,0 +1,11 @@
+##[
+	Represents a data structure that
+	can be used to check if it contains
+	a value.
+]##
+interface ::Std::Container[+Element]
+	##[
+		Check whether the given `value` is present in this container.
+	]##
+	sig contains[E > Element](value: E): bool
+end
