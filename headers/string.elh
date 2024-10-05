@@ -110,13 +110,13 @@ sealed primitive class ::Std::String < Value
 	##[
 		Iterates over all unicode code points of a `String`.
 	]##
-	def iterator: CharIterator; end
-	alias char_iterator iterator
+	def iter: CharIterator; end
+	alias char_iter iter
 
 	##[
 		Iterates over all bytes of a `String`.
 	]##
-	def byte_iterator: ByteIterator; end
+	def byte_iter: ByteIterator; end
 
 	##[
 		Calculates a hash of the string.
@@ -136,7 +136,7 @@ sealed primitive class ::Std::String < Value
 		##[
 			Returns itself.
 		]##
-		def iterator: CharIterator; end
+		def iter: CharIterator; end
 	end
 
 	##[
@@ -152,6 +152,6 @@ sealed primitive class ::Std::String < Value
 		##[
 			Returns itself.
 		]##
-		def iterator: ByteIterator; end
+		def iter: ByteIterator; end
 	end
 end

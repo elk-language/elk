@@ -57,7 +57,7 @@ sealed primitive class ::Std::ArrayTuple[+Element] < Value
 		Returns an iterator that iterates
 		over each element of the tuple.
 	]##
-	def iterator: Iterator[Element]; end
+	def iter: Iterator[Element]; end
 
 	sealed primitive class Iterator[+Element]
 		include ::Std::Iterator::Base[Element]

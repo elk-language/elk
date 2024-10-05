@@ -73,7 +73,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Returns an iterator that iterates
 		over each element of the record.
 	]##
-	def iterator: Iterator[Key, Value]; end
+	def iter: Iterator[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::Iterator::Base[Pair[Key, Value]]

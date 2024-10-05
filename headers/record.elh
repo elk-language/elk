@@ -69,5 +69,5 @@ interface ::Std::Record[Key, Value]
 		Returns an iterator that iterates
 		over each element of the record.
 	]##
-	def iterator: Iterator[Pair[Key, Value]]; end
+	def iter: Iterator[Pair[Key, Value]]; end
 end

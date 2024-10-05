@@ -618,13 +618,13 @@ func TestVMSource_ForIn(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"method `iterator` is not available to value of class `Std::Object`: Std::Object{}",
+				"method `iter` is not available to value of class `Std::Object`: Std::Object{}",
 			),
 		},
 		"loop over an invalid iterable": {
 			source: `
 				class InvalidIterator
-					def iterator then self
+					def iter then self
 				end
 
 				for i in ::InvalidIterator()
@@ -672,7 +672,7 @@ func TestVMSource_ForIn(t *testing.T) {
 		},
 		"loop over a string byte iterator": {
 			source: `
-				for i in "Poznań jest √🔥".byte_iterator
+				for i in "Poznań jest √🔥".byte_iter
 					print(i.inspect, ", ")
 				end
 			`,

@@ -1,13 +1,21 @@
 ##[
-	Represents a value that can be iterated over in a `for` loop.
+	Represents a value that can be iterated over in a `for` loop and implement
+	many useful methods.
 ]##
 interface ::Std::Iterable[+Element]
-	class NotFoundError < Error; end
-
 	##[
-		Returns an iterator for this structure.
+		Represents a value that can be iterated over in a `for` loop.
 	]##
-	sig iterator: Iterator[Element]
+	interface Primitive[+Element]
+		##[
+			Returns an iterator for this structure.
+		]##
+		sig iter: Iterator[Element]
+	end
+
+	implement Primitive[Element]
+
+	class NotFoundError < Error; end
 
 	# TODO
 	# Base methods

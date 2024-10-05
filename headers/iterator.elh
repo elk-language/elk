@@ -13,7 +13,7 @@ interface ::Std::Iterator[+Element]
 
 	# Base methods
 
-	def iterator: self; end
+	def iter: self; end
 
 	##[
 		Provides default implementations of most iterable methods.
@@ -22,6 +22,6 @@ interface ::Std::Iterator[+Element]
 		implement Iterator[Element]
 		include Iterable::Base[Element]
 
-		def iterator: self; end
+		def iter: self; end
 	end
 end

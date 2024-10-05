@@ -2059,7 +2059,7 @@ func (vm *VM) getIterator() value.Value {
 
 var nextSymbol = value.ToSymbol("next")
 var stopIterationSymbol = value.ToSymbol("stop_iteration")
-var iteratorSymbol = value.ToSymbol("iterator")
+var iteratorSymbol = value.ToSymbol("iter")
 
 // Drive the for..in loop.
 func (vm *VM) forIn() value.Value {

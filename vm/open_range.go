@@ -10,7 +10,7 @@ func init() {
 	c := &value.OpenRangeClass.MethodContainer
 	Def(
 		c,
-		"iterator",
+		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.OpenRange)
 			iterator := value.NewOpenRangeIterator(self)
@@ -66,7 +66,7 @@ func init() {
 	)
 	Def(
 		c,
-		"iterator",
+		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], nil
 		},

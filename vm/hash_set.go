@@ -13,7 +13,7 @@ func init() {
 	c := &value.HashSetClass.MethodContainer
 	Def(
 		c,
-		"iterator",
+		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashSet)
 			iterator := value.NewHashSetIterator(self)
@@ -237,7 +237,7 @@ func init() {
 	)
 	Def(
 		c,
-		"iterator",
+		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], nil
 		},

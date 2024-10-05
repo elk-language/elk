@@ -127,7 +127,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Returns an iterator that iterates
 		over each element of the set.
 	]##
-	def iterator: Iterator[Element]; end
+	def iter: Iterator[Element]; end
 
 	sealed primitive class Iterator[Element]
 		include ::Std::Iterator::Base[Element]
