@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/compiler"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/position/error"
@@ -153,18 +154,18 @@ func Run(disassemble, inspectStack, parse, lex, typecheck bool) {
 }
 
 // A Set of keywords that end a block of code
-var blockEndKeywords = map[string]bool{
-	"end": true,
-}
+var blockEndKeywords = ds.MakeSet(
+	"end",
+)
 
 // A Set of keywords that separate multiple blocks of code
-var blockSeparatorKeywords = map[string]bool{
-	"else":    true,
-	"elsif":   true,
-	"case":    true,
-	"catch":   true,
-	"finally": true,
-}
+var blockSeparatorKeywords = ds.MakeSet(
+	"else",
+	"elsif",
+	"case",
+	"catch",
+	"finally",
+)
 
 // Callback triggered when the Enter key is pressed.
 // Decides whether the input is complete and should be executed
@@ -186,11 +187,11 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 	lex := lexer.New(currentLine)
 	firstToken := lex.Next()
 	firstWord := firstToken.StringValue()
-	blockEnd := blockEndKeywords[firstWord]
-	blockSeparator := blockSeparatorKeywords[firstWord]
+	isBlockEnd := blockEndKeywords.Contains(firstWord)
+	isBlockSeparator := blockSeparatorKeywords.Contains(firstWord)
 
 	var movedBack bool
-	if blockEnd || blockSeparator {
+	if isBlockEnd || isBlockSeparator {
 		var indentDiff int
 		var nextIndentDiff int
 
@@ -198,7 +199,7 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 		if indentDiff > baseIndent {
 			indentDiff = baseIndent
 		}
-		if blockEnd {
+		if isBlockEnd {
 			nextIndentDiff = indentDiff
 		}
 

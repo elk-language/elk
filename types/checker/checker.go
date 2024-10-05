@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -56,10 +57,11 @@ const (
 	classMode
 	mixinMode
 	interfaceMode
+	singletonMode
+	extendWhereMode
 	methodMode
 	implicitInterfaceSubtypeMode
 	closureInferReturnTypeMode
-	singletonMode
 	namedGenericTypeDefinitionMode
 	outputPositionTypeMode
 	inputPositionTypeMode
@@ -105,7 +107,7 @@ type Checker struct {
 	typeDefinitionChecks    *typeDefinitionChecks
 	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
 	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
-	constantCache           map[value.Symbol]bool                     // a set of constant names, used in method body checks to detect methods that circularly reference constants (refer to constants in which they appear)
+	constantCache           ds.Set[value.Symbol]                      // a set of constant names, used in method body checks to detect methods that circularly reference constants (refer to constants in which they appear)
 }
 
 // Instantiate a new Checker instance.
@@ -136,7 +138,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		constantChecks:       newConstantDefinitionChecks(),
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
-		constantCache:        make(map[value.Symbol]bool),
+		constantCache:        make(ds.Set[value.Symbol]),
 	}
 }
 
@@ -163,7 +165,7 @@ func (c *Checker) newMethodChecker(filename string, constScopes []constantScope,
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
-		constantCache:        make(map[value.Symbol]bool),
+		constantCache:        make(ds.Set[value.Symbol]),
 	}
 }
 
@@ -614,6 +616,15 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
+		return n
+	case *ast.ExtendWhereBlockExpressionNode:
+		if c.typeOf(node) == nil {
+			c.addFailure(
+				"cannot declare extend blocks in this context",
+				node.Span(),
+			)
+			n.SetType(types.Nothing{})
+		}
 		return n
 	case *ast.ImplementExpressionNode:
 		if c.typeOf(node) == nil {
@@ -4467,14 +4478,14 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, types.InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar types.InstanceVariable) bool) {
 		var generics []*types.Generic
-		seenIvars := make(map[value.Symbol]bool)
+		seenIvars := make(ds.Set[value.Symbol])
 
 		for parent := range types.Parents(namespace) {
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
 			for name, ivar := range parent.InstanceVariables() {
-				if seenIvars[name] {
+				if seenIvars.Contains(name) {
 					continue
 				}
 				if len(generics) < 1 {
@@ -4482,7 +4493,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 					if !yield(name, ivarStruct) {
 						return
 					}
-					seenIvars[name] = true
+					seenIvars.Add(name)
 					continue
 				}
 
@@ -4494,7 +4505,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 				if !yield(name, ivarStruct) {
 					return
 				}
-				seenIvars[name] = true
+				seenIvars.Add(name)
 			}
 		}
 	}
@@ -5092,6 +5103,19 @@ func (c *Checker) checkInstanceVariableNode(node *ast.InstanceVariableNode) {
 func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, span *position.Span) {
 	methodNamespace := c.currentMethodScope().container
 	currentIvar, ivarNamespace := c.getInstanceVariableIn(name, methodNamespace)
+
+	switch c.mode {
+	case mixinMode, classMode, moduleMode, singletonMode:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot declare instance variable `%s` in this context",
+				types.InspectInstanceVariableWithColor(name.String()),
+			),
+			span,
+		)
+		return
+	}
 
 	if currentIvar != nil {
 		if !c.isTheSameType(typ, currentIvar, span) {
@@ -5986,6 +6010,24 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 	c.mode = prevMode
 }
 
+func (c *Checker) hoistExtendWhereDeclaration(node *ast.ExtendWhereBlockExpressionNode) {
+	switch c.mode {
+	case classMode, mixinMode:
+	default:
+		return
+	}
+
+	currentNamespace := c.currentConstScope().container
+	c.registerNamespaceDeclarationCheck(currentNamespace.Name(), node, nil)
+
+	prevMode := c.mode
+	c.mode = extendWhereMode
+
+	c.hoistNamespaceDefinitions(node.Body)
+
+	c.mode = prevMode
+}
+
 func (c *Checker) hoistSingletonDeclaration(node *ast.SingletonBlockExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode, interfaceMode:
@@ -6042,6 +6084,8 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 				c.hoistInterfaceDeclaration(expr)
 			case *ast.SingletonBlockExpressionNode:
 				c.hoistSingletonDeclaration(expr)
+			case *ast.ExtendWhereBlockExpressionNode:
+				c.hoistExtendWhereDeclaration(expr)
 			case *ast.TypeDefinitionNode:
 				c.registerNamedTypeCheck(expr)
 			case *ast.GenericTypeDefinitionNode:
@@ -6494,6 +6538,25 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.popMethodScope()
 }
 
+func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
+	namespace, ok := c.typeOf(node).(*types.MixinWithWhere)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(namespace))
+		c.pushMethodScope(makeLocalMethodScope(namespace))
+	}
+
+	previousMode := c.mode
+	c.mode = extendWhereMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+// Gathers all declarations of methods, constants and instance variables
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -6534,6 +6597,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistMethodDefinitionsWithinInterface(expr)
 		case *ast.SingletonBlockExpressionNode:
 			c.hoistMethodDefinitionsWithinSingleton(expr)
+		case *ast.ExtendWhereBlockExpressionNode:
+			c.hoistMethodDefinitionsWithinExtendWhere(expr)
 		}
 	}
 }

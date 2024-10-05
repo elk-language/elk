@@ -8,6 +8,18 @@ import (
 
 func TestAttrDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within extend where": {
+			input: `
+				class E[T]
+					extend where T < String
+						attr foo: String
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 4, 12), P(66, 4, 22)), "cannot declare instance variable `@foo` in this context"),
+			},
+		},
 		"declare within a method": {
 			input: `
 				def foo
@@ -205,6 +217,19 @@ func TestAttrDefinition(t *testing.T) {
 
 func TestGetterDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within extend where": {
+			input: `
+				class E[T]
+					extend where T < String
+						getter foo: String
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 4, 14), P(68, 4, 24)), "cannot declare instance variable `@foo` in this context"),
+				error.NewFailure(L("<main>", P(58, 4, 14), P(68, 4, 24)), "undefined instance variable `@foo` in type `E`"),
+			},
+		},
 		"declare within a method": {
 			input: `
 				def foo
@@ -383,6 +408,18 @@ func TestGetterDefinition(t *testing.T) {
 
 func TestSetterDefinition(t *testing.T) {
 	tests := testTable{
+		"declare within extend where": {
+			input: `
+				class E[T]
+					extend where T < String
+						setter foo: String
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 4, 14), P(68, 4, 24)), "cannot declare instance variable `@foo` in this context"),
+			},
+		},
 		"declare within a method": {
 			input: `
 				def foo
@@ -3415,6 +3452,68 @@ func TestMethodInheritance(t *testing.T) {
 				b.hejo
 				b.fuzz
 			`,
+		},
+		"call method from extend where when the conditions are satisfied": {
+			input: `
+				class Foo[T]
+					extend where T < String
+						def bar(a: T); end
+					end
+				end
+
+				f := Foo::[String]()
+				f.bar("lol")
+			`,
+		},
+		"call method from extend where in parent mixin when the conditions are satisfied": {
+			input: `
+				mixin Foo[T]
+					extend where T < String
+						def foo(a: T); end
+					end
+				end
+
+				class Bar
+					include Foo[String]
+				end
+
+				b := Bar()
+				b.foo("lol")
+			`,
+		},
+		"call method from extend where when the conditions are not satisfied": {
+			input: `
+				class Foo[T]
+					extend where T < String
+						def bar(a: T); end
+					end
+				end
+
+				f := Foo::[Int]()
+				f.bar("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(116, 9, 5), P(127, 9, 16)), "method `bar` is not defined on type `Foo[Std::Int]`"),
+			},
+		},
+		"call method from extend where in parent mixin when the conditions are not satisfied": {
+			input: `
+				mixin Foo[T]
+					extend where T < String
+						def foo(a: T); end
+					end
+				end
+
+				class Bar
+					include Foo[Int]
+				end
+
+				b := Bar()
+				b.foo("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(154, 13, 5), P(165, 13, 16)), "method `foo` is not defined on type `Bar`"),
+			},
 		},
 	}
 

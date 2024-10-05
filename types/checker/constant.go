@@ -89,6 +89,17 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 }
 
 func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
+	switch c.mode {
+	case topLevelMode, moduleMode,
+		classMode, mixinMode,
+		interfaceMode, singletonMode:
+	default:
+		c.addFailure(
+			"constants cannot be declared in this context",
+			node.Span(),
+		)
+		return
+	}
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
@@ -194,7 +205,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 	symbolName := value.ToSymbol(name)
 	check.referencedMethods = slices.Clone(c.methodCache.Slice)
 	for _, method := range c.methodCache.Slice {
-		method.UsedInConstants[symbolName] = true
+		method.UsedInConstants.Add(symbolName)
 	}
 
 	check.state = CHECKED_CONST
@@ -400,7 +411,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 
 func (c *Checker) addToConstantCache(name value.Symbol) {
 	if c.phase == methodCheckPhase {
-		c.constantCache[name] = true
+		c.constantCache.Add(name)
 	}
 }
 

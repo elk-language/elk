@@ -1118,6 +1118,18 @@ func TestGenericClass(t *testing.T) {
 
 func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
+		"declare an instance variable in an extend where block": {
+			input: `
+				class Foo[T]
+					extend where T < String
+						var @foo: String
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 4, 7), P(68, 4, 22)), "cannot declare instance variable `@foo` in this context"),
+			},
+		},
 		"declare an instance variable in a primitive class": {
 			input: `
 				primitive class Foo
@@ -2945,6 +2957,118 @@ func TestInterfaceType(t *testing.T) {
 
 				var a: &Foo = Foo
 			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestExtendWhere(t *testing.T) {
+	tests := testTable{
+		"declare extend in the top level": {
+			input: `extend where T < String; end`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(0, 1, 1), P(27, 1, 28)), "cannot declare extend blocks in this context"),
+			},
+		},
+		"declare extend in a module": {
+			input: `
+				module Foo
+					extend where T < String; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(21, 3, 6), P(48, 3, 33)), "cannot declare extend blocks in this context"),
+			},
+		},
+		"declare extend in an interface": {
+			input: `
+				interface Foo
+					extend where T < String; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 6), P(51, 3, 33)), "cannot declare extend blocks in this context"),
+			},
+		},
+		"declare extend in a non-generic class": {
+			input: `
+				class Foo
+					extend where T < String; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
+			},
+		},
+		"declare extend with a nonexistent type parameter": {
+			input: `
+				class Foo[T]
+					extend where W < String; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 19), P(45, 3, 28)), "cannot add where constraints to nonexistent type parameter `W`"),
+			},
+		},
+		"declare extend with an invalid type parameter upper bound": {
+			input: `
+				class Foo[T < String]
+					extend where T < Int; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 19), P(51, 3, 25)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Int`, should have `Std::String` or its subtype"),
+			},
+		},
+		"declare extend with a narrower type parameter upper bound": {
+			input: `
+				class Foo[T < Value]
+					extend where T < Int; end
+				end
+			`,
+		},
+		"declare extend with a wider type parameter upper bound": {
+			input: `
+				class Foo[T < Int]
+					extend where T < Value; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 19), P(50, 3, 27)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Value`, should have `Std::Int` or its subtype"),
+			},
+		},
+		"declare extend with a narrower type parameter lower bound": {
+			input: `
+				class Foo[T > Value]
+					extend where T > Int; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 19), P(50, 3, 25)), "type parameter `T` in where clause should have a wider lower bound, has `Std::Int`, should have `Std::Value` or its supertype"),
+			},
+		},
+		"declare extend with a wider type parameter lower bound": {
+			input: `
+				class Foo[T > Int]
+					extend where T > Value; end
+				end
+			`,
+		},
+
+		"declare extend in a non-generic mixin": {
+			input: `
+				mixin Foo
+					extend where T < String; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
+			},
 		},
 	}
 

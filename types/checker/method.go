@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -88,13 +89,13 @@ func (c *Checker) checkMethodsInConstants() {
 	}
 }
 
-func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants map[value.Symbol]bool) {
+func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds.Set[value.Symbol]) {
 	for _, calledMethod := range method.CalledMethods {
 		c.checkMethodInConstant(calledMethod, usedInConstants)
 	}
 
 	for usedInConstant := range usedInConstants {
-		if method.UsedConstants[usedInConstant] {
+		if method.UsedConstants.Contains(usedInConstant) {
 			c.addFailureWithLocation(
 				fmt.Sprintf(
 					"method `%s` circularly refers to constant `%s` because it gets called in its initializer",
@@ -1349,7 +1350,7 @@ func (c *Checker) declareMethod(
 				continue
 			}
 
-			t := c.checkTypeParameterNode(node, typeParamMod)
+			t := c.checkTypeParameterNode(node, typeParamMod, false)
 			typeParams = append(typeParams, t)
 			typeParamNode.SetType(t)
 			typeParamMod.DefineSubtype(t.Name, t)
@@ -1691,21 +1692,21 @@ func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position
 func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
 	return func(yield func(name value.Symbol, method *types.Method) bool) {
 		var generics []*types.Generic
-		seenMethods := make(map[value.Symbol]bool)
+		seenMethods := make(ds.Set[value.Symbol])
 
 		for parent := range types.Parents(namespace) {
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
 			for name, method := range parent.Methods() {
-				if seenMethods[name] {
+				if seenMethods.Contains(name) {
 					continue
 				}
 				if len(generics) < 1 {
 					if !yield(name, method) {
 						return
 					}
-					seenMethods[name] = true
+					seenMethods.Add(name)
 					continue
 				}
 
@@ -1726,7 +1727,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 				if !yield(name, method) {
 					return
 				}
-				seenMethods[name] = true
+				seenMethods.Add(name)
 			}
 		}
 	}
@@ -1736,7 +1737,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, *types.Method] {
 	return func(yield func(name value.Symbol, method *types.Method) bool) {
 		var generics []*types.Generic
-		seenMethods := make(map[value.Symbol]bool)
+		seenMethods := make(ds.Set[value.Symbol])
 
 		for parent := range types.Parents(namespace) {
 			if generic, ok := parent.(*types.Generic); ok {
@@ -1749,14 +1750,14 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 				if !method.IsAbstract() {
 					continue
 				}
-				if seenMethods[name] {
+				if seenMethods.Contains(name) {
 					continue
 				}
 				if len(generics) < 1 {
 					if !yield(name, method) {
 						return
 					}
-					seenMethods[name] = true
+					seenMethods.Add(name)
 					continue
 				}
 
@@ -1777,7 +1778,7 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 				if !yield(name, method) {
 					return
 				}
-				seenMethods[name] = true
+				seenMethods.Add(name)
 			}
 		}
 	}
@@ -1801,9 +1802,17 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			return method
 		}
 
+		var whereParams []*types.TypeParameter
+		var whereArgs []types.Type
+		if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
+			whereParams = mixinWithWhere.Where
+			whereArgs = c.constructWhereArguments(whereParams)
+		}
+
 		var methodCopy *types.Method
 		for i := len(generics) - 1; i >= 0; i-- {
 			generic := generics[i]
+			c.replaceTypeParametersInWhere(whereArgs, generic.ArgumentMap)
 			if methodCopy != nil {
 				c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
 				continue
@@ -1815,10 +1824,32 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 				method = result
 			}
 		}
+
+		for i := range len(whereParams) {
+			whereParam := whereParams[i]
+			whereArg := whereArgs[i]
+
+			if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+				return nil
+			}
+			if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+				return nil
+			}
+		}
+
 		return method
 	}
 
 	return nil
+}
+
+func (c *Checker) constructWhereArguments(whereParameters []*types.TypeParameter) []types.Type {
+	whereArgs := make([]types.Type, len(whereParameters))
+	for i, whereParam := range whereParameters {
+		whereArgs[i] = whereParam
+	}
+
+	return whereArgs
 }
 
 func (c *Checker) resolveNonAbstractMethodInNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
@@ -1953,6 +1984,12 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs m
 	}
 
 	return method
+}
+
+func (c *Checker) replaceTypeParametersInWhere(where []types.Type, typeArgs map[value.Symbol]*types.TypeArgument) {
+	for i, whereElement := range where {
+		where[i] = c.replaceTypeParameters(whereElement, typeArgs)
+	}
 }
 
 func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {

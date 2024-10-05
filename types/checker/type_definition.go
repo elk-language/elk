@@ -2,7 +2,9 @@ package checker
 
 import (
 	"fmt"
+	"slices"
 
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
@@ -200,7 +202,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 			continue
 		}
 
-		t := c.checkTypeParameterNode(varNode, typeParamMod)
+		t := c.checkTypeParameterNode(varNode, typeParamMod, false)
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
@@ -269,6 +271,8 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 			c.checkMixinTypeParameters(n)
 		case *ast.InterfaceDeclarationNode:
 			c.checkInterfaceTypeParameters(n)
+		case *ast.ExtendWhereBlockExpressionNode:
+			c.checkExtendWhere(n)
 		}
 	}
 	c.Filename = oldFilename
@@ -473,7 +477,7 @@ func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []as
 					continue
 				}
 
-				t := c.checkTypeParameterNode(varNode, namespace)
+				t := c.checkTypeParameterNode(varNode, namespace, false)
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
@@ -506,7 +510,7 @@ func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []as
 			continue
 		}
 
-		newTypeParam := c.checkTypeParameterNode(varNode, namespace)
+		newTypeParam := c.checkTypeParameterNode(varNode, namespace, false)
 		typeParamNode.SetType(newTypeParam)
 
 		if newTypeParam.Name != oldTypeParam.Name ||
@@ -630,7 +634,125 @@ superclassSwitch:
 	c.popConstScope()
 }
 
-func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace) *types.TypeParameter {
+func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
+	currentNamespace := c.currentConstScope().container
+	if !currentNamespace.IsGeneric() {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot use `%s` since namespace `%s` is not generic",
+				lexer.Colorize("extend where"),
+				types.InspectWithColor(currentNamespace),
+			),
+			node.Span(),
+		)
+		node.SetType(types.Nothing{})
+		return
+	}
+
+	mixin := types.NewMixin("", false, "", c.GlobalEnv)
+	originalTypeParams := currentNamespace.TypeParameters()
+	for _, typeParam := range originalTypeParams {
+		mixin.DefineSubtypeWithFullName(
+			typeParam.Name,
+			fmt.Sprintf("%s::%s", currentNamespace.Name(), typeParam.Name.String()),
+			typeParam,
+		)
+	}
+	proxy := types.NewMixinProxy(mixin, nil)
+	mixin.SetInstanceVariables(currentNamespace.InstanceVariables())
+
+	var where []*types.TypeParameter
+	for _, whereTypeParamNode := range node.Where {
+		whereTypeParamNode := whereTypeParamNode.(*ast.VariantTypeParameterNode)
+		whereTypeParam := c.checkTypeParameterNode(whereTypeParamNode, mixin, true)
+		originalTypeParamIndex := slices.IndexFunc(
+			originalTypeParams,
+			func(tp *types.TypeParameter) bool {
+				return tp.Name == whereTypeParam.Name
+			},
+		)
+		if originalTypeParamIndex == -1 {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot add where constraints to nonexistent type parameter `%s`",
+					lexer.Colorize(whereTypeParamNode.Name),
+				),
+				whereTypeParamNode.Span(),
+			)
+			continue
+		}
+		originalTypeParam := originalTypeParams[originalTypeParamIndex]
+
+		var newLowerBound types.Type
+		if whereTypeParam.LowerBound == nil {
+			newLowerBound = originalTypeParam.LowerBound
+
+		} else {
+			if !c.isSubtype(originalTypeParam.LowerBound, whereTypeParam.LowerBound, nil) {
+				c.addFailure(
+					fmt.Sprintf(
+						"type parameter `%s` in where clause should have a wider lower bound, has `%s`, should have `%s` or its supertype",
+						lexer.Colorize(whereTypeParamNode.Name),
+						types.InspectWithColor(whereTypeParam.LowerBound),
+						types.InspectWithColor(originalTypeParam.LowerBound),
+					),
+					whereTypeParamNode.Span(),
+				)
+				continue
+			}
+			newLowerBound = whereTypeParam.LowerBound
+		}
+
+		var newUpperBound types.Type
+		if whereTypeParam.UpperBound == nil {
+			newUpperBound = originalTypeParam.LowerBound
+		} else {
+			if !c.isSubtype(whereTypeParam.UpperBound, originalTypeParam.UpperBound, nil) {
+				c.addFailure(
+					fmt.Sprintf(
+						"type parameter `%s` in where clause should have a narrower upper bound, has `%s`, should have `%s` or its subtype",
+						lexer.Colorize(whereTypeParamNode.Name),
+						types.InspectWithColor(whereTypeParam.UpperBound),
+						types.InspectWithColor(originalTypeParam.UpperBound),
+					),
+					whereTypeParamNode.Span(),
+				)
+				continue
+			}
+			newUpperBound = whereTypeParam.UpperBound
+		}
+
+		if whereTypeParam.Variance != types.INVARIANT {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot modify the variance of type parameter `%s` in a where clause",
+					lexer.Colorize(whereTypeParamNode.Name),
+				),
+				whereTypeParamNode.Span(),
+			)
+			continue
+		}
+
+		whereTypeParam.UpperBound = newUpperBound
+		whereTypeParam.LowerBound = newLowerBound
+		where = append(where, whereTypeParam)
+
+		narrowerTypeParam := originalTypeParam.Copy()
+		narrowerTypeParam.LowerBound = newLowerBound
+		narrowerTypeParam.UpperBound = newUpperBound
+		mixin.DefineSubtypeWithFullName(
+			whereTypeParam.Name,
+			fmt.Sprintf("%s::%s", currentNamespace.Name(), whereTypeParam.Name.String()),
+			narrowerTypeParam,
+		)
+	}
+
+	mixinWithWhere := types.NewMixinWithWhere(proxy, currentNamespace, where)
+	node.SetType(mixinWithWhere)
+	types.IncludeMixin(currentNamespace, mixinWithWhere)
+}
+
+func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace, leaveNil bool) *types.TypeParameter {
 	var variance types.Variance
 	switch node.Variance {
 	case ast.INVARIANT:
@@ -641,16 +763,20 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		variance = types.CONTRAVARIANT
 	}
 
-	var lowerType types.Type = types.Never{}
+	var lowerType types.Type
 	if node.LowerBound != nil {
 		node.LowerBound = c.checkTypeNode(node.LowerBound)
 		lowerType = c.typeOf(node.LowerBound)
+	} else if !leaveNil {
+		lowerType = types.Never{}
 	}
 
-	var upperType types.Type = types.Any{}
+	var upperType types.Type
 	if node.UpperBound != nil {
 		node.UpperBound = c.checkTypeNode(node.UpperBound)
 		upperType = c.typeOf(node.UpperBound)
+	} else if !leaveNil {
+		upperType = types.Any{}
 	}
 
 	return types.NewTypeParameter(

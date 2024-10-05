@@ -87,6 +87,10 @@ func (c *NamespaceBase) InstanceVariables() TypeMap {
 	return c.instanceVariables
 }
 
+func (c *NamespaceBase) SetInstanceVariables(iv TypeMap) {
+	c.instanceVariables = iv
+}
+
 func (c *NamespaceBase) Subtypes() ConstantMap {
 	return c.subtypes
 }

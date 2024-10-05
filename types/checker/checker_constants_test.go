@@ -49,6 +49,48 @@ func TestConstantAccess(t *testing.T) {
 
 func TestConstantDeclarations(t *testing.T) {
 	tests := testTable{
+		"declare in extend where": {
+			input: `
+				class E[T]
+					extend where T < String
+						const D = 3
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 4, 7), P(61, 4, 17)), "constants cannot be declared in this context"),
+			},
+		},
+		"declare in a module": {
+			input: `
+				module F
+					const D = 3
+				end
+			`,
+		},
+		"declare in a mixin": {
+			input: `
+				mixin F
+					const D = 3
+				end
+			`,
+		},
+		"declare in a class": {
+			input: `
+				class F
+					const D = 3
+				end
+			`,
+		},
+		"declare in a singleton": {
+			input: `
+				class F
+					singleton
+						const D = 3
+					end
+				end
+			`,
+		},
 		"declare with explicit type": {
 			input: "const Foo: Int = 5",
 		},

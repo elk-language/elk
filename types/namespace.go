@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -90,6 +91,9 @@ func IncludeMixin(target, includedNamespace Namespace) {
 		proxy := NewMixinProxy(includedMixin, target.Parent())
 		generic := NewGeneric(proxy, included.TypeArguments)
 		target.SetParent(generic)
+	case *MixinWithWhere:
+		included.SetParent(target.Parent())
+		target.SetParent(includedNamespace)
 	default:
 		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
 	}
@@ -213,7 +217,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 			return
 		}
 		namespaces := []Namespace{namespace}
-		seenParents := make(map[string]bool)
+		seenParents := make(ds.Set[string])
 
 		for len(namespaces) > 0 {
 			// Pop an element from the stack
@@ -227,11 +231,11 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 				}
 
 				name := currentParent.Name()
-				if seenParents[name] {
+				if len(name) > 0 && seenParents.Contains(name) {
 					currentParent = currentParent.Parent()
 					continue
 				}
-				seenParents[name] = true
+				seenParents.Add(name)
 
 				switch cn := currentParent.(type) {
 				case *MixinProxy:
@@ -296,7 +300,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 // iterate over every mixin that is included in the given namespace
 func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
-		seenMixins := make(map[string]bool)
+		seenMixins := make(ds.Set[string])
 
 		for parent := range Parents(namespace.Parent()) {
 			switch n := parent.(type) {
@@ -310,7 +314,7 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 			}
 
 			name := parent.Name()
-			if seenMixins[name] {
+			if seenMixins.Contains(name) {
 				continue
 			}
 
@@ -318,7 +322,7 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 				return
 			}
 
-			seenMixins[name] = true
+			seenMixins.Add(name)
 		}
 	}
 }
@@ -337,7 +341,7 @@ func Backward[T any](iterator iter.Seq[T]) iter.Seq[T] {
 // iterate over every mixin that is directly included in the given namespace
 func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
-		seenMixins := make(map[string]bool)
+		seenMixins := make(ds.Set[string])
 
 		for parent := namespace; parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
@@ -351,7 +355,7 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 			}
 
 			name := parent.Name()
-			if seenMixins[name] {
+			if seenMixins.Contains(name) {
 				continue
 			}
 
@@ -359,7 +363,7 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 				return
 			}
 
-			seenMixins[name] = true
+			seenMixins.Add(name)
 		}
 	}
 }
@@ -368,7 +372,7 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 // every interface that is directly implemented in the given namespace
 func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
-		seenMixins := make(map[string]bool)
+		seenMixins := make(ds.Set[string])
 
 		for parent := namespace; parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
@@ -385,7 +389,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 			}
 
 			name := parent.Name()
-			if seenMixins[name] {
+			if seenMixins.Contains(name) {
 				continue
 			}
 
@@ -393,7 +397,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 				return
 			}
 
-			seenMixins[name] = true
+			seenMixins.Add(name)
 		}
 	}
 }
@@ -401,7 +405,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 // iterate over every interface that is implemented in the given namespace
 func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
-		seenInterfaces := make(map[string]bool)
+		seenInterfaces := make(ds.Set[string])
 
 		for parent := range Parents(namespace.Parent()) {
 			switch n := parent.(type) {
@@ -415,7 +419,7 @@ func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 			}
 
 			name := parent.Name()
-			if seenInterfaces[name] {
+			if seenInterfaces.Contains(name) {
 				continue
 			}
 
@@ -423,7 +427,7 @@ func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 				return
 			}
 
-			seenInterfaces[name] = true
+			seenInterfaces.Add(name)
 		}
 	}
 }
@@ -431,7 +435,7 @@ func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 // iterate over every interface that is directly implemented in the given namespace
 func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
-		seenInterfaces := make(map[string]bool)
+		seenInterfaces := make(ds.Set[string])
 
 		for parent := namespace; parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
@@ -445,7 +449,7 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 			}
 
 			name := parent.Name()
-			if seenInterfaces[name] {
+			if seenInterfaces.Contains(name) {
 				continue
 			}
 
@@ -453,7 +457,7 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 				return
 			}
 
-			seenInterfaces[name] = true
+			seenInterfaces.Add(name)
 		}
 	}
 }
@@ -520,18 +524,18 @@ func SortedConstants(namespace Namespace) iter.Seq2[value.Symbol, Constant] {
 // Iterate over every method defined in the given namespace including the inherited ones
 func AllMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	return func(yield func(name value.Symbol, method *Method) bool) {
-		seenMethods := make(map[value.Symbol]bool)
+		seenMethods := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
 			for name, method := range parent.Methods() {
-				if seenMethods[name] {
+				if seenMethods.Contains(name) {
 					continue
 				}
 
 				if !yield(name, method) {
 					return
 				}
-				seenMethods[name] = true
+				seenMethods.Add(name)
 			}
 		}
 	}
@@ -540,21 +544,21 @@ func AllMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 // Iterate over every method defined in the given namespace including the inherited ones, sorted by name
 func SortedMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	return func(yield func(name value.Symbol, method *Method) bool) {
-		seenMethods := make(map[value.Symbol]bool)
+		seenMethods := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
 			methods := parent.Methods()
 			names := symbol.SortKeys(methods)
 			for _, name := range names {
 				method := methods[name]
-				if seenMethods[name] {
+				if seenMethods.Contains(name) {
 					continue
 				}
 
 				if !yield(name, method) {
 					return
 				}
-				seenMethods[name] = true
+				seenMethods.Add(name)
 			}
 		}
 	}
@@ -594,18 +598,18 @@ type InstanceVariable struct {
 // Iterate over every instance variable defined in the given namespace including the inherited ones
 func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
-		seenIvars := make(map[value.Symbol]bool)
+		seenIvars := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
 			for name, typ := range parent.InstanceVariables() {
-				if seenIvars[name] {
+				if seenIvars.Contains(name) {
 					continue
 				}
 
 				if !yield(name, InstanceVariable{typ, parent}) {
 					return
 				}
-				seenIvars[name] = true
+				seenIvars.Add(name)
 			}
 		}
 	}
@@ -614,21 +618,21 @@ func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceV
 // Iterate over every instance variable defined in the given namespace including the inherited ones
 func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
 	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
-		seenIvars := make(map[value.Symbol]bool)
+		seenIvars := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
 			ivars := parent.InstanceVariables()
 			names := symbol.SortKeys(ivars)
 			for _, name := range names {
 				typ := ivars[name]
-				if seenIvars[name] {
+				if seenIvars.Contains(name) {
 					continue
 				}
 
 				if !yield(name, InstanceVariable{typ, parent}) {
 					return
 				}
-				seenIvars[name] = true
+				seenIvars.Add(name)
 			}
 		}
 	}

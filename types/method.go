@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -145,9 +146,9 @@ type Method struct {
 	Bytecode       *vm.BytecodeFunction
 	location       *position.Location
 	// used to detect methods that circularly reference constants
-	UsedInConstants map[value.Symbol]bool // set of constants in which this method is called
-	UsedConstants   map[value.Symbol]bool // set of constants references in this method's body
-	CalledMethods   []*Method             // list of methods called in this method's body
+	UsedInConstants ds.Set[value.Symbol] // set of constants in which this method is called
+	UsedConstants   ds.Set[value.Symbol] // set of constants references in this method's body
+	CalledMethods   []*Method            // list of methods called in this method's body
 }
 
 func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
@@ -260,8 +261,8 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		HasNamedRestParam:  hasNamedRestParam,
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
-		UsedInConstants:    make(map[value.Symbol]bool),
-		UsedConstants:      make(map[value.Symbol]bool),
+		UsedInConstants:    make(ds.Set[value.Symbol]),
+		UsedConstants:      make(ds.Set[value.Symbol]),
 	}
 }
 
