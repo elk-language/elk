@@ -417,6 +417,7 @@ func (*InstanceOfTypeNode) typeNode()            {}
 func (*SingletonTypeNode) typeNode()             {}
 func (*ClosureTypeNode) typeNode()               {}
 func (*NotTypeNode) typeNode()                   {}
+func (*UnaryTypeNode) typeNode()                 {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}
 func (*ConstantLookupNode) typeNode()            {}
@@ -2949,6 +2950,26 @@ func NewNotTypeNode(span *position.Span, typ TypeNode) *NotTypeNode {
 	}
 }
 
+// Type of an operator with one operand eg. `-2`, `+3`
+type UnaryTypeNode struct {
+	TypedNodeBase
+	Op       *token.Token // operator
+	TypeNode TypeNode     // right hand side
+}
+
+func (u *UnaryTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new unary expression node.
+func NewUnaryTypeNode(span *position.Span, op *token.Token, typeNode TypeNode) *UnaryTypeNode {
+	return &UnaryTypeNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		TypeNode:      typeNode,
+	}
+}
+
 // Represents a constant lookup expressions eg. `Foo::Bar`
 type ConstantLookupNode struct {
 	TypedNodeBase
@@ -4782,9 +4803,9 @@ func NewHashRecordLiteralNodeI(span *position.Span, elements []ExpressionNode) E
 
 // Represents a Range literal eg. `1...5`
 type RangeLiteralNode struct {
-	NodeBase
-	From   ExpressionNode
-	To     ExpressionNode
+	TypedNodeBase
+	Start  ExpressionNode
+	End    ExpressionNode
 	Op     *token.Token
 	static bool
 }
@@ -4794,12 +4815,12 @@ func (r *RangeLiteralNode) IsStatic() bool {
 }
 
 // Create a Range literal node eg. `1...5`
-func NewRangeLiteralNode(span *position.Span, op *token.Token, from, to ExpressionNode) *RangeLiteralNode {
+func NewRangeLiteralNode(span *position.Span, op *token.Token, start, end ExpressionNode) *RangeLiteralNode {
 	return &RangeLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		From:     from,
-		To:       to,
-		static:   areExpressionsStatic(from, to),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Start:         start,
+		End:           end,
+		static:        areExpressionsStatic(start, end),
 	}
 }

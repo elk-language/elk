@@ -6,13 +6,13 @@ import (
 
 // Represents a beginless open range eg. `..<2`
 type BeginlessOpenRange struct {
-	To Value // end value
+	End Value // end value
 }
 
 // Create a new beginless open range class.
-func NewBeginlessOpenRange(to Value) *BeginlessOpenRange {
+func NewBeginlessOpenRange(end Value) *BeginlessOpenRange {
 	return &BeginlessOpenRange{
-		To: to,
+		End: end,
 	}
 }
 
@@ -35,7 +35,7 @@ func (*BeginlessOpenRange) SingletonClass() *Class {
 func (r *BeginlessOpenRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString("..<")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }

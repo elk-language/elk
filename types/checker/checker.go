@@ -1310,45 +1310,45 @@ func (c *Checker) checkRangeLiteralNode(node *ast.RangeLiteralNode) ast.Expressi
 
 func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	var valueTypes []types.Type
-	if node.From != nil {
-		node.From = c.checkExpression(node.From)
-		valueTypes = append(valueTypes, c.typeOf(node.From))
+	if node.Start != nil {
+		node.Start = c.checkExpression(node.Start)
+		valueTypes = append(valueTypes, c.toNonLiteral(c.typeOf(node.Start), false))
 	}
-	if node.To != nil {
-		node.To = c.checkExpression(node.To)
-		valueTypes = append(valueTypes, c.typeOf(node.To))
+	if node.End != nil {
+		node.End = c.checkExpression(node.End)
+		valueTypes = append(valueTypes, c.toNonLiteral(c.typeOf(node.End), false))
 	}
 
 	var rangeClassName value.Symbol
 	switch node.Op.Type {
 	case token.CLOSED_RANGE_OP:
-		if node.From == nil {
+		if node.Start == nil {
 			rangeClassName = symbol.BeginlessClosedRange
-		} else if node.To == nil {
+		} else if node.End == nil {
 			rangeClassName = symbol.EndlessClosedRange
 		} else {
 			rangeClassName = symbol.ClosedRange
 		}
 	case token.OPEN_RANGE_OP:
-		if node.From == nil {
+		if node.Start == nil {
 			rangeClassName = symbol.BeginlessOpenRange
-		} else if node.To == nil {
+		} else if node.End == nil {
 			rangeClassName = symbol.EndlessOpenRange
 		} else {
 			rangeClassName = symbol.OpenRange
 		}
 	case token.LEFT_OPEN_RANGE_OP:
-		if node.From == nil {
+		if node.Start == nil {
 			rangeClassName = symbol.BeginlessClosedRange
-		} else if node.To == nil {
+		} else if node.End == nil {
 			rangeClassName = symbol.EndlessOpenRange
 		} else {
 			rangeClassName = symbol.LeftOpenRange
 		}
 	case token.RIGHT_OPEN_RANGE_OP:
-		if node.From == nil {
+		if node.Start == nil {
 			rangeClassName = symbol.BeginlessOpenRange
-		} else if node.To == nil {
+		} else if node.End == nil {
 			rangeClassName = symbol.EndlessClosedRange
 		} else {
 			rangeClassName = symbol.RightOpenRange
@@ -4774,6 +4774,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 	case *ast.PrivateConstantNode:
 		c.checkPrivateConstantType(n)
 		return n
+	case *ast.UnaryTypeNode:
+		return c.checkUnaryTypeNode(n)
 	case *ast.GenericConstantNode:
 		typeNode, _ := c.checkGenericConstantType(n)
 		return typeNode
@@ -4873,6 +4875,10 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		)
 		return n
 	}
+}
+
+func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
+	return node
 }
 
 func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNode {

@@ -4151,18 +4151,34 @@ func (p *Parser) unaryType() ast.TypeNode {
 	}
 }
 
-// nilableType = primaryType ["?"]
+// nilableType = unaryLiteralType ["?"]
 func (p *Parser) nilableType() ast.TypeNode {
-	primType := p.primaryType()
+	typ := p.unaryLiteralType()
 
 	if questTok, ok := p.matchOk(token.QUESTION); ok {
 		return ast.NewNilableTypeNode(
-			primType.Span().Join(questTok.Span()),
-			primType,
+			typ.Span().Join(questTok.Span()),
+			typ,
 		)
 	}
 
-	return primType
+	return typ
+}
+
+// unaryLiteralType = ("-" | "+") unaryLiteralType | primaryType
+func (p *Parser) unaryLiteralType() ast.TypeNode {
+	switch p.lookahead.Type {
+	case token.PLUS, token.MINUS:
+		opTok := p.advance()
+		typ := p.unaryLiteralType()
+		return ast.NewUnaryTypeNode(
+			opTok.Span().Join(typ.Span()),
+			opTok,
+			typ,
+		)
+	default:
+		return p.primaryType()
+	}
 }
 
 // primaryType = namedType | "(" typeAnnotation ")"

@@ -7,15 +7,15 @@ import (
 
 // Represents a closed range eg. `5...2`
 type ClosedRange struct {
-	From Value // start value
-	To   Value // end value
+	Start Value // start value
+	End   Value // end value
 }
 
 // Create a new closed range class.
-func NewClosedRange(from, to Value) *ClosedRange {
+func NewClosedRange(start, end Value) *ClosedRange {
 	return &ClosedRange{
-		From: from,
-		To:   to,
+		Start: start,
+		End:   end,
 	}
 }
 
@@ -37,9 +37,9 @@ func (*ClosedRange) SingletonClass() *Class {
 
 func (r *ClosedRange) Inspect() string {
 	var buff strings.Builder
-	buff.WriteString(r.From.Inspect())
+	buff.WriteString(r.Start.Inspect())
 	buff.WriteString("...")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }
@@ -63,7 +63,7 @@ type ClosedRangeIterator struct {
 func NewClosedRangeIterator(r *ClosedRange) *ClosedRangeIterator {
 	return &ClosedRangeIterator{
 		Range:          r,
-		CurrentElement: r.From,
+		CurrentElement: r.Start,
 	}
 }
 

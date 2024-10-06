@@ -50,6 +50,56 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"is_left_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_left_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"start",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ClosedRange)
+			return self.Start, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"end",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ClosedRange)
+			return self.End, nil
+		},
+		DefWithSealed(),
+	)
 }
 
 // ::Std::ClosedRange::Iterator
@@ -76,7 +126,7 @@ func init() {
 
 // Checks whether a value is contained in the closed range
 func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, value.Value) {
-	eqVal, err := GreaterThanEqual(vm, val, r.From)
+	eqVal, err := GreaterThanEqual(vm, val, r.Start)
 	if err != nil {
 		return false, err
 	}
@@ -85,7 +135,7 @@ func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, v
 		return false, nil
 	}
 
-	eqVal, err = LessThanEqual(vm, val, r.To)
+	eqVal, err = LessThanEqual(vm, val, r.End)
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +145,7 @@ func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, v
 
 // Checks whether two closed ranges are equal
 func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool, value.Value) {
-	eqVal, err := Equal(vm, x.From, y.From)
+	eqVal, err := Equal(vm, x.Start, y.Start)
 	if err != nil {
 		return false, err
 	}
@@ -104,7 +154,7 @@ func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool,
 		return false, nil
 	}
 
-	eqVal, err = Equal(vm, x.To, y.To)
+	eqVal, err = Equal(vm, x.End, y.End)
 	if err != nil {
 		return false, err
 	}
@@ -114,7 +164,7 @@ func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool,
 
 // Get the next element of the range
 func ClosedRangeIteratorNext(vm *VM, i *value.ClosedRangeIterator) (value.Value, value.Value) {
-	greater, err := GreaterThan(vm, i.CurrentElement, i.Range.To)
+	greater, err := GreaterThan(vm, i.CurrentElement, i.Range.End)
 	if err != nil {
 		return nil, err
 	}

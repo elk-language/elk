@@ -21,4 +21,12 @@ sealed primitive class ::Std::ClosedRange[+Element] < Value
 		Returns the upper bound of the range.
 	]##
 	def end: Element; end
+
+	extend where Element < Incrementable[Element]
+		##[
+			Returns the iterator for this range.
+			Only ranges of incrementable values can be iterated over.
+		]##
+		def iter: Iterator[Element]; end
+	end
 end

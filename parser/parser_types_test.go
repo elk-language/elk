@@ -1149,6 +1149,50 @@ func TestLiteralTypes(t *testing.T) {
 				},
 			),
 		},
+		"negative int": {
+			input: "type -1234",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewUnaryTypeNode(
+								S(P(5, 1, 6), P(9, 1, 10)),
+								T(S(P(5, 1, 6), P(5, 1, 6)), token.MINUS),
+								ast.NewIntLiteralNode(
+									S(P(6, 1, 7), P(9, 1, 10)),
+									"1234",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"positive int": {
+			input: "type +1234",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewUnaryTypeNode(
+								S(P(5, 1, 6), P(9, 1, 10)),
+								T(S(P(5, 1, 6), P(5, 1, 6)), token.PLUS),
+								ast.NewIntLiteralNode(
+									S(P(6, 1, 7), P(9, 1, 10)),
+									"1234",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"int64": {
 			input: "type 1i64",
 			want: ast.NewProgramNode(

@@ -41,11 +41,60 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"is_left_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_left_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"start",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.Nil, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"end",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.BeginlessOpenRange)
+			return self.End, nil
+		},
+		DefWithSealed(),
+	)
 }
 
 // Checks whether a value is contained in the open range
 func BeginlessOpenRangeContains(vm *VM, r *value.BeginlessOpenRange, val value.Value) (bool, value.Value) {
-	eqVal, err := LessThan(vm, val, r.To)
+	eqVal, err := LessThan(vm, val, r.End)
 	if err != nil {
 		return false, err
 	}
@@ -55,7 +104,7 @@ func BeginlessOpenRangeContains(vm *VM, r *value.BeginlessOpenRange, val value.V
 
 // Checks whether two open ranges are equal
 func BeginlessOpenRangeEqual(vm *VM, x, y *value.BeginlessOpenRange) (bool, value.Value) {
-	eqVal, err := Equal(vm, x.To, y.To)
+	eqVal, err := Equal(vm, x.End, y.End)
 	if err != nil {
 		return false, err
 	}

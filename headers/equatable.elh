@@ -1,0 +1,17 @@
+##[
+	Represents a value that can be compared
+	for value equality with the `==`, `!=`, `=~`, `!~` operators.
+]##
+interface ::Std::Equatable
+	##[
+		Should return `true` when `other` is an instance
+		of the same class and can be considered equal to `self`.
+	]##
+	sig ==(other: any): bool
+
+	##[
+		Should return `true` when `other` can be considered equal to `self`,
+		even if it is an instance of a different class.
+	]##
+	sig =~(other: any): bool
+end

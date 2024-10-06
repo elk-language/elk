@@ -7,13 +7,13 @@ import (
 
 // Represents an endless closed range eg. `5...`
 type EndlessClosedRange struct {
-	From Value // start value
+	Start Value // start value
 }
 
 // Create a new endless closed range class.
-func NewEndlessClosedRange(from Value) *EndlessClosedRange {
+func NewEndlessClosedRange(start Value) *EndlessClosedRange {
 	return &EndlessClosedRange{
-		From: from,
+		Start: start,
 	}
 }
 
@@ -35,7 +35,7 @@ func (*EndlessClosedRange) SingletonClass() *Class {
 
 func (r *EndlessClosedRange) Inspect() string {
 	var buff strings.Builder
-	buff.WriteString(r.From.Inspect())
+	buff.WriteString(r.Start.Inspect())
 	buff.WriteString("...")
 
 	return buff.String()
@@ -60,7 +60,7 @@ type EndlessClosedRangeIterator struct {
 func NewEndlessClosedRangeIterator(r *EndlessClosedRange) *EndlessClosedRangeIterator {
 	return &EndlessClosedRangeIterator{
 		Range:          r,
-		CurrentElement: r.From,
+		CurrentElement: r.Start,
 	}
 }
 

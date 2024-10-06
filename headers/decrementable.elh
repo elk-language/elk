@@ -1,0 +1,10 @@
+##[
+	Represents a value that can be decremented using
+	the `--` operator like `a--`
+]##
+interface ::Std::Decrementable[+T]
+	##[
+		Get the previous value of this type, the predecessor of `self`
+	]##
+	sig --: T
+end

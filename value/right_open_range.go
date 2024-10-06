@@ -7,15 +7,15 @@ import (
 
 // Represents a right open range eg. `5..<2`
 type RightOpenRange struct {
-	From Value // start value
-	To   Value // end value
+	Start Value // start value
+	End   Value // end value
 }
 
 // Create a new right open range class.
-func NewRightOpenRange(from, to Value) *RightOpenRange {
+func NewRightOpenRange(start, end Value) *RightOpenRange {
 	return &RightOpenRange{
-		From: from,
-		To:   to,
+		Start: start,
+		End:   end,
 	}
 }
 
@@ -37,9 +37,9 @@ func (*RightOpenRange) SingletonClass() *Class {
 
 func (r *RightOpenRange) Inspect() string {
 	var buff strings.Builder
-	buff.WriteString(r.From.Inspect())
+	buff.WriteString(r.Start.Inspect())
 	buff.WriteString("..<")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }
@@ -63,7 +63,7 @@ type RightOpenRangeIterator struct {
 func NewRightOpenRangeIterator(r *RightOpenRange) *RightOpenRangeIterator {
 	return &RightOpenRangeIterator{
 		Range:          r,
-		CurrentElement: r.From,
+		CurrentElement: r.Start,
 	}
 }
 

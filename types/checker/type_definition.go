@@ -658,9 +658,10 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			typeParam,
 		)
 	}
-	proxy := types.NewMixinProxy(mixin, nil)
 	mixin.SetInstanceVariables(currentNamespace.InstanceVariables())
 
+	prevMode := c.mode
+	c.mode = inheritanceMode
 	var where []*types.TypeParameter
 	for _, whereTypeParamNode := range node.Where {
 		whereTypeParamNode := whereTypeParamNode.(*ast.VariantTypeParameterNode)
@@ -746,10 +747,10 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			narrowerTypeParam,
 		)
 	}
+	c.mode = prevMode
 
-	mixinWithWhere := types.NewMixinWithWhere(proxy, currentNamespace, where)
+	mixinWithWhere := types.IncludeMixinWithWhere(currentNamespace, mixin, where)
 	node.SetType(mixinWithWhere)
-	types.IncludeMixin(currentNamespace, mixinWithWhere)
 }
 
 func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace, leaveNil bool) *types.TypeParameter {

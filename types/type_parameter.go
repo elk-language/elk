@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
 )
 
@@ -96,4 +97,8 @@ func (t *TypeParameter) InspectSignature() string {
 	}
 
 	return buffer.String()
+}
+
+func (t *TypeParameter) InspectSignatureWithColor() string {
+	return lexer.Colorize(t.InspectSignature())
 }

@@ -6,13 +6,13 @@ import (
 
 // Represents a beginless closed range eg. `...2`
 type BeginlessClosedRange struct {
-	To Value // end value
+	End Value // end value
 }
 
 // Create a new beginless closed range class.
-func NewBeginlessClosedRange(to Value) *BeginlessClosedRange {
+func NewBeginlessClosedRange(end Value) *BeginlessClosedRange {
 	return &BeginlessClosedRange{
-		To: to,
+		End: end,
 	}
 }
 
@@ -35,7 +35,7 @@ func (*BeginlessClosedRange) SingletonClass() *Class {
 func (r *BeginlessClosedRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString("...")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }

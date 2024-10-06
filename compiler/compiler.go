@@ -3756,8 +3756,8 @@ func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
 
 	span := node.Span()
 
-	if node.From == nil {
-		c.compileNode(node.To)
+	if node.Start == nil {
+		c.compileNode(node.End)
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
@@ -3770,8 +3770,8 @@ func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
 
 		return
 	}
-	if node.To == nil {
-		c.compileNode(node.From)
+	if node.End == nil {
+		c.compileNode(node.Start)
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
@@ -3785,8 +3785,8 @@ func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
 		return
 	}
 
-	c.compileNode(node.From)
-	c.compileNode(node.To)
+	c.compileNode(node.Start)
+	c.compileNode(node.End)
 	switch node.Op.Type {
 	case token.CLOSED_RANGE_OP:
 		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.CLOSED_RANGE_FLAG)

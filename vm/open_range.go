@@ -50,6 +50,56 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"is_left_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_left_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"start",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.OpenRange)
+			return self.Start, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"end",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.OpenRange)
+			return self.End, nil
+		},
+		DefWithSealed(),
+	)
 }
 
 // ::Std::OpenRange::Iterator
@@ -76,7 +126,7 @@ func init() {
 
 // Checks whether a value is contained in the open range
 func OpenRangeContains(vm *VM, r *value.OpenRange, val value.Value) (bool, value.Value) {
-	eqVal, err := GreaterThan(vm, val, r.From)
+	eqVal, err := GreaterThan(vm, val, r.Start)
 	if err != nil {
 		return false, err
 	}
@@ -85,7 +135,7 @@ func OpenRangeContains(vm *VM, r *value.OpenRange, val value.Value) (bool, value
 		return false, nil
 	}
 
-	eqVal, err = LessThan(vm, val, r.To)
+	eqVal, err = LessThan(vm, val, r.End)
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +145,7 @@ func OpenRangeContains(vm *VM, r *value.OpenRange, val value.Value) (bool, value
 
 // Checks whether two open ranges are equal
 func OpenRangeEqual(vm *VM, x *value.OpenRange, y *value.OpenRange) (bool, value.Value) {
-	eqVal, err := Equal(vm, x.From, y.From)
+	eqVal, err := Equal(vm, x.Start, y.Start)
 	if err != nil {
 		return false, err
 	}
@@ -104,7 +154,7 @@ func OpenRangeEqual(vm *VM, x *value.OpenRange, y *value.OpenRange) (bool, value
 		return false, nil
 	}
 
-	eqVal, err = Equal(vm, x.To, y.To)
+	eqVal, err = Equal(vm, x.End, y.End)
 	if err != nil {
 		return false, err
 	}
@@ -121,7 +171,7 @@ func OpenRangeIteratorNext(vm *VM, i *value.OpenRangeIterator) (value.Value, val
 	}
 	i.CurrentElement = next
 
-	greater, err := GreaterThanEqual(vm, i.CurrentElement, i.Range.To)
+	greater, err := GreaterThanEqual(vm, i.CurrentElement, i.Range.End)
 	if err != nil {
 		return nil, err
 	}

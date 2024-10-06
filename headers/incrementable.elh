@@ -1,0 +1,10 @@
+##[
+	Represents a value that can be incremented using
+	the `++` operator like `a++`
+]##
+interface ::Std::Incrementable[+T]
+	##[
+		Get the next value of this type, the successor of `self`
+	]##
+	sig ++: T
+end

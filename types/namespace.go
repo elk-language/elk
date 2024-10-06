@@ -82,6 +82,13 @@ func includeMixin(target Namespace, mixin *Mixin) {
 	target.SetParent(proxy)
 }
 
+func IncludeMixinWithWhere(target Namespace, mixin *Mixin, where []*TypeParameter) *MixinWithWhere {
+	proxy := NewMixinProxy(mixin, target.Parent())
+	mixinWithWhere := NewMixinWithWhere(proxy, target, where)
+	target.SetParent(mixinWithWhere)
+	return mixinWithWhere
+}
+
 func IncludeMixin(target, includedNamespace Namespace) {
 	switch included := includedNamespace.(type) {
 	case *Mixin:
@@ -91,9 +98,6 @@ func IncludeMixin(target, includedNamespace Namespace) {
 		proxy := NewMixinProxy(includedMixin, target.Parent())
 		generic := NewGeneric(proxy, included.TypeArguments)
 		target.SetParent(generic)
-	case *MixinWithWhere:
-		included.SetParent(target.Parent())
-		target.SetParent(includedNamespace)
 	default:
 		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
 	}
@@ -376,8 +380,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 
 		for parent := namespace; parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
-			case *MixinProxy:
-			case *InterfaceProxy:
+			case *MixinProxy, *InterfaceProxy, *MixinWithWhere:
 			case *Generic:
 				switch n.Namespace.(type) {
 				case *MixinProxy, *InterfaceProxy:

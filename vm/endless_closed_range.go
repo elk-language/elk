@@ -50,6 +50,55 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"is_left_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_left_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_closed",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"is_right_open",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.True, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"start",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.EndlessClosedRange)
+			return self.Start, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"end",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			return value.Nil, nil
+		},
+		DefWithSealed(),
+	)
 }
 
 // ::Std::EndlessClosedRange::Iterator
@@ -76,7 +125,7 @@ func init() {
 
 // Checks whether a value is contained in the closed range
 func EndlessClosedRangeContains(vm *VM, r *value.EndlessClosedRange, val value.Value) (bool, value.Value) {
-	eqVal, err := GreaterThanEqual(vm, val, r.From)
+	eqVal, err := GreaterThanEqual(vm, val, r.Start)
 	if err != nil {
 		return false, err
 	}
@@ -86,7 +135,7 @@ func EndlessClosedRangeContains(vm *VM, r *value.EndlessClosedRange, val value.V
 
 // Checks whether two closed ranges are equal
 func EndlessClosedRangeEqual(vm *VM, x *value.EndlessClosedRange, y *value.EndlessClosedRange) (bool, value.Value) {
-	eqVal, err := Equal(vm, x.From, y.From)
+	eqVal, err := Equal(vm, x.Start, y.Start)
 	if err != nil {
 		return false, err
 	}

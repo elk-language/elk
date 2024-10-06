@@ -7,15 +7,15 @@ import (
 
 // Represents an open range eg. `5<.<2`
 type OpenRange struct {
-	From Value // start value
-	To   Value // end value
+	Start Value // start value
+	End   Value // end value
 }
 
 // Create a new open range class.
-func NewOpenRange(from, to Value) *OpenRange {
+func NewOpenRange(start, end Value) *OpenRange {
 	return &OpenRange{
-		From: from,
-		To:   to,
+		Start: start,
+		End:   end,
 	}
 }
 
@@ -37,9 +37,9 @@ func (*OpenRange) SingletonClass() *Class {
 
 func (r *OpenRange) Inspect() string {
 	var buff strings.Builder
-	buff.WriteString(r.From.Inspect())
+	buff.WriteString(r.Start.Inspect())
 	buff.WriteString("<.<")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }
@@ -63,7 +63,7 @@ type OpenRangeIterator struct {
 func NewOpenRangeIterator(r *OpenRange) *OpenRangeIterator {
 	return &OpenRangeIterator{
 		Range:          r,
-		CurrentElement: r.From,
+		CurrentElement: r.Start,
 	}
 }
 

@@ -7,15 +7,15 @@ import (
 
 // Represents a left open range eg. `5<..2`
 type LeftOpenRange struct {
-	From Value // start value
-	To   Value // end value
+	Start Value // start value
+	End   Value // end value
 }
 
 // Create a new left open range class.
-func NewLeftOpenRange(from, to Value) *LeftOpenRange {
+func NewLeftOpenRange(start, end Value) *LeftOpenRange {
 	return &LeftOpenRange{
-		From: from,
-		To:   to,
+		Start: start,
+		End:   end,
 	}
 }
 
@@ -37,9 +37,9 @@ func (*LeftOpenRange) SingletonClass() *Class {
 
 func (r *LeftOpenRange) Inspect() string {
 	var buff strings.Builder
-	buff.WriteString(r.From.Inspect())
+	buff.WriteString(r.Start.Inspect())
 	buff.WriteString("<..")
-	buff.WriteString(r.To.Inspect())
+	buff.WriteString(r.End.Inspect())
 
 	return buff.String()
 }
@@ -63,7 +63,7 @@ type LeftOpenRangeIterator struct {
 func NewLeftOpenRangeIterator(r *LeftOpenRange) *LeftOpenRangeIterator {
 	return &LeftOpenRangeIterator{
 		Range:          r,
-		CurrentElement: r.From,
+		CurrentElement: r.Start,
 	}
 }
 

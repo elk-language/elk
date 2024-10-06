@@ -131,16 +131,16 @@ func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode)
 }
 
 func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
-	if node.From == nil {
+	if node.Start == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
-			to := resolve(node.To)
+			to := resolve(node.End)
 			if to == nil {
 				return nil
 			}
 			return value.NewBeginlessClosedRange(to)
 		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			to := resolve(node.To)
+			to := resolve(node.End)
 			if to == nil {
 				return nil
 			}
@@ -150,16 +150,16 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		}
 	}
 
-	if node.To == nil {
+	if node.End == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
-			from := resolve(node.From)
+			from := resolve(node.Start)
 			if from == nil {
 				return nil
 			}
 			return value.NewEndlessClosedRange(from)
 		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			from := resolve(node.From)
+			from := resolve(node.Start)
 			if from == nil {
 				return nil
 			}
@@ -169,11 +169,11 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		}
 	}
 
-	from := resolve(node.From)
+	from := resolve(node.Start)
 	if from == nil {
 		return nil
 	}
-	to := resolve(node.To)
+	to := resolve(node.End)
 	if to == nil {
 		return nil
 	}

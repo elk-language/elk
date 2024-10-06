@@ -41,6 +41,8 @@ func main() {
 			func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				objectClass := env.StdSubtypeClass(symbol.Object)
 				namespace := env.Root
+				var mixin *Mixin
+				mixin.IsLiteral() // noop - avoid unused variable error
 		`,
 	)
 
@@ -107,21 +109,9 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		)
 	}
 	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
-	if namespace.IsGeneric() {
-		buffer.WriteString(`namespace.SetTypeParameters([]*TypeParameter{`)
-		for _, param := range namespace.TypeParameters() {
-			fmt.Fprintf(
-				buffer,
-				"%s,",
-				typeToCode(param, true),
-			)
-		}
-		buffer.WriteString("})\n")
 
-		for _, param := range namespace.TypeParameters() {
-			defineSubtype(buffer, param, param.Name.String())
-		}
-	}
+	setTypeParameters(buffer, namespace)
+
 	if namespaceIsClass {
 		superclass := namespaceClass.Superclass()
 		if superclass != nil && superclass != objectClass {
@@ -135,9 +125,40 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 		}
 	}
 
+	includeMixinsAndImplementInterfaces(buffer, namespace, env)
+	defineMethods(buffer, namespace)
+	defineConstants(buffer, namespace)
+	defineInstanceVariables(buffer, namespace)
+	defineMethodsWithinSubtypes(buffer, namespace, env)
+
+	buffer.WriteString("}")
+}
+
+func includeMixinsAndImplementInterfaces(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment) {
 	buffer.WriteString("\n// Include mixins and implement interfaces\n")
 	for parent := range types.Backward(types.DirectlyIncludedAndImplemented(namespace)) {
 		switch p := parent.(type) {
+		case *types.MixinWithWhere:
+			fmt.Fprintf(
+				buffer,
+				`
+					// %s
+					mixin = NewMixin("", false, "", env)
+					{
+						namespace := mixin
+						namespace.Name() // noop - avoid unused variable error
+				`,
+				p.InspectExtend(),
+			)
+
+			defineTypeParametersInSubtypes(buffer, p)
+			defineMethods(buffer, p)
+
+			buffer.WriteString("}\n")
+
+			buffer.WriteString("IncludeMixinWithWhere(namespace, mixin, ")
+			createTypeParametersForMixinWithWhere(buffer, p.Where)
+			buffer.WriteString(")\n")
 		case *types.MixinProxy:
 			fmt.Fprintf(
 				buffer,
@@ -171,31 +192,89 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			}
 		}
 	}
+}
 
-	defineMethods(buffer, namespace)
+func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
+	if !namespace.IsGeneric() {
+		return
+	}
 
+	buffer.WriteString(`namespace.SetTypeParameters(`)
+	createTypeParameters(buffer, namespace.TypeParameters())
+	buffer.WriteString(")\n")
+
+	defineTypeParameters(buffer, namespace)
+}
+
+func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*types.TypeParameter) {
+	buffer.WriteString(`[]*TypeParameter{`)
+	for _, param := range typeParams {
+		fmt.Fprintf(
+			buffer,
+			"NewTypeParameter(value.ToSymbol(%q), mixin, %s, %s, %s)",
+			param.Name,
+			typeToCode(param.LowerBound, false),
+			typeToCode(param.UpperBound, false),
+			param.Variance.String(),
+		)
+	}
+	buffer.WriteString("}")
+}
+
+func createTypeParameters(buffer *bytes.Buffer, typeParams []*types.TypeParameter) {
+	buffer.WriteString(`[]*TypeParameter{`)
+	for _, param := range typeParams {
+		fmt.Fprintf(
+			buffer,
+			"%s,",
+			typeToCode(param, true),
+		)
+	}
+	buffer.WriteString("}")
+}
+
+func defineTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
+	for _, param := range namespace.TypeParameters() {
+		defineSubtype(buffer, param, param.Name.String())
+	}
+}
+
+func defineTypeParametersInSubtypes(buffer *bytes.Buffer, namespace types.Namespace) {
+	for _, subtype := range types.SortedSubtypes(namespace) {
+		param, ok := subtype.Type.(*types.TypeParameter)
+		if !ok {
+			continue
+		}
+
+		defineSubtype(buffer, param, param.Name.String())
+	}
+}
+
+func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define constants\n")
 	for name, typ := range types.SortedConstants(namespace) {
 		fmt.Fprintf(
 			buffer,
-			`namespace.DefineConstant(value.ToSymbol(%q), %s)
-			`,
+			"namespace.DefineConstant(value.ToSymbol(%q), %s)\n",
 			name,
 			typeToCode(typ.Type, false),
 		)
 	}
+}
 
+func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define instance variables\n")
 	for name, typ := range types.SortedOwnInstanceVariables(namespace) {
 		fmt.Fprintf(
 			buffer,
-			`namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)
-			`,
+			"namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)\n",
 			name,
 			typeToCode(typ, false),
 		)
 	}
+}
 
+func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment) {
 	for _, subtype := range types.SortedSubtypes(namespace) {
 		subtypeNamespace, ok := subtype.Type.(types.Namespace)
 		if !ok {
@@ -204,8 +283,6 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 
 		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
 	}
-
-	buffer.WriteString("}")
 }
 
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {

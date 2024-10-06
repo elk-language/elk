@@ -1,0 +1,47 @@
+##[
+	Represents a value that can be compared
+	using relational operators like `>`, `>=`, `<`, `<=`, `<=>`
+]##
+interface ::Std::Comparable[-T]
+	implement Equatable
+
+	##[
+		Output of the `<=>` operator.
+
+		- `1` if `self` is greater than `other`
+		- `0` if both are equal.
+		– `-1` if `self` is less than `other`.
+		- `nil` if the comparison was impossible (NaN)
+	]##
+	typedef CmpOutput = 1 | 0 | -1 | nil
+
+	##[
+		Returns:
+
+		- `1` if `self` is greater than `other`
+		- `0` if both are equal.
+		- `-1` if `self` is less than `other`.
+		– `nil` if the comparison was impossible (NaN)
+	]##
+	sig <=>(other: T): CmpOutput
+
+	##[
+		Check if `self` is greater than `other`
+	]##
+	sig >(other: T): bool
+
+	##[
+		Check if `self` is greater than or equal to `other`
+	]##
+	sig >=(other: T): bool
+
+	##[
+		Check if `self` is less than `other`
+	]##
+	sig <(other: T): bool
+
+	##[
+		Check if `self` is less than or equal to `other`
+	]##
+	sig <=(other: T): bool
+end

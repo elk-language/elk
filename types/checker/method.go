@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iter"
 	"maps"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
@@ -1805,14 +1806,14 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 		var whereParams []*types.TypeParameter
 		var whereArgs []types.Type
 		if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
-			whereParams = mixinWithWhere.Where
+			whereParams = slices.Clone(mixinWithWhere.Where)
 			whereArgs = c.constructWhereArguments(whereParams)
 		}
 
 		var methodCopy *types.Method
 		for i := len(generics) - 1; i >= 0; i-- {
 			generic := generics[i]
-			c.replaceTypeParametersInWhere(whereArgs, generic.ArgumentMap)
+			c.replaceTypeParametersInWhere(whereParams, whereArgs, generic.ArgumentMap)
 			if methodCopy != nil {
 				c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
 				continue
@@ -1986,9 +1987,29 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs m
 	return method
 }
 
-func (c *Checker) replaceTypeParametersInWhere(where []types.Type, typeArgs map[value.Symbol]*types.TypeArgument) {
-	for i, whereElement := range where {
-		where[i] = c.replaceTypeParameters(whereElement, typeArgs)
+func (c *Checker) replaceTypeParametersInWhere(whereParams []*types.TypeParameter, whereArgs []types.Type, typeArgs map[value.Symbol]*types.TypeArgument) {
+	for i, whereArg := range whereArgs {
+		whereArgs[i] = c.replaceTypeParameters(whereArg, typeArgs)
+	}
+
+	for i, whereParam := range whereParams {
+		var whereParamCopy *types.TypeParameter
+
+		result := c.replaceTypeParameters(whereParam.LowerBound, typeArgs)
+		if result != whereParam.LowerBound {
+			whereParamCopy = whereParam.Copy()
+			whereParams[i] = whereParamCopy
+			whereParamCopy.LowerBound = result
+		}
+
+		result = c.replaceTypeParameters(whereParam.UpperBound, typeArgs)
+		if result != whereParam.LowerBound {
+			if whereParamCopy == nil {
+				whereParamCopy = whereParam.Copy()
+				whereParams[i] = whereParamCopy
+			}
+			whereParamCopy.UpperBound = result
+		}
 	}
 }
 
