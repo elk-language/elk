@@ -387,3 +387,43 @@ func TestInstanceOfType(t *testing.T) {
 		})
 	}
 }
+
+func TestUnaryMinusType(t *testing.T) {
+	tests := testTable{
+		"assign positive int to a negative int type": {
+			input: `
+				var a: -1 = 1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(17, 2, 17)), "type `1` cannot be assigned to type `-1`"),
+			},
+		},
+		"assign negative int to a positive int type": {
+			input: `
+				var a: 1 = -1
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(17, 2, 17)), "type `-1` cannot be assigned to type `1`"),
+			},
+		},
+		"assign negative int to a negative int type": {
+			input: `
+				var a: -1 = -1
+			`,
+		},
+		"apply to an invalid type": {
+			input: `
+				var a: -"c"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "unary operator `-` cannot be used on type `\"c\"`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}

@@ -60,7 +60,16 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
+			namespace := namespace.TryDefineInterface("Represents a value that can be compared\nusing relational operators like `>`, `>=`, `<`, `<=`, `<=>`", value.ToSymbol("Comparable"), env)
+			namespace.DefineSubtype(value.ToSymbol("CmpOutput"), NewNamedType("Std::Comparable::CmpOutput", NewUnion(NewIntLiteral("1"), NewIntLiteral("0"), NewIntLiteral("1"), Nil{})))
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineInterface("Represents a data structure that\ncan be used to check if it contains\na value.", value.ToSymbol("Container"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -71,6 +80,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, value.ToSymbol("EndlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineInterface("Represents a value that can be compared\nfor value equality with the `==`, `!=`, `=~`, `!~` operators.", value.ToSymbol("Equatable"), env)
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
@@ -119,7 +129,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineInterface("Represents a value tha can be incremented using\nthe `++` operator like `a++`", value.ToSymbol("Incrementable"), env)
+			namespace := namespace.TryDefineInterface("Represents a value that can be incremented using\nthe `++` operator like `a++`", value.ToSymbol("Incrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
@@ -586,6 +596,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
+				namespace := namespace.MustSubtype("Comparable").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("T"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT))
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Equatable", env).(*Interface))
+
+				// Define methods
+				namespace.DefineMethod("Check if `self` is less than `other`", true, false, true, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check if `self` is less than or equal to `other`", true, false, true, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns:\n\n- `1` if `self` is greater than `other`\n- `0` if both are equal.\n- `-1` if `self` is less than `other`.\n– `nil` if the comparison was impossible (NaN)", true, false, true, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, NameToType("Std::Comparable::CmpOutput", env), Never{})
+				namespace.DefineMethod("Check if `self` is greater than `other`", true, false, true, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check if `self` is greater than or equal to `other`", true, false, true, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Container").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -596,6 +627,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this container.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Decrementable").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT)})
+				namespace.DefineSubtype(value.ToSymbol("T"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Get the previous value of this type, the predecessor of `self`", true, false, true, value.ToSymbol("--"), nil, nil, NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
 
 				// Define constants
 
@@ -638,6 +685,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Equatable").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Should return `true` when `other` is an instance\nof the same class and can be considered equal to `self`.", true, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Should return `true` when `other` can be considered equal to `self`,\neven if it is an instance of a different class.", true, false, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 
 				// Define constants
 

@@ -1051,8 +1051,15 @@ func (c *Checker) checkArithmeticBinaryOperator(
 func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.ExpressionNode {
 	switch node.Op.Type {
 	case token.PLUS:
+		right := c.checkExpression(node.Right)
+		rightType := c.typeOf(right)
+		switch rightType.(type) {
+		case types.NumericLiteral:
+			node.SetType(rightType)
+			return node
+		}
 		receiver, _, typ := c.checkSimpleMethodCall(
-			node.Right,
+			right,
 			token.DOT,
 			symbol.OpUnaryPlus,
 			nil,
@@ -1064,8 +1071,17 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		node.SetType(typ)
 		return node
 	case token.MINUS:
+		right := c.checkExpression(node.Right)
+		rightType := c.typeOf(right)
+		switch r := rightType.(type) {
+		case types.NumericLiteral:
+			copy := r.CopyNumeric()
+			copy.SetNegative(!copy.IsNegative())
+			node.SetType(copy)
+			return node
+		}
 		receiver, _, typ := c.checkSimpleMethodCall(
-			node.Right,
+			right,
 			token.DOT,
 			symbol.OpNegate,
 			nil,
@@ -4878,6 +4894,39 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 }
 
 func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+	var negate bool
+
+	switch node.Op.Type {
+	case token.MINUS:
+		negate = true
+	case token.PLUS:
+	default:
+		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.String()))
+	}
+
+	typ := c.typeOf(node.TypeNode)
+	switch t := typ.(type) {
+	case types.NumericLiteral:
+		if negate {
+			copy := t.CopyNumeric()
+			copy.SetNegative(!copy.IsNegative())
+			node.SetType(copy)
+		} else {
+			node.SetType(typ)
+		}
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"unary operator `%s` cannot be used on type `%s`",
+				node.Op.Type.String(),
+				types.InspectWithColor(typ),
+			),
+			node.Span(),
+		)
+		node.SetType(types.Nothing{})
+	}
+
 	return node
 }
 

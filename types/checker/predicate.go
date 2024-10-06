@@ -446,79 +446,79 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Float64Literal:
 		b, ok := b.(*types.Float64Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Float32Literal:
 		b, ok := b.(*types.Float32Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.BigFloatLiteral:
 		b, ok := b.(*types.BigFloatLiteral)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.IntLiteral:
 		b, ok := b.(*types.IntLiteral)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Int64Literal:
 		b, ok := b.(*types.Int64Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Int32Literal:
 		b, ok := b.(*types.Int32Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Int16Literal:
 		b, ok := b.(*types.Int16Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.Int8Literal:
 		b, ok := b.(*types.Int8Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.UInt64Literal:
 		b, ok := b.(*types.UInt64Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.UInt32Literal:
 		b, ok := b.(*types.UInt32Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.UInt16Literal:
 		b, ok := b.(*types.UInt16Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.UInt8Literal:
 		b, ok := b.(*types.UInt8Literal)
 		if !ok {
 			return false
 		}
-		return a.Value == b.Value
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}
