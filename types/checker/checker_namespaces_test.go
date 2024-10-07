@@ -983,6 +983,19 @@ func TestGenericClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(52, 4, 18), P(52, 4, 18)), "undefined type `V`"),
 			},
 		},
+		"declare a generic class with an upper bound referencing itself": {
+			input: `
+				interface Lol[T]
+					sig lol: T
+				end
+				class Foo[V < Lol[V]]; end
+
+				class Bar
+					def lol: Bar then self
+				end
+				Foo::[Bar]()
+			`,
+		},
 		"declare a generic class with bounds": {
 			input: `
 				class Foo[V > Baz < Object]; end
@@ -3005,6 +3018,7 @@ func TestExtendWhere(t *testing.T) {
 				error.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
 			},
 		},
+
 		"declare extend with a nonexistent type parameter": {
 			input: `
 				class Foo[T]
@@ -3058,6 +3072,74 @@ func TestExtendWhere(t *testing.T) {
 					extend where T > Value; end
 				end
 			`,
+		},
+		"assign class with extend where to an interface when the conditions are satisfied": {
+			input: `
+				interface Foo
+					sig foo: Int
+				end
+
+				class Bar[T]
+					extend where T < Int
+						def foo: Int then 3
+					end
+				end
+
+				var a: Foo = Bar::[Int]()
+			`,
+		},
+		"assign class with extend where to a generic interface when the conditions are satisfied": {
+			input: `
+				interface Foo[T]
+					sig foo: T
+				end
+
+				class Bar[T]
+					extend where T < Int
+						def foo: Int then 3
+					end
+				end
+
+				var a: Foo[Int] = Bar::[Int]()
+			`,
+		},
+		"assign class with extend where to an interface when the conditions are not satisfied": {
+			input: `
+				interface Foo
+					sig foo: Int
+				end
+
+				class Bar[T]
+					extend where T < Int
+						def foo: Int then 3
+					end
+				end
+
+				var a: Foo = Bar::[String]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` cannot be assigned to type `Foo`"),
+			},
+		},
+		"assign class with extend where to a generic interface when the conditions are not satisfied": {
+			input: `
+				interface Foo[T]
+					sig foo: T
+				end
+
+				class Bar[T]
+					extend where T < Int
+						def foo: Int then 3
+					end
+				end
+
+				var a: Foo[Int] = Bar::[String]()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` does not implement interface `Foo[Std::Int]`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
+				error.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` cannot be assigned to type `Foo[Std::Int]`"),
+			},
 		},
 
 		"declare extend in a non-generic mixin": {

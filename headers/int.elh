@@ -5,6 +5,9 @@
 	it can hold an arbitrarily large/small number.
 ]##
 sealed primitive class ::Std::Int < Value
+	implement Hashable
+	implement Comparable[self]
+
 	##[
 		Returns itself.
 

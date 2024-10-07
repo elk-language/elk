@@ -3,6 +3,7 @@
 ]##
 sealed primitive class ::Std::UInt8 < Value
 	implement Hashable
+	implement Comparable[self]
 
 	##[
 		Calculates a hash of the int.

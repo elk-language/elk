@@ -828,6 +828,15 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				error.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `2.5` cannot be assigned to type `9.2`"),
 			},
 		},
+		"normalise two generic interfaces": {
+			input: `
+				var a: Incrementable[Int] & Comparable[Int] = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `Std::String` does not implement interface `Std::Incrementable[Std::Int]`:\n\n  - missing method `Std::Incrementable.:++` with signature: `def ++(): Std::Int`"),
+				error.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `\"foo\"` cannot be assigned to type `Std::Incrementable[Std::Int] & Std::Comparable[Std::Int]`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -699,7 +699,6 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		var newLowerBound types.Type
 		if whereTypeParam.LowerBound == nil {
 			newLowerBound = originalTypeParam.LowerBound
-
 		} else {
 			if !c.isSubtype(originalTypeParam.LowerBound, whereTypeParam.LowerBound, nil) {
 				c.addFailure(
@@ -718,7 +717,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 
 		var newUpperBound types.Type
 		if whereTypeParam.UpperBound == nil {
-			newUpperBound = originalTypeParam.LowerBound
+			newUpperBound = originalTypeParam.UpperBound
 		} else {
 			if !c.isSubtype(whereTypeParam.UpperBound, originalTypeParam.UpperBound, nil) {
 				c.addFailure(
@@ -745,9 +744,8 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			)
 			continue
 		}
-
-		whereTypeParam.UpperBound = newUpperBound
 		whereTypeParam.LowerBound = newLowerBound
+		whereTypeParam.UpperBound = newUpperBound
 		where = append(where, whereTypeParam)
 
 		narrowerTypeParam := originalTypeParam.Copy()

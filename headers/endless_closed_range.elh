@@ -16,4 +16,24 @@ sealed primitive class ::Std::EndlessClosedRange[Element < Comparable[Element]] 
 		Returns the lower bound of the range.
 	]##
 	def start: Element; end
+
+	extend where Element < Incrementable[Element] & Comparable[Element]
+		##[
+			Returns the iterator for this range.
+			Only ranges of incrementable values can be iterated over.
+		]##
+		def iter: Iterator[Element]; end
+	end
+
+	sealed primitive class Iterator[Element < Incrementable[Element] & Comparable[Element]]
+		include ::Std::Iterator::Base[Element]
+
+		init(range: EndlessClosedRange[Element]); end
+
+		##[
+			Get the next element of the list.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Element ! :stop_iteration; end
+	end
 end

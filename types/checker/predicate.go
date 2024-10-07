@@ -73,7 +73,76 @@ func (c *Checker) isTheSameNamespace(a, b types.Namespace) bool {
 // Check whether the two given types intersect.
 // Return true if they do, otherwise false.
 func (c *Checker) typesIntersect(a, b types.Type) bool {
-	return c.canBeIsA(a, b) || c.canBeIsA(b, a)
+	return c._typesIntersect(a, b) || c._typesIntersect(b, a)
+}
+
+func (c *Checker) _typesIntersect(a types.Type, b types.Type) bool {
+	switch a := a.(type) {
+	case *types.Nilable:
+		return c._typesIntersect(a.Type, b) || c._typesIntersect(types.Nil{}, b)
+	case *types.Union:
+		for _, element := range a.Elements {
+			if c._typesIntersect(element, b) {
+				return true
+			}
+		}
+		return false
+	case *types.Intersection:
+		for _, element := range a.Elements {
+			if c._typesIntersect(element, b) {
+				return true
+			}
+		}
+		return false
+	case *types.Generic:
+		genericB, ok := b.(*types.Generic)
+		if !ok {
+			return c.isSubtype(a, b, nil)
+		}
+
+		if !c.isSubtype(a.Namespace, genericB.Namespace, nil) {
+			return false
+		}
+
+		var genericParents []*types.Generic
+		for parent := range types.Parents(a) {
+			genericParent, ok := parent.(*types.Generic)
+			if !ok {
+				continue
+			}
+
+			if !c.isTheSameNamespace(genericParent.Namespace, genericB.Namespace) {
+				genericParents = append(genericParents, genericParent)
+				continue
+			}
+
+			for i := len(genericParents) - 1; i >= 0; i-- {
+				g := genericParents[i]
+				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap)
+			}
+
+			for name, argA := range genericParent.AllArguments() {
+				argB := genericB.ArgumentMap[name]
+
+				if !c._typesIntersect(argA.Type, argB.Type) {
+					return false
+				}
+			}
+
+			return true
+		}
+
+		return false
+	case *types.Not:
+		return !c.isTheSameType(a.Type, b, nil)
+	case *types.NamedType:
+		return c._typesIntersect(a.Type, b)
+	default:
+		if bTypeParam, ok := b.(*types.TypeParameter); ok {
+			return c.isSubtype(a, bTypeParam.UpperBound, nil) && c.isSubtype(bTypeParam.LowerBound, a, nil)
+		}
+		return c.isSubtype(a, b, nil)
+	}
 }
 
 // Check whether an "is a" relationship between `a` and `b` is possible.
@@ -132,16 +201,23 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		}
 		return false
 	case *types.Mixin, *types.Interface:
-		switch b.(type) {
+		switch narrowB := b.(type) {
 		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType, *types.TypeParameter:
 			return true
+		case *types.Generic:
+			return c._canIntersect(a, narrowB.Namespace)
+		default:
+			return false
 		}
-		return false
 	case *types.NamedType:
 		return c._canIntersect(a.Type, b)
 	case *types.Not:
 		return !c.isSubtype(b, a.Type, nil)
 	case *types.Generic:
+		switch a.Namespace.(type) {
+		case *types.Mixin, *types.Interface:
+			return c._canIntersect(a.Namespace, b)
+		}
 		genericB, ok := b.(*types.Generic)
 		if !ok {
 			return c.isSubtype(a, b, nil)
@@ -460,6 +536,8 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		switch narrowedB := b.(type) {
 		case *types.Generic:
 			return c.isSubtypeOfGeneric(a, narrowedB, errSpan)
+		case *types.Interface:
+			return c.isSubtypeOfInterface(a, narrowedB, errSpan)
 		default:
 			return c.isSubtype(a.Namespace, b, errSpan)
 		}

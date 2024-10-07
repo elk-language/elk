@@ -1706,6 +1706,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
+		methodLoop:
 			for name, method := range parent.Methods() {
 				if seenMethods.Contains(name) {
 					continue
@@ -1718,9 +1719,17 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 					continue
 				}
 
+				var whereParams []*types.TypeParameter
+				var whereArgs []types.Type
+				if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
+					whereParams = slices.Clone(mixinWithWhere.Where)
+					whereArgs = c.constructWhereArguments(whereParams)
+				}
+
 				var methodCopy *types.Method
 				for i := len(generics) - 1; i >= 0; i-- {
 					generic := generics[i]
+					c.replaceTypeParametersInWhere(whereParams, whereArgs, generic.ArgumentMap)
 					if methodCopy != nil {
 						c.replaceTypeParametersInMethod(methodCopy, generic.ArgumentMap)
 						continue
@@ -1732,6 +1741,19 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 						method = result
 					}
 				}
+
+				for i := range len(whereParams) {
+					whereParam := whereParams[i]
+					whereArg := whereArgs[i]
+
+					if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+						continue methodLoop
+					}
+					if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+						continue methodLoop
+					}
+				}
+
 				if !yield(name, method) {
 					return
 				}
@@ -1806,15 +1828,18 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			continue
 		}
 
-		if len(generics) < 1 {
-			return method
-		}
-
 		var whereParams []*types.TypeParameter
 		var whereArgs []types.Type
 		if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
+			if len(generics) < 1 {
+				return nil
+			}
 			whereParams = slices.Clone(mixinWithWhere.Where)
 			whereArgs = c.constructWhereArguments(whereParams)
+		}
+
+		if len(generics) < 1 {
+			return method
 		}
 
 		var methodCopy *types.Method

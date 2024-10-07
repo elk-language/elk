@@ -5,6 +5,7 @@
 ]##
 sealed primitive class ::Std::Float64 < Value
 	implement Hashable
+	implement Comparable[self]
 
 	##[
 		Returns itself.

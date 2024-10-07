@@ -3,6 +3,7 @@
 ]##
 sealed primitive class ::Std::Int32 < Value
 	implement Hashable
+	implement Comparable[self]
 
 	##[
 		Calculates a hash of the value.

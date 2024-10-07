@@ -1,0 +1,1 @@
+typedef Std::CoercibleNumeric = Int | Float | BigFloat

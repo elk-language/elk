@@ -29,4 +29,16 @@ sealed primitive class ::Std::ClosedRange[Element < Comparable[Element]] < Value
 		]##
 		def iter: Iterator[Element]; end
 	end
+
+	sealed primitive class Iterator[Element < Incrementable[Element] & Comparable[Element]]
+		include ::Std::Iterator::Base[Element]
+
+		init(range: ClosedRange[Element]); end
+
+		##[
+			Get the next element of the list.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Element ! :stop_iteration; end
+	end
 end

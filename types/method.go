@@ -322,17 +322,23 @@ func (m *Method) PositionalRestParam() *Parameter {
 }
 
 func (m *Method) inspect() string {
-	switch scope := m.DefinedUnder.(type) {
+	return inspectMethod(m.DefinedUnder, m.Name)
+}
+
+func inspectMethod(namespace Namespace, methodName value.Symbol) string {
+	switch scope := namespace.(type) {
 	case *Class, *Mixin:
-		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
+		return fmt.Sprintf("%s.:%s", scope.Name(), methodName)
 	case *Interface:
-		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
+		return fmt.Sprintf("%s.:%s", scope.Name(), methodName)
 	case *Module:
-		return fmt.Sprintf("%s::%s", scope.Name(), m.Name)
+		return fmt.Sprintf("%s::%s", scope.Name(), methodName)
 	case *Closure:
 		return "call"
+	case *MixinWithWhere:
+		return inspectMethod(scope.Namespace, methodName)
 	default:
-		panic(fmt.Sprintf("method without DefinedUnder: %#v", m.DefinedUnder))
+		panic(fmt.Sprintf("method with invalid DefinedUnder: %#v", namespace))
 	}
 }
 

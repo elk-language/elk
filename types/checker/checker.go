@@ -1385,6 +1385,13 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
 		node.SetType(generic)
 	} else if !c.isSubtype(valueType, comparableValueType, node.Span()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type %s is not comparable and cannot be used in range literals",
+				types.InspectWithColor(valueType),
+			),
+			node.Span(),
+		)
 		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
 		node.SetType(generic)
 	} else {
@@ -3330,13 +3337,20 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 			typeParameter.Variance,
 		)
 		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
+	}
+	for i := range len(typeParams) {
+		typeParameter := typeParams[i]
+		typeArgumentNode := typeArgs[i]
+		typeArgument := c.typeOf(typeArgumentNode)
 
-		if !c.isSubtype(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span()) {
-			c.addUpperBoundError(typeArgument, typeParameter.UpperBound, typeArgumentNode.Span())
+		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap)
+		if !c.isSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
+			c.addUpperBoundError(typeArgument, upperBound, typeArgumentNode.Span())
 			fail = true
 		}
-		if !c.isSubtype(typeParameter.LowerBound, typeArgument, typeArgumentNode.Span()) {
-			c.addLowerBoundError(typeArgument, typeParameter.LowerBound, typeArgumentNode.Span())
+		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap)
+		if !c.isSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
+			c.addLowerBoundError(typeArgument, lowerBound, typeArgumentNode.Span())
 			fail = true
 		}
 		switch t := typeArgument.(type) {
@@ -4863,7 +4877,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, methodMode, outputPositionTypeMode:
+		case closureInferReturnTypeMode, methodMode, outputPositionTypeMode, inheritanceMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(
@@ -5515,7 +5529,7 @@ func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.T
 }
 
 func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) {
-	if !c.canIntersect(assignedType, targetType) {
+	if !c.typesIntersect(assignedType, targetType) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot ever match type `%s`",

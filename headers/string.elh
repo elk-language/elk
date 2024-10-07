@@ -1,5 +1,6 @@
 sealed primitive class ::Std::String < Value
 	implement Hashable
+	implement Comparable[self]
 
 	##[
 		Concatenate this `String`

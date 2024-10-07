@@ -3,6 +3,7 @@
 ]##
 sealed primitive class ::Std::Char < Value
 	implement Hashable
+	implement Comparable[self]
 
 	##[
 		Get the next Unicode codepoint by incrementing by 1.

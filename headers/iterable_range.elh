@@ -1,12 +1,7 @@
 ##[
 	Represents a `Range` that can be iterated over.
 ]##
-interface ::Std::IterableRange[Element < Comparable[Element]]
+interface ::Std::IterableRange[Element < Incrementable[Element] & Comparable[Element]]
 	implement Range[Element]
 	implement Iterable::Primitive[Element]
-
-	##[
-		Returns an iterator for this range.
-	]##
-	sig iter: Iterator[Element]
 end
