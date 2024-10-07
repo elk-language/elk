@@ -1,7 +1,7 @@
 ##[
 	Represents an open range from `start` to `end` *(start, end)*
 ]##
-sealed primitive class ::Std::OpenRange[+Element] < Value
+sealed primitive class ::Std::OpenRange[Element < Comparable[Element]] < Value
 	include Range::Base[Element]
 
 	def is_left_closed: false; end

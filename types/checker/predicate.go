@@ -185,6 +185,52 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 	}
 }
 
+func (c *Checker) containsTypeParameters(typ types.Type) bool {
+	switch t := typ.(type) {
+	case *types.SingletonOf:
+		return c.containsTypeParameters(t.Type)
+	case *types.InstanceOf:
+		return c.containsTypeParameters(t.Type)
+	case *types.Closure:
+		for _, param := range t.Body.Params {
+			if c.containsTypeParameters(param.Type) {
+				return true
+			}
+		}
+
+		return c.containsTypeParameters(t.Body.ReturnType) || c.containsTypeParameters(t.Body.ThrowType)
+	case *types.Generic:
+		for _, arg := range t.AllArguments() {
+			if c.containsTypeParameters(arg.Type) {
+				return true
+			}
+		}
+		return c.containsTypeParameters(t.Namespace)
+	case *types.TypeParameter:
+		return true
+	case *types.Nilable:
+		return c.containsTypeParameters(t.Type)
+	case *types.Not:
+		return c.containsTypeParameters(t.Type)
+	case *types.Union:
+		for _, element := range t.Elements {
+			if c.containsTypeParameters(element) {
+				return true
+			}
+		}
+		return false
+	case *types.Intersection:
+		for _, element := range t.Elements {
+			if c.containsTypeParameters(element) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
 func (c *Checker) typesAreIdentical(a, b types.Type) bool {
 	if a == b {
 		return true
@@ -217,13 +263,13 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 		b = bNamedType.Type
 	}
 
-	if types.IsNever(a) || types.IsNothing(a) {
+	if types.IsNever(a) || types.IsUntyped(a) {
 		return true
 	}
 	switch narrowedB := b.(type) {
 	case *types.NamedType:
 		return c.isSubtype(a, narrowedB.Type, errSpan)
-	case types.Any, types.Void, types.Nothing:
+	case types.Any, types.Void, types.Untyped:
 		return true
 	case types.Nil:
 		b = c.StdNil()

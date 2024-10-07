@@ -3,7 +3,7 @@
 
 	The default implementation of `Range` is `ClosedRange`.
 ]##
-interface ::Std::Range[+Element]
+interface ::Std::Range[Element]
 	implement Container[Element]
 
 	##[
@@ -45,7 +45,7 @@ interface ::Std::Range[+Element]
 	##[
 		Provides default implementations of some Range methods.
 	]##
-	abstract mixin Base[+Element]
+	abstract mixin Base[Element]
 		implement Range[Element]
 
 		def start: Element?; end

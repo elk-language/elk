@@ -438,7 +438,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 		c.pushIsolatedLocalEnv()
 		c.selfType = module
 	} else {
-		c.selfType = types.Nothing{}
+		c.selfType = types.Untyped{}
 		c.addFailure(
 			"module definitions cannot appear in this context",
 			node.Span(),
@@ -465,7 +465,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.pushIsolatedLocalEnv()
 		c.selfType = class.Singleton()
 	} else {
-		c.selfType = types.Nothing{}
+		c.selfType = types.Untyped{}
 		c.addFailure(
 			"class definitions cannot appear in this context",
 			node.Span(),
@@ -492,7 +492,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		c.pushIsolatedLocalEnv()
 		c.selfType = mixin.Singleton()
 	} else {
-		c.selfType = types.Nothing{}
+		c.selfType = types.Untyped{}
 		c.addFailure(
 			"mixin definitions cannot appear in this context",
 			node.Span(),
@@ -518,7 +518,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 		c.pushIsolatedLocalEnv()
 		c.selfType = iface.Singleton()
 	} else {
-		c.selfType = types.Nothing{}
+		c.selfType = types.Untyped{}
 		c.addFailure(
 			"interface definitions cannot appear in this context",
 			node.Span(),
@@ -544,7 +544,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		c.pushIsolatedLocalEnv()
 		c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
 	} else {
-		c.selfType = types.Nothing{}
+		c.selfType = types.Untyped{}
 		c.addFailure(
 			"singleton definitions cannot appear in this context",
 			node.Span(),
@@ -623,7 +623,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"cannot declare extend blocks in this context",
 				node.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.ImplementExpressionNode:
@@ -632,7 +632,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"cannot implement interfaces in this context",
 				node.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.InstanceVariableDeclarationNode:
@@ -641,7 +641,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"instance variable definitions cannot appear in this context",
 				n.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.UsingExpressionNode:
@@ -650,7 +650,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"using declarations cannot appear in this context",
 				n.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 			return n
 		}
 		c.resolveUsingExpression(n)
@@ -661,7 +661,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"type definitions cannot appear in this context",
 				n.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.StructDeclarationNode:
@@ -669,7 +669,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			"struct definitions cannot appear in this context",
 			n.Constant.Span(),
 		)
-		n.SetType(types.Nothing{})
+		n.SetType(types.Untyped{})
 		return n
 	case *ast.MethodDefinitionNode, *ast.InitDefinitionNode,
 		*ast.MethodSignatureDefinitionNode, *ast.SetterDeclarationNode,
@@ -679,7 +679,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 				"method definitions cannot appear in this context",
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.SelfLiteralNode:
@@ -1371,12 +1371,21 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 		}
 	}
 
+	comparable := c.Std(symbol.Comparable).(*types.Interface)
 	valueType := c.newNormalisedUnion(valueTypes...)
+	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
 	if typ != nil {
 		c.checkCanAssign(valueType, typ.TypeArguments.Get(0).Type, node.Span())
 		node.SetType(typ)
 	} else if len(valueTypes) == 0 {
-		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Any{})
+		c.addFailure(
+			"cannot infer the type argument in a range literal",
+			node.Span(),
+		)
+		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
+		node.SetType(generic)
+	} else if !c.isSubtype(valueType, comparableValueType, node.Span()) {
+		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
 		node.SetType(generic)
 	} else {
 		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), valueType)
@@ -2566,7 +2575,7 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 	case token.QUESTION_QUESTION:
 		return c.checkNilCoalescingOperator(node)
 	default:
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		c.addFailure(
 			fmt.Sprintf(
 				"invalid logical operator: `%s`",
@@ -2769,7 +2778,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 	default:
 		node.Left = c.checkExpression(node.Left)
 		node.Right = c.checkExpression(node.Right)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		c.addFailure(
 			fmt.Sprintf(
 				"invalid binary operator: `%s`",
@@ -2815,7 +2824,7 @@ func (c *Checker) checkPipeExpression(node *ast.BinaryExpressionNode) ast.Expres
 			),
 			node.Right.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 }
@@ -3168,7 +3177,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 			),
 			node.Span(),
 		)
-		return types.Nothing{}
+		return types.Untyped{}
 	}
 	return typ
 }
@@ -3178,7 +3187,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3194,14 +3203,14 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		if !ok {
 			c.checkExpressions(node.PositionalArguments)
 			c.checkNamedArguments(node.NamedArguments)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 
 		method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
 	} else if len(method.TypeParameters) > 0 {
 		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(node.TypeArguments), node.Span())
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3217,7 +3226,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	if method == nil || method.IsPlaceholder {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3235,11 +3244,11 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			node.Span(),
 		)
 		if typedPositionalArguments == nil {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		if len(typeArgMap) != len(method.TypeParameters) {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
@@ -3372,7 +3381,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		)
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3431,13 +3440,13 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {
 	classType, _ := c.resolveConstantType(node.Class)
 	if classType == nil {
-		classType = types.Nothing{}
+		classType = types.Untyped{}
 	}
 
-	if types.IsNothing(classType) {
+	if types.IsUntyped(classType) {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 	class, isClass := classType.(*types.Class)
@@ -3448,7 +3457,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		)
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3468,7 +3477,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	if !ok {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3507,13 +3516,13 @@ func (c *Checker) addToMethodCache(method *types.Method) {
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
 	classType, _ := c.resolveConstantType(node.Class)
 	if classType == nil {
-		classType = types.Nothing{}
+		classType = types.Untyped{}
 	}
 
-	if types.IsNothing(classType) {
+	if types.IsUntyped(classType) {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 	class, isClass := classType.(*types.Class)
@@ -3524,7 +3533,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		)
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -3589,7 +3598,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.Span(),
 	)
 	if len(typeArgMap) != len(class.TypeParameters()) {
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
@@ -3910,8 +3919,8 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	var variableType types.Type
 	variable, _ := c.resolveLocal(name, node.Left.Span())
 	if variable == nil {
-		node.Left.SetType(types.Nothing{})
-		variableType = types.Nothing{}
+		node.Left.SetType(types.Untyped{})
+		variableType = types.Untyped{}
 	} else if variable.singleAssignment && variable.initialised {
 		c.addFailure(
 			fmt.Sprintf("local value `%s` cannot be reassigned", name),
@@ -4628,7 +4637,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Span()) {
-		return types.Nothing{}, typeName
+		return types.Untyped{}, typeName
 	}
 	return subtype.Type, typeName
 }
@@ -4663,7 +4672,7 @@ func (c *Checker) addTypeArgumentCountError(name string, paramCount, argCount in
 func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.TypeNode, string) {
 	constantType, fullName := c.resolveConstantType(node.Constant)
 	if constantType == nil {
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node, fullName
 	}
 
@@ -4676,7 +4685,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			node.Constant.Span(),
 		)
 		if !ok {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node, fullName
 		}
 
@@ -4690,7 +4699,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			node.Constant.Span(),
 		)
 		if !ok {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node, fullName
 		}
 
@@ -4705,7 +4714,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			node.Constant.Span(),
 		)
 		if !ok {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node, fullName
 		}
 
@@ -4720,22 +4729,22 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			node.Constant.Span(),
 		)
 		if !ok {
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node, fullName
 		}
 
 		generic := types.NewGeneric(t, typeArgumentMap)
 		node.SetType(generic)
 		return node, fullName
-	case types.Nothing:
-		node.SetType(types.Nothing{})
+	case types.Untyped:
+		node.SetType(types.Untyped{})
 		return node, fullName
 	default:
 		c.addFailure(
 			fmt.Sprintf("type `%s` is not generic", types.InspectWithColor(constantType)),
 			node.Constant.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node, fullName
 	}
 }
@@ -4745,24 +4754,24 @@ func (c *Checker) checkSimpleConstantType(name string, span *position.Span) type
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
 		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	case *types.Class:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Nothing{}
+			typ = types.Untyped{}
 		}
 	case *types.Mixin:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Nothing{}
+			typ = types.Untyped{}
 		}
 	case *types.Interface:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Nothing{}
+			typ = types.Untyped{}
 		}
 	case nil:
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	}
 	return typ
 }
@@ -4864,7 +4873,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 				),
 				n.Span(),
 			)
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		}
 		return n
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.VoidTypeNode,
@@ -4924,7 +4933,7 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 			),
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 	}
 
 	return node
@@ -4949,7 +4958,7 @@ func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNo
 				fmt.Sprintf("type parameter `%s` must have an upper bound that is a class, mixin or interface to be used with the singleton type", types.InspectWithColor(typ)),
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		singletonOf := types.NewSingletonOf(t)
@@ -4963,14 +4972,14 @@ func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNo
 				fmt.Sprintf("type `%s` must be a class or mixin to be used with the singleton type", types.InspectWithColor(c.selfType)),
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		singletonOf := types.NewSingletonOf(t)
 		node.SetType(singletonOf)
 		return node
-	case types.Nothing:
-		node.SetType(types.Nothing{})
+	case types.Untyped:
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -4979,7 +4988,7 @@ func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNo
 			fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -5006,7 +5015,7 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 					fmt.Sprintf("type parameter `%s` must have an upper bound that is a singleton class to be used with the instance of type", types.InspectWithColor(typ)),
 					node.Span(),
 				)
-				node.SetType(types.Nothing{})
+				node.SetType(types.Untyped{})
 				return node
 			}
 		default:
@@ -5014,7 +5023,7 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 				fmt.Sprintf("type parameter `%s` must have an upper bound that is a singleton class to be used with the instance of type", types.InspectWithColor(typ)),
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		instanceOf := types.NewInstanceOf(t)
@@ -5028,14 +5037,14 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 				fmt.Sprintf("type `%s` must be a singleton class to be used with the instance of type", types.InspectWithColor(c.selfType)),
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return node
 		}
 		instanceOf := types.NewInstanceOf(t)
 		node.SetType(instanceOf)
 		return node
-	case types.Nothing:
-		node.SetType(types.Nothing{})
+	case types.Untyped:
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -5044,7 +5053,7 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 			fmt.Sprintf("cannot get instance of `%s`", types.InspectWithColor(typ)),
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -5096,7 +5105,7 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local, _ := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 	if !local.initialised {
@@ -5112,7 +5121,7 @@ func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
 	local, _ := c.resolveLocal(node.Value, node.Span())
 	if local == nil {
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return node
 	}
 	if !local.initialised {
@@ -5144,7 +5153,7 @@ func (c *Checker) checkInstanceVariable(name string, span *position.Span) types.
 			),
 			span,
 		)
-		return types.Nothing{}
+		return types.Untyped{}
 	}
 
 	return typ
@@ -5191,7 +5200,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 }
 
 func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
-	node.SetType(types.Nothing{})
+	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -5204,7 +5213,7 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 }
 
 func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
-	node.SetType(types.Nothing{})
+	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -5217,7 +5226,7 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 }
 
 func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
-	node.SetType(types.Nothing{})
+	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
 		if !ok {
@@ -5244,7 +5253,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			node.Span(),
 		)
 
-		declaredType = types.Nothing{}
+		declaredType = types.Untyped{}
 	} else {
 		prevMode := c.mode
 		c.mode = instanceVariableMode
@@ -5266,7 +5275,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 				),
 				node.Span(),
 			)
-			node.SetType(types.Nothing{})
+			node.SetType(types.Untyped{})
 			return
 		}
 	}
@@ -5281,7 +5290,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			),
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return
 	}
 
@@ -5311,15 +5320,15 @@ func (c *Checker) checkVariableDeclaration(
 				fmt.Sprintf("cannot declare a variable without a type `%s`", name),
 				span,
 			)
-			c.addLocal(name, newLocal(types.Nothing{}, false, false))
-			return initialiser, typeNode, types.Nothing{}
+			c.addLocal(name, newLocal(types.Untyped{}, false, false))
+			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(name, newLocal(declaredType, false, false))
-		return initialiser, declaredTypeNode, types.Nothing{}
+		return initialiser, declaredTypeNode, types.Untyped{}
 	}
 
 	// with an initialiser
@@ -5579,8 +5588,8 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name, newLocal(types.Nothing{}, false, true))
-			node.SetType(types.Nothing{})
+			c.addLocal(node.Name, newLocal(types.Untyped{}, false, true))
+			node.SetType(types.Untyped{})
 			return
 		}
 
@@ -5589,7 +5598,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return
 	}
 
@@ -6154,7 +6163,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 					continue
 				}
 				namespace := c.currentMethodScope().container
-				expr.SetType(types.Nothing{})
+				expr.SetType(types.Untyped{})
 				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
 			case *ast.IncludeExpressionNode:
 				switch c.mode {
@@ -6163,7 +6172,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 					continue
 				}
 				namespace := c.currentMethodScope().container
-				expr.SetType(types.Nothing{})
+				expr.SetType(types.Untyped{})
 				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
@@ -6175,7 +6184,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 }
 
 func (c *Checker) checkUsingExpressionForNamespaces(node *ast.UsingExpressionNode) {
-	node.SetType(types.Nothing{})
+	node.SetType(types.Untyped{})
 	for i, entry := range node.Entries {
 		node.Entries[i] = c.checkUsingEntryNodeForNamespaces(entry)
 	}
@@ -6436,7 +6445,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 }
 
 func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
-	node.SetType(types.Nothing{})
+	node.SetType(types.Untyped{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
 		method := c.resolveMethodInNamespace(namespace, value.ToSymbol(entry.OldName))

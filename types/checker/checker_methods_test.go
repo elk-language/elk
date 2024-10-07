@@ -2345,6 +2345,52 @@ func TestGenericMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(77, 5, 16), P(90, 5, 29)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
+		"infer type argument from upper bound": {
+			input: `
+				module Foo
+					def foo[V < Int]: V then loop; end
+				end
+				var a: 9 = Foo.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 5, 16), P(87, 5, 24)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument from upper bound with type parameters": {
+			input: `
+				module Foo
+					def foo[V < Comparable[V]]: V then loop; end
+				end
+				var a: 9 = Foo.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 29), P(44, 3, 29)), "undefined type `V`"),
+				error.NewFailure(L("<main>", P(89, 5, 16), P(97, 5, 24)), "type `Std::Comparable[untyped]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument from lower bound": {
+			input: `
+				module Foo
+					def foo[V > Int]: V then loop; end
+				end
+				var a: 9 = Foo.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(79, 5, 16), P(87, 5, 24)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument from lower bound with type parameters": {
+			input: `
+				module Foo
+					def foo[V > Comparable[V]]: V then loop; end
+				end
+				var a: 9 = Foo.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 3, 29), P(44, 3, 29)), "undefined type `V`"),
+				error.NewFailure(L("<main>", P(89, 5, 16), P(97, 5, 24)), "type `Std::Comparable[untyped]` cannot be assigned to type `9`"),
+			},
+		},
 		"infer type argument incompatible with lower bound": {
 			input: `
 				module Foo
@@ -2840,6 +2886,16 @@ func TestConstructorCallInference(t *testing.T) {
 				error.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
+		"infer type argument based on upper bound with type parameters": {
+			input: `
+				class Foo[V < Comparable[V]]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "cannot infer type argument for `V` in call to `#init`"),
+				error.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `Foo[untyped]` cannot be assigned to type `9`"),
+			},
+		},
 		"infer type argument based on lower bound": {
 			input: `
 				class Foo[V > String]; end
@@ -2847,6 +2903,15 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type argument based on lower bound with type parameters": {
+			input: `
+				class Foo[V > Comparable[V]]; end
+				var a: 9 = Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on lower bound and upper bound": {

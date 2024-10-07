@@ -60,6 +60,7 @@ var (
 	LeftOpenRange        = value.ToSymbol("LeftOpenRange")
 	OpenRange            = value.ToSymbol("OpenRange")
 	RightOpenRange       = value.ToSymbol("RightOpenRange")
+	Comparable           = value.ToSymbol("Comparable")
 )
 
 var (

@@ -199,11 +199,44 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		return
 	}
 
-	buffer.WriteString(`namespace.SetTypeParameters(`)
-	createTypeParameters(buffer, namespace.TypeParameters())
-	buffer.WriteString(")\n")
+	buffer.WriteString("\n// Set up type parameters\nvar typeParam *TypeParameter\n")
+	fmt.Fprintf(
+		buffer,
+		"typeParams := make([]*TypeParameter, %d)\n",
+		len(namespace.TypeParameters()),
+	)
 
-	defineTypeParameters(buffer, namespace)
+	for i, param := range namespace.TypeParameters() {
+		fmt.Fprintf(
+			buffer,
+			`
+				typeParam = NewTypeParameter(value.ToSymbol(%[1]q), namespace, Never{}, Any{}, %[2]s)
+				typeParams[%[3]d] = typeParam
+				namespace.DefineSubtype(value.ToSymbol(%[1]q), typeParam)
+				namespace.DefineConstant(value.ToSymbol(%[1]q), NoValue{})
+			`,
+			param.Name.String(),
+			param.Variance.String(),
+			i,
+		)
+
+		if !types.IsNever(param.LowerBound) {
+			fmt.Fprintf(
+				buffer,
+				"typeParam.LowerBound = %s\n",
+				typeToCode(param.LowerBound, false),
+			)
+		}
+		if !types.IsAny(param.UpperBound) {
+			fmt.Fprintf(
+				buffer,
+				"typeParam.UpperBound = %s\n",
+				typeToCode(param.UpperBound, false),
+			)
+		}
+	}
+
+	buffer.WriteString("\nnamespace.SetTypeParameters(typeParams)\n\n")
 }
 
 func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*types.TypeParameter) {
@@ -231,12 +264,6 @@ func createTypeParameters(buffer *bytes.Buffer, typeParams []*types.TypeParamete
 		)
 	}
 	buffer.WriteString("}")
-}
-
-func defineTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
-	for _, param := range namespace.TypeParameters() {
-		defineSubtype(buffer, param, param.Name.String())
-	}
 }
 
 func defineTypeParametersInSubtypes(buffer *bytes.Buffer, namespace types.Namespace) {
@@ -360,8 +387,7 @@ func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespa
 func defineSubtype(buffer *bytes.Buffer, subtype types.Type, name string) {
 	fmt.Fprintf(
 		buffer,
-		`namespace.DefineSubtype(value.ToSymbol(%q), %s)
-		`,
+		"namespace.DefineSubtype(value.ToSymbol(%q), %s)\n",
 		name,
 		typeToCode(subtype, true),
 	)
@@ -537,7 +563,7 @@ func typeToCode(typ types.Type, init bool) string {
 		return "False{}"
 	case types.Never:
 		return "Never{}"
-	case types.Nothing:
+	case types.Untyped:
 		return "Nothing{}"
 	case *types.Not:
 		return fmt.Sprintf(
@@ -558,13 +584,22 @@ func typeToCode(typ types.Type, init bool) string {
 			t.Name,
 		)
 	case *types.TypeParameter:
+		namespaceName := t.Namespace.Name()
+		if init || len(namespaceName) == 0 {
+			return fmt.Sprintf(
+				"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s)",
+				t.Name,
+				namespaceToCode(t.Namespace),
+				typeToCode(t.LowerBound, false),
+				typeToCode(t.UpperBound, false),
+				t.Variance.String(),
+			)
+		}
+
 		return fmt.Sprintf(
-			"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s)",
-			t.Name,
-			namespaceToCode(t.Namespace),
-			typeToCode(t.LowerBound, false),
-			typeToCode(t.UpperBound, false),
-			t.Variance.String(),
+			`NameToType("%s::%s", env)`,
+			namespaceName,
+			t.Name.String(),
 		)
 	case *types.Class:
 		return fmt.Sprintf(

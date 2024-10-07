@@ -61,7 +61,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be compared\nusing relational operators like `>`, `>=`, `<`, `<=`, `<=>`", value.ToSymbol("Comparable"), env)
-			namespace.DefineSubtype(value.ToSymbol("CmpOutput"), NewNamedType("Std::Comparable::CmpOutput", NewUnion(NewIntLiteral("1"), NewIntLiteral("0"), NewIntLiteral("1"), Nil{})))
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -282,33 +281,43 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("ArrayList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::List::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::List::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayList::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nand another given `ArrayList` or `ArrayTuple`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")}))), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nand another given `ArrayList` or `ArrayTuple`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")}))), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::ArrayList::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayList`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayList` or `ArrayTuple`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
-				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
-				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Adds the given values to the list.\n\nReallocates the underlying array if it is\ntoo small to hold them.", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::ArrayList::Element", env), Never{})
+				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Adds the given values to the list.\n\nReallocates the underlying array if it is\ntoo small to hold them.", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::ArrayList::Element", env), PositionalRestParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Returns the number of elements that can be\nheld by the underlying array.\n\nThis value will change when the list gets resized,\nand the underlying array gets reallocated", false, false, true, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Removes all elements from the list.", false, false, true, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this list.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this list.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::ArrayList::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::ArrayList::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Mutates the list.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", false, false, true, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayList::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayList::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayList::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the list before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", false, false, true, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the list.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new List that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nMutates the list in place replacing the elements with the ones\nreturned by the given closure.", false, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Adds the given value to the list.", false, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Removes the element from the list.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", false, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new List that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nMutates the list in place replacing the elements with the ones\nreturned by the given closure.", false, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, NameToType("Std::ArrayList::Element", env), Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Adds the given value to the list.", false, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Removes the element from the list.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", false, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Element", env), NormalParameterKind, false)}, Bool{}, Never{})
 
 				// Define constants
 
@@ -318,14 +327,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayList::Iterator::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayList::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::ArrayList::Iterator::Element", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 
@@ -336,22 +354,32 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("ArrayTuple").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayTuple::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nand another given `ArrayTuple`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nrepeated `n` times.", false, true, true, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayTuple::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Create a new `ArrayTuple` containing the elements of `self`\nand another given `ArrayTuple`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::ArrayTuple::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple` or `ArrayList`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
-				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the tuple.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::ArrayTuple::Element", env), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the tuple.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayTuple::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the tuple.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new Tuple that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple", env).(*Class), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new Tuple that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayTuple::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -361,14 +389,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayTuple::Iterator::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("Get the next element of the tuple.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ArrayTuple::Iterator", env).(*Class), Never{}, Any{}, COVARIANT), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Get the next element of the tuple.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::ArrayTuple::Iterator::Element", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 
@@ -379,16 +416,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("BeginlessClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::BeginlessClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::BeginlessClosedRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::BeginlessClosedRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::BeginlessClosedRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
 
@@ -400,16 +448,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("BeginlessOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::BeginlessOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::BeginlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::BeginlessOpenRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::BeginlessOpenRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::BeginlessOpenRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
 
@@ -519,31 +578,42 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("ClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
-				// extend where Element < Std::Incrementable[Element]
+				// extend where Element < never
 				mixin = NewMixin("", false, "", env)
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), COVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Never{}, INVARIANT))
 
 					// Define methods
-					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ClosedRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), mixin, Never{}, NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), mixin, Never{}, Never{}, INVARIANT)})
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::ClosedRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::ClosedRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::ClosedRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::ClosedRange::Element", env), Never{})
 
 				// Define constants
 
@@ -553,21 +623,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Collection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Collection::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Adds the given values to the collection.", true, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Collection::Element", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Adds the given values to the collection.", true, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Collection::Element", env), PositionalRestParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Removes all elements from the collection.", true, false, true, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Returns the number of elements present in the collection.", true, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nReturns a new collection that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Removes the element from the collection.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", true, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Removes all given elements from the collection.\n\nReturns `true` if any elements have been removed,\notherwise returns `false.", true, false, true, value.ToSymbol("remove_all"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection", env).(*Interface), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nReturns a new collection that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Collection::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the collection.", true, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Collection::Element", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Removes the element from the collection.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", true, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Collection::Element", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Removes all given elements from the collection.\n\nReturns `true` if any elements have been removed,\notherwise returns `false.", true, false, true, value.ToSymbol("remove_all"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Collection::Element", env), PositionalRestParameterKind, false)}, Bool{}, Never{})
 
 				// Define constants
 
@@ -577,18 +656,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Collection::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Collection::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("remove_all"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Collection::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Collection::Base::Element", env), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Collection::Base::Element", env), PositionalRestParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Collection::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("remove_all"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Collection::Base::Element", env), PositionalRestParameterKind, false)}, Bool{}, Never{})
 
 					// Define constants
 
@@ -599,18 +687,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Comparable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("T"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("T"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("T"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("T"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Equatable", env).(*Interface))
 
 				// Define methods
-				namespace.DefineMethod("Check if `self` is less than `other`", true, false, true, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check if `self` is less than or equal to `other`", true, false, true, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns:\n\n- `1` if `self` is greater than `other`\n- `0` if both are equal.\n- `-1` if `self` is less than `other`.\n– `nil` if the comparison was impossible (NaN)", true, false, true, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, NameToType("Std::Comparable::CmpOutput", env), Never{})
-				namespace.DefineMethod("Check if `self` is greater than `other`", true, false, true, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check if `self` is greater than or equal to `other`", true, false, true, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Comparable", env).(*Interface), Never{}, Any{}, CONTRAVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check if `self` is less than `other`", true, false, true, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check if `self` is less than or equal to `other`", true, false, true, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns:\n\n- `1` if `self` is greater than `other`\n- `0` if both are equal.\n- `-1` if `self` is less than `other`.\n– `nil` if the comparison was impossible (NaN)", true, false, true, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Int", env)), Never{})
+				namespace.DefineMethod("Check if `self` is greater than `other`", true, false, true, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check if `self` is greater than or equal to `other`", true, false, true, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, Bool{}, Never{})
 
 				// Define constants
 
@@ -620,13 +717,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Container").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this container.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Container", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this container.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Container::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Container::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 
 				// Define constants
 
@@ -636,13 +742,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Decrementable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("T"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("T"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("T"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("T"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Get the previous value of this type, the predecessor of `self`", true, false, true, value.ToSymbol("--"), nil, nil, NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Decrementable", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Get the previous value of this type, the predecessor of `self`", true, false, true, value.ToSymbol("--"), nil, nil, NameToType("Std::Decrementable::T", env), Never{})
 
 				// Define constants
 
@@ -652,18 +767,29 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("EndlessClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::EndlessClosedRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::EndlessClosedRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::EndlessClosedRange::Element", env), Never{})
 
 				// Define constants
 
@@ -673,18 +799,29 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("EndlessOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::EndlessOpenRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::EndlessOpenRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::EndlessOpenRange::Element", env), Never{})
 
 				// Define constants
 
@@ -854,30 +991,44 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT))
-				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Create a new `HashMap` containing the pairs of `self`\nand another given record/map.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Create a new `HashMap` containing the pairs of `self`\nand another given record/map.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NameToType("Std::HashMap::Key", env), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NameToType("Std::HashMap::Value", env), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Check whether the given value is a `HashMap`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Check whether the given value is an `HashMap` or `HashRecord`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT)), Never{})
-				namespace.DefineMethod("Set the element under the given index to the given value.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::HashMap::Key", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::HashMap::Value", env)), Never{})
+				namespace.DefineMethod("Set the element under the given index to the given value.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::HashMap::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::HashMap::Value", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Returns the number of key-value pairs that can be\nheld by the underlying array.\n\nThis value will change when the map gets resized,\nand the underlying array gets reallocated.", false, false, true, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Check whether the given `pair` is present in this map.", false, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `key` is present in this map.", false, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this map.", false, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `pair` is present in this map.", false, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `key` is present in this map.", false, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::HashMap::Key", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this map.", false, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashMap::Value", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Mutates the map.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", false, false, true, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the map.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashMap::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the map.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashMap::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Returns the number of left slots for new key-value pairs\nin the underlying array.\nIt tells you how many more elements can be\nadded to the map before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", false, false, true, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the number of key-value pairs present in the map.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the key value pairs of this map,\nyielding them to the given closure.\n\nReturns a new HashMap that consists of the key value pairs returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
-				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nReturns a new HashMap that consists of the values returned\nby the given closure.", false, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
-				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nMutates the map in place replacing the values with the ones\nreturned by the given closure.", false, false, true, value.ToSymbol("map_values_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap", env).(*Class), Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Iterates over the key value pairs of this map,\nyielding them to the given closure.\n\nReturns a new HashMap that consists of the key value pairs returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nReturns a new HashMap that consists of the values returned\nby the given closure.", false, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashMap::Value", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nMutates the map in place replacing the values with the ones\nreturned by the given closure.", false, false, true, value.ToSymbol("map_values_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashMap::Value", env), NormalParameterKind, false)}, NameToType("Std::HashMap::Value", env), Never{}), NormalParameterKind, false)}, Self{}, Never{})
 
 				// Define constants
 
@@ -887,15 +1038,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
-					namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 2)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+					typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[1] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("Get the next pair of the map.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashMap::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Get the next pair of the map.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 
@@ -906,26 +1070,40 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("HashRecord").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT))
-				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
 				// Define methods
-				namespace.DefineMethod("Create a new `HashRecord` containing the pairs of `self`\nand another given record.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Create a new `HashRecord` containing the pairs of `self`\nand another given record.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NameToType("Std::HashRecord::Key", env), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NameToType("Std::HashRecord::Value", env), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Check whether the given value is a `HashRecord`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Check whether the given value is an `HashRecord` or `HashMap`\nwith the same elements.", false, true, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT)), Never{})
-				namespace.DefineMethod("Check whether the given `pair` is present in this record.", false, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `key` is present in this record.", false, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this record.", false, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the record.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashRecord::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::HashRecord::Key", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::HashRecord::Value", env)), Never{})
+				namespace.DefineMethod("Check whether the given `pair` is present in this record.", false, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `key` is present in this record.", false, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::HashRecord::Key", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this record.", false, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashRecord::Value", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the record.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashRecord::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Returns the number of key-value pairs present in the record.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the key value pairs of this record,\nyielding them to the given closure.\n\nReturns a new HashRecord that consists of the key value pairs returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
-				namespace.DefineMethod("Iterates over the values of this record,\nyielding them to the given closure.\n\nReturns a new HashRecord that consists of the values returned\nby the given closure.", false, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the key value pairs of this record,\nyielding them to the given closure.\n\nReturns a new HashRecord that consists of the key value pairs returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the values of this record,\nyielding them to the given closure.\n\nReturns a new HashRecord that consists of the values returned\nby the given closure.", false, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashRecord::Value", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 
 				// Define constants
 
@@ -935,15 +1113,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
-					namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 2)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+					typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[1] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("Get the next pair of the record.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::HashRecord::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Get the next pair of the record.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 
@@ -954,31 +1145,41 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("HashSet").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Set::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Set::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::HashSet::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\nCreate a new `HashSet` containing only the elements\npresent both in `self` and `other`.", false, true, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the set.\n\nDoes nothing if the value is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::HashSet::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the set.\n\nDoes nothing if the value is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashSet::Element", env), NormalParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Check whether the given value is a `HashSet`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Check whether the given value is a `HashSet`\nwith the same elements.", false, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Adds the given values to the set.\n\nSkips a value if it is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold them.", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Adds the given values to the set.\n\nSkips a value if it is already present in the set.\n\nReallocates the underlying array if it is\ntoo small to hold them.", false, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::HashSet::Element", env), PositionalRestParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Returns the number of elements that can be\nheld by the underlying array.\n\nThis value will change when the set gets resized,\nand the underlying array gets reallocated.", false, false, true, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Removes all elements from the set.", false, false, true, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this set.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this set.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::HashSet::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::HashSet::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Mutates the set.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", false, false, true, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the set.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashSet::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the set.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::HashSet::Iterator", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::HashSet::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the set before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", false, false, true, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the set.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new HashSet that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Removes the element from the set.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", false, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new HashSet that consists of the elements returned\nby the given closure.", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::HashSet::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.\n\nReallocates the underlying array if it is\ntoo small to hold it.", false, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashSet::Element", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Removes the element from the set.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", false, false, true, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::HashSet::Element", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new `HashSet` containing all the elements\npresent in `self` and `other`.", false, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::HashSet::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -988,14 +1189,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::HashSet::Iterator::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("Get the next element of the set.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::HashSet::Iterator", env).(*Class), Never{}, Any{}, INVARIANT), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Get the next element of the set.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::HashSet::Iterator::Element", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 
@@ -1020,15 +1230,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("ImmutableCollection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableCollection::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the number of elements present in the collection.", true, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nReturns a new collection that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nReturns a new collection that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ImmutableCollection::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -1038,15 +1257,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableCollection::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ImmutableCollection::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 					// Define constants
 
@@ -1057,17 +1285,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("ImmutableSet").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableSet::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new ImmutableSet that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet", env).(*Interface), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::ImmutableSet::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new ImmutableSet that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ImmutableSet::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::ImmutableSet::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -1077,17 +1314,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableSet::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ImmutableSet::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::ImmutableSet::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::ImmutableSet::Base::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ImmutableSet::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 					// Define constants
 
@@ -1098,13 +1344,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Incrementable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Incrementable", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("T"), NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Incrementable", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("T"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("T"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("T"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Get the next value of this type, the successor of `self`", true, false, true, value.ToSymbol("++"), nil, nil, NewTypeParameter(value.ToSymbol("T"), NameToType("Std::Incrementable", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Get the next value of this type, the successor of `self`", true, false, true, value.ToSymbol("++"), nil, nil, NameToType("Std::Incrementable::T", env), Never{})
 
 				// Define constants
 
@@ -1391,43 +1646,52 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the number of elements matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("count"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the number of elements matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("count"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns a new iterable containing all elements except first `n` elements.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("drop"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns a new iterable containing all elements except first elements that satisfy the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("drop_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Checks whether every element of this iterable satisfies the given predicate.\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("every"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns a new iterable containing only elements matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("filter"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns the first element matching the given predicate.\nReturns `nil` otherwise.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("find"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
-				namespace.DefineMethod("Returns the first element matching the given predicate.\nThrows an error otherwise.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("find_err"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
-				namespace.DefineMethod("Returns the first element.\nThrows an unchecked error when the iterable is empty.", true, false, true, value.ToSymbol("first"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
-				namespace.DefineMethod("Returns the first element.\nThrows an error when the iterable is empty.", true, false, true, value.ToSymbol("first_err"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
-				namespace.DefineMethod("Reduces the elements of this iterable to a single value by\niteratively combining each element with an initial value using the provided function.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("fold"), []*TypeParameter{NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("initial"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{})
-				namespace.DefineMethod("Returns the first index of element, or -1 if it could not be found.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("index_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), INVARIANT), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns a new iterable containing all elements except first elements that satisfy the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("drop_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Checks whether every element of this iterable satisfies the given predicate.\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("every"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns a new iterable containing only elements matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("filter"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the first element matching the given predicate.\nReturns `nil` otherwise.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("find"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewNilable(NameToType("Std::Iterable::Element", env)), Never{})
+				namespace.DefineMethod("Returns the first element matching the given predicate.\nThrows an error otherwise.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("find_err"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::NotFoundError", env))
+				namespace.DefineMethod("Returns the first element.\nThrows an unchecked error when the iterable is empty.", true, false, true, value.ToSymbol("first"), nil, nil, NameToType("Std::Iterable::Element", env), Never{})
+				namespace.DefineMethod("Returns the first element.\nThrows an error when the iterable is empty.", true, false, true, value.ToSymbol("first_err"), nil, nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::NotFoundError", env))
+				namespace.DefineMethod("Reduces the elements of this iterable to a single value by\niteratively combining each element with an initial value using the provided function.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("fold"), []*TypeParameter{NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("initial"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{})
+				namespace.DefineMethod("Returns the first index of element, or -1 if it could not be found.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("index_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::Element", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::Element", env), INVARIANT), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Checks whether the iterable is empty.", true, false, true, value.ToSymbol("is_empty"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Returns the first element.\nThrows an unchecked error when the iterable is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("last"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
-				namespace.DefineMethod("Returns the last element.\nThrows an error when the iterable is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("last_err"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
+				namespace.DefineMethod("Returns the first element.\nThrows an unchecked error when the iterable is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("last"), nil, nil, NameToType("Std::Iterable::Element", env), Never{})
+				namespace.DefineMethod("Returns the last element.\nThrows an error when the iterable is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("last_err"), nil, nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::NotFoundError", env))
 				namespace.DefineMethod("Returns the number of elements present in the iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the elements of this iterable,\nyielding them to the given closure.\n\nReturns a new iterable that consists of the elements returned\nby the given closure.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Reduces the elements of this iterable to a single value by\niteratively combining them using the provided function.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("reduce"), []*TypeParameter{NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{})
-				namespace.DefineMethod("Returns a new iterable containing only elements not matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("reject"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Iterates over the elements of this iterable,\nyielding them to the given closure.\n\nReturns a new iterable that consists of the elements returned\nby the given closure.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Reduces the elements of this iterable to a single value by\niteratively combining them using the provided function.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("reduce"), []*TypeParameter{NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{})
+				namespace.DefineMethod("Returns a new iterable containing only elements not matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("reject"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Returns a new iterable containing only the first `n` elements.", true, false, true, value.ToSymbol("take"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns a new iterable containing first elements satisfying the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("take_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Creates a new collection that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_collection"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Creates a new immutable collection that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_immutable_collection"), nil, nil, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Creates a new list that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_list"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Creates a new tuple that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_tuple"), nil, nil, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Returns the first element.\nReturns `nil` when the iterable is empty.", true, false, true, value.ToSymbol("try_first"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
-				namespace.DefineMethod("Returns the first element.\nReturns `nil` when the collection is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("try_last"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
+				namespace.DefineMethod("Returns a new iterable containing first elements satisfying the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("take_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Creates a new collection that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_collection"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Creates a new immutable collection that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_immutable_collection"), nil, nil, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Creates a new list that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_list"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::Element", env), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Creates a new tuple that contains the elements of this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("to_tuple"), nil, nil, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Returns the first element.\nReturns `nil` when the iterable is empty.", true, false, true, value.ToSymbol("try_first"), nil, nil, NewNilable(NameToType("Std::Iterable::Element", env)), Never{})
+				namespace.DefineMethod("Returns the first element.\nReturns `nil` when the collection is empty.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("try_last"), nil, nil, NewNilable(NameToType("Std::Iterable::Element", env)), Never{})
 
 				// Define constants
 
@@ -1437,11 +1701,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -1454,40 +1727,49 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("FiniteBase").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::FiniteBase::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("count"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("count"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("drop"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("drop_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("every"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("filter"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("find"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("find_err"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("first"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("first_err"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("fold"), []*TypeParameter{NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("initial"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("index_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), INVARIANT), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("drop_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("every"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("filter"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("find"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NewNilable(NameToType("Std::Iterable::FiniteBase::Element", env)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("find_err"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Iterable::FiniteBase::Element", env), NameToType("Std::Iterable::NotFoundError", env))
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("first"), nil, nil, NameToType("Std::Iterable::FiniteBase::Element", env), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("first_err"), nil, nil, NameToType("Std::Iterable::FiniteBase::Element", env), NameToType("Std::Iterable::NotFoundError", env))
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("fold"), []*TypeParameter{NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("initial"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("I"), nil, Never{}, Any{}, INVARIANT), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("index_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), NameToType("Std::Iterable::FiniteBase::Element", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), NameToType("Std::Iterable::FiniteBase::Element", env), INVARIANT), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("is_empty"), nil, nil, Bool{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("last"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("last_err"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NameToType("Std::Iterable::NotFoundError", env))
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("reduce"), []*TypeParameter{NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("reject"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("last"), nil, nil, NameToType("Std::Iterable::FiniteBase::Element", env), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("last_err"), nil, nil, NameToType("Std::Iterable::FiniteBase::Element", env), NameToType("Std::Iterable::NotFoundError", env))
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("reduce"), []*TypeParameter{NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("accum"), NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("A"), nil, Never{}, Any{}, INVARIANT), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("reject"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("take"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("take_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_collection"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_immutable_collection"), nil, nil, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_list"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_tuple"), nil, nil, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_first"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_last"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::FiniteBase", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("take_while"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::FiniteBase::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_collection"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_immutable_collection"), nil, nil, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::FiniteBase::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_list"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT)}, nil, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), nil, NameToType("Std::Iterable::FiniteBase::Element", env), Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("to_tuple"), nil, nil, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::FiniteBase::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_first"), nil, nil, NewNilable(NameToType("Std::Iterable::FiniteBase::Element", env)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_last"), nil, nil, NewNilable(NameToType("Std::Iterable::FiniteBase::Element", env)), Never{})
 
 					// Define constants
 
@@ -1511,13 +1793,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Primitive").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Primitive", env).(*Interface), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Primitive", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Returns an iterator for this structure.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterable::Primitive", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("Returns an iterator for this structure.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Primitive::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 					// Define constants
 
@@ -1528,15 +1819,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("IterableRange").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::IterableRange", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::IterableRange", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Range", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::IterableRange", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::IterableRange", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Range", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Returns an iterator for this range.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::IterableRange", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Returns an iterator for this range.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -1546,15 +1847,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Iterator").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterator::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("", true, false, true, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
-				namespace.DefineMethod("Returns the next element.\nThrows `:stop_iteration` when no more elements are available.", true, false, true, value.ToSymbol("next"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator", env).(*Interface), Never{}, Any{}, COVARIANT), NewSymbolLiteral("stop_iteration"))
+				namespace.DefineMethod("Returns the next element.\nThrows `:stop_iteration` when no more elements are available.", true, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::Iterator::Element", env), NewSymbolLiteral("stop_iteration"))
 
 				// Define constants
 
@@ -1564,12 +1874,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Iterator::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterator::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterator::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
@@ -1598,19 +1917,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("LeftOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::LeftOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::LeftOpenRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::LeftOpenRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::LeftOpenRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, True{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::LeftOpenRange::Element", env), Never{})
 
 				// Define constants
 
@@ -1620,17 +1950,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("List").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::List::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::List::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new list that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nMutates the collection in place replacing the elements with the ones\nreturned by the given closure.", true, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List", env).(*Interface), Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::List::Element", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new list that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::List::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Iterates over the elements of this collection,\nyielding them to the given closure.\n\nMutates the collection in place replacing the elements with the ones\nreturned by the given closure.", true, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::List::Element", env), NormalParameterKind, false)}, NameToType("Std::List::Element", env), Never{}), NormalParameterKind, false)}, Self{}, Never{})
 
 				// Define constants
 
@@ -1640,17 +1979,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::List::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::List::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::List::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::List::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::List::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::List", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::List::Base::Element", env), NormalParameterKind, false)}, NameToType("Std::List::Base::Element", env), Never{}), NormalParameterKind, false)}, Self{}, Never{})
 
 					// Define constants
 
@@ -1661,16 +2009,29 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Map").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT))
-				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Map::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Map::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
 				// Define methods
-				namespace.DefineMethod("Set the element under the given index to the given value.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nMutates the map in place replacing the values with the ones\nreturned by the given closure.", true, false, true, value.ToSymbol("map_values_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Map", env).(*Interface), Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Set the element under the given index to the given value.", true, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Map::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Map::Value", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Iterates over the values of this map,\nyielding them to the given closure.\n\nMutates the map in place replacing the values with the ones\nreturned by the given closure.", true, false, true, value.ToSymbol("map_values_mut"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Map::Value", env), NormalParameterKind, false)}, NameToType("Std::Map::Value", env), Never{}), NormalParameterKind, false)}, Self{}, Never{})
 
 				// Define constants
 
@@ -1724,19 +2085,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("OpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::OpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::OpenRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::OpenRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::OpenRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, False{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::OpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::OpenRange::Element", env), Never{})
 
 				// Define constants
 
@@ -1760,21 +2132,35 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Pair").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT))
-				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Instantiate the `Pair` with the given key and value.", false, false, true, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Instantiate the `Pair` with the given key and value.", false, false, true, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Pair::Value", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Check whether the given value\nis a `Pair` that is equal to this `Pair`.", false, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
-				namespace.DefineMethod("Get the element with the given index.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
-				namespace.DefineMethod("Set the element with the given index to the given value.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Returns the key, the first element of the tuple.", false, false, true, value.ToSymbol("key"), nil, nil, NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
+				namespace.DefineMethod("Get the element with the given index.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false)}, NameToType("Std::Pair::Value", env), Never{})
+				namespace.DefineMethod("Set the element with the given index to the given value.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Pair::Value", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns the key, the first element of the tuple.", false, false, true, value.ToSymbol("key"), nil, nil, NameToType("Std::Pair::Key", env), Never{})
 				namespace.DefineMethod("Always returns `2`.\nFor compatibility with `Tuple`.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the value, the second element of the tuple.", false, false, true, value.ToSymbol("value"), nil, nil, NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Pair", env).(*Class), Never{}, Any{}, INVARIANT), Never{})
+				namespace.DefineMethod("Returns the value, the second element of the tuple.", false, false, true, value.ToSymbol("value"), nil, nil, NameToType("Std::Pair::Value", env), Never{})
 
 				// Define constants
 
@@ -1784,19 +2170,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Range").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Container", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Container", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Range::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Returns the upper bound of the range.\nReturns `nil` if the range is endless.", true, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.\nReturns `nil` if the range is endless.", true, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NameToType("Std::Range::Element", env)), Never{})
 				namespace.DefineMethod("Returns `true` when the range is left-closed.\nOtherwise, the range is left-open.", true, false, true, value.ToSymbol("is_left_closed"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns `true` when the range is left-open.\nOtherwise, the range is left-closed.", true, false, true, value.ToSymbol("is_left_open"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns `true` when the range is right-closed.\nOtherwise, the range is right-open.", true, false, true, value.ToSymbol("is_right_closed"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns `true` when the range is right-open.\nOtherwise, the range is right-closed.", true, false, true, value.ToSymbol("is_right_open"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.\nReturns `nil` if the Range is beginless.", true, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.\nReturns `nil` if the Range is beginless.", true, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NameToType("Std::Range::Element", env)), Never{})
 
 				// Define constants
 
@@ -1806,17 +2201,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Range", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Range", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Range::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NameToType("Std::Range::Base::Element", env)), Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_open"), nil, nil, Bool{}, Never{})
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_open"), nil, nil, Bool{}, Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Range::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("start"), nil, nil, NewNilable(NameToType("Std::Range::Base::Element", env)), Never{})
 
 					// Define constants
 
@@ -1827,24 +2231,37 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Record").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT))
-				namespace.DefineSubtype(value.ToSymbol("Value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("Create a new record containing the pairs of `self`\nand another given record.", true, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Create a new record containing the pairs of `self`\nand another given record.", true, true, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewUnion(NameToType("Std::Record::Key", env), NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT)), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewUnion(NameToType("Std::Record::Value", env), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Check whether the given value is the same type of record\nwith the same elements.", true, true, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Check whether the given value is a record\nwith the same elements.", true, true, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT)), Never{})
-				namespace.DefineMethod("Check whether the given `pair` is present in this record.", true, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `key` is present in this record.", true, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this record.", true, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the record.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Get the element under the given key.\nReturns `nil` when the key is not present.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Record::Key", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Record::Value", env)), Never{})
+				namespace.DefineMethod("Check whether the given `pair` is present in this record.", true, false, true, value.ToSymbol("contains"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Record::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Record::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `key` is present in this record.", true, false, true, value.ToSymbol("contains_key"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Record::Key", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this record.", true, false, true, value.ToSymbol("contains_value"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Record::Value", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the record.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Record::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Record::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 				namespace.DefineMethod("Returns the number of key-value pairs present in the record.", true, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Iterates over the key value pairs of this record,\nyielding them to the given closure.\n\nReturns a new record that consists of the key value pairs returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
-				namespace.DefineMethod("Iterates over the values of this record,\nyielding them to the given closure.\n\nReturns a new record that consists of the values returned\nby the given closure.", true, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Value"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Key"), NameToType("Std::Record", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the key value pairs of this record,\nyielding them to the given closure.\n\nReturns a new record that consists of the key value pairs returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Record::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Record::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NewTypeParameter(value.ToSymbol("K"), nil, Never{}, Any{}, INVARIANT), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
+				namespace.DefineMethod("Iterates over the values of this record,\nyielding them to the given closure.\n\nReturns a new record that consists of the values returned\nby the given closure.", true, false, true, value.ToSymbol("map_values"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Record::Value", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Record", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Record::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 
 				// Define constants
 
@@ -1872,19 +2289,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("RightOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+
+				namespace.SetTypeParameters(typeParams)
+
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
-				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::RightOpenRange::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this range.", false, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::RightOpenRange::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::RightOpenRange::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the upper bound of the range.", false, false, true, value.ToSymbol("end"), nil, nil, NameToType("Std::RightOpenRange::Element", env), Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_left_closed"), nil, nil, True{}, Never{})
 				namespace.DefineMethod("", false, false, true, value.ToSymbol("is_right_closed"), nil, nil, False{}, Never{})
-				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, Any{}, COVARIANT), Never{})
+				namespace.DefineMethod("Returns the lower bound of the range.", false, false, true, value.ToSymbol("start"), nil, nil, NameToType("Std::RightOpenRange::Element", env), Never{})
 
 				// Define constants
 
@@ -1894,22 +2322,31 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Set").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Set::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Set::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Return the intersection of both sets.\n\nCreate a new set containing only the elements\npresent both in `self` and `other`.", true, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the set.\n\nDoes nothing if the value is already present in the set.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Adds the given values to the set.\n\nSkips a value if it is already present in the set.", true, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), PositionalRestParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Check whether the given `value` is present in this set.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new Set that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.", true, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set", env).(*Interface), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Set::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the set.\n\nDoes nothing if the value is already present in the set.", true, false, true, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Set::Element", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Adds the given values to the set.\n\nSkips a value if it is already present in the set.", true, false, true, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Set::Element", env), PositionalRestParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this set.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Set::Element", env), Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Set::Element", env), Any{}, INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new Set that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Set::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.", true, false, true, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Set::Element", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", true, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Set::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 
@@ -1919,18 +2356,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, INVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableSet::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Set::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableSet::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Set::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Collection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Set::Base::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, value.ToSymbol("&"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(Never{}, INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Set::Base", env).(*Mixin), Never{}, Any{}, INVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Set::Base::Element", env), NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Set::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 					// Define constants
 
@@ -2066,17 +2512,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Tuple").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT)})
-				namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT))
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Tuple::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), Never{})
-				namespace.DefineMethod("Get the element under the given index.\n\nThrows an error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), NameToType("Std::OutOfRangeError", env))
-				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new tuple that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-				namespace.DefineMethod("Get the element under the given index.\n\nReturns `nil` if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple", env).(*Interface), Never{}, Any{}, COVARIANT)), Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Element", env), Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an error if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Element", env), NameToType("Std::OutOfRangeError", env))
+				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new tuple that consists of the elements returned\nby the given closure.", true, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nReturns `nil` if the index is a negative number\nor is greater or equal to `length`.", true, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Tuple::Element", env)), Never{})
 
 				// Define constants
 
@@ -2086,17 +2541,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetTypeParameters([]*TypeParameter{NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)})
-					namespace.DefineSubtype(value.ToSymbol("Element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT))
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 1)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Tuple::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Tuple::Base::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NameToType("Std::OutOfRangeError", env))
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NewTypeParameter(value.ToSymbol("Element"), NameToType("Std::Tuple::Base", env).(*Mixin), Never{}, Any{}, COVARIANT)), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Base::Element", env), NameToType("Std::OutOfRangeError", env))
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Base::Element", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), Never{}), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Interface), NewTypeArguments(map[value.Symbol]*TypeArgument{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), nil, Never{}, Any{}, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
+					namespace.DefineMethod("", false, false, true, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Tuple::Base::Element", env)), Never{})
 
 					// Define constants
 

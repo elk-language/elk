@@ -134,7 +134,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			"non-static constants must have an explicit type",
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return
 	}
 
@@ -217,14 +217,14 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
 		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	case *types.Class:
 		if t.IsGeneric() {
 			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, node.Span())
-			typ = types.Nothing{}
+			typ = types.Untyped{}
 		}
 	case nil:
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -333,7 +333,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, span *posi
 	}
 
 	if !c.checkConstantIfNecessary(constantName, node.Right.Span()) {
-		return types.Nothing{}, constantName
+		return types.Untyped{}, constantName
 	}
 	return constant.Type, constantName
 }
@@ -418,7 +418,7 @@ func (c *Checker) addToConstantCache(name value.Symbol) {
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node, node.Span())
 	if typ == nil {
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	} else {
 		c.addToConstantCache(value.ToSymbol(name))
 	}
@@ -434,7 +434,7 @@ func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.Pub
 func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	} else {
 		c.addToConstantCache(value.ToSymbol(name))
 	}
@@ -447,7 +447,7 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
 	if typ == nil {
-		typ = types.Nothing{}
+		typ = types.Untyped{}
 	} else {
 		c.addToConstantCache(value.ToSymbol(name))
 	}

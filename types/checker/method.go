@@ -592,7 +592,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
 		if inferredParamType == nil {
-			param.Type = types.Nothing{}
+			param.Type = types.Untyped{}
 		} else if inferredParamType != param.Type {
 			param.Type = inferredParamType
 		}
@@ -638,7 +638,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			posArgType := c.typeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Span())
 			if inferredParamType == nil {
-				posRestParam.Type = types.Nothing{}
+				posRestParam.Type = types.Untyped{}
 			} else if inferredParamType != posRestParam.Type {
 				posRestParam.Type = inferredParamType
 			}
@@ -668,7 +668,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			posArgType := c.typeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
 			if inferredParamType == nil {
-				param.Type = types.Nothing{}
+				param.Type = types.Untyped{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
 			}
@@ -727,7 +727,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			namedArgType := c.typeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Span())
 			if inferredParamType == nil {
-				param.Type = types.Nothing{}
+				param.Type = types.Untyped{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
 			}
@@ -792,7 +792,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			posArgType := c.typeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Span())
 			if inferredParamType == nil {
-				namedRestParam.Type = types.Nothing{}
+				namedRestParam.Type = types.Untyped{}
 			} else if inferredParamType != namedRestParam.Type {
 				namedRestParam.Type = inferredParamType
 			}
@@ -847,10 +847,20 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			}
 
 			var inferredType types.Type
-			if !types.IsNever(typeParam.LowerBound) {
+			if !types.IsNever(typeParam.LowerBound) && !c.containsTypeParameters(typeParam.LowerBound) {
 				inferredType = typeParam.LowerBound
-			} else {
+			} else if !c.containsTypeParameters(typeParam.UpperBound) {
 				inferredType = typeParam.UpperBound
+			} else {
+				inferredType = types.Untyped{}
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot infer type argument for `%s` in call to `%s`",
+						types.InspectWithColor(typeParam),
+						lexer.Colorize(method.Name.String()),
+					),
+					span,
+				)
 			}
 
 			typeArgMap[typeParam.Name] = types.NewTypeArgument(
@@ -1126,7 +1136,7 @@ func (c *Checker) checkSimpleMethodCall(
 
 	// Allow arbitrary method calls on `never` and `nothing`.
 	// Typecheck the arguments.
-	if types.IsNever(receiverType) || types.IsNothing(receiverType) {
+	if types.IsNever(receiverType) || types.IsUntyped(receiverType) {
 		var typedPositionalArguments []ast.ExpressionNode
 
 		for _, argument := range positionalArgumentNodes {
@@ -1156,7 +1166,7 @@ func (c *Checker) checkSimpleMethodCall(
 	if method == nil {
 		c.checkExpressions(positionalArgumentNodes)
 		c.checkNamedArguments(namedArgumentNodes)
-		return receiver, positionalArgumentNodes, types.Nothing{}
+		return receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	c.addToMethodCache(method)
@@ -1172,7 +1182,7 @@ func (c *Checker) checkSimpleMethodCall(
 		if !ok {
 			c.checkExpressions(positionalArgumentNodes)
 			c.checkNamedArguments(namedArgumentNodes)
-			return receiver, positionalArgumentNodes, types.Nothing{}
+			return receiver, positionalArgumentNodes, types.Untyped{}
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap)
@@ -1187,11 +1197,8 @@ func (c *Checker) checkSimpleMethodCall(
 			method.TypeParameters,
 			span,
 		)
-		if typedPositionalArguments == nil {
-			return receiver, positionalArgumentNodes, types.Nothing{}
-		}
 		if len(typeArgMap) != len(method.TypeParameters) {
-			return receiver, positionalArgumentNodes, types.Nothing{}
+			return receiver, positionalArgumentNodes, types.Untyped{}
 		}
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
 		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)

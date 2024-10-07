@@ -1,7 +1,7 @@
 ##[
 	Represents an open range from a given value to +∞ *(start, +∞)*
 ]##
-sealed primitive class ::Std::EndlessOpenRange[+Element] < Value
+sealed primitive class ::Std::EndlessOpenRange[Element < Comparable[Element]] < Value
 	include Range::Base[Element]
 
 	def is_left_closed: false; end

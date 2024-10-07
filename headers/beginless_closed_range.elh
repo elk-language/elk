@@ -1,7 +1,7 @@
 ##[
 	Represents a closed range from -∞ to a given value *(-∞, end]*
 ]##
-sealed primitive class ::Std::BeginlessClosedRange[+Element] < Value
+sealed primitive class ::Std::BeginlessClosedRange[Element < Comparable[Element]] < Value
 	include Range::Base[Element]
 
 	def is_left_closed: false; end

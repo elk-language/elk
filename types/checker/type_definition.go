@@ -259,12 +259,12 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *p
 			for _, constant := range n.Constants {
 				c.includeMixin(constant)
 			}
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		case *ast.ImplementExpressionNode:
 			for _, constant := range n.Constants {
 				c.implementInterface(constant)
 			}
-			n.SetType(types.Nothing{})
+			n.SetType(types.Untyped{})
 		case *ast.ClassDeclarationNode:
 			c.checkClassInheritance(n)
 		case *ast.MixinDeclarationNode:
@@ -291,7 +291,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 
 	c.mode = prevMode
 
-	if types.IsNothing(constantType) || constantType == nil {
+	if types.IsUntyped(constantType) || constantType == nil {
 		return
 	}
 	target := c.currentConstScope().container
@@ -378,7 +378,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 
 	c.mode = prevMode
 
-	if types.IsNothing(constantType) || constantType == nil {
+	if types.IsUntyped(constantType) || constantType == nil {
 		return
 	}
 	var constantNamespace types.Namespace
@@ -467,7 +467,17 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	c.popConstScope()
 }
 
-func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []ast.TypeParameterNode, namespace types.Namespace, oldTypeParams []*types.TypeParameter, span *position.Span) []*types.TypeParameter {
+func (c *Checker) checkNamespaceTypeParameters(
+	checked bool,
+	typeParamNodes []ast.TypeParameterNode,
+	namespace types.Namespace,
+	oldTypeParams []*types.TypeParameter,
+	span *position.Span,
+) []*types.TypeParameter {
+	prevMode := c.mode
+	c.mode = inheritanceMode
+	defer c.setMode(prevMode)
+
 	if !checked {
 		if len(typeParamNodes) > 0 {
 			typeParams := make([]*types.TypeParameter, 0, len(typeParamNodes))
@@ -477,15 +487,17 @@ func (c *Checker) checkNamespaceTypeParameters(checked bool, typeParamNodes []as
 					continue
 				}
 
-				t := c.checkTypeParameterNode(varNode, namespace, false)
+				t := c.initTypeParameterNode(varNode, namespace)
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
 				namespace.DefineConstant(t.Name, types.NoValue{})
+				c.finishCheckingTypeParameterNode(t, varNode)
 			}
 
 			return typeParams
 		}
+		return nil
 	}
 
 	if len(typeParamNodes) != len(oldTypeParams) {
@@ -580,7 +592,7 @@ superclassSwitch:
 				break superclassSwitch
 			}
 		default:
-			if !types.IsNothing(superclassType) && superclassType != nil {
+			if !types.IsUntyped(superclassType) && superclassType != nil {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Span(),
@@ -645,7 +657,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			),
 			node.Span(),
 		)
-		node.SetType(types.Nothing{})
+		node.SetType(types.Untyped{})
 		return
 	}
 
@@ -787,4 +799,45 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		upperType,
 		variance,
 	)
+}
+
+func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace) *types.TypeParameter {
+	var variance types.Variance
+	switch node.Variance {
+	case ast.INVARIANT:
+		variance = types.INVARIANT
+	case ast.COVARIANT:
+		variance = types.COVARIANT
+	case ast.CONTRAVARIANT:
+		variance = types.CONTRAVARIANT
+	}
+
+	return types.NewTypeParameter(
+		value.ToSymbol(node.Name),
+		namespace,
+		nil,
+		nil,
+		variance,
+	)
+}
+
+func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node *ast.VariantTypeParameterNode) {
+	var lowerType types.Type
+	if node.LowerBound != nil {
+		node.LowerBound = c.checkTypeNode(node.LowerBound)
+		lowerType = c.typeOf(node.LowerBound)
+	} else {
+		lowerType = types.Never{}
+	}
+
+	var upperType types.Type
+	if node.UpperBound != nil {
+		node.UpperBound = c.checkTypeNode(node.UpperBound)
+		upperType = c.typeOf(node.UpperBound)
+	} else {
+		upperType = types.Any{}
+	}
+
+	typ.LowerBound = lowerType
+	typ.UpperBound = upperType
 }

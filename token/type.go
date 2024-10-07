@@ -497,6 +497,7 @@ const (
 	NEW               // Keyword `new`
 	IMPORT            // Keyword `import`
 	WHERE             // Keyword `where`
+	UNTYPED           // Keyword `untyped`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -578,6 +579,7 @@ var Keywords = map[string]Type{
 	"new":        NEW,
 	"import":     IMPORT,
 	"where":      WHERE,
+	"untyped":    UNTYPED,
 }
 
 var tokenNames = [...]string{
@@ -823,4 +825,5 @@ var tokenNames = [...]string{
 	NEW:        "new",
 	IMPORT:     "import",
 	WHERE:      "where",
+	UNTYPED:    "untyped",
 }

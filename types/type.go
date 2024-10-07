@@ -15,7 +15,7 @@ type Type interface {
 
 func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
 	switch t := typ.(type) {
-	case *Nilable, Nil, False, Bool, Nothing, Void:
+	case *Nilable, Nil, False, Bool, Untyped, Void:
 		return true
 	case *Class:
 		if t == env.StdSubtype(symbol.Bool) || t == env.StdSubtype(symbol.False) || t == env.StdSubtype(symbol.Nil) {

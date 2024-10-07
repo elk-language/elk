@@ -5,29 +5,29 @@ import (
 )
 
 type TypeParamNamespace struct {
-	name      string
-	constants ConstantMap
-	subtypes  ConstantMap
+	docComment string
+	constants  ConstantMap
+	subtypes   ConstantMap
 }
 
-func NewTypeParamNamespace(name string) *TypeParamNamespace {
+func NewTypeParamNamespace(docComment string) *TypeParamNamespace {
 	return &TypeParamNamespace{
-		name:      name,
-		constants: make(ConstantMap),
-		subtypes:  make(ConstantMap),
+		docComment: docComment,
+		constants:  make(ConstantMap),
+		subtypes:   make(ConstantMap),
 	}
 }
 
 func (t *TypeParamNamespace) Name() string {
-	return t.name
+	return ""
 }
 
 func (t *TypeParamNamespace) inspect() string {
-	return t.name
+	return t.docComment
 }
 
 func (t *TypeParamNamespace) DocComment() string {
-	return ""
+	return t.docComment
 }
 
 func (t *TypeParamNamespace) SetDocComment(string) {

@@ -783,7 +783,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		switch t.Type.(type) {
 		case types.Never:
 			return types.Nil{}
-		case types.Any, types.Nothing:
+		case types.Any, types.Untyped:
 			return t.Type
 		}
 		if c.isNilable(t.Type) {
@@ -803,8 +803,8 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 			return types.Any{}
 		case types.Any:
 			return types.Never{}
-		case types.Nothing:
-			return types.Nothing{}
+		case types.Untyped:
+			return types.Untyped{}
 		case *types.Union:
 			intersectionElements := make([]types.Type, 0, len(nestedType.Elements))
 			for _, element := range nestedType.Elements {
@@ -879,7 +879,7 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
-		if types.IsNever(element) || types.IsNothing(element) {
+		if types.IsNever(element) || types.IsUntyped(element) {
 			return element
 		}
 		switch e := element.(type) {
@@ -935,7 +935,7 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 
 	// detect empty intersections
 	for _, element := range elements {
-		if types.IsNever(element) || types.IsNothing(element) {
+		if types.IsNever(element) || types.IsUntyped(element) {
 			return element
 		}
 
@@ -984,7 +984,7 @@ func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
 elementLoop:
 	for i := 0; i < len(elements); i++ {
 		element := c.normaliseType(elements[i])
-		if types.IsNever(element) || types.IsNothing(element) {
+		if types.IsNever(element) || types.IsUntyped(element) {
 			continue elementLoop
 		}
 		switch e := element.(type) {
