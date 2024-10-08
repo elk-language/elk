@@ -16,7 +16,6 @@
 ]##
 sealed primitive class ::Std::BigFloat < Value
 	implement Hashable
-	implement Comparable[self]
 
 	##[
 		Sets the precision to the given integer.

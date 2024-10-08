@@ -1286,6 +1286,56 @@ func TestIntLiteral(t *testing.T) {
 	}
 }
 
+func TestRangeLiteral(t *testing.T) {
+	tests := testTable{
+		// closed range
+		"infer type with the same argument": {
+			input: "var a: 9 = 1...5",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 1, 12), P(15, 1, 16)), "type `Std::ClosedRange[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type with different argument types": {
+			input: "var a: 9 = 1...2.5",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 1, 12), P(17, 1, 18)), "type `Std::ClosedRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"infer type with incompatible argument types": {
+			input: "var a: 9 = 1...'c'",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 1, 12), P(17, 1, 18)), "type `Std::Int` does not implement interface `Std::Comparable[Std::Int | Std::String]`:\n\n  - incorrect implementation of `Std::Comparable.:<`\n      is:        `def <(other: Std::CoercibleNumeric): Std::Bool`\n      should be: `def <(other: Std::Int | Std::String): bool`\n  - incorrect implementation of `Std::Comparable.:<=`\n      is:        `def <=(other: Std::CoercibleNumeric): Std::Bool`\n      should be: `def <=(other: Std::Int | Std::String): bool`\n  - incorrect implementation of `Std::Comparable.:<=>`\n      is:        `def <=>(other: Std::CoercibleNumeric): Std::Int`\n      should be: `def <=>(other: Std::Int | Std::String): Std::Int?`\n  - incorrect implementation of `Std::Comparable.:>`\n      is:        `def >(other: Std::CoercibleNumeric): Std::Bool`\n      should be: `def >(other: Std::Int | Std::String): bool`\n  - incorrect implementation of `Std::Comparable.:>=`\n      is:        `def >=(other: Std::CoercibleNumeric): Std::Bool`\n      should be: `def >=(other: Std::Int | Std::String): bool`"),
+				error.NewFailure(L("<main>", P(11, 1, 12), P(17, 1, 18)), "type Std::Int | Std::String is not comparable and cannot be used in range literals"),
+				error.NewFailure(L("<main>", P(11, 1, 12), P(17, 1, 18)), "type `Std::ClosedRange[untyped]` cannot be assigned to type `9`"),
+			},
+		},
+		"call iter on iterable range": {
+			input: "var a: 9 = (1...5).iter",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(22, 1, 23)), "type `Std::ClosedRange::Iterator[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"call iter on not iterable range": {
+			input: "(1.2...2.5).iter",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(1, 1, 2), P(15, 1, 16)), "method `iter` is not defined on type `Std::ClosedRange[Std::Float]`"),
+			},
+		},
+		"call iter on mixed range": {
+			input: "(1...2.5).iter",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(1, 1, 2), P(13, 1, 14)), "method `iter` is not defined on type `Std::ClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestFloatLiteral(t *testing.T) {
 	tests := testTable{
 		"assign float to comparable": {

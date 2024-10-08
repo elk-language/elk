@@ -6,7 +6,6 @@
 ]##
 sealed primitive class ::Std::Int < Value
 	implement Hashable
-	implement Comparable[self]
 
 	##[
 		Returns itself.

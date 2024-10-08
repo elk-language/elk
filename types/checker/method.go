@@ -1706,8 +1706,11 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 			if generic, ok := parent.(*types.Generic); ok {
 				generics = append(generics, generic)
 			}
+			methods := parent.Methods()
+			names := symbol.SortKeys(methods)
 		methodLoop:
-			for name, method := range parent.Methods() {
+			for _, name := range names {
+				method := methods[name]
 				if seenMethods.Contains(name) {
 					continue
 				}
