@@ -604,6 +604,12 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 			break
 		}
 		return c.checkHashRecordLiteralNodeWithType(n, generic)
+	case *ast.RangeLiteralNode:
+		generic, ok := typ.(*types.Generic)
+		if !ok || generic.TypeArguments.Len() != 1 {
+			break
+		}
+		return c.checkRangeLiteralNodeWithType(n, generic)
 	}
 
 	return c.checkExpression(node)
@@ -983,8 +989,8 @@ func (c *Checker) StdHashRecord() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
 }
 
-func (c *Checker) StdRange() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Mixin)
+func (c *Checker) StdRange() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Interface)
 }
 
 func (c *Checker) StdRecord() *types.Interface {
@@ -1375,9 +1381,14 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 		}
 	}
 
+	rangeClass := c.Std(rangeClassName).(*types.Class)
+	if typ != nil && !c.isTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
+		typ = nil
+	}
 	comparable := c.Std(symbol.Comparable).(*types.Interface)
 	valueType := c.newNormalisedUnion(valueTypes...)
 	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
+
 	if typ != nil {
 		c.checkCanAssign(valueType, typ.TypeArguments.Get(0).Type, node.Span())
 		node.SetType(typ)
@@ -1386,7 +1397,7 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 			"cannot infer the type argument in a range literal",
 			node.Span(),
 		)
-		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
+		generic := types.NewGenericWithTypeArgs(rangeClass, types.Untyped{})
 		node.SetType(generic)
 	} else if !c.isSubtype(valueType, comparableValueType, node.Span()) {
 		c.addFailure(
@@ -1396,10 +1407,10 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 			),
 			node.Span(),
 		)
-		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), types.Untyped{})
+		generic := types.NewGenericWithTypeArgs(rangeClass, types.Untyped{})
 		node.SetType(generic)
 	} else {
-		generic := types.NewGenericWithTypeArgs(c.Std(rangeClassName).(*types.Class), valueType)
+		generic := types.NewGenericWithTypeArgs(rangeClass, valueType)
 		node.SetType(generic)
 	}
 

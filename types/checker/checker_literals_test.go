@@ -1289,6 +1289,48 @@ func TestIntLiteral(t *testing.T) {
 func TestRangeLiteral(t *testing.T) {
 	tests := testTable{
 		// beginless closed range
+		"beginless closed range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessOpenRange[Int | Float] = ...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 2, 46), P(49, 2, 49)), "type `Std::BeginlessClosedRange[Std::Int]` cannot be assigned to type `Std::BeginlessOpenRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"beginless closed range - explicitly define class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = ...5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 3, 16), P(68, 3, 16)), "type `Std::BeginlessClosedRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"beginless closed range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = ...5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 3, 16), P(53, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"beginless closed range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = ...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"beginless closed range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = ...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"beginless closed range - infer type with the same argument": {
 			input: "var a: 9 = ...5",
 			err: error.ErrorList{
@@ -1311,6 +1353,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// beginless open range
+		"beginless open range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = ..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(51, 2, 51)), "type `Std::BeginlessOpenRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"beginless open range - explicitly define class type": {
+			input: `
+				var a: BeginlessOpenRange[Int | Float] = ..<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::BeginlessOpenRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"beginless open range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = ..<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 3, 16), P(53, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"beginless open range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = ..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"beginless open range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = ..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"beginless open range - infer type with the same argument": {
 			input: "var a: 9 = ..<5",
 			err: error.ErrorList{
@@ -1333,6 +1417,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// closed range
+		"closed range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 1...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(52, 2, 52)), "type `Std::ClosedRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"closed range - explicitly define class type": {
+			input: `
+				var a: ClosedRange[Int | Float] = 1...5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 3, 16), P(60, 3, 16)), "type `Std::ClosedRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"closed range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 1...5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(54, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"closed range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 1...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"closed range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 1...5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"closed range - infer type with the same argument": {
 			input: "var a: 9 = 1...5",
 			err: error.ErrorList{
@@ -1373,6 +1499,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// open range
+		"open range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 1<.<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(52, 2, 52)), "type `Std::OpenRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"open range - explicitly define class type": {
+			input: `
+				var a: OpenRange[Int | Float] = 1<.<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 3, 16), P(58, 3, 16)), "type `Std::OpenRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"open range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 1<.<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(54, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"open range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 1<.<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"open range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 1<.<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"open range - infer type with the same argument": {
 			input: "var a: 9 = 1<.<5",
 			err: error.ErrorList{
@@ -1413,6 +1581,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// left open range
+		"left open range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 1<..5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(52, 2, 52)), "type `Std::LeftOpenRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"left open range - explicitly define class type": {
+			input: `
+				var a: LeftOpenRange[Int | Float] = 1<..5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 3, 16), P(62, 3, 16)), "type `Std::LeftOpenRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"left open range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 1<..5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(54, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"left open range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 1<..5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"left open range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 1<..5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"left open range - infer type with the same argument": {
 			input: "var a: 9 = 1<..5",
 			err: error.ErrorList{
@@ -1453,6 +1663,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// right open range
+		"right open range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 1..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(52, 2, 52)), "type `Std::RightOpenRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"right open range - explicitly define class type": {
+			input: `
+				var a: RightOpenRange[Int | Float] = 1..<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 3, 16), P(63, 3, 16)), "type `Std::RightOpenRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"right open range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 1..<5
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 16), P(54, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"right open range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 1..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"right open range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 1..<5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"right open range - infer type with the same argument": {
 			input: "var a: 9 = 1..<5",
 			err: error.ErrorList{
@@ -1493,6 +1745,48 @@ func TestRangeLiteral(t *testing.T) {
 		},
 
 		// endless closed range
+		"endless closed range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 5...
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(51, 2, 51)), "type `Std::EndlessClosedRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"endless closed range - explicitly define class type": {
+			input: `
+				var a: EndlessClosedRange[Int | Float] = 5...
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::EndlessClosedRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless closed range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 5...
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 3, 16), P(53, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless closed range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 5...
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"endless closed range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 5...
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
 		"endless closed range - infer type with the same argument": {
 			input: "var a: 9 = 1...",
 			err: error.ErrorList{
@@ -1517,6 +1811,76 @@ func TestRangeLiteral(t *testing.T) {
 			input: "(1.2...).iter",
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(1, 1, 2), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessClosedRange[Std::Float]`"),
+			},
+		},
+
+		// endless open range
+		"endless open range - explicitly define invalid class type": {
+			input: `
+				var a: BeginlessClosedRange[Int | Float] = 5<..
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 2, 48), P(51, 2, 51)), "type `Std::EndlessOpenRange[Std::Int]` cannot be assigned to type `Std::BeginlessClosedRange[Std::Int | Std::Float]`"),
+			},
+		},
+		"endless open range - explicitly define class type": {
+			input: `
+				var a: EndlessOpenRange[Int | Float] = 5<..
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(64, 3, 16), P(64, 3, 16)), "type `Std::EndlessOpenRange[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless open range - explicitly define Range type": {
+			input: `
+				var a: Range[Int | Float] = 5<..
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 3, 16), P(53, 3, 16)), "type `Std::Range[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless open range - explicitly define Range type with invalid element": {
+			input: `
+				var a: Range[String] = 5<..
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"endless open range - explicitly define incompatible type": {
+			input: `
+				var a: Range[String] = 5<..
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"endless open range - infer type with the same argument": {
+			input: "var a: 9 = 1<..",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 1, 12), P(14, 1, 15)), "type `Std::EndlessOpenRange[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless open range - infer type with incompatible argument type": {
+			input: "var a: 9 = nil<..",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 1, 12), P(16, 1, 17)), "type `Std::Nil` does not implement interface `Std::Comparable[nil]`:\n\n  - missing method `Std::Comparable.:<` with signature: `def <(other: nil): bool`\n  - missing method `Std::Comparable.:<=` with signature: `def <=(other: nil): bool`\n  - missing method `Std::Comparable.:<=>` with signature: `def <=>(other: nil): Std::Int?`\n  - missing method `Std::Comparable.:>` with signature: `def >(other: nil): bool`\n  - missing method `Std::Comparable.:>=` with signature: `def >=(other: nil): bool`"),
+				error.NewFailure(L("<main>", P(11, 1, 12), P(16, 1, 17)), "type nil is not comparable and cannot be used in range literals"),
+				error.NewFailure(L("<main>", P(11, 1, 12), P(16, 1, 17)), "type `Std::EndlessOpenRange[untyped]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless open range - call iter on iterable range": {
+			input: "var a: 9 = (1<..).iter",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(21, 1, 22)), "type `Std::EndlessOpenRange::Iterator[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"endless open range - call iter on not iterable range": {
+			input: "(1.2<..).iter",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(1, 1, 2), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessOpenRange[Std::Float]`"),
 			},
 		},
 	}
