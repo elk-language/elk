@@ -1288,6 +1288,9 @@ func TestIntLiteral(t *testing.T) {
 
 func TestFloatLiteral(t *testing.T) {
 	tests := testTable{
+		"assign float to comparable": {
+			input: "var a: Comparable[Float] = 2.5",
+		},
 		"infer float": {
 			input: "var foo = 12.5",
 		},

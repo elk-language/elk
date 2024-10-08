@@ -1933,6 +1933,15 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 	return nil
 }
 
+func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) map[value.Symbol]*types.TypeArgument {
+	return map[value.Symbol]*types.TypeArgument{
+		symbol.M_self: types.NewTypeArgument(
+			self,
+			types.INVARIANT,
+		),
+	}
+}
+
 func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, self types.Type, errSpan *position.Span, inParent, inSelf bool) *types.Method {
 	method := c._getMethodInNamespace(namespace, typ, name, errSpan, inParent)
 	if method == nil {
@@ -1941,12 +1950,7 @@ func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ ty
 	if inSelf {
 		return method
 	}
-	m := map[value.Symbol]*types.TypeArgument{
-		symbol.M_self: types.NewTypeArgument(
-			self,
-			types.INVARIANT,
-		),
-	}
+	m := c.createTypeArgumentMapWithSelf(self)
 	return c.replaceTypeParametersInMethodCopy(method, m)
 }
 

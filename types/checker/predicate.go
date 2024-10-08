@@ -792,8 +792,11 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 					return false, false
 				}
 			}
+			m := c.createTypeArgumentMapWithSelf(a)
+			target = c.replaceTypeParameters(target, m)
+			targetGeneric := target.(*types.Generic)
 
-			return c.typeArgsAreSubtype(target.(*types.Generic).TypeArguments, b.TypeArguments, errSpan), false
+			return c.typeArgsAreSubtype(targetGeneric.TypeArguments, b.TypeArguments, errSpan), false
 		}
 		generics = append(generics, parent)
 	}

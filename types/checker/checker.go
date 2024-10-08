@@ -49,6 +49,10 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode b
 	return bytecode, checker.Errors.ErrorList
 }
 
+func I(typ types.Type) string {
+	return types.I(typ)
+}
+
 type mode uint8
 
 const (
