@@ -2408,7 +2408,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		c.rangeLiteral(pat)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
-		c.emitCallMethod(callInfo, span)
+		c.emitCallPattern(callInfo, span)
 	case *ast.PublicIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:

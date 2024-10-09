@@ -25,7 +25,7 @@ interface ::Std::Iterable[+Element]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig contains[E > Element](value: E): bool
+	sig contains[E = Element](value: E): bool
 
 	##[
 		Checks whether the iterable is empty.
@@ -229,7 +229,7 @@ interface ::Std::Iterable[+Element]
 	abstract mixin FiniteBase[+Element]
 		implement Iterable[Element]
 
-		def contains[E > Element](value: E): bool; end
+		def contains[E = Element](value: E): bool; end
 		def is_empty: bool; end
 		def first: Element; end
 		def try_first: Element?; end

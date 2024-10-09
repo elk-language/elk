@@ -91,7 +91,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 	##[
 		Check whether the given `value` is present in this list.
 	]##
-	def contains[E > Element](value: E): bool; end
+	def contains[E = Element](value: E): bool; end
 
 	##[
 		Check whether the given value is an `ArrayList`

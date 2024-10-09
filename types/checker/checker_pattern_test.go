@@ -897,6 +897,20 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
 			},
 		},
+
+		"pattern with range pattern and correct type": {
+			input: `
+				var 1...5.9 as a = 9
+			`,
+		},
+		"pattern with range pattern and wrong literal type": {
+			input: `
+				var 1...9 as a = 5.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5.2` cannot ever match type `Std::Int`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

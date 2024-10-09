@@ -10,7 +10,7 @@ sealed primitive class ::Std::ClosedRange[Element < Comparable[Element]] < Value
 	##[
 		Check whether the given `value` is present in this range.
 	]##
-	def contains[E > Element](value: E): bool; end
+	def contains[E = Element](value: E): bool; end
 
 	##[
 		Returns the lower bound of the range.

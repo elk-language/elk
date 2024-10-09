@@ -5529,9 +5529,22 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 			typ,
 			n.Span(),
 		)
+	case *ast.RangeLiteralNode:
+		c.checkRangePattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
+}
+
+func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) {
+	c.checkRangeLiteralNode(node)
+	rangeType := c.typeOf(node)
+	genericRangeType, ok := rangeType.(*types.Generic)
+	if !ok {
+		return
+	}
+
+	c.checkCanMatch(typ, genericRangeType.TypeArguments.Get(0).Type, node.Span())
 }
 
 func (c *Checker) checkSpecialCollectionLiteralPattern(patternType, typ types.Type, span *position.Span) {

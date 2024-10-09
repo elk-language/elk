@@ -36,7 +36,7 @@ interface ::Std::Set[Element]
 	##[
 		Check whether the given `value` is present in this set.
 	]##
-	def contains[E > Element](value: E): bool; end
+	def contains[E = Element](value: E): bool; end
 
 	##[
 		Adds the given values to the set.
