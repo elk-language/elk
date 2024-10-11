@@ -5396,11 +5396,20 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 	switch n := node.(type) {
 	case *ast.AsPatternNode:
 		c.checkPattern(n.Pattern, typ)
-		c.checkPattern(n.Name, typ)
+		patternType := c.typeOf(n.Pattern)
+
+		switch name := n.Name.(type) {
+		case *ast.PublicIdentifierNode:
+			node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
+		case *ast.PrivateIdentifierNode:
+			node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
+		default:
+			panic(fmt.Sprintf("invalid identifier node in pattern: %T", n.Name))
+		}
 	case *ast.PublicIdentifierNode:
-		c.checkIdentifierPattern(n.Value, typ, n.Span())
+		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
 	case *ast.PrivateIdentifierNode:
-		c.checkIdentifierPattern(n.Value, typ, n.Span())
+		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
 	case *ast.RestPatternNode:
 		c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
 	case *ast.ListPatternNode:
@@ -5459,80 +5468,109 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		c.checkSimpleLiteralPattern(n, typ)
 	case *ast.BinArrayListLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexArrayListLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolArrayListLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordArrayListLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.BinArrayTupleLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexArrayTupleLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolArrayTupleLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordArrayTupleLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.BinHashSetLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexHashSetLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolHashSetLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordHashSetLiteralNode:
 		c.checkSpecialCollectionLiteralPattern(
+			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.RangeLiteralNode:
 		c.checkRangePattern(n, typ)
+	case *ast.MapPatternNode:
+		c.checkMapPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
+	}
+}
+
+func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
+	generic, ok := typ.(*types.Generic)
+	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.Map).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
+		c.addFailure(
+			fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
+			node.Span(),
+		)
+		return
+	}
+	typeArg := generic.TypeArguments.Get(0)
+	for _, element := range node.Elements {
+		c.checkPattern(element, typeArg.Type)
 	}
 }
 
@@ -5547,8 +5585,9 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	c.checkCanMatch(typ, genericRangeType.TypeArguments.Get(0).Type, node.Span())
 }
 
-func (c *Checker) checkSpecialCollectionLiteralPattern(patternType, typ types.Type, span *position.Span) {
+func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.Node, patternType, typ types.Type, span *position.Span) {
 	c.checkCanMatch(typ, patternType, span)
+	node.SetType(patternType)
 }
 
 func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.Type) {
@@ -5556,7 +5595,7 @@ func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.T
 	c.checkCanMatch(typ, c.typeOf(node), node.Span())
 }
 
-func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) {
+func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) bool {
 	if !c.typesIntersect(assignedType, targetType) {
 		c.addFailure(
 			fmt.Sprintf(
@@ -5566,48 +5605,80 @@ func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, 
 			),
 			span,
 		)
+		return false
 	}
+
+	return true
 }
 
 func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) {
-	generic, ok := typ.(*types.Generic)
-	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.Tuple).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
-		c.addFailure(
-			fmt.Sprintf("type `%s` cannot be matched against a tuple pattern", types.InspectWithColor(typ)),
-			node.Span(),
-		)
-		return
+	tupleInterface := c.Std(symbol.Tuple).(*types.Interface)
+	tupleOfAny := types.NewGenericWithVariance(tupleInterface, types.BIVARIANT, types.Any{})
+
+	var elementType types.Type = types.Any{}
+
+	if c.checkCanMatch(typ, tupleOfAny, node.Span()) {
+		elementType = c.extractCollectionElementFromType(tupleInterface, tupleOfAny, typ)
 	}
-	typeArg := generic.TypeArguments.Get(0)
+
 	for _, element := range node.Elements {
-		c.checkPattern(element, typeArg.Type)
+		c.checkPattern(element, elementType)
 	}
+}
+
+func (c *Checker) _extractCollectionElement(extractedCollection types.Type, collectionInterface *types.Interface, collectionOfAny *types.Generic) types.Type {
+	switch l := extractedCollection.(type) {
+	case *types.Generic:
+		if l.TypeArguments.Len() != 1 {
+			break
+		}
+
+		patternElementType := l.Get(0).Type
+		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionInterface, patternElementType)
+		if c.isSubtype(l, collectionOfPatternElement, nil) {
+			return patternElementType
+		}
+	case *types.Union:
+		newElements := make([]types.Type, len(l.Elements))
+		for i, element := range l.Elements {
+			newElements[i] = c._extractCollectionElement(element, collectionInterface, collectionOfAny)
+		}
+		return c.newNormalisedUnion(newElements...)
+	}
+
+	return types.Any{}
+}
+
+func (c *Checker) extractCollectionElementFromType(collectionInterface *types.Interface, collectionOfAny *types.Generic, typ types.Type) types.Type {
+	extractedCollection := c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
+	return c._extractCollectionElement(extractedCollection, collectionInterface, collectionOfAny)
 }
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
-	generic, ok := typ.(*types.Generic)
-	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.List).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
-		c.addFailure(
-			fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
-			node.Span(),
-		)
-		return
+	listInterface := c.Std(symbol.List).(*types.Interface)
+	listOfAny := types.NewGenericWithVariance(listInterface, types.BIVARIANT, types.Any{})
+
+	var elementType types.Type = types.Any{}
+
+	if c.checkCanMatch(typ, listOfAny, node.Span()) {
+		elementType = c.extractCollectionElementFromType(listInterface, listOfAny, typ)
 	}
-	typeArg := generic.TypeArguments.Get(0)
+
 	for _, element := range node.Elements {
-		c.checkPattern(element, typeArg.Type)
+		c.checkPattern(element, elementType)
 	}
 }
 
-func (c *Checker) checkIdentifierPattern(name string, typ types.Type, span *position.Span) {
+func (c *Checker) checkIdentifierPattern(name string, valueType, patternType types.Type, span *position.Span) types.Type {
 	variable := c.getLocal(name)
 	if variable == nil {
-		c.addLocal(name, newLocal(typ, true, c.mode == valuePatternMode))
-		return
+		c.addLocal(name, newLocal(c.toNonLiteral(patternType, false), true, c.mode == valuePatternMode))
+		return patternType
 	}
 
 	variable.initialised = true
-	c.checkCanAssign(typ, variable.typ, span)
+	c.checkCanAssign(valueType, variable.typ, span)
+	return variable.typ
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {

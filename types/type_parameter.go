@@ -19,8 +19,12 @@ func (v Variance) Name() string {
 		return "covariant"
 	case CONTRAVARIANT:
 		return "contravariant"
-	default:
+	case BIVARIANT:
+		return "bivariant"
+	case INVARIANT:
 		return "invariant"
+	default:
+		return "<unknown>"
 	}
 }
 
@@ -28,12 +32,14 @@ const (
 	INVARIANT Variance = iota
 	COVARIANT
 	CONTRAVARIANT
+	BIVARIANT
 )
 
 var varianceString = []string{
 	INVARIANT:     "INVARIANT",
 	COVARIANT:     "COVARIANT",
 	CONTRAVARIANT: "CONTRAVARIANT",
+	BIVARIANT:     "BIVARIANT",
 }
 
 type TypeParameter struct {
@@ -83,6 +89,8 @@ func (t *TypeParameter) InspectSignature() string {
 		buffer.WriteRune('+')
 	case CONTRAVARIANT:
 		buffer.WriteRune('-')
+	case BIVARIANT:
+		buffer.WriteString("+-")
 	}
 	buffer.WriteString(t.Name.String())
 

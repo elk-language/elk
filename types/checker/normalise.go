@@ -952,6 +952,7 @@ func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
 
 eliminateSupertypesLoop:
 	for i := 0; i < len(elements); i++ {
+		elements[i] = c.normaliseType(elements[i])
 		element := elements[i]
 
 		for j := 0; j < len(normalisedElements); j++ {

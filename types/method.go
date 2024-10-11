@@ -372,6 +372,8 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 				buffer.WriteRune('+')
 			case CONTRAVARIANT:
 				buffer.WriteRune('-')
+			case BIVARIANT:
+				buffer.WriteString("+-")
 			}
 			buffer.WriteString(param.Name.String())
 			if !IsNever(param.LowerBound) {

@@ -8,6 +8,11 @@ import (
 
 func TestNilableSubtype(t *testing.T) {
 	tests := testTable{
+		"assign value to union containing an interface": {
+			input: `
+				var d: List[Float | Int] | nil = nil
+			`,
+		},
 		"assign String to nilable String": {
 			input: `
 				var a = "foo"

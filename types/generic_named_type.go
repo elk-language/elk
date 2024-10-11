@@ -44,6 +44,8 @@ func (g *GenericNamedType) inspect() string {
 			buffer.WriteRune('+')
 		case CONTRAVARIANT:
 			buffer.WriteRune('-')
+		case BIVARIANT:
+			buffer.WriteString("+-")
 		}
 
 		buffer.WriteString(typeVar.Name.String())

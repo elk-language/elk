@@ -59,7 +59,136 @@ func TestPatterns(t *testing.T) {
 				var [a] = 8
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `8` cannot be matched against a list pattern"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `8` cannot ever match type `Std::List[any]`"),
+			},
+		},
+		"list pattern with a wider type declares a variable with element type": {
+			input: `
+				var a: List[Int] | nil = nil
+				var [b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(65, 4, 16), P(65, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"list pattern with a wider type and incompatible values": {
+			input: `
+				var a: List[Int] | nil = nil
+				var ["foo", b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 10), P(47, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+			},
+		},
+		"list pattern with a wider type with ArrayList declares a variable with element type": {
+			input: `
+				var a: ArrayList[Int] | nil = nil
+				var [b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"list pattern with a wider incompatible element type with ArrayList": {
+			input: `
+				var a: ArrayList[Int] | nil = nil
+				var ["foo", 2.5, b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(48, 3, 10), P(52, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(55, 3, 17), P(57, 3, 19)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"list pattern with a wider type ArrayList | List declares a variable with element type": {
+			input: `
+				var a: ArrayList[Int] | List[Float] | nil = nil
+				var [b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 4, 16), P(84, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+			},
+		},
+		"list pattern with a wider incompatible type ArrayList | List": {
+			input: `
+				var a: ArrayList[Int] | List[Float] | nil = nil
+				var ["foo", 9i8, b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 3, 10), P(66, 3, 14)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(69, 3, 17), P(71, 3, 19)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
+			},
+		},
+
+		"tuple pattern with a wider type declares a variable with element type": {
+			input: `
+				var a: Tuple[Int] | nil = nil
+				var %[b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(67, 4, 16), P(67, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"tuple pattern with a wider type and incompatible values": {
+			input: `
+				var a: Tuple[Int] | nil = nil
+				var %["foo", b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 11), P(49, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+			},
+		},
+		"tuple pattern with a wider type with ArrayTuple declares a variable with element type": {
+			input: `
+				var a: ArrayTuple[Int] | nil = nil
+				var %[b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"tuple pattern with a wider type with ArrayList declares a variable with element type": {
+			input: `
+				var a: ArrayList[Int] | nil = nil
+				var %[b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(71, 4, 16), P(71, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"tuple pattern with a wider incompatible element type with ArrayTuple": {
+			input: `
+				var a: ArrayTuple[Int] | nil = nil
+				var %["foo", 2.5, b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 3, 11), P(54, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"tuple pattern with a wider type ArrayTuple | List declares a variable with element type": {
+			input: `
+				var a: ArrayTuple[Int] | List[Float] | nil = nil
+				var %[b] = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 4, 16), P(86, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+			},
+		},
+		"tuple pattern with a wider incompatible type ArrayList | Tuple": {
+			input: `
+				var a: ArrayList[Int] | Tuple[Float] | nil = nil
+				var %["foo", 9i8, b] = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(64, 3, 11), P(68, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(71, 3, 18), P(73, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
 		"tuple pattern with rest": {
@@ -76,7 +205,7 @@ func TestPatterns(t *testing.T) {
 				var %[a] = 8
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot be matched against a tuple pattern"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot ever match type `Std::Tuple[any]`"),
 			},
 		},
 		"pattern with as and new variable": {
@@ -92,6 +221,17 @@ func TestPatterns(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+
+		"pattern with as has the patterns type": {
+			input: `
+				var b: Int | Float | nil = 3
+				var 1 as a = b
+				var c: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 4, 18), P(70, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 

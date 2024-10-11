@@ -425,13 +425,13 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Union:
 		for _, bElement := range b.Elements {
-			if c.isSubtype(a, bElement, errSpan) {
+			if c.isSubtype(a, bElement, nil) {
 				return true
 			}
 		}
 		return false
 	case *types.Nilable:
-		return c.isSubtype(a, b.Type, errSpan) || c.isSubtype(a, types.Nil{}, errSpan)
+		return c.isSubtype(a, b.Type, nil) || c.isSubtype(a, types.Nil{}, nil)
 	case *types.Not:
 		return !c.typesIntersect(a, b.Type)
 	case *types.TypeParameter:
@@ -653,7 +653,14 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *positio
 		argB := b.ArgumentMap[b.ArgumentOrder[i]]
 		argA := a.ArgumentMap[a.ArgumentOrder[i]]
 
-		switch argA.Variance {
+		var variance types.Variance
+		if argA.Variance > argB.Variance {
+			variance = argA.Variance
+		} else {
+			variance = argB.Variance
+		}
+
+		switch variance {
 		case types.INVARIANT:
 			if !c.isTheSameType(argA.Type, argB.Type, errSpan) {
 				return false
@@ -664,6 +671,10 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *positio
 			}
 		case types.CONTRAVARIANT:
 			if !c.isSubtype(argB.Type, argA.Type, errSpan) {
+				return false
+			}
+		case types.BIVARIANT:
+			if !c.isSubtype(argB.Type, argA.Type, errSpan) && !c.isSubtype(argA.Type, argB.Type, errSpan) {
 				return false
 			}
 		}
