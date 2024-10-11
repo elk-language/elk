@@ -5581,8 +5581,26 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	if !ok {
 		return
 	}
+	elementType := genericRangeType.TypeArguments.Get(0).Type
 
-	c.checkCanMatch(typ, genericRangeType.TypeArguments.Get(0).Type, node.Span())
+	cmpMethod := c.getMethod(elementType, symbol.OpSpaceship, nil)
+	if cmpMethod == nil {
+		return
+	}
+	cmpParamType := cmpMethod.Params[0].Type
+	valueType := c.newNormalisedIntersection(cmpParamType, typ)
+	if types.IsNever(valueType) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` cannot ever be included in `%s`",
+				types.InspectWithColor(typ),
+				types.InspectWithColor(rangeType),
+			),
+			node.Span(),
+		)
+	}
+
+	node.SetType(valueType)
 }
 
 func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.Node, patternType, typ types.Type, span *position.Span) {
@@ -5595,16 +5613,20 @@ func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.T
 	c.checkCanMatch(typ, c.typeOf(node), node.Span())
 }
 
+func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.Type, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf(
+			"type `%s` cannot ever match type `%s`",
+			types.InspectWithColor(assignedType),
+			types.InspectWithColor(targetType),
+		),
+		span,
+	)
+}
+
 func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) bool {
 	if !c.typesIntersect(assignedType, targetType) {
-		c.addFailure(
-			fmt.Sprintf(
-				"type `%s` cannot ever match type `%s`",
-				types.InspectWithColor(assignedType),
-				types.InspectWithColor(targetType),
-			),
-			span,
-		)
+		c.addCannotMatchError(assignedType, targetType, span)
 		return false
 	}
 

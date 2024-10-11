@@ -45,13 +45,23 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
-		"list pattern with rest": {
+		"list pattern with rest and literal": {
 			input: `
 				var [a, *b] = ["", 8, 1]
 				var c: 9 = b
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"list pattern with rest and wide type": {
+			input: `
+				var d: ArrayList[String] | List[Int] | nil = nil
+				var [a, *b] = d
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"list pattern with invalid value": {
@@ -1038,17 +1048,42 @@ func TestPatterns(t *testing.T) {
 			},
 		},
 
-		"pattern with range pattern and correct type": {
+		"range pattern and wider type": {
 			input: `
-				var 1...5.9 as a = 9
-			`,
-		},
-		"pattern with range pattern and wrong literal type": {
-			input: `
-				var 1...9 as a = 5.2
+				var a: Int | Float | String | nil = nil
+				var 1...5.9 as b = a
+				var c: nil = b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5.2` cannot ever match type `Std::Int`"),
+				error.NewFailure(L("<main>", P(87, 4, 18), P(87, 4, 18)), "type `Std::Int | Std::Float` cannot be assigned to type `nil`"),
+			},
+		},
+		"range pattern and correct type": {
+			input: `
+				var 1...5.9 as a = 9
+				var b: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 18), P(43, 3, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
+		"range pattern and other valid type": {
+			input: `
+				var 1...5.9 as a = 5bf
+				var b: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 18), P(45, 3, 18)), "type `Std::BigFloat` cannot be assigned to type `nil`"),
+			},
+		},
+		"range pattern and wrong literal type": {
+			input: `
+				var 1...9 as a = 5i8
+				a = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever be included in `Std::ClosedRange[Std::Int]`"),
+				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `never`"),
 			},
 		},
 	}
