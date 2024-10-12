@@ -1354,6 +1354,23 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       3E                UNDEFINED
 `,
 		},
+		"correctly format the GET_CLASS opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.GET_CLASS)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       3F                GET_CLASS
+`,
+		},
 		"correctly format the CALL_SELF8 opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
@@ -2457,57 +2474,6 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
 0000  1       7B 07             NEW_RANGE         7 (x<..)
-`,
-		},
-		"correctly format the CALL_PATTERN8 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.CALL_PATTERN8), 0},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       7C 00             CALL_PATTERN8     0 (CallSiteInfo{name: :foo, argument_count: 0})
-`,
-		},
-		"correctly format the CALL_PATTERN16 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.CALL_PATTERN16), 0x01, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       7D 01 00          CALL_PATTERN16    256 (CallSiteInfo{name: :foo, argument_count: 0})
-`,
-		},
-		"correctly format the CALL_PATTERN32 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.CALL_PATTERN32), 0x01, 0x00, 0x00, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       7E 01 00 00 00    CALL_PATTERN32    16777216 (CallSiteInfo{name: :foo, argument_count: 0})
 `,
 		},
 		"correctly format the INSTANCE_OF opcode": {

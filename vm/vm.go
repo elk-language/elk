@@ -401,6 +401,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.defineSingleton())
 		case bytecode.GET_SINGLETON:
 			vm.throwIfErr(vm.getSingletonClass())
+		case bytecode.GET_CLASS:
+			vm.getClass()
 		case bytecode.DEF_ALIAS:
 			vm.throwIfErr(vm.defineAlias())
 		case bytecode.DEF_GETTER:
@@ -466,18 +468,6 @@ func (vm *VM) run() {
 		case bytecode.SET_IVAR32:
 			vm.throwIfErr(
 				vm.setInstanceVariable(int(vm.readUint32())),
-			)
-		case bytecode.CALL_PATTERN8:
-			vm.throwIfErr(
-				vm.callPattern(int(vm.readByte())),
-			)
-		case bytecode.CALL_PATTERN16:
-			vm.throwIfErr(
-				vm.callPattern(int(vm.readUint16())),
-			)
-		case bytecode.CALL_PATTERN32:
-			vm.throwIfErr(
-				vm.callPattern(int(vm.readUint32())),
 			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
@@ -966,6 +956,12 @@ func (vm *VM) getSingletonClass() (err value.Value) {
 
 	vm.push(singleton)
 	return nil
+}
+
+func (vm *VM) getClass() {
+	val := vm.pop()
+	class := val.Class()
+	vm.push(class)
 }
 
 func (vm *VM) selfValue() value.Value {

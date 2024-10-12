@@ -2195,7 +2195,7 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 	} else {
 		jumpOp = bytecode.JUMP_UNLESS
 	}
-	c.compileIf(
+	c.compileIfWithConditionExpression(
 		jumpOp,
 		condition,
 		func() {
@@ -2221,7 +2221,7 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 		jumpOp = bytecode.JUMP_UNLESS
 	}
 
-	c.compileIf(
+	c.compileIfWithConditionExpression(
 		jumpOp,
 		condition,
 		func() {
@@ -2232,7 +2232,33 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 	)
 }
 
-func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) {
+func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), span *position.Span) {
+	c.enterScope("", defaultScopeType)
+	condition()
+
+	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
+
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	then()
+	c.leaveScope(span.StartPos.Line)
+
+	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+	c.patchJump(thenJumpOffset, span)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	if els != nil {
+		c.enterScope("", defaultScopeType)
+		els()
+		c.leaveScope(span.StartPos.Line)
+	} else {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	}
+	c.patchJump(elseJumpOffset, span)
+}
+
+func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) {
 	if result := resolve(condition); result != nil {
 		// if gets optimised away
 		c.enterScope("", defaultScopeType)
@@ -2265,29 +2291,15 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNod
 		return
 	}
 
-	c.enterScope("", defaultScopeType)
-	c.compileNode(condition)
-
-	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
-
-	c.emit(span.StartPos.Line, bytecode.POP)
-
-	then()
-	c.leaveScope(span.StartPos.Line)
-
-	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-
-	c.patchJump(thenJumpOffset, span)
-	c.emit(span.StartPos.Line, bytecode.POP)
-
-	if els != nil {
-		c.enterScope("", defaultScopeType)
-		els()
-		c.leaveScope(span.StartPos.Line)
-	} else {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-	}
-	c.patchJump(elseJumpOffset, span)
+	c.compileIf(
+		jumpOp,
+		func() {
+			c.compileNode(condition)
+		},
+		then,
+		els,
+		span,
+	)
 }
 
 func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
@@ -2351,7 +2363,7 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 		return
 	}
 
-	c.compileIf(
+	c.compileIfWithConditionExpression(
 		bytecode.JUMP_IF_NIL,
 		node.Receiver,
 		func() {
@@ -2366,11 +2378,36 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
+func (c *Compiler) relationalPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
+	span := pattern.Span()
+
+	c.compileIf(
+		bytecode.JUMP_UNLESS,
+		func() {
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.compileNode(pattern)
+			c.emit(span.StartPos.Line, bytecode.DUP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
+			c.emit(span.StartPos.Line, bytecode.SWAP)
+			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
+			c.emit(span.StartPos.Line, bytecode.STRICT_EQUAL)
+		},
+		func() {
+			c.emitCallMethod(callInfo, span)
+		},
+		func() {
+			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.FALSE)
+		},
+		span,
+	)
+}
+
 func (c *Compiler) literalPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
-	c.emitCallPattern(callInfo, span)
+	c.emitCallMethod(callInfo, span)
 }
 
 func (c *Compiler) pattern(pattern ast.PatternNode) {
@@ -2454,40 +2491,53 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 }
 
 func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
-	var methodName value.Symbol
 	switch pat.Op.Type {
 	case token.EQUAL_EQUAL:
-		methodName = symbol.OpEqual
+		c.literalPattern(
+			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
+			pat.Right,
+		)
 	case token.NOT_EQUAL:
-		methodName = symbol.OpNotEqual
-	case token.LAX_EQUAL:
-		methodName = symbol.OpLaxEqual
-	case token.LAX_NOT_EQUAL:
-		methodName = symbol.OpLaxNotEqual
+		c.literalPattern(
+			value.NewCallSiteInfo(symbol.OpNotEqual, 1, nil),
+			pat.Right,
+		)
 	case token.STRICT_EQUAL:
-		methodName = symbol.OpStrictEqual
+		c.literalPattern(
+			value.NewCallSiteInfo(symbol.OpStrictEqual, 1, nil),
+			pat.Right,
+		)
 	case token.STRICT_NOT_EQUAL:
-		methodName = symbol.OpStrictNotEqual
+		c.literalPattern(
+			value.NewCallSiteInfo(symbol.OpStrictNotEqual, 1, nil),
+			pat.Right,
+		)
 	case token.LESS:
-		methodName = symbol.OpLessThan
+		c.relationalPattern(
+			value.NewCallSiteInfo(symbol.OpLessThan, 1, nil),
+			pat.Right,
+		)
 	case token.LESS_EQUAL:
-		methodName = symbol.OpLessThanEqual
+		c.relationalPattern(
+			value.NewCallSiteInfo(symbol.OpLessThanEqual, 1, nil),
+			pat.Right,
+		)
 	case token.GREATER:
-		methodName = symbol.OpGreaterThan
+		c.relationalPattern(
+			value.NewCallSiteInfo(symbol.OpGreaterThan, 1, nil),
+			pat.Right,
+		)
 	case token.GREATER_EQUAL:
-		methodName = symbol.OpGreaterThanEqual
+		c.relationalPattern(
+			value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1, nil),
+			pat.Right,
+		)
 	default:
 		c.literalPattern(
 			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat,
 		)
-		return
 	}
-
-	c.literalPattern(
-		value.NewCallSiteInfo(methodName, 1, nil),
-		pat.Right,
-	)
 }
 
 func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
@@ -3858,7 +3908,7 @@ func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					jumpOp,
 					e.Right,
 					func() {
@@ -3869,7 +3919,7 @@ func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
 					e.Span(),
 				)
 			case *ast.ModifierIfElseNode:
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
@@ -4021,7 +4071,7 @@ elementLoop:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					jumpOp,
 					e.Right,
 					func() {
@@ -4042,7 +4092,7 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierIfElseNode:
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
@@ -4210,7 +4260,7 @@ elementLoop:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					jumpOp,
 					e.Right,
 					func() {
@@ -4231,7 +4281,7 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierIfElseNode:
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
@@ -4402,7 +4452,7 @@ elementLoop:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					jumpOp,
 					e.Right,
 					func() {
@@ -4420,7 +4470,7 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierIfElseNode:
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
@@ -4564,7 +4614,7 @@ elementLoop:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					jumpOp,
 					e.Right,
 					func() {
@@ -4582,7 +4632,7 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierIfElseNode:
-				c.compileIf(
+				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
@@ -5570,17 +5620,6 @@ func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position
 		bytecode.CALL_SELF8,
 		bytecode.CALL_SELF16,
 		bytecode.CALL_SELF32,
-	)
-}
-
-// Emit an instruction that calls a method in a pattern
-func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.Span) int {
-	return c.emitAddValue(
-		callInfo,
-		span,
-		bytecode.CALL_PATTERN8,
-		bytecode.CALL_PATTERN16,
-		bytecode.CALL_PATTERN32,
 	)
 }
 

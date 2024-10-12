@@ -98,7 +98,7 @@ const (
 	CALL_METHOD32                    // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
 	DEF_METHOD                       // Define a new method
 	UNDEFINED                        // Push the undefined value onto the stack
-	_
+	GET_CLASS                        // Pop one value off the stack push its class
 	_
 	CALL_SELF8  // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_SELF16 // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
@@ -159,30 +159,30 @@ const (
 	NEW_SYMBOL32      // Create a new symbol (32 bit operand)
 	SWAP              // Swap the top two values on the stack
 	NEW_RANGE         // Create a new range
-	CALL_PATTERN8     // Call a method in a pattern, return false if the method is not implemented or throws TypeError (8 bit operand)
-	CALL_PATTERN16    // Call a method in a pattern, return false if the method is not implemented or throws TypeError (16 bit operand)
-	CALL_PATTERN32    // Call a method in a pattern, return false if the method is not implemented or throws TypeError (32 bit operand)
-	INSTANCE_OF       // Pop two values of the stack, check whether one is an instance of the other
-	IS_A              // Pop two values of the stack, check whether one is an instance of the subclass of the other
-	POP_SKIP_ONE      // Pop the value on top of the stack skipping the first one
-	INSPECT_STACK     // Prints the stack, for debugging
-	NEW_HASH_SET8     // Create a new hashset (8 bit operand)
-	NEW_HASH_SET32    // Create a new hashset (32 bit operand)
-	THROW             // Throw a value/error
-	RETHROW           // Rethrow a value/error
-	POP_ALL           // Pop all values on the stack, leaving only the slots reserved for locals
-	RETURN_FINALLY    // Execute all finally blocks this line is nested in and return from the current frame
-	JUMP_TO_FINALLY   // Jump to the specified instruction after executing finally blocks
-	CLOSURE           // Wrap the function on top of the stack in a closure
-	CALL8             // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
-	CALL16            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
-	CALL32            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
-	SET_UPVALUE8      // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
-	SET_UPVALUE16     // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
-	GET_UPVALUE8      // Push the value of the upvalue with the given index onto the stack (8 bit operand)
-	GET_UPVALUE16     // Push the value of the upvalue with the given index onto the stack (16 bit operand)
-	CLOSE_UPVALUE8    // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
-	CLOSE_UPVALUE16   // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
+	_
+	_
+	_
+	INSTANCE_OF     // Pop two values of the stack, check whether one is an instance of the other
+	IS_A            // Pop two values of the stack, check whether one is an instance of the subclass of the other
+	POP_SKIP_ONE    // Pop the value on top of the stack skipping the first one
+	INSPECT_STACK   // Prints the stack, for debugging
+	NEW_HASH_SET8   // Create a new hashset (8 bit operand)
+	NEW_HASH_SET32  // Create a new hashset (32 bit operand)
+	THROW           // Throw a value/error
+	RETHROW         // Rethrow a value/error
+	POP_ALL         // Pop all values on the stack, leaving only the slots reserved for locals
+	RETURN_FINALLY  // Execute all finally blocks this line is nested in and return from the current frame
+	JUMP_TO_FINALLY // Jump to the specified instruction after executing finally blocks
+	CLOSURE         // Wrap the function on top of the stack in a closure
+	CALL8           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
+	CALL16          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
+	CALL32          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
+	SET_UPVALUE8    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
+	SET_UPVALUE16   // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
+	GET_UPVALUE8    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
+	GET_UPVALUE16   // Push the value of the upvalue with the given index onto the stack (16 bit operand)
+	CLOSE_UPVALUE8  // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
+	CLOSE_UPVALUE16 // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -249,6 +249,7 @@ var opCodeNames = [...]string{
 	CALL_METHOD32:      "CALL_METHOD32",
 	DEF_METHOD:         "DEF_METHOD",
 	UNDEFINED:          "UNDEFINED",
+	GET_CLASS:          "GET_CLASS",
 	CALL_SELF8:         "CALL_SELF8",
 	CALL_SELF16:        "CALL_SELF16",
 	CALL_SELF32:        "CALL_SELF32",
@@ -307,9 +308,6 @@ var opCodeNames = [...]string{
 	NEW_SYMBOL32:       "NEW_SYMBOL32",
 	SWAP:               "SWAP",
 	NEW_RANGE:          "NEW_RANGE",
-	CALL_PATTERN8:      "CALL_PATTERN8",
-	CALL_PATTERN16:     "CALL_PATTERN16",
-	CALL_PATTERN32:     "CALL_PATTERN32",
 	INSTANCE_OF:        "INSTANCE_OF",
 	IS_A:               "IS_A",
 	POP_SKIP_ONE:       "POP_SKIP_ONE",

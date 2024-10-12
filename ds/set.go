@@ -22,3 +22,29 @@ func (s Set[V]) Contains(val V) bool {
 	_, ok := s[val]
 	return ok
 }
+
+// Returns a new set containing the elements of all given sets
+func (s Set[V]) Concat(sets ...Set[V]) Set[V] {
+	newSet := make(Set[V])
+
+	for element := range s {
+		newSet.Add(element)
+	}
+
+	for _, set := range sets {
+		for element := range set {
+			newSet.Add(element)
+		}
+	}
+
+	return newSet
+}
+
+// Mutate the set by adding the elements of all given sets
+func (s Set[V]) ConcatMut(sets ...Set[V]) {
+	for _, set := range sets {
+		for element := range set {
+			s.Add(element)
+		}
+	}
+}

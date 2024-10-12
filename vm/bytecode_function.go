@@ -463,7 +463,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
 		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
-		bytecode.UNDEFINED, bytecode.DEF_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON,
+		bytecode.UNDEFINED, bytecode.DEF_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
 		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
 		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
@@ -500,19 +500,19 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
 		bytecode.CALL_SELF8, bytecode.INSTANTIATE8,
-		bytecode.GET_IVAR8, bytecode.SET_IVAR8, bytecode.CALL_PATTERN8,
+		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
 		bytecode.CALL8:
 		return f.disassembleConstant(output, 2, offset)
 	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
 		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
 		bytecode.CALL_SELF16, bytecode.INSTANTIATE16,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16, bytecode.CALL_PATTERN16,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
 		bytecode.CALL16:
 		return f.disassembleConstant(output, 3, offset)
 	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
 		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
 		bytecode.CALL_SELF32, bytecode.INSTANTIATE32,
-		bytecode.GET_IVAR32, bytecode.SET_IVAR32, bytecode.CALL_PATTERN32,
+		bytecode.GET_IVAR32, bytecode.SET_IVAR32,
 		bytecode.CALL32:
 		return f.disassembleConstant(output, 5, offset)
 	default:

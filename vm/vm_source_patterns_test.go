@@ -655,8 +655,8 @@ func TestVMSource_Switch(t *testing.T) {
 				switch { 1 => 5.5, foo: "bar", "baz" => 12.5 }
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
-				case { 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
-				case { 1 => > 2, foo: "baz" || "bar", "baz" => < 13 } then :d
+				case { 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
+				case { 1 => > 2.0, foo: "baz" || "bar", "baz" => < 13.0 } then :d
 				case 15 then :e
 				end
 			`,
@@ -667,8 +667,8 @@ func TestVMSource_Switch(t *testing.T) {
 				switch { 1 => 5.5, foo: "bar", "baz" => 12.5 }
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
-				case %{ 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
-				case %{ 1 => > 2, foo: "baz" || "bar", "baz" => < 13 } then :d
+				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
+				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => < 13.0 } then :d
 				case 15 then :e
 				end
 			`,
@@ -679,8 +679,8 @@ func TestVMSource_Switch(t *testing.T) {
 				switch { 1 => 5.5, foo: ["bar", 5, 4, { elo: "mordo" }], "baz" => 12.5 }
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
-				case { 1 => > 2, foo: ["baz" || "bar", 5, 4, { eli: "mordo" }], "baz" => < 13 } then :c
-				case { 1 => > 2, foo: ["baz" || "bar", 5, 4, { elo: %/^mord\w+$/ }], "baz" => < 13 } then :d
+				case { 1 => > 2.0, foo: ["baz" || "bar", 5, 4, { eli: "mordo" }], "baz" => < 13.0 } then :c
+				case { 1 => > 2.0, foo: ["baz" || "bar", 5, 4, { elo: %/^mord\w+$/ }], "baz" => < 13.0 } then :d
 				case 15 then :e
 				end
 			`,
@@ -704,8 +704,8 @@ func TestVMSource_Switch(t *testing.T) {
 				switch %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
-				case %{ 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
-				case %{ 1 => > 2, foo: "baz" || "bar", "baz" => < 13 } then :d
+				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
+				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => < 13.0 } then :d
 				case 15 then :e
 				end
 			`,
@@ -728,8 +728,8 @@ func TestVMSource_Switch(t *testing.T) {
 				switch %{ 1 => 5.5, foo: ["bar", 5, 4, %{ elo: "mordo" }], "baz" => 12.5 }
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
-				case %{ 1 => > 2, foo: ["baz" || "bar", 5, 4, %{ eli: "mordo" }], "baz" => < 13 } then :c
-				case %{ 1 => > 2, foo: ["baz" || "bar", 5, 4, %{ elo: %/^mord\w+$/ }], "baz" => < 13 } then :d
+				case %{ 1 => > 2.0, foo: ["baz" || "bar", 5, 4, %{ eli: "mordo" }], "baz" => < 13.0 } then :c
+				case %{ 1 => > 2.0, foo: ["baz" || "bar", 5, 4, %{ elo: %/^mord\w+$/ }], "baz" => < 13.0 } then :d
 				case 15 then :e
 				end
 			`,

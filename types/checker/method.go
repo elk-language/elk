@@ -1763,7 +1763,7 @@ func (c *Checker) checkMethodOverrideWithPlaceholder(
 		baseMethod,
 		span,
 	)
-	overrideMethod.UsedInConstants = baseMethod.UsedInConstants
+	overrideMethod.UsedInConstants.ConcatMut(baseMethod.UsedInConstants)
 }
 
 // Set the mode of a closure/method output position
