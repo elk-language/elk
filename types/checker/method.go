@@ -540,6 +540,192 @@ func (c *Checker) checkMethod(
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
+func (c *Checker) checkSpecialMethods(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+	if symbol.IsEqualityOperator(name) {
+		c.checkEqualityOperator(name, checkedMethod, paramNodes, span)
+		return
+	}
+
+	if symbol.IsRelationalOperator(name) {
+		c.checkRelationalOperator(name, checkedMethod, paramNodes, span)
+		return
+	}
+
+	if symbol.RequiresOneParameter(name) {
+		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 1, span)
+		return
+	}
+
+	if symbol.RequiresNoParameters(name) {
+		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 0, span)
+		return
+	}
+}
+
+func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+	params := checkedMethod.Params
+
+	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"equality operator `%s` must return `%s`",
+				lexer.Colorize(name.String()),
+				lexer.Colorize("bool"),
+			),
+			span,
+		)
+	}
+
+	if len(params) != 1 {
+		c.addFailure(
+			fmt.Sprintf(
+				"equality operator `%s` must accept a single parameter, got %d",
+				lexer.Colorize(name.String()),
+				len(params),
+			),
+			span,
+		)
+		return
+	}
+
+	param := params[0]
+	var paramSpan *position.Span
+	if paramNodes != nil {
+		paramSpan = paramNodes[0].Span()
+	} else {
+		paramSpan = span
+	}
+	if !types.IsAny(param.Type) {
+		c.addFailure(
+			fmt.Sprintf(
+				"parameter `%s` of equality operator `%s` must accept `%s` as a type",
+				lexer.Colorize(param.Name.String()),
+				lexer.Colorize(name.String()),
+				lexer.Colorize("any"),
+			),
+			paramSpan,
+		)
+	}
+
+	switch param.Kind {
+	case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+		c.addFailure(
+			fmt.Sprintf(
+				"equality operator `%s` cannot define rest parameter `%s`",
+				lexer.Colorize(name.String()),
+				types.InspectWithColor(param),
+			),
+			paramSpan,
+		)
+	}
+}
+
+func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+	params := checkedMethod.Params
+
+	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"relational operator `%s` must return `%s`",
+				lexer.Colorize(name.String()),
+				lexer.Colorize("bool"),
+			),
+			span,
+		)
+	}
+
+	if len(params) != 1 {
+		c.addFailure(
+			fmt.Sprintf(
+				"relational operator `%s` must accept a single parameter, got %d",
+				lexer.Colorize(name.String()),
+				len(params),
+			),
+			span,
+		)
+		return
+	}
+
+	param := checkedMethod.Params[0]
+	var paramSpan *position.Span
+	if paramNodes != nil {
+		paramSpan = paramNodes[0].Span()
+	} else {
+		paramSpan = span
+	}
+	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type, nil) {
+		c.addFailure(
+			fmt.Sprintf(
+				"parameter `%s` of relational operator `%s` must accept `%s`",
+				lexer.Colorize(param.Name.String()),
+				lexer.Colorize(name.String()),
+				types.InspectWithColor(c.selfType),
+			),
+			paramSpan,
+		)
+	}
+
+	switch param.Kind {
+	case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+		c.addFailure(
+			fmt.Sprintf(
+				"relational operator `%s` cannot define rest parameter `%s`",
+				lexer.Colorize(name.String()),
+				types.InspectWithColor(param),
+			),
+			paramSpan,
+		)
+	}
+}
+
+func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, desiredParamCount int, span *position.Span) {
+	params := checkedMethod.Params
+
+	if types.IsVoid(checkedMethod.ReturnType) {
+		c.addFailure(
+			fmt.Sprintf(
+				"method `%s` cannot be void",
+				lexer.Colorize(name.String()),
+			),
+			span,
+		)
+	}
+
+	if len(params) != desiredParamCount {
+		c.addFailure(
+			fmt.Sprintf(
+				"method `%s` must define exactly %d parameters, got %d",
+				lexer.Colorize(name.String()),
+				desiredParamCount,
+				len(params),
+			),
+			span,
+		)
+		return
+	}
+
+	for i, param := range params {
+		var paramSpan *position.Span
+		if paramNodes != nil {
+			paramSpan = paramNodes[i].Span()
+		} else {
+			paramSpan = span
+		}
+
+		switch param.Kind {
+		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+			c.addFailure(
+				fmt.Sprintf(
+					"method `%s` cannot define rest parameter `%s`",
+					lexer.Colorize(name.String()),
+					types.InspectWithColor(param),
+				),
+				paramSpan,
+			)
+		}
+	}
+}
+
 func (c *Checker) addToReturnType(typ types.Type) {
 	if c.returnType == nil {
 		c.returnType = typ
@@ -1369,8 +1555,8 @@ func (c *Checker) declareMethod(
 	c.mode = prevMode
 	c.setInputPositionTypeMode()
 	var params []*types.Parameter
-	for i, param := range paramNodes {
-		switch p := param.(type) {
+	for i, paramNode := range paramNodes {
+		switch p := paramNode.(type) {
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			if p.TypeNode != nil {
@@ -1381,7 +1567,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					param.Span(),
+					paramNode.Span(),
 				)
 			}
 
@@ -1398,12 +1584,14 @@ func (c *Checker) declareMethod(
 				kind = types.DefaultValueParameterKind
 			}
 			name := value.ToSymbol(p.Name)
-			params = append(params, types.NewParameter(
+			paramType := types.NewParameter(
 				name,
 				declaredType,
 				kind,
 				false,
-			))
+			)
+			p.SetType(paramType)
+			params = append(params, paramType)
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			if p.SetInstanceVariable {
@@ -1437,7 +1625,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					param.Span(),
+					paramNode.Span(),
 				)
 			}
 
@@ -1454,12 +1642,14 @@ func (c *Checker) declareMethod(
 				kind = types.DefaultValueParameterKind
 			}
 			name := value.ToSymbol(p.Name)
-			params = append(params, types.NewParameter(
+			paramType := types.NewParameter(
 				name,
 				declaredType,
 				kind,
 				false,
-			))
+			)
+			p.SetType(paramType)
+			params = append(params, paramType)
 		case *ast.SignatureParameterNode:
 			var declaredType types.Type
 			if p.TypeNode != nil {
@@ -1470,7 +1660,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					param.Span(),
+					paramNode.Span(),
 				)
 			}
 
@@ -1487,16 +1677,18 @@ func (c *Checker) declareMethod(
 				kind = types.DefaultValueParameterKind
 			}
 			name := value.ToSymbol(p.Name)
-			params = append(params, types.NewParameter(
+			paramType := types.NewParameter(
 				name,
 				declaredType,
 				kind,
 				false,
-			))
+			)
+			p.SetType(paramType)
+			params = append(params, paramType)
 		default:
 			c.addFailure(
-				fmt.Sprintf("invalid param type %T", param),
-				param.Span(),
+				fmt.Sprintf("invalid param type %T", paramNode),
+				paramNode.Span(),
 			)
 		}
 	}
@@ -1541,24 +1733,37 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.SetLocation(c.newLocation(span))
 
-	if oldMethod != nil {
-		if oldMethod.IsPlaceholder {
-			oldMethod.Replaced = true
-			oldMethod.DefinedUnder.SetMethod(oldMethod.Name, newMethod)
-		} else {
-			c.checkMethodOverride(
-				newMethod,
-				oldMethod,
-				span,
-			)
-			newMethod.UsedInConstants = oldMethod.UsedInConstants
-		}
-	}
+	c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, span)
 	methodNamespace.SetMethod(name, newMethod)
+
+	c.checkSpecialMethods(name, newMethod, paramNodes, span)
 
 	c.mode = prevMode
 
 	return newMethod, typeParamMod
+}
+
+func (c *Checker) checkMethodOverrideWithPlaceholder(
+	overrideMethod,
+	baseMethod *types.Method,
+	span *position.Span,
+) {
+	if baseMethod == nil {
+		return
+	}
+
+	if baseMethod.IsPlaceholder {
+		baseMethod.Replaced = true
+		baseMethod.DefinedUnder.SetMethod(baseMethod.Name, overrideMethod)
+		return
+	}
+
+	c.checkMethodOverride(
+		overrideMethod,
+		baseMethod,
+		span,
+	)
+	overrideMethod.UsedInConstants = baseMethod.UsedInConstants
 }
 
 // Set the mode of a closure/method output position
@@ -1938,7 +2143,7 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 
 func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) map[value.Symbol]*types.TypeArgument {
 	return map[value.Symbol]*types.TypeArgument{
-		symbol.M_self: types.NewTypeArgument(
+		symbol.L_self: types.NewTypeArgument(
 			self,
 			types.INVARIANT,
 		),
@@ -2079,7 +2284,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		}
 
 		typeArgMap := maps.Clone(upper.TypeArguments.ArgumentMap)
-		typeArgMap[symbol.M_self] = types.NewTypeArgument(
+		typeArgMap[symbol.L_self] = types.NewTypeArgument(
 			typ,
 			types.INVARIANT,
 		)

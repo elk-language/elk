@@ -69,7 +69,7 @@ func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 		Namespace:     typ,
 		TypeArguments: typeArgs,
 	}
-	typeArgs.ArgumentMap[symbol.M_self] = NewTypeArgument(
+	typeArgs.ArgumentMap[symbol.L_self] = NewTypeArgument(
 		generic,
 		INVARIANT,
 	)

@@ -63,11 +63,19 @@ var (
 	Comparable           = value.ToSymbol("Comparable")
 )
 
+// lowercase symbols
 var (
-	Empty  = value.ToSymbol("")
-	M_init = value.ToSymbol("#init")
-	M_call = value.ToSymbol("call")
-	M_self = value.ToSymbol("self")
+	L_call     = value.ToSymbol("call")
+	L_self     = value.ToSymbol("self")
+	L_contains = value.ToSymbol("contains")
+	L_length   = value.ToSymbol("length")
+)
+
+// special symbols
+var (
+	S_empty    = value.ToSymbol("")
+	S_init     = value.ToSymbol("#init")
+	S_contains = value.ToSymbol("#contains")
 )
 
 var (
@@ -85,8 +93,11 @@ var (
 	OpSpaceship            = value.ToSymbol("<=>") // `<=>`
 	OpModulo               = value.ToSymbol("%")   // `%`
 	OpEqual                = value.ToSymbol("==")  // `==`
+	OpNotEqual             = value.ToSymbol("!=")  // `!=`
 	OpLaxEqual             = value.ToSymbol("=~")  // `=~`
+	OpLaxNotEqual          = value.ToSymbol("!~")  // `!~`
 	OpStrictEqual          = value.ToSymbol("===") // `===`
+	OpStrictNotEqual       = value.ToSymbol("!==") // `!==`
 	OpGreaterThan          = value.ToSymbol(">")   // `>`
 	OpGreaterThanEqual     = value.ToSymbol(">=")  // `>=`
 	OpLessThan             = value.ToSymbol("<")   // `<`
@@ -101,6 +112,51 @@ var (
 	OpDivide               = value.ToSymbol("/")   // `/`
 	OpExponentiate         = value.ToSymbol("**")  // `**`
 )
+
+func IsEqualityOperator(methodName value.Symbol) bool {
+	switch methodName {
+	case OpEqual, OpNotEqual,
+		OpLaxEqual, OpLaxNotEqual,
+		OpStrictEqual, OpStrictNotEqual:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsRelationalOperator(methodName value.Symbol) bool {
+	switch methodName {
+	case OpGreaterThan, OpGreaterThanEqual,
+		OpLessThan, OpLessThanEqual:
+		return true
+	default:
+		return false
+	}
+}
+
+func RequiresNoParameters(methodName value.Symbol) bool {
+	switch methodName {
+	case OpIncrement, OpDecrement, OpNegate, OpUnaryPlus, OpBitwiseNot:
+		return true
+	default:
+		return false
+	}
+}
+
+func RequiresOneParameter(methodName value.Symbol) bool {
+	switch methodName {
+	case OpAdd, OpSubtract, OpMultiply,
+		OpDivide, OpExponentiate, OpLogicalRightBitshift,
+		OpLogicalLeftBitshift, OpRightBitshift, OpLeftBitshift,
+		OpLessThan, OpLessThanEqual, OpGreaterThan, OpGreaterThanEqual,
+		OpStrictEqual, OpStrictNotEqual, OpLaxEqual, OpLaxNotEqual,
+		OpEqual, OpNotEqual, OpModulo, OpSpaceship, OpXor,
+		OpOr, OpAnd, OpAndNot, OpSubscript:
+		return true
+	default:
+		return false
+	}
+}
 
 func SortKeys[V any](m map[value.Symbol]V) []value.Symbol {
 	keys := make([]value.Symbol, 0, len(m))

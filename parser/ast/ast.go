@@ -3143,7 +3143,7 @@ const (
 
 // Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
-	NodeBase
+	TypedNodeBase
 	Name        string         // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
@@ -3161,17 +3161,17 @@ func (f *FormalParameterNode) IsOptional() bool {
 // Create a new formal parameter node eg. `foo: String = 'bar'`
 func NewFormalParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
 	return &FormalParameterNode{
-		NodeBase:    NodeBase{span: span},
-		Name:        name,
-		TypeNode:    typ,
-		Initialiser: init,
-		Kind:        kind,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Name:          name,
+		TypeNode:      typ,
+		Initialiser:   init,
+		Kind:          kind,
 	}
 }
 
 // Represents a formal parameter in method declarations eg. `foo: String = 'bar'`
 type MethodParameterNode struct {
-	NodeBase
+	TypedNodeBase
 	Name                string         // name of the variable
 	TypeNode            TypeNode       // type of the variable
 	Initialiser         ExpressionNode // value assigned to the variable
@@ -3190,7 +3190,7 @@ func (f *MethodParameterNode) IsOptional() bool {
 // Create a new formal parameter node eg. `foo: String = 'bar'`
 func NewMethodParameterNode(span *position.Span, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
 	return &MethodParameterNode{
-		NodeBase:            NodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{span: span},
 		SetInstanceVariable: setIvar,
 		Name:                name,
 		TypeNode:            typ,
@@ -3201,7 +3201,7 @@ func NewMethodParameterNode(span *position.Span, name string, setIvar bool, typ 
 
 // Represents a signature parameter in method and function signatures eg. `foo?: String`
 type SignatureParameterNode struct {
-	NodeBase
+	TypedNodeBase
 	Name     string   // name of the variable
 	TypeNode TypeNode // type of the variable
 	Optional bool     // whether this parameter is optional
@@ -3219,17 +3219,17 @@ func (f *SignatureParameterNode) IsOptional() bool {
 // Create a new signature parameter node eg. `foo?: String`
 func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
 	return &SignatureParameterNode{
-		NodeBase: NodeBase{span: span},
-		Name:     name,
-		TypeNode: typ,
-		Optional: opt,
-		Kind:     kind,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Name:          name,
+		TypeNode:      typ,
+		Optional:      opt,
+		Kind:          kind,
 	}
 }
 
 // Represents an attribute declaration in getters, setters and accessors eg. `foo: String`
 type AttributeParameterNode struct {
-	NodeBase
+	TypedNodeBase
 	Name        string         // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
@@ -3246,10 +3246,10 @@ func (a *AttributeParameterNode) IsOptional() bool {
 // Create a new attribute declaration in getters, setters and accessors eg. `foo: String`
 func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
 	return &AttributeParameterNode{
-		NodeBase:    NodeBase{span: span},
-		Name:        name,
-		TypeNode:    typ,
-		Initialiser: init,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Name:          name,
+		TypeNode:      typ,
+		Initialiser:   init,
 	}
 }
 

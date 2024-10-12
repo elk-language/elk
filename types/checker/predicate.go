@@ -978,7 +978,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 
 func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpan *position.Span) bool {
 	abstractMethod := b.Body
-	method := c.resolveMethodInNamespace(a, symbol.M_call)
+	method := c.resolveMethodInNamespace(a, symbol.L_call)
 
 	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
 		methodDetailsBuff := new(strings.Builder)

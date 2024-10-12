@@ -1116,6 +1116,306 @@ func TestMethodDefinitionOverride(t *testing.T) {
 	}
 }
 
+func TestSpecialMethodDefinition(t *testing.T) {
+	tests := testTable{
+		"declare an equal method without params": {
+			input: `
+				class Foo
+					def ==; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "equality operator `==` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "equality operator `==` must accept a single parameter, got 0"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+			},
+		},
+		"declare an equal method without params using an alias": {
+			input: `
+				class Foo
+					def lol; end
+					alias == lol
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:lol` is not a valid override of `Std::Value.:==`\n  is:        `def lol(): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `==` must return `bool`"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `==` must accept a single parameter, got 0"),
+			},
+		},
+		"declare an equal method with too many params": {
+			input: `
+				class Foo
+					def ==(a: String, b: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "equality operator `==` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "equality operator `==` must accept a single parameter, got 2"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(a: Std::String, b: Std::Int): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`\n  - has an additional required parameter `b: Std::Int`"),
+			},
+		},
+		"declare an equal method with invalid parameter type": {
+			input: `
+				class Foo
+					def ==(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `==` must accept `any` as a type"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(a: Std::String): bool`\n  should be: `native def ==(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
+			},
+		},
+		"declare a valid equal method": {
+			input: `
+				class Foo
+					def ==(other: any): bool then false
+				end
+			`,
+		},
+
+		"declare a lax equal method without params": {
+			input: `
+				class Foo
+					def =~; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "equality operator `=~` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "equality operator `=~` must accept a single parameter, got 0"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+			},
+		},
+		"declare a lax equal method without params using an alias": {
+			input: `
+				class Foo
+					def lol; end
+					alias =~ lol
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:lol` is not a valid override of `Std::Value.:=~`\n  is:        `def lol(): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `=~` must return `bool`"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `=~` must accept a single parameter, got 0"),
+			},
+		},
+		"declare a lax equal method with too many params": {
+			input: `
+				class Foo
+					def =~(a: String, b: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "equality operator `=~` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "equality operator `=~` must accept a single parameter, got 2"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(a: Std::String, b: Std::Int): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`\n  - has an additional required parameter `b: Std::Int`"),
+			},
+		},
+		"declare a lax equal method with invalid parameter type": {
+			input: `
+				class Foo
+					def =~(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `=~` must accept `any` as a type"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(a: Std::String): bool`\n  should be: `native def =~(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
+			},
+		},
+		"declare a valid lax equal method": {
+			input: `
+				class Foo
+					def =~(other: any): bool then false
+				end
+			`,
+		},
+
+		"declare a relational operator method without params": {
+			input: `
+				class Foo
+					def <; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(29, 3, 15)), "relational operator `<` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(29, 3, 15)), "relational operator `<` must accept a single parameter, got 0"),
+			},
+		},
+		"declare a relational operator method without params using an alias": {
+			input: `
+				class Foo
+					def lol; end
+					alias < lol
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 12), P(48, 4, 16)), "relational operator `<` must return `bool`"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(48, 4, 16)), "relational operator `<` must accept a single parameter, got 0"),
+			},
+		},
+		"declare a relational operator method with too many params": {
+			input: `
+				class Foo
+					def >(a: String, b: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "relational operator `>` must return `bool`"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "relational operator `>` must accept a single parameter, got 2"),
+			},
+		},
+		"declare a relational operator method with invalid parameter type": {
+			input: `
+				class Foo
+					def <=(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of relational operator `<=` must accept `Foo`"),
+			},
+		},
+		"declare a valid relational operator method": {
+			input: `
+				class Foo
+					def >=(other: Foo): bool then false
+				end
+			`,
+		},
+		"declare a valid relational operator method with wider param type": {
+			input: `
+				class Foo
+					def >=(other: any): bool then false
+				end
+			`,
+		},
+		"declare a relational operator method in an interface": {
+			input: `
+				interface Foo
+					sig <=(a: String): bool
+				end
+			`,
+		},
+
+		"declare a binary operator without params": {
+			input: `
+				class Foo
+					def +; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(29, 3, 15)), "method `+` cannot be void"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(29, 3, 15)), "method `+` must define exactly 1 parameters, got 0"),
+			},
+		},
+		"declare a binary operator without params using an alias": {
+			input: `
+				class Foo
+					def lol; end
+					alias + lol
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 12), P(48, 4, 16)), "method `+` cannot be void"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(48, 4, 16)), "method `+` must define exactly 1 parameters, got 0"),
+			},
+		},
+		"declare a binary operator with too many params": {
+			input: `
+				class Foo
+					def -(a: String, b: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "method `-` cannot be void"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(48, 3, 34)), "method `-` must define exactly 1 parameters, got 2"),
+			},
+		},
+		"declare a valid binary operator": {
+			input: `
+				class Foo
+					def *(other: String): String then other
+				end
+			`,
+		},
+
+		"declare an increment method without params and return type": {
+			input: `
+				class Foo
+					def ++; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(30, 3, 16)), "method `++` cannot be void"),
+			},
+		},
+		"declare an increment method without params and return type using an alias": {
+			input: `
+				class Foo
+					def lol; end
+					alias ++ lol
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `++` cannot be void"),
+			},
+		},
+		"declare a decrement method with too many params": {
+			input: `
+				class Foo
+					def --(a: String, b: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "method `--` cannot be void"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(49, 3, 35)), "method `--` must define exactly 0 parameters, got 2"),
+			},
+		},
+		"declare a negate method with too many params": {
+			input: `
+				class Foo
+					def -@(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `-@` must define exactly 0 parameters, got 1"),
+			},
+		},
+		"declare a unary plus method with too many params": {
+			input: `
+				class Foo
+					def +@(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `+@` must define exactly 0 parameters, got 1"),
+			},
+		},
+		"declare a bitwise not method with too many params": {
+			input: `
+				class Foo
+					def ~(a: String): bool then false
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(20, 3, 6), P(52, 3, 38)), "method `~` must define exactly 0 parameters, got 1"),
+			},
+		},
+		"declare a valid unary method": {
+			input: `
+				class Foo
+					def ++: bool then false
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
 		"declare within a method": {

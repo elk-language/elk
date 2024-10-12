@@ -35,6 +35,27 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	// Special version of `contains` used in pattern matching.
+	// Given value has to be an instance of the same class as `start`,
+	// otherwise `false` will be returned
+	Def(
+		c,
+		"#contains",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.EndlessClosedRange)
+			other := args[1]
+			if !value.IsA(other, self.Start.Class()) {
+				return value.False, nil
+			}
+			contains, err := EndlessClosedRangeContains(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
 	Def(
 		c,
 		"contains",

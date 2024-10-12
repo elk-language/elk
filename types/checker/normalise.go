@@ -13,7 +13,7 @@ import (
 func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap map[value.Symbol]*types.TypeArgument, errSpan *position.Span) types.Type {
 	switch p := paramType.(type) {
 	case types.Self:
-		arg := typeArgMap[symbol.M_self]
+		arg := typeArgMap[symbol.L_self]
 		if arg == nil {
 			return p
 		}
@@ -455,7 +455,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.Generic) types.Type {
 	switch t := typ.(type) {
 	case types.Self:
-		arg := generic.ArgumentMap[symbol.M_self]
+		arg := generic.ArgumentMap[symbol.L_self]
 		if arg == nil {
 			return t
 		}
@@ -603,7 +603,7 @@ func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Sym
 func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
 	switch t := typ.(type) {
 	case types.Self:
-		arg := typeArgMap[symbol.M_self]
+		arg := typeArgMap[symbol.L_self]
 		if arg == nil {
 			return t
 		}

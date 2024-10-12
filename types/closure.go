@@ -129,12 +129,12 @@ func (c *Closure) Methods() MethodMap {
 		return make(MethodMap)
 	}
 	m := make(MethodMap)
-	m[symbol.M_call] = c.Body
+	m[symbol.L_call] = c.Body
 	return m
 }
 
 func (c *Closure) Method(name value.Symbol) *Method {
-	if name == symbol.M_call {
+	if name == symbol.L_call {
 		return c.Body
 	}
 	return nil

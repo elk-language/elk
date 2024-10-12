@@ -3434,9 +3434,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			class,
 			typeArgs,
 		)
-		method = c.getMethod(generic, symbol.M_init, nil)
+		method = c.getMethod(generic, symbol.S_init, nil)
 	} else {
-		method = c.getMethod(class, symbol.M_init, nil)
+		method = c.getMethod(class, symbol.S_init, nil)
 	}
 
 	if method == nil {
@@ -3445,7 +3445,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			false,
 			false,
 			true,
-			symbol.M_init,
+			symbol.S_init,
 			nil,
 			nil,
 			nil,
@@ -3511,14 +3511,14 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	}
 
 	generic := types.NewGeneric(class, typeArgs)
-	method := c.getMethod(generic, symbol.M_init, nil)
+	method := c.getMethod(generic, symbol.S_init, nil)
 	if method == nil {
 		method = types.NewMethod(
 			"",
 			false,
 			false,
 			true,
-			symbol.M_init,
+			symbol.S_init,
 			nil,
 			nil,
 			nil,
@@ -3574,14 +3574,14 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	}
 
 	if !class.IsGeneric() {
-		method := c.getMethod(class, symbol.M_init, nil)
+		method := c.getMethod(class, symbol.S_init, nil)
 		if method == nil {
 			method = types.NewMethod(
 				"",
 				false,
 				false,
 				true,
-				symbol.M_init,
+				symbol.S_init,
 				nil,
 				nil,
 				nil,
@@ -3600,14 +3600,14 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		return node
 	}
 
-	method := c._getMethodInNamespace(class, class, symbol.M_init, nil, false)
+	method := c._getMethodInNamespace(class, class, symbol.S_init, nil, false)
 	if method == nil {
 		method = types.NewMethod(
 			"",
 			false,
 			false,
 			true,
-			symbol.M_init,
+			symbol.S_init,
 			nil,
 			nil,
 			nil,
@@ -3701,7 +3701,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) as
 }
 
 func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
-	baseMethod := closureType.Method(symbol.M_call)
+	baseMethod := closureType.Method(symbol.L_call)
 	closure := types.NewClosure(nil)
 	method, mod := c.declareMethod(
 		baseMethod,
@@ -3710,7 +3710,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		false,
 		false,
 		true,
-		symbol.M_call,
+		symbol.L_call,
 		nil,
 		node.Parameters,
 		node.ReturnType,
@@ -3746,7 +3746,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		false,
 		false,
 		true,
-		symbol.M_call,
+		symbol.L_call,
 		nil,
 		node.Parameters,
 		node.ReturnType,
@@ -5116,7 +5116,7 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 		false,
 		false,
 		false,
-		symbol.M_call,
+		symbol.L_call,
 		nil,
 		node.Parameters,
 		node.ReturnType,
@@ -6312,7 +6312,7 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
-				namespace.DefineInstanceVariable(symbol.Empty, nil) // placeholder
+				namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
 			}
 		}
 	}
@@ -6551,7 +6551,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		false,
 		false,
 		false,
-		symbol.M_init,
+		symbol.S_init,
 		nil,
 		initNode.Parameters,
 		nil,
@@ -6583,13 +6583,22 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 	node.SetType(types.Untyped{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
-		method := c.resolveMethodInNamespace(namespace, value.ToSymbol(entry.OldName))
-		if method == nil {
-			c.addMissingMethodError(namespace, entry.OldName, entry.Span())
-			continue
-		}
-		namespace.SetMethod(value.ToSymbol(entry.NewName), method)
+		c.hoistAliasEntry(entry, namespace)
 	}
+}
+
+func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace types.Namespace) {
+	oldName := value.ToSymbol(node.OldName)
+	aliasedMethod := c.resolveMethodInNamespace(namespace, oldName)
+	if aliasedMethod == nil {
+		c.addMissingMethodError(namespace, node.OldName, node.Span())
+		return
+	}
+	newName := value.ToSymbol(node.NewName)
+	oldMethod := c.resolveMethodInNamespace(namespace, newName)
+	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Span())
+	namespace.SetMethod(newName, aliasedMethod)
+	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Span())
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {

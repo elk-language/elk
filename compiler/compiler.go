@@ -17,6 +17,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 
 	"github.com/elk-language/elk/token"
@@ -2372,21 +2373,6 @@ func (c *Compiler) literalPattern(callInfo *value.CallSiteInfo, pattern ast.Node
 	c.emitCallPattern(callInfo, span)
 }
 
-var (
-	containsSymbol       = value.ToSymbol("contains")
-	lengthSymbol         = value.ToSymbol("length")
-	equalSymbol          = value.ToSymbol("==")
-	notEqualSymbol       = value.ToSymbol("!=")
-	laxEqualSymbol       = value.ToSymbol("=~")
-	laxNotEqualSymbol    = value.ToSymbol("!~")
-	strictEqualSymbol    = value.ToSymbol("===")
-	strictNotEqualSymbol = value.ToSymbol("!==")
-	lessSymbol           = value.ToSymbol("<")
-	lessEqualSymbol      = value.ToSymbol("<=")
-	greaterSymbol        = value.ToSymbol(">")
-	greaterEqualSymbol   = value.ToSymbol(">=")
-)
-
 func (c *Compiler) pattern(pattern ast.PatternNode) {
 	span := pattern.Span()
 	switch pat := pattern.(type) {
@@ -2400,15 +2386,15 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
 		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
 		c.literalPattern(
-			value.NewCallSiteInfo(equalSymbol, 1, nil),
+			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat,
 		)
 	case *ast.RangeLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.rangeLiteral(pat)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
-		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
-		c.emitCallPattern(callInfo, span)
+		callInfo := value.NewCallSiteInfo(symbol.S_contains, 1, nil)
+		c.emitCallMethod(callInfo, span)
 	case *ast.PublicIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:
@@ -2471,28 +2457,28 @@ func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 	var methodName value.Symbol
 	switch pat.Op.Type {
 	case token.EQUAL_EQUAL:
-		methodName = equalSymbol
+		methodName = symbol.OpEqual
 	case token.NOT_EQUAL:
-		methodName = notEqualSymbol
+		methodName = symbol.OpNotEqual
 	case token.LAX_EQUAL:
-		methodName = laxEqualSymbol
+		methodName = symbol.OpLaxEqual
 	case token.LAX_NOT_EQUAL:
-		methodName = laxNotEqualSymbol
+		methodName = symbol.OpLaxNotEqual
 	case token.STRICT_EQUAL:
-		methodName = strictEqualSymbol
+		methodName = symbol.OpStrictEqual
 	case token.STRICT_NOT_EQUAL:
-		methodName = strictNotEqualSymbol
+		methodName = symbol.OpStrictNotEqual
 	case token.LESS:
-		methodName = lessSymbol
+		methodName = symbol.OpLessThan
 	case token.LESS_EQUAL:
-		methodName = lessEqualSymbol
+		methodName = symbol.OpLessThanEqual
 	case token.GREATER:
-		methodName = greaterSymbol
+		methodName = symbol.OpGreaterThan
 	case token.GREATER_EQUAL:
-		methodName = greaterEqualSymbol
+		methodName = symbol.OpGreaterThanEqual
 	default:
 		c.literalPattern(
-			value.NewCallSiteInfo(equalSymbol, 1, nil),
+			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat,
 		)
 		return
@@ -2731,7 +2717,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
+	callInfo := value.NewCallSiteInfo(symbol.L_length, 0, nil)
 	c.emitCallMethod(callInfo, span)
 
 	if !restElementIsPresent {
@@ -2756,7 +2742,7 @@ subPatternLoop:
 		span := element.Span()
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNode(element)
-		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
+		callInfo := value.NewCallSiteInfo(symbol.L_contains, 1, nil)
 		c.emitCallMethod(callInfo, span)
 
 		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
@@ -2825,7 +2811,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
+	callInfo := value.NewCallSiteInfo(symbol.L_length, 0, nil)
 	c.emitCallMethod(callInfo, span)
 	var lengthVar *local
 	if elementBeforeRestCount != -1 {
