@@ -1051,29 +1051,38 @@ func TestPatterns(t *testing.T) {
 		"range pattern and wider type": {
 			input: `
 				var a: Int | Float | String | nil = nil
-				var 1...5.9 as b = a
+				var 1...9 as b = a
 				var c: nil = b
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 4, 18), P(87, 4, 18)), "type `Std::Int | Std::Float` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(85, 4, 18), P(85, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
+		"range pattern with two different literal types": {
+			input: `
+				var 1...5.9 as a = 9
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "range pattern start and end must be of the same type, got `Std::Int` and `Std::Float`"),
+			},
+		},
+		"range pattern with wider start type": {
+			input: `
+				const A: Int | Float = 25.9
+				var 2.5...A as b = 9.2
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 15), P(47, 3, 15)), "type `Std::Int | Std::Float` cannot be used in a range pattern, only class instance types are permitted"),
+				error.NewFailure(L("<main>", P(41, 3, 9), P(47, 3, 15)), "range pattern start and end must be of the same type, got `Std::Float` and `Std::Int | Std::Float`"),
 			},
 		},
 		"range pattern and correct type": {
 			input: `
-				var 1...5.9 as a = 9
+				var 1...15 as a = 9
 				var b: nil = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 18), P(43, 3, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
-			},
-		},
-		"range pattern and other valid type": {
-			input: `
-				var 1...5.9 as a = 5bf
-				var b: nil = a
-			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 18), P(45, 3, 18)), "type `Std::BigFloat` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(42, 3, 18), P(42, 3, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 		"range pattern and wrong literal type": {
@@ -1082,8 +1091,8 @@ func TestPatterns(t *testing.T) {
 				a = nil
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever be included in `Std::ClosedRange[Std::Int]`"),
-				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever match type `Std::Int`"),
+				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `Std::Int`"),
 			},
 		},
 	}

@@ -123,7 +123,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			typ = declaredType
 		}
 
-		container.DefineConstant(constantName, actualType)
+		container.DefineConstant(constantName, typ)
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
 		return

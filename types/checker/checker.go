@@ -5575,32 +5575,47 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 }
 
 func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) {
-	c.checkRangeLiteralNode(node)
-	rangeType := c.typeOf(node)
-	genericRangeType, ok := rangeType.(*types.Generic)
-	if !ok {
-		return
+	var startType, endType types.Type
+	if node.Start != nil {
+		node.Start = c.checkExpression(node.Start)
+		startType = c.toNonLiteral(c.typeOf(node.Start), false)
+		if _, ok := startType.(*types.Class); !ok {
+			c.addFailure(
+				fmt.Sprintf(
+					"type `%s` cannot be used in a range pattern, only class instance types are permitted",
+					types.InspectWithColor(startType),
+				),
+				node.Start.Span(),
+			)
+		}
 	}
-	elementType := genericRangeType.TypeArguments.Get(0).Type
+	if node.End != nil {
+		node.End = c.checkExpression(node.End)
+		endType = c.toNonLiteral(c.typeOf(node.End), false)
+		if _, ok := endType.(*types.Class); !ok {
+			c.addFailure(
+				fmt.Sprintf(
+					"type `%s` cannot be used in a range pattern, only class instance types are permitted",
+					types.InspectWithColor(endType),
+				),
+				node.End.Span(),
+			)
+		}
+	}
 
-	cmpMethod := c.getMethod(elementType, symbol.OpSpaceship, nil)
-	if cmpMethod == nil {
-		return
-	}
-	cmpParamType := cmpMethod.Params[0].Type
-	valueType := c.newNormalisedIntersection(cmpParamType, typ)
-	if types.IsNever(valueType) {
+	if startType != nil && endType != nil && !c.isTheSameType(startType, endType, nil) {
 		c.addFailure(
 			fmt.Sprintf(
-				"type `%s` cannot ever be included in `%s`",
-				types.InspectWithColor(typ),
-				types.InspectWithColor(rangeType),
+				"range pattern start and end must be of the same type, got `%s` and `%s`",
+				types.InspectWithColor(startType),
+				types.InspectWithColor(endType),
 			),
 			node.Span(),
 		)
 	}
 
-	node.SetType(valueType)
+	c.checkCanMatch(typ, startType, node.Span())
+	node.SetType(startType)
 }
 
 func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.Node, patternType, typ types.Type, span *position.Span) {
