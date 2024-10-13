@@ -5554,6 +5554,8 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		c.checkRangePattern(n, typ)
 	case *ast.MapPatternNode:
 		c.checkMapPattern(n, typ)
+	case *ast.RecordPatternNode:
+		c.checkRecordPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
@@ -5625,6 +5627,45 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 			c.checkPattern(e.Value, valueType)
 		default:
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
+		}
+	}
+}
+
+func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) {
+	recordInterface := c.Std(symbol.Record).(*types.Interface)
+	recordOfAny := types.NewGenericWithVariance(recordInterface, types.BIVARIANT, types.Any{}, types.Any{})
+
+	var keyType types.Type
+	var valueType types.Type
+
+	if c.checkCanMatch(typ, recordOfAny, node.Span()) {
+		var extractedRecord types.Type
+		extractedRecord, keyType, valueType = c.extractRecordElementFromType(recordInterface, recordOfAny, typ)
+		node.SetType(extractedRecord)
+	} else {
+		keyType = types.Any{}
+		valueType = types.Any{}
+		node.SetType(types.Never{})
+	}
+
+	for _, element := range node.Elements {
+		switch e := element.(type) {
+		case *ast.PublicIdentifierNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e, valueType)
+		case *ast.PrivateIdentifierNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e, valueType)
+		case *ast.KeyValuePatternNode:
+			c.checkExpression(e.Key)
+			patternKeyType := c.typeOf(e.Key)
+			c.checkCanMatch(keyType, patternKeyType, e.Span())
+			c.checkPattern(e.Value, valueType)
+		case *ast.SymbolKeyValuePatternNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e.Value, valueType)
+		default:
+			panic(fmt.Sprintf("invalid record pattern element: %T", element))
 		}
 	}
 }

@@ -1195,6 +1195,111 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(128, 5, 18), P(128, 5, 18)), "type `Std::HashMap[Std::Symbol, Std::Int] | Std::Map[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
+
+		"record pattern with invalid value": {
+			input: `
+				var %{ a } = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `8` cannot ever match type `Std::Record[any, any]`"),
+			},
+		},
+		"record pattern with a wider type declares a variable with value type": {
+			input: `
+				var a: Record[Symbol, Int] | nil = nil
+				var %{ b } = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(78, 4, 16), P(78, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"record pattern with a wider type declares a variable with map type": {
+			input: `
+				var a: Record[Symbol, Int] | nil = nil
+				var %{ g: 8 } as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 4, 16), P(86, 4, 16)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"record pattern with a wider type and incompatible values": {
+			input: `
+				var a: Record[Symbol, Int] | nil = nil
+				var %{ foo: "bar", baz: 2.5 } as b = a
+				var c: nil = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 3, 17), P(64, 3, 21)), "type `Std::Int` cannot ever match type `\"bar\"`"),
+				error.NewFailure(L("<main>", P(72, 3, 29), P(74, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
+				error.NewFailure(L("<main>", P(104, 4, 18), P(104, 4, 18)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"record pattern with a wider type and incompatible keys": {
+			input: `
+				var a: Record[Symbol, Int] | nil = nil
+				var %{ "foo" => 29, 3.5 => 2 } as b = a
+				var c: nil = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(55, 3, 12), P(65, 3, 22)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(68, 3, 25), P(75, 3, 32)), "type `Std::Symbol` cannot ever match type `3.5`"),
+				error.NewFailure(L("<main>", P(105, 4, 18), P(105, 4, 18)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"record pattern with a wider type with HashRecord declares a variable with value type": {
+			input: `
+				var a: HashRecord[String, Int] | nil = nil
+				var %{ "bar" => 2 as b } = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(96, 4, 16), P(96, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"record pattern with a wider type with HashMap declares a variable with value type": {
+			input: `
+				var a: HashMap[String, Int] | nil = nil
+				var %{ "bar" => 2 as b } = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 4, 16), P(93, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"record pattern with a wider incompatible value type with HashRecord": {
+			input: `
+				var a: HashRecord[Symbol, Int] | nil = nil
+				var %{ bar: "foo", zed: 2.5, gamma: b } = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(64, 3, 17), P(68, 3, 21)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(76, 3, 29), P(78, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"record pattern with a wider incompatible key type with HashRecord": {
+			input: `
+				var a: HashRecord[Symbol, String | Int] | nil = nil
+				var %{ bar: "foo", "zed" => 2, 1 => b } = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 3, 24), P(89, 3, 33)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
+				error.NewFailure(L("<main>", P(92, 3, 36), P(97, 3, 41)), "type `Std::Symbol` cannot ever match type `1`"),
+			},
+		},
+		"record pattern with a wider type HashMap | Record declares a variable with value type": {
+			input: `
+				var a: HashMap[Symbol, Int] | Record[Symbol, Float] | nil = nil
+				var %{ lol: b } as c = a
+				var d: 9 = b
+				var e: nil = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(113, 4, 16), P(113, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(132, 5, 18), P(132, 5, 18)), "cannot use type `void` as a value in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
