@@ -5410,12 +5410,6 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
 	case *ast.PrivateIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
-	case *ast.RestPatternNode:
-		c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
-	case *ast.ListPatternNode:
-		c.checkListPattern(n, typ)
-	case *ast.TuplePatternNode:
-		c.checkTuplePattern(n, typ)
 	case *ast.IntLiteralNode:
 		c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Int64LiteralNode:
@@ -5556,6 +5550,14 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		c.checkMapPattern(n, typ)
 	case *ast.RecordPatternNode:
 		c.checkRecordPattern(n, typ)
+	case *ast.RestPatternNode:
+		c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
+	case *ast.ListPatternNode:
+		c.checkListPattern(n, typ)
+	case *ast.TuplePatternNode:
+		c.checkTuplePattern(n, typ)
+	case *ast.SetPatternNode:
+		c.checkSetPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
@@ -5790,6 +5792,26 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 func (c *Checker) extractCollectionElementFromType(collectionInterface *types.Interface, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
 	extractedCollection = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionInterface, collectionOfAny)
+}
+
+func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
+	setInterface := c.Std(symbol.Set).(*types.Interface)
+	setOfAny := types.NewGenericWithVariance(setInterface, types.BIVARIANT, types.Any{})
+
+	var elementType types.Type
+
+	if c.checkCanMatch(typ, setOfAny, node.Span()) {
+		var extractedCollection types.Type
+		extractedCollection, elementType = c.extractCollectionElementFromType(setInterface, setOfAny, typ)
+		node.SetType(extractedCollection)
+	} else {
+		elementType = types.Any{}
+		node.SetType(types.Never{})
+	}
+
+	for _, element := range node.Elements {
+		c.checkPattern(element, elementType)
+	}
 }
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {

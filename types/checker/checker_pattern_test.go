@@ -46,6 +46,85 @@ func TestPatterns(t *testing.T) {
 			},
 		},
 
+		"set pattern with rest and wide type": {
+			input: `
+				var d: HashSet[String] | Set[Int] | nil = nil
+				var ^[1, "foo"] as b = d
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(95, 4, 16), P(95, 4, 16)), "type `Std::HashSet[Std::String] | Std::Set[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"set pattern with invalid value": {
+			input: `
+				var ^[1] as a = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"foo\"` cannot ever match type `Std::Set[any]`"),
+			},
+		},
+		"set pattern with a wider type declares a variable": {
+			input: `
+				var a: Set[Int] | nil = nil
+				var ^[1] as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Set[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"set pattern with a wider type and incompatible values": {
+			input: `
+				var a: Set[Int] | nil = nil
+				var ^["foo", 2.5] as b = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 11), P(47, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(50, 3, 18), P(52, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"set pattern with a wider type with HashSet declares a variable": {
+			input: `
+				var a: HashSet[Int] | nil = nil
+				var ^[9, 7] as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(77, 4, 16), P(77, 4, 16)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"set pattern with a wider incompatible element type with HashSet": {
+			input: `
+				var a: HashSet[Int] | nil = nil
+				var ^["foo", 2.5] as b = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 11), P(51, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(54, 3, 18), P(56, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"set pattern with a wider type HashSet | Set declares a variable with element type": {
+			input: `
+				var a: HashSet[Int] | Set[Float] | nil = nil
+				var ^[1, 2, 9.8, .1] as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 4, 16), P(99, 4, 16)), "type `Std::HashSet[Std::Int] | Std::Set[Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"set pattern with a wider incompatible type HashSet | Set": {
+			input: `
+				var a: HashSet[Int] | Set[Float] | nil = nil
+				var ^["foo", 9i8, 9] as b = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 3, 11), P(64, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(67, 3, 18), P(69, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
+			},
+		},
+
 		"list pattern with rest and literal": {
 			input: `
 				var [a, *b] = ["", 8, 1]

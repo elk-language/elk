@@ -2384,7 +2384,7 @@ func NewMapPatternNodeI(span *position.Span, elements []PatternNode) PatternNode
 
 // Represents a Set pattern eg. `^[1, "foo"]`
 type SetPatternNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []PatternNode
 }
 
@@ -2395,8 +2395,8 @@ func (s *SetPatternNode) IsStatic() bool {
 // Create a Set pattern node eg. `^[1, "foo"]`
 func NewSetPatternNode(span *position.Span, elements []PatternNode) *SetPatternNode {
 	return &SetPatternNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
