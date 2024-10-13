@@ -5233,7 +5233,7 @@ func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternN
 	return commaSeparatedList(p, p.mapElementPattern, stopTokens...)
 }
 
-// mapElementPattern = (identifier | constant) |
+// mapElementPattern = (identifier) |
 // (identifier | constant) ":" pattern |
 // simplePattern "=>" pattern
 func (p *Parser) mapElementPattern() ast.PatternNode {
@@ -5257,8 +5257,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 	key := p.simplePattern()
 	if !p.match(token.THICK_ARROW) {
 		switch key.(type) {
-		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode,
-			*ast.PublicConstantNode, *ast.PrivateConstantNode:
+		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
 			return key
 		default:
 			p.errorMessageSpan("expected a key-value pair, map patterns should consist of key-value pairs", key.Span())

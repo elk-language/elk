@@ -5559,18 +5559,73 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 	}
 }
 
-func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
-	generic, ok := typ.(*types.Generic)
-	if !ok || !c.isExplicitSubtypeOfInterface(generic, c.Std(symbol.Map).(*types.Interface)) || generic.TypeArguments.Len() != 1 {
-		c.addFailure(
-			fmt.Sprintf("type `%s` cannot be matched against a list pattern", types.InspectWithColor(typ)),
-			node.Span(),
-		)
-		return
+func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordInterface *types.Interface, recordOfAny *types.Generic) (key types.Type, value types.Type) {
+	switch l := extractedRecord.(type) {
+	case *types.Generic:
+		if l.TypeArguments.Len() != 2 {
+			break
+		}
+
+		patternKeyType := l.Get(0).Type
+		patternValueType := l.Get(1).Type
+		recordOfPatternElement := types.NewGenericWithTypeArgs(recordInterface, patternKeyType, patternValueType)
+		if c.isSubtype(l, recordOfPatternElement, nil) {
+			return patternKeyType, patternValueType
+		}
+	case *types.Union:
+		newKeys := make([]types.Type, len(l.Elements))
+		newValues := make([]types.Type, len(l.Elements))
+		for i, element := range l.Elements {
+			newKeys[i], newValues[i] = c._extractRecordElement(element, recordInterface, recordOfAny)
+		}
+		return c.newNormalisedUnion(newKeys...), c.newNormalisedUnion(newValues...)
 	}
-	typeArg := generic.TypeArguments.Get(0)
+
+	return types.Any{}, types.Any{}
+}
+
+func (c *Checker) extractRecordElementFromType(recordInterface *types.Interface, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
+	extractedRecord = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(recordOfAny)))
+	keyType, valueType = c._extractRecordElement(extractedRecord, recordInterface, recordOfAny)
+	return extractedRecord, keyType, valueType
+}
+
+func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
+	mapInterface := c.Std(symbol.Map).(*types.Interface)
+	mapOfAny := types.NewGenericWithVariance(mapInterface, types.BIVARIANT, types.Any{}, types.Any{})
+
+	var keyType types.Type
+	var valueType types.Type
+
+	if c.checkCanMatch(typ, mapOfAny, node.Span()) {
+		var extractedRecord types.Type
+		extractedRecord, keyType, valueType = c.extractRecordElementFromType(mapInterface, mapOfAny, typ)
+		node.SetType(extractedRecord)
+	} else {
+		keyType = types.Any{}
+		valueType = types.Any{}
+		node.SetType(types.Never{})
+	}
+
 	for _, element := range node.Elements {
-		c.checkPattern(element, typeArg.Type)
+		switch e := element.(type) {
+		case *ast.PublicIdentifierNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e, valueType)
+		case *ast.PrivateIdentifierNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e, valueType)
+		case *ast.KeyValuePatternNode:
+			c.checkExpression(e.Key)
+			patternKeyType := c.typeOf(e.Key)
+			c.checkCanMatch(keyType, patternKeyType, e.Span())
+			c.checkPattern(e.Value, valueType)
+		case *ast.SymbolKeyValuePatternNode:
+			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
+			c.checkPattern(e.Value, valueType)
+		default:
+			panic(fmt.Sprintf("invalid map pattern element: %T", element))
+		}
 	}
 }
 
@@ -5652,10 +5707,15 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 	tupleInterface := c.Std(symbol.Tuple).(*types.Interface)
 	tupleOfAny := types.NewGenericWithVariance(tupleInterface, types.BIVARIANT, types.Any{})
 
-	var elementType types.Type = types.Any{}
+	var elementType types.Type
 
 	if c.checkCanMatch(typ, tupleOfAny, node.Span()) {
-		elementType = c.extractCollectionElementFromType(tupleInterface, tupleOfAny, typ)
+		var extractedCollection types.Type
+		extractedCollection, elementType = c.extractCollectionElementFromType(tupleInterface, tupleOfAny, typ)
+		node.SetType(extractedCollection)
+	} else {
+		elementType = types.Any{}
+		node.SetType(types.Never{})
 	}
 
 	for _, element := range node.Elements {
@@ -5686,19 +5746,24 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 	return types.Any{}
 }
 
-func (c *Checker) extractCollectionElementFromType(collectionInterface *types.Interface, collectionOfAny *types.Generic, typ types.Type) types.Type {
-	extractedCollection := c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
-	return c._extractCollectionElement(extractedCollection, collectionInterface, collectionOfAny)
+func (c *Checker) extractCollectionElementFromType(collectionInterface *types.Interface, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
+	extractedCollection = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
+	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionInterface, collectionOfAny)
 }
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
 	listInterface := c.Std(symbol.List).(*types.Interface)
 	listOfAny := types.NewGenericWithVariance(listInterface, types.BIVARIANT, types.Any{})
 
-	var elementType types.Type = types.Any{}
+	var elementType types.Type
 
 	if c.checkCanMatch(typ, listOfAny, node.Span()) {
-		elementType = c.extractCollectionElementFromType(listInterface, listOfAny, typ)
+		var extractedCollection types.Type
+		extractedCollection, elementType = c.extractCollectionElementFromType(listInterface, listOfAny, typ)
+		node.SetType(extractedCollection)
+	} else {
+		elementType = types.Any{}
+		node.SetType(types.Never{})
 	}
 
 	for _, element := range node.Elements {

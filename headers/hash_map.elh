@@ -5,6 +5,8 @@
 	It is an unordered collection of key-value pairs.
 ]##
 sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
+	implement Map[Key, Value]
+
 	##[
 		Mutates the map.
 

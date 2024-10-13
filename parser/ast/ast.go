@@ -2299,7 +2299,7 @@ func NewSymbolKeyValuePatternNode(span *position.Span, key string, val PatternNo
 // Represents a key value pattern eg. `foo => bar`
 type KeyValuePatternNode struct {
 	NodeBase
-	Key   PatternNode
+	Key   PatternExpressionNode
 	Value PatternNode
 }
 
@@ -2308,7 +2308,7 @@ func (k *KeyValuePatternNode) IsStatic() bool {
 }
 
 // Create a key value pattern node eg. `foo => bar`
-func NewKeyValuePatternNode(span *position.Span, key, val PatternNode) *KeyValuePatternNode {
+func NewKeyValuePatternNode(span *position.Span, key PatternExpressionNode, val PatternNode) *KeyValuePatternNode {
 	return &KeyValuePatternNode{
 		NodeBase: NodeBase{span: span},
 		Key:      key,
@@ -2361,7 +2361,7 @@ func NewRecordPatternNodeI(span *position.Span, elements []PatternNode) PatternN
 
 // Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`
 type MapPatternNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []PatternNode
 }
 
@@ -2372,8 +2372,8 @@ func (m *MapPatternNode) IsStatic() bool {
 // Create a Map pattern node eg. `{ foo: 5, bar: a, 5 => >= 10 }`
 func NewMapPatternNode(span *position.Span, elements []PatternNode) *MapPatternNode {
 	return &MapPatternNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -2425,7 +2425,7 @@ func NewRestPatternNode(span *position.Span, ident IdentifierNode) *RestPatternN
 
 // Represents a Tuple pattern eg. `%[1, a, >= 10]`
 type TuplePatternNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []PatternNode
 }
 
@@ -2436,8 +2436,8 @@ func (l *TuplePatternNode) IsStatic() bool {
 // Create a Tuple pattern node eg. `%[1, a, >= 10]`
 func NewTuplePatternNode(span *position.Span, elements []PatternNode) *TuplePatternNode {
 	return &TuplePatternNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 
@@ -2448,7 +2448,7 @@ func NewTuplePatternNodeI(span *position.Span, elements []PatternNode) PatternNo
 
 // Represents a List pattern eg. `[1, a, >= 10]`
 type ListPatternNode struct {
-	NodeBase
+	TypedNodeBase
 	Elements []PatternNode
 }
 
@@ -2459,8 +2459,8 @@ func (l *ListPatternNode) IsStatic() bool {
 // Create a List pattern node eg. `[1, a, >= 10]`
 func NewListPatternNode(span *position.Span, elements []PatternNode) *ListPatternNode {
 	return &ListPatternNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
 	}
 }
 

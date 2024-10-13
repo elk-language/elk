@@ -45,6 +45,7 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
+
 		"list pattern with rest and literal": {
 			input: `
 				var [a, *b] = ["", 8, 1]
@@ -114,11 +115,13 @@ func TestPatterns(t *testing.T) {
 		"list pattern with a wider type ArrayList | List declares a variable with element type": {
 			input: `
 				var a: ArrayList[Int] | List[Float] | nil = nil
-				var [b] = a
-				var c: 9 = b
+				var [b] as c = a
+				var d: 9 = b
+				var e: nil = c
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(84, 4, 16), P(84, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(108, 5, 18), P(108, 5, 18)), "type `Std::ArrayList[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"list pattern with a wider incompatible type ArrayList | List": {
@@ -184,11 +187,13 @@ func TestPatterns(t *testing.T) {
 		"tuple pattern with a wider type ArrayTuple | List declares a variable with element type": {
 			input: `
 				var a: ArrayTuple[Int] | List[Float] | nil = nil
-				var %[b] = a
-				var c: 9 = b
+				var %[b] as c = a
+				var d: 9 = b
+				var e: nil = c
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(86, 4, 16), P(86, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(91, 4, 16), P(91, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(110, 5, 18), P(110, 5, 18)), "type `Std::ArrayTuple[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"tuple pattern with a wider incompatible type ArrayList | Tuple": {
@@ -1093,6 +1098,101 @@ func TestPatterns(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever match type `Std::Int`"),
 				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `Std::Int`"),
+			},
+		},
+
+		"map pattern with invalid value": {
+			input: `
+				var { a } = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `8` cannot ever match type `Std::Map[any, any]`"),
+			},
+		},
+		"map pattern with a wider type declares a variable with value type": {
+			input: `
+				var a: Map[Symbol, Int] | nil = nil
+				var { b } = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"map pattern with a wider type declares a variable with map type": {
+			input: `
+				var a: Map[Symbol, Int] | nil = nil
+				var { g: 8 } as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"map pattern with a wider type and incompatible values": {
+			input: `
+				var a: Map[Symbol, Int] | nil = nil
+				var { foo: "bar", baz: 2.5 } as b = a
+				var c: nil = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(56, 3, 16), P(60, 3, 20)), "type `Std::Int` cannot ever match type `\"bar\"`"),
+				error.NewFailure(L("<main>", P(68, 3, 28), P(70, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
+				error.NewFailure(L("<main>", P(100, 4, 18), P(100, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
+			},
+		},
+		"map pattern with a wider type and incompatible keys": {
+			input: `
+				var a: Map[Symbol, Int] | nil = nil
+				var { "foo" => 29, 3.5 => 2 } as b = a
+				var c: nil = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 3, 11), P(61, 3, 21)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(64, 3, 24), P(71, 3, 31)), "type `Std::Symbol` cannot ever match type `3.5`"),
+				error.NewFailure(L("<main>", P(101, 4, 18), P(101, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
+			},
+		},
+		"map pattern with a wider type with HashMap declares a variable with value type": {
+			input: `
+				var a: HashMap[String, Int] | nil = nil
+				var { "bar" => 2 as b } = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(92, 4, 16), P(92, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"map pattern with a wider incompatible value type with HashMap": {
+			input: `
+				var a: HashMap[Symbol, Int] | nil = nil
+				var { bar: "foo", zed: 2.5, gamma: b } = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 3, 16), P(64, 3, 20)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(72, 3, 28), P(74, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
+			},
+		},
+		"map pattern with a wider incompatible key type with HashMap": {
+			input: `
+				var a: HashMap[Symbol, String | Int] | nil = nil
+				var { bar: "foo", "zed" => 2, 1 => b } = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(76, 3, 23), P(85, 3, 32)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
+				error.NewFailure(L("<main>", P(88, 3, 35), P(93, 3, 40)), "type `Std::Symbol` cannot ever match type `1`"),
+			},
+		},
+		"map pattern with a wider type HashMap | Map declares a variable with value type": {
+			input: `
+				var a: HashMap[Symbol, Int] | Map[Symbol, Float] | nil = nil
+				var { lol: b } as c = a
+				var d: 9 = b
+				var e: nil = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(109, 4, 16), P(109, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(128, 5, 18), P(128, 5, 18)), "type `Std::HashMap[Std::Symbol, Std::Int] | Std::Map[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 	}
