@@ -1,18 +1,15 @@
 ##[
-	An interface that represents an unordered immutable collection of key-value pairs.
+	Represents an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-interface ::Std::Record[Key, Value]
-	##[
-		Returns the number of key-value pairs present in the record.
-	]##
-	def length: Int; end
+abstract mixin ::Std::Record[Key, Value]
+	include Iterable::Base[Pair[Key, Value]]
 
 	##[
 		Get the element under the given key.
 		Returns `nil` when the key is not present.
 	]##
-	def [](key: Key): Value?; end
+	sig [](key: Key): Value?
 
 	##[
 		Create a new record containing the pairs of `self`
@@ -23,7 +20,7 @@ interface ::Std::Record[Key, Value]
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains(pair: Pair[Key, Value]): bool; end
+	def contains[E = Pair[Key, Value]](value: E): bool; end
 
 	##[
 		Check whether the given `key` is present in this record.
@@ -51,10 +48,19 @@ interface ::Std::Record[Key, Value]
 		Iterates over the key value pairs of this record,
 		yielding them to the given closure.
 
+		Returns a new list that consists of the values returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Pair[Key, Value]|: E): List[E]; end
+
+	##[
+		Iterates over the key value pairs of this record,
+		yielding them to the given closure.
+
 		Returns a new record that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): Record[K, V]; end
+	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): Record[K, V]; end
 
 	##[
 		Iterates over the values of this record,
@@ -64,10 +70,4 @@ interface ::Std::Record[Key, Value]
 		by the given closure.
 	]##
 	def map_values[V](fn: |value: Value|: V): Record[Key, V]; end
-
-	##[
-		Returns an iterator that iterates
-		over each element of the record.
-	]##
-	def iter: Iterator[Pair[Key, Value]]; end
 end

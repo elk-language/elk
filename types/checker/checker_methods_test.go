@@ -2561,10 +2561,10 @@ func TestGenericMethodCalls(t *testing.T) {
 	tests := testTable{
 		"infer type parameter from closure's return type": {
 			input: `
-				var a: 9 = HashMap::[String, Int]().map() |pair| -> Pair(1u8, 1.2)
+				var a: 9 = HashMap::[String, Int]().map_pairs() |pair| -> Pair(1u8, 1.2)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(70, 2, 70)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"call a generic method with explicit type arguments": {

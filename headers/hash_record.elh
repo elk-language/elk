@@ -5,7 +5,7 @@
 	A record is an immutable map.
 ]##
 sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
-	implement Record[Key, Value]
+	include Record[Key, Value]
 
 	##[
 		Returns the number of key-value pairs present in the record.
@@ -27,7 +27,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains(pair: Pair[Key, Value]): bool; end
+	def contains[E = Pair[Key, Value]](value: E): bool; end
 
 	##[
 		Check whether the given `key` is present in this record.
@@ -55,10 +55,19 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Iterates over the key value pairs of this record,
 		yielding them to the given closure.
 
+		Returns a new ArrayList that consists of the values returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Pair[Key, Value]|: E): ArrayList[E]; end
+
+	##[
+		Iterates over the key value pairs of this record,
+		yielding them to the given closure.
+
 		Returns a new HashRecord that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashRecord[K, V]; end
+	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashRecord[K, V]; end
 
 	##[
 		Iterates over the values of this record,

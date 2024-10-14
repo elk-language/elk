@@ -5,7 +5,7 @@
 	It is an unordered collection of unique values.
 ]##
 sealed primitive class ::Std::HashSet[Element] < Value
-	include Set::Base[Element]
+	include Set[Element]
 
 	##[
 		Removes the element from the set.

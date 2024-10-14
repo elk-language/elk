@@ -3,14 +3,14 @@
 
 	The default implementation of `Range` is `ClosedRange`.
 ]##
-interface ::Std::Range[Element < Comparable[Element]]
+abstract mixin ::Std::Range[Element < Comparable[Element]]
 	implement Container[Element]
 
 	##[
 		Returns `true` when the range is left-open.
 		Otherwise, the range is left-closed.
 	]##
-	sig is_left_open: bool
+	def is_left_open: bool; end
 
 	##[
 		Returns `true` when the range is left-closed.
@@ -22,7 +22,7 @@ interface ::Std::Range[Element < Comparable[Element]]
 		Returns `true` when the range is right-open.
 		Otherwise, the range is right-closed.
 	]##
-	sig is_right_open: bool
+	def is_right_open: bool; end
 
 	##[
 		Returns `true` when the range is right-closed.
@@ -34,23 +34,11 @@ interface ::Std::Range[Element < Comparable[Element]]
 		Returns the lower bound of the range.
 		Returns `nil` if the Range is beginless.
 	]##
-	sig start: Element?
+	def start: Element?; end
 
 	##[
 		Returns the upper bound of the range.
 		Returns `nil` if the range is endless.
 	]##
-	sig end: Element?
-
-	##[
-		Provides default implementations of some Range methods.
-	]##
-	abstract mixin Base[Element < Comparable[Element]]
-		implement Range[Element]
-
-		def start: Element?; end
-		def end: Element?; end
-		def is_left_open: bool; end
-		def is_right_open: bool; end
-	end
+	def end: Element?; end
 end

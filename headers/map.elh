@@ -1,13 +1,19 @@
 ##[
-	An interface that represents an unordered mutable collection of key-value pairs.
+	Represents an unordered mutable collection of key-value pairs.
 ]##
-interface ::Std::Map[Key, Value]
-	implement Record[Key, Value]
+abstract mixin ::Std::Map[Key, Value]
+	include Record[Key, Value]
 
 	##[
 		Set the element under the given index to the given value.
 	]##
-	def []=(key: Key, value: Value); end
+	sig []=(key: Key, value: Value)
+
+	##[
+		Create a new map containing the pairs of `self`
+		and another given record/map.
+	]##
+	sealed def +[K, V](other: Record[K, V]): Map[Key | K, Value | V]; end
 
 	##[
 		Iterates over the values of this map,
@@ -17,4 +23,14 @@ interface ::Std::Map[Key, Value]
 		returned by the given closure.
 	]##
 	def map_values_mut(fn: |value: Value|: Value): self; end
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new map that consists of the key value pairs returned
+		by the given closure.
+	]##
+	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): Map[K, V]; end
+
 end

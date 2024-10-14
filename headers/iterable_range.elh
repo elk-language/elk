@@ -2,6 +2,42 @@
 	Represents a `Range` that can be iterated over.
 ]##
 interface ::Std::IterableRange[Element < Incrementable[Element] & Comparable[Element]]
-	implement Range[Element]
+	implement Container[Element]
 	implement Iterable::Primitive[Element]
+
+	##[
+		Returns `true` when the range is left-open.
+		Otherwise, the range is left-closed.
+	]##
+	sig is_left_open: bool
+
+	##[
+		Returns `true` when the range is left-closed.
+		Otherwise, the range is left-open.
+	]##
+	sig is_left_closed: bool
+
+	##[
+		Returns `true` when the range is right-open.
+		Otherwise, the range is right-closed.
+	]##
+	sig is_right_open: bool
+
+	##[
+		Returns `true` when the range is right-closed.
+		Otherwise, the range is right-open.
+	]##
+	sig is_right_closed: bool
+
+	##[
+		Returns the lower bound of the range.
+		Returns `nil` if the Range is beginless.
+	]##
+	sig start: Element?
+
+	##[
+		Returns the upper bound of the range.
+		Returns `nil` if the range is endless.
+	]##
+	sig end: Element?
 end

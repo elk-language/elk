@@ -1,9 +1,9 @@
 ##[
-	An interface that represents an unordered, immutable collection
+	Represents an unordered, immutable collection
 	of unique elements.
 ]##
-interface ::Std::ImmutableSet[+Element]
-	implement ImmutableCollection[Element]
+abstract mixin ::Std::ImmutableSet[+Element]
+	include ImmutableCollection::Base[Element]
 
 	# Base methods
 
@@ -32,16 +32,4 @@ interface ::Std::ImmutableSet[+Element]
 		by the given closure.
 	]##
 	def map[E](fn: |element: Element|: E): ImmutableSet[E]; end
-
-	##[
-		Provides default implementations of optional set methods.
-	]##
-	abstract mixin Base[+Element]
-		implement ImmutableSet[Element]
-		include ImmutableCollection::Base[Element]
-
-		def &[E](other: ImmutableSet[E]): ImmutableSet[Element & E]; end
-		def +[E](other: ImmutableSet[E]): ImmutableSet[Element | E]; end
-		def map[E](fn: |element: Element|: E): ImmutableSet[E]; end
-	end
 end

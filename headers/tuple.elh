@@ -1,9 +1,9 @@
 ##[
-	An interface that represents an ordered, immutable collection
+	Represents an ordered, immutable collection
 	of elements indexed by integers starting at `0`.
 ]##
-interface ::Std::Tuple[+Element]
-	implement ImmutableCollection[Element]
+abstract mixin ::Std::Tuple[+Element]
+	include ImmutableCollection::Base[Element]
 
 	##[
 		Get the element under the given index.
@@ -21,7 +21,7 @@ interface ::Std::Tuple[+Element]
 		Throws an error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	sig at(index: AnyInt): Element ! OutOfRangeError
+	def at(index: AnyInt): Element ! OutOfRangeError; end
 
 	##[
 		Get the element under the given index.
@@ -29,7 +29,7 @@ interface ::Std::Tuple[+Element]
 		Returns `nil` if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	sig try_at(index: AnyInt): Element?
+	def try_at(index: AnyInt): Element?; end
 
 	##[
 		Iterates over the elements of this tuple,
@@ -38,17 +38,5 @@ interface ::Std::Tuple[+Element]
 		Returns a new tuple that consists of the elements returned
 		by the given closure.
 	]##
-	sig map[E](fn: |element: Element|: E): Tuple[E]
-
-	##[
-		Provides default implementations of optional tuple methods.
-	]##
-	abstract mixin Base[+Element]
-		implement Tuple[Element]
-		include ImmutableCollection::Base[Element]
-
-		def at(index: AnyInt): Element ! OutOfRangeError; end
-		def try_at(index: AnyInt): Element?; end
-		def map[E](fn: |element: Element|: E): Tuple[E]; end
-	end
+	def map[E](fn: |element: Element|: E): Tuple[E]; end
 end

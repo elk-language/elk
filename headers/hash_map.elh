@@ -5,7 +5,7 @@
 	It is an unordered collection of key-value pairs.
 ]##
 sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
-	implement Map[Key, Value]
+	include Map[Key, Value]
 
 	##[
 		Mutates the map.
@@ -62,7 +62,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 	##[
 		Check whether the given `pair` is present in this map.
 	]##
-	def contains(pair: Pair[Key, Value]): bool; end
+	def contains[E = Pair[Key, Value]](value: E): bool; end
 
 	##[
 		Check whether the given `key` is present in this map.
@@ -90,10 +90,19 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 		Iterates over the key value pairs of this map,
 		yielding them to the given closure.
 
+		Returns a new ArrayList that consists of the values returned
+		by the given closure.
+	]##
+	def map[E](fn: |element: Pair[Key, Value]|: E): ArrayList[E]; end
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
 		Returns a new HashMap that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
+	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
 
 	##[
 		Iterates over the values of this map,

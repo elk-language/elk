@@ -5,7 +5,7 @@
 	A tuple is an immutable list.
 ]##
 sealed primitive class ::Std::ArrayTuple[+Element] < Value
-	include Tuple::Base[Element]
+	include Tuple[Element]
 
 	##[
 		Returns the number of elements present in the tuple.

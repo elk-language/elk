@@ -1,10 +1,10 @@
 ##[
-	An interface that represents an ordered, mutable collection
+	Represents an ordered, mutable collection
 	of elements indexed by integers starting at `0`.
 ]##
-interface ::Std::List[Element]
-	implement Tuple[Element]
-	implement Collection[Element]
+abstract mixin ::Std::List[Element]
+	include Tuple[Element]
+	include Collection::Base[Element]
 
 	##[
 		Set the element under the given index to the given value.
@@ -23,7 +23,7 @@ interface ::Std::List[Element]
 		Mutates the collection in place replacing the elements with the ones
 		returned by the given closure.
 	]##
-	sig map_mut(fn: |element: Element|: Element): self
+	def map_mut(fn: |element: Element|: Element): self; end
 
 	##[
 		Iterates over the elements of this list,
@@ -32,17 +32,5 @@ interface ::Std::List[Element]
 		Returns a new list that consists of the elements returned
 		by the given closure.
 	]##
-	sig map[E](fn: |element: Element|: E): List[E]
-
-	##[
-		Provides default implementations of most list methods.
-	]##
-	abstract mixin Base[Element]
-		implement List[Element]
-		include Tuple::Base[Element]
-		include Collection::Base[Element]
-
-		def map_mut(fn: |element: Element|: Element): self; end
-		def map[E](fn: |element: Element|: E): List[E]; end
-	end
+	def map[E](fn: |element: Element|: E): List[E]; end
 end

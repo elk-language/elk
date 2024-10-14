@@ -2,7 +2,7 @@
 	Represents a right-open range from `start` to `end` *[start, end)*
 ]##
 sealed primitive class ::Std::RightOpenRange[Element < Comparable[Element]] < Value
-	include Range::Base[Element]
+	include Range[Element]
 
 	def is_left_closed: true; end
 	def is_right_closed: false; end

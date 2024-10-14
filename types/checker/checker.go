@@ -957,44 +957,44 @@ func (c *Checker) StdArrayList() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayList)
 }
 
-func (c *Checker) StdList() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.List).(*types.Interface)
+func (c *Checker) StdList() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.List).(*types.Mixin)
 }
 
 func (c *Checker) StdArrayTuple() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayTuple)
 }
 
-func (c *Checker) StdTuple() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.Tuple).(*types.Interface)
+func (c *Checker) StdTuple() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Tuple).(*types.Mixin)
 }
 
 func (c *Checker) StdHashSet() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashSet)
 }
 
-func (c *Checker) StdSet() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.Set).(*types.Interface)
+func (c *Checker) StdSet() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Set).(*types.Mixin)
 }
 
 func (c *Checker) StdHashMap() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashMap)
 }
 
-func (c *Checker) StdMap() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.Map).(*types.Interface)
+func (c *Checker) StdMap() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Map).(*types.Mixin)
 }
 
 func (c *Checker) StdHashRecord() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
 }
 
-func (c *Checker) StdRange() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Interface)
+func (c *Checker) StdRange() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Mixin)
 }
 
-func (c *Checker) StdRecord() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.Record).(*types.Interface)
+func (c *Checker) StdRecord() *types.Mixin {
+	return c.GlobalEnv.StdSubtype(symbol.Record).(*types.Mixin)
 }
 
 func (c *Checker) StdNil() *types.Class {
@@ -5563,7 +5563,7 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 	}
 }
 
-func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordInterface *types.Interface, recordOfAny *types.Generic) (key types.Type, value types.Type) {
+func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin *types.Mixin, recordOfAny *types.Generic) (key types.Type, value types.Type) {
 	switch l := extractedRecord.(type) {
 	case *types.Generic:
 		if l.TypeArguments.Len() != 2 {
@@ -5572,7 +5572,7 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordInterf
 
 		patternKeyType := l.Get(0).Type
 		patternValueType := l.Get(1).Type
-		recordOfPatternElement := types.NewGenericWithTypeArgs(recordInterface, patternKeyType, patternValueType)
+		recordOfPatternElement := types.NewGenericWithTypeArgs(recordMixin, patternKeyType, patternValueType)
 		if c.isSubtype(l, recordOfPatternElement, nil) {
 			return patternKeyType, patternValueType
 		}
@@ -5580,7 +5580,7 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordInterf
 		newKeys := make([]types.Type, len(l.Elements))
 		newValues := make([]types.Type, len(l.Elements))
 		for i, element := range l.Elements {
-			newKeys[i], newValues[i] = c._extractRecordElement(element, recordInterface, recordOfAny)
+			newKeys[i], newValues[i] = c._extractRecordElement(element, recordMixin, recordOfAny)
 		}
 		return c.newNormalisedUnion(newKeys...), c.newNormalisedUnion(newValues...)
 	}
@@ -5588,22 +5588,22 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordInterf
 	return types.Any{}, types.Any{}
 }
 
-func (c *Checker) extractRecordElementFromType(recordInterface *types.Interface, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
+func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
 	extractedRecord = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(recordOfAny)))
-	keyType, valueType = c._extractRecordElement(extractedRecord, recordInterface, recordOfAny)
+	keyType, valueType = c._extractRecordElement(extractedRecord, recordMixin, recordOfAny)
 	return extractedRecord, keyType, valueType
 }
 
 func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
-	mapInterface := c.Std(symbol.Map).(*types.Interface)
-	mapOfAny := types.NewGenericWithVariance(mapInterface, types.BIVARIANT, types.Any{}, types.Any{})
+	mapMixin := c.Std(symbol.Map).(*types.Mixin)
+	mapOfAny := types.NewGenericWithVariance(mapMixin, types.BIVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
 	var valueType types.Type
 
 	if c.checkCanMatch(typ, mapOfAny, node.Span()) {
 		var extractedRecord types.Type
-		extractedRecord, keyType, valueType = c.extractRecordElementFromType(mapInterface, mapOfAny, typ)
+		extractedRecord, keyType, valueType = c.extractRecordElementFromType(mapMixin, mapOfAny, typ)
 		node.SetType(extractedRecord)
 	} else {
 		keyType = types.Any{}
@@ -5634,15 +5634,15 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 }
 
 func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) {
-	recordInterface := c.Std(symbol.Record).(*types.Interface)
-	recordOfAny := types.NewGenericWithVariance(recordInterface, types.BIVARIANT, types.Any{}, types.Any{})
+	recordMixin := c.Std(symbol.Record).(*types.Mixin)
+	recordOfAny := types.NewGenericWithVariance(recordMixin, types.BIVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
 	var valueType types.Type
 
 	if c.checkCanMatch(typ, recordOfAny, node.Span()) {
 		var extractedRecord types.Type
-		extractedRecord, keyType, valueType = c.extractRecordElementFromType(recordInterface, recordOfAny, typ)
+		extractedRecord, keyType, valueType = c.extractRecordElementFromType(recordMixin, recordOfAny, typ)
 		node.SetType(extractedRecord)
 	} else {
 		keyType = types.Any{}
@@ -5747,14 +5747,14 @@ func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, 
 }
 
 func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) {
-	tupleInterface := c.Std(symbol.Tuple).(*types.Interface)
-	tupleOfAny := types.NewGenericWithVariance(tupleInterface, types.BIVARIANT, types.Any{})
+	tupleMixin := c.Std(symbol.Tuple).(*types.Mixin)
+	tupleOfAny := types.NewGenericWithVariance(tupleMixin, types.BIVARIANT, types.Any{})
 
 	var elementType types.Type
 
 	if c.checkCanMatch(typ, tupleOfAny, node.Span()) {
 		var extractedCollection types.Type
-		extractedCollection, elementType = c.extractCollectionElementFromType(tupleInterface, tupleOfAny, typ)
+		extractedCollection, elementType = c.extractCollectionElementFromType(tupleMixin, tupleOfAny, typ)
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
@@ -5766,7 +5766,7 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 	}
 }
 
-func (c *Checker) _extractCollectionElement(extractedCollection types.Type, collectionInterface *types.Interface, collectionOfAny *types.Generic) types.Type {
+func (c *Checker) _extractCollectionElement(extractedCollection types.Type, collectionMixin *types.Mixin, collectionOfAny *types.Generic) types.Type {
 	switch l := extractedCollection.(type) {
 	case *types.Generic:
 		if l.TypeArguments.Len() != 1 {
@@ -5774,14 +5774,14 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 		}
 
 		patternElementType := l.Get(0).Type
-		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionInterface, patternElementType)
+		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionMixin, patternElementType)
 		if c.isSubtype(l, collectionOfPatternElement, nil) {
 			return patternElementType
 		}
 	case *types.Union:
 		newElements := make([]types.Type, len(l.Elements))
 		for i, element := range l.Elements {
-			newElements[i] = c._extractCollectionElement(element, collectionInterface, collectionOfAny)
+			newElements[i] = c._extractCollectionElement(element, collectionMixin, collectionOfAny)
 		}
 		return c.newNormalisedUnion(newElements...)
 	}
@@ -5789,20 +5789,20 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 	return types.Any{}
 }
 
-func (c *Checker) extractCollectionElementFromType(collectionInterface *types.Interface, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
+func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
 	extractedCollection = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
-	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionInterface, collectionOfAny)
+	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
 func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
-	setInterface := c.Std(symbol.Set).(*types.Interface)
-	setOfAny := types.NewGenericWithVariance(setInterface, types.BIVARIANT, types.Any{})
+	setMixin := c.Std(symbol.Set).(*types.Mixin)
+	setOfAny := types.NewGenericWithVariance(setMixin, types.BIVARIANT, types.Any{})
 
 	var elementType types.Type
 
 	if c.checkCanMatch(typ, setOfAny, node.Span()) {
 		var extractedCollection types.Type
-		extractedCollection, elementType = c.extractCollectionElementFromType(setInterface, setOfAny, typ)
+		extractedCollection, elementType = c.extractCollectionElementFromType(setMixin, setOfAny, typ)
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
@@ -5815,14 +5815,14 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
 }
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
-	listInterface := c.Std(symbol.List).(*types.Interface)
-	listOfAny := types.NewGenericWithVariance(listInterface, types.BIVARIANT, types.Any{})
+	listMixin := c.Std(symbol.List).(*types.Mixin)
+	listOfAny := types.NewGenericWithVariance(listMixin, types.BIVARIANT, types.Any{})
 
 	var elementType types.Type
 
 	if c.checkCanMatch(typ, listOfAny, node.Span()) {
 		var extractedCollection types.Type
-		extractedCollection, elementType = c.extractCollectionElementFromType(listInterface, listOfAny, typ)
+		extractedCollection, elementType = c.extractCollectionElementFromType(listMixin, listOfAny, typ)
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
