@@ -2318,8 +2318,8 @@ func NewKeyValuePatternNode(span *position.Span, key PatternExpressionNode, val 
 
 // Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`
 type ObjectPatternNode struct {
-	NodeBase
-	Class      ComplexConstantNode
+	TypedNodeBase
+	ObjectType ComplexConstantNode
 	Attributes []PatternNode
 }
 
@@ -2328,11 +2328,11 @@ func (m *ObjectPatternNode) IsStatic() bool {
 }
 
 // Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
-func NewObjectPatternNode(span *position.Span, class ComplexConstantNode, attrs []PatternNode) *ObjectPatternNode {
+func NewObjectPatternNode(span *position.Span, objectType ComplexConstantNode, attrs []PatternNode) *ObjectPatternNode {
 	return &ObjectPatternNode{
-		NodeBase:   NodeBase{span: span},
-		Class:      class,
-		Attributes: attrs,
+		TypedNodeBase: TypedNodeBase{span: span},
+		ObjectType:    objectType,
+		Attributes:    attrs,
 	}
 }
 

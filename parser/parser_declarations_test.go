@@ -1480,18 +1480,16 @@ func TestValueDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(6, 1, 7)),
-						ast.NewValueDeclarationNode(
-							S(P(0, 1, 1), P(6, 1, 7)),
-							"Foo",
-							nil,
-							nil,
+						S(P(7, 1, 8), P(6, 1, 7)),
+						ast.NewInvalidNode(
+							S(P(7, 1, 8), P(6, 1, 7)),
+							T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 						),
 					),
 				},
 			),
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "variable names cannot resemble constants"),
+				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -1984,19 +1982,16 @@ func TestVariableDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(6, 1, 7)),
-						ast.NewVariableDeclarationNode(
-							S(P(0, 1, 1), P(6, 1, 7)),
-							"",
-							"Foo",
-							nil,
-							nil,
+						S(P(7, 1, 8), P(6, 1, 7)),
+						ast.NewInvalidNode(
+							S(P(7, 1, 8), P(6, 1, 7)),
+							T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 						),
 					),
 				},
 			),
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "variable names cannot resemble constants"),
+				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can have an initialiser without a type": {

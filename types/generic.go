@@ -14,6 +14,14 @@ type TypeArgument struct {
 	Variance Variance
 }
 
+// Create a shallow copy
+func (t *TypeArgument) Copy() *TypeArgument {
+	return &TypeArgument{
+		Type:     t.Type,
+		Variance: t.Variance,
+	}
+}
+
 func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 	return &TypeArgument{
 		Type:     typ,
@@ -24,6 +32,26 @@ func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 type TypeArguments struct {
 	ArgumentMap   map[value.Symbol]*TypeArgument
 	ArgumentOrder []value.Symbol
+}
+
+// Create a shallow copy
+func (t *TypeArguments) Copy() *TypeArguments {
+	return &TypeArguments{
+		ArgumentMap:   t.ArgumentMap,
+		ArgumentOrder: t.ArgumentOrder,
+	}
+}
+
+// Create a deep copy with ArgumentMap
+func (t *TypeArguments) DeepCopy() *TypeArguments {
+	newMap := make(map[value.Symbol]*TypeArgument, len(t.ArgumentMap))
+	for key, val := range t.ArgumentMap {
+		newMap[key] = val.Copy()
+	}
+	return &TypeArguments{
+		ArgumentMap:   newMap,
+		ArgumentOrder: t.ArgumentOrder,
+	}
 }
 
 // Iterates over every type argument in definition order.

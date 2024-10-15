@@ -1059,7 +1059,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	return typedPositionalArguments, typeArgMap
 }
 
-func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
+func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
 	reqParamCount := method.RequiredParamCount()
 	requiredPosParamCount := len(method.Params) - method.OptionalParamCount
 	if method.PostParamCount != -1 {
@@ -1304,6 +1304,53 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 	return typedPositionalArguments
 }
 
+func (c *Checker) checkMethodArguments(
+	method *types.Method,
+	typeArgumentNodes []ast.TypeNode,
+	positionalArgumentNodes []ast.ExpressionNode,
+	namedArgumentNodes []ast.NamedArgumentNode,
+	span *position.Span,
+) (_method *types.Method, typedPositionalArguments []ast.ExpressionNode) {
+	if len(typeArgumentNodes) > 0 {
+		typeArgs, ok := c.checkTypeArguments(
+			method,
+			typeArgumentNodes,
+			method.TypeParameters,
+			span,
+		)
+		if !ok {
+			c.checkExpressions(positionalArgumentNodes)
+			c.checkNamedArguments(namedArgumentNodes)
+			return nil, nil
+		}
+
+		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap)
+		typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
+		return method, typedPositionalArguments
+	}
+
+	if len(method.TypeParameters) > 0 {
+		var typeArgMap map[value.Symbol]*types.TypeArgument
+		method = c.deepCopyMethod(method)
+		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+			method,
+			positionalArgumentNodes,
+			namedArgumentNodes,
+			method.TypeParameters,
+			span,
+		)
+		if len(typeArgMap) != len(method.TypeParameters) {
+			return nil, nil
+		}
+		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
+		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
+		return method, typedPositionalArguments
+	}
+
+	typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
+	return method, typedPositionalArguments
+}
+
 func (c *Checker) checkSimpleMethodCall(
 	receiver ast.ExpressionNode,
 	op token.Type,
@@ -1357,39 +1404,9 @@ func (c *Checker) checkSimpleMethodCall(
 
 	c.addToMethodCache(method)
 
-	var typedPositionalArguments []ast.ExpressionNode
-	if len(typeArgumentNodes) > 0 {
-		typeArgs, ok := c.checkTypeArguments(
-			method,
-			typeArgumentNodes,
-			method.TypeParameters,
-			span,
-		)
-		if !ok {
-			c.checkExpressions(positionalArgumentNodes)
-			c.checkNamedArguments(namedArgumentNodes)
-			return receiver, positionalArgumentNodes, types.Untyped{}
-		}
-
-		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap)
-		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
-	} else if len(method.TypeParameters) > 0 {
-		var typeArgMap map[value.Symbol]*types.TypeArgument
-		method = c.deepCopyMethod(method)
-		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
-			method,
-			positionalArgumentNodes,
-			namedArgumentNodes,
-			method.TypeParameters,
-			span,
-		)
-		if len(typeArgMap) != len(method.TypeParameters) {
-			return receiver, positionalArgumentNodes, types.Untyped{}
-		}
-		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
-		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
-	} else {
-		typedPositionalArguments = c.checkMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
+	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, span)
+	if method == nil {
+		return receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	var returnType types.Type

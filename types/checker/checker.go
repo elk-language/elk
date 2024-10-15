@@ -3189,17 +3189,24 @@ func (c *Checker) typeOf(node ast.Node) types.Type {
 	return node.Type(c.GlobalEnv)
 }
 
-func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
-	typ := c.typeOf(node)
-	if node != nil && types.IsVoid(typ) {
+func (c *Checker) typeGuardVoid(typ types.Type, span *position.Span) types.Type {
+	if types.IsVoid(typ) {
 		c.addFailure(
 			fmt.Sprintf(
 				"cannot use type `%s` as a value in this context",
 				types.InspectWithColor(types.Void{}),
 			),
-			node.Span(),
+			span,
 		)
 		return types.Untyped{}
+	}
+	return typ
+}
+
+func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
+	typ := c.typeOf(node)
+	if node != nil {
+		return c.typeGuardVoid(typ, node.Span())
 	}
 	return typ
 }
@@ -3236,7 +3243,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(method.ReturnType)
@@ -3276,7 +3283,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
 		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
 	} else {
-		typedPositionalArguments = c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+		typedPositionalArguments = c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	}
 
 	var receiver ast.ExpressionNode
@@ -3454,7 +3461,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		)
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
@@ -3527,7 +3534,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		)
 	}
 
-	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
@@ -3543,7 +3550,7 @@ func (c *Checker) addToMethodCache(method *types.Method) {
 }
 
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
-	classType, _ := c.resolveConstantType(node.Class)
+	classType, fullName := c.resolveConstantType(node.Class)
 	if classType == nil {
 		classType = types.Untyped{}
 	}
@@ -3554,6 +3561,11 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Untyped{})
 		return node
 	}
+
+	node.Class = ast.NewPublicConstantNode(
+		node.Class.Span(),
+		fullName,
+	)
 	class, isClass := classType.(*types.Class)
 	if !isClass {
 		c.addFailure(
@@ -3592,7 +3604,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			c.addToMethodCache(method)
 		}
 
-		typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+		typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 
 		node.PositionalArguments = typedPositionalArguments
 		node.NamedArguments = nil
@@ -4671,7 +4683,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	return subtype.Type, typeName
 }
 
-func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ComplexConstantNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
 		return c.checkPublicConstantType(n)
@@ -4683,11 +4695,9 @@ func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.Expressi
 		c.checkGenericConstantType(n)
 		return n
 	default:
-		c.addFailure(
+		panic(
 			fmt.Sprintf("invalid constant type node %T", node),
-			node.Span(),
 		)
-		return n
 	}
 }
 
@@ -5558,8 +5568,174 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
 		c.checkTuplePattern(n, typ)
 	case *ast.SetPatternNode:
 		c.checkSetPattern(n, typ)
+	case *ast.ObjectPatternNode:
+		c.checkObjectPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
+	}
+}
+
+func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetParent types.Namespace) *types.Generic {
+	for parent := range types.Parents(namespace) {
+		switch p := parent.(type) {
+		case *types.Generic:
+			if c.isTheSameNamespace(p.Namespace, targetParent) {
+				return p
+			}
+		case *types.Class:
+			if p == targetParent {
+				return nil
+			}
+		case *types.Mixin:
+			if p == targetParent {
+				return nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// Combine two TypeArguments by creating union types of their elements.
+// Mutates `base` and its type arguments.
+func (c *Checker) combineTypeArguments(base, other *types.TypeArguments) {
+	for key, baseVal := range base.ArgumentMap {
+		otherVal := other.ArgumentMap[key]
+		baseVal.Type = c.newNormalisedUnion(baseVal.Type, otherVal.Type)
+	}
+}
+
+func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace types.Namespace) *types.TypeArguments {
+	switch l := extractedNamespace.(type) {
+	case *types.Generic:
+		genericParent := c.findGenericNamespaceParent(l, namespace)
+		if genericParent == nil {
+			return nil
+		}
+		return genericParent.TypeArguments
+	case *types.Class:
+		genericParent := c.findGenericNamespaceParent(l, namespace)
+		if genericParent == nil {
+			return nil
+		}
+		return genericParent.TypeArguments
+	case *types.Mixin:
+		genericParent := c.findGenericNamespaceParent(l, namespace)
+		if genericParent == nil {
+			return nil
+		}
+		return genericParent.TypeArguments
+	case *types.Union:
+		var result *types.TypeArguments
+		for _, element := range l.Elements {
+			typeArgs := c._extractTypeArguments(element, namespace)
+			if typeArgs == nil {
+				continue
+			}
+
+			if result == nil {
+				result = typeArgs.DeepCopy()
+				continue
+			}
+
+			c.combineTypeArguments(result, typeArgs)
+		}
+		return result
+	}
+
+	return nil
+}
+
+func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (typeArgs *types.TypeArguments) {
+	if types.IsAny(typ) {
+		return nil
+	}
+	extractedNamespace := c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(ofAny)))
+	typeArgs = c._extractTypeArguments(extractedNamespace, namespace)
+	return typeArgs
+}
+
+func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) {
+	constType, fullName := c.resolveConstantType(node.ObjectType)
+	if constType == nil {
+		constType = types.Untyped{}
+	}
+
+	node.ObjectType = ast.NewPublicConstantNode(
+		node.ObjectType.Span(),
+		fullName,
+	)
+
+	var classOrMixin types.Namespace
+	switch t := constType.(type) {
+	case *types.Class:
+		classOrMixin = t
+	case *types.Mixin:
+		classOrMixin = t
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` cannot be used in object patterns, only classes and mixins are allowed",
+				types.InspectWithColor(constType),
+			),
+			node.Span(),
+		)
+		return
+	}
+
+	if classOrMixin.IsGeneric() {
+		anyTypeArgs := make([]types.Type, len(classOrMixin.TypeParameters()))
+		typeParams := classOrMixin.TypeParameters()
+		for i := range typeParams {
+			anyTypeArgs[i] = types.Any{}
+		}
+		ofAny := types.NewGenericWithVariance(classOrMixin, types.BIVARIANT, anyTypeArgs...)
+		typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, typ)
+		if typeArgs == nil {
+			typeArgs = types.ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams)
+		}
+
+		classOrMixin = types.NewGeneric(
+			classOrMixin,
+			typeArgs,
+		)
+	}
+
+	c.checkCanMatch(typ, classOrMixin, node.Span())
+	node.SetType(classOrMixin)
+
+	for _, attribute := range node.Attributes {
+		switch attr := attribute.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+		case *ast.PublicIdentifierNode:
+			getter := c.getMethod(classOrMixin, value.ToSymbol(attr.Value), attr.Span())
+			if getter == nil {
+				return
+			}
+			getter, _ = c.checkMethodArguments(getter, nil, nil, nil, attr.Span())
+			if getter == nil {
+				return
+			}
+
+			returnType := c.typeGuardVoid(getter.ReturnType, attr.Span())
+			typ := c.checkIdentifierPattern(attr.Value, returnType, returnType, attr.Span())
+			attr.SetType(typ)
+		case *ast.PrivateIdentifierNode:
+			getter := c.getMethod(classOrMixin, value.ToSymbol(attr.Value), attr.Span())
+			if getter == nil {
+				return
+			}
+			getter, _ = c.checkMethodArguments(getter, nil, nil, nil, attr.Span())
+			if getter == nil {
+				return
+			}
+
+			returnType := c.typeGuardVoid(getter.ReturnType, attr.Span())
+			typ := c.checkIdentifierPattern(attr.Value, returnType, returnType, attr.Span())
+			attr.SetType(typ)
+		default:
+			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
+		}
 	}
 }
 

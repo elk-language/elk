@@ -2595,9 +2595,9 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 	c.enterPattern()
 
 	span := node.Span()
-	c.emit(node.Class.Span().StartPos.Line, bytecode.DUP)
-	c.compileNode(node.Class)
-	c.emit(node.Class.Span().StartPos.Line, bytecode.IS_A)
+	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.DUP)
+	c.compileNode(node.ObjectType)
+	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.IS_A)
 
 	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 	jumpsToPatch = append(jumpsToPatch, jmp)

@@ -58,6 +58,27 @@ type Namespace interface {
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
+func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
+	typeArgMap := make(map[value.Symbol]*TypeArgument, len(typeParams))
+	typeArgOrder := make([]value.Symbol, len(typeParams))
+
+	for i, typeParam := range typeParams {
+		arg := typeParam.UpperBound
+
+		typeArg := NewTypeArgument(
+			arg,
+			typeParam.Variance,
+		)
+		typeArgMap[typeParam.Name] = typeArg
+		typeArgOrder[i] = typeParam.Name
+	}
+
+	return NewTypeArguments(
+		typeArgMap,
+		typeArgOrder,
+	)
+}
+
 func implementInterface(target Namespace, iface *Interface) {
 	proxy := NewInterfaceProxy(iface, target.Parent())
 	target.SetParent(proxy)

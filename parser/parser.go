@@ -3892,14 +3892,9 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	var init ast.ExpressionNode
 
 	if varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE, token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT); ok {
+		token.INSTANCE_VARIABLE); ok {
 		var typ ast.TypeNode
 		lastSpan := varName.Span()
-
-		switch varName.Type {
-		case token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT:
-			p.errorMessageSpan("variable names cannot resemble constants", varName.Span())
-		}
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
@@ -3974,13 +3969,11 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 
 	if valName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE, token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT); ok {
+		token.INSTANCE_VARIABLE); ok {
 		var typ ast.TypeNode
 		lastSpan := valName.Span()
 
 		switch valName.Type {
-		case token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT:
-			p.errorMessageSpan("variable names cannot resemble constants", valName.Span())
 		case token.INSTANCE_VARIABLE:
 			p.errorMessageSpan("instance variables cannot be declared using `val`", valName.Span())
 		}

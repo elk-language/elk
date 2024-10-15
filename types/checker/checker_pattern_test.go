@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
-func TestPatterns(t *testing.T) {
+func TestIdentifierPattern(t *testing.T) {
 	tests := testTable{
 		"public identifier pattern": {
 			input: `
@@ -45,7 +45,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSetPattern(t *testing.T) {
+	tests := testTable{
 		"set pattern with rest and wide type": {
 			input: `
 				var d: HashSet[String] | Set[Int] | nil = nil
@@ -124,7 +134,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(67, 3, 18), P(69, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestListPattern(t *testing.T) {
+	tests := testTable{
 		"list pattern with rest and literal": {
 			input: `
 				var [a, *b] = ["", 8, 1]
@@ -213,7 +233,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(69, 3, 17), P(71, 3, 19)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestTuplePattern(t *testing.T) {
+	tests := testTable{
 		"tuple pattern with a wider type declares a variable with element type": {
 			input: `
 				var a: Tuple[Int] | nil = nil
@@ -302,6 +332,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot ever match type `Std::Tuple[any]`"),
 			},
 		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestAsPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with as and new variable": {
 			input: `
 				var %[a as b] = [8]
@@ -328,7 +369,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(70, 4, 18), P(70, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestIntPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with int literal and Int type": {
 			input: `
 				b := 3
@@ -582,7 +633,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1u8`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestFloatPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with float literal and Float type": {
 			input: `
 				b := 3.14
@@ -695,7 +756,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"1.2\"` cannot ever match type `1.0bf`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestCharPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with char literal and Char type": {
 			input: "b := `a`\nvar `a` as a = b",
 		},
@@ -732,7 +803,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type `\"f\"` cannot ever match type ``f``"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSimpleLiteralPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with true literal and Bool type": {
 			input: `
 				b := true
@@ -817,6 +898,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"nil\"` cannot ever match type `nil`"),
 			},
 		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestStringLiteralPattern(t *testing.T) {
+	tests := testTable{
 
 		"pattern with interpolated string literal": {
 			input: `
@@ -861,7 +953,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `42` cannot ever match type `\"hello\"`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSymbolLiteralPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with interpolated symbol literal": {
 			input: `
 				b := :hello
@@ -905,7 +1007,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `42` cannot ever match type `:hello`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSpecialListPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with word list literal and array list type": {
 			input: `
 				b := [1, "foo"]
@@ -1018,7 +1130,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[Std::Int]`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSpecialTuplePattern(t *testing.T) {
+	tests := testTable{
 		"pattern with word tuple literal and tuple type": {
 			input: `
 				b := %[1, "foo"]
@@ -1075,6 +1197,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
 			},
 		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSpecialSetPattern(t *testing.T) {
+	tests := testTable{
 		"pattern with word set literal and set type": {
 			input: `
 				b := ^["foo", "bar"]
@@ -1131,7 +1264,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestRangePattern(t *testing.T) {
+	tests := testTable{
 		"range pattern and wider type": {
 			input: `
 				var a: Int | Float | String | nil = nil
@@ -1179,7 +1322,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `Std::Int`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestMapPattern(t *testing.T) {
+	tests := testTable{
 		"map pattern with invalid value": {
 			input: `
 				var { a } = 8
@@ -1274,7 +1427,17 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(128, 5, 18), P(128, 5, 18)), "type `Std::HashMap[Std::Symbol, Std::Int] | Std::Map[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestRecordPattern(t *testing.T) {
+	tests := testTable{
 		"record pattern with invalid value": {
 			input: `
 				var %{ a } = 8
@@ -1379,6 +1542,187 @@ func TestPatterns(t *testing.T) {
 				error.NewFailure(L("<main>", P(132, 5, 18), P(132, 5, 18)), "cannot use type `void` as a value in this context"),
 			},
 		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestObjectPattern(t *testing.T) {
+	tests := testTable{
+		"identifier - invalid value": {
+			input: `
+				var String(length) = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(22, 2, 22)), "type `3` cannot ever match type `Std::String`"),
+			},
+		},
+		"identifier - nonexistent method": {
+			input: `
+				var String(lol) = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"identifier - valid getter": {
+			input: `
+				var String(length) as s = "foo"
+				var a: 9 = length
+				var b: 7 = s
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(52, 3, 16), P(57, 3, 21)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - valid getter and wider type": {
+			input: `
+				var a: Int | String | nil = nil
+				var String(length) as s = a
+				var b: 9 = length
+				var c: 7 = s
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 4, 16), P(89, 4, 21)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - method with required arguments": {
+			input: `
+				class Foo
+					def bar(a: Int): Int then a
+				end
+
+				var Foo(bar) as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 6, 13), P(71, 6, 15)), "argument `a` is missing in call to `bar`"),
+				error.NewFailure(L("<main>", P(102, 7, 16), P(104, 7, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(121, 8, 16), P(121, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - void method": {
+			input: `
+				class Foo
+					def bar; end
+				end
+
+				var Foo(bar) as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 6, 13), P(56, 6, 15)), "cannot use type `void` as a value in this context"),
+				error.NewFailure(L("<main>", P(106, 8, 16), P(106, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - generic getter with bounds": {
+			input: `
+				class Foo
+					def bar[T < CoercibleNumeric]: T then loop; end
+				end
+
+				var Foo(bar) as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(122, 7, 16), P(124, 7, 18)), "type `Std::CoercibleNumeric` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(141, 8, 16), P(141, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - generic getter without bounds": {
+			input: `
+				class Foo
+					def bar[T]: T then loop; end
+				end
+
+				var Foo(bar) as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(103, 7, 16), P(105, 7, 18)), "type `any` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and simple type": {
+			input: `
+				class Foo[T]
+					def bar: T then loop; end
+				end
+
+				var Foo(bar) as f = Foo::[String]()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(113, 7, 16), P(115, 7, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(132, 8, 16), P(132, 8, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and wide type": {
+			input: `
+				class Foo[T]
+					def bar: T then loop; end
+				end
+
+				class Bar < Foo[Int]
+				end
+
+				var a: Float | Foo[String] | Bar | nil = nil
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and wide type without the class": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
+
+				var a: any = nil
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(128, 8, 16), P(130, 8, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(147, 9, 16), P(147, 9, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		// "identifier - getter on a generic class and interface type": {
+		// 	input: `
+		// 		class Foo[T < Value]
+		// 			def bar: T then loop; end
+		// 		end
+
+		// 		interface Bar
+		// 			sig bar: String
+		// 		end
+
+		// 		var a: Bar = Foo::[String]()
+		// 		var Foo(bar) as f = a
+		// 		var b: 9 = bar
+		// 		var c: 7 = f
+		// 	`,
+		// 	err: error.ErrorList{
+		// 		error.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+		// 		error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `7`"),
+		// 	},
+		// },
 	}
 
 	for name, tc := range tests {
