@@ -5646,13 +5646,13 @@ func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace
 	return nil
 }
 
-func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (typeArgs *types.TypeArguments) {
+func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (extractedNamespace types.Type, typeArgs *types.TypeArguments) {
 	if types.IsAny(typ) {
-		return nil
+		return typ, nil
 	}
-	extractedNamespace := c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(ofAny)))
+	extractedNamespace = c.newNormalisedIntersection(typ, ofAny)
 	typeArgs = c._extractTypeArguments(extractedNamespace, namespace)
-	return typeArgs
+	return extractedNamespace, typeArgs
 }
 
 func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) {
@@ -5683,60 +5683,58 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 		return
 	}
 
+	var ofAny *types.Generic
 	if classOrMixin.IsGeneric() {
-		anyTypeArgs := make([]types.Type, len(classOrMixin.TypeParameters()))
-		typeParams := classOrMixin.TypeParameters()
-		for i := range typeParams {
-			anyTypeArgs[i] = types.Any{}
-		}
-		ofAny := types.NewGenericWithVariance(classOrMixin, types.BIVARIANT, anyTypeArgs...)
-		typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, typ)
+		ofAny = types.NewGenericWithUpperBoundTypeArgsAndVariance(classOrMixin, types.COVARIANT)
+		extractedNamespace, typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, typ)
 		if typeArgs == nil {
-			typeArgs = types.ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams)
+			node.SetType(ofAny)
+			c.checkCanMatch(typ, classOrMixin, node.Span())
+			classOrMixin = ofAny
+		} else {
+			classOrMixin = types.NewGeneric(
+				classOrMixin,
+				typeArgs,
+			)
+			node.SetType(extractedNamespace)
+			c.checkCanMatch(typ, classOrMixin, node.Span())
 		}
-
-		classOrMixin = types.NewGeneric(
-			classOrMixin,
-			typeArgs,
-		)
+	} else {
+		node.SetType(classOrMixin)
+		c.checkCanMatch(typ, classOrMixin, node.Span())
 	}
 
-	c.checkCanMatch(typ, classOrMixin, node.Span())
-	node.SetType(classOrMixin)
+	ofAny.FixVariance()
 
 	for _, attribute := range node.Attributes {
 		switch attr := attribute.(type) {
 		case *ast.SymbolKeyValuePatternNode:
 		case *ast.PublicIdentifierNode:
-			getter := c.getMethod(classOrMixin, value.ToSymbol(attr.Value), attr.Span())
-			if getter == nil {
-				return
-			}
-			getter, _ = c.checkMethodArguments(getter, nil, nil, nil, attr.Span())
-			if getter == nil {
-				return
-			}
-
-			returnType := c.typeGuardVoid(getter.ReturnType, attr.Span())
-			typ := c.checkIdentifierPattern(attr.Value, returnType, returnType, attr.Span())
+			typ := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
 			attr.SetType(typ)
 		case *ast.PrivateIdentifierNode:
-			getter := c.getMethod(classOrMixin, value.ToSymbol(attr.Value), attr.Span())
-			if getter == nil {
-				return
-			}
-			getter, _ = c.checkMethodArguments(getter, nil, nil, nil, attr.Span())
-			if getter == nil {
-				return
-			}
-
-			returnType := c.typeGuardVoid(getter.ReturnType, attr.Span())
-			typ := c.checkIdentifierPattern(attr.Value, returnType, returnType, attr.Span())
+			typ := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
 			attr.SetType(typ)
 		default:
 			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
 		}
 	}
+}
+
+func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) types.Type {
+	getter := c.getMethod(namespace, value.ToSymbol(name), span)
+	if getter == nil {
+		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, span)
+		return types.Untyped{}
+	}
+	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, span)
+	if getter == nil {
+		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, span)
+		return types.Untyped{}
+	}
+
+	returnType := c.typeGuardVoid(getter.ReturnType, span)
+	return c.checkIdentifierPattern(name, returnType, returnType, span)
 }
 
 func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin *types.Mixin, recordOfAny *types.Generic) (key types.Type, value types.Type) {
@@ -5765,14 +5763,14 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 }
 
 func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
-	extractedRecord = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(recordOfAny)))
+	extractedRecord = c.newNormalisedIntersection(typ, recordOfAny)
 	keyType, valueType = c._extractRecordElement(extractedRecord, recordMixin, recordOfAny)
 	return extractedRecord, keyType, valueType
 }
 
 func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 	mapMixin := c.Std(symbol.Map).(*types.Mixin)
-	mapOfAny := types.NewGenericWithVariance(mapMixin, types.BIVARIANT, types.Any{}, types.Any{})
+	mapOfAny := types.NewGenericWithVariance(mapMixin, types.COVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
 	var valueType types.Type
@@ -5786,6 +5784,8 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 		valueType = types.Any{}
 		node.SetType(types.Never{})
 	}
+
+	mapOfAny.FixVariance()
 
 	for _, element := range node.Elements {
 		switch e := element.(type) {
@@ -5811,7 +5811,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 
 func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) {
 	recordMixin := c.Std(symbol.Record).(*types.Mixin)
-	recordOfAny := types.NewGenericWithVariance(recordMixin, types.BIVARIANT, types.Any{}, types.Any{})
+	recordOfAny := types.NewGenericWithVariance(recordMixin, types.COVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
 	var valueType types.Type
@@ -5825,6 +5825,8 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 		valueType = types.Any{}
 		node.SetType(types.Never{})
 	}
+
+	recordOfAny.FixVariance()
 
 	for _, element := range node.Elements {
 		switch e := element.(type) {
@@ -5924,7 +5926,7 @@ func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, 
 
 func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) {
 	tupleMixin := c.Std(symbol.Tuple).(*types.Mixin)
-	tupleOfAny := types.NewGenericWithVariance(tupleMixin, types.BIVARIANT, types.Any{})
+	tupleOfAny := types.NewGenericWithTypeArgs(tupleMixin, types.Any{})
 
 	var elementType types.Type
 
@@ -5966,7 +5968,7 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 }
 
 func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
-	extractedCollection = c.newNormalisedIntersection(typ, types.NewNot(types.NewNot(collectionOfAny)))
+	extractedCollection = c.newNormalisedIntersection(typ, collectionOfAny)
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
@@ -5992,7 +5994,7 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
 	listMixin := c.Std(symbol.List).(*types.Mixin)
-	listOfAny := types.NewGenericWithVariance(listMixin, types.BIVARIANT, types.Any{})
+	listOfAny := types.NewGenericWithVariance(listMixin, types.COVARIANT, types.Any{})
 
 	var elementType types.Type
 
@@ -6004,6 +6006,7 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
 		elementType = types.Any{}
 		node.SetType(types.Never{})
 	}
+	listOfAny.FixVariance()
 
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)

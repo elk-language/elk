@@ -95,6 +95,9 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type) bool {
 		}
 		return false
 	case *types.Generic:
+		if _, ok := a.Namespace.(*types.Interface); ok {
+			return c.intersectsWithInterface(b, a)
+		}
 		genericB, ok := b.(*types.Generic)
 		if !ok {
 			return c.isSubtype(a, b, nil)
@@ -137,12 +140,40 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type) bool {
 		return !c.isTheSameType(a.Type, b, nil)
 	case *types.NamedType:
 		return c._typesIntersect(a.Type, b)
+	case *types.TypeParameter:
+		return c.isSubtype(b, a.UpperBound, nil) && c.isSubtype(a.LowerBound, b, nil)
+	case *types.Interface:
+		return c.intersectsWithInterface(b, a)
 	default:
-		if bTypeParam, ok := b.(*types.TypeParameter); ok {
-			return c.isSubtype(a, bTypeParam.UpperBound, nil) && c.isSubtype(bTypeParam.LowerBound, a, nil)
-		}
 		return c.isSubtype(a, b, nil)
 	}
+}
+
+func (c *Checker) intersectsWithInterface(a types.Type, b types.Namespace) bool {
+	var aNamespace types.Namespace
+	switch a := a.(type) {
+	case *types.Class:
+		aNamespace = a
+	case *types.Mixin:
+		aNamespace = a
+	default:
+		return c.isSubtype(a, b, nil)
+	}
+
+	if !aNamespace.IsGeneric() {
+		return c.isSubtype(a, b, nil)
+	}
+
+	// is a non-instantiated generic class/mixin
+
+	for _, abstractMethod := range c.methodsInNamespace(b) {
+		method := c.resolveMethodInNamespace(aNamespace, abstractMethod.Name)
+		if method == nil || !c.checkMethodCompatibilityForAlgebraicTypes(abstractMethod, method, nil) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Check whether an "is a" relationship between `a` and `b` is possible.

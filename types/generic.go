@@ -105,6 +105,25 @@ func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 	return generic
 }
 
+func NewGenericWithUpperBoundTypeArgs(namespace Namespace) *Generic {
+	return NewGeneric(
+		namespace,
+		ConstructTypeArgumentsFromTypeParameterUpperBounds(
+			namespace.TypeParameters(),
+		),
+	)
+}
+
+func NewGenericWithUpperBoundTypeArgsAndVariance(namespace Namespace, variance Variance) *Generic {
+	return NewGeneric(
+		namespace,
+		ConstructTypeArgumentsFromTypeParameterUpperBoundsAndVariance(
+			namespace.TypeParameters(),
+			variance,
+		),
+	)
+}
+
 func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 	if len(namespace.TypeParameters()) != len(args) {
 		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
@@ -159,6 +178,16 @@ func NewGenericWithVariance(namespace Namespace, variance Variance, args ...Type
 			typeArgOrder,
 		),
 	)
+}
+
+func (g *Generic) FixVariance() {
+	if g == nil {
+		return
+	}
+	for _, typeParam := range g.Namespace.TypeParameters() {
+		arg := g.ArgumentMap[typeParam.Name]
+		arg.Variance = typeParam.Variance
+	}
 }
 
 func (g *Generic) ToNonLiteral(env *GlobalEnvironment) Type {

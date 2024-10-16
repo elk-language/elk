@@ -1684,7 +1684,7 @@ func TestObjectPattern(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `7`"),
+				error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String] | Bar` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and wide type without the class": {
@@ -1703,26 +1703,169 @@ func TestObjectPattern(t *testing.T) {
 				error.NewFailure(L("<main>", P(147, 9, 16), P(147, 9, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
-		// "identifier - getter on a generic class and interface type": {
-		// 	input: `
-		// 		class Foo[T < Value]
-		// 			def bar: T then loop; end
-		// 		end
+		"identifier - getter on a generic class and wide interface type that intersects with it": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
 
-		// 		interface Bar
-		// 			sig bar: String
-		// 		end
+				interface Bar
+					sig bar: String
+				end
 
-		// 		var a: Bar = Foo::[String]()
-		// 		var Foo(bar) as f = a
-		// 		var b: 9 = bar
-		// 		var c: 7 = f
-		// 	`,
-		// 	err: error.ErrorList{
-		// 		error.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
-		// 		error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `7`"),
-		// 	},
-		// },
+				var a: Bar | nil = Foo::[String]()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and interface type that intersects with it": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
+
+				interface Bar
+					sig bar: String
+				end
+
+				var a: Bar = Foo::[String]()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(188, 12, 16), P(190, 12, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(207, 13, 16), P(207, 13, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class with invalid method and interface type": {
+			input: `
+				class Foo[T < Value]
+					def bar: Int then 3
+					def baz: T then loop; end
+				end
+
+				interface Bar
+					sig bar: String
+				end
+
+				class Baz
+					def bar: String then "bar"
+				end
+
+				var a: Bar = Baz()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(225, 16, 9), P(232, 16, 16)), "type `Bar` cannot ever match type `Foo`"),
+				error.NewFailure(L("<main>", P(258, 17, 16), P(260, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(277, 18, 16), P(277, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class with missing methods and interface type": {
+			input: `
+				class Foo[T < Value]
+					def baz: T then loop; end
+				end
+
+				interface Bar
+					sig bar: String
+				end
+
+				class Baz
+					def bar: String then "bar"
+				end
+
+				var a: Bar = Baz()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(200, 15, 9), P(207, 15, 16)), "type `Bar` cannot ever match type `Foo`"),
+				error.NewFailure(L("<main>", P(204, 15, 13), P(206, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
+				error.NewFailure(L("<main>", P(252, 17, 16), P(252, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+
+		"identifier - getter on a generic class and generic interface type that intersects with it": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
+
+				interface Bar[T]
+					sig bar: T
+				end
+
+				var a: Bar[String] = Foo::[String]()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class with invalid method and generic interface type": {
+			input: `
+				class Foo[T < Value]
+					def bar: Int then 3
+					def baz: T then loop; end
+				end
+
+				interface Bar[T]
+					sig bar: T
+				end
+
+				class Baz
+					def bar: String then "bar"
+				end
+
+				var a: Bar[String] = Baz()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(231, 16, 9), P(238, 16, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
+				error.NewFailure(L("<main>", P(264, 17, 16), P(266, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(283, 18, 16), P(283, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class with missing methods and generic interface type": {
+			input: `
+				class Foo[T < Value]
+					def baz: T then loop; end
+				end
+
+				interface Bar[T]
+					sig bar: T
+				end
+
+				class Baz
+					def bar: String then "bar"
+				end
+
+				var a: Bar[String] = Baz()
+				var Foo(bar) as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(206, 15, 9), P(213, 15, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
+				error.NewFailure(L("<main>", P(210, 15, 13), P(212, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
+				error.NewFailure(L("<main>", P(258, 17, 16), P(258, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -1914,6 +1914,18 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
+// Checks whether two methods are compatible.
+func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method) bool {
+	prevMode := c.mode
+	c.mode = methodCompatibilityInAlgebraicTypeMode
+
+	areCompatible := c.checkMethodCompatibility(baseMethod, overrideMethod, nil)
+
+	c.mode = prevMode
+
+	return areCompatible
+}
+
 func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {
 	return c._getMethod(typ, name, errSpan, false, false)
 }
