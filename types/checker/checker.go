@@ -3263,7 +3263,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
-		var typeArgMap map[value.Symbol]*types.TypeArgument
+		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
 		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
@@ -3345,7 +3345,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		return nil, false
 	}
 
-	typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(typeParams))
+	typeArgumentMap := make(types.TypeArgumentMap, len(typeParams))
 	typeArgumentOrder := make([]value.Symbol, 0, len(typeParams))
 	var fail bool
 	for i := range len(typeParams) {
@@ -3424,7 +3424,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 	var typeArgs *types.TypeArguments
 	var method *types.Method
 	if len(class.TypeParameters()) > 0 {
-		typeArgumentMap := make(map[value.Symbol]*types.TypeArgument, len(class.TypeParameters()))
+		typeArgumentMap := make(types.TypeArgumentMap, len(class.TypeParameters()))
 		typeArgumentOrder := make([]value.Symbol, len(class.TypeParameters()))
 		for i, param := range class.TypeParameters() {
 			typeArgumentMap[param.Name] = types.NewTypeArgument(
@@ -5647,9 +5647,6 @@ func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace
 }
 
 func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (extractedNamespace types.Type, typeArgs *types.TypeArguments) {
-	if types.IsAny(typ) {
-		return typ, nil
-	}
 	extractedNamespace = c.newNormalisedIntersection(typ, ofAny)
 	typeArgs = c._extractTypeArguments(extractedNamespace, namespace)
 	return extractedNamespace, typeArgs
@@ -5688,9 +5685,27 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 		ofAny = types.NewGenericWithUpperBoundTypeArgsAndVariance(classOrMixin, types.COVARIANT)
 		extractedNamespace, typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, typ)
 		if typeArgs == nil {
-			node.SetType(ofAny)
-			c.checkCanMatch(typ, classOrMixin, node.Span())
-			classOrMixin = ofAny
+			typeParams := classOrMixin.TypeParameters()
+			typeArgMap := make(types.TypeArgumentMap, len(typeParams))
+			if c.checkCanMatchWithTypeArgs(typ, classOrMixin, node.Span(), typeArgMap) && typeArgMap.HasAllTypeParams(typeParams) {
+				newClassOrMixin := types.NewGeneric(
+					classOrMixin,
+					types.NewTypeArguments(
+						typeArgMap,
+						types.CreateTypeArgumentOrderFromTypeParams(typeParams),
+					),
+				)
+				if c.checkCanMatch(typ, newClassOrMixin, node.Span()) {
+					classOrMixin = newClassOrMixin
+					node.SetType(classOrMixin)
+				} else {
+					node.SetType(ofAny)
+					classOrMixin = ofAny
+				}
+			} else {
+				node.SetType(ofAny)
+				classOrMixin = ofAny
+			}
 		} else {
 			classOrMixin = types.NewGeneric(
 				classOrMixin,
@@ -5917,6 +5932,15 @@ func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.
 
 func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) bool {
 	if !c.typesIntersect(assignedType, targetType) {
+		c.addCannotMatchError(assignedType, targetType, span)
+		return false
+	}
+
+	return true
+}
+
+func (c *Checker) checkCanMatchWithTypeArgs(assignedType types.Type, targetType types.Type, span *position.Span, typeArgs types.TypeArgumentMap) bool {
+	if !c.typesIntersectWithTypeArgs(assignedType, targetType, typeArgs) {
 		c.addCannotMatchError(assignedType, targetType, span)
 		return false
 	}

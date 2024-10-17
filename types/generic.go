@@ -29,9 +29,30 @@ func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 	}
 }
 
+type TypeArgumentMap map[value.Symbol]*TypeArgument
+
+func (t TypeArgumentMap) HasAllTypeParams(typeParams []*TypeParameter) bool {
+	for _, typeParam := range typeParams {
+		_, ok := t[typeParam.Name]
+		if !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 type TypeArguments struct {
-	ArgumentMap   map[value.Symbol]*TypeArgument
+	ArgumentMap   TypeArgumentMap
 	ArgumentOrder []value.Symbol
+}
+
+func CreateTypeArgumentOrderFromTypeParams(typeParams []*TypeParameter) []value.Symbol {
+	order := make([]value.Symbol, len(typeParams))
+	for i, typeParam := range typeParams {
+		order[i] = typeParam.Name
+	}
+	return order
 }
 
 // Create a shallow copy
@@ -42,9 +63,17 @@ func (t *TypeArguments) Copy() *TypeArguments {
 	}
 }
 
+func (t *TypeArguments) DeleteUnnecessaryArgs() {
+	newMap := make(TypeArgumentMap, len(t.ArgumentOrder))
+	for name, arg := range t.AllArguments() {
+		newMap[name] = arg
+	}
+	t.ArgumentMap = newMap
+}
+
 // Create a deep copy with ArgumentMap
 func (t *TypeArguments) DeepCopy() *TypeArguments {
-	newMap := make(map[value.Symbol]*TypeArgument, len(t.ArgumentMap))
+	newMap := make(TypeArgumentMap, len(t.ArgumentMap))
 	for key, val := range t.ArgumentMap {
 		newMap[key] = val.Copy()
 	}
@@ -75,7 +104,7 @@ func (t *TypeArguments) Len() int {
 	return len(t.ArgumentOrder)
 }
 
-func NewTypeArguments(m map[value.Symbol]*TypeArgument, order []value.Symbol) *TypeArguments {
+func NewTypeArguments(m TypeArgumentMap, order []value.Symbol) *TypeArguments {
 	return &TypeArguments{
 		ArgumentMap:   m,
 		ArgumentOrder: order,
@@ -129,7 +158,7 @@ func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
 	}
 
-	typeArgMap := make(map[value.Symbol]*TypeArgument, len(args))
+	typeArgMap := make(TypeArgumentMap, len(args))
 	typeArgOrder := make([]value.Symbol, len(args))
 
 	for i, typeParam := range namespace.TypeParameters() {
@@ -157,7 +186,7 @@ func NewGenericWithVariance(namespace Namespace, variance Variance, args ...Type
 		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
 	}
 
-	typeArgMap := make(map[value.Symbol]*TypeArgument, len(args))
+	typeArgMap := make(TypeArgumentMap, len(args))
 	typeArgOrder := make([]value.Symbol, len(args))
 
 	for i, typeParam := range namespace.TypeParameters() {

@@ -693,7 +693,7 @@ func typeToCode(typ types.Type, init bool) string {
 		buff := new(strings.Builder)
 		fmt.Fprintf(
 			buff,
-			"NewGeneric(%s, NewTypeArguments(map[value.Symbol]*TypeArgument{",
+			"NewGeneric(%s, NewTypeArguments(TypeArgumentMap{",
 			namespaceToCode(t.Namespace),
 		)
 		for name, arg := range t.TypeArguments.AllArguments() {

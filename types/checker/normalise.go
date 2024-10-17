@@ -6,11 +6,10 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
-func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap map[value.Symbol]*types.TypeArgument, errSpan *position.Span) types.Type {
+func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap types.TypeArgumentMap, errSpan *position.Span) types.Type {
 	switch p := paramType.(type) {
 	case types.Self:
 		arg := typeArgMap[symbol.L_self]
@@ -114,7 +113,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return p
 		}
 
-		newArgMap := make(map[value.Symbol]*types.TypeArgument, len(p.ArgumentMap))
+		newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
 		for _, argName := range p.ArgumentOrder {
 			pArg := p.ArgumentMap[argName]
 			gArg := g.ArgumentMap[argName]
@@ -522,7 +521,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
-		newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+		newMap := make(types.TypeArgumentMap, len(t.ArgumentMap))
 		var isDifferent bool
 		for key, arg := range t.AllArguments() {
 			result := c.replaceTypeParametersOfGeneric(arg.Type, generic)
@@ -596,11 +595,11 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 	}
 }
 
-func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
 	return c.normaliseType(c._replaceTypeParameters(typ, typeArgMap))
 }
 
-func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Symbol]*types.TypeArgument) types.Type {
+func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
 	switch t := typ.(type) {
 	case types.Self:
 		arg := typeArgMap[symbol.L_self]
@@ -713,8 +712,8 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap map[value.Sy
 	}
 }
 
-func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap map[value.Symbol]*types.TypeArgument) *types.Generic {
-	newMap := make(map[value.Symbol]*types.TypeArgument, len(t.ArgumentMap))
+func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap types.TypeArgumentMap) *types.Generic {
+	newMap := make(types.TypeArgumentMap, len(t.ArgumentMap))
 	var isDifferent bool
 	for key, arg := range t.AllArguments() {
 		result := c._replaceTypeParameters(arg.Type, typeArgMap)

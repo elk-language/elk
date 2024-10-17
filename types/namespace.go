@@ -59,7 +59,7 @@ type Namespace interface {
 }
 
 func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
-	typeArgMap := make(map[value.Symbol]*TypeArgument, len(typeParams))
+	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]value.Symbol, len(typeParams))
 
 	for i, typeParam := range typeParams {
@@ -80,7 +80,7 @@ func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParame
 }
 
 func ConstructTypeArgumentsFromTypeParameterUpperBoundsAndVariance(typeParams []*TypeParameter, variance Variance) *TypeArguments {
-	typeArgMap := make(map[value.Symbol]*TypeArgument, len(typeParams))
+	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]value.Symbol, len(typeParams))
 
 	for i, typeParam := range typeParams {

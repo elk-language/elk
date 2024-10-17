@@ -168,7 +168,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 // Create a deep copy of the method
 func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
 	if method.IsGeneric() {
-		newTypeParamTransformMap := make(map[value.Symbol]*types.TypeArgument, len(method.TypeParameters))
+		newTypeParamTransformMap := make(types.TypeArgumentMap, len(method.TypeParameters))
 		newTypeParams := make([]*types.TypeParameter, len(method.TypeParameters))
 		for i, param := range method.TypeParameters {
 			newParam := param.Copy()
@@ -743,7 +743,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	span *position.Span,
 ) (
 	_posArgs []ast.ExpressionNode,
-	typeArgs map[value.Symbol]*types.TypeArgument,
+	typeArgs types.TypeArgumentMap,
 ) {
 	prevMode := c.mode
 	c.mode = inferTypeArgumentMode
@@ -756,7 +756,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
 
-	typeArgMap := make(map[value.Symbol]*types.TypeArgument)
+	typeArgMap := make(types.TypeArgumentMap)
 	var currentParamIndex int
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
 		posArg := positionalArguments[currentParamIndex]
@@ -1330,7 +1330,7 @@ func (c *Checker) checkMethodArguments(
 	}
 
 	if len(method.TypeParameters) > 0 {
-		var typeArgMap map[value.Symbol]*types.TypeArgument
+		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
 		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
@@ -1822,8 +1822,23 @@ func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, override
 	return areCompatible
 }
 
+func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
+	prevMode := c.mode
+	c.mode = methodCompatibilityInAlgebraicTypeMode
+
+	areCompatible := c.checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod, errSpan, typeArgs)
+
+	c.mode = prevMode
+
+	return areCompatible
+}
+
 // Checks whether two methods are compatible.
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+	return c.checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod, errSpan, nil)
+}
+
+func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -1831,7 +1846,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
+	if !c.isSubtypeWithTypeArgs(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan, typeArgs) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -1842,7 +1857,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		)
 		areCompatible = false
 	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
+	if !c.isSubtypeWithTypeArgs(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan, typeArgs) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -1869,7 +1884,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtypeWithTypeArgs(oldParam.Type, newParam.Type, errSpan, typeArgs) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -1910,18 +1925,6 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			errSpan,
 		)
 	}
-
-	return areCompatible
-}
-
-// Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method) bool {
-	prevMode := c.mode
-	c.mode = methodCompatibilityInAlgebraicTypeMode
-
-	areCompatible := c.checkMethodCompatibility(baseMethod, overrideMethod, nil)
-
-	c.mode = prevMode
 
 	return areCompatible
 }
@@ -2170,8 +2173,8 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 	return nil
 }
 
-func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) map[value.Symbol]*types.TypeArgument {
-	return map[value.Symbol]*types.TypeArgument{
+func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) types.TypeArgumentMap {
+	return types.TypeArgumentMap{
 		symbol.L_self: types.NewTypeArgument(
 			self,
 			types.INVARIANT,
@@ -2195,7 +2198,7 @@ func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type
 	return c.getMethodInNamespaceWithSelf(namespace, typ, name, namespace, errSpan, inParent, inSelf)
 }
 
-func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
+func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeArgs types.TypeArgumentMap) *types.Method {
 	var methodCopy *types.Method
 
 	for i, typeParam := range method.TypeParameters {
@@ -2245,7 +2248,7 @@ func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeAr
 	return method
 }
 
-func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs map[value.Symbol]*types.TypeArgument) *types.Method {
+func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs types.TypeArgumentMap) *types.Method {
 	for _, typeParam := range method.TypeParameters {
 		typeParam.LowerBound = c.replaceTypeParameters(typeParam.LowerBound, typeArgs)
 		typeParam.UpperBound = c.replaceTypeParameters(typeParam.UpperBound, typeArgs)
@@ -2260,7 +2263,7 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs m
 	return method
 }
 
-func (c *Checker) replaceTypeParametersInWhere(whereParams []*types.TypeParameter, whereArgs []types.Type, typeArgs map[value.Symbol]*types.TypeArgument) {
+func (c *Checker) replaceTypeParametersInWhere(whereParams []*types.TypeParameter, whereArgs []types.Type, typeArgs types.TypeArgumentMap) {
 	for i, whereArg := range whereArgs {
 		whereArgs[i] = c.replaceTypeParameters(whereArg, typeArgs)
 	}
