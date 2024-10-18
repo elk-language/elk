@@ -1823,22 +1823,12 @@ func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, override
 }
 
 func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
-	prevMode := c.mode
-	c.mode = methodCompatibilityInAlgebraicTypeMode
-
-	areCompatible := c.checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod, errSpan, typeArgs)
-
-	c.mode = prevMode
-
+	areCompatible := c.checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod, errSpan, typeArgs)
 	return areCompatible
 }
 
 // Checks whether two methods are compatible.
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
-	return c.checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod, errSpan, nil)
-}
-
-func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -1846,7 +1836,7 @@ func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMetho
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
 
-	if !c.isSubtypeWithTypeArgs(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan, typeArgs) {
+	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -1857,7 +1847,7 @@ func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMetho
 		)
 		areCompatible = false
 	}
-	if !c.isSubtypeWithTypeArgs(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan, typeArgs) {
+	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -1884,7 +1874,7 @@ func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMetho
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtypeWithTypeArgs(oldParam.Type, newParam.Type, errSpan, typeArgs) {
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -1927,6 +1917,58 @@ func (c *Checker) checkMethodCompatibilityWithTypeArgs(baseMethod, overrideMetho
 	}
 
 	return areCompatible
+}
+
+func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
+	if baseMethod == nil {
+		return true
+	}
+
+	returnType := c.inferTypeArguments(baseMethod.ReturnType, overrideMethod.ReturnType, typeArgs, errSpan)
+	if returnType == nil {
+		return false
+	}
+	if !c.isSubtype(returnType, baseMethod.ReturnType, errSpan) {
+		return false
+	}
+
+	throwType := c.inferTypeArguments(baseMethod.ThrowType, overrideMethod.ThrowType, typeArgs, errSpan)
+	if throwType == nil {
+		return false
+	}
+	if !c.isSubtype(throwType, baseMethod.ThrowType, errSpan) {
+		return false
+	}
+
+	if len(baseMethod.Params) > len(overrideMethod.Params) {
+		return false
+	} else {
+		for i := range len(baseMethod.Params) {
+			oldParam := baseMethod.Params[i]
+			newParam := overrideMethod.Params[i]
+
+			newParamType := c.inferTypeArguments(oldParam.Type, newParam.Type, typeArgs, errSpan)
+			if newParamType == nil {
+				return false
+			}
+			if !c.isSubtype(oldParam.Type, newParamType, errSpan) {
+				return false
+			}
+
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind {
+				return false
+			}
+		}
+
+		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
+			param := overrideMethod.Params[i]
+			if !param.IsOptional() {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {

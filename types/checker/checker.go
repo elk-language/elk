@@ -5695,13 +5695,8 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 						types.CreateTypeArgumentOrderFromTypeParams(typeParams),
 					),
 				)
-				if c.checkCanMatch(typ, newClassOrMixin, node.Span()) {
-					classOrMixin = newClassOrMixin
-					node.SetType(classOrMixin)
-				} else {
-					node.SetType(ofAny)
-					classOrMixin = ofAny
-				}
+				classOrMixin = newClassOrMixin
+				node.SetType(classOrMixin)
 			} else {
 				node.SetType(ofAny)
 				classOrMixin = ofAny
