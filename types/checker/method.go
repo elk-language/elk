@@ -1812,14 +1812,21 @@ func (c *Checker) setInputPositionTypeMode() {
 }
 
 func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+	if !overrideMethod.IsGeneric() {
+		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan)
+	}
+
 	prevMode := c.mode
 	c.mode = methodCompatibilityInAlgebraicTypeMode
 
-	areCompatible := c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan)
+	typeArgs := make(types.TypeArgumentMap)
+	if !c.checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod, errSpan, typeArgs) {
+		return false
+	}
 
 	c.mode = prevMode
 
-	return areCompatible
+	return typeArgs.HasAllTypeParams(overrideMethod.TypeParameters)
 }
 
 func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
@@ -1924,51 +1931,95 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 		return true
 	}
 
-	returnType := c.inferTypeArguments(baseMethod.ReturnType, overrideMethod.ReturnType, typeArgs, errSpan)
-	if returnType == nil {
-		return false
-	}
-	if !c.isSubtype(returnType, baseMethod.ReturnType, errSpan) {
-		return false
+	areCompatible := true
+	errDetailsBuff := new(strings.Builder)
+
+	returnType := c.inferTypeArguments(baseMethod.ReturnType, overrideMethod.ReturnType, typeArgs, nil)
+	if returnType == nil || !c.isSubtype(returnType, baseMethod.ReturnType, errSpan) {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			types.InspectWithColor(overrideMethod.ReturnType),
+			types.InspectWithColor(baseMethod.ReturnType),
+		)
+		areCompatible = false
 	}
 
-	throwType := c.inferTypeArguments(baseMethod.ThrowType, overrideMethod.ThrowType, typeArgs, errSpan)
-	if throwType == nil {
-		return false
-	}
-	if !c.isSubtype(throwType, baseMethod.ThrowType, errSpan) {
-		return false
+	throwType := c.inferTypeArguments(baseMethod.ThrowType, overrideMethod.ThrowType, typeArgs, nil)
+	if throwType == nil || !c.isSubtype(throwType, baseMethod.ThrowType, errSpan) {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			types.InspectWithColor(overrideMethod.ThrowType),
+			types.InspectWithColor(baseMethod.ThrowType),
+		)
+		areCompatible = false
 	}
 
 	if len(baseMethod.Params) > len(overrideMethod.Params) {
-		return false
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n  - method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
+			types.InspectWithColor(overrideMethod),
+			types.InspectWithColor(baseMethod),
+			len(overrideMethod.Params),
+			len(baseMethod.Params),
+		)
+		areCompatible = false
 	} else {
 		for i := range len(baseMethod.Params) {
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			newParamType := c.inferTypeArguments(oldParam.Type, newParam.Type, typeArgs, errSpan)
-			if newParamType == nil {
-				return false
-			}
-			if !c.isSubtype(oldParam.Type, newParamType, errSpan) {
-				return false
-			}
-
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind {
-				return false
+			newParamType := c.inferTypeArguments(oldParam.Type, newParam.Type, typeArgs, nil)
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind ||
+				newParamType == nil || !c.isSubtype(oldParam.Type, newParamType, errSpan) {
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					types.InspectWithColor(newParam),
+					types.InspectWithColor(oldParam),
+				)
+				areCompatible = false
 			}
 		}
 
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
 			param := overrideMethod.Params[i]
 			if !param.IsOptional() {
-				return false
+				fmt.Fprintf(
+					errDetailsBuff,
+					"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					param.Name,
+				)
+				areCompatible = false
 			}
 		}
 	}
 
-	return true
+	if !areCompatible {
+		c.addFailure(
+			fmt.Sprintf(
+				"method `%s` is incompatible with `%s`\n  is:        `%s`\n  should be: `%s`\n%s",
+				types.InspectWithColor(overrideMethod),
+				types.InspectWithColor(baseMethod),
+				overrideMethod.InspectSignatureWithColor(false),
+				baseMethod.InspectSignatureWithColor(false),
+				errDetailsBuff.String(),
+			),
+			errSpan,
+		)
+	}
+
+	return areCompatible
 }
 
 func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {
@@ -2448,7 +2499,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 					continue
 				}
 				methods = append(methods, elementMethod)
-				if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) {
+				if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) || baseMethod.IsGeneric() && !elementMethod.IsGeneric() {
 					baseMethod = elementMethod
 				}
 			}
@@ -2489,7 +2540,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 
 		var baseMethod *types.Method
 		var overrideMethod *types.Method
-		if len(nilMethod.Params) < len(nonNilMethod.Params) {
+		if len(nilMethod.Params) < len(nonNilMethod.Params) || nilMethod.IsGeneric() && !nonNilMethod.IsGeneric() {
 			baseMethod = nilMethod
 			overrideMethod = nonNilMethod
 		} else {
@@ -2511,7 +2562,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 				continue
 			}
 			methods = append(methods, elementMethod)
-			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) {
+			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) || baseMethod.IsGeneric() && !elementMethod.IsGeneric() {
 				baseMethod = elementMethod
 			}
 		}

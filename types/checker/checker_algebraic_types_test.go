@@ -307,6 +307,23 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 		},
+		"generic and non generic method with impossible type param": {
+			input: `
+			  class Foo
+					def baz[V](a: V, b: V); end
+				end
+
+				class Bar
+					def baz(a: String, b: Int); end
+				end
+
+				var a: Bar | Foo = Bar()
+				a.baz("lol", 1)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(151, 11, 5), P(165, 11, 19)), "method `Foo.:baz` is incompatible with `Bar.:baz`\n  is:        `def baz[V](a: V, b: V): void`\n  should be: `def baz(a: Std::String, b: Std::Int): void`\n\n  - method `Foo.:baz` has an incompatible parameter with `Bar.:baz`, has `b: V`, should have `b: Std::Int`"),
+			},
+		},
 		"generic and non generic method with compatible type param reversed": {
 			input: `
 			  class Foo
