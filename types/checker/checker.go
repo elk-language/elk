@@ -5397,182 +5397,219 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 
 	prevMode := c.mode
 	c.mode = variablePatternMode
-	c.checkPattern(node.Pattern, initType)
+	node.Pattern = c.checkPattern(node.Pattern, initType)
 	c.mode = prevMode
 	return node
 }
 
-func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) {
+func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) ast.PatternNode {
 	switch n := node.(type) {
 	case *ast.AsPatternNode:
-		c.checkPattern(n.Pattern, typ)
-		patternType := c.typeOf(n.Pattern)
-
-		switch name := n.Name.(type) {
-		case *ast.PublicIdentifierNode:
-			node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
-		case *ast.PrivateIdentifierNode:
-			node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
-		default:
-			panic(fmt.Sprintf("invalid identifier node in pattern: %T", n.Name))
-		}
+		return c.checkAsPatternNode(n, typ)
 	case *ast.PublicIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
+		return node
 	case *ast.PrivateIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
+		return node
 	case *ast.IntLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Int64LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Int32LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Int16LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Int8LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.UInt64LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.UInt32LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.UInt16LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.UInt8LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.FloatLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Float64LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.Float32LiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.BigFloatLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.SimpleSymbolLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.InterpolatedSymbolLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.InterpolatedRegexLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.UninterpolatedRegexLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.DoubleQuotedStringLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.RawStringLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.InterpolatedStringLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.CharLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.RawCharLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.NilLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.TrueLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.FalseLiteralNode:
-		c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, typ)
 	case *ast.BinArrayListLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexArrayListLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolArrayListLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordArrayListLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.BinArrayTupleLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexArrayTupleLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolArrayTupleLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordArrayTupleLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.BinHashSetLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.HexHashSetLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
 			typ,
 			n.Span(),
 		)
 	case *ast.SymbolHashSetLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Symbol)),
 			typ,
 			n.Span(),
 		)
 	case *ast.WordHashSetLiteralNode:
-		c.checkSpecialCollectionLiteralPattern(
+		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.String)),
 			typ,
 			n.Span(),
 		)
 	case *ast.RangeLiteralNode:
-		c.checkRangePattern(n, typ)
+		return c.checkRangePattern(n, typ)
 	case *ast.MapPatternNode:
-		c.checkMapPattern(n, typ)
+		return c.checkMapPattern(n, typ)
 	case *ast.RecordPatternNode:
-		c.checkRecordPattern(n, typ)
+		return c.checkRecordPattern(n, typ)
 	case *ast.RestPatternNode:
-		c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
+		return c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
 	case *ast.ListPatternNode:
-		c.checkListPattern(n, typ)
+		return c.checkListPattern(n, typ)
 	case *ast.TuplePatternNode:
-		c.checkTuplePattern(n, typ)
+		return c.checkTuplePattern(n, typ)
 	case *ast.SetPatternNode:
-		c.checkSetPattern(n, typ)
+		return c.checkSetPattern(n, typ)
 	case *ast.ObjectPatternNode:
-		c.checkObjectPattern(n, typ)
+		return c.checkObjectPattern(n, typ)
+	case *ast.PublicConstantNode:
+		return c.checkPublicConstantPattern(n, typ)
+	case *ast.PrivateConstantNode:
+		return c.checkPrivateConstantPattern(n, typ)
+	case *ast.ConstantLookupNode:
+		return c.checkConstantLookupPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
+}
+
+func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) ast.PatternNode {
+	node.Pattern = c.checkPattern(node.Pattern, typ)
+	patternType := c.typeOf(node.Pattern)
+
+	switch name := node.Name.(type) {
+	case *ast.PublicIdentifierNode:
+		node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
+	case *ast.PrivateIdentifierNode:
+		node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Span()))
+	default:
+		panic(fmt.Sprintf("invalid identifier node in pattern: %T", node.Name))
+	}
+	return node
+}
+
+func (c *Checker) checkConstantLookupPattern(node *ast.ConstantLookupNode, typ types.Type) ast.PatternNode {
+	n := c.checkConstantLookupNode(node)
+	constType := c.typeOfGuardVoid(n)
+
+	c.checkCanMatch(typ, constType, node.Span())
+	return n
+}
+
+func (c *Checker) checkPrivateConstantPattern(node *ast.PrivateConstantNode, typ types.Type) *ast.PrivateConstantNode {
+	node = c.checkPrivateConstantNode(node)
+	constType := c.typeOfGuardVoid(node)
+
+	c.checkCanMatch(typ, constType, node.Span())
+	return node
+}
+
+func (c *Checker) checkPublicConstantPattern(node *ast.PublicConstantNode, typ types.Type) *ast.PublicConstantNode {
+	node = c.checkPublicConstantNode(node)
+	constType := c.typeOfGuardVoid(node)
+
+	c.checkCanMatch(typ, constType, node.Span())
+	return node
 }
 
 func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetParent types.Namespace) *types.Generic {
@@ -5652,7 +5689,7 @@ func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny 
 	return extractedNamespace, typeArgs
 }
 
-func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) {
+func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) *ast.ObjectPatternNode {
 	constType, fullName := c.resolveConstantType(node.ObjectType)
 	if constType == nil {
 		constType = types.Untyped{}
@@ -5677,7 +5714,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 			),
 			node.Span(),
 		)
-		return
+		return node
 	}
 
 	var ofAny *types.Generic
@@ -5731,6 +5768,8 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
 		}
 	}
+
+	return node
 }
 
 func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) types.Type {
@@ -5797,7 +5836,7 @@ func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordO
 	return extractedRecord, keyType, valueType
 }
 
-func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
+func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) *ast.MapPatternNode {
 	mapMixin := c.Std(symbol.Map).(*types.Mixin)
 	mapOfAny := types.NewGenericWithVariance(mapMixin, types.COVARIANT, types.Any{}, types.Any{})
 
@@ -5836,9 +5875,10 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) {
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
 		}
 	}
+	return node
 }
 
-func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) {
+func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) *ast.RecordPatternNode {
 	recordMixin := c.Std(symbol.Record).(*types.Mixin)
 	recordOfAny := types.NewGenericWithVariance(recordMixin, types.COVARIANT, types.Any{}, types.Any{})
 
@@ -5877,9 +5917,11 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			panic(fmt.Sprintf("invalid record pattern element: %T", element))
 		}
 	}
+
+	return node
 }
 
-func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) {
+func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) *ast.RangeLiteralNode {
 	var startType, endType types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
@@ -5921,16 +5963,19 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 
 	c.checkCanMatch(typ, startType, node.Span())
 	node.SetType(startType)
+	return node
 }
 
-func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.Node, patternType, typ types.Type, span *position.Span) {
+func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.PatternExpressionNode, patternType, typ types.Type, span *position.Span) ast.PatternNode {
 	c.checkCanMatch(typ, patternType, span)
 	node.SetType(patternType)
+	return node
 }
 
-func (c *Checker) checkSimpleLiteralPattern(node ast.ExpressionNode, typ types.Type) {
-	node = c.checkExpression(node)
-	c.checkCanMatch(typ, c.typeOf(node), node.Span())
+func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ types.Type) ast.PatternNode {
+	n := c.checkExpression(node)
+	c.checkCanMatch(typ, c.typeOf(n), n.Span())
+	return node
 }
 
 func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.Type, span *position.Span) {
@@ -5962,7 +6007,7 @@ func (c *Checker) checkCanMatchWithTypeArgs(assignedType types.Type, targetType 
 	return true
 }
 
-func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) {
+func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) *ast.TuplePatternNode {
 	tupleMixin := c.Std(symbol.Tuple).(*types.Mixin)
 	tupleOfAny := types.NewGenericWithTypeArgs(tupleMixin, types.Any{})
 
@@ -5980,6 +6025,7 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)
 	}
+	return node
 }
 
 func (c *Checker) _extractCollectionElement(extractedCollection types.Type, collectionMixin *types.Mixin, collectionOfAny *types.Generic) types.Type {
@@ -6010,7 +6056,7 @@ func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin,
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
-func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
+func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) *ast.SetPatternNode {
 	setMixin := c.Std(symbol.Set).(*types.Mixin)
 	setOfAny := types.NewGenericWithVariance(setMixin, types.BIVARIANT, types.Any{})
 
@@ -6028,9 +6074,11 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) {
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)
 	}
+
+	return node
 }
 
-func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
+func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) *ast.ListPatternNode {
 	listMixin := c.Std(symbol.List).(*types.Mixin)
 	listOfAny := types.NewGenericWithVariance(listMixin, types.COVARIANT, types.Any{})
 
@@ -6049,6 +6097,7 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) {
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)
 	}
+	return node
 }
 
 func (c *Checker) checkIdentifierPattern(name string, valueType, patternType types.Type, span *position.Span) types.Type {

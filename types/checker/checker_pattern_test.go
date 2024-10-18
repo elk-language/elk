@@ -1998,3 +1998,139 @@ func TestObjectPattern(t *testing.T) {
 		})
 	}
 }
+
+func TestConstantPattern(t *testing.T) {
+	tests := testTable{
+		"public constant - type without value": {
+			input: `
+				typedef Foo = 2
+				var Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(29, 3, 9), P(31, 3, 11)), "`Foo` cannot be used as a value in expressions"),
+			},
+		},
+		"public constant - nonexistent constant": {
+			input: `
+				var Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
+			},
+		},
+		"public constant - invalid literal value": {
+			input: `
+				const Foo = 3
+				var Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 9), P(29, 3, 11)), "type `8` cannot ever match type `3`"),
+			},
+		},
+		"public constant - valid literal value": {
+			input: `
+				const Foo = 3
+				var Foo as a = 3
+				var b: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 4, 18), P(57, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
+
+		"private constant - type without value": {
+			input: `
+				typedef _Foo = 2
+				var _Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 9), P(33, 3, 12)), "`_Foo` cannot be used as a value in expressions"),
+			},
+		},
+		"private constant - nonexistent constant": {
+			input: `
+				var _Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "undefined constant `_Foo`"),
+			},
+		},
+		"private constant - invalid literal value": {
+			input: `
+				const _Foo = 3
+				var _Foo as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 3, 9), P(31, 3, 12)), "type `8` cannot ever match type `3`"),
+			},
+		},
+		"private constant - valid literal value": {
+			input: `
+				const _Foo = 3
+				var _Foo as a = 3
+				var b: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 18), P(59, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
+
+		"constant lookup - type without value": {
+			input: `
+				module Foo
+					typedef Bar = 2
+				end
+				var Foo::Bar as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 5, 14), P(60, 5, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
+			},
+		},
+		"constant lookup - nonexistent module": {
+			input: `
+				var Foo::Bar as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
+			},
+		},
+		"constant lookup - nonexistent constant": {
+			input: `
+				module Foo; end
+				var Foo::Bar as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 14), P(36, 3, 16)), "undefined constant `Foo::Bar`"),
+			},
+		},
+		"constant lookup - invalid literal value": {
+			input: `
+				module Foo
+					const Bar = 3
+				end
+				var Foo::Bar as a = 8
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(51, 5, 9), P(58, 5, 16)), "type `8` cannot ever match type `3`"),
+			},
+		},
+		"constant lookup - valid literal value": {
+			input: `
+				module Foo
+					const Bar = 3
+				end
+				var Foo::Bar as a = 3
+				var b: nil = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 6, 18), P(86, 6, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
