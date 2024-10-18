@@ -1911,6 +1911,85 @@ func TestObjectPattern(t *testing.T) {
 				error.NewFailure(L("<main>", P(258, 17, 16), P(258, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
+
+		"key value - invalid value": {
+			input: `
+				var String(length: l) = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(25, 2, 25)), "type `3` cannot ever match type `Std::String`"),
+			},
+		},
+		"key value - nonexistent method": {
+			input: `
+				var String(lol: l) = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(21, 2, 21)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"key value - valid getter": {
+			input: `
+				var String(length: l) as s = "foo"
+				var a: 9 = l
+				var b: 7 = s
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(55, 3, 16), P(55, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"key value - invalid value pattern": {
+			input: `
+				var String(length: "lol") as s = "foo"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `Std::Int` cannot ever match type `\"lol\"`"),
+			},
+		},
+		"key value - valid getter and wider type": {
+			input: `
+				var a: Int | String | nil = nil
+				var String(length: l) as s = a
+				var b: 9 = l
+				var c: 7 = s
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(87, 4, 16), P(87, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(104, 5, 16), P(104, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"key value - method with required arguments": {
+			input: `
+				class Foo
+					def bar(a: Int): Int then a
+				end
+
+				var Foo(bar: b) as f = Foo()
+				var a: 9 = b
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 6, 13), P(74, 6, 18)), "argument `a` is missing in call to `bar`"),
+				error.NewFailure(L("<main>", P(105, 7, 16), P(105, 7, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"key value - void method": {
+			input: `
+				class Foo
+					def bar; end
+				end
+
+				var Foo(bar: b) as f = Foo()
+				var a: 9 = b
+				var c: 7 = f
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 6, 13), P(59, 6, 18)), "cannot use type `void` as a value in this context"),
+				error.NewFailure(L("<main>", P(107, 8, 16), P(107, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

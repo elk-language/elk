@@ -5719,6 +5719,8 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 	for _, attribute := range node.Attributes {
 		switch attr := attribute.(type) {
 		case *ast.SymbolKeyValuePatternNode:
+			typ := c.checkObjectKeyValuePattern(classOrMixin, attr)
+			attr.SetType(typ)
 		case *ast.PublicIdentifierNode:
 			typ := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
 			attr.SetType(typ)
@@ -5729,6 +5731,23 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
 		}
 	}
+}
+
+func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) types.Type {
+	getter := c.getMethod(namespace, value.ToSymbol(node.Key), node.Span())
+	if getter == nil {
+		c.checkPattern(node.Value, types.Untyped{})
+		return types.Untyped{}
+	}
+	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, node.Span())
+	if getter == nil {
+		c.checkPattern(node.Value, types.Untyped{})
+		return types.Untyped{}
+	}
+	returnType := c.typeGuardVoid(getter.ReturnType, node.Span())
+
+	c.checkPattern(node.Value, returnType)
+	return returnType
 }
 
 func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) types.Type {
