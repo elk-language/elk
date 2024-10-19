@@ -215,14 +215,14 @@ func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assume assumption
 		c.narrowIsA(node.Left, node.Right, assume)
 	case token.REVERSE_ISA_OP:
 		c.narrowIsA(node.Right, node.Left, assume)
-	case token.STRICT_EQUAL:
-		c.narrowStrictEqual(node, assume)
-	case token.STRICT_NOT_EQUAL:
-		c.narrowStrictEqual(node, assume.negate())
+	case token.STRICT_EQUAL, token.EQUAL_EQUAL:
+		c.narrowEqual(node, assume)
+	case token.STRICT_NOT_EQUAL, token.NOT_EQUAL:
+		c.narrowEqual(node, assume.negate())
 	}
 }
 
-func (c *Checker) narrowStrictEqual(node *ast.BinaryExpressionNode, assume assumption) {
+func (c *Checker) narrowEqual(node *ast.BinaryExpressionNode, assume assumption) {
 	switch assume {
 	case assumptionTruthy:
 		c.narrowToIntersectWith(node.Left, c.typeOf(node.Right))

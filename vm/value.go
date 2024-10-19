@@ -99,7 +99,14 @@ func init() {
 		"hash",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return Hash(vm, self)
+			result, err := value.Hash(self)
+			if err == value.NotBuiltinError {
+				return ObjectHash(self), nil
+			}
+			if err == nil {
+				return result, nil
+			}
+			return nil, err
 		},
 	)
 

@@ -2883,6 +2883,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Compares this value with another value.\n\nReturns `true` when they are instances of the same class,\nand are equal.", false, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Compares this value with another value.\nReturns `true` when they are equal.\n\nInstances of different (but similar) classes\nmay be treated as equal.", false, false, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Returns the class of the value.", false, false, true, value.ToSymbol("class"), nil, nil, NewSingletonOf(Self{}), Never{})
+				namespace.DefineMethod("Returns a shallow copy of the value.", false, false, true, value.ToSymbol("copy"), nil, nil, Self{}, Never{})
+				namespace.DefineMethod("Returns a hash of the value,\n  that is used to calculate the slot\n  in a HashMap, HashRecord or HashSet\n  where the value will be stored.", false, false, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
 				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
