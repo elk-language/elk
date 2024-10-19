@@ -218,7 +218,7 @@ func init() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.At(i)
-				result, err := vm.CallMethod(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(callSymbol, callable, element)
 				if err != nil {
 					return nil, err
 				}
@@ -253,7 +253,7 @@ func init() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.At(i)
-				result, err := vm.CallMethod(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(callSymbol, callable, element)
 				if err != nil {
 					return nil, err
 				}
@@ -289,7 +289,7 @@ func init() {
 
 func ArrayListContains(vm *VM, list *value.ArrayList, val value.Value) (bool, value.Value) {
 	for _, element := range *list {
-		equal, err := vm.CallMethod(symbol.OpEqual, element, val)
+		equal, err := vm.CallMethodByName(symbol.OpEqual, element, val)
 		if err != nil {
 			return false, err
 		}
@@ -307,7 +307,7 @@ func ArrayListEqual(vm *VM, x, y *value.ArrayList) (bool, value.Value) {
 	}
 
 	for i := 0; i < xLen; i++ {
-		equal, err := vm.CallMethod(symbol.OpEqual, (*x)[i], (*y)[i])
+		equal, err := vm.CallMethodByName(symbol.OpEqual, (*x)[i], (*y)[i])
 		if err != nil {
 			return false, err
 		}

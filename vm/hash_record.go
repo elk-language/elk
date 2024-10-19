@@ -201,7 +201,7 @@ func init() {
 				if pair.Key == nil {
 					continue
 				}
-				result, err := vm.CallMethod(callSymbol, callable, &self.Table[i])
+				result, err := vm.CallMethodByName(callSymbol, callable, &self.Table[i])
 				if err != nil {
 					return nil, err
 				}
@@ -250,7 +250,7 @@ func init() {
 				if pair.Key == nil {
 					continue
 				}
-				result, err := vm.CallMethod(callSymbol, callable, pair.Value)
+				result, err := vm.CallMethodByName(callSymbol, callable, pair.Value)
 				if err != nil {
 					return nil, err
 				}

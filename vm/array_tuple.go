@@ -141,7 +141,7 @@ func init() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.At(i)
-				result, err := vm.CallMethod(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(callSymbol, callable, element)
 				if err != nil {
 					return nil, err
 				}

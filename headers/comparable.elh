@@ -3,8 +3,6 @@
 	using relational operators like `>`, `>=`, `<`, `<=`, `<=>`
 ]##
 interface ::Std::Comparable[T]
-	implement Equatable
-
 	##[
 		Returns:
 

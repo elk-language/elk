@@ -2759,32 +2759,13 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		c.checkIsA(node, true)
 	case token.STRICT_EQUAL, token.STRICT_NOT_EQUAL:
 		c.checkStrictEqual(node)
-	case token.LAX_NOT_EQUAL:
-		_, _, typ := c.checkSimpleMethodCall(
-			node.Left,
-			token.DOT,
-			symbol.OpLaxEqual,
-			nil,
-			[]ast.ExpressionNode{node.Right},
-			nil,
-			node.Span(),
-		)
-		node.SetType(typ)
-	case token.NOT_EQUAL:
-		_, _, typ := c.checkSimpleMethodCall(
-			node.Left,
-			token.DOT,
-			symbol.OpEqual,
-			nil,
-			[]ast.ExpressionNode{node.Right},
-			nil,
-			node.Span(),
-		)
-		node.SetType(typ)
+	case token.LAX_EQUAL, token.LAX_NOT_EQUAL:
+		c.checkLaxEqual(node)
+	case token.EQUAL_EQUAL, token.NOT_EQUAL:
+		c.checkEqual(node)
 	case token.LBITSHIFT, token.LTRIPLE_BITSHIFT,
 		token.RBITSHIFT, token.RTRIPLE_BITSHIFT, token.AND,
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
-		token.LAX_EQUAL, token.EQUAL_EQUAL,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
 		_, _, typ := c.checkSimpleMethodCall(
@@ -2869,6 +2850,34 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 		)
 		return
 	}
+}
+
+func (c *Checker) checkEqual(node *ast.BinaryExpressionNode) {
+	node.SetType(c.StdBool())
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.typeOfGuardVoid(node.Left)
+	rightType := c.typeOfGuardVoid(node.Right)
+
+	if !c.typesIntersect(leftType, rightType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"this equality check is impossible, `%s` cannot ever be equal to `%s`",
+				types.InspectWithColor(leftType),
+				types.InspectWithColor(rightType),
+			),
+			node.Left.Span(),
+		)
+		return
+	}
+}
+
+func (c *Checker) checkLaxEqual(node *ast.BinaryExpressionNode) {
+	node.SetType(c.StdBool())
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	c.typeOfGuardVoid(node.Left)
+	c.typeOfGuardVoid(node.Right)
 }
 
 func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) {
@@ -5568,9 +5577,59 @@ func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) ast.Pattern
 		return c.checkPrivateConstantPattern(n, typ)
 	case *ast.ConstantLookupNode:
 		return c.checkConstantLookupPattern(n, typ)
+	case *ast.UnaryExpressionNode:
+		return c.checkUnaryPattern(n, typ)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
+}
+
+func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, typ types.Type) *ast.UnaryExpressionNode {
+	// switch node.Op.Type {
+	// case token.EQUAL_EQUAL:
+	// 	c.checkExpression(node.Right)
+	// case token.NOT_EQUAL:
+	// 	c.literalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpNotEqual, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.STRICT_EQUAL:
+	// 	c.literalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpStrictEqual, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.STRICT_NOT_EQUAL:
+	// 	c.literalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpStrictNotEqual, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.LESS:
+	// 	c.relationalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpLessThan, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.LESS_EQUAL:
+	// 	c.relationalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpLessThanEqual, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.GREATER:
+	// 	c.relationalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpGreaterThan, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// case token.GREATER_EQUAL:
+	// 	c.relationalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1, nil),
+	// 		pat.Right,
+	// 	)
+	// default:
+	// 	c.literalPattern(
+	// 		value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
+	// 		pat,
+	// 	)
+	// }
+	return node
 }
 
 func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) ast.PatternNode {

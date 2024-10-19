@@ -208,7 +208,7 @@ func init() {
 				if val == nil || val == value.Undefined {
 					continue
 				}
-				result, err := vm.CallMethod(callSymbol, callable, val)
+				result, err := vm.CallMethodByName(callSymbol, callable, val)
 				if err != nil {
 					return nil, err
 				}

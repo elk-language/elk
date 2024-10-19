@@ -69,6 +69,7 @@ var (
 	L_self     = value.ToSymbol("self")
 	L_contains = value.ToSymbol("contains")
 	L_length   = value.ToSymbol("length")
+	L_hash     = value.ToSymbol("hash")
 )
 
 // special symbols
@@ -112,6 +113,15 @@ var (
 	OpDivide               = value.ToSymbol("/")   // `/`
 	OpExponentiate         = value.ToSymbol("**")  // `**`
 )
+
+func IsLaxEqualityOperator(methodName value.Symbol) bool {
+	switch methodName {
+	case OpLaxEqual, OpLaxNotEqual:
+		return true
+	default:
+		return false
+	}
+}
 
 func IsEqualityOperator(methodName value.Symbol) bool {
 	switch methodName {

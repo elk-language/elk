@@ -598,7 +598,7 @@ func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.
 	if !types.IsAny(param.Type) {
 		c.addFailure(
 			fmt.Sprintf(
-				"parameter `%s` of equality operator `%s` must accept `%s` as a type",
+				"parameter `%s` of equality operator `%s` must be of type `%s`",
 				lexer.Colorize(param.Name.String()),
 				lexer.Colorize(name.String()),
 				lexer.Colorize("any"),

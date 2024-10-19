@@ -77,13 +77,13 @@ func TestHashMapContainsValue(t *testing.T) {
 			v := vm.New()
 			contains, err := vm.HashMapContainsValue(v, tc.h, tc.val)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if err != nil {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -153,13 +153,13 @@ func TestHashMapEqual(t *testing.T) {
 			v := vm.New()
 			equal, err := vm.HashMapEqual(v, tc.x, tc.y)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if err != nil {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -203,17 +203,16 @@ func TestNewHashMapWithElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 				{Key: value.NewError(value.ArgumentErrorClass, "foo bar"), Value: value.String("bar")},
 			}
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
-			)
 
 			hmap, err := vm.NewHashMapWithElements(vm.New(), elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
 			}
-			if hmap != nil {
-				t.Fatalf("result should be nil, got: %#v", hmap)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Capacity())
 			}
 		},
 		"with VM with complex types that implements hash": func(t *testing.T) {
@@ -255,7 +254,7 @@ func TestNewHashMapWithElements(t *testing.T) {
 
 			hmap, err := vm.NewHashMapWithElements(vm.New(), elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if hmap != nil {
 				t.Fatalf("result should be nil, got: %#v", hmap)
@@ -323,17 +322,16 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 				{Key: value.NewError(value.ArgumentErrorClass, "foo bar"), Value: value.String("bar")},
 			}
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
-			)
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 2, elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
 			}
-			if hmap != nil {
-				t.Fatalf("result should be nil, got: %#v", hmap)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Length())
 			}
 		},
 		"with VM with complex types that implement hash and capacity equal to length": func(t *testing.T) {
@@ -397,7 +395,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 2, elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if hmap != nil {
 				t.Fatalf("result should be nil, got: %#v", hmap)
@@ -731,17 +729,13 @@ func TestHashMapContains(t *testing.T) {
 					Value: value.True,
 				},
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.NewError(value.ArgumentErrorClass, "foo"), Value: value.Int64(3)})
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
@@ -1146,17 +1140,13 @@ func TestHashMapContainsKey(t *testing.T) {
 					Value: value.True,
 				},
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
@@ -1527,17 +1517,13 @@ func TestHashMapGet(t *testing.T) {
 					Value: value.True,
 				},
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashMapGet(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"))
 			if result != nil {
 				t.Fatalf("result should be nil, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
@@ -1630,7 +1616,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with primitives and set capacity to the same value": func(t *testing.T) {
@@ -1652,7 +1638,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with primitives and expand capacity": func(t *testing.T) {
@@ -1674,7 +1660,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with complex types": func(t *testing.T) {
@@ -1692,22 +1678,28 @@ func TestHashMapSetCapacity(t *testing.T) {
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
+			key := value.NewError(value.ArgumentErrorClass, "foo bar")
 			hmap := &value.HashMap{
 				Table: []value.Pair{
 					{Key: value.SmallInt(5), Value: value.String("foo")},
-					{Key: value.NewError(value.ArgumentErrorClass, "foo bar"), Value: value.String("bar")},
+					{Key: key, Value: value.String("bar")},
 				},
 				OccupiedSlots: 2,
 			}
-
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
+			v := vm.New()
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				25,
+				value.Pair{Key: key, Value: value.String("bar")},
+				value.Pair{Key: value.SmallInt(5), Value: value.String("foo")},
 			)
 
 			err := vm.HashMapSetCapacity(vm.New(), hmap, 25)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
+			}
+			if !cmp.Equal(expected, hmap, comparer.Options()) {
+				t.Fatalf("expected: %s, hmap: %s\n", expected.Inspect(), hmap.Inspect())
 			}
 		},
 		"with VM with complex types that implement hash": func(t *testing.T) {
@@ -1778,7 +1770,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set existing key in full hashmap": func(t *testing.T) {
@@ -1812,7 +1804,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set existing key in hashmap with left capacity": func(t *testing.T) {
@@ -1846,7 +1838,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key in full hashmap": func(t *testing.T) {
@@ -1884,7 +1876,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key in hashmap with left capacity": func(t *testing.T) {
@@ -1922,7 +1914,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key that is a complex type": func(t *testing.T) {
@@ -1960,7 +1952,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key in full hashmap": func(t *testing.T) {
@@ -1994,7 +1986,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key in hashmap with left capacity": func(t *testing.T) {
@@ -2028,7 +2020,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key in full hashmap": func(t *testing.T) {
@@ -2066,7 +2058,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key in hashmap with left capacity": func(t *testing.T) {
@@ -2104,7 +2096,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key that does not implement hash": func(t *testing.T) {
@@ -2120,14 +2112,32 @@ func TestHashMapSet(t *testing.T) {
 					Value: value.True,
 				},
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+
+			v := vm.New()
+			key := value.NewError(value.ArgumentErrorClass, "foo")
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   key,
+					Value: value.True,
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
 			)
 
-			err := vm.HashMapSet(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"), value.True)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			err := vm.HashMapSet(vm.New(), hmap, key, value.True)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key that implements necessary methods": func(t *testing.T) {
@@ -2182,7 +2192,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key that implements necessary methods": func(t *testing.T) {
@@ -2233,7 +2243,7 @@ func TestHashMapSet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 	}
@@ -2257,7 +2267,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key from full hashmap": func(t *testing.T) {
@@ -2290,7 +2300,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key from hashmap with left capacity": func(t *testing.T) {
@@ -2323,7 +2333,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete missing key from full hashmap": func(t *testing.T) {
@@ -2360,7 +2370,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete missing key from hashmap with left capacity": func(t *testing.T) {
@@ -2397,7 +2407,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key that is a complex type": func(t *testing.T) {
@@ -2434,7 +2444,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be value.Nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm deletes from empty hashmap": func(t *testing.T) {
@@ -2484,7 +2494,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete missing key from hashmap with left capacity": func(t *testing.T) {
@@ -2522,7 +2532,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key from full hashmap": func(t *testing.T) {
@@ -2556,7 +2566,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key from hashmap with left capacity": func(t *testing.T) {
@@ -2590,7 +2600,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key that does not implement hash": func(t *testing.T) {
@@ -2619,20 +2629,16 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.True,
 				},
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashMapDelete(v, hmap, value.NewError(value.ArgumentErrorClass, "foo"))
 			if result != false {
-				t.Fatalf("result should be nil, got: %#v", result)
+				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete missing key that implements necessary methods": func(t *testing.T) {
@@ -2675,7 +2681,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key that implements necessary methods": func(t *testing.T) {
@@ -2721,7 +2727,7 @@ func TestHashMapDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 	}

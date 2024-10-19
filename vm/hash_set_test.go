@@ -60,13 +60,13 @@ func TestHashSetEqual(t *testing.T) {
 			v := vm.New()
 			equal, err := vm.HashSetEqual(v, tc.x, tc.y)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if err != nil {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -110,20 +110,19 @@ func TestNewHashSetWithElements(t *testing.T) {
 				value.SmallInt(5),
 				value.NewError(value.ArgumentErrorClass, "foo bar"),
 			}
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
-			)
 
 			set, err := vm.NewHashSetWithElements(vm.New(), elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
 			}
-			if set != nil {
-				t.Fatalf("result should be nil, got: %#v", set)
+			if set.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", set.Length())
+			}
+			if set.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", set.Capacity())
 			}
 		},
-		"with VM with complex types that implements hash": func(t *testing.T) {
+		"with VM with complex types that implement hash": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
 			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5), nil
@@ -162,7 +161,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 
 			set, err := vm.NewHashSetWithElements(vm.New(), elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if set != nil {
 				t.Fatalf("result should be nil, got: %#v", set)
@@ -230,17 +229,16 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.SmallInt(5),
 				value.NewError(value.ArgumentErrorClass, "foo bar"),
 			}
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
-			)
 
 			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
 			}
-			if set != nil {
-				t.Fatalf("result should be nil, got: %#v", set)
+			if set.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", set.Length())
+			}
+			if set.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", set.Length())
 			}
 		},
 		"with VM with complex types that implement hash and capacity equal to length": func(t *testing.T) {
@@ -304,7 +302,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 
 			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if set != nil {
 				t.Fatalf("result should be nil, got: %#v", set)
@@ -544,17 +542,13 @@ func TestHashSetContains(t *testing.T) {
 				value.String("foo"),
 				value.ToSymbol("foo"),
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashSetContains(vm.New(), set, value.NewError(value.ArgumentErrorClass, "foo"))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
@@ -635,7 +629,7 @@ func TestHashSetSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with primitives and set capacity to the same value": func(t *testing.T) {
@@ -657,7 +651,7 @@ func TestHashSetSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with primitives and expand capacity": func(t *testing.T) {
@@ -679,7 +673,7 @@ func TestHashSetSetCapacity(t *testing.T) {
 				t.Fatalf("error is not nil: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without VM with complex types": func(t *testing.T) {
@@ -697,22 +691,29 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
+			key := value.NewError(value.ArgumentErrorClass, "foo bar")
 			set := &value.HashSet{
 				Table: []value.Value{
 					value.SmallInt(5),
-					value.NewError(value.ArgumentErrorClass, "foo bar"),
+					key,
 				},
 				OccupiedSlots: 2,
 			}
 
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo bar\"}",
+			v := vm.New()
+			expected := vm.MustNewHashSetWithCapacityAndElements(
+				v,
+				25,
+				value.SmallInt(5),
+				key,
 			)
 
 			err := vm.HashSetSetCapacity(vm.New(), set, 25)
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error is not nil: %#v", err)
+			}
+			if !cmp.Equal(expected, set, comparer.Options()) {
+				t.Fatalf("expected: %s, set: %s\n", expected.Inspect(), set.Inspect())
 			}
 		},
 		"with VM with complex types that implement hash": func(t *testing.T) {
@@ -780,7 +781,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set existing key in full hashset": func(t *testing.T) {
@@ -802,7 +803,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set existing key in hashset with left capacity": func(t *testing.T) {
@@ -824,7 +825,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key in full hashset": func(t *testing.T) {
@@ -847,7 +848,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key in hashset with left capacity": func(t *testing.T) {
@@ -870,7 +871,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm set key that is a complex type": func(t *testing.T) {
@@ -899,7 +900,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key in full hashset": func(t *testing.T) {
@@ -921,7 +922,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key in hashset with left capacity": func(t *testing.T) {
@@ -943,7 +944,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key in full hashset": func(t *testing.T) {
@@ -966,7 +967,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key in hashset with left capacity": func(t *testing.T) {
@@ -989,7 +990,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key that does not implement hash": func(t *testing.T) {
@@ -999,14 +1000,23 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("foo"),
 				value.ToSymbol("foo"),
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+
+			key := value.NewError(value.ArgumentErrorClass, "foo")
+			v := vm.New()
+			expected := vm.MustNewHashSetWithCapacityAndElements(
+				v,
+				8,
+				key,
+				value.ToSymbol("foo"),
+				value.String("foo"),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.NewError(value.ArgumentErrorClass, "foo"))
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			err := vm.HashSetAppend(vm.New(), set, key)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
+				t.Fatal(diff)
 			}
 		},
 		"with vm set existing key that implements necessary methods": func(t *testing.T) {
@@ -1043,7 +1053,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm set key that implements necessary methods": func(t *testing.T) {
@@ -1079,7 +1089,7 @@ func TestHashSetAdd(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 	}
@@ -1103,7 +1113,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key from full hashset": func(t *testing.T) {
@@ -1127,7 +1137,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key from hashset with left capacity": func(t *testing.T) {
@@ -1151,7 +1161,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete missing key from full hashset": func(t *testing.T) {
@@ -1176,7 +1186,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete missing key from hashset with left capacity": func(t *testing.T) {
@@ -1201,7 +1211,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"without vm delete key that is a complex type": func(t *testing.T) {
@@ -1226,7 +1236,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be value.Nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm deletes from empty hashset": func(t *testing.T) {
@@ -1264,7 +1274,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete missing key from hashset with left capacity": func(t *testing.T) {
@@ -1290,7 +1300,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key from full hashset": func(t *testing.T) {
@@ -1315,7 +1325,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key from hashset with left capacity": func(t *testing.T) {
@@ -1340,7 +1350,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key that does not implement hash": func(t *testing.T) {
@@ -1357,20 +1367,16 @@ func TestHashSetDelete(t *testing.T) {
 				value.String("foo"),
 				value.ToSymbol("foo"),
 			)
-			wantErr := value.NewError(
-				value.NoMethodErrorClass,
-				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
-			)
 
 			result, err := vm.HashSetDelete(v, set, value.NewError(value.ArgumentErrorClass, "foo"))
 			if result != false {
-				t.Fatalf("result should be nil, got: %#v", result)
+				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete missing key that implements necessary methods": func(t *testing.T) {
@@ -1401,7 +1407,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 		"with vm delete key that implements necessary methods": func(t *testing.T) {
@@ -1438,7 +1444,7 @@ func TestHashSetDelete(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		},
 	}

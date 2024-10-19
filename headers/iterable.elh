@@ -219,9 +219,6 @@ interface ::Std::Iterable[+Element]
 	]##
 	sig to_collection[T > Element]: Collection[T]
 
-	sig ==(other: any): bool
-	sig =~(other: any): bool
-
 	##[
 		Provides default implementations of most iterable methods
 		for finite iterables.

@@ -31,4 +31,17 @@ primitive class ::Std::Value < nil
 		Returns the class of the value.
 	]##
 	def class: &self; end
+
+  ##[
+		Returns a shallow copy of the value.
+	]##
+  def copy: self; end
+
+  ##[
+		Returns a hash of the value,
+    that is used to calculate the slot
+    in a HashMap, HashRecord or HashSet
+    where the value will be stored.
+	]##
+  def hash: UInt64; end
 end

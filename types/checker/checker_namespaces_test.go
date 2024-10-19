@@ -297,7 +297,7 @@ func TestClass(t *testing.T) {
 				Foo() == 2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(39, 3, 14)), "method `==` is not defined on type `Foo`"),
+				error.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `2`"),
 			},
 		},
 		"class with nonexistent superclass": {

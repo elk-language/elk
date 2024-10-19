@@ -1153,8 +1153,12 @@ func LaxNotEqual(left, right Value) Value {
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
 func Equal(left, right Value) Value {
-	var result Value
+	class := left.Class()
+	if !IsA(right, class) {
+		return False
+	}
 
+	var result Value
 	switch l := left.(type) {
 	case SmallInt:
 		result = l.Equal(right)

@@ -14,7 +14,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -35,7 +35,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -56,7 +56,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -77,7 +77,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -98,7 +98,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -122,7 +122,7 @@ func init() {
 			if self.Class() != other.Class() {
 				return value.False, nil
 			}
-			result, err := vm.CallMethod(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if err != nil {
 				return nil, err
 			}

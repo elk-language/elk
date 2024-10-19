@@ -1,8 +1,11 @@
 package vm
 
 import (
+	"encoding/binary"
 	"fmt"
+	"reflect"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -16,7 +19,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(*value.ArrayList)
 			for _, val := range *values {
-				result, err := vm.CallMethod(toStringSymbol, val)
+				result, err := vm.CallMethodByName(toStringSymbol, val)
 				if err != nil {
 					return nil, err
 				}
@@ -34,7 +37,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(*value.ArrayList)
 			for _, val := range *values {
-				result, err := vm.CallMethod(toStringSymbol, val)
+				result, err := vm.CallMethodByName(toStringSymbol, val)
 				if err != nil {
 					return nil, err
 				}
@@ -91,10 +94,33 @@ func init() {
 			return self.Copy(), nil
 		},
 	)
+	Def(
+		c,
+		"hash",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			return Hash(vm, self)
+		},
+	)
 
 }
 
-var hashSymbol = value.ToSymbol("hash")
+func ObjectHash(val value.Value) value.UInt64 {
+	v := reflect.ValueOf(val)
+	if v.Kind() != reflect.Ptr {
+		if !v.CanAddr() {
+			return value.UInt64(0)
+		}
+
+		v = v.Addr()
+	}
+	ptr := v.Pointer()
+	b := make([]byte, 8)
+	d := xxhash.New()
+	binary.LittleEndian.PutUint64(b, uint64(ptr))
+	d.Write(b)
+	return value.UInt64(d.Sum64())
+}
 
 // Calculate the hash for the given value
 func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
@@ -104,7 +130,12 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 		if vm == nil {
 			return 0, value.Nil
 		}
-		dynamicResult, dynamicErr := vm.CallMethod(hashSymbol, key)
+		class := key.DirectClass()
+		method := class.LookupMethod(symbol.L_hash)
+		if method == nil {
+			return ObjectHash(key), nil
+		}
+		dynamicResult, dynamicErr := vm.CallMethod(method, key)
 		if dynamicErr != nil {
 			return 0, dynamicErr
 		}
@@ -134,7 +165,7 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(symbol.OpEqual, left, right)
+	result, err := vm.CallMethodByName(symbol.OpEqual, left, right)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +183,7 @@ func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(symbol.OpLaxEqual, left, right)
+	result, err := vm.CallMethodByName(symbol.OpLaxEqual, left, right)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +204,7 @@ func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(symbol.OpGreaterThan, left, right)
+	result, err2 := vm.CallMethodByName(symbol.OpGreaterThan, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -194,7 +225,7 @@ func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(symbol.OpGreaterThanEqual, left, right)
+	result, err2 := vm.CallMethodByName(symbol.OpGreaterThanEqual, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -215,7 +246,7 @@ func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(symbol.OpLessThan, left, right)
+	result, err2 := vm.CallMethodByName(symbol.OpLessThan, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -236,7 +267,7 @@ func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(symbol.OpLessThanEqual, left, right)
+	result, err2 := vm.CallMethodByName(symbol.OpLessThanEqual, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -254,7 +285,7 @@ func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(symbol.OpIncrement, val)
+	result, err := vm.CallMethodByName(symbol.OpIncrement, val)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +303,7 @@ func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(symbol.OpDecrement, val)
+	result, err := vm.CallMethodByName(symbol.OpDecrement, val)
 	if err != nil {
 		return nil, err
 	}

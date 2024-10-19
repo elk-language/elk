@@ -92,7 +92,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineInterface("Represents a value that can be compared\nfor value equality with the `==`, `!=`, `=~`, `!~` operators.", value.ToSymbol("Equatable"), env)
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
@@ -735,7 +734,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NameToType("Std::Equatable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Check if `self` is less than `other`", true, false, true, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Comparable::T", env), NormalParameterKind, false)}, Bool{}, Never{})
@@ -943,21 +941,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
-			}
-			{
-				namespace := namespace.MustSubtype("Equatable").(*Interface)
-
-				namespace.Name() // noop - avoid unused variable error
-
-				// Include mixins and implement interfaces
-
-				// Define methods
-				namespace.DefineMethod("Should return `true` when `other` is an instance\nof the same class and can be considered equal to `self`.", true, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Should return `true` when `other` can be considered equal to `self`,\neven if it is an instance of a different class.", true, false, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-
-				// Define constants
-
-				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("False").(*Class)
@@ -1759,8 +1742,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
-				namespace.DefineMethod("", true, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("", true, false, true, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Check whether the given `value` is present in this iterable.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::Element", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("E"), nil, NameToType("Std::Iterable::Element", env), NameToType("Std::Iterable::Element", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Returns the number of elements matching the given predicate.\n\nNever returns if the iterable is infinite.", true, false, true, value.ToSymbol("count"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})

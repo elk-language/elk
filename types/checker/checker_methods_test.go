@@ -1162,7 +1162,7 @@ func TestSpecialMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `==` must accept `any` as a type"),
+				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `==` must be of type `any`"),
 				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(a: Std::String): bool`\n  should be: `native def ==(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
 			},
 		},
@@ -1218,7 +1218,7 @@ func TestSpecialMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `=~` must accept `any` as a type"),
+				error.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `=~` must be of type `any`"),
 				error.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(a: Std::String): bool`\n  should be: `native def =~(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
 			},
 		},

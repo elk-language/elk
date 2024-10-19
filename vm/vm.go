@@ -200,7 +200,7 @@ func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	case *Closure:
 		return vm.CallClosure(f, args[1:]...)
 	default:
-		return vm.CallMethod(callSymbol, args...)
+		return vm.CallMethodByName(callSymbol, args...)
 	}
 }
 
@@ -239,13 +239,18 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
-func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
+func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
 		return nil, value.NewNoMethodError(string(name.ToString()), self)
 	}
+	return vm.CallMethod(method, args...)
+}
+
+func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
+	self := args[0]
 	if method.ParameterCount() != len(args)-1 {
 		return nil, value.NewWrongArgumentCountError(
 			method.Name().String(),
@@ -288,14 +293,7 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 
 // Call a method without preprocessing its arguments, directly
 // on the stack as it is.
-func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
-	self := vm.stack[vm.sp-args-1]
-	class := self.DirectClass()
-	method := class.LookupMethod(name)
-	if method == nil {
-		return value.NewNoMethodError(string(name.ToString()), self)
-	}
-
+func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
@@ -315,6 +313,17 @@ func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
 	}
 
 	return nil
+}
+
+func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
+	self := vm.stack[vm.sp-args-1]
+	class := self.DirectClass()
+	method := class.LookupMethod(name)
+	if method == nil {
+		return value.NewNoMethodError(string(name.ToString()), self)
+	}
+
+	return vm.callMethodOnStack(method, args)
 }
 
 // The main execution loop of the VM.
@@ -2044,7 +2053,7 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 // Get the iterator of the value on top of the stack.
 func (vm *VM) getIterator() value.Value {
 	val := vm.peek()
-	result, err := vm.CallMethod(iteratorSymbol, val)
+	result, err := vm.CallMethodByName(iteratorSymbol, val)
 	if err != nil {
 		return err
 	}
@@ -2060,7 +2069,7 @@ var iteratorSymbol = value.ToSymbol("iter")
 // Drive the for..in loop.
 func (vm *VM) forIn() value.Value {
 	iterator := vm.pop()
-	result, err := vm.CallMethod(nextSymbol, iterator)
+	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	switch e := err.(type) {
 	case value.Symbol:
 		if e == stopIterationSymbol {
@@ -2125,7 +2134,7 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 		case *value.Regex:
 			buffer.WriteString(string(element.ToString()))
 		default:
-			strVal, err := vm.CallMethod(toStringSymbol, elementVal)
+			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
 			if err != nil {
 				return err
 			}
@@ -2187,7 +2196,7 @@ func (vm *VM) newSymbol(dynamicElements int) value.Value {
 		case *value.Regex:
 			buffer.WriteString(string(element.ToString()))
 		default:
-			strVal, err := vm.CallMethod(toStringSymbol, elementVal)
+			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
 			if err != nil {
 				return err
 			}
@@ -2250,7 +2259,7 @@ func (vm *VM) newRegex(flagByte byte, dynamicElements int) value.Value {
 		case *value.Regex:
 			buffer.WriteString(string(element.ToStringWithFlags()))
 		default:
-			strVal, err := vm.CallMethod(toStringSymbol, elementVal)
+			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
 			if err != nil {
 				return err
 			}
@@ -2629,7 +2638,7 @@ func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) val
 		return nil
 	}
 
-	er := vm.callMethodOnStack(methodName, 0)
+	er := vm.callMethodOnStackByName(methodName, 0)
 	if er != nil {
 		return er
 	}
@@ -2729,7 +2738,7 @@ func (vm *VM) subscriptSet() value.Value {
 		return nil
 	}
 
-	er := vm.callMethodOnStack(symbol.OpSubscriptSet, 2)
+	er := vm.callMethodOnStackByName(symbol.OpSubscriptSet, 2)
 	if er != nil {
 		return er
 	}
@@ -2778,7 +2787,7 @@ func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, method
 		return nil
 	}
 
-	er := vm.callMethodOnStack(methodName, 1)
+	er := vm.callMethodOnStackByName(methodName, 1)
 	if er != nil {
 		return er
 	}
@@ -2797,7 +2806,7 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 		return nil
 	}
 
-	er := vm.callMethodOnStack(methodName, 1)
+	er := vm.callMethodOnStackByName(methodName, 1)
 	if er != nil {
 		return er
 	}
@@ -2822,7 +2831,7 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 		return nil
 	}
 
-	er := vm.callMethodOnStack(methodName, 1)
+	er := vm.callMethodOnStackByName(methodName, 1)
 	if er != nil {
 		return er
 	}
@@ -2866,22 +2875,72 @@ func (vm *VM) modulo() (err value.Value) {
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *VM) equal() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.Equal, symbol.OpEqual)
+	return vm.callEqualityOperator(value.Equal, symbol.OpEqual)
+}
+
+func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+	right := vm.peek()
+	left := vm.peekAt(1)
+
+	result := fn(left, right)
+	if result != nil {
+		vm.pop()
+		vm.replace(result)
+		return nil
+	}
+
+	self := vm.stack[vm.sp-2]
+	class := self.DirectClass()
+	method := class.LookupMethod(methodName)
+	if method == nil {
+		vm.push(value.ToElkBool(left == right))
+		return nil
+	}
+
+	return vm.callMethodOnStack(method, 1)
+}
+
+func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+	right := vm.peek()
+	left := vm.peekAt(1)
+
+	result := fn(left, right)
+	if result != nil {
+		vm.pop()
+		vm.replace(result)
+		return nil
+	}
+
+	self := vm.stack[vm.sp-2]
+	class := self.DirectClass()
+	method := class.LookupMethod(methodName)
+	if method == nil {
+		vm.push(value.ToElkBool(left != right))
+		return nil
+	}
+
+	err = vm.callMethodOnStack(method, 1)
+	if err != nil {
+		return err
+	}
+
+	vm.replace(value.ToNotBool(vm.peek()))
+	return nil
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) notEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, symbol.OpEqual)
+	return vm.callNegatedEqualityOperator(value.NotEqual, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *VM) laxEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.LaxEqual, symbol.OpLaxEqual)
+	return vm.callEqualityOperator(value.LaxEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) laxNotEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.LaxNotEqual, symbol.OpLaxEqual)
+	return vm.callNegatedEqualityOperator(value.LaxNotEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
