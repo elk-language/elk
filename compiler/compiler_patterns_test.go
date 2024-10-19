@@ -1766,6 +1766,99 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"lax equal pattern": {
+			input: `
+			  a := 0
+				b := 2
+				switch a
+				case =~ b then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LAX_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(67, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 15),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(2),
+					value.String("a"),
+				},
+			),
+		},
+		"lax not equal pattern": {
+			input: `
+			  a := 0
+				switch a
+				case !~ 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LAX_NOT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
 		"strict equal pattern": {
 			input: `
 			  a := 0

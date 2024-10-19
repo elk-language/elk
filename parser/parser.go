@@ -5143,7 +5143,7 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 
 // unaryPattern = rangePattern |
 // collectionPattern |
-// ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!=="] bitwiseOrExpression
+// ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] bitwiseOrExpression
 func (p *Parser) unaryPattern() ast.PatternNode {
 	if p.lookahead.IsCollectionLiteralBeg() {
 		return p.collectionPattern()
@@ -5151,7 +5151,8 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 
 	if operator, ok := p.matchOk(token.LESS, token.LESS_EQUAL, token.GREATER,
 		token.GREATER_EQUAL, token.EQUAL_EQUAL, token.NOT_EQUAL,
-		token.STRICT_EQUAL, token.STRICT_NOT_EQUAL); ok {
+		token.STRICT_EQUAL, token.STRICT_NOT_EQUAL,
+		token.LAX_EQUAL, token.LAX_NOT_EQUAL); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true

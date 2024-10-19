@@ -2501,6 +2501,16 @@ func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 			pat.Right,
 			bytecode.NOT_EQUAL,
 		)
+	case token.LAX_EQUAL:
+		c.literalPattern(
+			pat.Right,
+			bytecode.LAX_EQUAL,
+		)
+	case token.LAX_NOT_EQUAL:
+		c.literalPattern(
+			pat.Right,
+			bytecode.LAX_NOT_EQUAL,
+		)
 	case token.STRICT_EQUAL:
 		c.literalPattern(
 			pat.Right,
