@@ -2378,7 +2378,7 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) relationalPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
+func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 	span := pattern.Span()
 
 	c.compileIf(
@@ -2387,13 +2387,12 @@ func (c *Compiler) relationalPattern(callInfo *value.CallSiteInfo, pattern ast.N
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.compileNode(pattern)
 			c.emit(span.StartPos.Line, bytecode.DUP_N, 2)
-			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
 			c.emit(span.StartPos.Line, bytecode.SWAP)
 			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
-			c.emit(span.StartPos.Line, bytecode.STRICT_EQUAL)
+			c.emit(span.StartPos.Line, bytecode.IS_A)
 		},
 		func() {
-			c.emitCallMethod(callInfo, span)
+			c.emit(span.StartPos.Line, opcode)
 		},
 		func() {
 			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
@@ -2403,11 +2402,11 @@ func (c *Compiler) relationalPattern(callInfo *value.CallSiteInfo, pattern ast.N
 	)
 }
 
-func (c *Compiler) literalPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
+func (c *Compiler) literalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
-	c.emitCallMethod(callInfo, span)
+	c.emit(span.StartPos.Line, opcode)
 }
 
 func (c *Compiler) pattern(pattern ast.PatternNode) {
@@ -2423,8 +2422,8 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
 		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat,
+			bytecode.EQUAL,
 		)
 	case *ast.RangeLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
@@ -2494,48 +2493,48 @@ func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 	switch pat.Op.Type {
 	case token.EQUAL_EQUAL:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat.Right,
+			bytecode.EQUAL,
 		)
 	case token.NOT_EQUAL:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpNotEqual, 1, nil),
 			pat.Right,
+			bytecode.NOT_EQUAL,
 		)
 	case token.STRICT_EQUAL:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpStrictEqual, 1, nil),
 			pat.Right,
+			bytecode.STRICT_EQUAL,
 		)
 	case token.STRICT_NOT_EQUAL:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpStrictNotEqual, 1, nil),
 			pat.Right,
+			bytecode.STRICT_NOT_EQUAL,
 		)
 	case token.LESS:
 		c.relationalPattern(
-			value.NewCallSiteInfo(symbol.OpLessThan, 1, nil),
 			pat.Right,
+			bytecode.LESS,
 		)
 	case token.LESS_EQUAL:
 		c.relationalPattern(
-			value.NewCallSiteInfo(symbol.OpLessThanEqual, 1, nil),
 			pat.Right,
+			bytecode.LESS_EQUAL,
 		)
 	case token.GREATER:
 		c.relationalPattern(
-			value.NewCallSiteInfo(symbol.OpGreaterThan, 1, nil),
 			pat.Right,
+			bytecode.GREATER,
 		)
 	case token.GREATER_EQUAL:
 		c.relationalPattern(
-			value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1, nil),
 			pat.Right,
+			bytecode.GREATER_EQUAL,
 		)
 	default:
 		c.literalPattern(
-			value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
 			pat,
+			bytecode.EQUAL,
 		)
 	}
 }
