@@ -5411,224 +5411,221 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 	return node
 }
 
-func (c *Checker) checkPattern(node ast.PatternNode, typ types.Type) ast.PatternNode {
+func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) ast.PatternNode {
 	switch n := node.(type) {
 	case *ast.AsPatternNode:
-		return c.checkAsPatternNode(n, typ)
+		return c.checkAsPatternNode(n, matchedType)
 	case *ast.PublicIdentifierNode:
-		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
+		node.SetType(c.checkIdentifierPattern(n.Value, matchedType, matchedType, n.Span()))
 		return node
 	case *ast.PrivateIdentifierNode:
-		node.SetType(c.checkIdentifierPattern(n.Value, typ, typ, n.Span()))
+		node.SetType(c.checkIdentifierPattern(n.Value, matchedType, matchedType, n.Span()))
 		return node
 	case *ast.IntLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int64LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int32LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int16LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int8LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.UInt64LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.UInt32LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.UInt16LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.UInt8LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.FloatLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Float64LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Float32LiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.BigFloatLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.SimpleSymbolLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.InterpolatedSymbolLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.InterpolatedRegexLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.UninterpolatedRegexLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.DoubleQuotedStringLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.RawStringLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.InterpolatedStringLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.CharLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.RawCharLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.NilLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.TrueLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.FalseLiteralNode:
-		return c.checkSimpleLiteralPattern(n, typ)
+		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.BinArrayListLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.HexArrayListLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.SymbolArrayListLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Symbol)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.WordArrayListLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.String)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.BinArrayTupleLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.HexArrayTupleLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.SymbolArrayTupleLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Symbol)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.WordArrayTupleLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.String)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.BinHashSetLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.HexHashSetLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.SymbolHashSetLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Symbol)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.WordHashSetLiteralNode:
 		return c.checkSpecialCollectionLiteralPattern(
 			n,
 			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.String)),
-			typ,
+			matchedType,
 			n.Span(),
 		)
 	case *ast.RangeLiteralNode:
-		return c.checkRangePattern(n, typ)
+		return c.checkRangePattern(n, matchedType)
 	case *ast.MapPatternNode:
-		return c.checkMapPattern(n, typ)
+		return c.checkMapPattern(n, matchedType)
 	case *ast.RecordPatternNode:
-		return c.checkRecordPattern(n, typ)
+		return c.checkRecordPattern(n, matchedType)
 	case *ast.RestPatternNode:
-		return c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), typ))
+		return c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), matchedType))
 	case *ast.ListPatternNode:
-		return c.checkListPattern(n, typ)
+		return c.checkListPattern(n, matchedType)
 	case *ast.TuplePatternNode:
-		return c.checkTuplePattern(n, typ)
+		return c.checkTuplePattern(n, matchedType)
 	case *ast.SetPatternNode:
-		return c.checkSetPattern(n, typ)
+		return c.checkSetPattern(n, matchedType)
 	case *ast.ObjectPatternNode:
-		return c.checkObjectPattern(n, typ)
+		return c.checkObjectPattern(n, matchedType)
 	case *ast.PublicConstantNode:
-		return c.checkPublicConstantPattern(n, typ)
+		return c.checkPublicConstantPattern(n, matchedType)
 	case *ast.PrivateConstantNode:
-		return c.checkPrivateConstantPattern(n, typ)
+		return c.checkPrivateConstantPattern(n, matchedType)
 	case *ast.ConstantLookupNode:
-		return c.checkConstantLookupPattern(n, typ)
+		return c.checkConstantLookupPattern(n, matchedType)
 	case *ast.UnaryExpressionNode:
-		return c.checkUnaryPattern(n, typ)
+		return c.checkUnaryPattern(n, matchedType)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
 }
 
-func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, typ types.Type) *ast.UnaryExpressionNode {
-	// switch node.Op.Type {
-	// case token.EQUAL_EQUAL:
-	// 	c.checkExpression(node.Right)
-	// case token.NOT_EQUAL:
-	// 	c.literalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpNotEqual, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.STRICT_EQUAL:
-	// 	c.literalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpStrictEqual, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.STRICT_NOT_EQUAL:
-	// 	c.literalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpStrictNotEqual, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.LESS:
-	// 	c.relationalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpLessThan, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.LESS_EQUAL:
-	// 	c.relationalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpLessThanEqual, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.GREATER:
-	// 	c.relationalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpGreaterThan, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// case token.GREATER_EQUAL:
-	// 	c.relationalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1, nil),
-	// 		pat.Right,
-	// 	)
-	// default:
-	// 	c.literalPattern(
-	// 		value.NewCallSiteInfo(symbol.OpEqual, 1, nil),
-	// 		pat,
-	// 	)
-	// }
+func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType types.Type) *ast.UnaryExpressionNode {
+	switch node.Op.Type {
+	case token.EQUAL_EQUAL, token.STRICT_EQUAL:
+		node.Right = c.checkExpression(node.Right)
+		rightType := c.typeOf(node.Right)
+		c.checkCanMatch(matchedType, rightType, node.Right.Span())
+		node.SetType(rightType)
+		return node
+	case token.NOT_EQUAL, token.STRICT_NOT_EQUAL:
+		node.Right = c.checkExpression(node.Right)
+		rightType := c.typeOf(node.Right)
+		c.checkCanMatch(matchedType, rightType, node.Right.Span())
+		node.SetType(matchedType)
+		return node
+	case token.LAX_EQUAL, token.LAX_NOT_EQUAL:
+		node.Right = c.checkExpression(node.Right)
+		node.SetType(matchedType)
+		return node
+	case token.LESS:
+		return c.checkRelationalPattern(node, matchedType, symbol.OpLessThan)
+	case token.LESS_EQUAL:
+		return c.checkRelationalPattern(node, matchedType, symbol.OpLessThanEqual)
+	case token.GREATER:
+		return c.checkRelationalPattern(node, matchedType, symbol.OpGreaterThan)
+	case token.GREATER_EQUAL:
+		return c.checkRelationalPattern(node, matchedType, symbol.OpGreaterThanEqual)
+	default:
+		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.String()))
+	}
+}
+
+func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) *ast.UnaryExpressionNode {
+	node.Right = c.checkExpression(node.Right)
+	rightType := c.typeOf(node.Right)
+	if !c.checkCanMatch(matchedType, rightType, node.Right.Span()) {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	intersection := c.newNormalisedIntersection(rightType, matchedType)
+	node.SetType(intersection)
+	c.getMethod(intersection, operator, node.Op.Span())
 	return node
 }
 

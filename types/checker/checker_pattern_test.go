@@ -2134,3 +2134,237 @@ func TestConstantPattern(t *testing.T) {
 		})
 	}
 }
+
+func TestUnaryPattern(t *testing.T) {
+	tests := testTable{
+		"== - invalid type": {
+			input: `
+				var == 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"== - valid type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var == b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
+			},
+		},
+		"!= - invalid type": {
+			input: `
+				var != 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"!= - valid type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var != b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			},
+		},
+
+		"=== - invalid type": {
+			input: `
+				var === 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"=== - valid type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var === b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
+			},
+		},
+		"!== - invalid type": {
+			input: `
+				var !== 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"!== - valid type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var !== b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			},
+		},
+
+		"=~ - different type": {
+			input: `
+				var =~ 10 as a = 3
+			`,
+		},
+		"=~ - intersecting type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var =~ b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			},
+		},
+		"!~ - different type": {
+			input: `
+				var !~ 10 as a = 3
+			`,
+		},
+		"!~ - intersecting type": {
+			input: `
+				var a: String | Int | nil = nil
+				var b: String? = nil
+				var !~ b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			},
+		},
+
+		"< - invalid type": {
+			input: `
+				var < 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"< - valid type": {
+			input: `
+				var a: Float | Int | nil = nil
+				var b: BigFloat | Float = 2.2
+				var < b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			},
+		},
+		"< - type without method": {
+			input: `
+				var a: String? = nil
+				var < nil as c = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `<` is not defined on type `Std::Nil`"),
+			},
+		},
+		"<= - invalid type": {
+			input: `
+				var <= 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"<= - valid type": {
+			input: `
+				var a: Float | Int | nil = nil
+				var b: BigFloat | Float = 2.2
+				var <= b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			},
+		},
+		"<= - type without method": {
+			input: `
+				var a: String? = nil
+				var <= nil as c = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `<=` is not defined on type `Std::Nil`"),
+			},
+		},
+		"> - invalid type": {
+			input: `
+				var > 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		"> - valid type": {
+			input: `
+				var a: Float | Int | nil = nil
+				var b: BigFloat | Float = 2.2
+				var > b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			},
+		},
+		"> - type without method": {
+			input: `
+				var a: String? = nil
+				var > nil as c = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `>` is not defined on type `Std::Nil`"),
+			},
+		},
+		">= - invalid type": {
+			input: `
+				var >= 10 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			},
+		},
+		">= - valid type": {
+			input: `
+				var a: Float | Int | nil = nil
+				var b: BigFloat | Float = 2.2
+				var >= b as c = a
+				var d: 1 = c
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			},
+		},
+		">= - type without method": {
+			input: `
+				var a: String? = nil
+				var >= nil as c = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `>=` is not defined on type `Std::Nil`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
