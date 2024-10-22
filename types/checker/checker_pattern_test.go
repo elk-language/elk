@@ -45,6 +45,21 @@ func TestIdentifierPattern(t *testing.T) {
 				error.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
+		"declares a variable in a variable declaration": {
+			input: `
+				var [a] = ["", 8]
+				a = 3
+			`,
+		},
+		"declares a value in a value declaration": {
+			input: `
+				val [a] = ["", 8]
+				a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 5), P(27, 3, 5)), "local value `a` cannot be reassigned"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -348,6 +363,21 @@ func TestAsPattern(t *testing.T) {
 				var %[a as b] = [8]
 				a = b
 			`,
+		},
+		"declares a variable in a variable declaration": {
+			input: `
+				var 1 as a = 1
+				a = 5
+			`,
+		},
+		"declares a value in a value declaration": {
+			input: `
+				val 1 as a = 1
+				a = 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 3, 5), P(24, 3, 5)), "local value `a` cannot be reassigned"),
+			},
 		},
 		"pattern with as and existing variable": {
 			input: `
@@ -1341,6 +1371,21 @@ func TestRangePattern(t *testing.T) {
 
 func TestMapPattern(t *testing.T) {
 	tests := testTable{
+		"declares variables in variable declaration": {
+			input: `
+				var { a } = { a: 3 }
+				a = 5
+			`,
+		},
+		"declares values in value declaration": {
+			input: `
+				val { a } = { a: 3 }
+				a = 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 5), P(30, 3, 5)), "local value `a` cannot be reassigned"),
+			},
+		},
 		"map pattern with invalid value": {
 			input: `
 				var { a } = 8
@@ -1446,6 +1491,21 @@ func TestMapPattern(t *testing.T) {
 
 func TestRecordPattern(t *testing.T) {
 	tests := testTable{
+		"declares variables in variable declaration": {
+			input: `
+				var %{ a } = %{ a: 3 }
+				a = 5
+			`,
+		},
+		"declares values in value declaration": {
+			input: `
+				val %{ a } = %{ a: 3 }
+				a = 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 5), P(32, 3, 5)), "local value `a` cannot be reassigned"),
+			},
+		},
 		"record pattern with invalid value": {
 			input: `
 				var %{ a } = 8
@@ -1561,6 +1621,21 @@ func TestRecordPattern(t *testing.T) {
 
 func TestObjectPattern(t *testing.T) {
 	tests := testTable{
+		"declares variables in variable declaration": {
+			input: `
+				var String(length) = "foo"
+				length = 5
+			`,
+		},
+		"declares values in value declaration": {
+			input: `
+				val String(length) = "foo"
+				length = 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(36, 3, 5), P(41, 3, 10)), "local value `length` cannot be reassigned"),
+			},
+		},
 		"identifier - invalid value": {
 			input: `
 				var String(length) = 3

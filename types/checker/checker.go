@@ -776,6 +776,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ValueDeclarationNode:
 		c.checkValueDeclarationNode(n)
 		return n
+	case *ast.ValuePatternDeclarationNode:
+		return c.checkValuePatternDeclarationNode(n)
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
 		return n
@@ -5406,6 +5408,17 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 
 	prevMode := c.mode
 	c.mode = variablePatternMode
+	node.Pattern = c.checkPattern(node.Pattern, initType)
+	c.mode = prevMode
+	return node
+}
+
+func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *ast.ValuePatternDeclarationNode {
+	node.Initialiser = c.checkExpression(node.Initialiser)
+	initType := c.typeOf(node.Initialiser)
+
+	prevMode := c.mode
+	c.mode = valuePatternMode
 	node.Pattern = c.checkPattern(node.Pattern, initType)
 	c.mode = prevMode
 	return node

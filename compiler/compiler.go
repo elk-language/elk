@@ -2435,24 +2435,20 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		switch c.mode {
 		case valuePatternDeclarationNode:
 			c.defineLocal(pat.Value, span, true, false)
-			c.setLocalWithoutValue(pat.Value, span)
-			c.emit(span.StartPos.Line, bytecode.TRUE)
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, span, false)
-			c.setLocalWithoutValue(pat.Value, span)
-			c.emit(span.StartPos.Line, bytecode.TRUE)
 		}
+		c.setLocalWithoutValue(pat.Value, span)
+		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.PrivateIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:
 			c.defineLocal(pat.Value, span, true, false)
-			c.setLocalWithoutValue(pat.Value, span)
-			c.emit(span.StartPos.Line, bytecode.TRUE)
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, span, false)
-			c.setLocalWithoutValue(pat.Value, span)
-			c.emit(span.StartPos.Line, bytecode.TRUE)
 		}
+		c.setLocalWithoutValue(pat.Value, span)
+		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
 		c.objectPattern(pat)
 	case *ast.AsPatternNode:
@@ -2584,7 +2580,12 @@ func (c *Compiler) asPattern(node *ast.AsPatternNode) {
 		panic(fmt.Sprintf("invalid as pattern name: %#v", node.Name))
 	}
 
-	c.defineLocal(varName, span, true, false)
+	switch c.mode {
+	case valuePatternDeclarationNode:
+		c.defineLocal(varName, span, true, false)
+	default:
+		c.defineLocalOverrideCurrentScope(varName, span, false)
+	}
 	c.setLocalWithoutValue(varName, span)
 	c.pattern(node.Pattern)
 }
@@ -2594,7 +2595,13 @@ func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.
 	callInfo := value.NewCallSiteInfo(value.ToSymbol(name), 0, nil)
 	c.emitCallMethod(callInfo, span)
 
-	identVar := c.defineLocal(name, span, true, true)
+	var identVar *local
+	switch c.mode {
+	case valuePatternDeclarationNode:
+		identVar = c.defineLocal(name, span, true, true)
+	default:
+		identVar = c.defineLocalOverrideCurrentScope(name, span, true)
+	}
 	c.emitSetLocal(span.StartPos.Line, identVar.index)
 	c.emit(span.StartPos.Line, bytecode.POP)
 }
@@ -2677,7 +2684,13 @@ func (c *Compiler) identifierMapPatternElement(name string, span *position.Span)
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.emitValue(value.ToSymbol(name), span)
 	c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
-	identVar := c.defineLocal(name, span, false, true)
+	var identVar *local
+	switch c.mode {
+	case valuePatternDeclarationNode:
+		identVar = c.defineLocal(name, span, true, true)
+	default:
+		identVar = c.defineLocalOverrideCurrentScope(name, span, true)
+	}
 	if identVar == nil {
 		return
 	}
