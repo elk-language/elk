@@ -5579,8 +5579,35 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) ast
 		return c.checkConstantLookupPattern(n, matchedType)
 	case *ast.UnaryExpressionNode:
 		return c.checkUnaryPattern(n, matchedType)
+	case *ast.BinaryPatternNode:
+		return c.checkBinaryPattern(n, matchedType)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
+	}
+}
+
+func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType types.Type) *ast.BinaryPatternNode {
+	switch node.Op.Type {
+	case token.OR_OR:
+		node.Left = c.checkPattern(node.Left, matchedType)
+		leftType := c.typeOf(node.Left)
+
+		node.Right = c.checkPattern(node.Right, matchedType)
+		rightType := c.typeOf(node.Right)
+
+		node.SetType(c.newNormalisedUnion(leftType, rightType))
+		return node
+	case token.AND_AND:
+		node.Left = c.checkPattern(node.Left, matchedType)
+		leftType := c.typeOf(node.Left)
+
+		node.Right = c.checkPattern(node.Right, matchedType)
+		rightType := c.typeOf(node.Right)
+
+		node.SetType(c.newNormalisedIntersection(leftType, rightType))
+		return node
+	default:
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.String()))
 	}
 }
 
