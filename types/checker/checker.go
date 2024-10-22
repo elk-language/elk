@@ -5604,7 +5604,14 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.Right = c.checkPattern(node.Right, matchedType)
 		rightType := c.typeOf(node.Right)
 
-		node.SetType(c.newNormalisedIntersection(leftType, rightType))
+		intersection := c.newNormalisedIntersection(leftType, rightType)
+		if types.IsNever(intersection) {
+			c.addWarning(
+				"this pattern is impossible to satisfy",
+				node.Span(),
+			)
+		}
+		node.SetType(intersection)
 		return node
 	default:
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.String()))
@@ -5650,7 +5657,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 
 func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) *ast.UnaryExpressionNode {
 	node.Right = c.checkExpression(node.Right)
-	rightType := c.typeOf(node.Right)
+	rightType := c.toNonLiteral(c.typeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Span()) {
 		node.SetType(types.Untyped{})
 		return node

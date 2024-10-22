@@ -2258,10 +2258,10 @@ func TestUnaryPattern(t *testing.T) {
 
 		"< - invalid type": {
 			input: `
-				var < 10 as a = 3
+				var < .1 as a = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `10`"),
+				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"< - valid type": {
@@ -2286,10 +2286,10 @@ func TestUnaryPattern(t *testing.T) {
 		},
 		"<= - invalid type": {
 			input: `
-				var <= 10 as a = 3
+				var <= .1 as a = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"<= - valid type": {
@@ -2314,10 +2314,10 @@ func TestUnaryPattern(t *testing.T) {
 		},
 		"> - invalid type": {
 			input: `
-				var > 10 as a = 3
+				var > 1.2 as a = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `10`"),
+				error.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"> - valid type": {
@@ -2342,10 +2342,10 @@ func TestUnaryPattern(t *testing.T) {
 		},
 		">= - invalid type": {
 			input: `
-				var >= 10 as a = 3
+				var >= .1 as a = 3
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		">= - valid type": {
@@ -2366,6 +2366,70 @@ func TestUnaryPattern(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `>=` is not defined on type `Std::Nil`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestBinaryPattern(t *testing.T) {
+	tests := testTable{
+		"|| - matching patterns": {
+			input: `
+				var a: String | Float | Int = 1
+				var 1 || "foo" as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"|| - invalid patterns": {
+			input: `
+				var a: Char | Float | nil = nil
+				var 1 || "foo" as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(45, 3, 9), P(45, 3, 9)), "type `Std::Char | Std::Float | nil` cannot ever match type `1`"),
+				error.NewFailure(L("<main>", P(50, 3, 14), P(54, 3, 18)), "type `Std::Char | Std::Float | nil` cannot ever match type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
+			},
+		},
+
+		"&& - matching patterns": {
+			input: `
+				var a: String | Float | Int = 1
+				var < 5 && > 10 as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 4, 16), P(81, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"&& - non matching type": {
+			input: `
+				var < 5 && > 10 as b = 2.2
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "type `2.2` cannot ever match type `Std::Int`"),
+				error.NewFailure(L("<main>", P(18, 2, 18), P(19, 2, 19)), "type `2.2` cannot ever match type `Std::Int`"),
+			},
+		},
+		"&& - incompatible patterns": {
+			input: `
+				var a: String | Float | Int = 1
+				var < 5 && > 2.5 as b = a
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(45, 3, 9), P(56, 3, 20)), "this pattern is impossible to satisfy"),
 			},
 		},
 	}
