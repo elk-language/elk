@@ -5610,6 +5610,12 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 		return c.checkRelationalPattern(node, matchedType, symbol.OpGreaterThan)
 	case token.GREATER_EQUAL:
 		return c.checkRelationalPattern(node, matchedType, symbol.OpGreaterThanEqual)
+	case token.MINUS:
+		c.checkSimpleLiteralPattern(node, matchedType)
+		return node
+	case token.PLUS:
+		c.checkSimpleLiteralPattern(node, matchedType)
+		return node
 	default:
 		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.String()))
 	}

@@ -394,6 +394,14 @@ func TestIntPattern(t *testing.T) {
 				error.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `3` cannot ever match type `1`"),
 			},
 		},
+		"pattern with negative int literal and wrong literal type": {
+			input: `
+				var -1 as a = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(10, 2, 10)), "type `3` cannot ever match type `-1`"),
+			},
+		},
 		"pattern with int literal and wider type": {
 			input: `
 				var b: String | Int = 3
