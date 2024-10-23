@@ -2592,6 +2592,9 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 }
 
 func (c *Checker) addMissingMethodError(typ types.Type, name string, span *position.Span) {
+	if types.IsUntyped(typ) {
+		return
+	}
 	c.addFailure(
 		fmt.Sprintf("method `%s` is not defined on type `%s`", name, types.InspectWithColor(typ)),
 		span,

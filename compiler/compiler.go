@@ -1337,7 +1337,7 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) {
 	c.compileForIn(
 		label,
-		node.Parameter,
+		node.Pattern,
 		node.InExpression,
 		func() {
 			c.compileStatements(node.ThenBody, node.Span())

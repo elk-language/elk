@@ -3,7 +3,7 @@
 ]##
 interface ::Std::IterableRange[Element < Incrementable[Element] & Comparable[Element]]
 	implement Container[Element]
-	implement Iterable::Primitive[Element]
+	implement PrimitiveIterable[Element]
 
 	##[
 		Returns `true` when the range is left-open.

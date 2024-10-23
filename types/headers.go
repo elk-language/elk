@@ -157,10 +157,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.TryDefineClass("", false, false, false, value.ToSymbol("NotFoundError"), objectClass, env)
-			{
-				namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop.", value.ToSymbol("Primitive"), env)
-				namespace.Name() // noop - avoid unused variable error
-			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -208,6 +204,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, value.ToSymbol("Pair"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop.", value.ToSymbol("PrimitiveIterable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -1739,7 +1739,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetTypeParameters(typeParams)
 
 				// Include mixins and implement interfaces
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::PrimitiveIterable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
@@ -1867,31 +1867,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
-				{
-					namespace := namespace.MustSubtype("Primitive").(*Interface)
-
-					namespace.Name() // noop - avoid unused variable error
-
-					// Set up type parameters
-					var typeParam *TypeParameter
-					typeParams := make([]*TypeParameter, 1)
-
-					typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
-					typeParams[0] = typeParam
-					namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
-					namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
-
-					namespace.SetTypeParameters(typeParams)
-
-					// Include mixins and implement interfaces
-
-					// Define methods
-					namespace.DefineMethod("Returns an iterator for this structure.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Primitive::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
-
-					// Define constants
-
-					// Define instance variables
-				}
 			}
 			{
 				namespace := namespace.MustSubtype("IterableRange").(*Interface)
@@ -1912,7 +1887,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NewGeneric(NameToType("Std::Container", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable::Primitive", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::PrimitiveIterable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::IterableRange::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the upper bound of the range.\nReturns `nil` if the range is endless.", true, false, true, value.ToSymbol("end"), nil, nil, NewNilable(NameToType("Std::IterableRange::Element", env)), Never{})
@@ -2298,6 +2273,31 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the key, the first element of the tuple.", false, false, true, value.ToSymbol("key"), nil, nil, NameToType("Std::Pair::Key", env), Never{})
 				namespace.DefineMethod("Always returns `2`.\nFor compatibility with `Tuple`.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the value, the second element of the tuple.", false, false, true, value.ToSymbol("value"), nil, nil, NameToType("Std::Pair::Value", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("PrimitiveIterable").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Element"), namespace, Never{}, Any{}, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns an iterator for this structure.", true, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::PrimitiveIterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), Never{})
 
 				// Define constants
 

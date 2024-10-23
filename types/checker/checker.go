@@ -862,6 +862,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkLoopExpressionNode("", n)
 	case *ast.NumericForExpressionNode:
 		return c.checkNumericForExpressionNode("", n)
+	case *ast.ForInExpressionNode:
+		return c.checkForInExpressionNode("", n)
 	case *ast.LabeledExpressionNode:
 		return c.checkLabeledExpressionNode(n)
 	case *ast.ReturnExpressionNode:
@@ -933,6 +935,10 @@ func (c *Checker) StdClass() *types.Class {
 
 func (c *Checker) Std(name value.Symbol) types.Type {
 	return c.GlobalEnv.StdSubtype(name)
+}
+
+func (c *Checker) StdPrimitiveIterable() *types.Interface {
+	return c.GlobalEnv.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
 }
 
 func (c *Checker) StdString() types.Type {
@@ -1850,6 +1856,8 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		node.Expression = c.checkUntilExpressionNode(node.Label, expr)
 	case *ast.NumericForExpressionNode:
 		node.Expression = c.checkNumericForExpressionNode(node.Label, expr)
+	case *ast.ForInExpressionNode:
+		node.Expression = c.checkForInExpressionNode(node.Label, expr)
 	case *ast.ModifierNode:
 		switch expr.Modifier.Type {
 		case token.WHILE:
@@ -1859,8 +1867,6 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		default:
 			node.Expression = c.checkExpression(node.Expression)
 		}
-	// case *ast.ForInExpressionNode:
-	// 	c.forInExpression(node.Label, expr)
 	// case *ast.ModifierForInNode:
 	// 	c.modifierForIn(node.Label, expr)
 	default:
@@ -1932,6 +1938,65 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	}
 	node.SetType(typ)
 	return node
+}
+
+func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	loop := c.registerLoop(label, false)
+
+	node.InExpression = c.checkExpression(node.InExpression)
+	inType := c.typeOf(node.InExpression)
+	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+
+	node.Pattern = c.checkPattern(node.Pattern, elementType)
+
+	c.pushNestedLocalEnv()
+	c.checkStatements(node.ThenBody)
+	c.popLocalEnv()
+
+	c.popLoop()
+	c.popLocalEnv()
+	typ := loop.returnType
+	if typ == nil {
+		typ = types.Nil{}
+	} else {
+		typ = c.toNilable(typ)
+	}
+	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Type {
+	iterable := c.StdPrimitiveIterable()
+	iterableOfAny := types.NewGenericWithUpperBoundTypeArgs(iterable)
+
+	if c.isSubtype(typ, iterableOfAny, span) {
+		return c.getIteratorElementType(typ, span)
+	}
+
+	c.addFailure(
+		fmt.Sprintf(
+			"type `%s` cannot be iterated over, it does not implement `%s`",
+			types.InspectWithColor(typ),
+			types.InspectWithColor(iterableOfAny),
+		),
+		span,
+	)
+	return types.Untyped{}
+}
+
+func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) types.Type {
+	iterMethod := c.getMethod(typ, symbol.L_iter, span)
+	if iterMethod == nil {
+		return types.Untyped{}
+	}
+
+	nextMethod := c.getMethod(iterMethod.ReturnType, symbol.L_next, span)
+	if nextMethod == nil {
+		return types.Untyped{}
+	}
+
+	return nextMethod.ReturnType
 }
 
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {

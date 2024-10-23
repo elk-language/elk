@@ -61,6 +61,8 @@ var (
 	OpenRange            = value.ToSymbol("OpenRange")
 	RightOpenRange       = value.ToSymbol("RightOpenRange")
 	Comparable           = value.ToSymbol("Comparable")
+	Iterable             = value.ToSymbol("Iterable")
+	PrimitiveIterable    = value.ToSymbol("PrimitiveIterable")
 )
 
 // lowercase symbols
@@ -70,6 +72,8 @@ var (
 	L_contains = value.ToSymbol("contains")
 	L_length   = value.ToSymbol("length")
 	L_hash     = value.ToSymbol("hash")
+	L_iter     = value.ToSymbol("iter")
+	L_next     = value.ToSymbol("next")
 )
 
 // special symbols

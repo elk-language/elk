@@ -532,6 +532,174 @@ func TestNumericForExpression(t *testing.T) {
 	}
 }
 
+func TestForInExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int? = 5
+				for i in [1, 2, 3]
+					var b: Int? = a
+				end
+			`,
+		},
+		"use variables defined in the header": {
+			input: `
+				for i in [1, 2, 3]
+					var b: Int = i
+				end
+			`,
+		},
+		"typecheck the header and body": {
+			input: `
+				for a in b
+					c
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "undefined local `b`"),
+				error.NewFailure(L("<main>", P(21, 3, 6), P(21, 3, 6)), "undefined local `c`"),
+			},
+		},
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				for i in foo()
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 14), P(35, 3, 18)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any]`"),
+			},
+		},
+
+		"returns nil": {
+			input: `
+				var a = [1, 2, 3]
+				b := for i in a
+					i
+					5
+				end
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(80, 7, 16), P(80, 7, 16)), "type `nil` cannot be assigned to type `9`"),
+			},
+		},
+
+		"returns nil with a naked break": {
+			input: `
+				a := 2
+				b := for i in [1, 2, 3]
+					c := false
+					if c
+						break
+					end
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(114, 10, 9), P(114, 10, 9)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"returns the nilable value given to conditional break": {
+			input: `
+				a := 2
+				b := for i in [1, 2, 3]
+					c := false
+					if c
+						break "foo" + "bar"
+					end
+					a + 2
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(128, 10, 9), P(128, 10, 9)), "type `3` cannot be assigned to type `Std::String?`"),
+			},
+		},
+		"returns the nilable value given to break": {
+			input: `
+				a := 2
+				b := for i in [1, 2, 3]
+					break "foo" + "bar"
+				end
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(81, 6, 9), P(81, 6, 9)), "type `3` cannot be assigned to type `Std::String?`"),
+			},
+		},
+
+		"break from a nested labeled loop": {
+			input: `
+				var a: Int? = 2
+				var b: 8 = $foo: for i in 2...10
+					var b: Int? = 9
+					for j in [9, 2, 6]
+						break$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(129, 7, 7), P(141, 7, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(36, 3, 16), P(158, 9, 7)), "type `2.5?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"returns nil with naked continue": {
+			input: `
+				var b: 8 = for i in [1, 2, 3]
+					var c: Int? = 1
+					if c
+						continue
+					end
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(115, 8, 7)), "type `nil` cannot be assigned to type `8`"),
+			},
+		},
+		// "returns nil with continue": {
+		// 	input: `
+		// 		var b: 8 = for c in 2...10
+		// 			d := false
+		// 			if d
+		// 				continue 2.5
+		// 			end
+		// 			"foo" + "bar"
+		// 		end
+		// 	`,
+		// 	err: error.ErrorList{
+		// 		error.NewFailure(L("<main>", P(36, 3, 16), P(126, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+		// 	},
+		// },
+		// "continue a parent labeled loop": {
+		// 	input: `
+		// 		var a: Int? = 2
+		// 		var b: 8 = $foo: fornum ;a;
+		// 			var b: Int? = 9
+		// 			fornum ;b;
+		// 				continue$foo 2.5
+		// 				"foo" + "bar"
+		// 			end
+		// 		end
+		// 	`,
+		// 	err: error.ErrorList{
+		// 		error.NewWarning(L("<main>", P(119, 7, 7), P(131, 7, 19)), "unreachable code"),
+		// 		error.NewFailure(L("<main>", P(36, 3, 16), P(148, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+		// 	},
+		// },
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestLoopExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
