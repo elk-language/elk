@@ -632,9 +632,7 @@ func TestForInExpression(t *testing.T) {
 
 		"break from a nested labeled loop": {
 			input: `
-				var a: Int? = 2
 				var b: 8 = $foo: for i in 2...10
-					var b: Int? = 9
 					for j in [9, 2, 6]
 						break$foo 2.5
 						"foo" + "bar"
@@ -642,8 +640,8 @@ func TestForInExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(129, 7, 7), P(141, 7, 19)), "unreachable code"),
-				error.NewFailure(L("<main>", P(36, 3, 16), P(158, 9, 7)), "type `2.5?` cannot be assigned to type `8`"),
+				error.NewWarning(L("<main>", P(88, 5, 7), P(100, 5, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(16, 2, 16), P(117, 7, 7)), "type `2.5?` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -661,36 +659,56 @@ func TestForInExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(16, 2, 16), P(115, 8, 7)), "type `nil` cannot be assigned to type `8`"),
 			},
 		},
-		// "returns nil with continue": {
-		// 	input: `
-		// 		var b: 8 = for c in 2...10
-		// 			d := false
-		// 			if d
-		// 				continue 2.5
-		// 			end
-		// 			"foo" + "bar"
-		// 		end
-		// 	`,
-		// 	err: error.ErrorList{
-		// 		error.NewFailure(L("<main>", P(36, 3, 16), P(126, 9, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
-		// 	},
-		// },
-		// "continue a parent labeled loop": {
-		// 	input: `
-		// 		var a: Int? = 2
-		// 		var b: 8 = $foo: fornum ;a;
-		// 			var b: Int? = 9
-		// 			fornum ;b;
-		// 				continue$foo 2.5
-		// 				"foo" + "bar"
-		// 			end
-		// 		end
-		// 	`,
-		// 	err: error.ErrorList{
-		// 		error.NewWarning(L("<main>", P(119, 7, 7), P(131, 7, 19)), "unreachable code"),
-		// 		error.NewFailure(L("<main>", P(36, 3, 16), P(148, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
-		// 	},
-		// },
+		"returns nil with continue": {
+			input: `
+				var b: 8 = for c in 2...10
+					d := false
+					if d
+						continue 2.5
+					end
+					"foo" + "bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(111, 8, 7)), "type `nil` cannot be assigned to type `8`"),
+			},
+		},
+		"continue a parent labeled loop": {
+			input: `
+				var b: 8 = $foo: for i in 1...20
+					for j in 7...30
+						continue$foo 2.5
+						"foo" + "bar"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(88, 5, 7), P(100, 5, 19)), "unreachable code"),
+				error.NewFailure(L("<main>", P(16, 2, 16), P(117, 7, 7)), "type `nil` cannot be assigned to type `8`"),
+			},
+		},
+
+		"unmatchable pattern": {
+			input: `
+				for [1, i] in 1...20
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `Std::Int` cannot ever match type `Std::List[any]`"),
+			},
+		},
+		"valid object pattern": {
+			input: `
+				for Pair(key, value) in { foo: "bar", baz: "lol" }
+					var a: 9 = key
+					var b: nil = value
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 3, 17), P(74, 3, 19)), "type `Std::Symbol` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(94, 4, 19), P(98, 4, 23)), "type `Std::String` cannot be assigned to type `nil`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -8,15 +8,15 @@ import (
 )
 
 type loop struct {
-	label      string
-	endless    bool
-	returnType types.Type
+	label                         string
+	returnsValueFromLastIteration bool
+	returnType                    types.Type
 }
 
-func (c *Checker) registerLoop(label string, endless bool) *loop {
+func (c *Checker) registerLoop(label string, returnsValueFromLastIteration bool) *loop {
 	newLoop := &loop{
-		label:   label,
-		endless: endless,
+		label:                         label,
+		returnsValueFromLastIteration: returnsValueFromLastIteration,
 	}
 	c.loops = append(c.loops, newLoop)
 	return newLoop

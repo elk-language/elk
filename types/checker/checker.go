@@ -1782,7 +1782,7 @@ func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) 
 	}
 
 	loop := c.findLoop(node.Label, node.Span())
-	if loop != nil && !loop.endless {
+	if loop != nil && !loop.returnsValueFromLastIteration {
 		if loop.returnType == nil {
 			loop.returnType = typ
 		} else {
@@ -1942,7 +1942,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 
 func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
-	loop := c.registerLoop(label, false)
+	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.typeOf(node.InExpression)
