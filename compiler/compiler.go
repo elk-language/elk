@@ -1351,7 +1351,7 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 func (c *Compiler) modifierForIn(label string, node *ast.ModifierForInNode) {
 	c.compileForIn(
 		label,
-		node.Parameter,
+		node.Pattern,
 		node.InExpression,
 		func() {
 			c.compileNode(node.ThenExpression)
@@ -3957,7 +3957,7 @@ func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
 			case *ast.ModifierForInNode:
 				c.compileForIn(
 					"",
-					e.Parameter,
+					e.Pattern,
 					e.InExpression,
 					func() {
 						c.compileNode(e.ThenExpression)
@@ -4150,7 +4150,7 @@ elementLoop:
 			case *ast.ModifierForInNode:
 				c.compileForIn(
 					"",
-					e.Parameter,
+					e.Pattern,
 					e.InExpression,
 					func() {
 						switch then := e.ThenExpression.(type) {
@@ -4339,7 +4339,7 @@ elementLoop:
 			case *ast.ModifierForInNode:
 				c.compileForIn(
 					"",
-					e.Parameter,
+					e.Pattern,
 					e.InExpression,
 					func() {
 						switch then := e.ThenExpression.(type) {
@@ -4522,7 +4522,7 @@ elementLoop:
 			case *ast.ModifierForInNode:
 				c.compileForIn(
 					"",
-					e.Parameter,
+					e.Pattern,
 					e.InExpression,
 					func() {
 						switch then := e.ThenExpression.(type) {
@@ -4684,7 +4684,7 @@ elementLoop:
 			case *ast.ModifierForInNode:
 				c.compileForIn(
 					"",
-					e.Parameter,
+					e.Pattern,
 					e.InExpression,
 					func() {
 						switch then := e.ThenExpression.(type) {

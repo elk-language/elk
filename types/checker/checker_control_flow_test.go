@@ -718,6 +718,115 @@ func TestForInExpression(t *testing.T) {
 	}
 }
 
+func TestModifierForInExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				var a: Int = 5
+				println(a) for i in [1, 2, 3]
+			`,
+		},
+		"use variables defined in the header": {
+			input: `
+				println(i) for i in [1, 2, 3]
+			`,
+		},
+		"typecheck the header and body": {
+			input: `
+				c for a in b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(16, 2, 16)), "undefined local `b`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(5, 2, 5)), "undefined local `c`"),
+			},
+		},
+		"cannot use void in the condition": {
+			input: `
+				def foo; end
+				println(i) for i in foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 25), P(46, 3, 29)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any]`"),
+			},
+		},
+
+		"returns nil": {
+			input: `
+				var a = [1, 2, 3]
+				b := (i for i in a)
+				var c: 9 = b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 4, 16), P(62, 4, 16)), "type `nil` cannot be assigned to type `9`"),
+			},
+		},
+
+		"returns the nilable value given to break": {
+			input: `
+				a := 2
+				b := (break "foo" + "bar" for i in [1, 2, 3])
+				b = 3
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(70, 4, 9), P(70, 4, 9)), "type `3` cannot be assigned to type `Std::String?`"),
+			},
+		},
+
+		"break from a nested labeled loop": {
+			input: `
+				var b: 8 = $foo: for i in 2...10
+					break$foo 2.5 for j in [9, 2, 6]
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(82, 4, 7)), "type `2.5?` cannot be assigned to type `8`"),
+			},
+		},
+
+		"returns nil with continue": {
+			input: `
+				var b: 8 = (continue 2.5 for c in 2...10)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(44, 2, 44)), "type `nil` cannot be assigned to type `8`"),
+			},
+		},
+		"continue a parent labeled loop": {
+			input: `
+				var b: 8 = $foo: for i in 1...20
+					continue$foo 2.5 for j in 7...30
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(82, 4, 7)), "type `nil` cannot be assigned to type `8`"),
+			},
+		},
+
+		"unmatchable pattern": {
+			input: `
+				i for [1, i] in 1...20
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(16, 2, 16)), "type `Std::Int` cannot ever match type `Std::List[any]`"),
+			},
+		},
+		"valid object pattern": {
+			input: `
+				key + value for Pair(key, value) in { foo: "bar", baz: "lol" }
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(15, 2, 15)), "method `+` is not defined on type `Std::Symbol`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestLoopExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {

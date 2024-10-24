@@ -864,6 +864,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkNumericForExpressionNode("", n)
 	case *ast.ForInExpressionNode:
 		return c.checkForInExpressionNode("", n)
+	case *ast.ModifierForInNode:
+		return c.checkModifierForInExpressionNode("", n)
 	case *ast.LabeledExpressionNode:
 		return c.checkLabeledExpressionNode(n)
 	case *ast.ReturnExpressionNode:
@@ -1867,8 +1869,8 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 		default:
 			node.Expression = c.checkExpression(node.Expression)
 		}
-	// case *ast.ModifierForInNode:
-	// 	c.modifierForIn(node.Label, expr)
+	case *ast.ModifierForInNode:
+		node.Expression = c.checkModifierForInExpressionNode(node.Label, expr)
 	default:
 		node.Expression = c.checkExpression(node.Expression)
 	}
@@ -1935,6 +1937,32 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	}
 	if loop.returnType != nil {
 		typ = c.newNormalisedUnion(typ, loop.returnType)
+	}
+	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.ModifierForInNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	loop := c.registerLoop(label, true)
+
+	node.InExpression = c.checkExpression(node.InExpression)
+	inType := c.typeOf(node.InExpression)
+	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+
+	node.Pattern = c.checkPattern(node.Pattern, elementType)
+
+	c.pushNestedLocalEnv()
+	c.checkExpression(node.ThenExpression)
+	c.popLocalEnv()
+
+	c.popLoop()
+	c.popLocalEnv()
+	typ := loop.returnType
+	if typ == nil {
+		typ = types.Nil{}
+	} else {
+		typ = c.toNilable(typ)
 	}
 	node.SetType(typ)
 	return node
