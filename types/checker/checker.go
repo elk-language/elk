@@ -1262,6 +1262,11 @@ func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Ty
 
 			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
 			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+		case *ast.ModifierForInNode:
+			keyType, valueType := c.checkRecordForInModifier(p)
+
+			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
+			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
 		default:
 			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
 		}
@@ -1291,6 +1296,11 @@ func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types
 			valueTypes = append(valueTypes, valueType)
 		case *ast.ModifierIfElseNode:
 			keyType, valueType := c.checkRecordIfElseModifier(p)
+
+			keyTypes = append(keyTypes, keyType)
+			valueTypes = append(valueTypes, valueType)
+		case *ast.ModifierForInNode:
+			keyType, valueType := c.checkRecordForInModifier(p)
 
 			keyTypes = append(keyTypes, keyType)
 			valueTypes = append(valueTypes, valueType)
@@ -1474,6 +1484,10 @@ func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) 
 			elementNode := c.checkCollectionIfElseModifier(e)
 			elements[i] = elementNode
 			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		case *ast.ModifierForInNode:
+			elementNode := c.checkCollectionForInModifier(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
 		default:
 			elementNode := c.checkExpression(elementNode)
 			elements[i] = elementNode
@@ -1494,6 +1508,10 @@ func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode
 			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 		case *ast.ModifierIfElseNode:
 			elementNode := c.checkCollectionIfElseModifier(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
+		case *ast.ModifierForInNode:
+			elementNode := c.checkCollectionForInModifier(e)
 			elements[i] = elementNode
 			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 		default:
@@ -1965,6 +1983,56 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 		typ = c.toNilable(typ)
 	}
 	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType, valueType types.Type) {
+	c.pushNestedLocalEnv()
+
+	node.InExpression = c.checkExpression(node.InExpression)
+	inType := c.typeOf(node.InExpression)
+	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+
+	node.Pattern = c.checkPattern(node.Pattern, elementType)
+
+	c.pushNestedLocalEnv()
+	switch then := node.ThenExpression.(type) {
+	case *ast.KeyValueExpressionNode:
+		then.Key = c.checkExpression(then.Key)
+		keyType = c.typeOfGuardVoid(then.Key)
+
+		then.Value = c.checkExpression(then.Value)
+		valueType = c.typeOfGuardVoid(then.Value)
+	case *ast.SymbolKeyValueExpressionNode:
+		keyType = types.NewSymbolLiteral(then.Key)
+
+		then.Value = c.checkExpression(then.Value)
+		valueType = c.typeOfGuardVoid(then.Value)
+	default:
+		panic(fmt.Sprintf("invalid record element: %#v", then))
+	}
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+
+	return keyType, valueType
+}
+
+func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	node.InExpression = c.checkExpression(node.InExpression)
+	inType := c.typeOf(node.InExpression)
+	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+
+	node.Pattern = c.checkPattern(node.Pattern, elementType)
+
+	c.pushNestedLocalEnv()
+	node.ThenExpression = c.checkExpression(node.ThenExpression)
+	thenType := c.typeOf(node.ThenExpression)
+	c.popLocalEnv()
+
+	c.popLocalEnv()
+	node.SetType(thenType)
 	return node
 }
 

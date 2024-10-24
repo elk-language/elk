@@ -8,6 +8,15 @@ import (
 
 func TestArrayTupleLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier for in": {
+			input: `
+				var foo = %[1, i.to_float for i in 5...20]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::ArrayTuple[1 | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if else": {
 			input: `
 				var a: bool = false
@@ -532,6 +541,15 @@ func TestHashSetLiteral(t *testing.T) {
 
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier for in": {
+			input: `
+				var foo = [1, i.to_float for i in 5...20]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 3, 16), P(64, 3, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if else": {
 			input: `
 				var a: bool = false
@@ -839,6 +857,26 @@ func TestArrayListLiteral(t *testing.T) {
 
 func TestHashMapLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier for in": {
+			input: `
+				var a: bool = false
+				var foo = { foo: 1, i => (i * 2).to_string for i in 2...10  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(106, 4, 16), P(108, 4, 18)), "type `Std::HashMap[Std::Symbol | Std::Int, Std::Int | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier for in with symbol key": {
+			input: `
+				var a: bool = false
+				var foo = { foo: 1, elo: (i * 2).to_string for i in 2...10  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(106, 4, 16), P(108, 4, 18)), "type `Std::HashMap[Std::Symbol, Std::Int | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if else": {
 			input: `
 				var a: bool = false
@@ -970,6 +1008,26 @@ func TestHashMapLiteral(t *testing.T) {
 
 func TestHashRecordLiteral(t *testing.T) {
 	tests := testTable{
+		"modifier for in": {
+			input: `
+				var a: bool = false
+				var foo = %{ foo: 1, i => (i * 2).to_string for i in 2...10  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[:foo | Std::Int, 1 | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
+		"modifier for in with symbol key": {
+			input: `
+				var a: bool = false
+				var foo = %{ foo: 1, elo: (i * 2).to_string for i in 2...10  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[:foo | :elo, 1 | Std::String]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if else": {
 			input: `
 				var a: bool = false
