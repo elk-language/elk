@@ -45,45 +45,47 @@ func TestSwitchExpression(t *testing.T) {
 		},
 		"narrows variable declarations": {
 			input: `
-				switch var a: String? = nil
+				var a: String? = nil
+				switch var b: String | Float | nil = a
 				case String()
-					var c: 1 = a
+					var c: 1 = b
 				case nil
-					var d: 2 = a
+					var d: 2 = b
 				case false
-					a = 3
+					b = 3
 				else
-					var f: 4 = a
+					var f: 4 = b
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(67, 4, 17), P(67, 4, 17)), "type `Std::String` cannot be assigned to type `1`"),
-				error.NewFailure(L("<main>", P(98, 6, 17), P(98, 6, 17)), "type `nil` cannot be assigned to type `2`"),
-				error.NewFailure(L("<main>", P(109, 7, 10), P(113, 7, 14)), "type `Std::String?` cannot ever match type `false`"),
-				error.NewFailure(L("<main>", P(124, 8, 10), P(124, 8, 10)), "type `3` cannot be assigned to type `never`"),
-				error.NewFailure(L("<main>", P(151, 10, 17), P(151, 10, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+				error.NewFailure(L("<main>", P(103, 5, 17), P(103, 5, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(134, 7, 17), P(134, 7, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(145, 8, 10), P(149, 8, 14)), "type `Std::String?` cannot ever match type `false`"),
+				error.NewFailure(L("<main>", P(160, 9, 10), P(160, 9, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(187, 11, 17), P(187, 11, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
 			},
 		},
 		"narrows value declarations": {
 			input: `
-				switch val a: String? = nil
+				var a: String? = nil
+				switch val b: String | Float | nil = a
 				case String()
-					var c: 1 = a
+					var c: 1 = b
 				case nil
-					var d: 2 = a
+					var d: 2 = b
 				case false
-					a = 3
+					b = 3
 				else
-					var f: 4 = a
+					var f: 4 = b
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(67, 4, 17), P(67, 4, 17)), "type `Std::String` cannot be assigned to type `1`"),
-				error.NewFailure(L("<main>", P(98, 6, 17), P(98, 6, 17)), "type `nil` cannot be assigned to type `2`"),
-				error.NewFailure(L("<main>", P(109, 7, 10), P(113, 7, 14)), "type `Std::String?` cannot ever match type `false`"),
-				error.NewFailure(L("<main>", P(120, 8, 6), P(120, 8, 6)), "local value `a` cannot be reassigned"),
-				error.NewFailure(L("<main>", P(124, 8, 10), P(124, 8, 10)), "type `3` cannot be assigned to type `never`"),
-				error.NewFailure(L("<main>", P(151, 10, 17), P(151, 10, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+				error.NewFailure(L("<main>", P(103, 5, 17), P(103, 5, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(134, 7, 17), P(134, 7, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(145, 8, 10), P(149, 8, 14)), "type `Std::String?` cannot ever match type `false`"),
+				error.NewFailure(L("<main>", P(156, 9, 6), P(156, 9, 6)), "local value `b` cannot be reassigned"),
+				error.NewFailure(L("<main>", P(160, 9, 10), P(160, 9, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(187, 11, 17), P(187, 11, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
 			},
 		},
 		"narrows variable assignments": {

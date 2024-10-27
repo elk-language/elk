@@ -5541,7 +5541,7 @@ func (c *Checker) checkVariableDeclaration(
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(name, newLocal(declaredType, false, false))
-		return initialiser, declaredTypeNode, types.Untyped{}
+		return initialiser, declaredTypeNode, types.Void{}
 	}
 
 	// with an initialiser
@@ -5562,7 +5562,7 @@ func (c *Checker) checkVariableDeclaration(
 	c.addLocal(name, newLocal(declaredType, true, false))
 	c.checkCanAssign(actualType, declaredType, init.Span())
 
-	return init, declaredTypeNode, declaredType
+	return init, declaredTypeNode, actualType
 }
 
 func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *ast.VariablePatternDeclarationNode {
@@ -6006,6 +6006,9 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 		classOrMixin = t
 	case *types.Mixin:
 		classOrMixin = t
+	case types.Untyped:
+		node.SetType(types.Untyped{})
+		return node
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -6014,6 +6017,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 			),
 			node.Span(),
 		)
+		node.SetType(types.Untyped{})
 		return node
 	}
 
@@ -6442,7 +6446,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
-		node.SetType(types.Untyped{})
+		node.SetType(types.Void{})
 		return
 	}
 
@@ -6468,7 +6472,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 
 	node.TypeNode = declaredTypeNode
 	node.Initialiser = init
-	node.SetType(declaredType)
+	node.SetType(actualType)
 }
 
 func extractConstantName(node ast.ExpressionNode) string {

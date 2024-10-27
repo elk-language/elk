@@ -467,6 +467,18 @@ func TestVariableAssignment(t *testing.T) {
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
+		"returns void when not initialised": {
+			input: "var a: 9 = (var foo: Int)",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"returns assigned value": {
+			input: "var a: 9 = (var b: String? = 'foo')",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(33, 1, 34)), "type `\"foo\"` cannot be assigned to type `9`"),
+			},
+		},
 		"accept variable declaration with matching initializer and type": {
 			input: "var foo: Int = 5",
 		},
@@ -549,6 +561,12 @@ func TestShortVariableDeclaration(t *testing.T) {
 
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
+		"returns void when not initialised": {
+			input: "var a: 9 = (val foo: Int)",
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
+			},
+		},
 		"accept value declaration with matching initializer and type": {
 			input: "val foo: Int = 5",
 		},

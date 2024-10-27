@@ -1774,7 +1774,7 @@ func TestValueDeclaration(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewValuePatternDeclarationNode(
-							S(P(0, 1, 1), P(19, 1, 20)),
+							S(P(0, 1, 1), P(27, 1, 28)),
 							ast.NewListPatternNode(
 								S(P(4, 1, 5), P(19, 1, 20)),
 								[]ast.PatternNode{
@@ -1814,7 +1814,7 @@ func TestValueDeclaration(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewValuePatternDeclarationNode(
-							S(P(0, 1, 1), P(9, 1, 10)),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							ast.NewListPatternNode(
 								S(P(4, 1, 5), P(9, 1, 10)),
 								[]ast.PatternNode{
@@ -2372,7 +2372,7 @@ func TestVariableDeclaration(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewVariablePatternDeclarationNode(
-							S(P(0, 1, 1), P(19, 1, 20)),
+							S(P(0, 1, 1), P(27, 1, 28)),
 							ast.NewListPatternNode(
 								S(P(4, 1, 5), P(19, 1, 20)),
 								[]ast.PatternNode{
@@ -2412,7 +2412,7 @@ func TestVariableDeclaration(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewVariablePatternDeclarationNode(
-							S(P(0, 1, 1), P(9, 1, 10)),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							ast.NewListPatternNode(
 								S(P(4, 1, 5), P(9, 1, 10)),
 								[]ast.PatternNode{

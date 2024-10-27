@@ -432,6 +432,9 @@ func (c *Checker) toNonTruthy(typ types.Type) types.Type {
 }
 
 func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
+	if typ == nil {
+		return types.Void{}
+	}
 	if !widenSingletonTypes {
 		switch t := typ.(type) {
 		case types.Nil, types.Bool:

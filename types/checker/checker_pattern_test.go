@@ -1838,14 +1838,14 @@ func TestObjectPattern(t *testing.T) {
 					sig baz: String | Float | Int
 				end
 
-				var a: Bar = loop; end
-				var Foo(bar) as f = a
+				def a: Bar then loop; end
+				var Foo(bar) as f = a()
 				var b: 9 = bar
 				var c: 7 = f
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(274, 14, 16), P(276, 14, 18)), "type `nil | Std::String | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(293, 15, 16), P(293, 15, 16)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `7`"),
+				error.NewFailure(L("<main>", P(279, 14, 16), P(281, 14, 18)), "type `nil | Std::String | Std::Float` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(298, 15, 16), P(298, 15, 16)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and interface type with exclusive return types": {
@@ -1860,15 +1860,15 @@ func TestObjectPattern(t *testing.T) {
 					sig baz: Int
 				end
 
-				var a: Bar = loop; end
-				var Foo(bar) as f = a
+				def a: Bar then loop; end
+				var Foo(bar) as f = a()
 				var b: 9 = bar
 				var c: 7 = f
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(198, 13, 9), P(205, 13, 16)), "type `Bar` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(231, 14, 16), P(233, 14, 18)), "type `Std::Value` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(250, 15, 16), P(250, 15, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+				error.NewFailure(L("<main>", P(201, 13, 9), P(208, 13, 16)), "type `Bar` cannot ever match type `Foo`"),
+				error.NewFailure(L("<main>", P(236, 14, 16), P(238, 14, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(255, 15, 16), P(255, 15, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class with invalid method and interface type": {

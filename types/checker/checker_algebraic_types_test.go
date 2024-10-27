@@ -756,7 +756,6 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `3` cannot be assigned to type `never`"),
-				error.NewWarning(L("<main>", P(33, 3, 5), P(44, 3, 16)), "unreachable code"),
 			},
 		},
 		"normalise intersection type with multiple modules": {
@@ -767,7 +766,6 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `3` cannot be assigned to type `never`"),
-				error.NewWarning(L("<main>", P(50, 4, 5), P(61, 4, 16)), "unreachable code"),
 			},
 		},
 		"normalise intersection type with the same module repeated": {

@@ -3956,7 +3956,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	}
 
 	return ast.NewVariablePatternDeclarationNode(
-		varTok.Span().Join(pattern.Span()),
+		varTok.Span().Join(init.Span()),
 		pattern,
 		init,
 	)
@@ -4012,7 +4012,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	}
 
 	return ast.NewValuePatternDeclarationNode(
-		valTok.Span().Join(pattern.Span()),
+		valTok.Span().Join(init.Span()),
 		pattern,
 		init,
 	)
