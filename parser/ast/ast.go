@@ -2500,7 +2500,7 @@ func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode)
 //	  println("nothing")
 //	end
 type SwitchExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Value    ExpressionNode
 	Cases    []*CaseNode
 	ElseBody []StatementNode
@@ -2513,10 +2513,10 @@ func (*SwitchExpressionNode) IsStatic() bool {
 // Create a new `switch` expression node
 func NewSwitchExpressionNode(span *position.Span, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
 	return &SwitchExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-		Cases:    cases,
-		ElseBody: els,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
+		Cases:         cases,
+		ElseBody:      els,
 	}
 }
 

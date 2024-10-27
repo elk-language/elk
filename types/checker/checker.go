@@ -778,6 +778,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return n
 	case *ast.ValuePatternDeclarationNode:
 		return c.checkValuePatternDeclarationNode(n)
+	case *ast.SwitchExpressionNode:
+		return c.checkSwitchExpressionNode(n)
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
 		return n
@@ -5582,6 +5584,34 @@ func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclara
 	c.mode = valuePatternMode
 	node.Pattern = c.checkPattern(node.Pattern, initType)
 	c.mode = prevMode
+	return node
+}
+
+func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast.SwitchExpressionNode {
+	node.Value = c.checkExpression(node.Value)
+	valueType := c.typeOfGuardVoid(node.Value)
+
+	var returnTypes []types.Type
+	for _, caseNode := range node.Cases {
+		c.pushNestedLocalEnv()
+		caseNode.Pattern = c.checkPattern(caseNode.Pattern, valueType)
+		patternType := c.typeOf(caseNode.Pattern)
+		c.narrowToType(node.Value, patternType)
+		caseType, _ := c.checkStatements(caseNode.Body)
+		returnTypes = append(returnTypes, caseType)
+		c.popLocalEnv()
+	}
+
+	if len(node.ElseBody) > 0 {
+		c.pushNestedLocalEnv()
+		c.narrowToType(node.Value, types.Any{})
+		elseType, _ := c.checkStatements(node.ElseBody)
+		returnTypes = append(returnTypes, elseType)
+		c.popLocalEnv()
+	}
+
+	returnType := c.newNormalisedUnion(returnTypes...)
+	node.SetType(returnType)
 	return node
 }
 

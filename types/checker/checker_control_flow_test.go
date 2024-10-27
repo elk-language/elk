@@ -6,6 +6,137 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestSwitchExpression(t *testing.T) {
+	tests := testTable{
+		"has access to outer variables": {
+			input: `
+				a := 5
+				var b: String? = nil
+				switch b
+				case String()
+					var c: 9 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 6, 17), P(84, 6, 17)), "type `Std::Int` cannot be assigned to type `9`"),
+			},
+		},
+		"narrows variables": {
+			input: `
+				var a: String? = nil
+				switch a
+				case String()
+					var c: 1 = a
+				case nil
+					var d: 2 = a
+				case false
+					a = 3
+				else
+					var f: 4 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(73, 5, 17), P(73, 5, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(104, 7, 17), P(104, 7, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(115, 8, 10), P(119, 8, 14)), "type `Std::String?` cannot ever match type `false`"),
+				error.NewFailure(L("<main>", P(130, 9, 10), P(130, 9, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(157, 11, 17), P(157, 11, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+			},
+		},
+		"narrows variable declarations": {
+			input: `
+				switch var a: String? = nil
+				case String()
+					var c: 1 = a
+				case nil
+					var d: 2 = a
+				case false
+					a = 3
+				else
+					var f: 4 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(67, 4, 17), P(67, 4, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(98, 6, 17), P(98, 6, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(109, 7, 10), P(113, 7, 14)), "type `Std::String?` cannot ever match type `false`"),
+				error.NewFailure(L("<main>", P(124, 8, 10), P(124, 8, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(151, 10, 17), P(151, 10, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+			},
+		},
+		"narrows value declarations": {
+			input: `
+				switch val a: String? = nil
+				case String()
+					var c: 1 = a
+				case nil
+					var d: 2 = a
+				case false
+					a = 3
+				else
+					var f: 4 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(67, 4, 17), P(67, 4, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(98, 6, 17), P(98, 6, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(109, 7, 10), P(113, 7, 14)), "type `Std::String?` cannot ever match type `false`"),
+				error.NewFailure(L("<main>", P(120, 8, 6), P(120, 8, 6)), "local value `a` cannot be reassigned"),
+				error.NewFailure(L("<main>", P(124, 8, 10), P(124, 8, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(151, 10, 17), P(151, 10, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+			},
+		},
+		"narrows variable assignments": {
+			input: `
+				var a: String | Float | nil = nil
+				def b: String? then nil
+
+				switch a = b()
+				case String()
+					var c: 1 = a
+				case nil
+					var d: 2 = a
+				case Float()
+					a = 3
+				else
+					var f: 4 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(121, 7, 17), P(121, 7, 17)), "type `Std::String` cannot be assigned to type `1`"),
+				error.NewFailure(L("<main>", P(152, 9, 17), P(152, 9, 17)), "type `nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(163, 10, 10), P(169, 10, 16)), "type `Std::String?` cannot ever match type `Std::Float`"),
+				error.NewFailure(L("<main>", P(180, 11, 10), P(180, 11, 10)), "type `3` cannot be assigned to type `never`"),
+				error.NewFailure(L("<main>", P(207, 13, 17), P(207, 13, 17)), "type `Std::String | nil` cannot be assigned to type `4`"),
+			},
+		},
+		"returns a union of last expression types in each block": {
+			input: `
+				var a: String? = nil
+				var c: 0 =
+				  switch a = b()
+				  case String()
+					  5
+				  case nil
+					  2.5
+				  else
+					  "else"
+				  end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(58, 4, 18), P(60, 4, 20)), "method `b` is not defined on type `Std::Object`"),
+				error.NewFailure(L("<main>", P(47, 4, 7), P(150, 11, 9)), "type `5 | 2.5 | \"else\"` cannot be assigned to type `0`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestBreakExpression(t *testing.T) {
 	tests := testTable{
 		"the return type is never": {

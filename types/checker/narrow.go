@@ -47,6 +47,53 @@ const (
 	assumptionNever
 )
 
+func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
+	switch n := node.(type) {
+	case *ast.PublicIdentifierNode:
+		c.narrowLocalToType(n.Value, c.typeOf(n), typ)
+	case *ast.PrivateIdentifierNode:
+		c.narrowLocalToType(n.Value, c.typeOf(n), typ)
+	case *ast.VariableDeclarationNode:
+		c.narrowLocalToType(n.Name, c.typeOf(n), typ)
+	case *ast.ValueDeclarationNode:
+		c.narrowLocalToType(n.Name, c.typeOf(n), typ)
+	case *ast.AssignmentExpressionNode:
+		c.narrowAssignmentToType(n, typ)
+	}
+}
+
+func (c *Checker) narrowAssignmentToType(node *ast.AssignmentExpressionNode, typ types.Type) {
+	switch node.Op.Type {
+	case token.EQUAL_OP, token.COLON_EQUAL:
+		nodeType := c.typeOf(node)
+		switch l := node.Left.(type) {
+		case *ast.PublicIdentifierNode:
+			c.narrowLocalToType(l.Value, nodeType, typ)
+		case *ast.PrivateIdentifierNode:
+			c.narrowLocalToType(l.Value, nodeType, typ)
+		}
+		return
+	}
+
+	c.narrowToType(node.Left, typ)
+}
+
+func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) types.Type {
+	local, inCurrentEnv := c.resolveLocal(name, nil)
+	if local == nil {
+		return types.Untyped{}
+	}
+
+	if !inCurrentEnv {
+		local = local.copy()
+		c.addLocal(name, local)
+		local.shadow = true
+	}
+	narrowedType := c.newNormalisedIntersection(localType, typ)
+	local.typ = narrowedType
+	return narrowedType
+}
+
 func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	switch n := node.(type) {
 	case *ast.UnaryExpressionNode:
