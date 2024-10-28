@@ -85,9 +85,8 @@ func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) type
 	}
 
 	if !inCurrentEnv {
-		local = local.copy()
+		local = local.createShadow()
 		c.addLocal(name, local)
-		local.shadow = true
 	}
 	narrowedType := c.newNormalisedIntersection(localType, typ)
 	local.typ = narrowedType
@@ -103,10 +102,32 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	case *ast.LogicalExpressionNode:
 		c.narrowLogical(n, assume)
 	case *ast.PublicIdentifierNode:
-		c.narrowLocal(n.Value, assume)
+		c.narrowLocal(n.Value, c.typeOf(n), assume)
 	case *ast.PrivateIdentifierNode:
-		c.narrowLocal(n.Value, assume)
+		c.narrowLocal(n.Value, c.typeOf(n), assume)
+	case *ast.VariableDeclarationNode:
+		c.narrowLocal(n.Name, c.typeOf(n), assume)
+	case *ast.ValueDeclarationNode:
+		c.narrowLocal(n.Name, c.typeOf(n), assume)
+	case *ast.AssignmentExpressionNode:
+		c.narrowAssignment(n, assume)
 	}
+}
+
+func (c *Checker) narrowAssignment(node *ast.AssignmentExpressionNode, assume assumption) {
+	switch node.Op.Type {
+	case token.EQUAL_OP, token.COLON_EQUAL:
+		nodeType := c.typeOf(node)
+		switch l := node.Left.(type) {
+		case *ast.PublicIdentifierNode:
+			c.narrowLocal(l.Value, nodeType, assume)
+		case *ast.PrivateIdentifierNode:
+			c.narrowLocal(l.Value, nodeType, assume)
+		}
+		return
+	}
+
+	c.narrowCondition(node.Left, assume)
 }
 
 func (c *Checker) narrowLogical(node *ast.LogicalExpressionNode, assume assumption) {
@@ -297,8 +318,7 @@ func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type)
 	}
 
 	if !inCurrentEnv {
-		local = local.copy()
-		local.shadow = true
+		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
 	local.typ = c.newNormalisedIntersection(local.typ, typ)
@@ -327,8 +347,7 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 	}
 
 	if !inCurrentEnv {
-		local = local.copy()
-		local.shadow = true
+		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
 	switch assume {
@@ -372,8 +391,7 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 	}
 
 	if !inCurrentEnv {
-		local = local.copy()
-		local.shadow = true
+		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
 	switch assume {
@@ -394,28 +412,27 @@ func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assume assumption) 
 	}
 }
 
-func (c *Checker) narrowLocal(name string, assume assumption) {
+func (c *Checker) narrowLocal(name string, localType types.Type, assume assumption) {
 	local, inCurrentEnv := c.resolveLocal(name, nil)
 	if local == nil {
 		return
 	}
 
 	if !inCurrentEnv {
-		local = local.copy()
+		local = local.createShadow()
 		c.addLocal(name, local)
-		local.shadow = true
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = c.toNonFalsy(local.typ)
+		local.typ = c.toNonFalsy(localType)
 	case assumptionFalsy:
-		local.typ = c.toNonTruthy(local.typ)
+		local.typ = c.toNonTruthy(localType)
 	case assumptionNever:
 		local.typ = types.Never{}
 	case assumptionNil:
 		local.typ = types.Nil{}
 	case assumptionNotNil:
-		local.typ = c.toNonNilable(local.typ)
+		local.typ = c.toNonNilable(localType)
 	}
 }
 

@@ -2133,6 +2133,62 @@ func TestIfExpression(t *testing.T) {
 				end
 			`,
 		},
+		"narrow nilable variable declaration by using truthiness": {
+			input: `
+				var a: Int? = nil
+				if var b: Int | Float | nil = a
+					var c: Int = b
+				else
+					var c: nil = b
+				end
+			`,
+		},
+		"narrow nilable variable assignment by using truthiness": {
+			input: `
+				var a: Int? = nil
+				var b: Int | Float | nil
+				if b = a
+					var c: Int = b
+				else
+					var c: nil = b
+				end
+			`,
+		},
+		"narrow nilable variable by using truthiness and assign wider type": {
+			input: `
+				var a: Int? = nil
+				if a
+					var c: Int = a
+				else
+					var c: nil = a
+					a = 8
+					var d: Int = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(110, 8, 19), P(110, 8, 19)), "type `Std::Int?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"widen narrowed type if a wider value is assigned": {
+			input: `
+				var a: Int | Float | nil = nil
+				switch a
+				case Int() || nil
+					if a
+						var c: Int = a
+					else
+						var c: nil = a
+						a = 2.5
+						var d: 2 = a
+					end
+					var e: 3 = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(164, 10, 18), P(164, 10, 18)), "type `Std::Int | Std::Float | nil` cannot be assigned to type `2`"),
+				error.NewFailure(L("<main>", P(191, 12, 17), P(191, 12, 17)), "type `Std::Int | Std::Float | nil` cannot be assigned to type `3`"),
+			},
+		},
 		"narrow named nilable variable type by using truthiness": {
 			input: `
 				typedef Foo = Int?

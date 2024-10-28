@@ -4131,24 +4131,44 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 }
 
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	var variableType types.Type
 	variable, _ := c.resolveLocal(name, node.Left.Span())
 	if variable == nil {
 		node.Left.SetType(types.Untyped{})
-		variableType = types.Untyped{}
-	} else if variable.singleAssignment && variable.initialised {
+		c.checkExpression(node.Right)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	if variable.singleAssignment && variable.initialised {
 		c.addFailure(
 			fmt.Sprintf("local value `%s` cannot be reassigned", name),
 			node.Left.Span(),
 		)
-		variableType = variable.typ
-	} else {
-		variableType = variable.typ
 	}
 
 	node.Right = c.checkExpression(node.Right)
 	assignedType := c.typeOfGuardVoid(node.Right)
-	c.checkCanAssign(assignedType, variableType, node.Right.Span())
+
+	currentVar := variable
+	var shadows []*local
+	var canAssign bool
+	for ; currentVar != nil; currentVar = currentVar.shadowOf {
+		if c.isSubtype(assignedType, currentVar.typ, nil) {
+			for _, shadow := range shadows {
+				shadow.typ = currentVar.typ
+			}
+			canAssign = true
+			break
+		}
+		shadows = append(shadows, currentVar)
+	}
+	if !canAssign {
+		// for interface implementation errors
+		c.isSubtype(assignedType, variable.typ, node.Right.Span())
+		c.addCannotBeAssignedError(assignedType, variable.typ, node.Right.Span())
+	}
+
+	variable.setInitialised()
 	node.SetType(assignedType)
 	return node
 }
@@ -4677,7 +4697,7 @@ func (c *Checker) addLocal(name string, l *local) {
 func (c *Checker) getLocal(name string) *local {
 	env := c.currentLocalEnv()
 	local := env.getLocal(name)
-	if local == nil || local.shadow {
+	if local == nil || local.isShadow() {
 		return nil
 	}
 
@@ -6659,17 +6679,24 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 	)
 }
 
-func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
+func (c *Checker) checkCanAssign(assignedType, targetType types.Type, span *position.Span) bool {
 	if !c.isSubtype(assignedType, targetType, span) {
-		c.addFailure(
-			fmt.Sprintf(
-				"type `%s` cannot be assigned to type `%s`",
-				types.InspectWithColor(assignedType),
-				types.InspectWithColor(targetType),
-			),
-			span,
-		)
+		c.addCannotBeAssignedError(assignedType, targetType, span)
+		return false
 	}
+
+	return true
+}
+
+func (c *Checker) addCannotBeAssignedError(assignedType, targetType types.Type, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf(
+			"type `%s` cannot be assigned to type `%s`",
+			types.InspectWithColor(assignedType),
+			types.InspectWithColor(targetType),
+		),
+		span,
+	)
 }
 
 func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, span *position.Span) {

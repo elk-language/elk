@@ -8,9 +8,9 @@ import (
 // Represents a single local variable or local value
 type local struct {
 	typ              types.Type
+	shadowOf         *local
 	initialised      bool
 	singleAssignment bool
-	shadow           bool
 }
 
 func (l *local) copy() *local {
@@ -19,6 +19,32 @@ func (l *local) copy() *local {
 		initialised:      l.initialised,
 		singleAssignment: l.singleAssignment,
 	}
+}
+
+func (l *local) createShadow() *local {
+	return &local{
+		typ:              l.typ,
+		initialised:      l.initialised,
+		singleAssignment: l.singleAssignment,
+		shadowOf:         l,
+	}
+}
+
+func (l *local) isShadow() bool {
+	return l.shadowOf != nil
+}
+
+func (l *local) setInitialised() {
+	if l.initialised {
+		return
+	}
+
+	l.initialised = true
+	if !l.isShadow() {
+		return
+	}
+
+	l.shadowOf.setInitialised()
 }
 
 func newLocal(typ types.Type, initialised, singleAssignment bool) *local {

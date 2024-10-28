@@ -12,12 +12,14 @@ func TestVariableAssignment(t *testing.T) {
 			input: `
 				var foo: Int
 				foo = 5
+				println foo
 			`,
 		},
 		"assign uninitialised variable with a non-matching type": {
 			input: `
 				var foo: Int
 				foo = 'f'
+				println foo
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
@@ -54,6 +56,7 @@ func TestVariableAssignment(t *testing.T) {
 			input: `
 				var foo: Int? = 5
 				foo ??= 'f'
+				println foo
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),

@@ -2132,7 +2132,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
-				namespace.DefineMethod("Calculates a hash of the string.", false, false, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
+				namespace.DefineMethod("Calculates a hash of the value.", false, false, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `BigFloat`.\nAlways returns `0.0bf`.", false, false, true, value.ToSymbol("to_big_float"), nil, nil, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Char`.\nAlways returns a null char \\x00.", false, false, true, value.ToSymbol("to_char"), nil, nil, NameToType("Std::Char", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Float`.\nAlways returns `0.0`.", false, false, true, value.ToSymbol("to_float"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Float32`.\nAlways returns `0.0f32`.", false, false, true, value.ToSymbol("to_float32"), nil, nil, NameToType("Std::Float32", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Float64`.\nAlways returns `0.0f64`.", false, false, true, value.ToSymbol("to_float64"), nil, nil, NameToType("Std::Float64", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Int`.\nAlways returns `0`.", false, false, true, value.ToSymbol("to_int"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Int16`.\nAlways returns `0i16`.", false, false, true, value.ToSymbol("to_int16"), nil, nil, NameToType("Std::Int16", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Int32`.\nAlways returns `0i32`.", false, false, true, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Int64`.\nAlways returns `0i64`.", false, false, true, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `Int8`.\nAlways returns `0i8`.", false, false, true, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `String`.\nAlways returns an empty string `\"\"`.", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `UInt16`.\nAlways returns `0u16`.", false, false, true, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `UInt32`.\nAlways returns `0u32`.", false, false, true, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `UInt64`.\nAlways returns `0u64`.", false, false, true, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
+				namespace.DefineMethod("Converts `nil` to `UInt8`.\nAlways returns `0u8`.", false, false, true, value.ToSymbol("to_uint8"), nil, nil, NameToType("Std::UInt8", env), Never{})
 
 				// Define constants
 
