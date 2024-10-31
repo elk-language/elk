@@ -6,6 +6,69 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestDoCatchExpression(t *testing.T) {
+	tests := testTable{
+		"do and finally have their own scopes": {
+			input: `
+				a := 5
+				do
+					a + "foo"
+					b := 5
+				finally
+					a - "bar"
+					b := 2.5
+				end
+				b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(67, 7, 10), P(71, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"bar\"`"),
+				error.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(99, 10, 5), P(99, 10, 5)), "undefined local `b`"),
+			},
+		},
+		"catches have their own scopes": {
+			input: `
+				a := 5
+				do
+					a + "foo"
+					b := 5
+				catch String()
+					a - "bar"
+					b := 2.5
+				catch Char()
+					a * "bar"
+					b := 2u8
+				end
+				b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(74, 7, 10), P(78, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"bar\"`"),
+				error.NewFailure(L("<main>", P(120, 10, 10), P(124, 10, 14)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"bar\"`"),
+				error.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(152, 13, 5), P(152, 13, 5)), "undefined local `b`"),
+			},
+		},
+		"checks invalid patterns": {
+			input: `
+				do
+					println(5)
+				catch String(length) && Int()
+					println(length)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(34, 4, 11), P(56, 4, 33)), "this pattern is impossible to satisfy"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestSwitchExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {

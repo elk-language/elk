@@ -94,15 +94,16 @@ type Checker struct {
 	IsHeader                bool // whether the currently checked file is an Elk header file `.elh`
 	phase                   phase
 	mode                    mode
+	returnType              types.Type
+	throwType               types.Type
+	selfType                types.Type // the type of `self`
 	constantScopes          []constantScope
 	constantScopesCopyCache []constantScope
 	methodScopes            []methodScope
 	methodScopesCopyCache   []methodScope
-	localEnvs               []*localEnvironment // stack of local environments containing variable and value declarations
-	loops                   []*loop             // list of loops the current expression falls under
-	returnType              types.Type
-	throwType               types.Type
-	selfType                types.Type                    // the type of `self`
+	catchScopes             []catchScope
+	localEnvs               []*localEnvironment           // stack of local environments containing variable and value declarations
+	loops                   []*loop                       // list of loops the current expression falls under
 	namespacePlaceholders   []*types.NamespacePlaceholder // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
 	constantPlaceholders    []*types.ConstantPlaceholder  // list of constant/subtype placeholders, used in using statements
 	methodPlaceholders      []*types.Method               // list of method placeholders, used in using statements
@@ -1970,7 +1971,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 	inType := c.typeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
-	node.Pattern = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
 	c.checkExpression(node.ThenExpression)
@@ -1995,7 +1996,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 	inType := c.typeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
-	node.Pattern = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
 	switch then := node.ThenExpression.(type) {
@@ -2026,7 +2027,7 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode) ast.
 	inType := c.typeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
-	node.Pattern = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
 	node.ThenExpression = c.checkExpression(node.ThenExpression)
@@ -2046,7 +2047,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	inType := c.typeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
-	node.Pattern = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
 	c.checkStatements(node.ThenBody)
@@ -2689,12 +2690,45 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 }
 
 func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
+	var resultType types.Type
+
+	if len(node.Catches) > 0 {
+		fullyCaughtTypes := make([]types.Type, 0, len(node.Catches))
+		catchResultTypes := make([]types.Type, 0, len(node.Catches))
+
+		for _, catchNode := range node.Catches {
+			c.pushNestedLocalEnv()
+			var fullyCaughtType types.Type
+			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
+			fullyCaughtTypes = append(fullyCaughtTypes, fullyCaughtType)
+
+			catchResultType, _ := c.checkStatements(catchNode.Body)
+			catchResultTypes = append(catchResultTypes, catchResultType)
+
+			c.popLocalEnv()
+		}
+		resultType = c.newNormalisedUnion(catchResultTypes...)
+		fullyCaughtType := c.newNormalisedUnion(fullyCaughtTypes...)
+		c.pushCatchScope(makeCatchScope(fullyCaughtType))
+		defer c.popCatchScope()
+	}
+
+	if len(node.Finally) > 0 {
+		c.pushNestedLocalEnv()
+		c.checkStatements(node.Finally)
+		c.popLocalEnv()
+	}
+
 	c.pushNestedLocalEnv()
-
-	typ, _ := c.checkStatements(node.Body)
-	node.SetType(typ)
-
+	bodyResultType, _ := c.checkStatements(node.Body)
 	c.popLocalEnv()
+
+	if resultType == nil {
+		resultType = bodyResultType
+	} else {
+		resultType = c.newNormalisedUnion(resultType, bodyResultType)
+	}
+	node.SetType(resultType)
 	return node
 }
 
@@ -5591,7 +5625,7 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 
 	prevMode := c.mode
 	c.mode = variablePatternMode
-	node.Pattern = c.checkPattern(node.Pattern, initType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, initType)
 	c.mode = prevMode
 	return node
 }
@@ -5602,7 +5636,7 @@ func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclara
 
 	prevMode := c.mode
 	c.mode = valuePatternMode
-	node.Pattern = c.checkPattern(node.Pattern, initType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, initType)
 	c.mode = prevMode
 	return node
 }
@@ -5614,7 +5648,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
 		c.pushNestedLocalEnv()
-		caseNode.Pattern = c.checkPattern(caseNode.Pattern, valueType)
+		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.typeOf(caseNode.Pattern)
 		c.narrowToType(node.Value, patternType)
 		caseType, _ := c.checkStatements(caseNode.Body)
@@ -5635,16 +5669,16 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 	return node
 }
 
-func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) ast.PatternNode {
+func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (result ast.PatternNode, fullyCapturedType types.Type) {
 	switch n := node.(type) {
 	case *ast.AsPatternNode:
 		return c.checkAsPatternNode(n, matchedType)
 	case *ast.PublicIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, matchedType, matchedType, n.Span()))
-		return node
+		return node, types.Any{}
 	case *ast.PrivateIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, matchedType, matchedType, n.Span()))
-		return node
+		return node, types.Any{}
 	case *ast.IntLiteralNode:
 		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int64LiteralNode:
@@ -5676,9 +5710,9 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) ast
 	case *ast.InterpolatedSymbolLiteralNode:
 		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.InterpolatedRegexLiteralNode:
-		return c.checkSimpleLiteralPattern(n, matchedType)
+		return c.checkRegexLiteralPattern(n, matchedType)
 	case *ast.UninterpolatedRegexLiteralNode:
-		return c.checkSimpleLiteralPattern(n, matchedType)
+		return c.checkRegexLiteralPattern(n, matchedType)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.RawStringLiteralNode:
@@ -5810,22 +5844,24 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) ast
 	}
 }
 
-func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType types.Type) *ast.BinaryPatternNode {
+func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType types.Type) (*ast.BinaryPatternNode, types.Type) {
 	switch node.Op.Type {
 	case token.OR_OR:
-		node.Left = c.checkPattern(node.Left, matchedType)
+		var leftCatchType, rightCatchType types.Type
+		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
 		leftType := c.typeOf(node.Left)
 
-		node.Right = c.checkPattern(node.Right, matchedType)
+		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
 		rightType := c.typeOf(node.Right)
 
 		node.SetType(c.newNormalisedUnion(leftType, rightType))
-		return node
+		return node, c.newNormalisedUnion(leftCatchType, rightCatchType)
 	case token.AND_AND:
-		node.Left = c.checkPattern(node.Left, matchedType)
+		var leftCatchType, rightCatchType types.Type
+		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
 		leftType := c.typeOf(node.Left)
 
-		node.Right = c.checkPattern(node.Right, matchedType)
+		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
 		rightType := c.typeOf(node.Right)
 
 		intersection := c.newNormalisedIntersection(leftType, rightType)
@@ -5836,30 +5872,39 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 			)
 		}
 		node.SetType(intersection)
-		return node
+		return node, c.newNormalisedIntersection(leftCatchType, rightCatchType)
 	default:
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.String()))
 	}
 }
 
-func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType types.Type) *ast.UnaryExpressionNode {
+func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType types.Type) (ast.PatternNode, types.Type) {
 	switch node.Op.Type {
-	case token.EQUAL_EQUAL, token.STRICT_EQUAL:
+	case token.STRICT_EQUAL:
 		node.Right = c.checkExpression(node.Right)
 		rightType := c.typeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Span())
 		node.SetType(rightType)
-		return node
+		return node, types.Never{}
+	case token.EQUAL_EQUAL:
+		node.Right = c.checkExpression(node.Right)
+		rightType := c.typeOf(node.Right)
+		c.checkCanMatch(matchedType, rightType, node.Right.Span())
+		node.SetType(rightType)
+		if rightType.IsLiteral() {
+			return node, rightType
+		}
+		return node, types.Never{}
 	case token.NOT_EQUAL, token.STRICT_NOT_EQUAL:
 		node.Right = c.checkExpression(node.Right)
 		rightType := c.typeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Span())
 		node.SetType(matchedType)
-		return node
+		return node, types.Never{}
 	case token.LAX_EQUAL, token.LAX_NOT_EQUAL:
 		node.Right = c.checkExpression(node.Right)
 		node.SetType(matchedType)
-		return node
+		return node, types.Never{}
 	case token.LESS:
 		return c.checkRelationalPattern(node, matchedType, symbol.OpLessThan)
 	case token.LESS_EQUAL:
@@ -5869,32 +5914,31 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 	case token.GREATER_EQUAL:
 		return c.checkRelationalPattern(node, matchedType, symbol.OpGreaterThanEqual)
 	case token.MINUS:
-		c.checkSimpleLiteralPattern(node, matchedType)
-		return node
+		return c.checkSimpleLiteralPattern(node, matchedType)
 	case token.PLUS:
-		c.checkSimpleLiteralPattern(node, matchedType)
-		return node
+		return c.checkSimpleLiteralPattern(node, matchedType)
 	default:
 		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.String()))
 	}
 }
 
-func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) *ast.UnaryExpressionNode {
+func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) (*ast.UnaryExpressionNode, types.Type) {
 	node.Right = c.checkExpression(node.Right)
 	rightType := c.toNonLiteral(c.typeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Span()) {
 		node.SetType(types.Untyped{})
-		return node
+		return node, types.Never{}
 	}
 
 	intersection := c.newNormalisedIntersection(rightType, matchedType)
 	node.SetType(intersection)
 	c.getMethod(intersection, operator, node.Op.Span())
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) ast.PatternNode {
-	node.Pattern = c.checkPattern(node.Pattern, typ)
+func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) (ast.PatternNode, types.Type) {
+	result, fullyCapturedType := c.checkPattern(node.Pattern, typ)
+	node.Pattern = result
 	patternType := c.typeOf(node.Pattern)
 
 	switch name := node.Name.(type) {
@@ -5905,31 +5949,31 @@ func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) as
 	default:
 		panic(fmt.Sprintf("invalid identifier node in pattern: %T", node.Name))
 	}
-	return node
+	return node, fullyCapturedType
 }
 
-func (c *Checker) checkConstantLookupPattern(node *ast.ConstantLookupNode, typ types.Type) ast.PatternNode {
+func (c *Checker) checkConstantLookupPattern(node *ast.ConstantLookupNode, typ types.Type) (ast.PatternNode, types.Type) {
 	n := c.checkConstantLookupNode(node)
 	constType := c.typeOfGuardVoid(n)
 
 	c.checkCanMatch(typ, constType, node.Span())
-	return n
+	return n, types.Never{}
 }
 
-func (c *Checker) checkPrivateConstantPattern(node *ast.PrivateConstantNode, typ types.Type) *ast.PrivateConstantNode {
+func (c *Checker) checkPrivateConstantPattern(node *ast.PrivateConstantNode, typ types.Type) (*ast.PrivateConstantNode, types.Type) {
 	node = c.checkPrivateConstantNode(node)
 	constType := c.typeOfGuardVoid(node)
 
 	c.checkCanMatch(typ, constType, node.Span())
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkPublicConstantPattern(node *ast.PublicConstantNode, typ types.Type) *ast.PublicConstantNode {
+func (c *Checker) checkPublicConstantPattern(node *ast.PublicConstantNode, typ types.Type) (*ast.PublicConstantNode, types.Type) {
 	node = c.checkPublicConstantNode(node)
 	constType := c.typeOfGuardVoid(node)
 
 	c.checkCanMatch(typ, constType, node.Span())
-	return node
+	return node, types.Never{}
 }
 
 func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetParent types.Namespace) *types.Generic {
@@ -6009,7 +6053,7 @@ func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny 
 	return extractedNamespace, typeArgs
 }
 
-func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) *ast.ObjectPatternNode {
+func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type) (resultNode *ast.ObjectPatternNode, fullyCapturedType types.Type) {
 	constType, fullName := c.resolveConstantType(node.ObjectType)
 	if constType == nil {
 		constType = types.Untyped{}
@@ -6028,7 +6072,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 		classOrMixin = t
 	case types.Untyped:
 		node.SetType(types.Untyped{})
-		return node
+		return node, types.Never{}
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -6038,7 +6082,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 			node.Span(),
 		)
 		node.SetType(types.Untyped{})
-		return node
+		return node, types.Never{}
 	}
 
 	var ofAny *types.Generic
@@ -6077,56 +6121,71 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 
 	ofAny.FixVariance()
 
+	allAttributesFullyCaptured := true
 	for _, attribute := range node.Attributes {
 		switch attr := attribute.(type) {
 		case *ast.SymbolKeyValuePatternNode:
-			typ := c.checkObjectKeyValuePattern(classOrMixin, attr)
-			attr.SetType(typ)
+			attrType, fullyCaptured := c.checkObjectKeyValuePattern(classOrMixin, attr)
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
 		case *ast.PublicIdentifierNode:
-			typ := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
-			attr.SetType(typ)
+			attrType, fullyCaptured := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
 		case *ast.PrivateIdentifierNode:
-			typ := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
-			attr.SetType(typ)
+			attrType, fullyCaptured := c.checkObjectIdentifierPattern(classOrMixin, attr.Value, attr.Span())
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
 		default:
 			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
 		}
 	}
 
-	return node
+	if allAttributesFullyCaptured {
+		return node, c.typeOf(node)
+	}
+
+	return node, types.Never{}
 }
 
-func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) types.Type {
+func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) (attrType types.Type, fullyCaptured bool) {
 	getter := c.getMethod(namespace, value.ToSymbol(node.Key), node.Span())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
-		return types.Untyped{}
+		return types.Untyped{}, false
 	}
 	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, node.Span())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
-		return types.Untyped{}
+		return types.Untyped{}, false
 	}
 	returnType := c.typeGuardVoid(getter.ReturnType, node.Span())
 
-	c.checkPattern(node.Value, returnType)
-	return returnType
+	var fullyCapturedType types.Type
+	node.Value, fullyCapturedType = c.checkPattern(node.Value, returnType)
+	return returnType, c.isSubtype(returnType, fullyCapturedType, nil)
 }
 
-func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) types.Type {
+func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) (attrType types.Type, fullyCaptured bool) {
 	getter := c.getMethod(namespace, value.ToSymbol(name), span)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, span)
-		return types.Untyped{}
+		return types.Untyped{}, false
 	}
 	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, span)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, span)
-		return types.Untyped{}
+		return types.Untyped{}, false
 	}
 
 	returnType := c.typeGuardVoid(getter.ReturnType, span)
-	return c.checkIdentifierPattern(name, returnType, returnType, span)
+	return c.checkIdentifierPattern(name, returnType, returnType, span), true
 }
 
 func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin *types.Mixin, recordOfAny *types.Generic) (key types.Type, value types.Type) {
@@ -6160,7 +6219,7 @@ func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordO
 	return extractedRecord, keyType, valueType
 }
 
-func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) *ast.MapPatternNode {
+func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*ast.MapPatternNode, types.Type) {
 	mapMixin := c.Std(symbol.Map).(*types.Mixin)
 	mapOfAny := types.NewGenericWithVariance(mapMixin, types.COVARIANT, types.Any{}, types.Any{})
 
@@ -6199,10 +6258,10 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) *ast
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
 		}
 	}
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) *ast.RecordPatternNode {
+func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) (*ast.RecordPatternNode, types.Type) {
 	recordMixin := c.Std(symbol.Record).(*types.Mixin)
 	recordOfAny := types.NewGenericWithVariance(recordMixin, types.COVARIANT, types.Any{}, types.Any{})
 
@@ -6242,10 +6301,10 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 		}
 	}
 
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) *ast.RangeLiteralNode {
+func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) (*ast.RangeLiteralNode, types.Type) {
 	var startType, endType types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
@@ -6287,19 +6346,28 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 
 	c.checkCanMatch(typ, startType, node.Span())
 	node.SetType(startType)
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.PatternExpressionNode, patternType, typ types.Type, span *position.Span) ast.PatternNode {
+func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.PatternExpressionNode, patternType, typ types.Type, span *position.Span) (ast.PatternNode, types.Type) {
 	c.checkCanMatch(typ, patternType, span)
 	node.SetType(patternType)
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ types.Type) ast.PatternNode {
+func (c *Checker) checkRegexLiteralPattern(node ast.RegexLiteralNode, typ types.Type) (ast.PatternNode, types.Type) {
+	c.checkExpression(node)
+	nodeType := c.StdString()
+	node.SetType(nodeType)
+	c.checkCanMatch(typ, nodeType, node.Span())
+	return node, types.Never{}
+}
+
+func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ types.Type) (ast.PatternNode, types.Type) {
 	n := c.checkExpression(node)
-	c.checkCanMatch(typ, c.typeOf(n), n.Span())
-	return node
+	nodeType := c.typeOf(n)
+	c.checkCanMatch(typ, nodeType, n.Span())
+	return node, nodeType
 }
 
 func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.Type, span *position.Span) {
@@ -6331,7 +6399,7 @@ func (c *Checker) checkCanMatchWithTypeArgs(assignedType types.Type, targetType 
 	return true
 }
 
-func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) *ast.TuplePatternNode {
+func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) (*ast.TuplePatternNode, types.Type) {
 	tupleMixin := c.Std(symbol.Tuple).(*types.Mixin)
 	tupleOfAny := types.NewGenericWithTypeArgs(tupleMixin, types.Any{})
 
@@ -6349,7 +6417,7 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)
 	}
-	return node
+	return node, types.Never{}
 }
 
 func (c *Checker) _extractCollectionElement(extractedCollection types.Type, collectionMixin *types.Mixin, collectionOfAny *types.Generic) types.Type {
@@ -6380,7 +6448,7 @@ func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin,
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
-func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) *ast.SetPatternNode {
+func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) (*ast.SetPatternNode, types.Type) {
 	setMixin := c.Std(symbol.Set).(*types.Mixin)
 	setOfAny := types.NewGenericWithVariance(setMixin, types.BIVARIANT, types.Any{})
 
@@ -6399,10 +6467,10 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) *ast
 		c.checkPattern(element, elementType)
 	}
 
-	return node
+	return node, types.Never{}
 }
 
-func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) *ast.ListPatternNode {
+func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*ast.ListPatternNode, types.Type) {
 	listMixin := c.Std(symbol.List).(*types.Mixin)
 	listOfAny := types.NewGenericWithVariance(listMixin, types.COVARIANT, types.Any{})
 
@@ -6421,7 +6489,7 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) *a
 	for _, element := range node.Elements {
 		c.checkPattern(element, elementType)
 	}
-	return node
+	return node, types.Never{}
 }
 
 func (c *Checker) checkIdentifierPattern(name string, valueType, patternType types.Type, span *position.Span) types.Type {
