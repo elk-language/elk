@@ -420,6 +420,9 @@ func (c *Checker) checkMethod(
 	body []ast.StatementNode,
 	span *position.Span,
 ) (ast.TypeNode, ast.TypeNode) {
+	prevCatchScopes := c.catchScopes
+	c.catchScopes = nil
+
 	name := checkedMethod.Name
 	prevMode := c.mode
 	isClosure := types.IsClosure(methodNamespace)
@@ -502,6 +505,7 @@ func (c *Checker) checkMethod(
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 	}
+	c.pushCatchScope(makeCatchScope(throwType))
 
 	if len(body) > 0 && checkedMethod.IsAbstract() {
 		c.addFailure(
@@ -537,6 +541,7 @@ func (c *Checker) checkMethod(
 	c.returnType = nil
 	c.throwType = nil
 	c.mode = prevMode
+	c.catchScopes = prevCatchScopes
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
@@ -1434,6 +1439,8 @@ func (c *Checker) checkSimpleMethodCall(
 		}
 		returnType = receiverType
 	}
+
+	c.checkCalledMethodThrowType(method, span)
 
 	return receiver, typedPositionalArguments, returnType
 }

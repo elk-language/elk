@@ -434,7 +434,6 @@ const (
 	FOR               // Keyword `for`
 	FORNUM            // Keyword `fornum`
 	IN                // Keyword `in`
-	HALT              // Keyword `halt`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
@@ -465,7 +464,6 @@ const (
 	TRY               // Keyword `try`
 	CATCH             // Keyword `catch`
 	DO                // Keyword `do`
-	ENSURE            // Keyword `ensure`
 	FINALLY           // Keyword `finally`
 	ALIAS             // Keyword `alias`
 	AS                // Keyword `as`
@@ -498,6 +496,7 @@ const (
 	IMPORT            // Keyword `import`
 	WHERE             // Keyword `where`
 	UNTYPED           // Keyword `untyped`
+	UNCHECKED         // Keyword `unchecked`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -516,7 +515,6 @@ var Keywords = map[string]Type{
 	"for":        FOR,
 	"fornum":     FORNUM,
 	"in":         IN,
-	"halt":       HALT,
 	"break":      BREAK,
 	"continue":   CONTINUE,
 	"return":     RETURN,
@@ -547,7 +545,6 @@ var Keywords = map[string]Type{
 	"try":        TRY,
 	"catch":      CATCH,
 	"do":         DO,
-	"ensure":     ENSURE,
 	"finally":    FINALLY,
 	"alias":      ALIAS,
 	"as":         AS,
@@ -580,6 +577,7 @@ var Keywords = map[string]Type{
 	"import":     IMPORT,
 	"where":      WHERE,
 	"untyped":    UNTYPED,
+	"unchecked":  UNCHECKED,
 }
 
 var tokenNames = [...]string{
@@ -762,7 +760,6 @@ var tokenNames = [...]string{
 	FOR:        "for",
 	FORNUM:     "fornum",
 	IN:         "in",
-	HALT:       "halt",
 	BREAK:      "break",
 	CONTINUE:   "continue",
 	RETURN:     "return",
@@ -793,7 +790,6 @@ var tokenNames = [...]string{
 	TRY:        "try",
 	CATCH:      "catch",
 	DO:         "do",
-	ENSURE:     "ensure",
 	FINALLY:    "finally",
 	ALIAS:      "alias",
 	AS:         "as",
@@ -826,4 +822,5 @@ var tokenNames = [...]string{
 	IMPORT:     "import",
 	WHERE:      "where",
 	UNTYPED:    "untyped",
+	UNCHECKED:  "unchecked",
 }

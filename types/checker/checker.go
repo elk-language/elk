@@ -126,6 +126,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		IsHeader:   headerMode,
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
+		throwType:  types.Never{},
 		mode:       topLevelMode,
 		Errors:     new(error.SyncErrorList),
 		constantScopes: []constantScope{
@@ -913,6 +914,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkHashRecordLiteralNode(n)
 	case *ast.RangeLiteralNode:
 		return c.checkRangeLiteralNode(n)
+	case *ast.ThrowExpressionNode:
+		return c.checkThrowExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -3512,6 +3515,8 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		typedPositionalArguments,
 		nil,
 	)
+	c.checkCalledMethodThrowType(method, node.Span())
+
 	newNode.SetType(method.ReturnType)
 	return newNode
 }

@@ -4417,20 +4417,27 @@ tokenLoop:
 	)
 }
 
-// throwExpression = "throw" [expressionWithoutModifier]
+// throwExpression = "throw" ["unchecked"] [expressionWithoutModifier]
 func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	throwTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
 		return ast.NewThrowExpressionNode(
 			throwTok.Span(),
+			false,
 			nil,
 		)
+	}
+
+	var unchecked bool
+	if p.match(token.UNCHECKED) {
+		unchecked = true
 	}
 
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewThrowExpressionNode(
 		throwTok.Span().Join(expr.Span()),
+		unchecked,
 		expr,
 	)
 }

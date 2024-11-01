@@ -2731,7 +2731,7 @@ func TestThrow(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
+						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), false, nil),
 					),
 				},
 			),
@@ -2743,7 +2743,7 @@ func TestThrow(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
+						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), false, nil),
 					),
 					ast.NewExpressionStatementNode(
 						S(P(6, 2, 1), P(6, 2, 1)),
@@ -2761,7 +2761,24 @@ func TestThrow(t *testing.T) {
 						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewThrowExpressionNode(
 							S(P(0, 1, 1), P(6, 1, 7)),
+							false,
 							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can be unchecked": {
+			input: `throw unchecked 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewThrowExpressionNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							true,
+							ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
 						),
 					),
 				},
@@ -2778,7 +2795,7 @@ func TestThrow(t *testing.T) {
 							S(P(0, 1, 1), P(11, 1, 12)),
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewThrowExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), nil),
+							ast.NewThrowExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), false, nil),
 						),
 					),
 				},

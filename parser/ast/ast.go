@@ -2762,10 +2762,11 @@ func NewContinueExpressionNode(span *position.Span, label string, val Expression
 	}
 }
 
-// Represents a `throw` expression eg. `throw ArgumentError.new("foo")`
+// Represents a `throw` expression eg. `throw ArgumentError("foo")`
 type ThrowExpressionNode struct {
 	NodeBase
-	Value ExpressionNode
+	Unchecked bool
+	Value     ExpressionNode
 }
 
 func (*ThrowExpressionNode) Type(*types.GlobalEnvironment) types.Type {
@@ -2776,11 +2777,12 @@ func (*ThrowExpressionNode) IsStatic() bool {
 	return false
 }
 
-// Create a new `throw` expression node eg. `throw ArgumentError.new("foo")`
-func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpressionNode {
+// Create a new `throw` expression node eg. `throw ArgumentError("foo")`
+func NewThrowExpressionNode(span *position.Span, unchecked bool, val ExpressionNode) *ThrowExpressionNode {
 	return &ThrowExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
+		NodeBase:  NodeBase{span: span},
+		Unchecked: unchecked,
+		Value:     val,
 	}
 }
 
