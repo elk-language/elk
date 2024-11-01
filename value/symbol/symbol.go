@@ -63,6 +63,7 @@ var (
 	Comparable           = value.ToSymbol("Comparable")
 	Iterable             = value.ToSymbol("Iterable")
 	PrimitiveIterable    = value.ToSymbol("PrimitiveIterable")
+	Error                = value.ToSymbol("Error")
 )
 
 // lowercase symbols

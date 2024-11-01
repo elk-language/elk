@@ -69,6 +69,247 @@ func TestDoCatchExpression(t *testing.T) {
 	}
 }
 
+func TestThrowExpression(t *testing.T) {
+	tests := testTable{
+		"throw without value": {
+			input: `
+				throw
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(9, 2, 9)), "thrown value of type `Std::Error` must be caught"),
+			},
+		},
+		"throw without catch": {
+			input: `
+				throw :foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(14, 2, 14)), "thrown value of type `:foo` must be caught"),
+			},
+		},
+		"throw with different catch": {
+			input: `
+				do
+					throw :foo
+				catch String() as str
+					println str
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 3, 6), P(22, 3, 15)), "thrown value of type `:foo` must be caught"),
+			},
+		},
+		"throw with matching catch": {
+			input: `
+				do
+					throw :foo
+				catch :foo
+					println "lol"
+				end
+			`,
+		},
+		"throw with non-exhaustive catch": {
+			input: `
+				do
+					var a: Symbol = :foo
+					throw a
+				catch :foo
+					println "lol"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(39, 4, 6), P(45, 4, 12)), "thrown value of type `Std::Symbol` must be caught"),
+			},
+		},
+		"throw with wider catch": {
+			input: `
+				do
+					throw :foo
+				catch Symbol()
+					println "lol"
+				end
+			`,
+		},
+		"call receiverless method that throws": {
+			input: `
+				def foo! Symbol
+					throw :foo
+				end
+
+				foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 6, 5), P(54, 6, 9)), "thrown value of type `Std::Symbol` must be caught"),
+			},
+		},
+		"call receiverless method that throws and catch": {
+			input: `
+				def foo! Symbol
+					throw :foo
+				end
+
+				do
+					foo()
+				catch Symbol() as sym
+					println sym
+				end
+			`,
+		},
+		"call method that throws": {
+			input: `
+				module Foo
+					def foo! Symbol
+						throw :foo
+					end
+				end
+
+				Foo.foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(76, 8, 5), P(84, 8, 13)), "thrown value of type `Std::Symbol` must be caught"),
+			},
+		},
+		"call method that throws and catch": {
+			input: `
+				module Foo
+					def foo! Symbol
+						throw :foo
+					end
+				end
+
+				do
+					Foo.foo()
+				catch Symbol() as sym
+					println sym
+				end
+			`,
+		},
+		"call closure that throws": {
+			input: `
+				foo := ||! Symbol -> throw :foo
+				foo.()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(41, 3, 5), P(46, 3, 10)), "thrown value of type `Std::Symbol` must be caught"),
+			},
+		},
+		"call closure that throws and catch": {
+			input: `
+				foo := ||! Symbol -> throw :foo
+
+				do
+					foo.()
+				catch Symbol() as sym
+					println sym
+				end
+			`,
+		},
+
+		"method body - throw without catch": {
+			input: `
+				def bar
+					throw :foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 3, 6), P(27, 3, 15)), "thrown value of type `:foo` must be caught or added to the signature of the function `! :foo`"),
+			},
+		},
+		"method body - throw with different catch": {
+			input: `
+				def bar
+					do
+						throw :foo
+					catch String() as str
+						println str
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 4, 7), P(36, 4, 16)), "thrown value of type `:foo` must be caught or added to the signature of the function `! :foo`"),
+			},
+		},
+		"method body - throw with matching catch": {
+			input: `
+				def bar
+					do
+						throw :foo
+					catch :foo
+						println "lol"
+					end
+				end
+			`,
+		},
+		"method body - throw with non-exhaustive catch": {
+			input: `
+				def bar
+					do
+						var a: Symbol = :foo
+						throw a
+					catch :foo
+						println "lol"
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 5, 7), P(60, 5, 13)), "thrown value of type `Std::Symbol` must be caught or added to the signature of the function `! Std::Symbol`"),
+			},
+		},
+		"method body - throw with wider catch": {
+			input: `
+				def bar
+					do
+						throw :foo
+					catch Symbol()
+						println "lol"
+					end
+				end
+			`,
+		},
+		"method body - throw with different method throw type": {
+			input: `
+				def bar! String
+					throw :foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(26, 3, 6), P(35, 3, 15)), "thrown value of type `:foo` must be caught or added to the signature of the function `! Std::String | :foo`"),
+			},
+		},
+		"method body - throw with matching method throw type": {
+			input: `
+				def bar! :foo
+					throw :foo
+				end
+			`,
+		},
+		"method body - throw with non-exhaustive method throw type": {
+			input: `
+				def bar! :foo
+					var a: Symbol = :foo
+					throw a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 4, 6), P(56, 4, 12)), "thrown value of type `Std::Symbol` must be caught or added to the signature of the function `! Std::Symbol`"),
+			},
+		},
+		"method body - throw with wider method throw type": {
+			input: `
+				def bar! Symbol
+					throw :foo
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestSwitchExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {

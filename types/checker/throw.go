@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type catchScope struct {
@@ -35,8 +36,13 @@ func (c *Checker) enclosingCatchScope() catchScope {
 }
 
 func (c *Checker) checkThrowExpressionNode(node *ast.ThrowExpressionNode) *ast.ThrowExpressionNode {
-	node.Value = c.checkExpression(node.Value)
-	thrownType := c.typeOf(node.Value)
+	var thrownType types.Type
+	if node.Value == nil {
+		thrownType = c.Std(symbol.Error)
+	} else {
+		node.Value = c.checkExpression(node.Value)
+		thrownType = c.typeOf(node.Value)
+	}
 
 	if !node.Unchecked {
 		c.checkThrowType(thrownType, node.Span())
