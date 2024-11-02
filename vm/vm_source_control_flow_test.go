@@ -7,6 +7,36 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_Must(t *testing.T) {
+	tests := sourceTestTable{
+		"must with value": {
+			source: `
+				println "1"
+				a := must 5
+				println a
+			`,
+			wantStdout:   "1\n5\n",
+			wantStackTop: value.NilType{},
+		},
+		"must with nil": {
+			source: `
+				println "1"
+				var a: Int? = nil
+				b := must a
+				println b
+			`,
+			wantStdout:     "1\n",
+			wantRuntimeErr: value.NewUnexpectedNilError(),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_ThrowCatch(t *testing.T) {
 	tests := sourceTestTable{
 		"throw": {

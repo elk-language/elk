@@ -708,6 +708,8 @@ func (vm *VM) run() {
 			vm.ip -= int(jump)
 		case bytecode.THROW:
 			vm.throw(vm.pop())
+		case bytecode.MUST:
+			vm.throwIfErr(vm.must())
 		case bytecode.RETHROW:
 			err := vm.pop()
 			stackTrace := vm.pop().(value.String)
@@ -3016,6 +3018,16 @@ func (vm *VM) divide() (err value.Value) {
 // Exponentiate two operands and push the result to the stack.
 func (vm *VM) exponentiate() (err value.Value) {
 	return vm.binaryOperation(value.Exponentiate, symbol.OpExponentiate)
+}
+
+// Throw an error when the value on top of the stack is `nil`
+func (vm *VM) must() (err value.Value) {
+	val := vm.peek()
+	if value.IsNil(val) {
+		return value.NewUnexpectedNilError()
+	}
+
+	return nil
 }
 
 // Throw an error and attempt to find code

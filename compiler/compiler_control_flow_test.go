@@ -5580,6 +5580,35 @@ func TestUntil(t *testing.T) {
 	}
 }
 
+func TestMust(t *testing.T) {
+	tests := testTable{
+		"with a value": {
+			input: `must :foo`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.MUST),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestThrow(t *testing.T) {
 	tests := testTable{
 		"with a value": {

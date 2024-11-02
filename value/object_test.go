@@ -17,19 +17,19 @@ func TestObjectInspect(t *testing.T) {
 			want: `<anonymous>{}`,
 		},
 		"named class and empty ivars": {
-			obj:  value.NewObject(value.ObjectWithClass(value.ExceptionClass)),
-			want: `Std::Exception{}`,
+			obj:  value.NewObject(value.ObjectWithClass(value.ErrorClass)),
+			want: `Std::Error{}`,
 		},
 		"named class and ivars": {
 			obj: value.NewObject(
-				value.ObjectWithClass(value.ExceptionClass),
+				value.ObjectWithClass(value.ErrorClass),
 				value.ObjectWithInstanceVariables(
 					value.SymbolMap{
 						value.ToSymbol("message"): value.String("foo bar!"),
 					},
 				),
 			),
-			want: `Std::Exception{message: "foo bar!"}`,
+			want: `Std::Error{message: "foo bar!"}`,
 		},
 		"anonymous class and ivars": {
 			obj: value.NewObject(

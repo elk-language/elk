@@ -7,18 +7,15 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// ::Std::Exception
-//
-// Parent class for all exceptions.
-var ExceptionClass *Class
-
 // ::Std::Error
 //
-// Parent class for all errors
-// that are automatically caught
-// by a `catch` expression without
-// type constraints.
+// Parent class for all exceptions.
 var ErrorClass *Class
+
+// ::Std::UnexpectedNilError
+//
+// Thrown when a `nil` value is encountered in a `must` expression.
+var UnexpectedNilErrorClass *Class
 
 // ::Std::TypeError
 //
@@ -476,6 +473,15 @@ func NewCoerceError(target, other *Class) *Error {
 }
 
 // Create a new error which signals
+// that a `nil` value has been encountered in a `must` expression
+func NewUnexpectedNilError() *Error {
+	return NewError(
+		TypeErrorClass,
+		"unexpected nil value in a must expression",
+	)
+}
+
+// Create a new error which signals
 // that the value can't be used as capacity.
 func NewCapacityTypeError(val string) *Error {
 	return Errorf(
@@ -530,11 +536,11 @@ func (e *Error) Message() Value {
 }
 
 func initException() {
-	ExceptionClass = NewClass()
-	StdModule.AddConstantString("Exception", ExceptionClass)
-
-	ErrorClass = NewClassWithOptions(ClassWithParent(ExceptionClass))
+	ErrorClass = NewClass()
 	StdModule.AddConstantString("Error", ErrorClass)
+
+	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("UnexpectedNilError", UnexpectedNilErrorClass)
 
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("TypeError", TypeErrorClass)

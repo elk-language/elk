@@ -161,7 +161,7 @@ const (
 	NEW_RANGE         // Create a new range
 	_
 	_
-	_
+	MUST            // Throw an error if the value on top of the stack is `nil`
 	INSTANCE_OF     // Pop two values of the stack, check whether one is an instance of the other
 	IS_A            // Pop two values of the stack, check whether one is an instance of the subclass of the other
 	POP_SKIP_ONE    // Pop the value on top of the stack skipping the first one
@@ -308,6 +308,7 @@ var opCodeNames = [...]string{
 	NEW_SYMBOL32:       "NEW_SYMBOL32",
 	SWAP:               "SWAP",
 	NEW_RANGE:          "NEW_RANGE",
+	MUST:               "MUST",
 	INSTANCE_OF:        "INSTANCE_OF",
 	IS_A:               "IS_A",
 	POP_SKIP_ONE:       "POP_SKIP_ONE",
