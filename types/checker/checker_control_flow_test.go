@@ -69,6 +69,36 @@ func TestDoCatchExpression(t *testing.T) {
 	}
 }
 
+func TestMustExpression(t *testing.T) {
+	tests := testTable{
+		"must with a non-nilable value": {
+			input: `
+				a := 6
+				var b: -1 = must a
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(28, 3, 17), P(33, 3, 22)), "unnecessary `must`, type `Std::Int` is not nilable"),
+				error.NewFailure(L("<main>", P(28, 3, 17), P(33, 3, 22)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+		"must with a nilable value": {
+			input: `
+				var a: Int? = 6
+				var b: -1 = must a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 3, 17), P(42, 3, 22)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestThrowExpression(t *testing.T) {
 	tests := testTable{
 		"throw without value": {

@@ -340,6 +340,7 @@ func (*LabeledExpressionNode) expressionNode()             {}
 func (*ReturnExpressionNode) expressionNode()              {}
 func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
+func (*MustExpressionNode) expressionNode()                {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
 func (*MethodLookupNode) expressionNode()                  {}
@@ -2783,6 +2784,24 @@ func NewThrowExpressionNode(span *position.Span, unchecked bool, val ExpressionN
 		NodeBase:  NodeBase{span: span},
 		Unchecked: unchecked,
 		Value:     val,
+	}
+}
+
+// Represents a `must` expression eg. `must foo()`
+type MustExpressionNode struct {
+	TypedNodeBase
+	Value ExpressionNode
+}
+
+func (*MustExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `throw` expression node eg. `must foo()`
+func NewMustExpressionNode(span *position.Span, val ExpressionNode) *MustExpressionNode {
+	return &MustExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
 	}
 }
 

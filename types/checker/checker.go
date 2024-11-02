@@ -917,6 +917,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkRangeLiteralNode(n)
 	case *ast.ThrowExpressionNode:
 		return c.checkThrowExpressionNode(n)
+	case *ast.MustExpressionNode:
+		return c.checkMustExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1024,6 +1026,26 @@ func (c *Checker) StdTrue() *types.Class {
 
 func (c *Checker) StdFalse() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.False)
+}
+
+func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.MustExpressionNode {
+	node.Value = c.checkExpression(node.Value)
+	mustType := c.typeOf(node.Value)
+	if !c.isNilable(mustType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"unnecessary `%s`, type `%s` is not nilable",
+				lexer.Colorize("must"),
+				types.InspectWithColor(mustType),
+			),
+			node.Span(),
+		)
+		node.SetType(mustType)
+		return node
+	}
+
+	node.SetType(c.toNonNilable(mustType))
+	return node
 }
 
 func (c *Checker) checkArithmeticBinaryOperator(
