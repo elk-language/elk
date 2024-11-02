@@ -73,8 +73,9 @@ const (
 	inheritanceMode // active when typechecking an included mixin, implemented interface, or superclass
 	inferTypeArgumentMode
 	methodCompatibilityInAlgebraicTypeMode
-	variablePatternMode
 	valuePatternMode
+	nilableValuePatternMode
+	nilablePatternMode
 )
 
 type phase uint8
@@ -5628,10 +5629,7 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	initType := c.typeOf(node.Initialiser)
 
-	prevMode := c.mode
-	c.mode = variablePatternMode
 	node.Pattern, _ = c.checkPattern(node.Pattern, initType)
-	c.mode = prevMode
 	return node
 }
 
@@ -5856,8 +5854,16 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
 		leftType := c.typeOf(node.Left)
 
+		prevMode := c.mode
+		switch c.mode {
+		case valuePatternMode, nilableValuePatternMode:
+			c.mode = nilableValuePatternMode
+		default:
+			c.mode = nilablePatternMode
+		}
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
 		rightType := c.typeOf(node.Right)
+		c.mode = prevMode
 
 		node.SetType(c.newNormalisedUnion(leftType, rightType))
 		return node, c.newNormalisedUnion(leftCatchType, rightCatchType)
@@ -6500,7 +6506,22 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*
 func (c *Checker) checkIdentifierPattern(name string, valueType, patternType types.Type, span *position.Span) types.Type {
 	variable := c.getLocal(name)
 	if variable == nil {
-		c.addLocal(name, newLocal(c.toNonLiteral(patternType, false), true, c.mode == valuePatternMode))
+		var local *local
+		switch c.mode {
+		case valuePatternMode:
+			varType := c.toNonLiteral(patternType, false)
+			local = newLocal(varType, true, true)
+		case nilableValuePatternMode:
+			varType := c.toNilable(c.toNonLiteral(patternType, false))
+			local = newLocal(varType, true, true)
+		case nilablePatternMode:
+			varType := c.toNilable(c.toNonLiteral(patternType, false))
+			local = newLocal(varType, true, false)
+		default:
+			varType := c.toNonLiteral(patternType, false)
+			local = newLocal(varType, true, false)
+		}
+		c.addLocal(name, local)
 		return patternType
 	}
 

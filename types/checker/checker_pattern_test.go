@@ -2476,6 +2476,29 @@ func TestBinaryPattern(t *testing.T) {
 				error.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
 			},
 		},
+		"|| - conditional variables": {
+			input: `
+				var a: String | Float | Int = 1
+				var 1 || ("foo" as b) = a
+				var c: 9 = b
+				b = "lol"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+			},
+		},
+		"|| - conditional values": {
+			input: `
+				val a: String | Float | Int = 1
+				val 1 || ("foo" as b) = a
+				val c: 9 = b
+				b = "lol"
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(88, 5, 5), P(88, 5, 5)), "local value `b` cannot be reassigned"),
+			},
+		},
 
 		"&& - matching patterns": {
 			input: `
