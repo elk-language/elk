@@ -603,6 +603,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.throwExpression(node)
 	case *ast.MustExpressionNode:
 		c.mustExpression(node)
+	case *ast.TypeofExpressionNode:
+		c.typeofExpression(node)
 	case *ast.DoExpressionNode:
 		c.doExpression(node)
 	case *ast.IfExpressionNode:
@@ -729,6 +731,10 @@ func (c *Compiler) compileNode(node ast.Node) {
 			c.newLocation(node.Span()),
 		)
 	}
+}
+
+func (c *Compiler) typeofExpression(node *ast.TypeofExpressionNode) {
+	c.compileNode(node.Value)
 }
 
 func (c *Compiler) mustExpression(node *ast.MustExpressionNode) {

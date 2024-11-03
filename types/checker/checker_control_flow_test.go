@@ -2320,6 +2320,18 @@ func TestUnlessExpression(t *testing.T) {
 				end
 			`,
 		},
+		"narrow nilable variable and return": {
+			input: `
+				def foo(a: Int?)
+					return unless a
+
+					var b: nil = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(62, 5, 19), P(62, 5, 19)), "type `Std::Int` cannot be assigned to type `nil`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -2501,6 +2513,18 @@ func TestIfExpression(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(110, 8, 19), P(110, 8, 19)), "type `Std::Int?` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"narrow nilable variable and return": {
+			input: `
+				def foo(a: Int?)
+					return if !a
+
+					var b: nil = a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 5, 19), P(59, 5, 19)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 		"widen narrowed type if a wider value is assigned": {

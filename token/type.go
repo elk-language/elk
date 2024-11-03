@@ -457,6 +457,7 @@ const (
 	ENUM              // Keyword `enum`
 	TYPE              // Keyword `type`
 	TYPEDEF           // Keyword `typedef`
+	TYPEOF            // Keyword `typeof`
 	VAR               // Keyword `var`
 	VAL               // Keyword `val`
 	CONST             // Keyword `const`
@@ -538,6 +539,7 @@ var Keywords = map[string]Type{
 	"enum":       ENUM,
 	"type":       TYPE,
 	"typedef":    TYPEDEF,
+	"typeof":     TYPEOF,
 	"var":        VAR,
 	"val":        VAL,
 	"const":      CONST,
@@ -783,6 +785,7 @@ var tokenNames = [...]string{
 	ENUM:       "enum",
 	TYPE:       "type",
 	TYPEDEF:    "typedef",
+	TYPEOF:     "typeof",
 	VAR:        "var",
 	VAL:        "val",
 	CONST:      "const",

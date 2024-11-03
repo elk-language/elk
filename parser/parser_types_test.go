@@ -8,6 +8,35 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestTypeof(t *testing.T) {
+	tests := testTable{
+		"with an argument": {
+			input: "typeof 1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewTypeofExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewIntLiteralNode(
+								S(P(7, 1, 8), P(7, 1, 8)),
+								"1",
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestClosureType(t *testing.T) {
 	tests := testTable{
 		"void closure without arguments": {

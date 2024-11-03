@@ -1947,6 +1947,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
+	case token.TYPEOF:
+		return p.typeofExpression()
 	case token.REGEX_BEG:
 		return p.regexLiteral()
 	case token.SPECIAL_IDENTIFIER:
@@ -4444,12 +4446,23 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	)
 }
 
-// throwExpression = "must" [expressionWithoutModifier]
+// mustExpression = "must" [expressionWithoutModifier]
 func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	mustTok := p.advance()
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewMustExpressionNode(
+		mustTok.Span().Join(expr.Span()),
+		expr,
+	)
+}
+
+// typeofExpression = "typeof" [expressionWithoutModifier]
+func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
+	mustTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewTypeofExpressionNode(
 		mustTok.Span().Join(expr.Span()),
 		expr,
 	)

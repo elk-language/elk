@@ -418,7 +418,7 @@ func (c *Checker) narrowLocal(name string, localType types.Type, assume assumpti
 		return
 	}
 
-	if !inCurrentEnv {
+	if !inCurrentEnv && c.mode != mutateLocalsInNarrowing {
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}

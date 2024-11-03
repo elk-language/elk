@@ -341,6 +341,7 @@ func (*ReturnExpressionNode) expressionNode()              {}
 func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*MustExpressionNode) expressionNode()                {}
+func (*TypeofExpressionNode) expressionNode()              {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
 func (*MethodLookupNode) expressionNode()                  {}
@@ -2800,6 +2801,24 @@ func (*MustExpressionNode) IsStatic() bool {
 // Create a new `throw` expression node eg. `must foo()`
 func NewMustExpressionNode(span *position.Span, val ExpressionNode) *MustExpressionNode {
 	return &MustExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
+	}
+}
+
+// Represents a `typeof` expression eg. `typeof foo()`
+type TypeofExpressionNode struct {
+	TypedNodeBase
+	Value ExpressionNode
+}
+
+func (*TypeofExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `typeof` expression node eg. `typeof foo()`
+func NewTypeofExpressionNode(span *position.Span, val ExpressionNode) *TypeofExpressionNode {
+	return &TypeofExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Value:         val,
 	}

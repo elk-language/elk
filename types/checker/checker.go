@@ -76,6 +76,7 @@ const (
 	valuePatternMode
 	nilableValuePatternMode
 	nilablePatternMode
+	mutateLocalsInNarrowing // mutate local variables when doing narrowing, instead of creating shadow locals
 )
 
 type phase uint8
@@ -851,6 +852,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkPostfixExpressionNode(n)
 	case *ast.DoExpressionNode:
 		return c.checkDoExpressionNode(n)
+	case *ast.TypeofExpressionNode:
+		return c.checkTypeofExpressionNode(n)
 	case *ast.IfExpressionNode:
 		return c.checkIfExpressionNode(n)
 	case *ast.ModifierIfElseNode:
@@ -2339,6 +2342,13 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 	return node
 }
 
+func (c *Checker) checkTypeofExpressionNode(node *ast.TypeofExpressionNode) ast.ExpressionNode {
+	node.Value = c.checkExpression(node.Value)
+	typ := c.typeOf(node.Value)
+	fmt.Printf("typeof: %s\n", types.InspectWithColor(typ))
+	return node
+}
+
 func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
@@ -2350,7 +2360,16 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
+
+	prevMode := c.mode
+	if types.IsNever(thenType) {
+		c.mode = mutateLocalsInNarrowing
+	}
 	c.narrowCondition(node.Condition, assumptionTruthy)
+	if types.IsNever(thenType) {
+		c.mode = prevMode
+	}
+
 	elseType, _ := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
@@ -2444,7 +2463,16 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
+
+	prevMode := c.mode
+	if types.IsNever(thenType) {
+		c.mode = mutateLocalsInNarrowing
+	}
 	c.narrowCondition(node.Condition, assumptionFalsy)
+	if types.IsNever(thenType) {
+		c.mode = prevMode
+	}
+
 	elseType, _ := c.checkStatements(node.ElseBody)
 	c.popLocalEnv()
 
