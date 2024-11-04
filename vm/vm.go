@@ -709,7 +709,9 @@ func (vm *VM) run() {
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.MUST:
-			vm.throwIfErr(vm.must())
+			vm.must()
+		case bytecode.AS:
+			vm.as()
 		case bytecode.RETHROW:
 			err := vm.pop()
 			stackTrace := vm.pop().(value.String)
@@ -3021,13 +3023,27 @@ func (vm *VM) exponentiate() (err value.Value) {
 }
 
 // Throw an error when the value on top of the stack is `nil`
-func (vm *VM) must() (err value.Value) {
+func (vm *VM) must() {
 	val := vm.peek()
 	if value.IsNil(val) {
-		return value.NewUnexpectedNilError()
+		vm.throw(value.NewUnexpectedNilError())
 	}
+}
 
-	return nil
+// Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
+func (vm *VM) as() {
+	class := vm.pop().(*value.Class)
+	val := vm.peek()
+	if !value.IsA(val, class) {
+		vm.throw(
+			value.Errorf(
+				value.TypeErrorClass,
+				"failed type cast, `%s` is not an instance of `%s`",
+				val.Inspect(),
+				class.Name,
+			),
+		)
+	}
 }
 
 // Throw an error and attempt to find code

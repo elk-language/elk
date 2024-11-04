@@ -5609,6 +5609,48 @@ func TestMust(t *testing.T) {
 	}
 }
 
+func TestAs(t *testing.T) {
+	tests := testTable{
+		"cast": {
+			input: `
+				var a: Int | Float = 1
+				a as ::Std::Int
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.AS),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(47, 3, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 9),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Int"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestThrow(t *testing.T) {
 	tests := testTable{
 		"with a value": {

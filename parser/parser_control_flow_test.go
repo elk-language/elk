@@ -2773,6 +2773,109 @@ func TestMust(t *testing.T) {
 	}
 }
 
+func TestAs(t *testing.T) {
+	tests := testTable{
+		"can have a public constant as a type": {
+			input: `a as String`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewAsExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewPublicConstantNode(S(P(5, 1, 6), P(10, 1, 11)), "String"),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as a type": {
+			input: `a as _String`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewAsExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewPrivateConstantNode(S(P(5, 1, 6), P(11, 1, 12)), "_String"),
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as a type": {
+			input: `a as ::Std::String`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewAsExpressionNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewConstantLookupNode(
+								S(P(5, 1, 6), P(17, 1, 18)),
+								ast.NewConstantLookupNode(
+									S(P(5, 1, 6), P(9, 1, 10)),
+									nil,
+									ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Std"),
+								),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(17, 1, 18)), "String"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"cannot have a public identifier as a type": {
+			input: `a as string`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(0, 1, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+						ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(2, 1, 3), P(3, 1, 4)), "unexpected as, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"is an expression": {
+			input: `foo := a as String`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.COLON_EQUAL),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewAsExpressionNode(
+								S(P(7, 1, 8), P(17, 1, 18)),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(7, 1, 8)), "a"),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(17, 1, 18)), "String"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestThrow(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {

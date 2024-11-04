@@ -1239,14 +1239,14 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.multiplicativeExpression, token.PLUS, token.MINUS)
 }
 
-// multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/" | "%") unaryExpression
+// multiplicativeExpression = rangeLiteral | multiplicativeExpression ("*" | "/" | "%") rangeLiteral
 func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.rangeLiteral, token.STAR, token.SLASH, token.PERCENT)
 }
 
-// rangeLiteral = unaryExpression ("..." | "<.." | "..<" | "<.<") [unaryExpression]
+// rangeLiteral = asExpression | asExpression ("..." | "<.." | "..<" | "<.<") [asExpression]
 func (p *Parser) rangeLiteral() ast.ExpressionNode {
-	left := p.unaryExpression()
+	left := p.asExpression()
 	op, ok := p.matchOk(token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP)
 	if !ok {
 		return left
@@ -1261,7 +1261,7 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 		)
 	}
 
-	right := p.unaryExpression()
+	right := p.asExpression()
 
 	return ast.NewRangeLiteralNode(
 		left.Span().Join(right.Span()),
@@ -1269,6 +1269,22 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 		left,
 		right,
 	)
+}
+
+// asExpression = unaryExpression ["as" strictConstantLookup]
+func (p *Parser) asExpression() ast.ExpressionNode {
+	expr := p.unaryExpression()
+	if p.accept(token.AS) && p.acceptSecond(token.SCOPE_RES_OP, token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT) {
+		p.advance()
+		runtimeType := p.strictConstantLookup()
+		return ast.NewAsExpressionNode(
+			expr.Span().Join(runtimeType.Span()),
+			expr,
+			runtimeType,
+		)
+	}
+
+	return expr
 }
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression

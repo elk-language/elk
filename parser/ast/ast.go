@@ -324,6 +324,7 @@ func (*PrivateIdentifierNode) expressionNode()             {}
 func (*PublicConstantNode) expressionNode()                {}
 func (*PublicConstantAsNode) expressionNode()              {}
 func (*PrivateConstantNode) expressionNode()               {}
+func (*AsExpressionNode) expressionNode()                  {}
 func (*SelfLiteralNode) expressionNode()                   {}
 func (*DoExpressionNode) expressionNode()                  {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
@@ -2042,6 +2043,26 @@ func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNod
 	return &PrivateConstantNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Value:         val,
+	}
+}
+
+// Represents an as type downcast eg. `foo as String`
+type AsExpressionNode struct {
+	TypedNodeBase
+	Value       ExpressionNode
+	RuntimeType ComplexConstantNode
+}
+
+func (*AsExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new private constant node eg. `_Foo`.
+func NewAsExpressionNode(span *position.Span, val ExpressionNode, runtimeType ComplexConstantNode) *AsExpressionNode {
+	return &AsExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
+		RuntimeType:   runtimeType,
 	}
 }
 

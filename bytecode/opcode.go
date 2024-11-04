@@ -160,7 +160,7 @@ const (
 	SWAP              // Swap the top two values on the stack
 	NEW_RANGE         // Create a new range
 	_
-	_
+	AS              // Throw an error if the second value on the stack is not an instance of the class/mixin on top of the stack
 	MUST            // Throw an error if the value on top of the stack is `nil`
 	INSTANCE_OF     // Pop two values of the stack, check whether one is an instance of the other
 	IS_A            // Pop two values of the stack, check whether one is an instance of the subclass of the other
@@ -308,6 +308,7 @@ var opCodeNames = [...]string{
 	NEW_SYMBOL32:       "NEW_SYMBOL32",
 	SWAP:               "SWAP",
 	NEW_RANGE:          "NEW_RANGE",
+	AS:                 "AS",
 	MUST:               "MUST",
 	INSTANCE_OF:        "INSTANCE_OF",
 	IS_A:               "IS_A",

@@ -2476,6 +2476,23 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       7B 07             NEW_RANGE         7 (x<..)
 `,
 		},
+		"correctly format the AS opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.AS)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       7D                AS
+`,
+		},
 		"correctly format the MUST opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,

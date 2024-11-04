@@ -922,6 +922,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkThrowExpressionNode(n)
 	case *ast.MustExpressionNode:
 		return c.checkMustExpressionNode(n)
+	case *ast.AsExpressionNode:
+		return c.checkAsExpressionNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -1029,6 +1031,42 @@ func (c *Checker) StdTrue() *types.Class {
 
 func (c *Checker) StdFalse() *types.Class {
 	return c.GlobalEnv.StdSubtypeClass(symbol.False)
+}
+
+func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpressionNode {
+	node.Value = c.checkExpression(node.Value)
+	staticType := c.typeOf(node.Value)
+
+	node.RuntimeType = c.checkComplexConstantType(node.RuntimeType)
+	runtimeType := c.typeOf(node.RuntimeType)
+
+	switch runtimeType.(type) {
+	case *types.Class, *types.Mixin:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"only classes and mixins are allowed in `%s` type casts",
+				lexer.Colorize("as"),
+			),
+			node.RuntimeType.Span(),
+		)
+	}
+
+	if !c.typesIntersect(runtimeType, staticType) {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot cast type `%s` to type `%s`",
+				types.InspectWithColor(staticType),
+				types.InspectWithColor(runtimeType),
+			),
+			node.Span(),
+		)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	node.SetType(runtimeType)
+	return node
 }
 
 func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.MustExpressionNode {

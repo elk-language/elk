@@ -99,6 +99,55 @@ func TestMustExpression(t *testing.T) {
 	}
 }
 
+func TestAsExpression(t *testing.T) {
+	tests := testTable{
+		"valid type downcast": {
+			input: `
+				var a: String | Float = .2
+				var b: 9 = a as String
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 16), P(57, 3, 26)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"valid type upcast": {
+			input: `
+				var a: String = "foo"
+				var b: 9 = a as Value
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 16), P(51, 3, 25)), "type `Std::Value` cannot be assigned to type `9`"),
+			},
+		},
+		"invalid cast": {
+			input: `
+				var a: String | Float = .2
+				var b: 9 = a as Int
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(47, 3, 16), P(54, 3, 23)), "cannot cast type `Std::String | Std::Float` to type `Std::Int`"),
+			},
+		},
+		"invalid type in cast": {
+			input: `
+				typedef Foo = "foo"
+				var a = 5
+				var b: 9 = a as Foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 21), P(61, 4, 23)), "only classes and mixins are allowed in `as` type casts"),
+				error.NewFailure(L("<main>", P(54, 4, 16), P(61, 4, 23)), "cannot cast type `Std::Int` to type `Foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestThrowExpression(t *testing.T) {
 	tests := testTable{
 		"throw without value": {

@@ -37,6 +37,47 @@ func TestVMSource_Must(t *testing.T) {
 	}
 }
 
+func TestVMSource_As(t *testing.T) {
+	tests := sourceTestTable{
+		"valid downcast": {
+			source: `
+				println "1"
+				var a: Int | Float = 5
+				b := a as ::Std::Int
+				println b
+			`,
+			wantStdout:   "1\n5\n",
+			wantStackTop: value.NilType{},
+		},
+		"valid upcast": {
+			source: `
+				println "1"
+				a := 5
+				b := a as ::Std::Value
+				println b
+			`,
+			wantStdout:   "1\n5\n",
+			wantStackTop: value.NilType{},
+		},
+		"invalid cast": {
+			source: `
+				println "1"
+				var a: Int | Float = 5
+				b := a as ::Std::Float
+				println b
+			`,
+			wantStdout:     "1\n",
+			wantRuntimeErr: value.NewError(value.TypeErrorClass, "failed type cast, `5` is not an instance of `Std::Float`"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_ThrowCatch(t *testing.T) {
 	tests := sourceTestTable{
 		"throw": {
