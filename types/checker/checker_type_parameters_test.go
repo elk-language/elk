@@ -11,21 +11,21 @@ func TestTypeParameters(t *testing.T) {
 		"use invariant type parameter in instance variable": {
 			input: `
 				class Foo[V]
-					var @a: V
+					var @a: V?
 				end
 			`,
 		},
 		"use covariant type parameter in instance variable": {
 			input: `
 				class Foo[+V]
-					var @a: V
+					var @a: V?
 				end
 			`,
 		},
 		"use contravariant type parameter in instance variable": {
 			input: `
 				class Foo[-V]
-					var @a: V
+					var @a: V?
 				end
 			`,
 		},
@@ -33,7 +33,7 @@ func TestTypeParameters(t *testing.T) {
 			input: `
 				class Foo[V]
 					class Bar[W]
-						var @a: V
+						var @a: V?
 					end
 				end
 			`,

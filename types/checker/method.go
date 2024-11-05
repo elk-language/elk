@@ -490,6 +490,9 @@ func (c *Checker) checkMethod(
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
+			if p.SetInstanceVariable {
+				c.registerInitialisedInstanceVariable(value.ToSymbol(p.Name))
+			}
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				declaredType = c.typeOf(declaredTypeNode)
@@ -1512,7 +1515,6 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 		node.Span(),
 	)
 
-	c.checkNonNilableInstanceVariables(false, node.Span())
 	node.ReturnType = returnType
 	node.ThrowType = throwType
 

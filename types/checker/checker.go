@@ -116,7 +116,7 @@ type Checker struct {
 	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
 	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
-	classesWithoutInit      []*ast.ClassDeclarationNode
+	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
 }
 
 // Instantiate a new Checker instance.
@@ -196,7 +196,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
-	c.checkClassesWithoutInit()
+	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkStatements(statements)
@@ -204,11 +204,12 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	return nil
 }
 
-func (c *Checker) checkClassesWithoutInit() {
-	for _, classNode := range c.classesWithoutInit {
+func (c *Checker) checkClassesWithIvars() {
+	for _, classNode := range c.classesWithIvars {
 		class := c.typeOf(classNode).(*types.Class)
 		c.checkNonNilableInstanceVariableForClass(class, classNode.Span())
 	}
+	c.classesWithIvars = nil
 }
 
 func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
@@ -243,6 +244,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
+	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(filename, ast)
@@ -3319,7 +3321,7 @@ func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiter
 	case methodMode, closureInferReturnTypeMode:
 		node.SetType(types.Self{})
 	case initMode:
-		c.checkNonNilableInstanceVariables(true, node.Span())
+		c.checkNonNilableInstanceVariablesForSelf(node.Span())
 		node.SetType(types.Self{})
 	default:
 		node.SetType(c.selfType)
@@ -3329,7 +3331,7 @@ func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiter
 
 // Check that all non-nilable instance variables are initialised.
 // Used in constructors.
-func (c *Checker) checkNonNilableInstanceVariables(inSelf bool, span *position.Span) {
+func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 	if c.method == nil || c.method.Name != symbol.S_init {
 		return
 	}
@@ -3347,22 +3349,11 @@ func (c *Checker) checkNonNilableInstanceVariables(inSelf bool, span *position.S
 			continue
 		}
 
-		if inSelf {
-			c.addFailure(
-				fmt.Sprintf(
-					"non-nilable instance variable `%s` must be initialised before `%s` can be used",
-					types.InspectInstanceVariableWithColor(name.String()),
-					lexer.Colorize("self"),
-				),
-				span,
-			)
-			continue
-		}
-
 		c.addFailure(
 			fmt.Sprintf(
-				"non-nilable instance variable `%s` must be initialised in the constructor",
-				types.InspectInstanceVariableWithColor(name.String()),
+				"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
+				types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+				lexer.Colorize("self"),
 			),
 			span,
 		)
@@ -3410,14 +3401,12 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, sp
 
 		c.addFailure(
 			fmt.Sprintf(
-				"non-nilable instance variable `%s` must be initialised in the constructor",
-				types.InspectInstanceVariableWithColor(name.String()),
+				"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
+				types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
 			),
 			span,
 		)
 	}
-
-	c.method.InstanceVariablesChecked = true
 }
 
 type instanceVariableOverride struct {
@@ -3681,7 +3670,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	default:
 		// from self
 		receiver = ast.NewSelfLiteralNode(node.Span())
-		c.checkNonNilableInstanceVariables(true, node.Span())
+		c.checkNonNilableInstanceVariablesForSelf(node.Span())
 	}
 
 	newNode := ast.NewMethodCallNode(
@@ -4341,12 +4330,16 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 	node.Right = c.checkExpression(node.Right)
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, ivarType, node.Right.Span())
+	c.registerInitialisedInstanceVariable(value.ToSymbol(name))
+	return node
+}
+
+func (c *Checker) registerInitialisedInstanceVariable(name value.Symbol) {
 	if c.method == nil || c.method.InitialisedInstanceVariables == nil {
-		return node
+		return
 	}
 
-	c.method.InitialisedInstanceVariables.Add(value.ToSymbol(name))
-	return node
+	c.method.InitialisedInstanceVariables.Add(name)
 }
 
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
@@ -5612,7 +5605,7 @@ func (c *Checker) checkInstanceVariable(name string, span *position.Span) types.
 }
 
 func (c *Checker) checkInstanceVariableNode(node *ast.InstanceVariableNode) {
-	c.checkNonNilableInstanceVariables(true, node.Span())
+	c.checkNonNilableInstanceVariablesForSelf(node.Span())
 	typ := c.checkInstanceVariable(node.Value, node.Span())
 	node.SetType(typ)
 }
@@ -5734,7 +5727,17 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	}
 
 	switch c.mode {
-	case mixinMode, classMode, moduleMode, singletonMode:
+	case mixinMode, classMode:
+	case moduleMode, singletonMode:
+		if !c.isNilable(declaredType) {
+			c.addFailure(
+				fmt.Sprintf(
+					"instance variable `%s` must be declared as nilable",
+					types.InspectInstanceVariableWithColor(node.Name),
+				),
+				node.Span(),
+			)
+		}
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -7673,18 +7676,19 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
-	c.registerClassWithoutInit(class, node)
+	c.registerClassWithIvars(class, node)
 	if ok {
 		c.popLocalConstScope()
 		c.popMethodScope()
 	}
 }
 
-func (c *Checker) registerClassWithoutInit(class *types.Class, node *ast.ClassDeclarationNode) {
-	init := class.Method(symbol.S_init)
-	if init == nil {
-		c.classesWithoutInit = append(c.classesWithoutInit, node)
+func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDeclarationNode) {
+	if class == nil || !types.NamespaceDeclaresInstanceVariables(class) {
+		return
 	}
+
+	c.classesWithIvars = append(c.classesWithIvars, node)
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {

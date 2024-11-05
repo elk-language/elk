@@ -1146,40 +1146,148 @@ func TestInstanceVariables(t *testing.T) {
 		"declare an instance variable in a primitive class": {
 			input: `
 				primitive class Foo
+					var @foo: String?
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(30, 3, 6), P(46, 3, 22)), "cannot declare instance variable `foo` in a primitive `Foo`"),
+			},
+		},
+		"include non-nilable instance variables in a class": {
+			input: `
+				mixin Foo
+					var @foo: String
+				end
+
+				class Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(50, 6, 5), P(83, 8, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
+			},
+		},
+		"include non-nilable instance variables in a class and initialise them in init": {
+			input: `
+				mixin Foo
+					var @foo: String
+				end
+
+				class Bar
+					include Foo
+
+					init(@foo); end
+				end
+			`,
+		},
+		"declare a non-nilable instance variable in a class": {
+			input: `
+				class Foo
 					var @foo: String
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 6), P(45, 3, 21)), "cannot declare instance variable `foo` in a primitive `Foo`"),
+				error.NewFailure(L("<main>", P(5, 2, 5), P(43, 4, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
+			},
+		},
+		"declare a non-nilable instance variable in a class and assign it in init": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init
+						@foo = "lol"
+					end
+				end
+			`,
+		},
+		"declare a non-nilable instance variable in a class and assign it in init param": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init(@foo); end
+				end
+			`,
+		},
+		"declare a non-nilable instance variable in a class and assign it in init after method calls": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init
+						bar()
+						@foo = "lol"
+					end
+
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 6, 7), P(58, 6, 11)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+			},
+		},
+		"declare a non-nilable instance variable in a class and assign it in init after reading self": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init
+						self
+						@foo = "lol"
+					end
+
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+			},
+		},
+		"declare a non-nilable instance variable in a class and assign it in init after reading instance variables": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init
+						@foo
+						@foo = "lol"
+					end
+
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
 			},
 		},
 		"declare an instance variable in a class": {
 			input: `
 				class Foo
-					var @foo: String
+					var @foo: String?
 				end
 			`,
 		},
 		"redeclare an instance variable in a class": {
 			input: `
 				class Foo
-					var @foo: String
-					var @foo: Int
+					var @foo: String?
+					var @foo: Int?
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(43, 4, 6), P(56, 4, 19)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int?`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a supertype": {
 			input: `
 				class Foo
-					var @foo: String
 					var @foo: String?
+					var @foo: String | Float | nil
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 4, 6), P(58, 4, 22)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::String`, previous definition found in `Foo`"),
+				error.NewFailure(L("<main>", P(43, 4, 6), P(72, 4, 35)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String | Std::Float | nil`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a subtype": {
@@ -1196,8 +1304,8 @@ func TestInstanceVariables(t *testing.T) {
 		"redeclare an instance variable in a class with the same type": {
 			input: `
 				class Foo
-					var @foo: String
-					var @foo: String
+					var @foo: String?
+					var @foo: String?
 				end
 			`,
 		},
@@ -1205,22 +1313,39 @@ func TestInstanceVariables(t *testing.T) {
 			input: `
 				class Foo
 					singleton
-						var @foo: String
+						var @foo: String?
 					end
 				end
 			`,
 		},
-		"declare an instance variable in a mixin": {
+		"declare a non-nilable instance variable in a mixin": {
 			input: `
 				mixin Foo
 					var @foo: String
 				end
 			`,
 		},
-		"declare an instance variable in a module": {
+		"declare an instance variable in a mixin": {
+			input: `
+				mixin Foo
+					var @foo: String?
+				end
+			`,
+		},
+		"declare a non-nilable instance variable in a module": {
 			input: `
 				module Foo
 					var @foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(21, 3, 6), P(36, 3, 21)), "instance variable `@foo` must be declared as nilable"),
+			},
+		},
+		"declare an instance variable in a module": {
+			input: `
+				module Foo
+					var @foo: String?
 				end
 			`,
 		},
@@ -1237,27 +1362,39 @@ func TestInstanceVariables(t *testing.T) {
 		"use instance variable in a class": {
 			input: `
 				class Foo
-					var @foo: String
+					var @foo: String?
 					@foo
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+				error.NewFailure(L("<main>", P(43, 4, 6), P(46, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
 			},
 		},
 		"use instance variable in an instance method of a class": {
 			input: `
 				class Foo
-					var @foo: String
+					var @foo: String?
 					def bar then @foo
 				end
 			`,
+		},
+		"declare non-nilable instance variable in a singleton class": {
+			input: `
+				class Foo
+				  singleton
+						var @foo: String
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(37, 4, 7), P(52, 4, 22)), "instance variable `@foo` must be declared as nilable"),
+			},
 		},
 		"use singleton instance variable in a class": {
 			input: `
 				class Foo
 				  singleton
-						var @foo: String
+						var @foo: String?
 					end
 					@foo
 				end
@@ -1266,7 +1403,7 @@ func TestInstanceVariables(t *testing.T) {
 		"use instance variable in a module": {
 			input: `
 				module Foo
-					var @foo: String
+					var @foo: String?
 					@foo
 					def bar then @foo
 				end
@@ -1286,7 +1423,7 @@ func TestInstanceVariables(t *testing.T) {
 		"use instance variable in an instance method of a mixin": {
 			input: `
 				mixin Foo
-					var @foo: String
+					var @foo: String?
 					def bar then @foo
 				end
 			`,
@@ -1295,7 +1432,7 @@ func TestInstanceVariables(t *testing.T) {
 			input: `
 				mixin Foo
 				  singleton
-						var @foo: String
+						var @foo: String?
 					end
 					@foo
 				end
@@ -1305,7 +1442,7 @@ func TestInstanceVariables(t *testing.T) {
 			input: `
 				interface Foo
 				  singleton
-						var @foo: String
+						var @foo: String?
 					end
 					@foo
 				end
@@ -1315,7 +1452,7 @@ func TestInstanceVariables(t *testing.T) {
 		"assign an instance variable with a matching type": {
 			input: `
 				module Foo
-					var @foo: String
+					var @foo: String?
 					@foo = "foo"
 				end
 			`,
@@ -1323,12 +1460,12 @@ func TestInstanceVariables(t *testing.T) {
 		"assign an instance variable with a non-matching type": {
 			input: `
 				module Foo
-					var @foo: String
+					var @foo: String?
 					@foo = 2
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 4, 13), P(50, 4, 13)), "type `2` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(51, 4, 13), P(51, 4, 13)), "type `2` cannot be assigned to type `Std::String?`"),
 			},
 		},
 		"assign an inexistent instance variable": {
@@ -1354,21 +1491,21 @@ func TestInstanceVariables(t *testing.T) {
 		"resolve an instance variable inherited from a generic parent": {
 			input: `
 				class Foo[V]
-					var @foo: V
+					var @foo: V?
 				end
 				class Bar < Foo[String]
-					def bar: String then @foo
+					def bar: String? then @foo
 				end
 			`,
 		},
 		"resolve an instance variable inherited from a distant generic parent": {
 			input: `
 				class Qux[E]
-					var @foo: E
+					var @foo: E?
 				end
 				class Foo[V] < Qux[V]; end
 				class Bar < Foo[String]
-					def bar: String then @foo
+					def bar: String? then @foo
 				end
 			`,
 		},
