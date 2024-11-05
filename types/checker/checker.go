@@ -3908,7 +3908,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 			nil,
 			nil,
 			nil,
-			nil,
+			types.Never{},
 			class,
 		)
 	}
@@ -3918,6 +3918,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(generic)
+	c.checkCalledMethodThrowType(method, node.Span())
 	return node
 }
 
@@ -3976,7 +3977,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 				nil,
 				nil,
 				nil,
-				nil,
+				types.Never{},
 				class,
 			)
 		} else {
@@ -3988,6 +3989,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.PositionalArguments = typedPositionalArguments
 		node.NamedArguments = nil
 		node.SetType(class)
+		c.checkCalledMethodThrowType(method, node.Span())
 		return node
 	}
 
@@ -4002,7 +4004,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			nil,
 			nil,
 			nil,
-			nil,
+			types.Never{},
 			class,
 		)
 	} else {
@@ -4037,6 +4039,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
 	node.SetType(generic)
+	c.checkCalledMethodThrowType(method, node.Span())
 	return node
 }
 

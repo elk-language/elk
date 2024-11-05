@@ -263,6 +263,65 @@ func TestThrowExpression(t *testing.T) {
 				end
 			`,
 		},
+
+		"call constructor that throws": {
+			input: `
+				class Foo
+					init! Symbol
+						throw :foo
+					end
+				end
+
+				Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(72, 8, 5), P(76, 8, 9)), "thrown value of type `Std::Symbol` must be caught"),
+			},
+		},
+		"call constructor that throws and catch": {
+			input: `
+				class Foo
+					init! Symbol
+						throw :foo
+					end
+				end
+
+				do
+					Foo()
+				catch Symbol() as sym
+					println sym
+				end
+			`,
+		},
+		"call implicit generic constructor that throws": {
+			input: `
+				class Foo[V]
+					init(a: V)! V
+						throw a
+					end
+				end
+
+				Foo("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(73, 8, 5), P(82, 8, 14)), "thrown value of type `Std::String` must be caught"),
+			},
+		},
+		"call explicit generic constructor that throws": {
+			input: `
+				class Foo[V]
+					init(a: V)! V
+						throw a
+					end
+				end
+
+				Foo::[String?]("lol")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(73, 8, 5), P(93, 8, 25)), "thrown value of type `Std::String?` must be caught"),
+			},
+		},
+
 		"call closure that throws": {
 			input: `
 				foo := ||! Symbol -> throw :foo
