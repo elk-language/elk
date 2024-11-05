@@ -186,12 +186,15 @@ func (c *Checker) checkNamespacePlaceholders() {
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
-	statements := node.Body
+	var wg sync.WaitGroup
+	// parse all files of the project concurrently
+	c.checkImportsForFile(c.Filename, node, &wg)
+	wg.Wait()
 
-	c.hoistNamespaceDefinitions(statements)
+	c.hoistNamespaceDefinitionsInFile(c.Filename, node)
 	c.checkNamespacePlaceholders()
 	c.checkTypeDefinitions()
-	c.hoistMethodDefinitions(statements)
+	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
@@ -199,7 +202,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
-	c.checkStatements(statements)
+	c.checkExpressionsInFile(c.Filename, node)
 
 	return nil
 }
@@ -231,25 +234,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 		return nil
 	}
 
-	var wg sync.WaitGroup
-	// parse all files of the project concurrently
-	c.checkImportsForFile(filename, ast, &wg)
-	wg.Wait()
-
-	c.hoistNamespaceDefinitionsInFile(filename, ast)
-	c.checkNamespacePlaceholders()
-	c.checkTypeDefinitions()
-	c.hoistMethodDefinitionsInFile(filename, ast)
-	c.checkConstantPlaceholders()
-	c.checkMethodPlaceholders()
-	c.checkConstants()
-	c.checkMethods()
-	c.checkClassesWithIvars()
-	c.checkMethodsInConstants()
-	c.phase = expressionPhase
-	c.checkExpressionsInFile(filename, ast)
-
-	return nil
+	return c.checkProgram(ast)
 }
 
 func (c *Checker) hoistNamespaceDefinitionsInFile(filename string, node *ast.ProgramNode) {
