@@ -72,6 +72,10 @@ func (c *Closure) IsAbstract() bool {
 	return true
 }
 
+func (c *Closure) IsNative() bool {
+	return false
+}
+
 func (c *Closure) IsSealed() bool {
 	return true
 }

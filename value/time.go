@@ -777,10 +777,7 @@ func (t Time) StrictEqual(other Value) Value {
 }
 
 func initTime() {
-	TimeClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	TimeClass = NewClass()
 	StdModule.AddConstantString("Time", TimeClass)
 	TimeClass.AddConstantString("DEFAULT_FORMAT", String(DefaultTimeFormat))
 }

@@ -106,9 +106,6 @@ func (i UInt32) Hash() UInt64 {
 }
 
 func initUInt32() {
-	UInt32Class = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	UInt32Class = NewClass()
 	StdModule.AddConstantString("UInt32", UInt32Class)
 }

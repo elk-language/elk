@@ -14,8 +14,6 @@ var MethodClass *Class // ::Std::Method
 
 func initMethod() {
 	MethodClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
 		ClassWithParent(FunctionClass),
 	)
 	StdModule.AddConstantString("Method", MethodClass)

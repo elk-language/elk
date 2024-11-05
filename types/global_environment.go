@@ -7,6 +7,7 @@ import (
 
 type GlobalEnvironment struct {
 	Root *Module
+	Init bool // Whether the global environment is in its initialisation stage
 }
 
 func (g *GlobalEnvironment) Std() *Module {
@@ -52,6 +53,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
+		Init: true,
 	}
 
 	stdModule := &Module{
@@ -128,12 +130,17 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, symbol.Method, valueClass, env)
 	stdModule.DefineClass("", false, true, true, symbol.Pair, valueClass, env)
 
+	env.Init = false
 	return env
 }
 
 // Create a new global environment for type checking.
 func NewGlobalEnvironment() *GlobalEnvironment {
 	env := NewGlobalEnvironmentWithoutHeaders()
+
+	env.Init = true
 	setupGlobalEnvironmentFromHeaders(env)
+	env.Init = false
+
 	return env
 }

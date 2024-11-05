@@ -24,6 +24,7 @@ type Namespace interface {
 	IsSealed() bool
 	IsPrimitive() bool
 	IsGeneric() bool
+	IsNative() bool
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)

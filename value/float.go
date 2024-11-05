@@ -467,10 +467,7 @@ func (f Float) StrictEqual(other Value) Value {
 }
 
 func initFloat() {
-	FloatClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	FloatClass = NewClass()
 	StdModule.AddConstantString("Float", FloatClass)
 	FloatClass.AddConstantString("NAN", FloatNaN())
 	FloatClass.AddConstantString("INF", FloatInf())

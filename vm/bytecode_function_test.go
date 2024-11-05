@@ -1218,10 +1218,10 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       36                CONSTANT_CONTAINER
 `,
 		},
-		"correctly format the DEF_CLASS opcode": {
+		"correctly format the INIT_CLASS opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.DEF_CLASS), 0},
+				[]byte{byte(bytecode.INIT_CLASS), 0},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1232,7 +1232,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       37 00             DEF_CLASS         0               
+0000  1       37 00             INIT_CLASS        0               
 `,
 		},
 		"correctly format the SELF opcode": {
@@ -1252,10 +1252,10 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       38                SELF
 `,
 		},
-		"correctly format the DEF_MODULE opcode": {
+		"correctly format the INIT_MODULE opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.DEF_MODULE)},
+				[]byte{byte(bytecode.INIT_MODULE)},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1266,7 +1266,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       39                DEF_MODULE
+0000  1       39                INIT_MODULE
 `,
 		},
 		"correctly format the CALL_METHOD8 opcode": {
@@ -1422,10 +1422,10 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       43 01 00 00 00    CALL_SELF32       16777216 (CallSiteInfo{name: :foo, argument_count: 0})
 `,
 		},
-		"correctly format the DEF_MIXIN opcode": {
+		"correctly format the INIT_MIXIN opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.DEF_MIXIN)},
+				[]byte{byte(bytecode.INIT_MIXIN)},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1436,7 +1436,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       44                DEF_MIXIN
+0000  1       44                INIT_MIXIN
 `,
 		},
 		"correctly format the INCLUDE opcode": {
@@ -2920,14 +2920,14 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.in.DisassembleString()
 			if diff := cmp.Diff(tc.want, got, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			var gotErr string
 			if err != nil {
 				gotErr = err.Error()
 			}
 			if diff := cmp.Diff(tc.err, gotErr, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

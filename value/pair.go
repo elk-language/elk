@@ -171,16 +171,11 @@ func (l *PairIterator) Next() (Value, Value) {
 
 func initPair() {
 	PairClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
 		ClassWithConstructor(PairConstructor),
 	)
 	PairClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("Pair", PairClass)
 
-	PairIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	PairIteratorClass = NewClass()
 	PairClass.AddConstantString("Iterator", PairIteratorClass)
 }

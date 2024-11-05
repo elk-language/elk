@@ -8,6 +8,7 @@ import (
 type Mixin struct {
 	parent         Namespace
 	abstract       bool
+	native         bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -48,6 +49,10 @@ func (m *Mixin) IsSealed() bool {
 	return false
 }
 
+func (m *Mixin) IsNative() bool {
+	return m.native
+}
+
 func (m *Mixin) IsPrimitive() bool {
 	return false
 }
@@ -63,6 +68,7 @@ func (m *Mixin) SetParent(parent Namespace) {
 func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		abstract:      abstract,
+		native:        env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
@@ -83,6 +89,7 @@ func NewMixinWithDetails(
 	mixin := &Mixin{
 		parent:   parent,
 		abstract: abstract,
+		native:   env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,

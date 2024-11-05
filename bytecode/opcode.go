@@ -90,99 +90,99 @@ const (
 	DEF_MOD_CONST16                  // Pop one value off the stack (module) and define a new constant under it (16 bit operand)
 	DEF_MOD_CONST32                  // Pop one value off the stack (module) and define a new constant under it (32 bit operand)
 	CONSTANT_CONTAINER               // Push the module/class/mixin that will hold constants defined in this context
-	DEF_CLASS                        // Define a new class
+	INIT_CLASS                       // Initialise a class
 	SELF                             // Push `self` onto the stack
-	DEF_MODULE                       // Define a new module
+	INIT_MODULE                      // Initialise a module
 	CALL_METHOD8                     // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD16                    // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD32                    // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
 	DEF_METHOD                       // Define a new method
 	UNDEFINED                        // Push the undefined value onto the stack
 	GET_CLASS                        // Pop one value off the stack push its class
-	_
-	CALL_SELF8  // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
-	CALL_SELF16 // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
-	CALL_SELF32 // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
-	DEF_MIXIN   // Define a new mixin
-	_
-	INCLUDE           // Include a mixin in a class/mixin
-	GET_SINGLETON     // Pop one value off the stack push its singleton class
-	JUMP_UNLESS_UNDEF // Jump n bytes forward unless the value on the stack is undefined
-	DEF_ALIAS         // Define a method alias
-	METHOD_CONTAINER  // Push the class/mixin that will hold methods defined in this context
-	COMPARE           // Pop two values, compare them using `<=>` and push the result
-	DOC_COMMENT       // Attach a doc comment to an Elk object
-	DEF_GETTER        // Define a getter method
-	DEF_SETTER        // Define a setter method
-	DEF_SINGLETON     // Open the definition of a singleton class of the given object
-	RETURN_FIRST_ARG  // Push the first given argument (constant container for modules, classes etc) and return
-	INSTANTIATE8      // Create a new instance of a class (8 bit operand)
-	INSTANTIATE16     // Create a new instance of a class (16 bit operand)
-	INSTANTIATE32     // Create a new instance of a class (32 bit operand)
-	RETURN_SELF       // Push self and return
-	GET_IVAR8         // Get the value of an instance variable (8 bit operand)
-	GET_IVAR16        // Get the value of an instance variable (16 bit operand)
-	GET_IVAR32        // Get the value of an instance variable (32 bit operand)
-	SET_IVAR8         // Set the value of an instance variable (8 bit operand)
-	SET_IVAR16        // Set the value of an instance variable (16 bit operand)
-	SET_IVAR32        // Set the value of an instance variable (32 bit operand)
-	NEW_ARRAY_TUPLE8  // Create a new arrayTuple (8 bit operand)
-	NEW_ARRAY_TUPLE32 // Create a new arrayTuple (32 bit operand)
-	APPEND            // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
-	COPY              // Create a copy of the value on top of the stack and replace it on the stack.
-	SUBSCRIPT         // Pops 2 values off the stack. Get the element in a ArrayList, ArrayTuple or HashMap under the given key.
-	SUBSCRIPT_SET     // Pops 3 values off the stack. Set the element in a ArrayList, ArrayTuple or HashMap under the given key.
-	APPEND_AT         // Set an element at the given index in the ArrayTuple or ArrayList, if the index is out of range, expand the collection, filling the empty slots with `nil`
-	NEW_ARRAY_LIST8   // Create a new list (8 bit operand)
-	NEW_ARRAY_LIST32  // Create a new list (32 bit operand)
-	GET_ITERATOR      // Get the iterator of the value on top of the stack.
-	FOR_IN            // Drives the for..in loop
-	NEW_STRING8       // Create a new string (8 bit operand)
-	NEW_STRING32      // Create a new string (32 bit operand)
-	NEW_HASH_MAP8     // Create a new hashmap (8 bit operand)
-	NEW_HASH_MAP32    // Create a new hashmap (32 bit operand)
-	MAP_SET           // Set a value under the given key in a hash record or hashmap, pops the key and value and leaves the collection on the stack
-	NEW_HASH_RECORD8  // Create a new hash record (8 bit operand)
-	NEW_HASH_RECORD32 // Create a new hash record (32 bit operand)
-	LAX_EQUAL         // Take two values from the stack, check if they are equal and push the result
-	LAX_NOT_EQUAL     // Take two values from the stack, check if they are not equal and push the result
-	NEW_REGEX8        // Create a new regex (8 bit operand)
-	NEW_REGEX32       // Create a new regex (32 bit operand)
-	BITWISE_AND_NOT   // Take two values from the stack, perform a bitwise AND NOT and push the result
-	UNARY_PLUS        // Perform unary plus on the value on top of the stack like `+a`
-	INCREMENT         // Increment the value on top of the stack
-	DECREMENT         // Decrement the value on top of the stack
-	DUP               // Duplicate the value on top of the stack
-	DUP_N             // Duplicate the top N values on top of the stack
-	POP_N_SKIP_ONE    // Pop the top N values on top of the stack skipping the first one
-	NEW_SYMBOL8       // Create a new symbol (8 bit operand)
-	NEW_SYMBOL32      // Create a new symbol (32 bit operand)
-	SWAP              // Swap the top two values on the stack
-	NEW_RANGE         // Create a new range
-	_
-	AS              // Throw an error if the second value on the stack is not an instance of the class/mixin on top of the stack
-	MUST            // Throw an error if the value on top of the stack is `nil`
-	INSTANCE_OF     // Pop two values of the stack, check whether one is an instance of the other
-	IS_A            // Pop two values of the stack, check whether one is an instance of the subclass of the other
-	POP_SKIP_ONE    // Pop the value on top of the stack skipping the first one
-	INSPECT_STACK   // Prints the stack, for debugging
-	NEW_HASH_SET8   // Create a new hashset (8 bit operand)
-	NEW_HASH_SET32  // Create a new hashset (32 bit operand)
-	THROW           // Throw a value/error
-	RETHROW         // Rethrow a value/error
-	POP_ALL         // Pop all values on the stack, leaving only the slots reserved for locals
-	RETURN_FINALLY  // Execute all finally blocks this line is nested in and return from the current frame
-	JUMP_TO_FINALLY // Jump to the specified instruction after executing finally blocks
-	CLOSURE         // Wrap the function on top of the stack in a closure
-	CALL8           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
-	CALL16          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
-	CALL32          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
-	SET_UPVALUE8    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
-	SET_UPVALUE16   // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
-	GET_UPVALUE8    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
-	GET_UPVALUE16   // Push the value of the upvalue with the given index onto the stack (16 bit operand)
-	CLOSE_UPVALUE8  // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
-	CLOSE_UPVALUE16 // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
+	DEF_MODULE                       // Define a new module
+	CALL_SELF8                       // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
+	CALL_SELF16                      // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
+	CALL_SELF32                      // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
+	INIT_MIXIN                       // Initialise a mixin
+	DEF_CLASS                        // Define a new class
+	INCLUDE                          // Include a mixin in a class/mixin
+	GET_SINGLETON                    // Pop one value off the stack push its singleton class
+	JUMP_UNLESS_UNDEF                // Jump n bytes forward unless the value on the stack is undefined
+	DEF_ALIAS                        // Define a method alias
+	METHOD_CONTAINER                 // Push the class/mixin that will hold methods defined in this context
+	COMPARE                          // Pop two values, compare them using `<=>` and push the result
+	DOC_COMMENT                      // Attach a doc comment to an Elk object
+	DEF_GETTER                       // Define a getter method
+	DEF_SETTER                       // Define a setter method
+	DEF_SINGLETON                    // Open the definition of a singleton class of the given object
+	RETURN_FIRST_ARG                 // Push the first given argument (constant container for modules, classes etc) and return
+	INSTANTIATE8                     // Create a new instance of a class (8 bit operand)
+	INSTANTIATE16                    // Create a new instance of a class (16 bit operand)
+	INSTANTIATE32                    // Create a new instance of a class (32 bit operand)
+	RETURN_SELF                      // Push self and return
+	GET_IVAR8                        // Get the value of an instance variable (8 bit operand)
+	GET_IVAR16                       // Get the value of an instance variable (16 bit operand)
+	GET_IVAR32                       // Get the value of an instance variable (32 bit operand)
+	SET_IVAR8                        // Set the value of an instance variable (8 bit operand)
+	SET_IVAR16                       // Set the value of an instance variable (16 bit operand)
+	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
+	NEW_ARRAY_TUPLE8                 // Create a new arrayTuple (8 bit operand)
+	NEW_ARRAY_TUPLE32                // Create a new arrayTuple (32 bit operand)
+	APPEND                           // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
+	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
+	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a ArrayList, ArrayTuple or HashMap under the given key.
+	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a ArrayList, ArrayTuple or HashMap under the given key.
+	APPEND_AT                        // Set an element at the given index in the ArrayTuple or ArrayList, if the index is out of range, expand the collection, filling the empty slots with `nil`
+	NEW_ARRAY_LIST8                  // Create a new list (8 bit operand)
+	NEW_ARRAY_LIST32                 // Create a new list (32 bit operand)
+	GET_ITERATOR                     // Get the iterator of the value on top of the stack.
+	FOR_IN                           // Drives the for..in loop
+	NEW_STRING8                      // Create a new string (8 bit operand)
+	NEW_STRING32                     // Create a new string (32 bit operand)
+	NEW_HASH_MAP8                    // Create a new hashmap (8 bit operand)
+	NEW_HASH_MAP32                   // Create a new hashmap (32 bit operand)
+	MAP_SET                          // Set a value under the given key in a hash record or hashmap, pops the key and value and leaves the collection on the stack
+	NEW_HASH_RECORD8                 // Create a new hash record (8 bit operand)
+	NEW_HASH_RECORD32                // Create a new hash record (32 bit operand)
+	LAX_EQUAL                        // Take two values from the stack, check if they are equal and push the result
+	LAX_NOT_EQUAL                    // Take two values from the stack, check if they are not equal and push the result
+	NEW_REGEX8                       // Create a new regex (8 bit operand)
+	NEW_REGEX32                      // Create a new regex (32 bit operand)
+	BITWISE_AND_NOT                  // Take two values from the stack, perform a bitwise AND NOT and push the result
+	UNARY_PLUS                       // Perform unary plus on the value on top of the stack like `+a`
+	INCREMENT                        // Increment the value on top of the stack
+	DECREMENT                        // Decrement the value on top of the stack
+	DUP                              // Duplicate the value on top of the stack
+	DUP_N                            // Duplicate the top N values on top of the stack
+	POP_N_SKIP_ONE                   // Pop the top N values on top of the stack skipping the first one
+	NEW_SYMBOL8                      // Create a new symbol (8 bit operand)
+	NEW_SYMBOL32                     // Create a new symbol (32 bit operand)
+	SWAP                             // Swap the top two values on the stack
+	NEW_RANGE                        // Create a new range
+	DEF_MIXIN                        // Define a new mixin
+	AS                               // Throw an error if the second value on the stack is not an instance of the class/mixin on top of the stack
+	MUST                             // Throw an error if the value on top of the stack is `nil`
+	INSTANCE_OF                      // Pop two values of the stack, check whether one is an instance of the other
+	IS_A                             // Pop two values of the stack, check whether one is an instance of the subclass of the other
+	POP_SKIP_ONE                     // Pop the value on top of the stack skipping the first one
+	INSPECT_STACK                    // Prints the stack, for debugging
+	NEW_HASH_SET8                    // Create a new hashset (8 bit operand)
+	NEW_HASH_SET32                   // Create a new hashset (32 bit operand)
+	THROW                            // Throw a value/error
+	RETHROW                          // Rethrow a value/error
+	POP_ALL                          // Pop all values on the stack, leaving only the slots reserved for locals
+	RETURN_FINALLY                   // Execute all finally blocks this line is nested in and return from the current frame
+	JUMP_TO_FINALLY                  // Jump to the specified instruction after executing finally blocks
+	CLOSURE                          // Wrap the function on top of the stack in a closure
+	CALL8                            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
+	CALL16                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
+	CALL32                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
+	SET_UPVALUE8                     // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
+	SET_UPVALUE16                    // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
+	GET_UPVALUE8                     // Push the value of the upvalue with the given index onto the stack (8 bit operand)
+	GET_UPVALUE16                    // Push the value of the upvalue with the given index onto the stack (16 bit operand)
+	CLOSE_UPVALUE8                   // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
+	CLOSE_UPVALUE16                  // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -241,9 +241,9 @@ var opCodeNames = [...]string{
 	DEF_MOD_CONST16:    "DEF_MOD_CONST16",
 	DEF_MOD_CONST32:    "DEF_MOD_CONST32",
 	CONSTANT_CONTAINER: "CONSTANT_CONTAINER",
-	DEF_CLASS:          "DEF_CLASS",
+	INIT_CLASS:         "INIT_CLASS",
 	SELF:               "SELF",
-	DEF_MODULE:         "DEF_MODULE",
+	INIT_MODULE:        "INIT_MODULE",
 	CALL_METHOD8:       "CALL_METHOD8",
 	CALL_METHOD16:      "CALL_METHOD16",
 	CALL_METHOD32:      "CALL_METHOD32",
@@ -253,7 +253,7 @@ var opCodeNames = [...]string{
 	CALL_SELF8:         "CALL_SELF8",
 	CALL_SELF16:        "CALL_SELF16",
 	CALL_SELF32:        "CALL_SELF32",
-	DEF_MIXIN:          "DEF_MIXIN",
+	INIT_MIXIN:         "INIT_MIXIN",
 	INCLUDE:            "INCLUDE",
 	GET_SINGLETON:      "GET_SINGLETON",
 	JUMP_UNLESS_UNDEF:  "JUMP_UNLESS_UNDEF",

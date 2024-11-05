@@ -8,7 +8,6 @@ var GlobalObject = GlobalObjectType{}
 func initGlobalObject() {
 	GlobalObjectSingletonClass = NewClassWithOptions(
 		ClassWithSingleton(),
-		ClassWithNoInstanceVariables(),
 	)
 }
 

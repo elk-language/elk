@@ -103,9 +103,6 @@ func (i Int8) Hash() UInt64 {
 }
 
 func initInt8() {
-	Int8Class = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	Int8Class = NewClass()
 	StdModule.AddConstantString("Int8", Int8Class)
 }

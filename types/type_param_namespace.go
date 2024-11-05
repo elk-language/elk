@@ -50,6 +50,10 @@ func (t *TypeParamNamespace) Singleton() *SingletonClass {
 	return nil
 }
 
+func (t *TypeParamNamespace) IsNative() bool {
+	return false
+}
+
 func (t *TypeParamNamespace) IsAbstract() bool {
 	return true
 }

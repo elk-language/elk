@@ -9,6 +9,7 @@ type Interface struct {
 	parent         Namespace
 	singleton      *SingletonClass
 	Checked        bool
+	native         bool
 	typeParameters []*TypeParameter
 	NamespaceBase
 }
@@ -34,6 +35,10 @@ func (i *Interface) Singleton() *SingletonClass {
 	return i.singleton
 }
 
+func (i *Interface) IsNative() bool {
+	return i.native
+}
+
 func (*Interface) IsAbstract() bool {
 	return true
 }
@@ -57,6 +62,7 @@ func (i *Interface) SetParent(parent Namespace) {
 func NewInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
 	iface := &Interface{
 		NamespaceBase: MakeNamespaceBase(docComment, name),
+		native:        env.Init,
 	}
 	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.Interface))
 
@@ -69,9 +75,11 @@ func NewInterfaceWithDetails(
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,
+	env *GlobalEnvironment,
 ) *Interface {
 	return &Interface{
 		parent: parent,
+		native: env.Init,
 		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,

@@ -189,9 +189,6 @@ func NewRegexComparer(opts *cmp.Options) cmp.Option {
 }
 
 func initRegex() {
-	RegexClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	RegexClass = NewClass()
 	StdModule.AddConstantString("Regex", RegexClass)
 }

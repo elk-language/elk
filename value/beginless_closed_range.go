@@ -47,10 +47,7 @@ func (r *BeginlessClosedRange) InstanceVariables() SymbolMap {
 var BeginlessClosedRangeClass *Class // ::Std::BeginlessClosedRange
 
 func initBeginlessClosedRange() {
-	BeginlessClosedRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	BeginlessClosedRangeClass = NewClass()
 	BeginlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("BeginlessClosedRange", BeginlessClosedRangeClass)
 }

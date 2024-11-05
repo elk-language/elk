@@ -462,8 +462,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
-		bytecode.UNDEFINED, bytecode.DEF_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
+		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.INIT_MODULE, bytecode.DEF_METHOD,
+		bytecode.UNDEFINED, bytecode.INIT_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
 		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
 		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
@@ -474,7 +474,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.MUST, bytecode.AS:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
-		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
+		bytecode.INIT_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8:
 		return f.disassembleNumericOperands(output, 1, 1, offset)

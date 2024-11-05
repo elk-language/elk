@@ -1051,10 +1051,7 @@ func (f *BigFloat) StrictEqual(other Value) Value {
 }
 
 func initBigFloat() {
-	BigFloatClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	BigFloatClass = NewClass()
 	StdModule.AddConstantString("BigFloat", BigFloatClass)
 	BigFloatClass.AddConstantString("NAN", BigFloatNaNVal)
 	BigFloatClass.AddConstantString("INF", BigFloatInfVal)

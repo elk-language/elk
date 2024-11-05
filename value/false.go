@@ -42,8 +42,6 @@ func (FalseType) InstanceVariables() SymbolMap {
 func initFalse() {
 	FalseClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
 	)
 	StdModule.AddConstantString("False", FalseClass)
 }

@@ -21,7 +21,6 @@ func initBootstrap() {
 			Methods: make(MethodMap),
 		},
 	}
-	ValueClass.SetAbstract()
 	ObjectClass = &Class{
 		metaClass: ClassClass,
 		MethodContainer: MethodContainer{

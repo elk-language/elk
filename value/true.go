@@ -42,8 +42,6 @@ func (TrueType) InstanceVariables() SymbolMap {
 func initTrue() {
 	TrueClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
 	)
 	StdModule.AddConstantString("True", TrueClass)
 }

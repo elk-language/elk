@@ -145,16 +145,10 @@ func (h *HashSetIterator) Next() (Value, Value) {
 }
 
 func initHashSet() {
-	HashSetClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	HashSetClass = NewClass()
 	HashSetClass.IncludeMixin(SetMixin)
 	StdModule.AddConstantString("HashSet", HashSetClass)
 
-	HashSetIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	HashSetIteratorClass = NewClass()
 	HashSetClass.AddConstantString("Iterator", HashSetIteratorClass)
 }

@@ -47,10 +47,7 @@ func (r *BeginlessOpenRange) InstanceVariables() SymbolMap {
 var BeginlessOpenRangeClass *Class // ::Std::BeginlessOpenRange
 
 func initBeginlessOpenRange() {
-	BeginlessOpenRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	BeginlessOpenRangeClass = NewClass()
 	BeginlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("BeginlessOpenRange", BeginlessOpenRangeClass)
 }

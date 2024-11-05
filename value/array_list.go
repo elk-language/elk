@@ -315,16 +315,10 @@ func (l *ArrayListIterator) Next() (Value, Value) {
 }
 
 func initArrayList() {
-	ArrayListClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	ArrayListClass = NewClass()
 	ArrayListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("ArrayList", ArrayListClass)
 
-	ArrayListIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	ArrayListIteratorClass = NewClass()
 	ArrayListClass.AddConstantString("Iterator", ArrayListIteratorClass)
 }

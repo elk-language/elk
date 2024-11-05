@@ -106,9 +106,6 @@ func (i UInt16) Hash() UInt64 {
 }
 
 func initUInt16() {
-	UInt16Class = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	UInt16Class = NewClass()
 	StdModule.AddConstantString("UInt16", UInt16Class)
 }

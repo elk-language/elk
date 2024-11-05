@@ -44,9 +44,6 @@ func (NilType) Hash() UInt64 {
 }
 
 func initNil() {
-	NilClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	NilClass = NewClass()
 	StdModule.AddConstantString("Nil", NilClass)
 }

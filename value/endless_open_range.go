@@ -99,16 +99,10 @@ func (*EndlessOpenRangeIterator) InstanceVariables() SymbolMap {
 }
 
 func initEndlessOpenRange() {
-	EndlessOpenRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	EndlessOpenRangeClass = NewClass()
 	EndlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessOpenRange", EndlessOpenRangeClass)
 
-	EndlessOpenRangeIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	EndlessOpenRangeIteratorClass = NewClass()
 	EndlessOpenRangeClass.AddConstantString("Iterator", EndlessOpenRangeIteratorClass)
 }

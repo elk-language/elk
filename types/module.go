@@ -6,6 +6,7 @@ import (
 )
 
 type Module struct {
+	native bool
 	parent Namespace
 	NamespaceBase
 }
@@ -34,6 +35,10 @@ func (m *Module) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
+func (m *Module) IsNative() bool {
+	return m.native
+}
+
 func (m *Module) IsAbstract() bool {
 	return false
 }
@@ -48,6 +53,7 @@ func (m *Module) IsPrimitive() bool {
 
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
+		native:        env.Init,
 		parent:        env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}

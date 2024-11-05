@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -193,18 +194,34 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 	c.hoistNamespaceDefinitionsInFile(c.Filename, node)
 	c.checkNamespacePlaceholders()
+	var compiler *compiler.Compiler
+	if !c.Errors.IsFailure() {
+		compiler = c.initCompiler(node.Span())
+	}
+	// TODO: generate a bytecode function
+	// that creates all classes/mixins/modules/interfaces
 	c.checkTypeDefinitions()
+	// TODO: emit code that sets superclasses, includes mixins etc
+
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
-	c.checkMethods()
+	c.checkMethods() // TODO: compile each method into a bytecode function
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
-	return nil
+	// TODO: return the root bytecode function
+	if c.Errors.IsFailure() {
+		return nil
+	}
+	return compiler.Bytecode
+}
+
+func (c *Checker) initCompiler(span *position.Span) *compiler.Compiler {
+	return compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span))
 }
 
 func (c *Checker) checkClassesWithIvars() {
@@ -8029,6 +8046,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
+				c.GlobalEnv,
 			)
 			t.Namespace = iface
 			namespace.DefineConstant(constantName, iface.Singleton())

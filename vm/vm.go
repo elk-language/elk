@@ -418,12 +418,12 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.defineGetter())
 		case bytecode.DEF_SETTER:
 			vm.throwIfErr(vm.defineSetter())
-		case bytecode.DEF_CLASS:
-			vm.throwIfErr(vm.defineClass())
-		case bytecode.DEF_MODULE:
-			vm.throwIfErr(vm.defineModule())
-		case bytecode.DEF_MIXIN:
-			vm.throwIfErr(vm.defineMixin())
+		case bytecode.INIT_CLASS:
+			vm.throwIfErr(vm.initClass())
+		case bytecode.INIT_MODULE:
+			vm.throwIfErr(vm.initModule())
+		case bytecode.INIT_MIXIN:
+			vm.throwIfErr(vm.initMixin())
 		case bytecode.DEF_METHOD:
 			vm.throwIfErr(vm.defineMethod())
 		case bytecode.INCLUDE:
@@ -1629,8 +1629,8 @@ func (vm *VM) defineMethod() value.Value {
 	return nil
 }
 
-// Define a new mixin
-func (vm *VM) defineMixin() (err value.Value) {
+// Initialise a mixin
+func (vm *VM) initMixin() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
@@ -1672,8 +1672,8 @@ func (vm *VM) defineMixin() (err value.Value) {
 	return nil
 }
 
-// Define a new module
-func (vm *VM) defineModule() (err value.Value) {
+// Initialise a module
+func (vm *VM) initModule() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
@@ -1796,13 +1796,12 @@ func (vm *VM) defineAlias() value.Value {
 	return nil
 }
 
-// Define a new class
-func (vm *VM) defineClass() (err value.Value) {
+// Initialise a class
+func (vm *VM) initClass() (err value.Value) {
 	superclassVal := vm.pop()
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
-	flags := bitfield.BitField8FromInt(vm.readByte())
 
 	constantName := constantNameVal.(value.Symbol)
 	var parentModule *value.ConstantContainer
@@ -1838,46 +1837,10 @@ func (vm *VM) defineClass() (err value.Value) {
 			return value.NewInvalidSuperclassError(superclass.Inspect())
 		}
 
-		if class.IsAbstract() {
-			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"sealed",
-					false,
-				)
-			}
-		} else if class.IsSealed() {
-			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"abstract",
-					false,
-				)
-			}
-		} else {
-			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"abstract",
-					false,
-				)
-			}
-			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"sealed",
-					false,
-				)
-			}
-		}
 	} else {
 		class = value.NewClass()
-		class.Flags = flags
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
-			if superclass.IsSealed() {
-				return value.NewSealedClassError(string(constantName.ToString()), superclass.Inspect())
-			}
 			class.Parent = superclass
 		case value.UndefinedType:
 		default:

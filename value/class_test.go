@@ -19,14 +19,6 @@ func TestClass_Inspect(t *testing.T) {
 			class: value.NewClassWithOptions(value.ClassWithName("Foo")),
 			want:  "class Foo < Std::Object",
 		},
-		"abstract": {
-			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithAbstract()),
-			want:  "abstract class Foo < Std::Object",
-		},
-		"sealed": {
-			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithSealed()),
-			want:  "sealed class Foo < Std::Object",
-		},
 		"singleton": {
 			class: value.NewSingletonClass(value.ClassClass, "Foo"),
 			want:  "class &Foo < Std::Class",

@@ -16,6 +16,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -37,7 +38,7 @@ func CompileSource(sourceName string, source string) (*vm.BytecodeFunction, erro
 
 // Compile the AST node to a Bytecode chunk.
 func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, error.ErrorList) {
-	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	return compiler.Bytecode, compiler.Errors
@@ -50,13 +51,19 @@ func CompileREPL(sourceName string, source string) (*Compiler, error.ErrorList) 
 		return nil, err
 	}
 
-	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	if compiler.Errors != nil {
 		return nil, compiler.Errors
 	}
 	return compiler, nil
+}
+
+func InitGlobalEnv(env *types.GlobalEnvironment, loc *position.Location) *Compiler {
+	compiler := New(loc.Filename, topLevelMode, loc)
+	compiler.compileGlobalEnv(env)
+	return compiler
 }
 
 // Compiler mode
@@ -164,8 +171,8 @@ type Compiler struct {
 	upvalues         []*upvalue
 }
 
-// Instantiate a new Compiler instance.
-func new(name string, mode mode, loc *position.Location) *Compiler {
+// Instantiate a New Compiler instance.
+func New(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
 		Bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
@@ -204,7 +211,7 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 		return nil, err
 	}
 
-	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
+	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -215,6 +222,46 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 		return nil, compiler.Errors
 	}
 	return compiler, nil
+}
+
+func (c *Compiler) compileGlobalEnv(env *types.GlobalEnvironment) {
+	span := position.NewSpan(position.New(0, 1, 1), position.New(0, 1, 1))
+	c.emit(1, bytecode.ROOT)
+	c.defineModule(env.Root, span)
+	c.emit(1, bytecode.POP)
+}
+
+func (c *Compiler) defineNamespace(opcode bytecode.OpCode, namespace types.Namespace, span *position.Span) {
+	c.emitValue(value.ToSymbol(namespace.Name()), span)
+	c.emit(span.StartPos.Line, opcode)
+
+	for _, subtype := range namespace.Subtypes() {
+		c.defineSubtype(subtype.Type, span)
+	}
+
+	c.emit(span.StartPos.Line, bytecode.POP)
+}
+func (c *Compiler) defineModule(module *types.Module, span *position.Span) {
+	c.defineNamespace(bytecode.DEF_MODULE, module, span)
+}
+
+func (c *Compiler) defineClass(class *types.Class, span *position.Span) {
+	c.defineNamespace(bytecode.DEF_CLASS, class, span)
+}
+
+func (c *Compiler) defineMixin(mixin *types.Mixin, span *position.Span) {
+	c.defineNamespace(bytecode.DEF_MIXIN, mixin, span)
+}
+
+func (c *Compiler) defineSubtype(typ types.Type, span *position.Span) {
+	switch t := typ.(type) {
+	case *types.Module:
+		c.defineModule(t, span)
+	case *types.Class:
+		c.defineClass(t, span)
+	case *types.Mixin:
+		c.defineMixin(t, span)
+	}
 }
 
 // Entry point to the compilation process
@@ -3293,7 +3340,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 	if len(node.Body) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		singletonCompiler := new("<singleton_class>", classMode, c.newLocation(span))
+		singletonCompiler := New("<singleton_class>", classMode, c.newLocation(span))
 		singletonCompiler.Errors = c.Errors
 		singletonCompiler.compileModule(node)
 		c.Errors = singletonCompiler.Errors
@@ -3322,7 +3369,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 		mode = closureMode
 	}
 
-	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
+	methodCompiler := New(node.Name, mode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
 	c.Errors = methodCompiler.Errors
@@ -3336,7 +3383,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 }
 
 func (c *Compiler) closureLiteral(node *ast.ClosureLiteralNode) {
-	closureCompiler := new("<closure>", closureMode, c.newLocation(node.Span()))
+	closureCompiler := New("<closure>", closureMode, c.newLocation(node.Span()))
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
@@ -3389,7 +3436,7 @@ func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 		return
 	}
 
-	methodCompiler := new("#init", initMethodMode, c.newLocation(node.Span()))
+	methodCompiler := New("#init", initMethodMode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
 	c.Errors = methodCompiler.Errors
@@ -3456,7 +3503,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		mixinCompiler := new("<mixin>", mixinMode, c.newLocation(node.Span()))
+		mixinCompiler := New("<mixin>", mixinMode, c.newLocation(node.Span()))
 		mixinCompiler.Errors = c.Errors
 		mixinCompiler.compileModule(node)
 		c.Errors = mixinCompiler.Errors
@@ -3500,7 +3547,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		return
 	}
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_MIXIN)
+	c.emit(node.Span().StartPos.Line, bytecode.INIT_MIXIN)
 }
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
@@ -3518,7 +3565,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		modCompiler := new("<module>", moduleMode, c.newLocation(node.Span()))
+		modCompiler := New("<module>", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors
@@ -3562,7 +3609,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		return
 	}
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
+	c.emit(node.Span().StartPos.Line, bytecode.INIT_MODULE)
 }
 
 func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
@@ -3656,7 +3703,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		modCompiler := new("<class>", classMode, c.newLocation(node.Span()))
+		modCompiler := New("<class>", classMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors
@@ -3701,15 +3748,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	}
 	c.compileClassSuperclass(node)
 
-	var flags bitfield.BitFlag8
-	if node.Abstract {
-		flags |= value.CLASS_ABSTRACT_FLAG
-	}
-	if node.Sealed {
-		flags |= value.CLASS_SEALED_FLAG
-	}
-
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS, byte(flags))
+	c.emit(node.Span().StartPos.Line, bytecode.INIT_CLASS)
 }
 
 func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {

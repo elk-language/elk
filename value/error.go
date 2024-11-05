@@ -212,17 +212,6 @@ func NewSingletonError(given string) *Error {
 
 // Create a new error that signals that
 // the given superclass is not a valid class object.
-func NewSealedClassError(class, sealedParent string) *Error {
-	return Errorf(
-		SealedClassErrorClass,
-		"%s cannot inherit from %s",
-		class,
-		sealedParent,
-	)
-}
-
-// Create a new error that signals that
-// the given superclass is not a valid class object.
 func NewInvalidSuperclassError(superclass string) *Error {
 	return Errorf(
 		TypeErrorClass,

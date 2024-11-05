@@ -22,9 +22,6 @@ type Function interface {
 var FunctionClass *Class // ::Std::Function
 
 func initFunction() {
-	FunctionClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	FunctionClass = NewClass()
 	StdModule.AddConstantString("Function", FunctionClass)
 }

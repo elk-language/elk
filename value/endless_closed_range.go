@@ -99,16 +99,10 @@ func (*EndlessClosedRangeIterator) InstanceVariables() SymbolMap {
 }
 
 func initEndlessClosedRange() {
-	EndlessClosedRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	EndlessClosedRangeClass = NewClass()
 	EndlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessClosedRange", EndlessClosedRangeClass)
 
-	EndlessClosedRangeIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	EndlessClosedRangeIteratorClass = NewClass()
 	EndlessClosedRangeClass.AddConstantString("Iterator", EndlessClosedRangeIteratorClass)
 }
