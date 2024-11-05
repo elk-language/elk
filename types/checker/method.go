@@ -18,6 +18,39 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+func (c *Checker) newMethodChecker(
+	filename string,
+	constScopes []constantScope,
+	methodScopes []methodScope,
+	selfType,
+	returnType,
+	throwType types.Type,
+	isInit bool,
+) *Checker {
+	checker := &Checker{
+		GlobalEnv:      c.GlobalEnv,
+		Filename:       filename,
+		mode:           methodMode,
+		phase:          methodCheckPhase,
+		selfType:       selfType,
+		returnType:     returnType,
+		throwType:      throwType,
+		constantScopes: constScopes,
+		methodScopes:   methodScopes,
+		Errors:         c.Errors,
+		IsHeader:       c.IsHeader,
+		localEnvs: []*localEnvironment{
+			newLocalEnvironment(nil),
+		},
+		typeDefinitionChecks: newTypeDefinitionChecks(),
+		methodCache:          concurrent.NewSlice[*types.Method](),
+	}
+	if isInit {
+		checker.mode = initMode
+	}
+	return checker
+}
+
 func (c *Checker) checkMethodPlaceholders() {
 	for _, placeholder := range c.methodPlaceholders {
 		if placeholder.Checked {
@@ -69,6 +102,7 @@ func (c *Checker) checkMethods() {
 				method.DefinedUnder,
 				method.ReturnType,
 				method.ThrowType,
+				method.IsInit(),
 			)
 			node := methodCheck.node
 			methodChecker.checkMethodDefinition(node)
@@ -413,7 +447,6 @@ func (c *Checker) checkMethodOverride(
 func (c *Checker) checkMethod(
 	methodNamespace types.Namespace,
 	checkedMethod *types.Method,
-	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
@@ -520,6 +553,8 @@ func (c *Checker) checkMethod(
 	if !c.IsHeader {
 		if isClosure && returnType == nil {
 			c.mode = closureInferReturnTypeMode
+		} else if checkedMethod.IsInit() {
+			c.mode = initMode
 		} else {
 			c.mode = methodMode
 		}
@@ -1466,21 +1501,22 @@ func (c *Checker) checkBinaryOpMethodCall(
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
+	c.method = method
 	returnType, throwType := c.checkMethod(
 		c.currentMethodScope().container,
 		method,
-		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
 		node.Body,
 		node.Span(),
 	)
+
+	c.checkNonNilableInstanceVariables(false, node.Span())
 	node.ReturnType = returnType
 	node.ThrowType = throwType
 
-	maps.Copy(method.UsedConstants, c.constantCache)
-	c.constantCache = nil
+	c.method = nil
 
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
@@ -1555,7 +1591,11 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = methodMode
+	if name == symbol.S_init {
+		c.mode = initMode
+	} else {
+		c.mode = methodMode
+	}
 	var typeParams []*types.TypeParameter
 	var typeParamMod *types.TypeParamNamespace
 	if len(typeParamNodes) > 0 {

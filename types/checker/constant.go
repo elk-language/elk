@@ -411,7 +411,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 
 func (c *Checker) addToConstantCache(name value.Symbol) {
 	if c.phase == methodCheckPhase {
-		c.constantCache.Add(name)
+		c.method.UsedConstants.Add(name)
 	}
 }
 

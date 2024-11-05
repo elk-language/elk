@@ -79,9 +79,9 @@ var (
 
 // special symbols
 var (
-	S_empty    = value.ToSymbol("")
-	S_init     = value.ToSymbol("#init")
-	S_contains = value.ToSymbol("#contains")
+	S_empty    = value.ToSymbol("")          // empty symbol
+	S_init     = value.ToSymbol("#init")     // #init
+	S_contains = value.ToSymbol("#contains") // #contains
 )
 
 var (

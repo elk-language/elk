@@ -64,6 +64,7 @@ const (
 	singletonMode
 	extendWhereMode
 	methodMode
+	initMode
 	implicitInterfaceSubtypeMode
 	closureInferReturnTypeMode
 	namedGenericTypeDefinitionMode
@@ -114,7 +115,8 @@ type Checker struct {
 	typeDefinitionChecks    *typeDefinitionChecks
 	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
 	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
-	constantCache           ds.Set[value.Symbol]                      // a set of constant names, used in method body checks to detect methods that circularly reference constants (refer to constants in which they appear)
+	method                  *types.Method
+	classesWithoutInit      []*ast.ClassDeclarationNode
 }
 
 // Instantiate a new Checker instance.
@@ -146,35 +148,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		constantChecks:       newConstantDefinitionChecks(),
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
-		constantCache:        make(ds.Set[value.Symbol]),
 	}
 }
 
 // Instantiate a new Checker instance.
 func New() *Checker {
 	return newChecker("", nil, false)
-}
-
-func (c *Checker) newMethodChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
-	return &Checker{
-		GlobalEnv:      c.GlobalEnv,
-		Filename:       filename,
-		mode:           methodMode,
-		phase:          methodCheckPhase,
-		selfType:       selfType,
-		returnType:     returnType,
-		throwType:      throwType,
-		constantScopes: constScopes,
-		methodScopes:   methodScopes,
-		Errors:         c.Errors,
-		IsHeader:       c.IsHeader,
-		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
-		},
-		typeDefinitionChecks: newTypeDefinitionChecks(),
-		methodCache:          concurrent.NewSlice[*types.Method](),
-		constantCache:        make(ds.Set[value.Symbol]),
-	}
 }
 
 func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
@@ -217,11 +196,19 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
+	c.checkClassesWithoutInit()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkStatements(statements)
 
 	return nil
+}
+
+func (c *Checker) checkClassesWithoutInit() {
+	for _, classNode := range c.classesWithoutInit {
+		class := c.typeOf(classNode).(*types.Class)
+		c.checkNonNilableInstanceVariableForClass(class, classNode.Span())
+	}
 }
 
 func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
@@ -697,13 +684,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		}
 		return n
 	case *ast.SelfLiteralNode:
-		switch c.mode {
-		case methodMode, closureInferReturnTypeMode:
-			n.SetType(types.Self{})
-		default:
-			n.SetType(c.selfType)
-		}
-		return n
+		return c.checkSelfLiteralNode(n)
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
 		return n
@@ -3333,6 +3314,112 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 	return nil
 }
 
+func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiteralNode {
+	switch c.mode {
+	case methodMode, closureInferReturnTypeMode:
+		node.SetType(types.Self{})
+	case initMode:
+		c.checkNonNilableInstanceVariables(true, node.Span())
+		node.SetType(types.Self{})
+	default:
+		node.SetType(c.selfType)
+	}
+	return node
+}
+
+// Check that all non-nilable instance variables are initialised.
+// Used in constructors.
+func (c *Checker) checkNonNilableInstanceVariables(inSelf bool, span *position.Span) {
+	if c.method == nil || c.method.Name != symbol.S_init {
+		return
+	}
+	initialisedIvars := c.method.InitialisedInstanceVariables
+	if initialisedIvars == nil || c.method.InstanceVariablesChecked {
+		return
+	}
+
+	self := c.selfType.(types.Namespace)
+	for name, ivar := range types.SortedInstanceVariables(self) {
+		if c.isNilable(ivar.Type) || initialisedIvars.Contains(name) {
+			continue
+		}
+		if name == symbol.S_empty {
+			continue
+		}
+
+		if inSelf {
+			c.addFailure(
+				fmt.Sprintf(
+					"non-nilable instance variable `%s` must be initialised before `%s` can be used",
+					types.InspectInstanceVariableWithColor(name.String()),
+					lexer.Colorize("self"),
+				),
+				span,
+			)
+			continue
+		}
+
+		c.addFailure(
+			fmt.Sprintf(
+				"non-nilable instance variable `%s` must be initialised in the constructor",
+				types.InspectInstanceVariableWithColor(name.String()),
+			),
+			span,
+		)
+	}
+
+	c.method.InstanceVariablesChecked = true
+}
+
+func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, span *position.Span) {
+	init := c.getMethod(class, symbol.S_init, nil)
+
+	if init == nil {
+		for name, ivar := range types.SortedInstanceVariables(class) {
+			if c.isNilable(ivar.Type) {
+				continue
+			}
+			if name == symbol.S_empty {
+				continue
+			}
+
+			c.addFailure(
+				fmt.Sprintf(
+					"instance variable `%s` must be initialised in the constructor, since it is not nilable",
+					types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+				),
+				span,
+			)
+		}
+		return
+	}
+
+	// inherited init
+	initialisedIvars := init.InitialisedInstanceVariables
+	if initialisedIvars == nil {
+		return
+	}
+
+	for name, ivar := range types.SortedInstanceVariables(class) {
+		if c.isNilable(ivar.Type) || initialisedIvars.Contains(name) {
+			continue
+		}
+		if name == symbol.S_empty {
+			continue
+		}
+
+		c.addFailure(
+			fmt.Sprintf(
+				"non-nilable instance variable `%s` must be initialised in the constructor",
+				types.InspectInstanceVariableWithColor(name.String()),
+			),
+			span,
+		)
+	}
+
+	c.method.InstanceVariablesChecked = true
+}
+
 type instanceVariableOverride struct {
 	name value.Symbol
 
@@ -3594,6 +3681,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	default:
 		// from self
 		receiver = ast.NewSelfLiteralNode(node.Span())
+		c.checkNonNilableInstanceVariables(true, node.Span())
 	}
 
 	newNode := ast.NewMethodCallNode(
@@ -4034,7 +4122,6 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
 		method,
-		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -4070,7 +4157,6 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
 		method,
-		nil,
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
@@ -4255,6 +4341,11 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 	node.Right = c.checkExpression(node.Right)
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, ivarType, node.Right.Span())
+	if c.method == nil || c.method.InitialisedInstanceVariables == nil {
+		return node
+	}
+
+	c.method.InitialisedInstanceVariables.Add(value.ToSymbol(name))
 	return node
 }
 
@@ -4749,7 +4840,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			)
 			return false
 		}
-	case methodMode, closureInferReturnTypeMode:
+	case methodMode, closureInferReturnTypeMode, initMode:
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
 			if _, ok := e.Subtype(t.Name); ok {
@@ -5224,7 +5315,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, methodMode, outputPositionTypeMode, inheritanceMode:
+		case closureInferReturnTypeMode, methodMode, initMode, outputPositionTypeMode, inheritanceMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(
@@ -5521,6 +5612,7 @@ func (c *Checker) checkInstanceVariable(name string, span *position.Span) types.
 }
 
 func (c *Checker) checkInstanceVariableNode(node *ast.InstanceVariableNode) {
+	c.checkNonNilableInstanceVariables(true, node.Span())
 	typ := c.checkInstanceVariable(node.Value, node.Span())
 	node.SetType(typ)
 }
@@ -7580,9 +7672,18 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
+
+	c.registerClassWithoutInit(class, node)
 	if ok {
 		c.popLocalConstScope()
 		c.popMethodScope()
+	}
+}
+
+func (c *Checker) registerClassWithoutInit(class *types.Class, node *ast.ClassDeclarationNode) {
+	init := class.Method(symbol.S_init)
+	if init == nil {
+		c.classesWithoutInit = append(c.classesWithoutInit, node)
 	}
 }
 

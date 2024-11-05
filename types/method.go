@@ -8,6 +8,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -124,15 +125,16 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type Method struct {
-	DocComment         string
-	FullName           string
-	Name               value.Symbol
-	OptionalParamCount int
-	PostParamCount     int
-	abstract           bool
-	sealed             bool
-	native             bool
-	HasNamedRestParam  bool
+	DocComment               string
+	FullName                 string
+	Name                     value.Symbol
+	OptionalParamCount       int
+	PostParamCount           int
+	abstract                 bool
+	sealed                   bool
+	native                   bool
+	HasNamedRestParam        bool
+	InstanceVariablesChecked bool
 	// used in using expression placeholders
 	IsPlaceholder bool
 	Checked       bool
@@ -146,9 +148,10 @@ type Method struct {
 	Bytecode       *vm.BytecodeFunction
 	location       *position.Location
 	// used to detect methods that circularly reference constants
-	UsedInConstants ds.Set[value.Symbol] // set of constants in which this method is called
-	UsedConstants   ds.Set[value.Symbol] // set of constants references in this method's body
-	CalledMethods   []*Method            // list of methods called in this method's body
+	UsedInConstants              ds.Set[value.Symbol] // set of constants in which this method is called
+	UsedConstants                ds.Set[value.Symbol] // set of constants references in this method's body
+	InitialisedInstanceVariables ds.Set[value.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
+	CalledMethods                []*Method            // list of methods called in this method's body
 }
 
 func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
@@ -163,26 +166,27 @@ func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Names
 
 func (m *Method) Copy() *Method {
 	return &Method{
-		FullName:           m.FullName,
-		Name:               m.Name,
-		DocComment:         m.DocComment,
-		Params:             m.Params,
-		OptionalParamCount: m.OptionalParamCount,
-		PostParamCount:     m.PostParamCount,
-		abstract:           m.abstract,
-		sealed:             m.sealed,
-		native:             m.native,
-		TypeParameters:     m.TypeParameters,
-		IsPlaceholder:      m.IsPlaceholder,
-		HasNamedRestParam:  m.HasNamedRestParam,
-		ReturnType:         m.ReturnType,
-		ThrowType:          m.ThrowType,
-		DefinedUnder:       m.DefinedUnder,
-		Bytecode:           m.Bytecode,
-		location:           m.location,
-		UsedInConstants:    m.UsedInConstants,
-		UsedConstants:      m.UsedConstants,
-		CalledMethods:      m.CalledMethods,
+		FullName:                     m.FullName,
+		Name:                         m.Name,
+		DocComment:                   m.DocComment,
+		Params:                       m.Params,
+		OptionalParamCount:           m.OptionalParamCount,
+		PostParamCount:               m.PostParamCount,
+		abstract:                     m.abstract,
+		sealed:                       m.sealed,
+		native:                       m.native,
+		TypeParameters:               m.TypeParameters,
+		IsPlaceholder:                m.IsPlaceholder,
+		HasNamedRestParam:            m.HasNamedRestParam,
+		ReturnType:                   m.ReturnType,
+		ThrowType:                    m.ThrowType,
+		DefinedUnder:                 m.DefinedUnder,
+		Bytecode:                     m.Bytecode,
+		location:                     m.location,
+		UsedInConstants:              m.UsedInConstants,
+		UsedConstants:                m.UsedConstants,
+		CalledMethods:                m.CalledMethods,
+		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 	}
 }
 
@@ -192,6 +196,10 @@ func (m *Method) Location() *position.Location {
 
 func (m *Method) SetLocation(location *position.Location) {
 	m.location = location
+}
+
+func (m *Method) IsInit() bool {
+	return m.Name == symbol.S_init
 }
 
 func (m *Method) IsGeneric() bool {
@@ -246,8 +254,7 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 			hasNamedRestParam = true
 		}
 	}
-
-	return &Method{
+	m := &Method{
 		abstract:           abstract,
 		sealed:             sealed,
 		native:             native,
@@ -264,6 +271,11 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		UsedInConstants:    make(ds.Set[value.Symbol]),
 		UsedConstants:      make(ds.Set[value.Symbol]),
 	}
+	if name == symbol.S_init {
+		m.InitialisedInstanceVariables = make(ds.Set[value.Symbol])
+	}
+
+	return m
 }
 
 func (m *Method) RequiredParamCount() int {
