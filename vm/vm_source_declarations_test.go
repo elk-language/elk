@@ -286,20 +286,6 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
-		"inherit from a sealed class": {
-			source: `
-				sealed class Foo; end
-				class Bar < ::Foo; end
-			`,
-			wantRuntimeErr: value.NewError(
-				value.SealedClassErrorClass,
-				"Bar cannot inherit from sealed class Foo < Std::Object",
-			),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.RootModule.Constants.DeleteString("Bar")
-			},
-		},
 		"class with a body": {
 			source: `
 				class Foo

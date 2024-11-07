@@ -2914,6 +2914,74 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       93 03 02          CLOSE_UPVALUE16   770             
 `,
 		},
+		"correctly format the DEF_NAMESPACE opcode with module": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_NAMESPACE), bytecode.DEF_MODULE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       94 00             DEF_NAMESPACE     0 (module)      
+`,
+		},
+		"correctly format the DEF_NAMESPACE opcode with class": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_NAMESPACE), bytecode.DEF_CLASS_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       94 01             DEF_NAMESPACE     1 (class)       
+`,
+		},
+		"correctly format the DEF_NAMESPACE opcode with mixin": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_NAMESPACE), bytecode.DEF_MIXIN_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       94 02             DEF_NAMESPACE     2 (mixin)       
+`,
+		},
+		"correctly format the DEF_NAMESPACE opcode with interface": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_NAMESPACE), bytecode.DEF_INTERFACE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       94 03             DEF_NAMESPACE     3 (interface)   
+`,
+		},
 	}
 
 	for name, tc := range tests {

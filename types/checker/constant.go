@@ -208,6 +208,8 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		method.UsedInConstants.Add(symbolName)
 	}
 
+	c.compiler.CompileConstant(node)
+
 	check.state = CHECKED_CONST
 	return true
 }

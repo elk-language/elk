@@ -471,12 +471,13 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
 		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
-		bytecode.MUST, bytecode.AS:
+		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.INIT_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
-		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8:
+		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
+		bytecode.GET_CONST8, bytecode.GET_CONST16, bytecode.GET_CONST32:
 		return f.disassembleNumericOperands(output, 1, 1, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
@@ -490,6 +491,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleNumericOperands(output, 2, 1, offset)
 	case bytecode.LEAVE_SCOPE32:
 		return f.disassembleNumericOperands(output, 2, 2, offset)
+	case bytecode.DEF_NAMESPACE:
+		return f.disassembleDefNamespace(output, offset)
 	case bytecode.NEW_REGEX8:
 		return f.disassembleNewRegex(output, 1, offset)
 	case bytecode.NEW_REGEX32:
@@ -672,6 +675,37 @@ func (f *BytecodeFunction) disassembleNewRange(output io.Writer, offset int) (in
 	}
 	fmt.Fprintf(output, "%d (%s)", flagByte, argString)
 	fmt.Fprintln(output)
+
+	return offset + bytes, nil
+}
+
+func (f *BytecodeFunction) disassembleDefNamespace(output io.Writer, offset int) (int, error) {
+	bytes := 2
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, offset)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	typeByte := readUint8(f.Instructions[offset+1 : offset+2])
+	var namespaceType string
+	switch typeByte {
+	case 0:
+		namespaceType = "module"
+	case 1:
+		namespaceType = "class"
+	case 2:
+		namespaceType = "mixin"
+	case 3:
+		namespaceType = "interface"
+	default:
+		return offset + bytes, fmt.Errorf("invalid namespace byte %d", typeByte)
+	}
+	fmt.Fprintf(output, "%-16s\n", fmt.Sprintf("%d (%s)", typeByte, namespaceType))
 
 	return offset + bytes, nil
 }

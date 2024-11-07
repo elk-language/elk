@@ -406,6 +406,8 @@ func (vm *VM) run() {
 			vm.methodContainer()
 		case bytecode.SELF:
 			vm.self()
+		case bytecode.DEF_NAMESPACE:
+			vm.opDefNamespace()
 		case bytecode.DEF_SINGLETON:
 			vm.throwIfErr(vm.defineSingleton())
 		case bytecode.GET_SINGLETON:
@@ -425,7 +427,7 @@ func (vm *VM) run() {
 		case bytecode.INIT_MIXIN:
 			vm.throwIfErr(vm.initMixin())
 		case bytecode.DEF_METHOD:
-			vm.throwIfErr(vm.defineMethod())
+			vm.defineMethod()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.DOC_COMMENT:
@@ -596,6 +598,18 @@ func (vm *VM) run() {
 			vm.prepLocals(int(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
+		case bytecode.SET_SUPERCLASS:
+			vm.opSetSuperclass()
+		case bytecode.GET_CONST8:
+			vm.throwIfErr(vm.opGetConst(int(vm.readByte())))
+		case bytecode.GET_CONST16:
+			vm.throwIfErr(
+				vm.opGetConst(int(vm.readUint16())),
+			)
+		case bytecode.GET_CONST32:
+			vm.throwIfErr(
+				vm.opGetConst(int(vm.readUint32())),
+			)
 		case bytecode.GET_MOD_CONST8:
 			vm.throwIfErr(vm.getModuleConstant(int(vm.readByte())))
 		case bytecode.GET_MOD_CONST16:
@@ -954,6 +968,50 @@ func (vm *VM) constantContainerValue() value.Value {
 
 func (vm *VM) self() {
 	vm.getLocal(0)
+}
+
+func (vm *VM) opDefNamespace() {
+	typ := vm.readByte()
+	name := vm.pop().(value.Symbol)
+	parentNamespace := vm.peek()
+
+	var parentConstantContainer value.ConstantContainer
+	switch n := parentNamespace.(type) {
+	case *value.Class:
+		parentConstantContainer = n.ConstantContainer
+	case *value.Module:
+		parentConstantContainer = n.ConstantContainer
+	case *value.Interface:
+		parentConstantContainer = n.ConstantContainer
+	default:
+		panic(
+			fmt.Sprintf(
+				"tried to define %s under an invalid namespace: `%s`",
+				name,
+				parentNamespace.Inspect(),
+			),
+		)
+	}
+
+	if currentNamespace, ok := parentConstantContainer.Constants[name]; ok {
+		vm.replace(currentNamespace)
+		return
+	}
+
+	var newNamespace value.Value
+	switch typ {
+	case bytecode.DEF_MODULE_FLAG:
+		newNamespace = value.NewModule()
+	case bytecode.DEF_CLASS_FLAG:
+		newNamespace = value.NewClassWithOptions(value.ClassWithParent(nil))
+	case bytecode.DEF_MIXIN_FLAG:
+		newNamespace = value.NewMixin()
+	case bytecode.DEF_INTERFACE_FLAG:
+		newNamespace = value.NewInterface()
+	}
+
+	parentConstantContainer.AddConstant(name, newNamespace)
+	vm.replace(newNamespace)
 }
 
 func (vm *VM) getSingletonClass() (err value.Value) {
@@ -1558,8 +1616,8 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 
 // Include a mixin in a class/mixin.
 func (vm *VM) includeMixin() (err value.Value) {
-	targetValue := vm.pop()
 	mixinVal := vm.pop()
+	targetValue := vm.pop()
 
 	mixin, ok := mixinVal.(*value.Mixin)
 	if !ok || !mixin.IsMixin() {
@@ -1606,27 +1664,19 @@ func (vm *VM) docComment() (err value.Value) {
 }
 
 // Define a new method
-func (vm *VM) defineMethod() value.Value {
-	nameVal := vm.pop()
-	bodyVal := vm.pop()
-
-	body := bodyVal.(*BytecodeFunction)
-	name := nameVal.(value.Symbol)
-
-	methodContainer := vm.methodContainerValue()
+func (vm *VM) defineMethod() {
+	name := vm.pop().(value.Symbol)
+	body := vm.pop().(*BytecodeFunction)
+	methodContainer := vm.peek()
 
 	switch m := methodContainer.(type) {
 	case *value.Class:
-		if !m.CanOverride(name) {
-			return value.NewCantOverrideASealedMethod(string(name.ToString()))
-		}
 		m.Methods[name] = body
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
 
 	vm.push(body)
-	return nil
 }
 
 // Initialise a mixin
@@ -1674,34 +1724,8 @@ func (vm *VM) initMixin() (err value.Value) {
 
 // Initialise a module
 func (vm *VM) initModule() (err value.Value) {
-	constantNameVal := vm.pop()
-	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ConstantContainer
-
-	switch m := parentModuleVal.(type) {
-	case *value.Class:
-		parentModule = &m.ConstantContainer
-	case *value.Module:
-		parentModule = &m.ConstantContainer
-	default:
-		return value.NewIsNotModuleError(parentModuleVal.Inspect())
-	}
-
-	var module *value.Module
-	var ok bool
-
-	if moduleVal := parentModule.Constants.Get(constantName); moduleVal != nil {
-		module, ok = moduleVal.(*value.Module)
-		if !ok {
-			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
-		}
-	} else {
-		module = value.NewModule()
-		parentModule.AddConstant(constantName, module)
-	}
+	module := vm.pop()
 
 	switch body := bodyVal.(type) {
 	case *BytecodeFunction:
@@ -2011,6 +2035,31 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 	val := constants.Get(symbol)
 	if val == nil {
 		return value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect())
+	}
+
+	vm.push(val)
+	return nil
+}
+
+// Set the superclass/parent of a class
+func (vm *VM) opSetSuperclass() {
+	newSuperclass := vm.pop().(*value.Class)
+	class := vm.pop().(*value.Class)
+
+	if class.Parent != nil {
+		return
+	}
+
+	class.Parent = newSuperclass
+}
+
+// Look for a constant with the given name.
+func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
+	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
+
+	val := value.RootModule.Constants.Get(symbol)
+	if val == nil {
+		return value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String())
 	}
 
 	vm.push(val)

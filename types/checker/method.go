@@ -44,6 +44,7 @@ func (c *Checker) newMethodChecker(
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+		compiler:             c.compiler,
 	}
 	if isInit {
 		checker.mode = initMode
@@ -1522,6 +1523,10 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
+
+	if !method.IsAbstract() {
+		method.Bytecode = c.compiler.CompileMethodBody(node)
+	}
 }
 
 func (c *Checker) declareMethod(

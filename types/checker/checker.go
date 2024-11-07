@@ -118,6 +118,7 @@ type Checker struct {
 	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
 	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
+	compiler                *compiler.Compiler
 }
 
 // Instantiate a new Checker instance.
@@ -194,34 +195,41 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 	c.hoistNamespaceDefinitionsInFile(c.Filename, node)
 	c.checkNamespacePlaceholders()
-	var compiler *compiler.Compiler
-	if !c.Errors.IsFailure() {
-		compiler = c.initCompiler(node.Span())
-	}
-	// TODO: generate a bytecode function
-	// that creates all classes/mixins/modules/interfaces
+	c.initCompiler(node.Span())
 	c.checkTypeDefinitions()
-	// TODO: emit code that sets superclasses, includes mixins etc
 
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
-	c.checkConstants()
-	c.checkMethods() // TODO: compile each method into a bytecode function
+	methodCompiler := c.initMethodCompiler(node.Span())
+	c.checkConstants() // TODO: compile all constants in correct order
+	c.checkMethods()
+	c.compileMethods(methodCompiler, node.Span())
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
-	c.checkExpressionsInFile(c.Filename, node)
+	c.checkExpressionsInFile(c.Filename, node) // TODO: compile expressions
 
-	// TODO: return the root bytecode function
 	if c.Errors.IsFailure() {
 		return nil
 	}
-	return compiler.Bytecode
+	return c.compiler.Bytecode
 }
 
-func (c *Checker) initCompiler(span *position.Span) *compiler.Compiler {
-	return compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span))
+// Create a new compiler that will define all methods
+func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, span *position.Span) {
+	methodCompiler.CompileMethods(span)
+}
+
+// Create a new compiler that will define all methods
+func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
+	return c.compiler.InitMethodCompiler(span)
+}
+
+// Create a new compiler and emit bytecode
+// that creates all classes/mixins/modules/interfaces
+func (c *Checker) initCompiler(span *position.Span) {
+	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span))
 }
 
 func (c *Checker) checkClassesWithIvars() {

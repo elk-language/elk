@@ -21,37 +21,53 @@ func (m *ConstantContainer) PrintableName() string {
 // Set the constant with the specified name
 // to the given value.
 func (m *ConstantContainer) AddConstantString(name string, val Value) {
+	fullName := m.fullConstantName(name)
 	switch v := val.(type) {
 	case *Module:
-		m.setObjectName(&v.ConstantContainer, name)
+		if v.Name == "" {
+			v.Name = fullName
+		}
 	case *Class:
-		m.setObjectName(&v.ConstantContainer, name)
+		if v.Name == "" {
+			v.Name = fullName
+		}
+	case *Interface:
+		if v.Name == "" {
+			v.Name = fullName
+		}
 	}
+
 	m.Constants.SetString(name, val)
+	RootModule.Constants.Set(ToSymbol(fullName), val)
 }
 
 // Set the constant with the specified name
 // to the given value.
 func (m *ConstantContainer) AddConstant(name Symbol, val Value) {
+	fullName := m.fullConstantName(name.String())
 	switch v := val.(type) {
 	case *Module:
-		m.setObjectName(&v.ConstantContainer, string(name.ToString()))
+		if v.Name == "" {
+			v.Name = fullName
+		}
 	case *Class:
-		m.setObjectName(&v.ConstantContainer, string(name.ToString()))
+		if v.Name == "" {
+			v.Name = fullName
+		}
+	case *Interface:
+		if v.Name == "" {
+			v.Name = fullName
+		}
 	}
+
 	m.Constants.Set(name, val)
+	RootModule.Constants.Set(ToSymbol(fullName), val)
 }
 
-// Set the name of the value when it's assigned to a constant.
-func (m *ConstantContainer) setObjectName(obj *ConstantContainer, name string) {
-	if obj.Name != "" || m.Name == "" {
-		return
-	}
-
+func (m *ConstantContainer) fullConstantName(name string) string {
 	if m == &RootModule.ConstantContainer {
-		obj.Name = name
-		return
+		return name
 	}
 
-	obj.Name = fmt.Sprintf("%s::%s", m.Name, name)
+	return fmt.Sprintf("%s::%s", m.Name, name)
 }
