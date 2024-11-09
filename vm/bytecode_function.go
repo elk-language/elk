@@ -471,13 +471,12 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
 		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
-		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS:
+		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.INIT_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
-		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
-		bytecode.GET_CONST8, bytecode.GET_CONST16, bytecode.GET_CONST32:
+		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8:
 		return f.disassembleNumericOperands(output, 1, 1, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
@@ -501,24 +500,21 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleClosure(output, offset)
 	case bytecode.NEW_RANGE:
 		return f.disassembleNewRange(output, offset)
-	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
-		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
+	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8,
 		bytecode.CALL_SELF8, bytecode.INSTANTIATE8,
 		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
-		bytecode.CALL8:
-		return f.disassembleConstant(output, 2, offset)
-	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
-		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
+		bytecode.CALL8, bytecode.GET_CONST8:
+		return f.disassembleValue(output, 2, offset)
+	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16,
 		bytecode.CALL_SELF16, bytecode.INSTANTIATE16,
 		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
-		bytecode.CALL16:
-		return f.disassembleConstant(output, 3, offset)
-	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
-		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
+		bytecode.CALL16, bytecode.GET_CONST16:
+		return f.disassembleValue(output, 3, offset)
+	case bytecode.LOAD_VALUE32, bytecode.CALL_METHOD32,
 		bytecode.CALL_SELF32, bytecode.INSTANTIATE32,
 		bytecode.GET_IVAR32, bytecode.SET_IVAR32,
-		bytecode.CALL32:
-		return f.disassembleConstant(output, 5, offset)
+		bytecode.CALL32, bytecode.GET_CONST32:
+		return f.disassembleValue(output, 5, offset)
 	default:
 		f.printLineNumber(output, offset)
 		f.dumpBytes(output, offset, 1)
@@ -753,7 +749,7 @@ func readUint8(b []byte) uint64 {
 	return uint64(b[0])
 }
 
-func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, offset int) (int, error) {
+func (f *BytecodeFunction) disassembleValue(output io.Writer, byteLength, offset int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
 	if result, err := f.checkBytes(output, offset, byteLength); err != nil {

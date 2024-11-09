@@ -409,16 +409,6 @@ func NewIsNotClassOrMixinError(value string) *Error {
 }
 
 // Create a new error that signals that the
-// given value is not a module, even though it should be.
-func NewIsNotModuleError(value string) *Error {
-	return Errorf(
-		TypeErrorClass,
-		"`%s` is not a module",
-		value,
-	)
-}
-
-// Create a new error that signals that the
 // given value is not a mixin, even though it should be.
 func NewIsNotMixinError(value string) *Error {
 	return Errorf(

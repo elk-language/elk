@@ -198,17 +198,17 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.initCompiler(node.Span())
 	c.checkTypeDefinitions()
 
+	methodCompiler := c.initMethodCompiler(node.Span())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
-	methodCompiler := c.initMethodCompiler(node.Span())
-	c.checkConstants() // TODO: compile all constants in correct order
+	c.checkConstants()
 	c.checkMethods()
 	c.compileMethods(methodCompiler, node.Span())
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
-	c.checkExpressionsInFile(c.Filename, node) // TODO: compile expressions
+	c.checkExpressionsInFile(c.Filename, node)
 
 	if c.Errors.IsFailure() {
 		return nil
@@ -229,7 +229,7 @@ func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initCompiler(span *position.Span) {
-	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span))
+	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, position.NewLocationWithSpan("<main>", span), c.Errors)
 }
 
 func (c *Checker) checkClassesWithIvars() {
@@ -306,6 +306,10 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 
 func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_EXPRESSIONS
+
+	prevCompiler := c.compiler
+	c.compiler = c.compiler.InitExpressionCompiler(filename, node.Span())
+
 	for _, importPath := range node.ImportPaths {
 		importedAst, ok := c.astCache.GetUnsafe(importPath)
 		if !ok {
@@ -322,7 +326,11 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	c.Filename = filename
 	c.checkStatements(node.Body)
 	c.Filename = prevFilename
+
 	node.State = ast.CHECKED_EXPRESSIONS
+
+	c.compiler.CompileExpressionsInFile(node)
+	c.compiler = prevCompiler
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {

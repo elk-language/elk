@@ -59,6 +59,16 @@ type Namespace interface {
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
+func NamespaceHasAnyCompiledMethods(namespace Namespace) bool {
+	for _, method := range namespace.Methods() {
+		if method.Bytecode != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]value.Symbol, len(typeParams))
@@ -386,6 +396,7 @@ func Backward[T any](iterator iter.Seq[T]) iter.Seq[T] {
 }
 
 // iterate over every mixin that is directly included in the given namespace
+// TODO: fix
 func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
 		seenMixins := make(ds.Set[string])

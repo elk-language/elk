@@ -49,22 +49,26 @@ const (
 )
 
 type constantDefinitionCheck struct {
+	state             constState
+	constName         value.Symbol
 	filename          string
 	constantScopes    []constantScope
 	methodScopes      []methodScope
-	node              *ast.ConstantDeclarationNode
-	state             constState
 	referencedMethods []*types.Method
+	node              *ast.ConstantDeclarationNode
+	namespace         types.Namespace
 }
 
-func (c *Checker) registerConstantCheck(name string, node *ast.ConstantDeclarationNode) {
-	c.constantChecks.m[name] = &constantDefinitionCheck{
+func (c *Checker) registerConstantCheck(fullName string, constName value.Symbol, namespace types.Namespace, node *ast.ConstantDeclarationNode) {
+	c.constantChecks.m[fullName] = &constantDefinitionCheck{
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
 		filename:       c.Filename,
+		namespace:      namespace,
+		constName:      constName,
 	}
-	c.constantChecks.order = append(c.constantChecks.order, name)
+	c.constantChecks.order = append(c.constantChecks.order, fullName)
 }
 
 func (c *Checker) addRedeclaredConstantError(name string, span *position.Span) {
@@ -126,6 +130,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		container.DefineConstant(constantName, typ)
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
+		c.compiler.CompileConstantDeclaration(node, container, constantName)
 		return
 	}
 
@@ -142,7 +147,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	declaredType := c.typeOf(node.TypeNode)
 	container.DefineConstant(constantName, declaredType)
 	node.SetType(declaredType)
-	c.registerConstantCheck(fullConstantName, node)
+	c.registerConstantCheck(fullConstantName, constantName, container, node)
 	c.replaceConstantPlaceholder(constant, declaredType)
 }
 
@@ -208,7 +213,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		method.UsedInConstants.Add(symbolName)
 	}
 
-	c.compiler.CompileConstant(node)
+	c.compiler.CompileConstantDeclaration(node, check.namespace, check.constName)
 
 	check.state = CHECKED_CONST
 	return true

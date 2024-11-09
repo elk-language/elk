@@ -42,70 +42,70 @@ func (o OpCode) String() string {
 }
 
 const (
-	ZERO_VALUE         OpCode = iota // Zero value
-	RETURN                           // Return from the current frame
-	LOAD_VALUE8                      // Push a value with a single byte index onto the value stack
-	LOAD_VALUE16                     // Push a value with a two byte index onto the value stack
-	LOAD_VALUE32                     // Push a value with a four byte index onto the value stack
-	ADD                              // Take two values from the stack, add them together (or call the + method) and push the result
-	SUBTRACT                         // Take two values from the stack, subtract them (or call the - method) and push the result
-	MULTIPLY                         // Take two values from the stack, multiply them (or call the * method) and push the result
-	DIVIDE                           // Take two values from the stack, divide them (or call the / method) and push the result
-	EXPONENTIATE                     // Take two values from the stack, raise one to the power signified by the other
-	NEGATE                           // Take a value off the stack and negate it
-	NOT                              // Take a value off the stack and perform boolean negation (converting it to a Bool)
-	BITWISE_NOT                      // Take a value off the stack and perform bitwise negation
-	TRUE                             // Push true onto the stack
-	FALSE                            // Push false onto the stack
-	NIL                              // Push nil onto the stack
-	POP                              // Pop an element off the stack.
-	POP_N                            // Pop n elements off the stack.
-	LEAVE_SCOPE16                    // Leave a scope and pop off any local variables (16 bit operand)
-	LEAVE_SCOPE32                    // Leave a scope and pop off any local variables (32 bit operand)
-	PREP_LOCALS8                     // Prepare slots for local variables and values (8 bit operand)
-	PREP_LOCALS16                    // Prepare slots for local variables and values (16 bit operand)
-	SET_LOCAL8                       // Assign the value on top of the stack to the local variable with the given index (8 bit operand)
-	SET_LOCAL16                      // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
-	GET_LOCAL8                       // Push the value of the local variable with the given index onto the stack (8 bit operand)
-	GET_LOCAL16                      // Push the value of the local variable with the given index onto the stack (16 bit operand)
-	JUMP_UNLESS                      // Jump n bytes forward if the value on the stack is falsy
-	JUMP                             // Jump n bytes forward
-	JUMP_IF                          // Jump n bytes forward if the value on the stack is truthy
-	LOOP                             // Jump n bytes backward
-	JUMP_IF_NIL                      // Jump n bytes forward if the value on the stack is nil
-	RBITSHIFT                        // Take two values from the stack, perform a right bitshift and push the result
-	LOGIC_RBITSHIFT                  // Take two values from the stack, perform a logical right bitshift and push the result
-	LBITSHIFT                        // Take two values from the stack, perform a left bitshift and push the result
-	LOGIC_LBITSHIFT                  // Take two values from the stack, perform a logical left bitshift and push the result
-	BITWISE_AND                      // Take two values from the stack, perform a bitwise AND and push the result
-	BITWISE_OR                       // Take two values from the stack, perform a bitwise OR and push the result
-	BITWISE_XOR                      // Take two values from the stack, perform a bitwise XOR and push the result
-	MODULO                           // Take two values from the stack, perform modulo and push the result
-	EQUAL                            // Take two values from the stack, check if they're equal and push the result
-	STRICT_EQUAL                     // Take two values from the stack, check if they're strictly equal and push the result
-	GREATER                          // Take two values from the stack, check if the first value is greater than the second and push the result
-	GREATER_EQUAL                    // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
-	LESS                             // Take two values from the stack, check if the first value is less than the second and push the result
-	LESS_EQUAL                       // Take two values from the stack, check if the first value is less than or equal to the second and push the result
-	GET_MOD_CONST8                   // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (8 bit operand)
-	GET_MOD_CONST16                  // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (16 bit operand)
-	GET_MOD_CONST32                  // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (32 bit operand)
-	ROOT                             // Push `Std::Root` onto the stack.
-	NOT_EQUAL                        // Take two values from the stack, check if they're not equal and push the result
-	STRICT_NOT_EQUAL                 // Take two values from the stack, check if they're strictly not equal and push the result
-	DEF_MOD_CONST8                   // Pop one value off the stack (module) and define a new constant under it (8 bit operand)
-	DEF_MOD_CONST16                  // Pop one value off the stack (module) and define a new constant under it (16 bit operand)
-	DEF_MOD_CONST32                  // Pop one value off the stack (module) and define a new constant under it (32 bit operand)
-	CONSTANT_CONTAINER               // Push the module/class/mixin that will hold constants defined in this context
-	INIT_CLASS                       // Initialise a class
-	SELF                             // Push `self` onto the stack
-	INIT_MODULE                      // Initialise a module
-	CALL_METHOD8                     // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
-	CALL_METHOD16                    // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
-	CALL_METHOD32                    // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
-	DEF_METHOD                       // Define a new method
-	UNDEFINED                        // Push the undefined value onto the stack
-	GET_CLASS                        // Pop one value off the stack push its class
+	ZERO_VALUE      OpCode = iota // Zero value
+	RETURN                        // Return from the current frame
+	LOAD_VALUE8                   // Push a value with a single byte index onto the value stack
+	LOAD_VALUE16                  // Push a value with a two byte index onto the value stack
+	LOAD_VALUE32                  // Push a value with a four byte index onto the value stack
+	ADD                           // Take two values from the stack, add them together (or call the + method) and push the result
+	SUBTRACT                      // Take two values from the stack, subtract them (or call the - method) and push the result
+	MULTIPLY                      // Take two values from the stack, multiply them (or call the * method) and push the result
+	DIVIDE                        // Take two values from the stack, divide them (or call the / method) and push the result
+	EXPONENTIATE                  // Take two values from the stack, raise one to the power signified by the other
+	NEGATE                        // Take a value off the stack and negate it
+	NOT                           // Take a value off the stack and perform boolean negation (converting it to a Bool)
+	BITWISE_NOT                   // Take a value off the stack and perform bitwise negation
+	TRUE                          // Push true onto the stack
+	FALSE                         // Push false onto the stack
+	NIL                           // Push nil onto the stack
+	POP                           // Pop an element off the stack.
+	POP_N                         // Pop n elements off the stack.
+	LEAVE_SCOPE16                 // Leave a scope and pop off any local variables (16 bit operand)
+	LEAVE_SCOPE32                 // Leave a scope and pop off any local variables (32 bit operand)
+	PREP_LOCALS8                  // Prepare slots for local variables and values (8 bit operand)
+	PREP_LOCALS16                 // Prepare slots for local variables and values (16 bit operand)
+	SET_LOCAL8                    // Assign the value on top of the stack to the local variable with the given index (8 bit operand)
+	SET_LOCAL16                   // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
+	GET_LOCAL8                    // Push the value of the local variable with the given index onto the stack (8 bit operand)
+	GET_LOCAL16                   // Push the value of the local variable with the given index onto the stack (16 bit operand)
+	JUMP_UNLESS                   // Jump n bytes forward if the value on the stack is falsy
+	JUMP                          // Jump n bytes forward
+	JUMP_IF                       // Jump n bytes forward if the value on the stack is truthy
+	LOOP                          // Jump n bytes backward
+	JUMP_IF_NIL                   // Jump n bytes forward if the value on the stack is nil
+	RBITSHIFT                     // Take two values from the stack, perform a right bitshift and push the result
+	LOGIC_RBITSHIFT               // Take two values from the stack, perform a logical right bitshift and push the result
+	LBITSHIFT                     // Take two values from the stack, perform a left bitshift and push the result
+	LOGIC_LBITSHIFT               // Take two values from the stack, perform a logical left bitshift and push the result
+	BITWISE_AND                   // Take two values from the stack, perform a bitwise AND and push the result
+	BITWISE_OR                    // Take two values from the stack, perform a bitwise OR and push the result
+	BITWISE_XOR                   // Take two values from the stack, perform a bitwise XOR and push the result
+	MODULO                        // Take two values from the stack, perform modulo and push the result
+	EQUAL                         // Take two values from the stack, check if they're equal and push the result
+	STRICT_EQUAL                  // Take two values from the stack, check if they're strictly equal and push the result
+	GREATER                       // Take two values from the stack, check if the first value is greater than the second and push the result
+	GREATER_EQUAL                 // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
+	LESS                          // Take two values from the stack, check if the first value is less than the second and push the result
+	LESS_EQUAL                    // Take two values from the stack, check if the first value is less than or equal to the second and push the result
+	_
+	_
+	_
+	ROOT             // Push `Std::Root` onto the stack.
+	NOT_EQUAL        // Take two values from the stack, check if they're not equal and push the result
+	STRICT_NOT_EQUAL // Take two values from the stack, check if they're strictly not equal and push the result
+	_
+	_
+	_
+	CONSTANT_CONTAINER // Push the module/class/mixin that will hold constants defined in this context
+	INIT_CLASS         // Initialise a class
+	SELF               // Push `self` onto the stack
+	INIT_MODULE        // Initialise a module
+	CALL_METHOD8       // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD16      // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
+	CALL_METHOD32      // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
+	DEF_METHOD         // Define a new method
+	UNDEFINED          // Push the undefined value onto the stack
+	GET_CLASS          // Pop one value off the stack push its class
 	_
 	CALL_SELF8  // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_SELF16 // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
@@ -195,6 +195,8 @@ const (
 	GET_CONST8        // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
 	GET_CONST16       // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
 	GET_CONST32       // Get the value of the constant with the name stored under the given index in the value pool (32 bit operand)
+	DEF_CONST         // Define a new constant
+	EXEC              // Execute a chunk of bytecode
 )
 
 var opCodeNames = [...]string{
@@ -243,15 +245,9 @@ var opCodeNames = [...]string{
 	GREATER_EQUAL:      "GREATER_EQUAL",
 	LESS:               "LESS",
 	LESS_EQUAL:         "LESS_EQUAL",
-	GET_MOD_CONST8:     "GET_MOD_CONST8",
-	GET_MOD_CONST16:    "GET_MOD_CONST16",
-	GET_MOD_CONST32:    "GET_MOD_CONST32",
 	ROOT:               "ROOT",
 	NOT_EQUAL:          "NOT_EQUAL",
 	STRICT_NOT_EQUAL:   "STRICT_NOT_EQUAL",
-	DEF_MOD_CONST8:     "DEF_MOD_CONST8",
-	DEF_MOD_CONST16:    "DEF_MOD_CONST16",
-	DEF_MOD_CONST32:    "DEF_MOD_CONST32",
 	CONSTANT_CONTAINER: "CONSTANT_CONTAINER",
 	INIT_CLASS:         "INIT_CLASS",
 	SELF:               "SELF",
@@ -349,4 +345,6 @@ var opCodeNames = [...]string{
 	GET_CONST8:         "GET_CONST8",
 	GET_CONST16:        "GET_CONST16",
 	GET_CONST32:        "GET_CONST32",
+	DEF_CONST:          "DEF_CONST",
+	EXEC:               "EXEC",
 }

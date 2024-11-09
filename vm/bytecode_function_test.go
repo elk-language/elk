@@ -1048,57 +1048,6 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       2C                LESS_EQUAL
 `,
 		},
-		"correctly format the GET_MOD_CONST8 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.GET_MOD_CONST8), 0},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0: value.ToSymbol("Foo")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       2D 00             GET_MOD_CONST8    0 (:Foo)
-`,
-		},
-		"correctly format the GET_MOD_CONST16 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.GET_MOD_CONST16), 0x01, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00: value.ToSymbol("Bar")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       2E 01 00          GET_MOD_CONST16   256 (:Bar)
-`,
-		},
-		"correctly format the GET_MOD_CONST32 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.GET_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00_00_00: value.ToSymbol("Bar")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       2F 01 00 00 00    GET_MOD_CONST32   16777216 (:Bar)
-`,
-		},
 		"correctly format the ROOT opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
@@ -1148,57 +1097,6 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
 0000  1       32                STRICT_NOT_EQUAL
-`,
-		},
-		"correctly format the DEF_MOD_CONST8 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_MOD_CONST8), 0},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0: value.ToSymbol("Foo")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       33 00             DEF_MOD_CONST8    0 (:Foo)
-`,
-		},
-		"correctly format the DEF_MOD_CONST16 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_MOD_CONST16), 0x01, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00: value.ToSymbol("Bar")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       34 01 00          DEF_MOD_CONST16   256 (:Bar)
-`,
-		},
-		"correctly format the DEF_MOD_CONST32 opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				[]value.Value{0x1_00_00_00: value.ToSymbol("Bar")},
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       35 01 00 00 00    DEF_MOD_CONST32   16777216 (:Bar)
 `,
 		},
 		"correctly format the CONSTANT_CONTAINER opcode": {

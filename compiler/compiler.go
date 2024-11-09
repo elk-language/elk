@@ -41,7 +41,7 @@ func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, error.Er
 	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()), nil)
 	compiler.compileProgram(ast)
 
-	return compiler.Bytecode, compiler.Errors
+	return compiler.Bytecode, compiler.Errors.ErrorList
 }
 
 // Compile code for use in the REPL.
@@ -54,15 +54,16 @@ func CompileREPL(sourceName string, source string) (*Compiler, error.ErrorList) 
 	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()), nil)
 	compiler.compileProgram(ast)
 
-	if compiler.Errors != nil {
-		return nil, compiler.Errors
+	if compiler.Errors.IsFailure() {
+		return nil, compiler.Errors.ErrorList
 	}
 	return compiler, nil
 }
 
-func InitGlobalEnv(env *types.GlobalEnvironment, loc *position.Location) *Compiler {
+func InitGlobalEnv(env *types.GlobalEnvironment, loc *position.Location, errors *error.SyncErrorList) *Compiler {
 	compiler := New(loc.Filename, topLevelMode, loc, env)
 	compiler.env = env
+	compiler.Errors = errors
 	compiler.compileGlobalEnv(env, &loc.Span)
 	return compiler
 }
@@ -158,7 +159,7 @@ type upvalue struct {
 type Compiler struct {
 	Name             string
 	Bytecode         *vm.BytecodeFunction
-	Errors           error.ErrorList
+	Errors           *error.SyncErrorList
 	scopes           scopes
 	loopJumpSets     []*loopJumpSet
 	offsetValueIds   []int // ids of integers in the value pool that represent bytecode offsets
@@ -186,6 +187,7 @@ func New(name string, mode mode, loc *position.Location, env *types.GlobalEnviro
 		maxLocalIndex:  -1,
 		Name:           name,
 		mode:           mode,
+		env:            env,
 	}
 	// reserve the first slot on the stack for `self`
 	c.defineLocal("$self", &position.Span{}, true, true)
@@ -220,54 +222,60 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 	compiler.maxLocalIndex = c.maxLocalIndex
 	compiler.compileProgram(ast)
 
-	if compiler.Errors != nil {
-		return nil, compiler.Errors
+	if compiler.Errors.IsFailure() {
+		return nil, compiler.Errors.ErrorList
 	}
 	return compiler, nil
 }
 
 func (c *Compiler) compileGlobalEnv(env *types.GlobalEnvironment, span *position.Span) {
-	c.emit(span.StartPos.Line, bytecode.ROOT)
-	c.defineModule(env.Root, span)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.defineModule(env.Root, env.Root, value.ToSymbol("Root"), span)
 }
 
-func (c *Compiler) defineNamespace(namespaceType byte, namespace types.Namespace, span *position.Span) {
-	c.emitValue(value.ToSymbol(namespace.Name()), span)
-	c.emit(span.StartPos.Line, bytecode.DEF_NAMESPACE, namespaceType)
-
-	for _, subtype := range namespace.Subtypes() {
-		c.defineSubtype(subtype.Type, span)
+func (c *Compiler) defineNamespace(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, span *position.Span) {
+	if !namespace.IsNative() {
+		switch p := parentNamespace.(type) {
+		case *types.SingletonClass:
+			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), span)
+			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+		default:
+			c.emitGetConst(value.ToSymbol(p.Name()), span)
+		}
+		c.emitValue(constName, span)
+		c.emit(span.StartPos.Line, bytecode.DEF_NAMESPACE, namespaceType)
 	}
 
-	c.emit(span.StartPos.Line, bytecode.POP)
-}
-func (c *Compiler) defineModule(module *types.Module, span *position.Span) {
-	c.defineNamespace(bytecode.DEF_MODULE_FLAG, module, span)
-}
-
-func (c *Compiler) defineClass(class *types.Class, span *position.Span) {
-	c.defineNamespace(bytecode.DEF_CLASS_FLAG, class, span)
+	for name, subtype := range namespace.Subtypes() {
+		c.defineSubtype(namespace, subtype.Type, name, span)
+	}
 }
 
-func (c *Compiler) defineMixin(mixin *types.Mixin, span *position.Span) {
-	c.defineNamespace(bytecode.DEF_MIXIN_FLAG, mixin, span)
+func (c *Compiler) defineModule(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, span *position.Span) {
+	c.defineNamespace(parentNamespace, module, bytecode.DEF_MODULE_FLAG, constName, span)
 }
 
-func (c *Compiler) defineInterface(iface *types.Interface, span *position.Span) {
-	c.defineNamespace(bytecode.DEF_INTERFACE_FLAG, iface, span)
+func (c *Compiler) defineClass(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, span *position.Span) {
+	c.defineNamespace(parentNamespace, class, bytecode.DEF_CLASS_FLAG, constName, span)
 }
 
-func (c *Compiler) defineSubtype(typ types.Type, span *position.Span) {
+func (c *Compiler) defineMixin(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, span *position.Span) {
+	c.defineNamespace(parentNamespace, mixin, bytecode.DEF_MIXIN_FLAG, constName, span)
+}
+
+func (c *Compiler) defineInterface(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, span *position.Span) {
+	c.defineNamespace(parentNamespace, iface, bytecode.DEF_INTERFACE_FLAG, constName, span)
+}
+
+func (c *Compiler) defineSubtype(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, span *position.Span) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.defineModule(t, span)
+		c.defineModule(parentNamespace, t, constName, span)
 	case *types.Class:
-		c.defineClass(t, span)
+		c.defineClass(parentNamespace, t, constName, span)
 	case *types.Mixin:
-		c.defineMixin(t, span)
+		c.defineMixin(parentNamespace, t, constName, span)
 	case *types.Interface:
-		c.defineInterface(t, span)
+		c.defineInterface(parentNamespace, t, constName, span)
 	}
 }
 
@@ -302,6 +310,25 @@ func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, sp
 	c.emitGetConst(mixinName, span)
 
 	c.emit(span.StartPos.Line, bytecode.INCLUDE)
+}
+
+func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) *Compiler {
+	exprCompiler := New(filename, topLevelMode, c.Bytecode.Location, c.env)
+	exprCompiler.Errors = c.Errors
+
+	c.emitValue(exprCompiler.Bytecode, span)
+	c.emit(span.StartPos.Line, bytecode.EXEC)
+
+	return exprCompiler
+}
+
+func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
+	c.compileNode(node)
+}
+
+func (c *Compiler) CompileExec(fn *vm.BytecodeFunction, span *position.Span) {
+	c.emitValue(fn, span)
+	c.emit(span.StartPos.Line, bytecode.EXEC)
 }
 
 // Entry point to the compilation process
@@ -367,21 +394,23 @@ func (c *Compiler) InitMethodCompiler(span *position.Span) *Compiler {
 	methodCompiler := New("<methodDefinitions>", topLevelMode, c.Bytecode.Location, c.env)
 	methodCompiler.Errors = c.Errors
 
-	c.emit(span.StartPos.Line, bytecode.ROOT)
 	c.emitValue(methodCompiler.Bytecode, span)
-	c.emit(span.StartPos.Line, bytecode.INIT_MODULE)
+	c.emit(span.StartPos.Line, bytecode.EXEC)
 
 	return methodCompiler
 }
 
 func (c *Compiler) CompileMethods(span *position.Span) {
 	c.compileMethodsWithinModule(c.env.Root, span)
+	c.emitReturn(span, nil)
+	c.prepLocals()
 }
 
 func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *position.Span) {
-	c.emitGetConst(value.ToSymbol(module.Name()), span)
-	if len(module.Methods()) > 0 {
-		c.emit(span.StartPos.Line, bytecode.DUP)
+	moduleHasCompiledMethods := types.NamespaceHasAnyCompiledMethods(module)
+
+	if moduleHasCompiledMethods {
+		c.emitGetConst(value.ToSymbol(module.Name()), span)
 		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
 		for methodName, method := range module.Methods() {
@@ -400,28 +429,20 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 	for _, subtype := range module.Subtypes() {
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
-
-	c.emit(span.StartPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span *position.Span) {
-	c.emitGetConst(value.ToSymbol(namespace.Name()), span)
-	for methodName, method := range namespace.Methods() {
-		if method.Bytecode == nil {
-			continue
-		}
+	namespaceMethods := namespace.Methods()
+	namespaceHasCompiledMethods := types.NamespaceHasAnyCompiledMethods(namespace)
 
-		c.emitValue(method.Bytecode, span)
-		c.emitValue(methodName, span)
-		c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
-	}
+	singleton := namespace.Singleton()
+	singletonMethods := singleton.Methods()
+	singletonHasCompiledMethods := types.NamespaceHasAnyCompiledMethods(singleton)
 
-	singletonMethods := namespace.Singleton().Methods()
-	if len(singletonMethods) > 0 {
-		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
+		c.emitGetConst(value.ToSymbol(namespace.Name()), span)
 
-		for methodName, method := range singletonMethods {
+		for methodName, method := range namespaceMethods {
 			if method.Bytecode == nil {
 				continue
 			}
@@ -431,14 +452,26 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span
 			c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
 		}
 
+		if singletonHasCompiledMethods {
+			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+
+			for methodName, method := range singletonMethods {
+				if method.Bytecode == nil {
+					continue
+				}
+
+				c.emitValue(method.Bytecode, span)
+				c.emitValue(methodName, span)
+				c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
+			}
+		}
+
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
 
 	for _, subtype := range namespace.Subtypes() {
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
-
-	c.emit(span.StartPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) compileMethodsWithinType(typ types.Type, span *position.Span) {
@@ -463,7 +496,6 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode) *vm.Bytecod
 	methodCompiler := New(node.Name, mode, c.newLocation(node.Span()), c.env)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
-	c.Errors = methodCompiler.Errors
 
 	return methodCompiler.Bytecode
 }
@@ -650,6 +682,14 @@ func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, s
 	c.addLoopJumpTo(jumpSet, typ, offset)
 }
 
+func (c *Compiler) compilePublicConstantNode(node *ast.PublicConstantNode) {
+	c.emitGetConst(value.ToSymbol(node.Value), node.Span())
+}
+
+func (c *Compiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) {
+	c.emitGetConst(value.ToSymbol(node.Value), node.Span())
+}
+
 func (c *Compiler) compileNode(node ast.Node) {
 	switch node := node.(type) {
 	case *ast.ProgramNode:
@@ -658,8 +698,10 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.compileNode(node.Expression)
 	case *ast.LabeledExpressionNode:
 		c.labeledExpression(node)
-	case *ast.ConstantLookupNode:
-		c.constantLookup(node)
+	case *ast.PublicConstantNode:
+		c.compilePublicConstantNode(node)
+	case *ast.PrivateConstantNode:
+		c.compilePrivateConstantNode(node)
 	case *ast.GenericConstantNode:
 		c.compileNode(node.Constant)
 	case *ast.SelfLiteralNode:
@@ -975,15 +1017,20 @@ func (c *Compiler) registerCatch(from, to, jumpAddress int, finally bool) {
 	)
 }
 
-func (c *Compiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode) {
-	var name string
-	switch constant := node.Constant.(type) {
-	case *ast.PublicConstantNode:
-		name = constant.Value
-	case *ast.PrivateConstantNode:
-		name = constant.Value
+func (c *Compiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
+	span := node.Span()
+	switch n := namespace.(type) {
+	case *types.SingletonClass:
+		namespaceName := value.ToSymbol(n.AttachedObject.Name())
+		c.emitGetConst(namespaceName, node.Constant.Span())
+		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+	default:
+		namespaceName := value.ToSymbol(n.Name())
+		c.emitGetConst(namespaceName, node.Constant.Span())
 	}
-	c.compileSimpleConstantDeclaration(name, node.Initialiser, node.Span())
+	c.emitValue(constName, span)
+	c.compileNode(node.Initialiser)
+	c.emit(span.StartPos.Line, bytecode.DEF_CONST)
 }
 
 func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
@@ -1523,25 +1570,6 @@ func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
 		c.modifierExpression(node.Label, expr)
 	default:
 		c.compileNode(node.Expression)
-	}
-}
-
-// Compile a constant lookup expressions eg. `Foo::Bar`
-func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
-	if node.Left == nil {
-		c.emit(node.Span().StartPos.Line, bytecode.ROOT)
-	} else {
-		c.compileNode(node.Left)
-	}
-
-	switch r := node.Right.(type) {
-	case *ast.PublicConstantNode:
-		c.emitGetModConst(value.ToSymbol(r.Value), node.Span())
-	default:
-		c.Errors.AddFailure(
-			fmt.Sprintf("incorrect right side of constant lookup: %T", node.Right),
-			c.newLocation(node.Span()),
-		)
 	}
 }
 
@@ -2139,12 +2167,6 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 			c.newLocation(node.Span()),
 		)
 	}
-}
-
-func (c *Compiler) compileSimpleConstantDeclaration(name string, right ast.ExpressionNode, span *position.Span) {
-	c.compileNode(right)
-	c.emit(span.StartPos.Line, bytecode.CONSTANT_CONTAINER)
-	c.emitDefModConst(value.ToSymbol(name), span)
 }
 
 func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
@@ -3485,7 +3507,6 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 		singletonCompiler := New("<singleton_class>", classMode, c.newLocation(span), c.env)
 		singletonCompiler.Errors = c.Errors
 		singletonCompiler.compileModule(node)
-		c.Errors = singletonCompiler.Errors
 
 		result := singletonCompiler.Bytecode
 		c.emitValue(result, span)
@@ -3505,7 +3526,6 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	methodCompiler := New(node.Name, mode, c.newLocation(node.Span()), c.env)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
-	c.Errors = methodCompiler.Errors
 
 	result := methodCompiler.Bytecode
 	c.emitValue(result, node.Span())
@@ -3520,7 +3540,6 @@ func (c *Compiler) closureLiteral(node *ast.ClosureLiteralNode) {
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
-	c.Errors = closureCompiler.Errors
 
 	result := closureCompiler.Bytecode
 	c.emitValue(result, node.Span())
@@ -3572,7 +3591,6 @@ func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	methodCompiler := New("#init", initMethodMode, c.newLocation(node.Span()), c.env)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
-	c.Errors = methodCompiler.Errors
 
 	result := methodCompiler.Bytecode
 	c.emitValue(result, node.Span())
@@ -3600,7 +3618,6 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		mixinCompiler := New("<mixin>", mixinMode, c.newLocation(node.Span()), c.env)
 		mixinCompiler.Errors = c.Errors
 		mixinCompiler.compileModule(node)
-		c.Errors = mixinCompiler.Errors
 
 		result := mixinCompiler.Bytecode
 		c.emitValue(result, node.Span())
@@ -3656,7 +3673,6 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	modCompiler := New("<module>", moduleMode, c.newLocation(node.Span()), c.env)
 	modCompiler.Errors = c.Errors
 	modCompiler.compileModule(node)
-	c.Errors = modCompiler.Errors
 
 	result := modCompiler.Bytecode
 	c.emitValue(result, node.Span())
@@ -3758,7 +3774,6 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		modCompiler := New("<class>", classMode, c.newLocation(node.Span()), c.env)
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
-		c.Errors = modCompiler.Errors
 
 		result := modCompiler.Bytecode
 		c.emitValue(result, node.Span())
@@ -5789,28 +5804,6 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 		bytecode.CALL_METHOD8,
 		bytecode.CALL_METHOD16,
 		bytecode.CALL_METHOD32,
-	)
-}
-
-// Emit an instruction that gets the value of a module constant.
-func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) int {
-	return c.emitAddValue(
-		name,
-		span,
-		bytecode.GET_MOD_CONST8,
-		bytecode.GET_MOD_CONST16,
-		bytecode.GET_MOD_CONST32,
-	)
-}
-
-// Emit an instruction that defines a module constant.
-func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) int {
-	return c.emitAddValue(
-		name,
-		span,
-		bytecode.DEF_MOD_CONST8,
-		bytecode.DEF_MOD_CONST16,
-		bytecode.DEF_MOD_CONST32,
 	)
 }
 
