@@ -198,6 +198,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.initCompiler(node.Span())
 	c.checkTypeDefinitions()
 
+	c.switchToMainCompiler()
 	methodCompiler := c.initMethodCompiler(node.Span())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
@@ -232,13 +233,24 @@ func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
 	return c.compiler.InitMethodCompiler(span)
 }
 
+func (c *Checker) switchToMainCompiler() {
+	if c.compiler == nil {
+		return
+	}
+
+	c.compiler.EmitReturnNil()
+	c.compiler = c.compiler.Parent
+}
+
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initCompiler(span *position.Span) {
 	if c.IsHeader {
 		return
 	}
-	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span), c.Errors)
+
+	mainCompiler := compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
 func (c *Checker) checkClassesWithIvars() {

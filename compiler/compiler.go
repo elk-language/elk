@@ -60,12 +60,23 @@ func CompileREPL(sourceName string, source string) (*Compiler, error.ErrorList) 
 	return compiler, nil
 }
 
-func InitGlobalEnv(env *types.GlobalEnvironment, loc *position.Location, errors *error.SyncErrorList) *Compiler {
+func CreateMainCompiler(env *types.GlobalEnvironment, loc *position.Location, errors *error.SyncErrorList) *Compiler {
 	compiler := New(loc.Filename, topLevelMode, loc, env)
-	compiler.env = env
 	compiler.Errors = errors
-	compiler.compileGlobalEnv(env, &loc.Span)
 	return compiler
+}
+
+func (c *Compiler) InitGlobalEnv() *Compiler {
+	envCompiler := New("<namespaceDefinitions>", topLevelMode, c.Bytecode.Location, c.env)
+	envCompiler.Parent = c
+	envCompiler.Errors = c.Errors
+	envCompiler.compileGlobalEnv()
+
+	span := &c.Bytecode.Location.Span
+	c.emitValue(envCompiler.Bytecode, span)
+	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
+	return envCompiler
 }
 
 // Compiler mode
@@ -165,7 +176,7 @@ type Compiler struct {
 	mode             mode
 	lastOpCode       bytecode.OpCode
 	patternNesting   int
-	parent           *Compiler
+	Parent           *Compiler
 	upvalues         []*upvalue
 	env              *types.GlobalEnvironment
 }
@@ -220,8 +231,15 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 	return compiler, nil
 }
 
-func (c *Compiler) compileGlobalEnv(env *types.GlobalEnvironment, span *position.Span) {
-	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), span)
+func (c *Compiler) EmitReturnNil() {
+	span := &c.Bytecode.Location.Span
+	c.emit(span.EndPos.Line, bytecode.NIL)
+	c.emit(span.EndPos.Line, bytecode.RETURN)
+}
+
+func (c *Compiler) compileGlobalEnv() {
+	span := &c.Bytecode.Location.Span
+	c.compileModuleDefinition(c.env.Root, c.env.Root, value.ToSymbol("Root"), span)
 }
 
 func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, span *position.Span) {
@@ -315,17 +333,13 @@ func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) 
 
 	c.emitValue(exprCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return exprCompiler
 }
 
 func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.compileNode(node)
-}
-
-func (c *Compiler) CompileExec(fn *vm.BytecodeFunction, span *position.Span) {
-	c.emitValue(fn, span)
-	c.emit(span.StartPos.Line, bytecode.EXEC)
 }
 
 // Entry point to the compilation process
@@ -377,14 +391,15 @@ func (c *Compiler) InitMethodCompiler(span *position.Span) *Compiler {
 
 	c.emitValue(methodCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return methodCompiler
 }
 
 func (c *Compiler) CompileMethods(span *position.Span) {
 	c.compileMethodsWithinModule(c.env.Root, span)
-	c.emitReturn(span, nil)
-	c.prepLocals()
+	c.emit(span.EndPos.Line, bytecode.NIL)
+	c.emit(span.EndPos.Line, bytecode.RETURN)
 }
 
 func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *position.Span) {
@@ -2278,7 +2293,7 @@ func (c *Compiler) compileLocalVariableAccess(name string, span *position.Span) 
 
 // Resolve an upvalue from an outer context and get its index.
 func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, bool) {
-	parent := c.parent
+	parent := c.Parent
 	if parent == nil {
 		return nil, false
 	}
@@ -3375,7 +3390,7 @@ func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockE
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	closureCompiler := New("<closure>", methodMode, c.newLocation(node.Span()), c.env)
-	closureCompiler.parent = c
+	closureCompiler.Parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
 
