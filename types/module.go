@@ -6,8 +6,8 @@ import (
 )
 
 type Module struct {
-	native bool
-	parent Namespace
+	compiled bool
+	parent   Namespace
 	NamespaceBase
 }
 
@@ -35,8 +35,12 @@ func (m *Module) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func (m *Module) IsNative() bool {
-	return m.native
+func (m *Module) IsCompiled() bool {
+	return m.compiled
+}
+
+func (m *Module) SetCompiled(compiled bool) {
+	m.compiled = compiled
 }
 
 func (m *Module) IsAbstract() bool {
@@ -53,7 +57,7 @@ func (m *Module) IsPrimitive() bool {
 
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
-		native:        env.Init,
+		compiled:      env.Init,
 		parent:        env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}

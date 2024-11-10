@@ -210,7 +210,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
-	if c.Errors.IsFailure() {
+	if c.Errors.IsFailure() || c.compiler == nil {
 		return nil
 	}
 	return c.compiler.Bytecode
@@ -218,18 +218,27 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 // Create a new compiler that will define all methods
 func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, span *position.Span) {
+	if methodCompiler == nil {
+		return
+	}
 	methodCompiler.CompileMethods(span)
 }
 
 // Create a new compiler that will define all methods
 func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
+	if c.IsHeader {
+		return nil
+	}
 	return c.compiler.InitMethodCompiler(span)
 }
 
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initCompiler(span *position.Span) {
-	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, position.NewLocationWithSpan("<main>", span), c.Errors)
+	if c.IsHeader {
+		return
+	}
+	c.compiler = compiler.InitGlobalEnv(c.GlobalEnv, c.newLocation(span), c.Errors)
 }
 
 func (c *Checker) checkClassesWithIvars() {
@@ -307,9 +316,6 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_EXPRESSIONS
 
-	prevCompiler := c.compiler
-	c.compiler = c.compiler.InitExpressionCompiler(filename, node.Span())
-
 	for _, importPath := range node.ImportPaths {
 		importedAst, ok := c.astCache.GetUnsafe(importPath)
 		if !ok {
@@ -319,7 +325,12 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		case ast.CHECKING_EXPRESSIONS, ast.CHECKED_EXPRESSIONS:
 			continue
 		}
+		prevCompiler := c.compiler
+		if c.compiler != nil {
+			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Span())
+		}
 		c.checkExpressionsInFile(importPath, importedAst)
+		c.compiler = prevCompiler
 	}
 
 	prevFilename := c.Filename
@@ -329,8 +340,9 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 
 	node.State = ast.CHECKED_EXPRESSIONS
 
-	c.compiler.CompileExpressionsInFile(node)
-	c.compiler = prevCompiler
+	if c.compiler != nil {
+		c.compiler.CompileExpressionsInFile(node)
+	}
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
@@ -3606,7 +3618,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 }
 
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
+	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -3637,11 +3649,33 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
+	var receiver ast.ExpressionNode
+	switch under := method.DefinedUnder.(type) {
+	case *types.Module:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+	case *types.SingletonClass:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
+	default:
+		// from self
+		receiver = ast.NewSelfLiteralNode(node.Span())
+		c.checkNonNilableInstanceVariablesForSelf(node.Span())
+	}
+
 	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
-	node.PositionalArguments = typedPositionalArguments
-	node.NamedArguments = nil
-	node.SetType(method.ReturnType)
-	return node
+	newNode := ast.NewMethodCallNode(
+		node.Span(),
+		receiver,
+		token.New(node.Span(), token.DOT),
+		method.Name.String(),
+		typedPositionalArguments,
+		nil,
+	)
+	c.checkCalledMethodThrowType(method, node.Span())
+
+	newNode.SetType(method.ReturnType)
+	return newNode
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
@@ -3681,10 +3715,13 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	}
 
 	var receiver ast.ExpressionNode
-	switch method.DefinedUnder.(type) {
-	case *types.Module, *types.SingletonClass:
-		// from using
-		receiver = ast.NewPublicConstantNode(node.Span(), method.DefinedUnder.Name())
+	switch under := method.DefinedUnder.(type) {
+	case *types.Module:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+	case *types.SingletonClass:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
 	default:
 		// from self
 		receiver = ast.NewSelfLiteralNode(node.Span())
@@ -7036,7 +7073,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	structNode.Constant = ast.NewPublicConstantNode(structNode.Constant.Span(), fullConstantName)
 
 	init := ast.NewInitDefinitionNode(
-		structNode.Span(),
+		c.newLocation(structNode.Span()),
 		nil,
 		nil,
 		nil,
@@ -7598,7 +7635,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	)
 	initNode.SetType(method)
 	newNode := ast.NewMethodDefinitionNode(
-		initNode.Span(),
+		initNode.Location(),
 		initNode.DocComment(),
 		false,
 		false,
@@ -7634,9 +7671,12 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	}
 	newName := value.ToSymbol(node.NewName)
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
-	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Span())
-	namespace.SetMethod(newName, aliasedMethod)
-	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Span())
+	alias := aliasedMethod.Copy()
+	alias.Name = newName
+	c.checkMethodOverrideWithPlaceholder(alias, oldMethod, node.Span())
+	c.checkSpecialMethods(newName, alias, nil, node.Span())
+	namespace.SetMethod(newName, alias)
+	c.registerMethodCheck(alias, aliasedMethod.Node.(*ast.MethodDefinitionNode))
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
@@ -7654,6 +7694,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		node.ThrowType,
 		node.Span(),
 	)
+	method.Node = node
 	node.SetType(method)
 	c.registerMethodCheck(method, node)
 	if mod != nil {

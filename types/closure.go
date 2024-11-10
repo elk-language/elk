@@ -72,8 +72,12 @@ func (c *Closure) IsAbstract() bool {
 	return true
 }
 
-func (c *Closure) IsNative() bool {
+func (c *Closure) IsCompiled() bool {
 	return false
+}
+
+func (c *Closure) SetCompiled(bool) {
+	panic("cannot set `compiled` in closure")
 }
 
 func (c *Closure) IsSealed() bool {

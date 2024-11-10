@@ -196,19 +196,13 @@ func TestVMSource_Instantiate(t *testing.T) {
 										bytecode.NewLineInfo(4, 7),
 										bytecode.NewLineInfo(5, 2),
 									},
-									[]value.Symbol{
-										value.ToSymbol("a"),
-									},
+									1,
 									0,
-									-1,
-									false,
-									false,
 									[]value.Value{
 										value.String("a: "),
 										value.NewCallSiteInfo(
 											value.ToSymbol("println"),
 											1,
-											nil,
 										),
 									},
 								),
@@ -262,20 +256,14 @@ func TestVMSource_Instantiate(t *testing.T) {
 										bytecode.NewLineInfo(4, 7),
 										bytecode.NewLineInfo(5, 2),
 									},
-									[]value.Symbol{
-										value.ToSymbol("a"),
-									},
+									1,
 									0,
-									-1,
-									false,
-									false,
 									[]value.Value{
 										value.ToSymbol("a"),
 										value.String("a: "),
 										value.NewCallSiteInfo(
 											value.ToSymbol("println"),
 											1,
-											nil,
 										),
 									},
 								),
@@ -326,17 +314,6 @@ func TestVMSource_Alias(t *testing.T) {
 				"cannot create an alias for a nonexistent method: blabla",
 			),
 		},
-		"add an alias overriding a sealed method": {
-			source: `
-				sealed class ::Std::Int
-				  alias + class
-				end
-			`,
-			wantRuntimeErr: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: +",
-			),
-		},
 	}
 
 	for name, tc := range tests {
@@ -362,11 +339,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 				},
-				nil,
 				0,
-				-1,
-				false,
-				false,
+				0,
 				[]value.Value{
 					value.ToSymbol("bar"),
 				},
@@ -402,14 +376,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					bytecode.NewLineInfo(4, 8),
 					bytecode.NewLineInfo(5, 1),
 				},
-				[]value.Symbol{
-					value.ToSymbol("a"),
-					value.ToSymbol("b"),
-				},
+				2,
 				0,
-				-1,
-				false,
-				false,
 				[]value.Value{
 					value.SmallInt(5),
 				},
@@ -451,14 +419,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 								bytecode.NewLineInfo(5, 8),
 								bytecode.NewLineInfo(6, 1),
 							},
-							[]value.Symbol{
-								value.ToSymbol("a"),
-								value.ToSymbol("b"),
-							},
+							2,
 							0,
-							-1,
-							false,
-							false,
 							[]value.Value{
 								value.SmallInt(5),
 							},
@@ -508,14 +470,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 										bytecode.NewLineInfo(5, 8),
 										bytecode.NewLineInfo(6, 1),
 									},
-									[]value.Symbol{
-										value.ToSymbol("a"),
-										value.ToSymbol("b"),
-									},
+									2,
 									0,
-									-1,
-									false,
-									false,
 									[]value.Value{
 										value.SmallInt(5),
 									},
@@ -528,30 +484,6 @@ func TestVMSource_DefineMethod(t *testing.T) {
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Bar")
 			},
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			vmSourceTest(tc, t)
-		})
-	}
-}
-
-func TestVMSource_OverrideSealedMethod(t *testing.T) {
-	tests := sourceTestTable{
-		"override a sealed builtin method": {
-			source: `
-				sealed class ::Std::String
-				  def +(other)
-						"lol"
-					end
-				end
-			`,
-			wantRuntimeErr: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: +",
-			),
 		},
 	}
 

@@ -71,7 +71,6 @@ func (c *Checker) checkMethodPlaceholders() {
 }
 
 type methodCheckEntry struct {
-	filename       string
 	method         *types.Method
 	constantScopes []constantScope
 	methodScopes   []methodScope
@@ -84,7 +83,6 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
-		filename:       c.Filename,
 	})
 }
 
@@ -96,8 +94,9 @@ func (c *Checker) checkMethods() {
 		c.methodChecks,
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
+			node := methodCheck.node
 			methodChecker := c.newMethodChecker(
-				methodCheck.filename,
+				node.Location().Filename,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
 				method.DefinedUnder,
@@ -105,8 +104,7 @@ func (c *Checker) checkMethods() {
 				method.ThrowType,
 				method.IsInit(),
 			)
-			node := methodCheck.node
-			methodChecker.checkMethodDefinition(node)
+			methodChecker.checkMethodDefinition(node, method)
 
 			// method has to be checked if it doesn't
 			// use the constants that use it in their initialisation
@@ -179,7 +177,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 	}
 
 	methodNode := ast.NewMethodDefinitionNode(
-		node.Span(),
+		c.newLocation(node.Span()),
 		"",
 		false,
 		false,
@@ -266,7 +264,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	)
 
 	methodNode := ast.NewMethodDefinitionNode(
-		node.Span(),
+		c.newLocation(node.Span()),
 		docComment,
 		false,
 		false,
@@ -1503,8 +1501,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 	return returnType
 }
 
-func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
-	method := c.typeOf(node).(*types.Method)
+func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *types.Method) {
 	c.method = method
 	returnType, throwType := c.checkMethod(
 		c.currentMethodScope().container,
@@ -1524,8 +1521,8 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
 
-	if !method.IsAbstract() {
-		method.Bytecode = c.compiler.CompileMethodBody(node)
+	if !method.IsAbstract() && c.compiler != nil {
+		method.Bytecode = c.compiler.CompileMethodBody(node, method.Name)
 	}
 }
 

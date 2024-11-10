@@ -4,8 +4,6 @@ package value
 type Method interface {
 	Value
 	Function
-	IsSealed() bool // Whether the method is non-overridable
-	SetSealed()
 	// Name of the method
 	Name() Symbol
 }

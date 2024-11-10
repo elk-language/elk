@@ -50,8 +50,12 @@ func (t *TypeParamNamespace) Singleton() *SingletonClass {
 	return nil
 }
 
-func (t *TypeParamNamespace) IsNative() bool {
+func (t *TypeParamNamespace) IsCompiled() bool {
 	return false
+}
+
+func (t *TypeParamNamespace) SetCompiled(bool) {
+	panic("cannot set `compiled` in closure")
 }
 
 func (t *TypeParamNamespace) IsAbstract() bool {

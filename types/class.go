@@ -10,7 +10,7 @@ type Class struct {
 	abstract       bool
 	sealed         bool
 	primitive      bool
-	native         bool
+	compiled       bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -56,8 +56,12 @@ func (c *Class) IsPrimitive() bool {
 	return c.primitive
 }
 
-func (c *Class) IsNative() bool {
-	return c.native
+func (c *Class) IsCompiled() bool {
+	return c.compiled
+}
+
+func (c *Class) SetCompiled(compiled bool) {
+	c.compiled = compiled
 }
 
 func (c *Class) Parent() Namespace {
@@ -108,7 +112,7 @@ func NewClass(
 		primitive:     primitive,
 		sealed:        sealed,
 		abstract:      abstract,
-		native:        env.Init,
+		compiled:      env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
@@ -133,7 +137,7 @@ func NewClassWithDetails(
 		primitive: primitive,
 		abstract:  abstract,
 		sealed:    sealed,
-		native:    env.Init,
+		compiled:  env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,

@@ -86,12 +86,6 @@ var FormatErrorClass *Class
 // Thrown when a Regex could not be compiled.
 var RegexCompileErrorClass *Class
 
-// ::Std::SealedMethodError
-//
-// Thrown when trying to override
-// a sealed method.
-var SealedMethodErrorClass *Class
-
 // ::Std::SealedClassError
 //
 // Thrown when trying to inherit
@@ -282,26 +276,6 @@ func NewUnknownArgumentsError(method string, names []Symbol) *Error {
 		"`%s` unknown arguments: %s",
 		method,
 		InspectSlice(names),
-	)
-}
-
-// Create a new error that signals that
-// the user tried to create an alias for a nonexistent method.
-func NewCantCreateAnAliasForNonexistentMethod(methodName string) *Error {
-	return Errorf(
-		NoMethodErrorClass,
-		"cannot create an alias for a nonexistent method: %s",
-		methodName,
-	)
-}
-
-// Create a new error that signals that
-// a method that is sealed cannot be overridden
-func NewCantOverrideASealedMethod(methodName string) *Error {
-	return Errorf(
-		SealedMethodErrorClass,
-		"cannot override a sealed method: %s",
-		methodName,
 	)
 }
 
@@ -550,9 +524,6 @@ func initException() {
 
 	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
-
-	SealedMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("SealedMethodError", SealedMethodErrorClass)
 
 	SealedClassErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("SealedClassError", SealedClassErrorClass)

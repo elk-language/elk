@@ -27,11 +27,8 @@ type BytecodeFunction struct {
 	UpvalueCount int
 
 	name                   value.Symbol
-	parameters             []value.Symbol
+	parameterCount         int
 	optionalParameterCount int
-	postRestParameterCount int
-	namedRestParameter     bool
-	sealed                 bool
 }
 
 func (b *BytecodeFunction) Name() value.Symbol {
@@ -39,15 +36,11 @@ func (b *BytecodeFunction) Name() value.Symbol {
 }
 
 func (b *BytecodeFunction) ParameterCount() int {
-	return len(b.parameters)
+	return b.parameterCount
 }
 
-func (b *BytecodeFunction) SetParameters(params []value.Symbol) {
-	b.parameters = params
-}
-
-func (b *BytecodeFunction) Parameters() []value.Symbol {
-	return b.parameters
+func (b *BytecodeFunction) SetParameterCount(paramCount int) {
+	b.parameterCount = paramCount
 }
 
 func (b *BytecodeFunction) SetOptionalParameterCount(optParamCount int) {
@@ -62,26 +55,6 @@ func (b *BytecodeFunction) OptionalParameterCount() int {
 	return b.optionalParameterCount
 }
 
-func (b *BytecodeFunction) SetPostRestParameterCount(postParamCount int) {
-	b.postRestParameterCount = postParamCount
-}
-
-func (b *BytecodeFunction) IncrementPostRestParameterCount() {
-	b.postRestParameterCount++
-}
-
-func (b *BytecodeFunction) PostRestParameterCount() int {
-	return b.postRestParameterCount
-}
-
-func (b *BytecodeFunction) SetNamedRestParameter(present bool) {
-	b.namedRestParameter = present
-}
-
-func (b *BytecodeFunction) NamedRestParameter() bool {
-	return b.namedRestParameter
-}
-
 func (*BytecodeFunction) Class() *value.Class {
 	return value.MethodClass
 }
@@ -92,14 +65,6 @@ func (*BytecodeFunction) DirectClass() *value.Class {
 
 func (*BytecodeFunction) SingletonClass() *value.Class {
 	return nil
-}
-
-func (b *BytecodeFunction) IsSealed() bool {
-	return b.sealed
-}
-
-func (b *BytecodeFunction) SetSealed() {
-	b.sealed = true
 }
 
 func (b *BytecodeFunction) Copy() value.Value {
@@ -128,10 +93,9 @@ func (b *BytecodeFunction) GetLineNumber(ip int) int {
 // Create a new bytecode method.
 func NewBytecodeFunctionSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeFunction {
 	return &BytecodeFunction{
-		Instructions:           instruct,
-		Location:               loc,
-		name:                   name,
-		postRestParameterCount: -1,
+		Instructions: instruct,
+		Location:     loc,
+		name:         name,
 	}
 }
 
@@ -141,11 +105,8 @@ func NewBytecodeFunction(
 	instruct []byte,
 	loc *position.Location,
 	lineInfo bytecode.LineInfoList,
-	params []value.Symbol,
+	paramCount int,
 	optParamCount int,
-	postRestParamCount int,
-	namedRestParam bool,
-	sealed bool,
 	values []value.Value,
 ) *BytecodeFunction {
 	return &BytecodeFunction{
@@ -153,12 +114,9 @@ func NewBytecodeFunction(
 		Instructions:           instruct,
 		Location:               loc,
 		LineInfoList:           lineInfo,
-		parameters:             params,
+		parameterCount:         paramCount,
 		optionalParameterCount: optParamCount,
-		postRestParameterCount: postRestParamCount,
-		namedRestParameter:     namedRestParam,
 		Values:                 values,
-		sealed:                 sealed,
 	}
 }
 
@@ -194,9 +152,9 @@ func BytecodeFunctionWithLineInfoList(lineInfo bytecode.LineInfoList) BytecodeFu
 	}
 }
 
-func BytecodeFunctionWithParameters(params []value.Symbol) BytecodeFunctionOption {
+func BytecodeFunctionWithParameters(params int) BytecodeFunctionOption {
 	return func(b *BytecodeFunction) {
-		b.parameters = params
+		b.parameterCount = params
 	}
 }
 
@@ -206,35 +164,9 @@ func BytecodeFunctionWithOptionalParameters(optParams int) BytecodeFunctionOptio
 	}
 }
 
-func BytecodeFunctionWithPostParameters(postParams int) BytecodeFunctionOption {
-	return func(b *BytecodeFunction) {
-		b.postRestParameterCount = postParams
-	}
-}
-
-func BytecodeFunctionWithPositionalRestParameter() BytecodeFunctionOption {
-	return func(b *BytecodeFunction) {
-		b.postRestParameterCount = 0
-	}
-}
-
-func BytecodeFunctionWithNamedRestParameter() BytecodeFunctionOption {
-	return func(b *BytecodeFunction) {
-		b.namedRestParameter = true
-	}
-}
-
-func BytecodeFunctionWithSealed() BytecodeFunctionOption {
-	return func(b *BytecodeFunction) {
-		b.sealed = true
-	}
-}
-
 // Create a new bytecode method with options.
 func NewBytecodeFunctionWithOptions(opts ...BytecodeFunctionOption) *BytecodeFunction {
-	b := &BytecodeFunction{
-		postRestParameterCount: -1,
-	}
+	b := &BytecodeFunction{}
 
 	for _, opt := range opts {
 		opt(b)
@@ -251,7 +183,7 @@ func NewBytecodeFunctionNoParams(
 	lineInfo bytecode.LineInfoList,
 	values []value.Value,
 ) *BytecodeFunction {
-	return NewBytecodeFunction(name, instruct, loc, lineInfo, nil, 0, -1, false, false, values)
+	return NewBytecodeFunction(name, instruct, loc, lineInfo, 0, 0, values)
 }
 
 // Create a new bytecode method.
@@ -260,11 +192,8 @@ func NewBytecodeFunctionWithCatchEntries(
 	instruct []byte,
 	loc *position.Location,
 	lineInfo bytecode.LineInfoList,
-	params []value.Symbol,
+	params int,
 	optParamCount int,
-	postRestParamCount int,
-	namedRestParam bool,
-	sealed bool,
 	values []value.Value,
 	catchEntries []*CatchEntry,
 ) *BytecodeFunction {
@@ -274,12 +203,9 @@ func NewBytecodeFunctionWithCatchEntries(
 		Location:               loc,
 		LineInfoList:           lineInfo,
 		CatchEntries:           catchEntries,
-		parameters:             params,
+		parameterCount:         params,
 		optionalParameterCount: optParamCount,
-		postRestParameterCount: postRestParamCount,
-		namedRestParameter:     namedRestParam,
 		Values:                 values,
-		sealed:                 sealed,
 	}
 }
 
@@ -289,11 +215,8 @@ func NewBytecodeFunctionWithUpvalues(
 	instruct []byte,
 	loc *position.Location,
 	lineInfo bytecode.LineInfoList,
-	params []value.Symbol,
+	params int,
 	optParamCount int,
-	postRestParamCount int,
-	namedRestParam bool,
-	sealed bool,
 	values []value.Value,
 	upvalueCount int,
 ) *BytecodeFunction {
@@ -303,23 +226,15 @@ func NewBytecodeFunctionWithUpvalues(
 		Location:               loc,
 		LineInfoList:           lineInfo,
 		UpvalueCount:           upvalueCount,
-		parameters:             params,
+		parameterCount:         params,
 		optionalParameterCount: optParamCount,
-		postRestParameterCount: postRestParamCount,
-		namedRestParameter:     namedRestParam,
 		Values:                 values,
-		sealed:                 sealed,
 	}
 }
 
 // Add a parameter to the method.
-func (f *BytecodeFunction) AddParameter(name value.Symbol) {
-	f.parameters = append(f.parameters, name)
-}
-
-// Add a parameter to the method.
-func (f *BytecodeFunction) AddParameterString(name string) {
-	f.parameters = append(f.parameters, value.ToSymbol(name))
+func (f *BytecodeFunction) AddParameter() {
+	f.parameterCount++
 }
 
 // Add an instruction to the bytecode chunk.
@@ -462,10 +377,10 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.INIT_MODULE, bytecode.DEF_METHOD,
-		bytecode.UNDEFINED, bytecode.INIT_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
-		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
-		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
+		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.INIT_NAMESPACE, bytecode.DEF_METHOD,
+		bytecode.UNDEFINED, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
+		bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
+		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
@@ -474,7 +389,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
-		bytecode.INIT_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
+		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8:
 		return f.disassembleNumericOperands(output, 1, 1, offset)

@@ -408,26 +408,18 @@ func (vm *VM) run() {
 			vm.self()
 		case bytecode.DEF_NAMESPACE:
 			vm.opDefNamespace()
-		case bytecode.DEF_SINGLETON:
-			vm.throwIfErr(vm.defineSingleton())
 		case bytecode.GET_SINGLETON:
 			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.GET_CLASS:
 			vm.getClass()
-		case bytecode.DEF_ALIAS:
-			vm.throwIfErr(vm.defineAlias())
 		case bytecode.DEF_GETTER:
 			vm.throwIfErr(vm.defineGetter())
 		case bytecode.DEF_SETTER:
 			vm.throwIfErr(vm.defineSetter())
 		case bytecode.EXEC:
 			vm.opExec()
-		case bytecode.INIT_CLASS:
-			vm.throwIfErr(vm.initClass())
-		case bytecode.INIT_MODULE:
-			vm.throwIfErr(vm.initModule())
-		case bytecode.INIT_MIXIN:
-			vm.throwIfErr(vm.initMixin())
+		case bytecode.INIT_NAMESPACE:
+			vm.initNamespace()
 		case bytecode.DEF_METHOD:
 			vm.defineMethod()
 		case bytecode.INCLUDE:
@@ -1247,9 +1239,9 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 	vm.createCurrentCallFrame()
 
-	vm.localCount = len(function.parameters) + 1
+	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
-	vm.fp = vm.sp - function.ParameterCount() - 1
+	vm.fp = vm.sp - function.parameterCount - 1
 	vm.ip = 0
 	vm.upvalues = closure.Upvalues
 
@@ -1332,7 +1324,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 
 	vm.createCurrentCallFrame()
 
-	vm.localCount = len(method.parameters) + 1
+	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
 	vm.fp = vm.sp - method.ParameterCount() - 1
 	vm.ip = 0
@@ -1341,254 +1333,31 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 }
 
 func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	namedArgCount := callInfo.NamedArgumentCount()
-
-	if namedArgCount == 0 {
-		if err := vm.preparePositionalArguments(method, callInfo); err != nil {
-			return err
-		}
-	} else if err := vm.prepareNamedArguments(method, callInfo); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	paramCount := method.ParameterCount()
-	namedRestParam := method.NamedRestParameter()
-	if namedRestParam {
-		paramCount -= 1
-	}
-	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := paramCount - method.OptionalParameterCount()
-	posArgCount := callInfo.PositionalArgumentCount()
-
-	// create a slice containing the given arguments
-	// in original order
-	namedArgs := make([]value.Value, namedArgCount)
-	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
-
-	var posParamNames []value.Symbol
-	var namedParamNames []value.Symbol
-	var spIncrease int
-	paramNames := method.Parameters()
-
-	if method.PostRestParameterCount() >= 0 {
-		requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
-		if posArgCount < requiredPosParamCount {
-			return value.NewWrongPositionalArgumentCountError(
-				method.Name().String(),
-				posArgCount,
-				requiredPosParamCount,
-			)
-		}
-
-		firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
-		lastPosRestArg := callInfo.ArgumentCount - 1 - method.PostRestParameterCount()
-		if namedRestParam {
-			lastPosRestArg -= callInfo.NamedArgumentCount()
-		}
-		posRestArgCount := lastPosRestArg - firstPosRestArg + 1
-		postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
-		var postArgs []value.Value
-		var restList value.ArrayList
-		if postArgCount > 0 {
-			postArgs = make([]value.Value, postArgCount)
-			copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
-			vm.popN(postArgCount)
-		}
-
-		if posRestArgCount > 0 {
-			restList = make(value.ArrayList, posRestArgCount)
-		}
-		for i := 1; i <= posRestArgCount; i++ {
-			restList[posRestArgCount-i] = vm.pop()
-		}
-		vm.push(&restList)
-		for _, postArg := range postArgs {
-			vm.push(postArg)
-		}
-
-		posParamNames = paramNames[:firstPosRestArg+1]
-
-		if !namedRestParam {
-			namedParamNames = paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
-		}
-		spIncrease = paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
-	} else {
-		posParamNames = paramNames[:posArgCount]
-		namedParamNames = paramNames[posArgCount:]
-		spIncrease = paramCount - callInfo.ArgumentCount
-	}
-	if namedRestParam && len(namedParamNames) > 0 {
-		namedParamNames = namedParamNames[:len(namedParamNames)-1]
-	}
-
-	var foundNamedArgCount int
-
-	for _, paramName := range posParamNames {
-		for j := 0; j < namedArgCount; j++ {
-			if paramName == callInfo.NamedArguments[j] {
-				return value.NewDuplicatedArgumentError(
-					string(method.Name().ToString()),
-					string(paramName.ToString()),
-				)
-			}
-		}
-	}
-
-	var missingOptionalArgCount int
-methodParamLoop:
-	for i, paramName := range namedParamNames {
-		found := false
-		targetIndex := vm.sp - namedArgCount + i
-	namedArgLoop:
-		for j := 0; j < namedArgCount; j++ {
-			if paramName != callInfo.NamedArguments[j] {
-				continue namedArgLoop
-			}
-
-			found = true
-			foundNamedArgCount++
-			if i == j {
-				break namedArgLoop
-			}
-
-			vm.stack[targetIndex] = namedArgs[j]
-			// mark the found value as undefined
-			namedArgs[j] = value.Undefined
-		}
-
-		if found {
-			continue methodParamLoop
-		}
-
-		// the parameter is required
-		// but is not present in the call
-		if posArgCount+i < reqParamCount {
-			return value.NewRequiredArgumentMissingError(
-				string(method.Name().ToString()),
-				string(paramName.ToString()),
-			)
-		}
-
-		// the parameter is optional and is not present
-		// populate it with undefined
-		vm.stack[targetIndex] = value.Undefined
-		missingOptionalArgCount++
-	}
-
-	unknownNamedArgCount := namedArgCount - foundNamedArgCount
-	if namedRestParam {
-		hmap := value.NewHashMap(unknownNamedArgCount)
-		if unknownNamedArgCount != 0 {
-			// construct a hashmap of named arguments
-			// that are not defined in the method
-			for i, namedArg := range namedArgs {
-				if namedArg == value.Undefined {
-					continue
-				}
-
-				HashMapSet(vm, hmap, callInfo.NamedArguments[i], namedArg)
-			}
-			additionalNamedArgCount := hmap.Length() - missingOptionalArgCount
-			vm.popN(additionalNamedArgCount)
-			spIncrease += additionalNamedArgCount
-		}
-		vm.push(hmap)
-	} else if unknownNamedArgCount != 0 {
-		// construct a slice that contains
-		// the names of unknown named arguments
-		// that have been given
-		unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
-		for i, namedArg := range namedArgs {
-			if namedArg == value.Undefined {
-				continue
-			}
-
-			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
-		}
-
-		return value.NewUnknownArgumentsError(
-			method.Name().String(),
-			unknownNamedArgNames,
-		)
-	}
-
-	vm.sp += spIncrease
-	return nil
-}
-
-func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	optParamCount := method.OptionalParameterCount()
-	postParamCount := method.PostRestParameterCount()
 	paramCount := method.ParameterCount()
-	namedRestParam := method.NamedRestParameter()
-	if namedRestParam {
-		paramCount--
-	}
-	preRestParamCount := paramCount - postParamCount - 1
 	reqParamCount := paramCount - optParamCount
-	if postParamCount >= 0 {
-		reqParamCount -= 1
-	}
 
 	if callInfo.ArgumentCount < reqParamCount {
-		if postParamCount == -1 {
-			return value.NewWrongArgumentCountRangeError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				reqParamCount,
-				paramCount,
-			)
-		} else {
-			return value.NewWrongArgumentCountRestError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				reqParamCount,
-			)
-		}
+		return value.NewWrongArgumentCountRangeError(
+			method.Name().String(),
+			callInfo.ArgumentCount,
+			reqParamCount,
+			paramCount,
+		)
 	}
 
 	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
-		missingArgCount := preRestParamCount - callInfo.ArgumentCount
+		missingArgCount := paramCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
 			vm.push(value.Undefined)
 		}
-	} else if postParamCount == -1 && paramCount != callInfo.ArgumentCount {
+	} else if paramCount != callInfo.ArgumentCount {
 		return value.NewWrongArgumentCountError(
 			method.Name().String(),
 			callInfo.ArgumentCount,
 			paramCount,
 		)
-	}
-
-	if postParamCount >= 0 {
-		var postArgs []value.Value
-		if postParamCount > 0 {
-			postArgs = make([]value.Value, postParamCount)
-			copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
-			vm.popN(postParamCount)
-		}
-		var restList value.ArrayList
-		restArgCount := callInfo.ArgumentCount - preRestParamCount - postParamCount
-		if restArgCount > 0 {
-			// rest arguments
-			restList = make(value.ArrayList, restArgCount)
-			for i := 1; i <= restArgCount; i++ {
-				restList[restArgCount-i] = vm.pop()
-			}
-		}
-		vm.push(&restList)
-		for _, postArg := range postArgs {
-			vm.push(postArg)
-		}
-	}
-
-	if namedRestParam {
-		vm.push(&value.HashMap{})
 	}
 
 	return nil
@@ -1659,64 +1428,11 @@ func (vm *VM) defineMethod() {
 	vm.push(body)
 }
 
-// Initialise a mixin
-func (vm *VM) initMixin() (err value.Value) {
-	constantNameVal := vm.pop()
-	parentNamespaceVal := vm.pop()
-	bodyVal := vm.pop()
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentNamespace *value.ConstantContainer
-
-	switch m := parentNamespaceVal.(type) {
-	case *value.Class:
-		parentNamespace = &m.ConstantContainer
-	case *value.Module:
-		parentNamespace = &m.ConstantContainer
-	default:
-		panic(fmt.Sprintf("invalid parent namespace of mixin: %T", parentNamespaceVal))
-	}
-
-	var mixin *value.Mixin
-	var ok bool
-
-	if mixinVal := parentNamespace.Constants.Get(constantName); mixinVal != nil {
-		mixin, ok = mixinVal.(*value.Mixin)
-		if !ok || !mixin.IsMixin() {
-			return value.NewRedefinedConstantError(parentNamespaceVal.Inspect(), constantName.Inspect())
-		}
-	} else {
-		mixin = value.NewMixin()
-		parentNamespace.AddConstant(constantName, mixin)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeMixinBody(mixin, body)
-	case value.UndefinedType:
-		vm.push(mixin)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
-}
-
-// Initialise a module
-func (vm *VM) initModule() (err value.Value) {
-	bodyVal := vm.pop()
-	module := vm.pop()
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeModuleBody(module, body)
-	case value.UndefinedType:
-		vm.push(module)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
+// Initialise a namespace
+func (vm *VM) initNamespace() {
+	body := vm.pop().(*BytecodeFunction)
+	namespace := vm.pop()
+	vm.executeNamespaceBody(namespace, body)
 }
 
 // Execute a chunk of bytecode
@@ -1765,112 +1481,6 @@ func (vm *VM) defineSetter() value.Value {
 	return nil
 }
 
-// Define a method alias
-func (vm *VM) defineSingleton() value.Value {
-	object := vm.pop()
-	bodyVal := vm.pop()
-	singletonClass := object.SingletonClass()
-
-	if singletonClass == nil {
-		return value.NewSingletonError(object.Inspect())
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeClassBody(singletonClass, body)
-	case value.UndefinedType:
-		vm.push(singletonClass)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
-}
-
-// Define a method alias
-func (vm *VM) defineAlias() value.Value {
-	newName := vm.pop().(value.Symbol)
-	oldName := vm.pop().(value.Symbol)
-
-	var err *value.Error
-	methodContainerValue := vm.methodContainerValue()
-
-	switch methodContainer := methodContainerValue.(type) {
-	case *value.Class:
-		err = methodContainer.DefineAlias(newName, oldName)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Initialise a class
-func (vm *VM) initClass() (err value.Value) {
-	superclassVal := vm.pop()
-	constantNameVal := vm.pop()
-	parentNamespaceVal := vm.pop()
-	bodyVal := vm.pop()
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentNamespace *value.ConstantContainer
-
-	switch n := parentNamespaceVal.(type) {
-	case *value.Class:
-		parentNamespace = &n.ConstantContainer
-	case *value.Module:
-		parentNamespace = &n.ConstantContainer
-	default:
-		panic(fmt.Sprintf("invalid parent namespace of class: %T", parentNamespaceVal))
-	}
-
-	var class *value.Class
-	var ok bool
-
-	if classVal := parentNamespace.Constants.Get(constantName); classVal != nil {
-		class, ok = classVal.(*value.Class)
-		if !ok {
-			return value.NewRedefinedConstantError(parentNamespaceVal.Inspect(), constantName.Inspect())
-		}
-		switch superclass := superclassVal.(type) {
-		case *value.Class:
-			if class.Parent != superclass {
-				return value.NewSuperclassMismatchError(
-					class.Name,
-					class.Parent.Name,
-					superclass.Name,
-				)
-			}
-		case value.UndefinedType:
-		default:
-			return value.NewInvalidSuperclassError(superclass.Inspect())
-		}
-
-	} else {
-		class = value.NewClass()
-		switch superclass := superclassVal.(type) {
-		case *value.Class:
-			class.Parent = superclass
-		case value.UndefinedType:
-		default:
-			return value.NewInvalidSuperclassError(superclass.Inspect())
-		}
-		parentNamespace.AddConstant(constantName, class)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeClassBody(class, body)
-	case value.UndefinedType:
-		vm.push(class)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
-}
-
 func (vm *VM) addCallFrame(cf CallFrame) {
 	if len(vm.callFrames) == CALL_STACK_SIZE {
 		panic(fmt.Sprintf("Stack overflow: %d", CALL_STACK_SIZE))
@@ -1891,52 +1501,16 @@ func (vm *VM) createCurrentCallFrame() {
 	)
 }
 
-// set up the vm to execute a class body
-func (vm *VM) executeClassBody(class value.Value, body *BytecodeFunction) {
+// set up the vm to execute a namespace body
+func (vm *VM) executeNamespaceBody(namespace value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
 	vm.fp = vm.sp
 	vm.ip = 0
-	vm.localCount = 3
-	// set class as `self`
-	vm.push(class)
-	// set class as constant container
-	vm.push(class)
-	// set class as method container
-	vm.push(class)
-}
-
-// set up the vm to execute a mixin body
-func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeFunction) {
-	vm.createCurrentCallFrame()
-
-	vm.bytecode = body
-	vm.fp = vm.sp
-	vm.ip = 0
-	vm.localCount = 3
-	// set mixin as `self`
-	vm.push(mixin)
-	// set mixin as constant container
-	vm.push(mixin)
-	// set mixin as method container
-	vm.push(mixin)
-}
-
-// set up the vm to execute a module body
-func (vm *VM) executeModuleBody(module value.Value, body *BytecodeFunction) {
-	vm.createCurrentCallFrame()
-
-	vm.bytecode = body
-	vm.fp = vm.sp
-	vm.ip = 0
-	vm.localCount = 3
-	// set module as `self`
-	vm.push(module)
-	// set module as constant container
-	vm.push(module)
-	// set module's singleton class as method container
-	vm.push(module.SingletonClass())
+	vm.localCount = 1
+	// set namespace as `self`
+	vm.push(namespace)
 }
 
 // set up the vm to execute a bytecode function
@@ -1945,10 +1519,8 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 
 	vm.bytecode = fn
 	vm.ip = 0
-	vm.localCount = 3
+	vm.localCount = 1
 	vm.push(value.GlobalObject)
-	vm.push(value.RootModule)
-	vm.push(value.GlobalObjectSingletonClass)
 }
 
 // Set a local variable or value.

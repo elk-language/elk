@@ -440,7 +440,7 @@ func TestDocComment(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(7, 1, 8), P(18, 1, 19)),
 						ast.NewMethodDefinitionNode(
-							S(P(7, 1, 8), P(18, 1, 19)),
+							L("<main>", P(7, 1, 8), P(18, 1, 19)),
 							"",
 							false,
 							false,
@@ -472,7 +472,7 @@ func TestDocComment(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(39, 6, 5), P(51, 6, 17)),
 						ast.NewMethodDefinitionNode(
-							S(P(39, 6, 5), P(50, 6, 16)),
+							L("<main>", P(39, 6, 5), P(50, 6, 16)),
 							"foo\nbar",
 							false,
 							false,
@@ -5790,7 +5790,7 @@ func TestMethodDefinition(t *testing.T) {
 							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 							ast.NewMethodDefinitionNode(
-								S(P(6, 1, 7), P(17, 1, 18)),
+								L("<main>", P(6, 1, 7), P(17, 1, 18)),
 								"",
 								false,
 								false,
@@ -5817,7 +5817,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(11, 1, 12)),
+							L("<main>", P(0, 1, 1), P(11, 1, 12)),
 							"",
 							false,
 							false,
@@ -5840,7 +5840,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
+							L("<main>", P(0, 1, 1), P(14, 1, 15)),
 							"",
 							false,
 							false,
@@ -5871,7 +5871,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(18, 1, 19)),
+							L("<main>", P(0, 1, 1), P(18, 1, 19)),
 							"",
 							false,
 							true,
@@ -5894,7 +5894,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(25, 1, 26)),
+							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
 							false,
 							true,
@@ -5920,7 +5920,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
+							L("<main>", P(0, 1, 1), P(27, 1, 28)),
 							"",
 							true,
 							true,
@@ -5946,7 +5946,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(20, 1, 21)),
+							L("<main>", P(0, 1, 1), P(20, 1, 21)),
 							"",
 							true,
 							false,
@@ -5969,7 +5969,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
 							true,
 							false,
@@ -5995,7 +5995,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
+							L("<main>", P(0, 1, 1), P(27, 1, 28)),
 							"",
 							true,
 							true,
@@ -6021,7 +6021,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(15, 1, 16)),
+							L("<main>", P(0, 1, 1), P(15, 1, 16)),
 							"",
 							false,
 							false,
@@ -6053,7 +6053,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(23, 1, 24)),
+							L("<main>", P(0, 1, 1), P(23, 1, 24)),
 							"",
 							false,
 							false,
@@ -6091,7 +6091,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(21, 1, 22)),
+							L("<main>", P(0, 1, 1), P(21, 1, 22)),
 							"",
 							false,
 							false,
@@ -6142,7 +6142,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(11, 1, 12)),
+							L("<main>", P(0, 1, 1), P(11, 1, 12)),
 							"",
 							false,
 							false,
@@ -6168,7 +6168,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
+							L("<main>", P(0, 1, 1), P(17, 1, 18)),
 							"",
 							false,
 							false,
@@ -6208,7 +6208,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(22, 1, 23)),
+							L("<main>", P(0, 1, 1), P(22, 1, 23)),
 							"",
 							false,
 							false,
@@ -6254,7 +6254,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
+							L("<main>", P(0, 1, 1), P(14, 1, 15)),
 							"",
 							false,
 							false,
@@ -6289,7 +6289,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							L("<main>", P(0, 1, 1), P(12, 1, 13)),
 							"",
 							false,
 							false,
@@ -6312,7 +6312,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(13, 1, 14)),
+							L("<main>", P(0, 1, 1), P(13, 1, 14)),
 							"",
 							false,
 							false,
@@ -6335,7 +6335,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(9, 1, 10)),
+							L("<main>", P(0, 1, 1), P(9, 1, 10)),
 							"",
 							false,
 							false,
@@ -6358,7 +6358,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(10, 1, 11)),
+							L("<main>", P(0, 1, 1), P(10, 1, 11)),
 							"",
 							false,
 							false,
@@ -6381,7 +6381,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(11, 1, 12)),
+							L("<main>", P(0, 1, 1), P(11, 1, 12)),
 							"",
 							false,
 							false,
@@ -6407,7 +6407,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(10, 1, 11)),
+							L("<main>", P(0, 1, 1), P(10, 1, 11)),
 							"",
 							false,
 							false,
@@ -6433,7 +6433,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							L("<main>", P(0, 1, 1), P(12, 1, 13)),
 							"",
 							false,
 							false,
@@ -6459,7 +6459,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(13, 1, 14)),
+							L("<main>", P(0, 1, 1), P(13, 1, 14)),
 							"",
 							false,
 							false,
@@ -6482,7 +6482,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(20, 1, 21)),
+							L("<main>", P(0, 1, 1), P(20, 1, 21)),
 							"",
 							false,
 							false,
@@ -6508,7 +6508,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(38, 1, 39)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(38, 1, 39)),
+							L("<main>", P(0, 1, 1), P(38, 1, 39)),
 							"",
 							false,
 							false,
@@ -6536,7 +6536,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(49, 1, 50)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(49, 1, 50)),
+							L("<main>", P(0, 1, 1), P(49, 1, 50)),
 							"",
 							false,
 							false,
@@ -6567,7 +6567,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
+							L("<main>", P(0, 1, 1), P(17, 1, 18)),
 							"",
 							false,
 							false,
@@ -6607,7 +6607,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(18, 1, 19)),
+							L("<main>", P(0, 1, 1), P(18, 1, 19)),
 							"",
 							false,
 							false,
@@ -6647,7 +6647,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(19, 4, 6)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(19, 4, 6)),
+							L("<main>", P(0, 1, 1), P(19, 4, 6)),
 							"",
 							false,
 							false,
@@ -6687,7 +6687,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 4, 6)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(20, 4, 6)),
+							L("<main>", P(0, 1, 1), P(20, 4, 6)),
 							"",
 							false,
 							false,
@@ -6727,7 +6727,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(21, 1, 22)),
+							L("<main>", P(0, 1, 1), P(21, 1, 22)),
 							"",
 							false,
 							false,
@@ -6775,7 +6775,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(25, 1, 26)),
+							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
 							false,
 							false,
@@ -6826,7 +6826,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(24, 1, 25)),
+							L("<main>", P(0, 1, 1), P(24, 1, 25)),
 							"",
 							false,
 							false,
@@ -6882,7 +6882,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(28, 1, 29)),
+							L("<main>", P(0, 1, 1), P(28, 1, 29)),
 							"",
 							false,
 							false,
@@ -6941,7 +6941,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(25, 1, 26)),
+							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
 							false,
 							false,
@@ -7000,7 +7000,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
 							false,
 							false,
@@ -7048,7 +7048,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(22, 1, 23)),
+							L("<main>", P(0, 1, 1), P(22, 1, 23)),
 							"",
 							false,
 							false,
@@ -7096,7 +7096,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							L("<main>", P(0, 1, 1), P(26, 1, 27)),
 							"",
 							false,
 							false,
@@ -7147,7 +7147,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(30, 1, 31)),
+							L("<main>", P(0, 1, 1), P(30, 1, 31)),
 							"",
 							false,
 							false,
@@ -7195,7 +7195,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(25, 1, 26)),
+							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
 							false,
 							false,
@@ -7254,7 +7254,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							L("<main>", P(0, 1, 1), P(26, 1, 27)),
 							"",
 							false,
 							false,
@@ -7310,7 +7310,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
 							false,
 							false,
@@ -7377,7 +7377,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(31, 1, 32)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(31, 1, 32)),
+							L("<main>", P(0, 1, 1), P(31, 1, 32)),
 							"",
 							false,
 							false,
@@ -7420,7 +7420,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
 							false,
 							false,
@@ -7462,7 +7462,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(28, 1, 29)),
+							L("<main>", P(0, 1, 1), P(28, 1, 29)),
 							"",
 							false,
 							false,
@@ -7507,7 +7507,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(38, 1, 39)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(38, 1, 39)),
+							L("<main>", P(0, 1, 1), P(38, 1, 39)),
 							"",
 							false,
 							false,
@@ -7547,7 +7547,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(40, 1, 41)),
+							L("<main>", P(0, 1, 1), P(40, 1, 41)),
 							"",
 							false,
 							false,
@@ -7587,7 +7587,7 @@ func TestMethodDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(43, 1, 44)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(43, 1, 44)),
+							L("<main>", P(0, 1, 1), P(43, 1, 44)),
 							"",
 							false,
 							false,
@@ -7650,7 +7650,7 @@ end`,
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(30, 4, 3)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(30, 4, 3)),
+							L("<main>", P(0, 1, 1), P(30, 4, 3)),
 							"",
 							false,
 							false,
@@ -7692,7 +7692,7 @@ end`,
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(19, 1, 20)),
+							L("<main>", P(0, 1, 1), P(19, 1, 20)),
 							"",
 							false,
 							false,
@@ -7740,7 +7740,7 @@ func TestInitDefinition(t *testing.T) {
 							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 							ast.NewInitDefinitionNode(
-								S(P(6, 1, 7), P(14, 1, 15)),
+								L("<main>", P(6, 1, 7), P(14, 1, 15)),
 								nil,
 								nil,
 								nil,
@@ -7761,7 +7761,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(10, 1, 11)),
+							L("<main>", P(0, 1, 1), P(10, 1, 11)),
 							nil,
 							nil,
 							nil,
@@ -7778,7 +7778,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
+							L("<main>", P(0, 1, 1), P(17, 1, 18)),
 							nil,
 							nil,
 							[]ast.StatementNode{
@@ -7807,7 +7807,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(35, 1, 36)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(35, 1, 36)),
+							L("<main>", P(0, 1, 1), P(35, 1, 36)),
 							nil,
 							ast.NewBinaryTypeExpressionNode(
 								S(P(6, 1, 7), P(30, 1, 31)),
@@ -7829,7 +7829,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
+							L("<main>", P(0, 1, 1), P(14, 1, 15)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -7863,7 +7863,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(18, 1, 19)),
+							L("<main>", P(0, 1, 1), P(18, 1, 19)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -7905,7 +7905,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(21, 1, 22)),
+							L("<main>", P(0, 1, 1), P(21, 1, 22)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -7955,7 +7955,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(22, 1, 23)),
+							L("<main>", P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8008,7 +8008,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							L("<main>", P(0, 1, 1), P(26, 1, 27)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8050,7 +8050,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(19, 1, 20)),
+							L("<main>", P(0, 1, 1), P(19, 1, 20)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8092,7 +8092,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
+							L("<main>", P(0, 1, 1), P(27, 1, 28)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8134,7 +8134,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(22, 1, 23)),
+							L("<main>", P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8187,7 +8187,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(23, 1, 24)),
+							L("<main>", P(0, 1, 1), P(23, 1, 24)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(5, 1, 6)),
@@ -8237,7 +8237,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(28, 1, 29)),
+							L("<main>", P(0, 1, 1), P(28, 1, 29)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(10, 1, 11)),
@@ -8274,7 +8274,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(35, 1, 36)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(35, 1, 36)),
+							L("<main>", P(0, 1, 1), P(35, 1, 36)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(10, 1, 11)),
@@ -8308,7 +8308,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(37, 1, 38)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(37, 1, 38)),
+							L("<main>", P(0, 1, 1), P(37, 1, 38)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(11, 1, 12)),
@@ -8342,7 +8342,7 @@ func TestInitDefinition(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(40, 1, 41)),
+							L("<main>", P(0, 1, 1), P(40, 1, 41)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									S(P(5, 1, 6), P(10, 1, 11)),
@@ -8399,7 +8399,7 @@ end`,
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 4, 3)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(27, 4, 3)),
+							L("<main>", P(0, 1, 1), P(27, 4, 3)),
 							nil,
 							nil,
 							[]ast.StatementNode{
@@ -8435,7 +8435,7 @@ end`,
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(16, 1, 17)),
+							L("<main>", P(0, 1, 1), P(16, 1, 17)),
 							nil,
 							nil,
 							[]ast.StatementNode{

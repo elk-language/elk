@@ -97,31 +97,31 @@ const (
 	_
 	_
 	CONSTANT_CONTAINER // Push the module/class/mixin that will hold constants defined in this context
-	INIT_CLASS         // Initialise a class
+	INIT_NAMESPACE     // Initialise a namespace
 	SELF               // Push `self` onto the stack
-	INIT_MODULE        // Initialise a module
-	CALL_METHOD8       // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
-	CALL_METHOD16      // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
-	CALL_METHOD32      // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
-	DEF_METHOD         // Define a new method
-	UNDEFINED          // Push the undefined value onto the stack
-	GET_CLASS          // Pop one value off the stack push its class
+	_
+	CALL_METHOD8  // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD16 // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
+	CALL_METHOD32 // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
+	DEF_METHOD    // Define a new method
+	UNDEFINED     // Push the undefined value onto the stack
+	GET_CLASS     // Pop one value off the stack push its class
 	_
 	CALL_SELF8  // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_SELF16 // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
 	CALL_SELF32 // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
-	INIT_MIXIN  // Initialise a mixin
+	_
 	_
 	INCLUDE           // Include a mixin in a class/mixin
 	GET_SINGLETON     // Pop one value off the stack push its singleton class
 	JUMP_UNLESS_UNDEF // Jump n bytes forward unless the value on the stack is undefined
-	DEF_ALIAS         // Define a method alias
-	METHOD_CONTAINER  // Push the class/mixin that will hold methods defined in this context
-	COMPARE           // Pop two values, compare them using `<=>` and push the result
-	DOC_COMMENT       // Attach a doc comment to an Elk object
-	DEF_GETTER        // Define a getter method
-	DEF_SETTER        // Define a setter method
-	DEF_SINGLETON     // Open the definition of a singleton class of the given object
+	_
+	METHOD_CONTAINER // Push the class/mixin that will hold methods defined in this context
+	COMPARE          // Pop two values, compare them using `<=>` and push the result
+	DOC_COMMENT      // Attach a doc comment to an Elk object
+	DEF_GETTER       // Define a getter method
+	DEF_SETTER       // Define a setter method
+	_
 	RETURN_FIRST_ARG  // Push the first given argument (constant container for modules, classes etc) and return
 	INSTANTIATE8      // Create a new instance of a class (8 bit operand)
 	INSTANTIATE16     // Create a new instance of a class (16 bit operand)
@@ -191,12 +191,12 @@ const (
 	CLOSE_UPVALUE8    // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
 	CLOSE_UPVALUE16   // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
 	DEF_NAMESPACE     // Define a new namespace
-	INIT_INTERFACE    // Initialise an interface
-	GET_CONST8        // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
-	GET_CONST16       // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
-	GET_CONST32       // Get the value of the constant with the name stored under the given index in the value pool (32 bit operand)
-	DEF_CONST         // Define a new constant
-	EXEC              // Execute a chunk of bytecode
+	_
+	GET_CONST8  // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
+	GET_CONST16 // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
+	GET_CONST32 // Get the value of the constant with the name stored under the given index in the value pool (32 bit operand)
+	DEF_CONST   // Define a new constant
+	EXEC        // Execute a chunk of bytecode
 )
 
 var opCodeNames = [...]string{
@@ -249,9 +249,8 @@ var opCodeNames = [...]string{
 	NOT_EQUAL:          "NOT_EQUAL",
 	STRICT_NOT_EQUAL:   "STRICT_NOT_EQUAL",
 	CONSTANT_CONTAINER: "CONSTANT_CONTAINER",
-	INIT_CLASS:         "INIT_CLASS",
+	INIT_NAMESPACE:     "INIT_NAMESPACE",
 	SELF:               "SELF",
-	INIT_MODULE:        "INIT_MODULE",
 	CALL_METHOD8:       "CALL_METHOD8",
 	CALL_METHOD16:      "CALL_METHOD16",
 	CALL_METHOD32:      "CALL_METHOD32",
@@ -261,17 +260,14 @@ var opCodeNames = [...]string{
 	CALL_SELF8:         "CALL_SELF8",
 	CALL_SELF16:        "CALL_SELF16",
 	CALL_SELF32:        "CALL_SELF32",
-	INIT_MIXIN:         "INIT_MIXIN",
 	INCLUDE:            "INCLUDE",
 	GET_SINGLETON:      "GET_SINGLETON",
 	JUMP_UNLESS_UNDEF:  "JUMP_UNLESS_UNDEF",
-	DEF_ALIAS:          "DEF_ALIAS",
 	METHOD_CONTAINER:   "METHOD_CONTAINER",
 	COMPARE:            "COMPARE",
 	DOC_COMMENT:        "DOC_COMMENT",
 	DEF_GETTER:         "DEF_GETTER",
 	DEF_SETTER:         "DEF_SETTER",
-	DEF_SINGLETON:      "DEF_SINGLETON",
 	RETURN_FIRST_ARG:   "RETURN_FIRST_ARG",
 	INSTANTIATE8:       "INSTANTIATE8",
 	INSTANTIATE16:      "INSTANTIATE16",
@@ -341,7 +337,6 @@ var opCodeNames = [...]string{
 	CLOSE_UPVALUE8:     "CLOSE_UPVALUE8",
 	CLOSE_UPVALUE16:    "CLOSE_UPVALUE16",
 	DEF_NAMESPACE:      "DEF_NAMESPACE",
-	INIT_INTERFACE:     "INIT_INTERFACE",
 	GET_CONST8:         "GET_CONST8",
 	GET_CONST16:        "GET_CONST16",
 	GET_CONST32:        "GET_CONST32",

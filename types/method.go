@@ -75,6 +75,7 @@ func (p *Parameter) NameWithKind() string {
 		panic("invalid parameter kind")
 	}
 }
+
 func (p *Parameter) inspect() string {
 	buffer := new(strings.Builder)
 	switch p.Kind {
@@ -124,6 +125,10 @@ func (p *Parameter) IsOptional() bool {
 	}
 }
 
+type AstNode interface {
+	position.SpanInterface
+}
+
 type Method struct {
 	DocComment               string
 	FullName                 string
@@ -133,6 +138,7 @@ type Method struct {
 	abstract                 bool
 	sealed                   bool
 	native                   bool
+	compiled                 bool
 	HasNamedRestParam        bool
 	InstanceVariablesChecked bool
 	// used in using expression placeholders
@@ -152,6 +158,7 @@ type Method struct {
 	UsedConstants                ds.Set[value.Symbol] // set of constants references in this method's body
 	InitialisedInstanceVariables ds.Set[value.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
 	CalledMethods                []*Method            // list of methods called in this method's body
+	Node                         AstNode
 }
 
 func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
@@ -187,6 +194,7 @@ func (m *Method) Copy() *Method {
 		UsedConstants:                m.UsedConstants,
 		CalledMethods:                m.CalledMethods,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
+		Node:                         m.Node,
 	}
 }
 
@@ -212,6 +220,19 @@ func (m *Method) IsAbstract() bool {
 
 func (m *Method) SetAbstract(abstract bool) *Method {
 	m.abstract = abstract
+	return m
+}
+
+func (m *Method) IsCompilable() bool {
+	return m.Bytecode != nil && !m.compiled
+}
+
+func (m *Method) IsCompiled() bool {
+	return m.compiled
+}
+
+func (m *Method) SetCompiled(compiled bool) *Method {
+	m.compiled = compiled
 	return m
 }
 

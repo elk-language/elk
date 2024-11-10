@@ -74,21 +74,6 @@ func TestDefineSetter(t *testing.T) {
 				},
 			},
 		},
-		"override a sealed setter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo="): vm.NewSetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo=",
-			),
-		},
 	}
 
 	for name, tc := range tests {
@@ -202,36 +187,6 @@ func TestDefineAccessor(t *testing.T) {
 					),
 				},
 			},
-		},
-		"override a sealed setter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo="): vm.NewSetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo=",
-			),
-		},
-		"override a sealed getter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo"): vm.NewGetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo",
-			),
 		},
 	}
 

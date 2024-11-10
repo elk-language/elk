@@ -349,6 +349,10 @@ type SyncErrorList struct {
 	mutex     sync.Mutex
 }
 
+func NewSyncErrorList() *SyncErrorList {
+	return &SyncErrorList{}
+}
+
 // Create and add a new error.
 func (e *SyncErrorList) Add(message string, loc *position.Location, severity Severity) {
 	e.Append(NewError(loc, message, severity))

@@ -369,7 +369,9 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		return
 	}
 
-	c.compiler.CompileInclude(target, mixin, position.DefaultSpan)
+	if c.compiler != nil {
+		c.compiler.CompileInclude(target, mixin, position.DefaultSpan)
+	}
 }
 
 func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
@@ -645,7 +647,9 @@ superclassSwitch:
 		)
 	}
 	class.Checked = true
-	c.compiler.CompileClassInheritance(class, position.DefaultSpan)
+	if c.compiler != nil {
+		c.compiler.CompileClassInheritance(class, position.DefaultSpan)
+	}
 
 	c.popConstScope()
 }

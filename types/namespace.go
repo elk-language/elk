@@ -24,7 +24,8 @@ type Namespace interface {
 	IsSealed() bool
 	IsPrimitive() bool
 	IsGeneric() bool
-	IsNative() bool
+	IsCompiled() bool
+	SetCompiled(bool)
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)
@@ -59,9 +60,9 @@ type Namespace interface {
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
 }
 
-func NamespaceHasAnyCompiledMethods(namespace Namespace) bool {
+func NamespaceHasAnyCompilableMethods(namespace Namespace) bool {
 	for _, method := range namespace.Methods() {
-		if method.Bytecode != nil {
+		if method.IsCompilable() {
 			return true
 		}
 	}
@@ -396,18 +397,19 @@ func Backward[T any](iterator iter.Seq[T]) iter.Seq[T] {
 }
 
 // iterate over every mixin that is directly included in the given namespace
-// TODO: fix
 func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
 		seenMixins := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *MixinProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*MixinProxy); !ok {
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}
@@ -432,7 +434,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
 		seenMixins := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *MixinProxy, *InterfaceProxy, *MixinWithWhere:
 			case *Generic:
@@ -441,6 +443,8 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 				default:
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}
@@ -494,13 +498,15 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
 		seenInterfaces := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}

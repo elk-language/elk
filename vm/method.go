@@ -63,7 +63,7 @@ func init() {
 
 			return val, nil
 		},
-		DefWithParameters("val"),
+		DefWithParameters(1),
 	)
 	nativeSymbol := value.ToSymbol("native")
 	bytecodeSymbol := value.ToSymbol("bytecode")

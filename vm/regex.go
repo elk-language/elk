@@ -15,7 +15,7 @@ func init() {
 			self := args[0].(*value.Regex)
 			return value.ToValueErr(self.Matches(args[1]))
 		},
-		DefWithParameters("str"),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -25,8 +25,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -36,8 +35,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -50,7 +48,7 @@ func init() {
 			}
 			return self.ToString(), nil
 		},
-		DefWithParameters("with_flags"),
+		DefWithParameters(1),
 		DefWithOptionalParameters(1),
 	)
 

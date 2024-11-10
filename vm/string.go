@@ -15,8 +15,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "concat", "+")
 
@@ -28,8 +27,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.RemoveSuffix(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "remove_suffix", "-")
 
@@ -41,8 +39,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "repeat", "*")
 
@@ -54,8 +51,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Compare(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -65,8 +61,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -76,8 +71,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -87,8 +81,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -98,8 +91,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -109,8 +101,7 @@ func init() {
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -120,8 +111,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
-		DefWithParameters("index"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "[]", "char_at")
 	Def(
@@ -132,8 +122,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.ByteAt(other))
 		},
-		DefWithParameters("index"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -143,8 +132,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GraphemeAt(other))
 		},
-		DefWithParameters("index"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(

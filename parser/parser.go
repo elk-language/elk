@@ -120,8 +120,12 @@ func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 
 	p.errors.AddFailure(
 		message,
-		position.NewLocationWithSpan(p.sourceName, span),
+		p.newLocation(span),
 	)
+}
+
+func (p *Parser) newLocation(span *position.Span) *position.Location {
+	return position.NewLocationWithSpan(p.sourceName, span)
 }
 
 // Add the content of an error token to the syntax error list.
@@ -3042,7 +3046,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	}
 
 	return ast.NewMethodDefinitionNode(
-		span,
+		p.newLocation(span),
 		"",
 		false,
 		false,
@@ -3113,7 +3117,7 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	}
 
 	return ast.NewInitDefinitionNode(
-		span,
+		p.newLocation(span),
 		params,
 		throwType,
 		body,
