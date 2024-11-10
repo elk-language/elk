@@ -49,11 +49,11 @@ func (m *Mixin) IsSealed() bool {
 	return false
 }
 
-func (m *Mixin) IsCompiled() bool {
+func (m *Mixin) IsDefined() bool {
 	return m.compiled
 }
 
-func (m *Mixin) SetCompiled(compiled bool) {
+func (m *Mixin) SetDefined(compiled bool) {
 	m.compiled = compiled
 }
 

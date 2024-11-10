@@ -64,3 +64,17 @@ func (l *LineInfoList) AddLineNumber(lineNumber int, bytes int) {
 
 	*l = append(*l, NewLineInfo(lineNumber, bytes))
 }
+
+func (l *LineInfoList) RemoveByte() {
+	lastLineInfo := l.Last()
+	if lastLineInfo == nil {
+		panic("cannot remove a byte from an empty line info list")
+	}
+
+	if lastLineInfo.InstructionCount == 1 {
+		*l = (*l)[:len(*l)-1]
+		return
+	}
+
+	lastLineInfo.InstructionCount--
+}

@@ -583,7 +583,7 @@ func TestHashSetContains(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			set := vm.MustNewHashSetWithCapacityAndElements(
@@ -734,7 +734,7 @@ func TestHashSetSetCapacity(t *testing.T) {
 					}
 					return value.False, nil
 				},
-				vm.DefWithParameters("other"),
+				vm.DefWithParameters(1),
 			)
 
 			v := vm.New()
@@ -1030,7 +1030,7 @@ func TestHashSetAdd(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			set := vm.MustNewHashSetWithCapacityAndElements(
@@ -1067,7 +1067,7 @@ func TestHashSetAdd(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			set := vm.MustNewHashSetWithCapacityAndElements(
@@ -1421,7 +1421,7 @@ func TestHashSetDelete(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			set := vm.MustNewHashSetWithCapacityAndElements(

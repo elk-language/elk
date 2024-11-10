@@ -31,11 +31,11 @@ func (t *TypeParamNamespace) DocComment() string {
 }
 
 func (t *TypeParamNamespace) SetDocComment(string) {
-	panic("cannot set doc comment on closures")
+	panic("cannot set doc comment on type param namespace")
 }
 
 func (t *TypeParamNamespace) AppendDocComment(string) {
-	panic("cannot append doc comment on closures")
+	panic("cannot append doc comment on type param namespace")
 }
 
 func (t *TypeParamNamespace) Parent() Namespace {
@@ -50,12 +50,12 @@ func (t *TypeParamNamespace) Singleton() *SingletonClass {
 	return nil
 }
 
-func (t *TypeParamNamespace) IsCompiled() bool {
+func (t *TypeParamNamespace) IsDefined() bool {
 	return false
 }
 
-func (t *TypeParamNamespace) SetCompiled(bool) {
-	panic("cannot set `compiled` in closure")
+func (t *TypeParamNamespace) SetDefined(bool) {
+	panic("cannot set `defined` in type param namespace")
 }
 
 func (t *TypeParamNamespace) IsAbstract() bool {

@@ -72,11 +72,11 @@ func (c *Closure) IsAbstract() bool {
 	return true
 }
 
-func (c *Closure) IsCompiled() bool {
+func (c *Closure) IsDefined() bool {
 	return false
 }
 
-func (c *Closure) SetCompiled(bool) {
+func (c *Closure) SetDefined(bool) {
 	panic("cannot set `compiled` in closure")
 }
 

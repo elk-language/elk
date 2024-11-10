@@ -35,11 +35,11 @@ func (i *Interface) Singleton() *SingletonClass {
 	return i.singleton
 }
 
-func (i *Interface) IsCompiled() bool {
+func (i *Interface) IsDefined() bool {
 	return i.compiled
 }
 
-func (i *Interface) SetCompiled(compiled bool) {
+func (i *Interface) SetDefined(compiled bool) {
 	i.compiled = compiled
 }
 

@@ -244,6 +244,16 @@ func (f *BytecodeFunction) AddInstruction(lineNumber int, op bytecode.OpCode, by
 	f.Instructions = append(f.Instructions, bytes...)
 }
 
+// Add an instruction to the bytecode chunk.
+func (f *BytecodeFunction) RemoveByte() {
+	if len(f.Instructions) < 1 {
+		panic("cannot remove a byte from an empty bytecode function")
+	}
+
+	f.LineInfoList.RemoveByte()
+	f.Instructions = f.Instructions[:len(f.Instructions)-1]
+}
+
 // Add bytes to the bytecode chunk.
 func (f *BytecodeFunction) AddBytes(bytes ...byte) {
 	f.LineInfoList.AddBytesToLastLine(len(bytes))
@@ -376,10 +386,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
-		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.INIT_NAMESPACE, bytecode.DEF_METHOD,
-		bytecode.UNDEFINED, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS,
-		bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
+		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL, bytecode.SELF, bytecode.INIT_NAMESPACE, bytecode.DEF_METHOD,
+		bytecode.UNDEFINED, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS, bytecode.COMPARE, bytecode.DOC_COMMENT,
 		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,

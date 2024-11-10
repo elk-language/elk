@@ -3366,7 +3366,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 		return
 	}
 	initialisedIvars := c.method.InitialisedInstanceVariables
-	if initialisedIvars == nil || c.method.InstanceVariablesChecked {
+	if initialisedIvars == nil || c.method.AreInstanceVariablesChecked() {
 		return
 	}
 
@@ -3389,7 +3389,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 		)
 	}
 
-	c.method.InstanceVariablesChecked = true
+	c.method.SetInstanceVariablesChecked(true)
 }
 
 func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, span *position.Span) {
@@ -3680,7 +3680,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
 	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
-	if method == nil || method.IsPlaceholder {
+	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Untyped{})

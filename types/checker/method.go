@@ -54,11 +54,11 @@ func (c *Checker) newMethodChecker(
 
 func (c *Checker) checkMethodPlaceholders() {
 	for _, placeholder := range c.methodPlaceholders {
-		if placeholder.Checked {
+		if placeholder.IsChecked() {
 			continue
 		}
-		placeholder.Checked = true
-		if placeholder.Replaced {
+		placeholder.SetChecked(true)
+		if placeholder.IsReplaced() {
 			continue
 		}
 
@@ -157,6 +157,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		node.Span(),
 	)
+	method.SetAttribute(true)
 
 	init := node.Initialiser
 	var body []ast.StatementNode
@@ -262,6 +263,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		node.Span(),
 	)
+	method.SetAttribute(true)
 
 	methodNode := ast.NewMethodDefinitionNode(
 		c.newLocation(node.Span()),
@@ -1002,7 +1004,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 	}
 
-	if method.HasNamedRestParam {
+	if method.HasNamedRestParam() {
 		namedRestArgs := ast.NewHashRecordLiteralNode(
 			span,
 			nil,
@@ -1286,7 +1288,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 		}
 	}
 
-	if method.HasNamedRestParam {
+	if method.HasNamedRestParam() {
 		namedRestArgs := ast.NewHashRecordLiteralNode(
 			span,
 			nil,
@@ -1521,7 +1523,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
 
-	if !method.IsAbstract() && c.compiler != nil {
+	if c.compiler != nil && method.IsCompilable() {
 		method.Bytecode = c.compiler.CompileMethodBody(node, method.Name)
 	}
 }
@@ -1820,8 +1822,8 @@ func (c *Checker) checkMethodOverrideWithPlaceholder(
 		return
 	}
 
-	if baseMethod.IsPlaceholder {
-		baseMethod.Replaced = true
+	if baseMethod.IsPlaceholder() {
+		baseMethod.SetReplaced(true)
 		baseMethod.DefinedUnder.SetMethod(baseMethod.Name, overrideMethod)
 		return
 	}

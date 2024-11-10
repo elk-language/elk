@@ -24,8 +24,8 @@ type Namespace interface {
 	IsSealed() bool
 	IsPrimitive() bool
 	IsGeneric() bool
-	IsCompiled() bool
-	SetCompiled(bool)
+	IsDefined() bool
+	SetDefined(bool)
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)
@@ -62,7 +62,7 @@ type Namespace interface {
 
 func NamespaceHasAnyCompilableMethods(namespace Namespace) bool {
 	for _, method := range namespace.Methods() {
-		if method.IsCompilable() {
+		if method.IsDefinable() {
 			return true
 		}
 	}

@@ -33,8 +33,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -44,8 +43,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -55,8 +53,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("n"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -69,8 +66,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -94,8 +90,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -113,8 +108,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -149,7 +143,7 @@ func init() {
 			}
 			return newTuple, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 }

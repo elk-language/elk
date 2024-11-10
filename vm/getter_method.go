@@ -10,7 +10,6 @@ import (
 type GetterMethod struct {
 	AttributeName value.Symbol
 	Doc           value.Value
-	sealed        bool
 }
 
 func (g *GetterMethod) Name() value.Symbol {
@@ -49,14 +48,6 @@ func (*GetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (g *GetterMethod) IsSealed() bool {
-	return g.sealed
-}
-
-func (g *GetterMethod) SetSealed() {
-	g.sealed = true
-}
-
 func (g *GetterMethod) Copy() value.Value {
 	return g
 }
@@ -82,10 +73,9 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 }
 
 // Create a new getter method.
-func NewGetterMethod(attrName value.Symbol, sealed bool) *GetterMethod {
+func NewGetterMethod(attrName value.Symbol) *GetterMethod {
 	return &GetterMethod{
 		AttributeName: attrName,
-		sealed:        sealed,
 	}
 }
 
@@ -94,21 +84,11 @@ func NewGetterMethod(attrName value.Symbol, sealed bool) *GetterMethod {
 func DefineGetter(
 	container *value.MethodContainer,
 	name value.Symbol,
-	sealed bool,
-) *value.Error {
+) {
 	getterMethod := NewGetterMethod(
 		name,
-		sealed,
 	)
-	return container.AttachMethod(name, getterMethod)
-}
-
-type GetterOption func(*GetterMethod)
-
-func GetterWithSealed(sealed bool) GetterOption {
-	return func(gm *GetterMethod) {
-		gm.sealed = sealed
-	}
+	container.AttachMethod(name, getterMethod)
 }
 
 // Utility method that creates a new getter method and
@@ -117,19 +97,10 @@ func GetterWithSealed(sealed bool) GetterOption {
 func Getter(
 	container *value.MethodContainer,
 	name string,
-	opts ...GetterOption,
 ) {
 	nameSymbol := value.ToSymbol(name)
 	getterMethod := NewGetterMethod(
 		nameSymbol,
-		false,
 	)
-
-	for _, opt := range opts {
-		opt(getterMethod)
-	}
-
-	if err := container.AttachMethod(nameSymbol, getterMethod); err != nil {
-		panic(err)
-	}
+	container.AttachMethod(nameSymbol, getterMethod)
 }

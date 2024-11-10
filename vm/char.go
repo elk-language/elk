@@ -14,7 +14,6 @@ func init() {
 			self := args[0].(value.Char)
 			return self + 1, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -23,7 +22,6 @@ func init() {
 			self := args[0].(value.Char)
 			return self - 1, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -33,8 +31,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "concat", "+")
 
@@ -46,8 +43,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "repeat", "*")
 
@@ -59,8 +55,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Compare(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -70,8 +65,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -81,8 +75,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -92,8 +85,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -103,8 +95,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -114,8 +105,7 @@ func init() {
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(

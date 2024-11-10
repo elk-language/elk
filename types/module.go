@@ -35,11 +35,11 @@ func (m *Module) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func (m *Module) IsCompiled() bool {
+func (m *Module) IsDefined() bool {
 	return m.compiled
 }
 
-func (m *Module) SetCompiled(compiled bool) {
+func (m *Module) SetDefined(compiled bool) {
 	m.compiled = compiled
 }
 

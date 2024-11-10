@@ -74,7 +74,7 @@ type mode uint8
 const (
 	topLevelMode mode = iota
 	namespaceMode
-	closureMode
+	methodMode
 	setterMethodMode
 	initMethodMode
 	valuePatternDeclarationNode
@@ -190,7 +190,7 @@ func New(name string, mode mode, loc *position.Location, env *types.GlobalEnviro
 	c.defineLocal("$self", &position.Span{})
 	switch mode {
 	case topLevelMode, namespaceMode,
-		closureMode, setterMethodMode, initMethodMode:
+		methodMode, setterMethodMode, initMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -221,11 +221,11 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 }
 
 func (c *Compiler) compileGlobalEnv(env *types.GlobalEnvironment, span *position.Span) {
-	c.defineModule(env.Root, env.Root, value.ToSymbol("Root"), span)
+	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), span)
 }
 
-func (c *Compiler) defineNamespace(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, span *position.Span) {
-	if !namespace.IsCompiled() {
+func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, span *position.Span) {
+	if !namespace.IsDefined() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
 			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), span)
@@ -235,52 +235,56 @@ func (c *Compiler) defineNamespace(parentNamespace, namespace types.Namespace, n
 		}
 		c.emitValue(constName, span)
 		c.emit(span.StartPos.Line, bytecode.DEF_NAMESPACE, namespaceType)
-		namespace.SetCompiled(true)
+		namespace.SetDefined(true)
 	}
 
 	for name, subtype := range namespace.Subtypes() {
-		c.defineSubtype(namespace, subtype.Type, name, span)
+		c.compileSubtypeDefinition(namespace, subtype.Type, name, span)
 	}
 }
 
-func (c *Compiler) defineModule(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, span *position.Span) {
-	c.defineNamespace(parentNamespace, module, bytecode.DEF_MODULE_FLAG, constName, span)
+func (c *Compiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, span *position.Span) {
+	c.compileNamespaceDefinition(parentNamespace, module, bytecode.DEF_MODULE_FLAG, constName, span)
 }
 
-func (c *Compiler) defineClass(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, span *position.Span) {
-	c.defineNamespace(parentNamespace, class, bytecode.DEF_CLASS_FLAG, constName, span)
+func (c *Compiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, span *position.Span) {
+	c.compileNamespaceDefinition(parentNamespace, class, bytecode.DEF_CLASS_FLAG, constName, span)
 }
 
-func (c *Compiler) defineMixin(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, span *position.Span) {
-	c.defineNamespace(parentNamespace, mixin, bytecode.DEF_MIXIN_FLAG, constName, span)
+func (c *Compiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, span *position.Span) {
+	c.compileNamespaceDefinition(parentNamespace, mixin, bytecode.DEF_MIXIN_FLAG, constName, span)
 }
 
-func (c *Compiler) defineInterface(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, span *position.Span) {
-	c.defineNamespace(parentNamespace, iface, bytecode.DEF_INTERFACE_FLAG, constName, span)
+func (c *Compiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, span *position.Span) {
+	c.compileNamespaceDefinition(parentNamespace, iface, bytecode.DEF_INTERFACE_FLAG, constName, span)
 }
 
-func (c *Compiler) defineSubtype(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, span *position.Span) {
+func (c *Compiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, span *position.Span) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.defineModule(parentNamespace, t, constName, span)
+		c.compileModuleDefinition(parentNamespace, t, constName, span)
 	case *types.Class:
-		c.defineClass(parentNamespace, t, constName, span)
+		c.compileClassDefinition(parentNamespace, t, constName, span)
 	case *types.Mixin:
-		c.defineMixin(parentNamespace, t, constName, span)
+		c.compileMixinDefinition(parentNamespace, t, constName, span)
 	case *types.Interface:
-		c.defineInterface(parentNamespace, t, constName, span)
+		c.compileInterfaceDefinition(parentNamespace, t, constName, span)
 	}
 }
 
 func (c *Compiler) CompileClassInheritance(class *types.Class, span *position.Span) {
-	name := value.ToSymbol(class.Name())
-	// get the class
-	c.emitGetConst(name, span)
-
+	if class.IsCompiled() {
+		return
+	}
 	superclass := class.Superclass()
 	if superclass == nil {
 		return
 	}
+
+	class.SetCompiled(true)
+	name := value.ToSymbol(class.Name())
+	// get the class
+	c.emitGetConst(name, span)
 
 	superclassName := value.ToSymbol(superclass.Name())
 	c.emitGetConst(superclassName, span)
@@ -391,14 +395,7 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
 		for methodName, method := range module.Methods() {
-			if !method.IsCompilable() {
-				continue
-			}
-
-			c.emitValue(method.Bytecode, span)
-			c.emitValue(methodName, span)
-			c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
-			method.SetCompiled(true)
+			c.compileMethodDefinition(methodName, method, span)
 		}
 
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -407,6 +404,32 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 	for _, subtype := range module.Subtypes() {
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
+}
+
+func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, span *position.Span) {
+	if !method.IsDefinable() {
+		return
+	}
+
+	if method.IsAttribute() {
+		if method.IsSetter() {
+			nameStr := name.String()
+			c.emitValue(value.ToSymbol(nameStr[:len(nameStr)-1]), span)
+			c.emit(span.StartPos.Line, bytecode.DEF_SETTER)
+			method.SetCompiled(true)
+			return
+		}
+
+		c.emitValue(name, span)
+		c.emit(span.StartPos.Line, bytecode.DEF_GETTER)
+		method.SetCompiled(true)
+		return
+	}
+
+	c.emitValue(method.Bytecode, span)
+	c.emitValue(name, span)
+	c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
+	method.SetCompiled(true)
 }
 
 func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span *position.Span) {
@@ -421,26 +444,14 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span
 		c.emitGetConst(value.ToSymbol(namespace.Name()), span)
 
 		for methodName, method := range namespaceMethods {
-			if method.Bytecode == nil {
-				continue
-			}
-
-			c.emitValue(method.Bytecode, span)
-			c.emitValue(methodName, span)
-			c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
+			c.compileMethodDefinition(methodName, method, span)
 		}
 
 		if singletonHasCompiledMethods {
 			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
 			for methodName, method := range singletonMethods {
-				if method.Bytecode == nil {
-					continue
-				}
-
-				c.emitValue(method.Bytecode, span)
-				c.emitValue(methodName, span)
-				c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
+				c.compileMethodDefinition(methodName, method, span)
 			}
 		}
 
@@ -467,8 +478,10 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	var mode mode
 	if node.IsSetter() {
 		mode = setterMethodMode
+	} else if node.Name == "#init" {
+		mode = initMethodMode
 	} else {
-		mode = closureMode
+		mode = methodMode
 	}
 
 	methodCompiler := New(name.String(), mode, c.newLocation(node.Span()), c.env)
@@ -656,12 +669,13 @@ func (c *Compiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) {
 
 func (c *Compiler) compileNode(node ast.Node) bool {
 	switch node := node.(type) {
-	case *ast.AliasDeclarationNode, *ast.IncludeExpressionNode,
+	case nil, *ast.AliasDeclarationNode, *ast.IncludeExpressionNode,
 		*ast.EmptyStatementNode, *ast.MethodDefinitionNode, *ast.UsingExpressionNode,
 		*ast.ConstantDeclarationNode, *ast.TypeDefinitionNode, *ast.GenericTypeDefinitionNode,
 		*ast.MethodSignatureDefinitionNode, *ast.ImplementExpressionNode,
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
-		*ast.ReceiverlessMethodCallNode:
+		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode:
 		return false
 	case *ast.ProgramNode:
 		c.compileStatements(node.Body, node.Span())
@@ -670,7 +684,7 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.ExpressionStatementNode:
 		return c.compileNode(node.Expression)
 	case *ast.LabeledExpressionNode:
-		c.labeledExpression(node)
+		c.compileLabeledExpressionNode(node)
 	case *ast.UndefinedLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	case *ast.PublicConstantNode:
@@ -682,35 +696,27 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.SelfLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
-		c.assignment(node)
-	case *ast.GetterDeclarationNode:
-		c.getterDeclaration(node)
-	case *ast.SetterDeclarationNode:
-		c.setterDeclaration(node)
-	case *ast.AttrDeclarationNode:
-		c.accessorDeclaration(node)
+		c.compileAssignmentExpressionNode(node)
 	case *ast.InterfaceDeclarationNode:
-		c.interfaceDeclaration(node)
+		c.compileInterfaceDeclarationNode(node)
 	case *ast.ClassDeclarationNode:
-		c.classDeclaration(node)
+		c.compileClassDeclarationNode(node)
 	case *ast.ModuleDeclarationNode:
-		c.moduleDeclaration(node)
+		c.compileModuleDeclarationNode(node)
 	case *ast.MixinDeclarationNode:
-		c.mixinDeclaration(node)
+		c.compileMixinDeclarationNode(node)
 	case *ast.ClosureLiteralNode:
-		c.closureLiteral(node)
-	case *ast.InitDefinitionNode:
-		c.initDefinition(node)
+		c.compileClosureLiteralNode(node)
 	case *ast.SingletonBlockExpressionNode:
-		c.singletonBlock(node)
+		c.compileSingletonBlockExpressionNode(node)
 	case *ast.SwitchExpressionNode:
-		c.switchExpression(node)
+		c.compileSwitchExpressionNode(node)
 	case *ast.SubscriptExpressionNode:
-		c.subscriptExpression(node)
+		c.compileSubscriptExpressionNode(node)
 	case *ast.NilSafeSubscriptExpressionNode:
-		c.nilSafeSubscriptExpression(node)
+		c.compileNilSafeSubscriptExpressionNode(node)
 	case *ast.AttributeAccessNode:
-		c.attributeAccess(node)
+		c.compileAttributeAccessNode(node)
 	case *ast.ConstructorCallNode:
 		c.compileConstructorCallNode(node)
 	case *ast.GenericConstructorCallNode:
@@ -722,77 +728,77 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.CallNode:
 		c.compileCallNode(node)
 	case *ast.ReturnExpressionNode:
-		c.returnExpression(node)
+		c.compileReturnExpressionNode(node)
 	case *ast.VariablePatternDeclarationNode:
-		c.variablePatternDeclaration(node)
+		c.compilerVariablePatternDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
-		c.variableDeclaration(node)
+		c.compileVariableDeclarationNode(node)
 	case *ast.InstanceVariableDeclarationNode:
-		c.instanceVariableDeclaration(node)
+		c.compileInstanceVariableDeclarationNode(node)
 	case *ast.ValuePatternDeclarationNode:
-		c.valuePatternDeclaration(node)
+		c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
-		c.valueDeclaration(node)
+		c.compileValueDeclarationNode(node)
 	case *ast.PublicIdentifierNode:
-		c.localVariableAccess(node.Value, node.Span())
+		c.compileLocalVariableAccess(node.Value, node.Span())
 	case *ast.PrivateIdentifierNode:
-		c.localVariableAccess(node.Value, node.Span())
+		c.compileLocalVariableAccess(node.Value, node.Span())
 	case *ast.InstanceVariableNode:
-		c.instanceVariableAccess(node.Value, node.Span())
+		c.compileInstanceVariableAccess(node.Value, node.Span())
 	case *ast.BinaryExpressionNode:
-		c.binaryExpression(node)
+		c.compileBinaryExpressionNode(node)
 	case *ast.LogicalExpressionNode:
-		c.logicalExpression(node)
+		c.compileLogicalExpressionNode(node)
 	case *ast.UnaryExpressionNode:
-		c.unaryExpression(node)
+		c.compileUnaryExpressionNode(node)
 	case *ast.RangeLiteralNode:
-		c.rangeLiteral(node)
+		c.compileRangeLiteralNode(node)
 	case *ast.HashSetLiteralNode:
-		c.hashSetLiteral(node)
+		c.compileHashSetLiteralNode(node)
 	case *ast.HashMapLiteralNode:
-		c.hashMapLiteral(node)
+		c.compileHashMapLiteralNode(node)
 	case *ast.HashRecordLiteralNode:
-		c.hashRecordLiteral(node)
+		c.compileHashRecordLiteralNode(node)
 	case *ast.ArrayTupleLiteralNode:
-		c.arrayTupleLiteral(node)
+		c.compileArrayTupleLiteralNode(node)
 	case *ast.WordArrayTupleLiteralNode:
-		c.wordArrayTupleLiteral(node)
+		c.compileWordArrayTupleLiteralNode(node)
 	case *ast.SymbolArrayTupleLiteralNode:
-		c.symbolArrayTupleLiteral(node)
+		c.compileSymbolArrayTupleLiteralNode(node)
 	case *ast.BinArrayTupleLiteralNode:
-		c.binArrayTupleLiteral(node)
+		c.compileBinArrayTupleLiteralNode(node)
 	case *ast.HexArrayTupleLiteralNode:
-		c.hexArrayTupleLiteral(node)
+		c.compileHexArrayTupleLiteralNode(node)
 	case *ast.ArrayListLiteralNode:
-		c.arrayListLiteral(node)
+		c.compileArrayListLiteralNode(node)
 	case *ast.WordArrayListLiteralNode:
-		c.wordArrayListLiteral(node)
+		c.compileWordArrayListLiteralNode(node)
 	case *ast.SymbolArrayListLiteralNode:
-		c.symbolArrayListLiteral(node)
+		c.compileSymbolArrayListLiteralNode(node)
 	case *ast.BinArrayListLiteralNode:
-		c.binArrayListLiteral(node)
+		c.compileBinArrayListLiteralNode(node)
 	case *ast.HexArrayListLiteralNode:
-		c.hexArrayListLiteral(node)
+		c.compileHexArrayListLiteralNode(node)
 	case *ast.WordHashSetLiteralNode:
-		c.wordHashSetLiteral(node)
+		c.compileWordHashSetLiteralNode(node)
 	case *ast.SymbolHashSetLiteralNode:
-		c.symbolHashSetLiteral(node)
+		c.compileSymbolHashSetLiteralNode(node)
 	case *ast.BinHashSetLiteralNode:
-		c.binHashSetLiteral(node)
+		c.compileBinHashSetLiteralNode(node)
 	case *ast.HexHashSetLiteralNode:
-		c.hexHashSetLiteral(node)
+		c.compileHexHashSetLiteralNode(node)
 	case *ast.UninterpolatedRegexLiteralNode:
-		c.uninterpolatedRegexLiteral(node)
+		c.compileUninterpolatedRegexLiteralNode(node)
 	case *ast.InterpolatedRegexLiteralNode:
-		c.interpolatedRegexLiteral(node)
+		c.compileInterpolatedRegexLiteralNode(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.InterpolatedStringLiteralNode:
-		c.interpolatedStringLiteral(node)
+		c.compileInterpolatedStringLiteralNode(node)
 	case *ast.InterpolatedSymbolLiteralNode:
-		c.interpolatedSymbolLiteral(node)
+		c.compileInterpolatedSymbolLiteralNode(node)
 	case *ast.CharLiteralNode:
 		c.emitValue(value.Char(node.Value), node.Span())
 	case *ast.RawCharLiteralNode:
@@ -804,45 +810,45 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.NilLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	case *ast.ThrowExpressionNode:
-		c.throwExpression(node)
+		c.compileThrowExpressionNode(node)
 	case *ast.MustExpressionNode:
-		c.mustExpression(node)
+		c.compileMustExpressionNode(node)
 	case *ast.AsExpressionNode:
-		c.asExpression(node)
+		c.compileAsExpressionNode(node)
 	case *ast.TypeofExpressionNode:
-		c.typeofExpression(node)
+		c.compileTypeofExpressionNode(node)
 	case *ast.DoExpressionNode:
-		c.doExpression(node)
+		c.compileDoExpressionNode(node)
 	case *ast.IfExpressionNode:
-		c.ifExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span())
 	case *ast.UnlessExpressionNode:
-		c.ifExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span())
 	case *ast.ModifierIfElseNode:
-		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
+		c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
-		c.modifierExpression("", node)
+		c.compileModifierExpressionNode("", node)
 	case *ast.BreakExpressionNode:
-		c.breakExpression(node)
+		c.compileBreakExpressionNode(node)
 	case *ast.ContinueExpressionNode:
-		c.continueExpression(node)
+		c.compileContinueExpressionNode(node)
 	case *ast.LoopExpressionNode:
-		c.loopExpression("", node.ThenBody, node.Span())
+		c.compileLoopExpressionNode("", node.ThenBody, node.Span())
 	case *ast.WhileExpressionNode:
-		c.whileExpression("", node)
+		c.compileWhileExpressionNode("", node)
 	case *ast.UntilExpressionNode:
-		c.untilExpression("", node)
+		c.compileUntilExpressionNode("", node)
 	case *ast.NumericForExpressionNode:
-		c.numericForExpression("", node)
+		c.compileNumericForExpressionNode("", node)
 	case *ast.ForInExpressionNode:
-		c.forInExpression("", node)
+		c.compileForInExpressionNode("", node)
 	case *ast.ModifierForInNode:
-		c.modifierForIn("", node)
+		c.compileModifierForInNode("", node)
 	case *ast.PostfixExpressionNode:
-		c.postfixExpression(node)
+		c.compilePostfixExpressionNode(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
-		c.intLiteral(node)
+		c.compileIntLiteralNode(node)
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
@@ -929,8 +935,6 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 			return true
 		}
 		c.emitValue(value.Float32(f), node.Span())
-
-	case nil:
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
@@ -941,24 +945,24 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	return true
 }
 
-func (c *Compiler) typeofExpression(node *ast.TypeofExpressionNode) {
+func (c *Compiler) compileTypeofExpressionNode(node *ast.TypeofExpressionNode) {
 	c.compileNode(node.Value)
 }
 
-func (c *Compiler) mustExpression(node *ast.MustExpressionNode) {
+func (c *Compiler) compileMustExpressionNode(node *ast.MustExpressionNode) {
 	span := node.Span()
 	c.compileNode(node.Value)
 	c.emit(span.StartPos.Line, bytecode.MUST)
 }
 
-func (c *Compiler) asExpression(node *ast.AsExpressionNode) {
+func (c *Compiler) compileAsExpressionNode(node *ast.AsExpressionNode) {
 	span := node.Span()
 	c.compileNode(node.Value)
 	c.compileNode(node.RuntimeType)
 	c.emit(span.StartPos.Line, bytecode.AS)
 }
 
-func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
+func (c *Compiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) {
 	span := node.Span()
 	if node.Value != nil {
 		c.compileNode(node.Value)
@@ -1008,7 +1012,7 @@ func (c *Compiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode,
 	c.emit(span.StartPos.Line, bytecode.DEF_CONST)
 }
 
-func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
+func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	span := node.Span()
 
 	doStartOffset := c.nextInstructionOffset()
@@ -1174,7 +1178,7 @@ func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
-func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
+func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
 	span := node.Span()
 	if node.Value == nil {
 		c.emit(span.StartPos.Line, bytecode.NIL)
@@ -1224,7 +1228,7 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
-func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
+func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) {
 	span := node.Span()
 	loop := c.findLoopJumpSet(node.Label, span)
 	if loop == nil {
@@ -1292,7 +1296,7 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 	c.loopJumpSets = c.loopJumpSets[:len(c.loopJumpSets)-1]
 }
 
-func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileLoopExpressionNode(label string, body []ast.StatementNode, span *position.Span) {
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, false)
 
@@ -1308,7 +1312,7 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 	c.patchLoopJumps(start)
 }
 
-func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) {
+func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpressionNode) {
 	span := node.Span()
 
 	if result := resolve(node.Condition); result != nil {
@@ -1320,7 +1324,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 		}
 
 		// the loop is endless
-		c.loopExpression(label, node.ThenBody, span)
+		c.compileLoopExpressionNode(label, node.ThenBody, span)
 		return
 	}
 
@@ -1368,7 +1372,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	if result := resolve(condition); result != nil {
 		if value.Truthy(result) {
 			// the loop is endless
-			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), span)
 			return
 		}
 
@@ -1428,7 +1432,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	if result := resolve(condition); result != nil {
 		if value.Falsy(result) {
 			// the loop is endless
-			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), span)
 			return
 		}
 
@@ -1477,13 +1481,13 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	c.patchLoopJumps(continueOffset)
 }
 
-func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) {
+func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpressionNode) {
 	span := node.Span()
 
 	if result := resolve(node.Condition); result != nil {
 		if value.Falsy(result) {
 			// the loop is endless
-			c.loopExpression(label, node.ThenBody, span)
+			c.compileLoopExpressionNode(label, node.ThenBody, span)
 			return
 		}
 
@@ -1527,29 +1531,29 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 }
 
 // Compile a labeled expression eg. `$foo: println("bar")`
-func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
+func (c *Compiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode) {
 	switch expr := node.Expression.(type) {
 	case *ast.WhileExpressionNode:
-		c.whileExpression(node.Label, expr)
+		c.compileWhileExpressionNode(node.Label, expr)
 	case *ast.UntilExpressionNode:
-		c.untilExpression(node.Label, expr)
+		c.compileUntilExpressionNode(node.Label, expr)
 	case *ast.LoopExpressionNode:
-		c.loopExpression(node.Label, expr.ThenBody, expr.Span())
+		c.compileLoopExpressionNode(node.Label, expr.ThenBody, expr.Span())
 	case *ast.NumericForExpressionNode:
-		c.numericForExpression(node.Label, expr)
+		c.compileNumericForExpressionNode(node.Label, expr)
 	case *ast.ForInExpressionNode:
-		c.forInExpression(node.Label, expr)
+		c.compileForInExpressionNode(node.Label, expr)
 	case *ast.ModifierForInNode:
-		c.modifierForIn(node.Label, expr)
+		c.compileModifierForInNode(node.Label, expr)
 	case *ast.ModifierNode:
-		c.modifierExpression(node.Label, expr)
+		c.compileModifierExpressionNode(node.Label, expr)
 	default:
 		c.compileNode(node.Expression)
 	}
 }
 
 // Compile a for in loop eg. `for i in [1, 2] then println(i)`
-func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) {
+func (c *Compiler) compileForInExpressionNode(label string, node *ast.ForInExpressionNode) {
 	c.compileForIn(
 		label,
 		node.Pattern,
@@ -1563,7 +1567,7 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 }
 
 // Compile a for in loop eg. `println(i) for i in [1, 2]`
-func (c *Compiler) modifierForIn(label string, node *ast.ModifierForInNode) {
+func (c *Compiler) compileModifierForInNode(label string, node *ast.ModifierForInNode) {
 	c.compileForIn(
 		label,
 		node.Pattern,
@@ -1652,12 +1656,12 @@ func (c *Compiler) compileForIn(
 }
 
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
-func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpressionNode) {
+func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.NumericForExpressionNode) {
 	span := node.Span()
 
 	if node.Initialiser == nil && node.Condition == nil && node.Increment == nil {
 		// the loop is endless
-		c.loopExpression(label, node.ThenBody, span)
+		c.compileLoopExpressionNode(label, node.ThenBody, span)
 		return
 	}
 
@@ -1739,11 +1743,11 @@ func (c *Compiler) emitGetterCall(name string, span *position.Span) {
 	c.emitCallMethod(callInfo, span)
 }
 
-func (c *Compiler) postfixExpression(node *ast.PostfixExpressionNode) {
+func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode) {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
 		// get variable value
-		c.localVariableAccess(n.Value, n.Span())
+		c.compileLocalVariableAccess(n.Value, n.Span())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
@@ -1758,7 +1762,7 @@ func (c *Compiler) postfixExpression(node *ast.PostfixExpressionNode) {
 		c.setLocalWithoutValue(n.Value, n.Span())
 	case *ast.PrivateIdentifierNode:
 		// get variable value
-		c.localVariableAccess(n.Value, n.Span())
+		c.compileLocalVariableAccess(n.Value, n.Span())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
@@ -2124,7 +2128,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 	}
 }
 
-func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
+func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
@@ -2145,7 +2149,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 }
 
 func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	local, upvalue, ok := c.localVariableAccess(name, span)
+	local, upvalue, ok := c.compileLocalVariableAccess(name, span)
 	if !ok {
 		return
 	}
@@ -2180,7 +2184,7 @@ func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *pos
 func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
-		c.localVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, span)
 		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
 
 		// if falsy
@@ -2190,7 +2194,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		// if truthy
 		c.patchJump(jump, span)
 	case token.AND_AND_EQUAL:
-		c.localVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, span)
 		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 
 		// if truthy
@@ -2200,7 +2204,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		// if falsy
 		c.patchJump(jump, span)
 	case token.QUESTION_QUESTION_EQUAL:
-		c.localVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, span)
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
 		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
@@ -2255,11 +2259,11 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	}
 }
 
-func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
+func (c *Compiler) compileInstanceVariableAccess(name string, span *position.Span) {
 	c.emitGetInstanceVariable(value.ToSymbol(name), span)
 }
 
-func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
+func (c *Compiler) compileLocalVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
 	if local, ok := c.resolveLocal(name, span); ok {
 		c.emitGetLocal(span.StartPos.Line, local.index)
 		return local, nil, true
@@ -2317,12 +2321,12 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	return upvalue
 }
 
-func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
+func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode) {
 	switch node.Modifier.Type {
 	case token.IF:
-		c.modifierIfExpression(false, node.Right, node.Left, nil, node.Span())
+		c.compileModifierIfExpression(false, node.Right, node.Left, nil, node.Span())
 	case token.UNLESS:
-		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
+		c.compileModifierIfExpression(true, node.Right, node.Left, nil, node.Span())
 	case token.WHILE:
 		c.modifierWhileExpression(label, node)
 	case token.UNTIL:
@@ -2335,7 +2339,7 @@ func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 	}
 }
 
-func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
@@ -2359,7 +2363,7 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 	)
 }
 
-func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
@@ -2455,7 +2459,7 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 	)
 }
 
-func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
+func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	initialised := node.Initialiser != nil
 
 	if initialised {
@@ -2472,7 +2476,7 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 	}
 }
 
-func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
+func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {
 	span := node.Span()
 	if node.Value != nil {
 		c.emitReturn(span, node.Value)
@@ -2482,7 +2486,7 @@ func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
 	}
 }
 
-func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressionNode) {
+func (c *Compiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -2551,7 +2555,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		)
 	case *ast.RangeLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.rangeLiteral(pat)
+		c.compileRangeLiteralNode(pat)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(symbol.S_contains, 1)
 		c.emitCallMethod(callInfo, span)
@@ -3149,7 +3153,7 @@ func (c *Compiler) leavePattern() {
 	c.patternNesting--
 }
 
-func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
+func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
 	span := node.Span()
 
 	c.enterScope("", defaultScopeType)
@@ -3189,7 +3193,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	c.leaveScope(span.EndPos.Line)
 }
 
-func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
+func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -3199,7 +3203,7 @@ func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
 	c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 }
 
-func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
+func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	c.compileNode(node.Receiver)
 
 	name := value.ToSymbol(node.AttributeName)
@@ -3347,7 +3351,7 @@ func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 	c.emitCall(callInfo, node.Span())
 }
 
-func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
+func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) {
 	if len(node.Body) <= 0 {
 		return
 	}
@@ -3369,8 +3373,8 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
-func (c *Compiler) closureLiteral(node *ast.ClosureLiteralNode) {
-	closureCompiler := New("<closure>", closureMode, c.newLocation(node.Span()), c.env)
+func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
+	closureCompiler := New("<closure>", methodMode, c.newLocation(node.Span()), c.env)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
@@ -3400,20 +3404,7 @@ func (c *Compiler) closureLiteral(node *ast.ClosureLiteralNode) {
 	c.emitByte(vm.ClosureTerminatorFlag)
 }
 
-func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
-	methodCompiler := New("#init", initMethodMode, c.newLocation(node.Span()), c.env)
-	methodCompiler.Errors = c.Errors
-	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
-
-	result := methodCompiler.Bytecode
-	c.emitValue(result, node.Span())
-
-	c.emitValue(value.ToSymbol("#init"), node.Span())
-
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
-}
-
-func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
+func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) {
 	if len(node.Body) <= 0 {
 		return
 	}
@@ -3432,7 +3423,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
-func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
+func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) <= 0 {
 		return
 	}
@@ -3451,64 +3442,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
-func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
-	switch c.mode {
-	case closureMode:
-		c.Errors.AddFailure(
-			"cannot define getters in this context",
-			c.newLocation(node.Span()),
-		)
-		return
-	}
-
-	for _, entry := range node.Entries {
-		getterEntry := entry.(*ast.AttributeParameterNode)
-		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_GETTER)
-	}
-	c.emit(node.Span().EndPos.Line, bytecode.NIL)
-}
-
-func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
-	switch c.mode {
-	case closureMode:
-		c.Errors.AddFailure(
-			"cannot define setters in this context",
-			c.newLocation(node.Span()),
-		)
-		return
-	}
-
-	for _, entry := range node.Entries {
-		getterEntry := entry.(*ast.AttributeParameterNode)
-		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_SETTER)
-	}
-	c.emit(node.Span().EndPos.Line, bytecode.NIL)
-}
-
-func (c *Compiler) accessorDeclaration(node *ast.AttrDeclarationNode) {
-	switch c.mode {
-	case closureMode:
-		c.Errors.AddFailure(
-			"cannot define accessors in this context",
-			c.newLocation(node.Span()),
-		)
-		return
-	}
-
-	for _, entry := range node.Entries {
-		getterEntry := entry.(*ast.AttributeParameterNode)
-		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_GETTER)
-
-		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_SETTER)
-	}
-	c.emit(node.Span().EndPos.Line, bytecode.NIL)
-}
-
-func (c *Compiler) interfaceDeclaration(node *ast.InterfaceDeclarationNode) {
+func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) {
 	if len(node.Body) <= 0 {
 		return
 	}
@@ -3527,7 +3461,7 @@ func (c *Compiler) interfaceDeclaration(node *ast.InterfaceDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
-func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
+func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) {
 	if len(node.Body) <= 0 {
 		return
 	}
@@ -3546,7 +3480,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
-func (c *Compiler) valuePatternDeclaration(node *ast.ValuePatternDeclarationNode) {
+func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {
 	previousMode := c.mode
 	c.mode = valuePatternDeclarationNode
 	defer func() {
@@ -3573,7 +3507,7 @@ func (c *Compiler) valuePatternDeclaration(node *ast.ValuePatternDeclarationNode
 	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
-func (c *Compiler) variablePatternDeclaration(node *ast.VariablePatternDeclarationNode) {
+func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
 	span := node.Span()
 	c.compileNode(node.Initialiser)
 	c.pattern(node.Pattern)
@@ -3594,7 +3528,7 @@ func (c *Compiler) variablePatternDeclaration(node *ast.VariablePatternDeclarati
 	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
-func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
+func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) {
 	initialised := node.Initialiser != nil
 
 	if initialised {
@@ -3611,7 +3545,7 @@ func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 	}
 }
 
-func (c *Compiler) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+func (c *Compiler) compileInstanceVariableDeclarationNode(node *ast.InstanceVariableDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.NIL)
 }
 
@@ -3626,24 +3560,27 @@ func (c *Compiler) compileStatements(collection []ast.StatementNode, span *posit
 // emitting a `nil` value.
 func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 	var isPresent bool
-	for i, s := range collection {
-		exprIsLast := i == len(collection)-1
-		if !exprIsLast && s.IsStatic() {
+	for _, s := range collection {
+		if s.IsStatic() {
 			continue
 		}
 		exprIsPresent := c.compileNode(s)
 		if exprIsPresent {
 			isPresent = true
-		}
-		if !exprIsLast && exprIsPresent {
 			c.emit(s.Span().EndPos.Line, bytecode.POP)
 		}
 	}
 
-	return isPresent
+	if isPresent {
+		// remove the last POP instruction
+		c.Bytecode.RemoveByte()
+		return true
+	}
+
+	return false
 }
 
-func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
+func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -3695,7 +3632,7 @@ func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
 	}
 }
 
-func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
+func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 	span := node.Span()
 	if c.resolveAndEmit(node) {
 		return
@@ -3814,7 +3751,7 @@ func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
 	c.emitNewHashSet(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) hashMapLiteral(node *ast.HashMapLiteralNode) {
+func (c *Compiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -3896,10 +3833,10 @@ elementLoop:
 				c.compileNode(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value), element.Span())
-				c.localVariableAccess(element.Value, element.Span())
+				c.compileLocalVariableAccess(element.Value, element.Span())
 			case *ast.PrivateIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value), element.Span())
-				c.localVariableAccess(element.Value, element.Span())
+				c.compileLocalVariableAccess(element.Value, element.Span())
 			default:
 				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
 			}
@@ -4016,7 +3953,7 @@ elementLoop:
 	c.emitNewHashMap(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) hashRecordLiteral(node *ast.HashRecordLiteralNode) {
+func (c *Compiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4085,10 +4022,10 @@ elementLoop:
 				c.compileNode(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value), element.Span())
-				c.localVariableAccess(element.Value, element.Span())
+				c.compileLocalVariableAccess(element.Value, element.Span())
 			case *ast.PrivateIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value), element.Span())
-				c.localVariableAccess(element.Value, element.Span())
+				c.compileLocalVariableAccess(element.Value, element.Span())
 			default:
 				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
 			}
@@ -4205,7 +4142,7 @@ elementLoop:
 	c.emitNewHashRecord(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) arrayListLiteral(node *ast.ArrayListLiteralNode) {
+func (c *Compiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) {
 	span := node.Span()
 	if c.resolveAndEmitList(node) {
 		return
@@ -4386,7 +4323,7 @@ elementLoop:
 	c.emitNewArrayList(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) arrayTupleLiteral(node *ast.ArrayTupleLiteralNode) {
+func (c *Compiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4548,7 +4485,7 @@ elementLoop:
 	c.emitNewArrayTuple(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) wordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) {
+func (c *Compiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4556,7 +4493,7 @@ func (c *Compiler) wordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) {
 	c.Errors.AddFailure("invalid word arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) binArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) {
+func (c *Compiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4564,7 +4501,7 @@ func (c *Compiler) binArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) {
 	c.Errors.AddFailure("invalid binary arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) symbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode) {
+func (c *Compiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4572,7 +4509,7 @@ func (c *Compiler) symbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode
 	c.Errors.AddFailure("invalid symbol arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
+func (c *Compiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4580,7 +4517,7 @@ func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
 	c.Errors.AddFailure("invalid hex arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) wordArrayListLiteral(node *ast.WordArrayListLiteralNode) {
+func (c *Compiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4598,7 +4535,7 @@ func (c *Compiler) wordArrayListLiteral(node *ast.WordArrayListLiteralNode) {
 	}
 }
 
-func (c *Compiler) binArrayListLiteral(node *ast.BinArrayListLiteralNode) {
+func (c *Compiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4616,7 +4553,7 @@ func (c *Compiler) binArrayListLiteral(node *ast.BinArrayListLiteralNode) {
 	}
 }
 
-func (c *Compiler) symbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) {
+func (c *Compiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4634,7 +4571,7 @@ func (c *Compiler) symbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) 
 	}
 }
 
-func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
+func (c *Compiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4652,7 +4589,7 @@ func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
 	}
 }
 
-func (c *Compiler) wordHashSetLiteral(node *ast.WordHashSetLiteralNode) {
+func (c *Compiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4670,7 +4607,7 @@ func (c *Compiler) wordHashSetLiteral(node *ast.WordHashSetLiteralNode) {
 	}
 }
 
-func (c *Compiler) binHashSetLiteral(node *ast.BinHashSetLiteralNode) {
+func (c *Compiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4688,7 +4625,7 @@ func (c *Compiler) binHashSetLiteral(node *ast.BinHashSetLiteralNode) {
 	}
 }
 
-func (c *Compiler) symbolHashSetLiteral(node *ast.SymbolHashSetLiteralNode) {
+func (c *Compiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4706,7 +4643,7 @@ func (c *Compiler) symbolHashSetLiteral(node *ast.SymbolHashSetLiteralNode) {
 	}
 }
 
-func (c *Compiler) hexHashSetLiteral(node *ast.HexHashSetLiteralNode) {
+func (c *Compiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode) {
 	list := resolve(node)
 	span := node.Span()
 	if list == nil {
@@ -4782,7 +4719,7 @@ func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int
 	)
 }
 
-func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) {
+func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.UninterpolatedRegexLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4826,7 +4763,7 @@ func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiter
 	c.emitValue(re, node.Span())
 }
 
-func (c *Compiler) interpolatedRegexLiteral(node *ast.InterpolatedRegexLiteralNode) {
+func (c *Compiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedRegexLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4844,7 +4781,7 @@ func (c *Compiler) interpolatedRegexLiteral(node *ast.InterpolatedRegexLiteralNo
 
 var inspectSymbol = value.ToSymbol("inspect")
 
-func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
+func (c *Compiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4865,7 +4802,7 @@ func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteral
 	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
 }
 
-func (c *Compiler) interpolatedSymbolLiteral(node *ast.InterpolatedSymbolLiteralNode) {
+func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSymbolLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4882,7 +4819,7 @@ func (c *Compiler) interpolatedSymbolLiteral(node *ast.InterpolatedSymbolLiteral
 	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL32, len(node.Content.Content), node.Span())
 }
 
-func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
+func (c *Compiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
 		c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
@@ -4896,7 +4833,7 @@ func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
 }
 
 // Compiles boolean binary operators
-func (c *Compiler) logicalExpression(node *ast.LogicalExpressionNode) {
+func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4953,7 +4890,7 @@ func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode) {
 	c.patchJump(jump, node.Span())
 }
 
-func (c *Compiler) binaryExpression(node *ast.BinaryExpressionNode) {
+func (c *Compiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -5236,7 +5173,7 @@ listLoop:
 	c.emitNewArrayList(len(rest), span)
 }
 
-func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
+func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
