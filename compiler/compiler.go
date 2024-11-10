@@ -75,7 +75,6 @@ func (c *Compiler) InitGlobalEnv() *Compiler {
 	span := &c.Bytecode.Location.Span
 	c.emitValue(envCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
 	return envCompiler
 }
 
@@ -333,7 +332,6 @@ func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) 
 
 	c.emitValue(exprCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return exprCompiler
 }
@@ -391,7 +389,6 @@ func (c *Compiler) InitMethodCompiler(span *position.Span) *Compiler {
 
 	c.emitValue(methodCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return methodCompiler
 }

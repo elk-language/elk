@@ -1419,6 +1419,7 @@ func (vm *VM) opInitNamespace() {
 func (vm *VM) opExec() {
 	bytecodeFunc := vm.pop().(*BytecodeFunction)
 	vm.executeFunc(bytecodeFunc)
+	vm.pop()
 }
 
 // Define a getter method
