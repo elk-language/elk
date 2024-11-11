@@ -149,3 +149,11 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 
 	return env
 }
+
+func (g *GlobalEnvironment) DeepCopy() *GlobalEnvironment {
+	newEnv := &GlobalEnvironment{
+		Init: g.Init,
+	}
+	newEnv.Root = g.Root.DeepCopy(g, newEnv)
+	return newEnv
+}

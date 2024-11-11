@@ -8,7 +8,7 @@ import (
 type Mixin struct {
 	parent         Namespace
 	abstract       bool
-	compiled       bool
+	defined        bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -50,11 +50,11 @@ func (m *Mixin) IsSealed() bool {
 }
 
 func (m *Mixin) IsDefined() bool {
-	return m.compiled
+	return m.defined
 }
 
 func (m *Mixin) SetDefined(compiled bool) {
-	m.compiled = compiled
+	m.defined = compiled
 }
 
 func (m *Mixin) IsPrimitive() bool {
@@ -72,7 +72,7 @@ func (m *Mixin) SetParent(parent Namespace) {
 func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		abstract:      abstract,
-		compiled:      env.Init,
+		defined:       env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
@@ -93,7 +93,7 @@ func NewMixinWithDetails(
 	mixin := &Mixin{
 		parent:   parent,
 		abstract: abstract,
-		compiled: env.Init,
+		defined:  env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -123,4 +123,69 @@ func (m *Mixin) ToNonLiteral(env *GlobalEnvironment) Type {
 
 func (*Mixin) IsLiteral() bool {
 	return false
+}
+
+func (m *Mixin) Copy() *Mixin {
+	return &Mixin{
+		parent:         m.parent,
+		abstract:       m.abstract,
+		defined:        m.defined,
+		Checked:        m.Checked,
+		typeParameters: m.typeParameters,
+		NamespaceBase: NamespaceBase{
+			docComment: m.docComment,
+			name:       m.name,
+			constants:  m.constants,
+			methods:    m.methods,
+			subtypes:   m.subtypes,
+		},
+	}
+}
+
+func (m *Mixin) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Mixin {
+	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
+		return newType.(*Mixin)
+	}
+
+	newMixin := m.Copy()
+	mixinConstantPath := GetConstantPath(m.name)
+	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
+	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
+
+	newMethods := make(MethodMap, len(m.methods))
+	for methodName, method := range m.methods {
+		newMethods[methodName] = method.Copy()
+	}
+	newMixin.methods = newMethods
+
+	newConstants := make(ConstantMap, len(m.constants))
+	for constName, constant := range m.constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
+		}
+	}
+	newMixin.constants = newConstants
+
+	newSubtypes := make(ConstantMap, len(m.subtypes))
+	for subtypeName, subtype := range m.subtypes {
+		newSubtypes[subtypeName] = Constant{
+			FullName: subtype.FullName,
+			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
+		}
+	}
+	newMixin.subtypes = newSubtypes
+
+	newTypeParameters := make([]*TypeParameter, len(m.typeParameters))
+	for name, typeParam := range m.typeParameters {
+		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
+	}
+	newMixin.typeParameters = newTypeParameters
+
+	newMixin.parent = DeepCopy(m.parent, oldEnv, newEnv).(Namespace)
+	newMixin.singleton = NewSingletonClass(
+		newMixin,
+		DeepCopy(newMixin.singleton.parent, oldEnv, newEnv).(Namespace),
+	)
+	return newMixin
 }

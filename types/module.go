@@ -100,3 +100,54 @@ func (m *Module) DefineMethod(docComment string, abstract, sealed, native bool, 
 	m.SetMethod(name, method)
 	return method
 }
+
+func (m *Module) Copy() *Module {
+	return &Module{
+		parent: m.parent,
+		NamespaceBase: NamespaceBase{
+			docComment: m.docComment,
+			name:       m.name,
+			constants:  m.constants,
+			subtypes:   m.subtypes,
+			methods:    m.methods,
+		},
+	}
+}
+
+func (m *Module) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Module {
+	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
+		return newType.(*Module)
+	}
+
+	newModule := m.Copy()
+	moduleConstantPath := GetConstantPath(m.name)
+	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
+	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
+
+	newMethods := make(MethodMap, len(m.methods))
+	for methodName, method := range m.methods {
+		newMethods[methodName] = method.Copy()
+	}
+	newModule.methods = newMethods
+
+	newConstants := make(ConstantMap, len(m.constants))
+	for constName, constant := range m.constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
+		}
+	}
+	newModule.constants = newConstants
+
+	newSubtypes := make(ConstantMap, len(m.subtypes))
+	for subtypeName, subtype := range m.subtypes {
+		newSubtypes[subtypeName] = Constant{
+			FullName: subtype.FullName,
+			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
+		}
+	}
+	newModule.subtypes = newSubtypes
+
+	newModule.parent = DeepCopy(m.parent, oldEnv, newEnv).(Namespace)
+	return newModule
+}

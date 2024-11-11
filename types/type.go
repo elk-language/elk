@@ -13,6 +13,47 @@ type Type interface {
 	inspect() string
 }
 
+func DeepCopyNamespacePath(constantPath []string, oldEnv, newEnv *GlobalEnvironment) Namespace {
+	var newNamespace Namespace = newEnv.Root
+	var oldNamespace Namespace = oldEnv.Root
+	var newCurrentType Type = newNamespace
+	var oldCurrentType Type = oldNamespace
+
+	for _, subtypeName := range constantPath {
+		oldSubtype, _ := oldNamespace.SubtypeString(subtypeName)
+		oldCurrentType = oldSubtype.Type
+		oldNamespace = oldCurrentType.(Namespace)
+
+		newSubtype, ok := newNamespace.SubtypeString(subtypeName)
+		if !ok {
+			newCurrentType = DeepCopy(oldNamespace, oldEnv, newEnv)
+		} else {
+			newCurrentType = newSubtype.Type
+		}
+		newNamespace = newCurrentType.(Namespace)
+	}
+
+	return newNamespace
+}
+
+func DeepCopy(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
+	switch t := t.(type) {
+	case *Module:
+		return t.DeepCopy(oldEnv, newEnv)
+	case *Class:
+		return t.DeepCopy(oldEnv, newEnv)
+	case *Mixin:
+		return t.DeepCopy(oldEnv, newEnv)
+	case *Method:
+		return t.DeepCopy(oldEnv, newEnv)
+	case *Interface:
+		return t.DeepCopy(oldEnv, newEnv)
+		// TODO: MixinProxy, InterfaceProxy etc
+	default:
+		return t
+	}
+}
+
 func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
 	switch t := typ.(type) {
 	case *Nilable, Nil, False, Bool, Untyped, Void:

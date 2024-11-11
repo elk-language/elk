@@ -178,3 +178,71 @@ func (c *Class) ToNonLiteral(env *GlobalEnvironment) Type {
 func (*Class) IsLiteral() bool {
 	return false
 }
+
+func (c *Class) Copy() *Class {
+	return &Class{
+		parent:         c.parent,
+		primitive:      c.primitive,
+		sealed:         c.sealed,
+		abstract:       c.abstract,
+		defined:        c.defined,
+		compiled:       c.compiled,
+		singleton:      c.singleton,
+		typeParameters: c.typeParameters,
+		NamespaceBase: NamespaceBase{
+			docComment: c.docComment,
+			name:       c.name,
+			constants:  c.constants,
+			subtypes:   c.subtypes,
+			methods:    c.methods,
+		},
+	}
+}
+
+func (c *Class) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Class {
+	if newType, ok := NameToTypeOk(c.name, newEnv); ok {
+		return newType.(*Class)
+	}
+
+	newClass := c.Copy()
+	classConstantPath := GetConstantPath(c.name)
+	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
+	parentNamespace.DefineSubtype(value.ToSymbol(classConstantPath[len(classConstantPath)-1]), newClass)
+
+	newMethods := make(MethodMap, len(c.methods))
+	for methodName, method := range c.methods {
+		newMethods[methodName] = method.Copy()
+	}
+	newClass.methods = newMethods
+
+	newConstants := make(ConstantMap, len(c.constants))
+	for constName, constant := range c.constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
+		}
+	}
+	newClass.constants = newConstants
+
+	newSubtypes := make(ConstantMap, len(c.subtypes))
+	for subtypeName, subtype := range c.subtypes {
+		newSubtypes[subtypeName] = Constant{
+			FullName: subtype.FullName,
+			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
+		}
+	}
+	newClass.subtypes = newSubtypes
+
+	newTypeParameters := make([]*TypeParameter, len(c.typeParameters))
+	for name, typeParam := range c.typeParameters {
+		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
+	}
+	newClass.typeParameters = newTypeParameters
+
+	newClass.parent = DeepCopy(c.parent, oldEnv, newEnv).(Namespace)
+	newClass.singleton = NewSingletonClass(
+		newClass,
+		DeepCopy(newClass.singleton.parent, oldEnv, newEnv).(Namespace),
+	)
+	return newClass
+}

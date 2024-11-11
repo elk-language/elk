@@ -222,6 +222,26 @@ func GetConstantName(fullConstantPath string) string {
 	return constantPath[len(constantPath)-1]
 }
 
+func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
+	subtypePath := GetConstantPath(fullSubtypePath)
+	var namespace Namespace = env.Root
+	var currentType Type = namespace
+	for _, subtypeName := range subtypePath {
+		if namespace == nil {
+			return nil, false
+		}
+		constant, ok := namespace.SubtypeString(subtypeName)
+		if !ok {
+			return nil, false
+		}
+		currentType = constant.Type
+
+		namespace, _ = currentType.(Namespace)
+	}
+
+	return currentType, true
+}
+
 func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
 	subtypePath := GetConstantPath(fullSubtypePath)
 	var namespace Namespace = env.Root

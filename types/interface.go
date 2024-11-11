@@ -110,3 +110,67 @@ func (i *Interface) ToNonLiteral(env *GlobalEnvironment) Type {
 func (*Interface) IsLiteral() bool {
 	return false
 }
+
+func (i *Interface) Copy() *Interface {
+	return &Interface{
+		parent:         i.parent,
+		compiled:       i.compiled,
+		Checked:        i.Checked,
+		singleton:      i.singleton,
+		typeParameters: i.typeParameters,
+		NamespaceBase: NamespaceBase{
+			name:      i.name,
+			constants: i.constants,
+			methods:   i.methods,
+			subtypes:  i.subtypes,
+		},
+	}
+}
+
+func (i *Interface) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Interface {
+	if newType, ok := NameToTypeOk(i.name, newEnv); ok {
+		return newType.(*Interface)
+	}
+
+	newIface := i.Copy()
+	ifaceConstantPath := GetConstantPath(i.name)
+	parentNamespace := DeepCopyNamespacePath(ifaceConstantPath[:len(ifaceConstantPath)-1], oldEnv, newEnv)
+	parentNamespace.DefineSubtype(value.ToSymbol(ifaceConstantPath[len(ifaceConstantPath)-1]), newIface)
+
+	newMethods := make(MethodMap, len(i.methods))
+	for methodName, method := range i.methods {
+		newMethods[methodName] = method.Copy()
+	}
+	newIface.methods = newMethods
+
+	newConstants := make(ConstantMap, len(i.constants))
+	for constName, constant := range i.constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
+		}
+	}
+	newIface.constants = newConstants
+
+	newSubtypes := make(ConstantMap, len(i.subtypes))
+	for subtypeName, subtype := range i.subtypes {
+		newSubtypes[subtypeName] = Constant{
+			FullName: subtype.FullName,
+			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
+		}
+	}
+	newIface.subtypes = newSubtypes
+
+	newTypeParameters := make([]*TypeParameter, len(i.typeParameters))
+	for name, typeParam := range i.typeParameters {
+		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
+	}
+	newIface.typeParameters = newTypeParameters
+
+	newIface.parent = DeepCopy(i.parent, oldEnv, newEnv).(Namespace)
+	newIface.singleton = NewSingletonClass(
+		newIface,
+		DeepCopy(newIface.singleton.parent, oldEnv, newEnv).(Namespace),
+	)
+	return newIface
+}

@@ -50,14 +50,22 @@ type TypeParameter struct {
 	Variance   Variance
 }
 
-func (m *TypeParameter) Copy() *TypeParameter {
+func (t *TypeParameter) Copy() *TypeParameter {
 	return &TypeParameter{
-		Name:       m.Name,
-		Namespace:  m.Namespace,
-		LowerBound: m.LowerBound,
-		UpperBound: m.UpperBound,
-		Variance:   m.Variance,
+		Name:       t.Name,
+		Namespace:  t.Namespace,
+		LowerBound: t.LowerBound,
+		UpperBound: t.UpperBound,
+		Variance:   t.Variance,
 	}
+}
+
+func (t *TypeParameter) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *TypeParameter {
+	newTypeParam := t.Copy()
+	newTypeParam.Namespace = DeepCopy(t.LowerBound, oldEnv, newEnv).(Namespace)
+	newTypeParam.LowerBound = DeepCopy(t.LowerBound, oldEnv, newEnv)
+	newTypeParam.UpperBound = DeepCopy(t.LowerBound, oldEnv, newEnv)
+	return newTypeParam
 }
 
 func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound Type, variance Variance) *TypeParameter {
