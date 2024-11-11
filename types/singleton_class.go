@@ -32,38 +32,25 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	}
 }
 
-func (s *SingletonClass) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *SingletonClass {
+func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *SingletonClass {
 	if newType, ok := NameToTypeOk(s.name, newEnv); ok {
 		return newType.(*SingletonClass)
 	}
 
+	newAttachedObject := DeepCopyEnv(s.AttachedObject, oldEnv, newEnv).(Namespace)
+	if newS := newAttachedObject.Singleton(); newS != nil {
+		return newS
+	}
 	newSingleton := s.Copy()
-	newSingleton.AttachedObject = DeepCopy(newSingleton.AttachedObject, oldEnv, newEnv).(Namespace)
+	newSingleton.AttachedObject = newAttachedObject
 
-	newMethods := make(MethodMap, len(s.methods))
-	for methodName, method := range s.methods {
-		newMethods[methodName] = method.Copy()
+	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
+	newSingleton.subtypes = ConstantsDeepCopyEnv(s.subtypes, oldEnv, newEnv)
+	newSingleton.constants = ConstantsDeepCopyEnv(s.constants, oldEnv, newEnv)
+
+	if s.parent != nil {
+		newSingleton.parent = DeepCopyEnv(s.parent, oldEnv, newEnv).(Namespace)
 	}
-	newSingleton.methods = newMethods
-
-	newConstants := make(ConstantMap, len(s.constants))
-	for constName, constant := range s.constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
-		}
-	}
-	newSingleton.constants = newConstants
-
-	newSubtypes := make(ConstantMap, len(s.subtypes))
-	for subtypeName, subtype := range s.subtypes {
-		newSubtypes[subtypeName] = Constant{
-			FullName: subtype.FullName,
-			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
-		}
-	}
-	newSingleton.subtypes = newSubtypes
-
-	newSingleton.parent = DeepCopy(s.parent, oldEnv, newEnv).(Namespace)
+	newAttachedObject.SetSingleton(newSingleton)
 	return newSingleton
 }

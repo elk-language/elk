@@ -36,6 +36,10 @@ func (m *Mixin) Singleton() *SingletonClass {
 	return m.singleton
 }
 
+func (m *Mixin) SetSingleton(singleton *SingletonClass) {
+	m.singleton = singleton
+}
+
 func (m *Mixin) SetAbstract(abstract bool) *Mixin {
 	m.abstract = abstract
 	return m
@@ -142,7 +146,7 @@ func (m *Mixin) Copy() *Mixin {
 	}
 }
 
-func (m *Mixin) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Mixin {
+func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
 		return newType.(*Mixin)
 	}
@@ -152,40 +156,17 @@ func (m *Mixin) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
 
-	newMethods := make(MethodMap, len(m.methods))
-	for methodName, method := range m.methods {
-		newMethods[methodName] = method.Copy()
-	}
-	newMixin.methods = newMethods
+	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
+	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
+	newMixin.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
+	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
 
-	newConstants := make(ConstantMap, len(m.constants))
-	for constName, constant := range m.constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
-		}
+	if m.parent != nil {
+		newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
 	}
-	newMixin.constants = newConstants
-
-	newSubtypes := make(ConstantMap, len(m.subtypes))
-	for subtypeName, subtype := range m.subtypes {
-		newSubtypes[subtypeName] = Constant{
-			FullName: subtype.FullName,
-			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
-		}
-	}
-	newMixin.subtypes = newSubtypes
-
-	newTypeParameters := make([]*TypeParameter, len(m.typeParameters))
-	for name, typeParam := range m.typeParameters {
-		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
-	}
-	newMixin.typeParameters = newTypeParameters
-
-	newMixin.parent = DeepCopy(m.parent, oldEnv, newEnv).(Namespace)
 	newMixin.singleton = NewSingletonClass(
 		newMixin,
-		DeepCopy(newMixin.singleton.parent, oldEnv, newEnv).(Namespace),
+		DeepCopyEnv(newMixin.singleton.parent, oldEnv, newEnv).(Namespace),
 	)
 	return newMixin
 }

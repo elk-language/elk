@@ -27,6 +27,10 @@ func (*Module) Singleton() *SingletonClass {
 	return nil
 }
 
+func (m *Module) SetSingleton(*SingletonClass) {
+	panic("cannot set singleton class of a module")
+}
+
 func (m *Module) Parent() Namespace {
 	return m.parent
 }
@@ -114,7 +118,7 @@ func (m *Module) Copy() *Module {
 	}
 }
 
-func (m *Module) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Module {
+func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
 		return newType.(*Module)
 	}
@@ -122,32 +126,25 @@ func (m *Module) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Module {
 	newModule := m.Copy()
 	moduleConstantPath := GetConstantPath(m.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
-	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
-
-	newMethods := make(MethodMap, len(m.methods))
-	for methodName, method := range m.methods {
-		newMethods[methodName] = method.Copy()
+	if parentNamespace != nil {
+		parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
 	}
-	newModule.methods = newMethods
 
-	newConstants := make(ConstantMap, len(m.constants))
-	for constName, constant := range m.constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
-		}
+	newModule.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
+	newModule.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
+	newModule.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
+
+	if m.parent != nil {
+		newModule.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
 	}
-	newModule.constants = newConstants
-
-	newSubtypes := make(ConstantMap, len(m.subtypes))
-	for subtypeName, subtype := range m.subtypes {
-		newSubtypes[subtypeName] = Constant{
-			FullName: subtype.FullName,
-			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
-		}
-	}
-	newModule.subtypes = newSubtypes
-
-	newModule.parent = DeepCopy(m.parent, oldEnv, newEnv).(Namespace)
 	return newModule
+}
+
+func (m *Module) deepCopyInPlace(oldModule *Module, oldEnv, newEnv *GlobalEnvironment) {
+	m.methods = MethodsDeepCopyEnv(oldModule.methods, oldEnv, newEnv)
+	m.subtypes = ConstantsDeepCopyEnv(oldModule.subtypes, oldEnv, newEnv)
+	m.constants = ConstantsDeepCopyEnv(oldModule.constants, oldEnv, newEnv)
+	if m.parent != nil {
+		m.parent = DeepCopyEnv(oldModule.parent, oldEnv, newEnv).(Namespace)
+	}
 }

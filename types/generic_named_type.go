@@ -2,6 +2,8 @@ package types
 
 import (
 	"strings"
+
+	"github.com/elk-language/elk/value"
 )
 
 type GenericNamedType struct {
@@ -60,4 +62,30 @@ func (g *GenericNamedType) inspect() string {
 	}
 	buffer.WriteRune(']')
 	return buffer.String()
+}
+
+func (g *GenericNamedType) Copy() *GenericNamedType {
+	return &GenericNamedType{
+		Name:           g.Name,
+		Type:           g.Type,
+		TypeParameters: g.TypeParameters,
+	}
+}
+
+func (g *GenericNamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *GenericNamedType {
+	if newType, ok := NameToTypeOk(g.Name, newEnv); ok {
+		return newType.(*GenericNamedType)
+	}
+
+	newType := g.Copy()
+
+	classConstantPath := GetConstantPath(g.Name)
+	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
+	classConstantName := classConstantPath[len(classConstantPath)-1]
+	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newType)
+
+	newType.Type = DeepCopyEnv(g.Type, oldEnv, newEnv)
+	newType.TypeParameters = TypeParametersDeepCopyEnv(g.TypeParameters, oldEnv, newEnv)
+
+	return newType
 }

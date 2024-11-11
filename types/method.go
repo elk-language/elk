@@ -49,9 +49,9 @@ func (p *Parameter) Copy() *Parameter {
 	}
 }
 
-func (p *Parameter) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Parameter {
+func (p *Parameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Parameter {
 	newParam := p.Copy()
-	newParam.Type = DeepCopy(newParam.Type, oldEnv, newEnv)
+	newParam.Type = DeepCopyEnv(newParam.Type, oldEnv, newEnv)
 	return newParam
 }
 
@@ -207,8 +207,8 @@ func (m *Method) Copy() *Method {
 	}
 }
 
-func (m *Method) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Method {
-	newDefinedUnder := DeepCopy(m.DefinedUnder, oldEnv, newEnv).(Namespace)
+func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
+	newDefinedUnder := DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
 	if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
 		return newMethod
 	}
@@ -216,22 +216,22 @@ func (m *Method) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Method {
 	newMethod := m.Copy()
 	newMethod.DefinedUnder = newDefinedUnder
 	newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
-	newMethod.ThrowType = DeepCopy(m.ThrowType, oldEnv, newEnv)
-	newMethod.ReturnType = DeepCopy(m.ReturnType, oldEnv, newEnv)
+	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
+	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
 
 	newParameters := make([]*Parameter, len(m.Params))
 	for i, param := range m.Params {
-		newParameters[i] = param.DeepCopy(oldEnv, newEnv)
+		newParameters[i] = param.DeepCopyEnv(oldEnv, newEnv)
 	}
 	newMethod.Params = newParameters
 
 	newCalledMethods := make([]*Method, len(m.CalledMethods))
 	for i, calledMethod := range m.CalledMethods {
-		newCalledMethods[i] = calledMethod.DeepCopy(oldEnv, newEnv)
+		newCalledMethods[i] = calledMethod.DeepCopyEnv(oldEnv, newEnv)
 	}
 	newMethod.Params = newParameters
 
-	newMethod.DefinedUnder = DeepCopy(newMethod.DefinedUnder, oldEnv, newEnv).(Namespace)
+	newMethod.DefinedUnder = DeepCopyEnv(newMethod.DefinedUnder, oldEnv, newEnv).(Namespace)
 
 	return newMethod
 }

@@ -60,11 +60,13 @@ func (t *TypeParameter) Copy() *TypeParameter {
 	}
 }
 
-func (t *TypeParameter) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *TypeParameter {
+func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeParameter {
 	newTypeParam := t.Copy()
-	newTypeParam.Namespace = DeepCopy(t.LowerBound, oldEnv, newEnv).(Namespace)
-	newTypeParam.LowerBound = DeepCopy(t.LowerBound, oldEnv, newEnv)
-	newTypeParam.UpperBound = DeepCopy(t.LowerBound, oldEnv, newEnv)
+	if t.Namespace != nil {
+		newTypeParam.Namespace = DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace)
+	}
+	newTypeParam.LowerBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
+	newTypeParam.UpperBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
 	return newTypeParam
 }
 

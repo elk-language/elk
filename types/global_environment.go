@@ -150,10 +150,16 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 	return env
 }
 
-func (g *GlobalEnvironment) DeepCopy() *GlobalEnvironment {
+func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
+	counter = 0
+	newRoot := &Module{
+		NamespaceBase: MakeNamespaceBase("", "Root"),
+		compiled:      true,
+	}
 	newEnv := &GlobalEnvironment{
 		Init: g.Init,
+		Root: newRoot,
 	}
-	newEnv.Root = g.Root.DeepCopy(g, newEnv)
+	newRoot.deepCopyInPlace(g.Root, g, newEnv)
 	return newEnv
 }

@@ -35,6 +35,10 @@ func (i *Interface) Singleton() *SingletonClass {
 	return i.singleton
 }
 
+func (i *Interface) SetSingleton(singleton *SingletonClass) {
+	i.singleton = singleton
+}
+
 func (i *Interface) IsDefined() bool {
 	return i.compiled
 }
@@ -127,7 +131,7 @@ func (i *Interface) Copy() *Interface {
 	}
 }
 
-func (i *Interface) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Interface {
+func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
 	if newType, ok := NameToTypeOk(i.name, newEnv); ok {
 		return newType.(*Interface)
 	}
@@ -137,40 +141,17 @@ func (i *Interface) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Interface {
 	parentNamespace := DeepCopyNamespacePath(ifaceConstantPath[:len(ifaceConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(ifaceConstantPath[len(ifaceConstantPath)-1]), newIface)
 
-	newMethods := make(MethodMap, len(i.methods))
-	for methodName, method := range i.methods {
-		newMethods[methodName] = method.Copy()
-	}
-	newIface.methods = newMethods
+	newIface.methods = MethodsDeepCopyEnv(i.methods, oldEnv, newEnv)
+	newIface.subtypes = ConstantsDeepCopyEnv(i.subtypes, oldEnv, newEnv)
+	newIface.constants = ConstantsDeepCopyEnv(i.constants, oldEnv, newEnv)
+	newIface.typeParameters = TypeParametersDeepCopyEnv(i.typeParameters, oldEnv, newEnv)
 
-	newConstants := make(ConstantMap, len(i.constants))
-	for constName, constant := range i.constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
-		}
+	if i.parent != nil {
+		newIface.parent = DeepCopyEnv(i.parent, oldEnv, newEnv).(Namespace)
 	}
-	newIface.constants = newConstants
-
-	newSubtypes := make(ConstantMap, len(i.subtypes))
-	for subtypeName, subtype := range i.subtypes {
-		newSubtypes[subtypeName] = Constant{
-			FullName: subtype.FullName,
-			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
-		}
-	}
-	newIface.subtypes = newSubtypes
-
-	newTypeParameters := make([]*TypeParameter, len(i.typeParameters))
-	for name, typeParam := range i.typeParameters {
-		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
-	}
-	newIface.typeParameters = newTypeParameters
-
-	newIface.parent = DeepCopy(i.parent, oldEnv, newEnv).(Namespace)
 	newIface.singleton = NewSingletonClass(
 		newIface,
-		DeepCopy(newIface.singleton.parent, oldEnv, newEnv).(Namespace),
+		DeepCopyEnv(newIface.singleton.parent, oldEnv, newEnv).(Namespace),
 	)
 	return newIface
 }

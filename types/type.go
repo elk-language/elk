@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value/symbol"
@@ -14,43 +15,114 @@ type Type interface {
 }
 
 func DeepCopyNamespacePath(constantPath []string, oldEnv, newEnv *GlobalEnvironment) Namespace {
-	var newNamespace Namespace = newEnv.Root
-	var oldNamespace Namespace = oldEnv.Root
-	var newCurrentType Type = newNamespace
-	var oldCurrentType Type = oldNamespace
+	var newNamespace Namespace = ToNamespaceInterface(newEnv.Root)
+	var oldNamespace Namespace = ToNamespaceInterface(oldEnv.Root)
+	var newCurrentType Type = ToTypeInterface(newEnv.Root)
+	var oldCurrentType Type = ToTypeInterface(oldEnv.Root)
 
 	for _, subtypeName := range constantPath {
 		oldSubtype, _ := oldNamespace.SubtypeString(subtypeName)
 		oldCurrentType = oldSubtype.Type
-		oldNamespace = oldCurrentType.(Namespace)
+		oldNamespace = ToNamespaceInterface(oldCurrentType.(Namespace))
 
 		newSubtype, ok := newNamespace.SubtypeString(subtypeName)
 		if !ok {
-			newCurrentType = DeepCopy(oldNamespace, oldEnv, newEnv)
+			newCurrentType = DeepCopyEnv(oldNamespace, oldEnv, newEnv)
 		} else {
 			newCurrentType = newSubtype.Type
 		}
-		newNamespace = newCurrentType.(Namespace)
+		newNamespace = ToNamespaceInterface(newCurrentType.(Namespace))
 	}
 
 	return newNamespace
 }
 
-func DeepCopy(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
+func IsPointerNil(val any) bool {
+	if val == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(val)
+	kind := value.Kind()
+	return kind == reflect.Pointer && value.IsNil()
+}
+
+func ToTypeInterface[T Type](typ T) Type {
+	if IsPointerNil(typ) {
+		return nil
+	}
+
+	return typ
+}
+
+func ToNamespaceInterface[T Namespace](typ T) Namespace {
+	if IsPointerNil(typ) {
+		return nil
+	}
+
+	return typ
+}
+
+var counter uint64
+
+func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
+	counter++
+	if counter > 1000 {
+		panic("dupa")
+	}
+	fmt.Printf("deep copy: %s\n", I(t))
+	defer fmt.Printf("returned\n")
 	switch t := t.(type) {
 	case *Module:
-		return t.DeepCopy(oldEnv, newEnv)
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *Class:
-		return t.DeepCopy(oldEnv, newEnv)
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *Mixin:
-		return t.DeepCopy(oldEnv, newEnv)
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *Method:
-		return t.DeepCopy(oldEnv, newEnv)
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *Interface:
-		return t.DeepCopy(oldEnv, newEnv)
-		// TODO: MixinProxy, InterfaceProxy etc
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *SingletonClass:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *MixinProxy:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *InterfaceProxy:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *MixinWithWhere:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Nilable:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *InstanceOf:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *SingletonOf:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Generic:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Not:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *NamedType:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *GenericNamedType:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Union:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Intersection:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *ConstantPlaceholder:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *ModulePlaceholder:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *NamespacePlaceholder:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *UsingBufferNamespace:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *TypeParamNamespace:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *Closure:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	default:
-		return t
+		return ToTypeInterface(t)
 	}
 }
 

@@ -41,3 +41,15 @@ func (s *InstanceOf) inspect() string {
 	}
 	return buf.String()
 }
+
+func (i *InstanceOf) Copy() *InstanceOf {
+	return &InstanceOf{
+		Type: i.Type,
+	}
+}
+
+func (i *InstanceOf) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *InstanceOf {
+	newInstanceOf := i.Copy()
+	newInstanceOf.Type = DeepCopyEnv(i.Type, oldEnv, newEnv)
+	return newInstanceOf
+}

@@ -46,3 +46,20 @@ func (u *Intersection) inspect() string {
 	}
 	return buf.String()
 }
+
+func (i *Intersection) Copy() *Intersection {
+	return &Intersection{
+		Elements: i.Elements,
+	}
+}
+
+func (i *Intersection) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Intersection {
+	newUnion := i.Copy()
+	newElements := make([]Type, len(i.Elements))
+	for i, element := range i.Elements {
+		newElements[i] = DeepCopyEnv(element, oldEnv, newEnv)
+	}
+	newUnion.Elements = newElements
+
+	return newUnion
+}

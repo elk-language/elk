@@ -81,6 +81,10 @@ func (c *Class) Singleton() *SingletonClass {
 	return c.singleton
 }
 
+func (c *Class) SetSingleton(singleton *SingletonClass) {
+	c.singleton = singleton
+}
+
 func (c *Class) Superclass() Namespace {
 	var currentParent Namespace = c.parent
 	for {
@@ -199,50 +203,30 @@ func (c *Class) Copy() *Class {
 	}
 }
 
-func (c *Class) DeepCopy(oldEnv, newEnv *GlobalEnvironment) *Class {
+func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	if newType, ok := NameToTypeOk(c.name, newEnv); ok {
 		return newType.(*Class)
 	}
 
 	newClass := c.Copy()
+	newClass.singleton = nil
+
 	classConstantPath := GetConstantPath(c.name)
 	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
-	parentNamespace.DefineSubtype(value.ToSymbol(classConstantPath[len(classConstantPath)-1]), newClass)
+	classConstantName := classConstantPath[len(classConstantPath)-1]
+	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newClass)
 
-	newMethods := make(MethodMap, len(c.methods))
-	for methodName, method := range c.methods {
-		newMethods[methodName] = method.Copy()
+	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
+	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
+	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
+	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
+
+	if c.parent != nil {
+		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
 	}
-	newClass.methods = newMethods
-
-	newConstants := make(ConstantMap, len(c.constants))
-	for constName, constant := range c.constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopy(constant.Type, oldEnv, newEnv),
-		}
-	}
-	newClass.constants = newConstants
-
-	newSubtypes := make(ConstantMap, len(c.subtypes))
-	for subtypeName, subtype := range c.subtypes {
-		newSubtypes[subtypeName] = Constant{
-			FullName: subtype.FullName,
-			Type:     DeepCopy(subtype.Type, oldEnv, newEnv),
-		}
-	}
-	newClass.subtypes = newSubtypes
-
-	newTypeParameters := make([]*TypeParameter, len(c.typeParameters))
-	for name, typeParam := range c.typeParameters {
-		newTypeParameters[name] = typeParam.DeepCopy(oldEnv, newEnv)
-	}
-	newClass.typeParameters = newTypeParameters
-
-	newClass.parent = DeepCopy(c.parent, oldEnv, newEnv).(Namespace)
 	newClass.singleton = NewSingletonClass(
 		newClass,
-		DeepCopy(newClass.singleton.parent, oldEnv, newEnv).(Namespace),
+		DeepCopyEnv(newClass.singleton.parent, oldEnv, newEnv).(Namespace),
 	)
 	return newClass
 }

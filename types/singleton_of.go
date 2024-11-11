@@ -41,3 +41,14 @@ func (s *SingletonOf) inspect() string {
 	}
 	return buf.String()
 }
+
+func (s *SingletonOf) Copy() *SingletonOf {
+	return NewSingletonOf(s.Type)
+}
+
+func (s *SingletonOf) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *SingletonOf {
+	newSingleton := s.Copy()
+	newSingleton.Type = DeepCopyEnv(newSingleton.Type, oldEnv, newEnv)
+
+	return newSingleton
+}

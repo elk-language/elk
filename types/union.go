@@ -46,3 +46,20 @@ func (u *Union) inspect() string {
 	}
 	return buf.String()
 }
+
+func (u *Union) Copy() *Union {
+	return &Union{
+		Elements: u.Elements,
+	}
+}
+
+func (u *Union) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Union {
+	newUnion := u.Copy()
+	newElements := make([]Type, len(u.Elements))
+	for i, element := range u.Elements {
+		newElements[i] = DeepCopyEnv(element, oldEnv, newEnv)
+	}
+	newUnion.Elements = newElements
+
+	return newUnion
+}

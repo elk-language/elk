@@ -71,3 +71,15 @@ func (n *Nilable) inspect() string {
 	buf.WriteRune('?')
 	return buf.String()
 }
+
+func (n *Nilable) Copy() *Nilable {
+	return &Nilable{
+		Type: n.Type,
+	}
+}
+
+func (n *Nilable) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Nilable {
+	newNilable := n.Copy()
+	newNilable.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
+	return newNilable
+}

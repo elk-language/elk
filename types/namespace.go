@@ -20,6 +20,7 @@ type Namespace interface {
 	Parent() Namespace
 	SetParent(Namespace)
 	Singleton() *SingletonClass
+	SetSingleton(*SingletonClass)
 	IsAbstract() bool
 	IsSealed() bool
 	IsPrimitive() bool
@@ -58,6 +59,33 @@ type Namespace interface {
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
+}
+
+func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {
+	newTypeParameters := make([]*TypeParameter, len(typeParameters))
+	for name, typeParam := range typeParameters {
+		newTypeParameters[name] = typeParam.DeepCopyEnv(oldEnv, newEnv)
+	}
+	return newTypeParameters
+}
+
+func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironment) ConstantMap {
+	newConstants := make(ConstantMap, len(constants))
+	for constName, constant := range constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopyEnv(constant.Type, oldEnv, newEnv),
+		}
+	}
+	return newConstants
+}
+
+func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) MethodMap {
+	newMethods := make(MethodMap, len(methods))
+	for methodName, method := range methods {
+		newMethods[methodName] = method.DeepCopyEnv(oldEnv, newEnv)
+	}
+	return newMethods
 }
 
 func NamespaceHasAnyCompilableMethods(namespace Namespace) bool {
@@ -223,6 +251,10 @@ func GetConstantName(fullConstantPath string) string {
 }
 
 func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
+	if env.Root == nil {
+		return nil, false
+	}
+
 	subtypePath := GetConstantPath(fullSubtypePath)
 	var namespace Namespace = env.Root
 	var currentType Type = namespace

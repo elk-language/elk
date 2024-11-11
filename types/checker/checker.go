@@ -158,15 +158,29 @@ func New() *Checker {
 	return newChecker("", nil, false)
 }
 
+// Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
+	prevEnv := c.GlobalEnv
+	// copy the global environment (classes, modules, mixins, methods, constants etc)
+	// to restore it in case of errors
+	envCopy := c.GlobalEnv.DeepCopyEnv()
+	c.GlobalEnv = envCopy
+
 	c.Filename = sourceName
 	c.methodChecks = nil
 	bytecodeFunc := c.checkProgram(ast)
+
+	if c.Errors.IsFailure() {
+		// restore the previous global environment if the code
+		// did not compile
+		c.GlobalEnv = prevEnv
+	}
+
 	return bytecodeFunc, c.Errors.ErrorList
 }
 
