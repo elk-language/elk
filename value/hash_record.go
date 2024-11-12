@@ -123,16 +123,10 @@ func (h *HashRecordIterator) Next() (Value, Value) {
 }
 
 func initHashRecord() {
-	HashRecordClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	HashRecordClass = NewClass()
 	HashRecordClass.IncludeMixin(RecordMixin)
 	StdModule.AddConstantString("HashRecord", HashRecordClass)
 
-	HashRecordIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	HashRecordIteratorClass = NewClass()
 	HashRecordClass.AddConstantString("Iterator", HashRecordIteratorClass)
 }

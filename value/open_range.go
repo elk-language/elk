@@ -102,16 +102,10 @@ func (*OpenRangeIterator) InstanceVariables() SymbolMap {
 }
 
 func initOpenRange() {
-	OpenRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	OpenRangeClass = NewClass()
 	OpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("OpenRange", OpenRangeClass)
 
-	OpenRangeIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	OpenRangeIteratorClass = NewClass()
 	OpenRangeClass.AddConstantString("Iterator", OpenRangeIteratorClass)
 }

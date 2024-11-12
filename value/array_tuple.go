@@ -254,16 +254,10 @@ func (t *ArrayTupleIterator) Next() (Value, Value) {
 }
 
 func initArrayTuple() {
-	ArrayTupleClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	ArrayTupleClass = NewClass()
 	ArrayTupleClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("ArrayTuple", ArrayTupleClass)
 
-	ArrayTupleIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	ArrayTupleIteratorClass = NewClass()
 	ArrayTupleClass.AddConstantString("Iterator", ArrayTupleIteratorClass)
 }

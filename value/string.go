@@ -573,21 +573,12 @@ func (s *StringByteIterator) Next() (Value, Value) {
 }
 
 func initString() {
-	StringClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	StringClass = NewClass()
 	StdModule.AddConstantString("String", StringClass)
 
-	StringCharIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	StringCharIteratorClass = NewClass()
 	StringClass.AddConstantString("CharIterator", StringCharIteratorClass)
 
-	StringByteIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	StringByteIteratorClass = NewClass()
 	StringClass.AddConstantString("ByteIterator", StringByteIteratorClass)
 }

@@ -121,7 +121,7 @@ func (e *evaluator) typecheck(input string) {
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
-	_, err := e.typechecker.CheckSource("<repl>", input)
+	fn, err := e.typechecker.CheckSource("<repl>", input)
 
 	if err != nil {
 		fmt.Println()
@@ -134,6 +134,7 @@ func (e *evaluator) typecheck(input string) {
 	}
 
 	fmt.Println("OK")
+	fn.Disassemble(os.Stdout)
 }
 
 // lexes the input and prints it to the output

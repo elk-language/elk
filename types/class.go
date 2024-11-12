@@ -10,6 +10,8 @@ type Class struct {
 	abstract       bool
 	sealed         bool
 	primitive      bool
+	defined        bool
+	compiled       bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -55,12 +57,32 @@ func (c *Class) IsPrimitive() bool {
 	return c.primitive
 }
 
+func (c *Class) IsDefined() bool {
+	return c.defined
+}
+
+func (c *Class) SetDefined(val bool) {
+	c.defined = val
+}
+
+func (c *Class) IsCompiled() bool {
+	return c.compiled
+}
+
+func (c *Class) SetCompiled(val bool) {
+	c.compiled = val
+}
+
 func (c *Class) Parent() Namespace {
 	return c.parent
 }
 
 func (c *Class) Singleton() *SingletonClass {
 	return c.singleton
+}
+
+func (c *Class) SetSingleton(singleton *SingletonClass) {
+	c.singleton = singleton
 }
 
 func (c *Class) Superclass() Namespace {
@@ -103,6 +125,7 @@ func NewClass(
 		primitive:     primitive,
 		sealed:        sealed,
 		abstract:      abstract,
+		defined:       env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
@@ -127,6 +150,7 @@ func NewClassWithDetails(
 		primitive: primitive,
 		abstract:  abstract,
 		sealed:    sealed,
+		defined:   env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -157,4 +181,63 @@ func (c *Class) ToNonLiteral(env *GlobalEnvironment) Type {
 
 func (*Class) IsLiteral() bool {
 	return false
+}
+
+func (c *Class) Copy() *Class {
+	return &Class{
+		parent:         c.parent,
+		primitive:      c.primitive,
+		sealed:         c.sealed,
+		abstract:       c.abstract,
+		defined:        c.defined,
+		compiled:       c.compiled,
+		singleton:      c.singleton,
+		typeParameters: c.typeParameters,
+		NamespaceBase: NamespaceBase{
+			docComment: c.docComment,
+			name:       c.name,
+			constants:  c.constants,
+			subtypes:   c.subtypes,
+			methods:    c.methods,
+		},
+	}
+}
+
+func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
+	if newType, ok := NameToTypeOk(c.name, newEnv); ok {
+		return newType.(*Class)
+	}
+
+	newClass := &Class{
+		primitive:     c.primitive,
+		sealed:        c.sealed,
+		abstract:      c.abstract,
+		defined:       c.defined,
+		compiled:      c.compiled,
+		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
+	}
+
+	classConstantPath := GetConstantPath(c.name)
+	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
+	classConstantName := classConstantPath[len(classConstantPath)-1]
+	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newClass)
+
+	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
+	newClass.instanceVariables = TypesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
+	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
+	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
+	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
+
+	if c.parent != nil {
+		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
+	}
+	var singletonParent Namespace
+	if c.singleton.parent != nil {
+		singletonParent = DeepCopyEnv(c.singleton.parent, oldEnv, newEnv).(Namespace)
+	}
+	newClass.singleton = NewSingletonClass(
+		newClass,
+		singletonParent,
+	)
+	return newClass
 }

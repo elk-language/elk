@@ -32,8 +32,7 @@ func init() {
 			}
 			return value.ToElkBool(equal), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	// Special version of `contains` used in pattern matching.
 	// Given value has to be an instance of the same class as `start`,
@@ -53,8 +52,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -68,8 +66,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -77,7 +74,6 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			return value.False, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -85,7 +81,6 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			return value.True, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -93,7 +88,6 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			return value.False, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -101,7 +95,6 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			return value.True, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -110,7 +103,6 @@ func init() {
 			self := args[0].(*value.EndlessOpenRange)
 			return self.Start, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -118,7 +110,6 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			return value.Nil, nil
 		},
-		DefWithSealed(),
 	)
 }
 

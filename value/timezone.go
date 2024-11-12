@@ -80,9 +80,6 @@ func LoadTimezone(name string) (*Timezone, *Error) {
 }
 
 func initTimezone() {
-	TimezoneClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	TimezoneClass = NewClass()
 	StdModule.AddConstantString("Timezone", TimezoneClass)
 }

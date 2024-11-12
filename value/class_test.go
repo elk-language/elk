@@ -19,14 +19,6 @@ func TestClass_Inspect(t *testing.T) {
 			class: value.NewClassWithOptions(value.ClassWithName("Foo")),
 			want:  "class Foo < Std::Object",
 		},
-		"abstract": {
-			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithAbstract()),
-			want:  "abstract class Foo < Std::Object",
-		},
-		"sealed": {
-			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithSealed()),
-			want:  "sealed class Foo < Std::Object",
-		},
 		"singleton": {
 			class: value.NewSingletonClass(value.ClassClass, "Foo"),
 			want:  "class &Foo < Std::Class",
@@ -305,7 +297,6 @@ func TestClass_DefineAliasString(t *testing.T) {
 		class      *value.Class
 		newName    string
 		oldName    string
-		err        *value.Error
 		classAfter *value.Class
 	}{
 		"alias method from parent": {
@@ -322,7 +313,6 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
@@ -358,7 +348,6 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
@@ -390,7 +379,6 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
@@ -400,89 +388,19 @@ func TestClass_DefineAliasString(t *testing.T) {
 						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
-			),
-		},
-		"alias override sealed method from class": {
-			class: value.NewClassWithOptions(
-				value.ClassWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo_alias"),
-						vm.BytecodeFunctionWithSealed(),
-					),
-				}),
-			),
-			newName: "foo_alias",
-			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
-			classAfter: value.NewClassWithOptions(
-				value.ClassWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo_alias"),
-						vm.BytecodeFunctionWithSealed(),
-					),
-				}),
-			),
-		},
-		"alias override sealed method from parent": {
-			class: value.NewClassWithOptions(
-				value.ClassWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-				}),
-				value.ClassWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-								vm.BytecodeFunctionWithStringName("foo_alias"),
-								vm.BytecodeFunctionWithSealed(),
-							),
-						}),
-					),
-				),
-			),
-			newName: "foo_alias",
-			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
-			classAfter: value.NewClassWithOptions(
-				value.ClassWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-				}),
-				value.ClassWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-								vm.BytecodeFunctionWithStringName("foo_alias"),
-								vm.BytecodeFunctionWithSealed(),
-							),
-						}),
-					),
-				),
 			),
 		},
 		"alias nil method": {
 			class:      value.NewClass(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			err:        value.NewError(value.NoMethodErrorClass, "cannot create an alias for a nonexistent method: foo"),
 			classAfter: value.NewClass(),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := tc.class.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()...); diff != "" {
-				t.Fatal(diff)
-			}
+			tc.class.DefineAliasString(tc.newName, tc.oldName)
 			if diff := cmp.Diff(tc.classAfter, tc.class, comparer.Options()...); diff != "" {
 				t.Fatal(diff)
 			}

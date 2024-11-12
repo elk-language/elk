@@ -108,9 +108,6 @@ func (s SymbolMap) SetString(key string, val Value) {
 }
 
 func initSymbolMap() {
-	SymbolMapClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	SymbolMapClass = NewClass()
 	StdModule.AddConstantString("SymbolMap", SymbolMapClass)
 }

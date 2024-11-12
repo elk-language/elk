@@ -776,7 +776,7 @@ func TestHashMapContains(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -811,7 +811,7 @@ func TestHashMapContains(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -1187,7 +1187,7 @@ func TestHashMapContainsKey(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -1564,7 +1564,7 @@ func TestHashMapGet(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -1720,7 +1720,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 					}
 					return value.False, nil
 				},
-				vm.DefWithParameters("other"),
+				vm.DefWithParameters(1),
 			)
 
 			v := vm.New()
@@ -2151,7 +2151,7 @@ func TestHashMapSet(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -2206,7 +2206,7 @@ func TestHashMapSet(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -2695,7 +2695,7 @@ func TestHashMapDelete(t *testing.T) {
 					return value.True, nil
 				}
 				return value.False, nil
-			}, vm.DefWithParameters("other"))
+			}, vm.DefWithParameters(1))
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(

@@ -11,11 +11,8 @@ import (
 
 const (
 	CLASS_SINGLETON_FLAG   bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single value
-	CLASS_ABSTRACT_FLAG                                  // Abstract classes cannot be instantiated
-	CLASS_SEALED_FLAG                                    // Sealed classes cannot be inherited from
-	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag cannot hold instance variables
 	CLASS_MIXIN_PROXY_FLAG                               // This class serves as a proxy to an included mixin
-	CLASS_MIXIN_FLAG                                     // This class serves as a proxy to an included mixin
+	CLASS_MIXIN_FLAG                                     // This class is a mixin
 )
 
 // Function that creates a new instance.
@@ -64,27 +61,9 @@ func ClassWithMethods(methods MethodMap) ClassOption {
 	}
 }
 
-func ClassWithAbstract() ClassOption {
-	return func(c *Class) {
-		c.SetAbstract()
-	}
-}
-
 func ClassWithSingleton() ClassOption {
 	return func(c *Class) {
 		c.SetSingleton()
-	}
-}
-
-func ClassWithSealed() ClassOption {
-	return func(c *Class) {
-		c.SetSealed()
-	}
-}
-
-func ClassWithNoInstanceVariables() ClassOption {
-	return func(c *Class) {
-		c.SetNoInstanceVariables()
 	}
 }
 
@@ -209,22 +188,6 @@ func (c *Class) SetSingleton() {
 	c.Flags.SetFlag(CLASS_SINGLETON_FLAG)
 }
 
-func (c *Class) IsAbstract() bool {
-	return c.Flags.HasFlag(CLASS_ABSTRACT_FLAG)
-}
-
-func (c *Class) SetAbstract() {
-	c.Flags.SetFlag(CLASS_ABSTRACT_FLAG)
-}
-
-func (c *Class) IsSealed() bool {
-	return c.Flags.HasFlag(CLASS_SEALED_FLAG)
-}
-
-func (c *Class) SetSealed() {
-	c.Flags.SetFlag(CLASS_SEALED_FLAG)
-}
-
 func (c *Class) IsMixinProxy() bool {
 	return c.Flags.HasFlag(CLASS_MIXIN_PROXY_FLAG)
 }
@@ -239,16 +202,6 @@ func (c *Class) IsMixin() bool {
 
 func (c *Class) SetMixin() {
 	c.Flags.SetFlag(CLASS_MIXIN_FLAG)
-}
-
-// Whether instances of this class can hold
-// instance variables.
-func (c *Class) HasNoInstanceVariables() bool {
-	return c.Flags.HasFlag(CLASS_NO_IVARS_FLAG)
-}
-
-func (c *Class) SetNoInstanceVariables() {
-	c.Flags.SetFlag(CLASS_NO_IVARS_FLAG)
 }
 
 func (c *Class) Class() *Class {
@@ -358,12 +311,6 @@ func (c *Class) InspectParents() string {
 
 func (c *Class) Inspect() string {
 	var result strings.Builder
-	if c.IsAbstract() {
-		result.WriteString("abstract ")
-	}
-	if c.IsSealed() {
-		result.WriteString("sealed ")
-	}
 	if c.IsMixin() {
 		result.WriteString("mixin ")
 	} else {

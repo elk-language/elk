@@ -17,7 +17,7 @@ func init() {
 			self.Value = args[2]
 			return self, nil
 		},
-		DefWithParameters("key", "value"),
+		DefWithParameters(2),
 	)
 	Def(
 		c,
@@ -50,8 +50,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -66,8 +65,7 @@ func init() {
 			}
 			return val, nil
 		},
-		DefWithParameters("key", "value"),
-		DefWithSealed(),
+		DefWithParameters(2),
 	)
 	Def(
 		c,
@@ -84,8 +82,7 @@ func init() {
 			}
 			return value.ToElkBool(equal), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 }
 

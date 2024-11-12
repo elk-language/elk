@@ -151,9 +151,6 @@ func (s Symbol) Hash() UInt64 {
 }
 
 func initSymbol() {
-	SymbolClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	SymbolClass = NewClass()
 	StdModule.AddConstantString("Symbol", SymbolClass)
 }

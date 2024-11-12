@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
@@ -48,6 +49,12 @@ func (p *Parameter) Copy() *Parameter {
 	}
 }
 
+func (p *Parameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Parameter {
+	newParam := p.Copy()
+	newParam.Type = DeepCopyEnv(newParam.Type, oldEnv, newEnv)
+	return newParam
+}
+
 func NewParameter(name value.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
 	return &Parameter{
 		Name:             name,
@@ -75,6 +82,7 @@ func (p *Parameter) NameWithKind() string {
 		panic("invalid parameter kind")
 	}
 }
+
 func (p *Parameter) inspect() string {
 	buffer := new(strings.Builder)
 	switch p.Kind {
@@ -124,21 +132,31 @@ func (p *Parameter) IsOptional() bool {
 	}
 }
 
-type Method struct {
-	DocComment               string
-	FullName                 string
-	Name                     value.Symbol
-	OptionalParamCount       int
-	PostParamCount           int
-	abstract                 bool
-	sealed                   bool
-	native                   bool
-	HasNamedRestParam        bool
-	InstanceVariablesChecked bool
+type AstNode interface {
+	position.SpanInterface
+}
+
+const (
+	METHOD_ABSTRACT_FLAG bitfield.BitFlag16 = 1 << iota
+	METHOD_SEALED_FLAG
+	METHOD_NATIVE_FLAG
+	METHOD_COMPILED_FLAG
+	METHOD_NAMED_REST_PARAM_FLAG
+	METHOD_INSTANCE_VARIABLES_CHECKED_FLAG
+	METHOD_ATTRIBUTE_FLAG
 	// used in using expression placeholders
-	IsPlaceholder bool
-	Checked       bool
-	Replaced      bool
+	METHOD_PLACEHOLDER_FLAG
+	METHOD_CHECKED_FLAG
+	METHOD_REPLACED_FLAG
+)
+
+type Method struct {
+	DocComment         string
+	FullName           string
+	Name               value.Symbol
+	OptionalParamCount int
+	PostParamCount     int
+	flags              bitfield.BitField16
 
 	Params         []*Parameter
 	TypeParameters []*TypeParameter
@@ -152,16 +170,18 @@ type Method struct {
 	UsedConstants                ds.Set[value.Symbol] // set of constants references in this method's body
 	InitialisedInstanceVariables ds.Set[value.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
 	CalledMethods                []*Method            // list of methods called in this method's body
+	Node                         AstNode
 }
 
 func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
-	return &Method{
-		FullName:      fullName,
-		Name:          name,
-		DefinedUnder:  definedUnder,
-		location:      location,
-		IsPlaceholder: true,
+	m := &Method{
+		FullName:     fullName,
+		Name:         name,
+		DefinedUnder: definedUnder,
+		location:     location,
 	}
+	m.SetPlaceholder(true)
+	return m
 }
 
 func (m *Method) Copy() *Method {
@@ -172,12 +192,8 @@ func (m *Method) Copy() *Method {
 		Params:                       m.Params,
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
-		abstract:                     m.abstract,
-		sealed:                       m.sealed,
-		native:                       m.native,
+		flags:                        m.flags,
 		TypeParameters:               m.TypeParameters,
-		IsPlaceholder:                m.IsPlaceholder,
-		HasNamedRestParam:            m.HasNamedRestParam,
 		ReturnType:                   m.ReturnType,
 		ThrowType:                    m.ThrowType,
 		DefinedUnder:                 m.DefinedUnder,
@@ -187,7 +203,54 @@ func (m *Method) Copy() *Method {
 		UsedConstants:                m.UsedConstants,
 		CalledMethods:                m.CalledMethods,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
+		Node:                         m.Node,
 	}
+}
+
+func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
+	var newDefinedUnder Namespace
+
+	if m.DefinedUnder != nil && !IsClosure(m.DefinedUnder) {
+		newDefinedUnder := DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
+		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
+			return newMethod
+		}
+	}
+
+	newMethod := &Method{
+		FullName:                     m.FullName,
+		Name:                         m.Name,
+		DocComment:                   m.DocComment,
+		OptionalParamCount:           m.OptionalParamCount,
+		PostParamCount:               m.PostParamCount,
+		flags:                        m.flags,
+		Bytecode:                     m.Bytecode,
+		location:                     m.location,
+		UsedInConstants:              m.UsedInConstants,
+		UsedConstants:                m.UsedConstants,
+		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
+		Node:                         m.Node,
+	}
+	if newDefinedUnder != nil {
+		newMethod.DefinedUnder = newDefinedUnder
+		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
+	}
+	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
+	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
+
+	newParameters := make([]*Parameter, len(m.Params))
+	for i, param := range m.Params {
+		newParameters[i] = param.DeepCopyEnv(oldEnv, newEnv)
+	}
+	newMethod.Params = newParameters
+
+	newCalledMethods := make([]*Method, len(m.CalledMethods))
+	for i, calledMethod := range m.CalledMethods {
+		newCalledMethods[i] = calledMethod.DeepCopyEnv(oldEnv, newEnv)
+	}
+	newMethod.Params = newParameters
+
+	return newMethod
 }
 
 func (m *Method) Location() *position.Location {
@@ -206,31 +269,119 @@ func (m *Method) IsGeneric() bool {
 	return len(m.TypeParameters) > 0
 }
 
+func (m *Method) AreInstanceVariablesChecked() bool {
+	return m.flags.HasFlag(METHOD_INSTANCE_VARIABLES_CHECKED_FLAG)
+}
+
+func (m *Method) SetInstanceVariablesChecked(val bool) *Method {
+	m.SetFlag(METHOD_INSTANCE_VARIABLES_CHECKED_FLAG, val)
+	return m
+}
+
+func (m *Method) HasNamedRestParam() bool {
+	return m.flags.HasFlag(METHOD_NAMED_REST_PARAM_FLAG)
+}
+
+func (m *Method) SetNamedRestParam(val bool) *Method {
+	m.SetFlag(METHOD_NAMED_REST_PARAM_FLAG, val)
+	return m
+}
+
+func (m *Method) IsPlaceholder() bool {
+	return m.flags.HasFlag(METHOD_PLACEHOLDER_FLAG)
+}
+
+func (m *Method) SetPlaceholder(val bool) *Method {
+	m.SetFlag(METHOD_PLACEHOLDER_FLAG, val)
+	return m
+}
+
+func (m *Method) IsReplaced() bool {
+	return m.flags.HasFlag(METHOD_REPLACED_FLAG)
+}
+
+func (m *Method) SetReplaced(val bool) *Method {
+	m.SetFlag(METHOD_REPLACED_FLAG, val)
+	return m
+}
+
+func (m *Method) IsChecked() bool {
+	return m.flags.HasFlag(METHOD_CHECKED_FLAG)
+}
+
+func (m *Method) SetChecked(val bool) *Method {
+	m.SetFlag(METHOD_CHECKED_FLAG, val)
+	return m
+}
+
 func (m *Method) IsAbstract() bool {
-	return m.abstract
+	return m.flags.HasFlag(METHOD_ABSTRACT_FLAG)
 }
 
 func (m *Method) SetAbstract(abstract bool) *Method {
-	m.abstract = abstract
+	m.SetFlag(METHOD_ABSTRACT_FLAG, abstract)
+	return m
+}
+
+func (m *Method) IsDefinable() bool {
+	return !m.IsCompiled() && (m.Bytecode != nil || m.IsAttribute())
+}
+
+func (m *Method) IsSetter() bool {
+	nameString := m.Name.String()
+	if len(nameString) < 1 {
+		return false
+	}
+
+	return nameString[len(nameString)-1] == '='
+}
+
+func (m *Method) IsCompilable() bool {
+	return !m.IsAbstract() && !m.IsCompiled() && !m.IsAttribute()
+}
+
+func (m *Method) IsCompiled() bool {
+	return m.flags.HasFlag(METHOD_COMPILED_FLAG)
+}
+
+func (m *Method) SetCompiled(compiled bool) *Method {
+	m.SetFlag(METHOD_COMPILED_FLAG, compiled)
 	return m
 }
 
 func (m *Method) IsSealed() bool {
-	return m.sealed
+	return m.flags.HasFlag(METHOD_SEALED_FLAG)
 }
 
 func (m *Method) SetSealed(sealed bool) *Method {
-	m.sealed = sealed
+	m.SetFlag(METHOD_SEALED_FLAG, sealed)
 	return m
 }
 
 func (m *Method) IsNative() bool {
-	return m.native
+	return m.flags.HasFlag(METHOD_NATIVE_FLAG)
 }
 
 func (m *Method) SetNative(native bool) *Method {
-	m.native = native
+	m.SetFlag(METHOD_NATIVE_FLAG, native)
 	return m
+}
+
+func (m *Method) IsAttribute() bool {
+	return m.flags.HasFlag(METHOD_ATTRIBUTE_FLAG)
+}
+
+func (m *Method) SetAttribute(val bool) *Method {
+	m.SetFlag(METHOD_ATTRIBUTE_FLAG, val)
+	return m
+}
+
+func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
+	if val {
+		m.flags.SetFlag(flag)
+	} else {
+		m.flags.UnsetFlag(flag)
+	}
 }
 
 func NewMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
@@ -255,9 +406,6 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		}
 	}
 	m := &Method{
-		abstract:           abstract,
-		sealed:             sealed,
-		native:             native,
 		Name:               name,
 		TypeParameters:     typeParams,
 		DocComment:         docComment,
@@ -265,11 +413,22 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 		ReturnType:         returnType,
 		ThrowType:          throwType,
 		DefinedUnder:       definedUnder,
-		HasNamedRestParam:  hasNamedRestParam,
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
 		UsedInConstants:    make(ds.Set[value.Symbol]),
 		UsedConstants:      make(ds.Set[value.Symbol]),
+	}
+	if hasNamedRestParam {
+		m.SetNamedRestParam(true)
+	}
+	if abstract {
+		m.SetAbstract(true)
+	}
+	if sealed {
+		m.SetSealed(true)
+	}
+	if native {
+		m.SetNative(true)
 	}
 	if name == symbol.S_init {
 		m.InitialisedInstanceVariables = make(ds.Set[value.Symbol])
@@ -280,7 +439,7 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 
 func (m *Method) RequiredParamCount() int {
 	requiredParamCount := len(m.Params) - m.OptionalParamCount
-	if m.HasNamedRestParam {
+	if m.HasNamedRestParam() {
 		requiredParamCount--
 	}
 	if m.HasPositionalRestParam() {
@@ -291,7 +450,7 @@ func (m *Method) RequiredParamCount() int {
 
 func (m *Method) ExpectedParamCountString() string {
 	requiredParamCount := m.RequiredParamCount()
-	if m.HasNamedRestParam || m.HasPositionalRestParam() {
+	if m.HasNamedRestParam() || m.HasPositionalRestParam() {
 		return fmt.Sprintf("%d...", requiredParamCount)
 	}
 
@@ -303,7 +462,7 @@ func (m *Method) ExpectedParamCountString() string {
 }
 
 func (m *Method) NamedRestParam() *Parameter {
-	if m.HasNamedRestParam {
+	if m.HasNamedRestParam() {
 		return m.Params[len(m.Params)-1]
 	}
 	return nil
@@ -319,7 +478,7 @@ func (m *Method) PositionalRestParamIndex() int {
 	}
 
 	index := len(m.Params) - 1 - m.PostParamCount
-	if m.HasNamedRestParam {
+	if m.HasNamedRestParam() {
 		index--
 	}
 	return index
@@ -357,13 +516,13 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 func (m *Method) InspectSignature(showModifiers bool) string {
 	buffer := new(strings.Builder)
 	if showModifiers {
-		if m.abstract {
+		if m.IsAbstract() {
 			buffer.WriteString("abstract ")
 		}
-		if m.sealed {
+		if m.IsSealed() {
 			buffer.WriteString("sealed ")
 		}
-		if m.native {
+		if m.IsNative() {
 			buffer.WriteString("native ")
 		}
 	}

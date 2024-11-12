@@ -13,8 +13,6 @@ func TestDefineSetter(t *testing.T) {
 	tests := map[string]struct {
 		container      *value.MethodContainer
 		attrName       string
-		sealed         bool
-		err            *value.Error
 		containerAfter *value.MethodContainer
 	}{
 		"define setter in empty method map": {
@@ -26,7 +24,6 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
@@ -36,7 +33,6 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
@@ -45,11 +41,9 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
@@ -59,47 +53,23 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
 			attrName: "foo",
-			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						true,
 					),
 				},
 			},
-		},
-		"override a sealed setter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo="): vm.NewSetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo=",
-			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
-			}
-			if err != nil {
-				return
-			}
+			vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName))
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -111,8 +81,6 @@ func TestDefineAccessor(t *testing.T) {
 	tests := map[string]struct {
 		container      *value.MethodContainer
 		attrName       string
-		sealed         bool
-		err            *value.Error
 		containerAfter *value.MethodContainer
 	}{
 		"define accessor in empty method map": {
@@ -124,11 +92,9 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
@@ -138,16 +104,13 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{},
 			},
 			attrName: "foo",
-			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						true,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						true,
 					),
 				},
 			},
@@ -157,7 +120,6 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
-						false,
 					),
 				},
 			},
@@ -166,15 +128,12 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
-						false,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
@@ -184,66 +143,26 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						false,
 					),
 				},
 			},
 			attrName: "foo",
-			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
-						true,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
-						true,
 					),
 				},
 			},
-		},
-		"override a sealed setter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo="): vm.NewSetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo=",
-			),
-		},
-		"override a sealed getter": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo"): vm.NewGetterMethod(
-						value.ToSymbol("foo"),
-						true,
-					),
-				},
-			},
-			attrName: "foo",
-			err: value.NewError(
-				value.SealedMethodErrorClass,
-				"cannot override a sealed method: foo",
-			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
-			}
-			if err != nil {
-				return
-			}
+			vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName))
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}

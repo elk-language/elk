@@ -50,8 +50,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -66,8 +65,7 @@ func init() {
 			}
 			return val, nil
 		},
-		DefWithParameters("key", "value"),
-		DefWithSealed(),
+		DefWithParameters(2),
 	)
 	Def(
 		c,
@@ -77,8 +75,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -88,8 +85,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
-		DefWithParameters("n"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -102,8 +98,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -121,8 +116,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -146,8 +140,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -168,8 +161,7 @@ func init() {
 			self.Grow(n)
 			return self, nil
 		},
-		DefWithParameters("new_slots"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -180,9 +172,7 @@ func init() {
 			self.Append(*values...)
 			return self, nil
 		},
-		DefWithParameters("values"),
-		DefWithPositionalRestParameter(),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -192,8 +182,7 @@ func init() {
 			self.Append(args[1])
 			return self, nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -226,7 +215,7 @@ func init() {
 			}
 			return self, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -261,7 +250,7 @@ func init() {
 			}
 			return newList, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 }

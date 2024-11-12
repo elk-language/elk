@@ -11,7 +11,6 @@ type SetterMethod struct {
 	Doc           value.Value
 	AttributeName value.Symbol
 	name          value.Symbol
-	sealed        bool
 }
 
 func (s *SetterMethod) Name() value.Symbol {
@@ -52,14 +51,6 @@ func (*SetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (s *SetterMethod) IsSealed() bool {
-	return s.sealed
-}
-
-func (s *SetterMethod) SetSealed() {
-	s.sealed = true
-}
-
 func (s *SetterMethod) Copy() value.Value {
 	return s
 }
@@ -82,11 +73,10 @@ func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, val
 }
 
 // Create a new getter method.
-func NewSetterMethod(attrName value.Symbol, sealed bool) *SetterMethod {
+func NewSetterMethod(attrName value.Symbol) *SetterMethod {
 	return &SetterMethod{
 		AttributeName: attrName,
 		name:          value.ToSymbol(attrName.ToString() + "="),
-		sealed:        sealed,
 	}
 }
 
@@ -95,13 +85,11 @@ func NewSetterMethod(attrName value.Symbol, sealed bool) *SetterMethod {
 func DefineSetter(
 	container *value.MethodContainer,
 	attrName value.Symbol,
-	sealed bool,
-) *value.Error {
+) {
 	setterMethod := NewSetterMethod(
 		attrName,
-		sealed,
 	)
-	return container.AttachMethod(setterMethod.name, setterMethod)
+	container.AttachMethod(setterMethod.name, setterMethod)
 }
 
 // Utility method that creates a new setter and getter method and
@@ -109,21 +97,9 @@ func DefineSetter(
 func DefineAccessor(
 	container *value.MethodContainer,
 	attrName value.Symbol,
-	sealed bool,
-) *value.Error {
-	err := DefineGetter(container, attrName, sealed)
-	if err != nil {
-		return err
-	}
-	return DefineSetter(container, attrName, sealed)
-}
-
-type SetterOption func(*SetterMethod)
-
-func SetterWithSealed(sealed bool) SetterOption {
-	return func(sm *SetterMethod) {
-		sm.sealed = sealed
-	}
+) {
+	DefineGetter(container, attrName)
+	DefineSetter(container, attrName)
 }
 
 // Utility method that creates a new setter method and
@@ -132,18 +108,11 @@ func SetterWithSealed(sealed bool) SetterOption {
 func Setter(
 	container *value.MethodContainer,
 	attrName string,
-	opts ...SetterOption,
 ) {
 	attrNameSymbol := value.ToSymbol(attrName)
-	setterMethod := NewSetterMethod(attrNameSymbol, false)
+	setterMethod := NewSetterMethod(attrNameSymbol)
 
-	for _, opt := range opts {
-		opt(setterMethod)
-	}
-
-	if err := container.AttachMethod(setterMethod.name, setterMethod); err != nil {
-		panic(err)
-	}
+	container.AttachMethod(setterMethod.name, setterMethod)
 }
 
 // Utility method that creates a new setter and getter method and
@@ -152,8 +121,7 @@ func Setter(
 func Accessor(
 	container *value.MethodContainer,
 	attrName string,
-	sealed bool,
 ) {
-	Getter(container, attrName, GetterWithSealed(sealed))
-	Setter(container, attrName, SetterWithSealed(sealed))
+	Getter(container, attrName)
+	Setter(container, attrName)
 }

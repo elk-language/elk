@@ -20,10 +20,13 @@ type Namespace interface {
 	Parent() Namespace
 	SetParent(Namespace)
 	Singleton() *SingletonClass
+	SetSingleton(*SingletonClass)
 	IsAbstract() bool
 	IsSealed() bool
 	IsPrimitive() bool
 	IsGeneric() bool
+	IsDefined() bool
+	SetDefined(bool)
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)
@@ -56,6 +59,51 @@ type Namespace interface {
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
+}
+
+func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {
+	newTypeParameters := make([]*TypeParameter, len(typeParameters))
+	for name, typeParam := range typeParameters {
+		newTypeParameters[name] = typeParam.DeepCopyEnv(oldEnv, newEnv)
+	}
+	return newTypeParameters
+}
+
+func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironment) ConstantMap {
+	newConstants := make(ConstantMap, len(constants))
+	for constName, constant := range constants {
+		newConstants[constName] = Constant{
+			FullName: constant.FullName,
+			Type:     DeepCopyEnv(constant.Type, oldEnv, newEnv),
+		}
+	}
+	return newConstants
+}
+
+func TypesDeepCopyEnv(types TypeMap, oldEnv, newEnv *GlobalEnvironment) TypeMap {
+	newTypes := make(TypeMap, len(types))
+	for typeName, typ := range types {
+		newTypes[typeName] = DeepCopyEnv(typ, oldEnv, newEnv)
+	}
+	return newTypes
+}
+
+func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) MethodMap {
+	newMethods := make(MethodMap, len(methods))
+	for methodName, method := range methods {
+		newMethods[methodName] = method.DeepCopyEnv(oldEnv, newEnv)
+	}
+	return newMethods
+}
+
+func NamespaceHasAnyCompilableMethods(namespace Namespace) bool {
+	for _, method := range namespace.Methods() {
+		if method.IsDefinable() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
@@ -208,6 +256,30 @@ func GetConstantPath(fullConstantPath string) []string {
 func GetConstantName(fullConstantPath string) string {
 	constantPath := GetConstantPath(fullConstantPath)
 	return constantPath[len(constantPath)-1]
+}
+
+func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
+	if env.Root == nil {
+		return nil, false
+	}
+
+	subtypePath := GetConstantPath(fullSubtypePath)
+	var namespace Namespace = env.Root
+	var currentType Type = namespace
+	for _, subtypeName := range subtypePath {
+		if namespace == nil {
+			return nil, false
+		}
+		constant, ok := namespace.SubtypeString(subtypeName)
+		if !ok {
+			return nil, false
+		}
+		currentType = constant.Type
+
+		namespace, _ = currentType.(Namespace)
+	}
+
+	return currentType, true
 }
 
 func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
@@ -389,13 +461,15 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
 		seenMixins := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *MixinProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*MixinProxy); !ok {
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}
@@ -420,7 +494,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(mixin Namespace) bool) {
 		seenMixins := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *MixinProxy, *InterfaceProxy, *MixinWithWhere:
 			case *Generic:
@@ -429,6 +503,8 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 				default:
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}
@@ -482,13 +558,15 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(iface Namespace) bool) {
 		seenInterfaces := make(ds.Set[string])
 
-		for parent := namespace; parent != nil; parent = parent.Parent() {
+		for parent := namespace.Parent(); parent != nil; parent = parent.Parent() {
 			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
 				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
 					continue
 				}
+			case *Class:
+				return
 			default:
 				continue
 			}

@@ -63,8 +63,7 @@ func init() {
 			HashSetGrow(vm, self, n)
 			return self, nil
 		},
-		DefWithParameters("new_slots"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -82,8 +81,7 @@ func init() {
 			}
 			return result, nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "union", "+")
 	Alias(c, "|", "+")
@@ -104,8 +102,7 @@ func init() {
 			}
 			return result, nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "intersection", "&")
 
@@ -124,8 +121,7 @@ func init() {
 			}
 			return value.ToElkBool(equal), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Alias(c, "=~", "==")
 
@@ -141,8 +137,7 @@ func init() {
 			}
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -158,8 +153,7 @@ func init() {
 			}
 			return self, nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -173,8 +167,7 @@ func init() {
 			}
 			return self, nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -219,7 +212,7 @@ func init() {
 			}
 			return newSet, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 }
 

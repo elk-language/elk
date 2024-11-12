@@ -7,5 +7,5 @@ import (
 func init() {
 	// Instance methods
 	c := &value.ModuleClass.MethodContainer
-	Accessor(c, "doc", false)
+	Accessor(c, "doc")
 }

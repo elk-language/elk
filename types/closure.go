@@ -35,6 +35,19 @@ func NewClosureWithMethod(docComment string, abstract, sealed, native bool, name
 	return closure
 }
 
+func (c *Closure) Copy() *Closure {
+	return &Closure{
+		Body: c.Body,
+	}
+}
+
+func (c *Closure) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Closure {
+	newClosure := c.Copy()
+	newClosure.Body = c.Body.DeepCopyEnv(oldEnv, newEnv)
+
+	return newClosure
+}
+
 func IsClosure(namespace Namespace) bool {
 	_, ok := namespace.(*Closure)
 	return ok
@@ -68,8 +81,20 @@ func (c *Closure) Singleton() *SingletonClass {
 	return nil
 }
 
+func (c *Closure) SetSingleton(*SingletonClass) {
+	panic("cannot set singleton class of closure")
+}
+
 func (c *Closure) IsAbstract() bool {
 	return true
+}
+
+func (c *Closure) IsDefined() bool {
+	return false
+}
+
+func (c *Closure) SetDefined(bool) {
+	panic("cannot set `compiled` in closure")
 }
 
 func (c *Closure) IsSealed() bool {

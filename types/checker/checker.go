@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -117,30 +118,18 @@ type Checker struct {
 	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
 	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
+	compiler                *compiler.Compiler
 }
 
 // Instantiate a new Checker instance.
 func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
-	if globalEnv == nil {
-		globalEnv = types.NewGlobalEnvironment()
-	}
-	return &Checker{
+	c := &Checker{
 		Filename:   filename,
-		GlobalEnv:  globalEnv,
 		IsHeader:   headerMode,
-		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		throwType:  types.Never{},
 		mode:       topLevelMode,
 		Errors:     new(error.SyncErrorList),
-		constantScopes: []constantScope{
-			makeConstantScope(globalEnv.Std()),
-			makeLocalConstantScope(globalEnv.Root),
-		},
-		methodScopes: []methodScope{
-			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
-			makeUsingMethodScope(globalEnv.StdSubtypeModule(symbol.Kernel)),
-		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
@@ -149,6 +138,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 	}
+	if globalEnv == nil {
+		globalEnv = types.NewGlobalEnvironment()
+	}
+
+	c.setGlobalEnv(globalEnv)
+	return c
 }
 
 // Instantiate a new Checker instance.
@@ -156,16 +151,42 @@ func New() *Checker {
 	return newChecker("", nil, false)
 }
 
+// Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
+	// prevEnv := c.GlobalEnv
+	// copy the global environment (classes, modules, mixins, methods, constants etc)
+	// to restore it in case of errors
+	envCopy := c.GlobalEnv.DeepCopyEnv()
+
 	c.Filename = sourceName
 	c.methodChecks = nil
 	bytecodeFunc := c.checkProgram(ast)
+
+	if c.Errors.IsFailure() {
+		// restore the previous global environment if the code
+		// did not compile
+		c.setGlobalEnv(envCopy)
+	}
+
 	return bytecodeFunc, c.Errors.ErrorList
+}
+
+func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
+	c.GlobalEnv = newEnv
+	c.selfType = newEnv.StdSubtype(symbol.Object)
+	c.constantScopes = []constantScope{
+		makeConstantScope(newEnv.Std()),
+		makeLocalConstantScope(newEnv.Root),
+	}
+	c.methodScopes = []methodScope{
+		makeLocalMethodScope(newEnv.StdSubtypeClass(symbol.Object)),
+		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
+	}
 }
 
 func (c *Checker) checkNamespacePlaceholders() {
@@ -193,18 +214,62 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 	c.hoistNamespaceDefinitionsInFile(c.Filename, node)
 	c.checkNamespacePlaceholders()
+	c.initCompiler(node.Span())
 	c.checkTypeDefinitions()
+
+	c.switchToMainCompiler()
+	methodCompiler := c.initMethodCompiler(node.Span())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
+	c.compileMethods(methodCompiler, node.Span())
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
-	return nil
+	if c.Errors.IsFailure() || c.compiler == nil {
+		return nil
+	}
+	return c.compiler.Bytecode
+}
+
+// Create a new compiler that will define all methods
+func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, span *position.Span) {
+	if methodCompiler == nil {
+		return
+	}
+	methodCompiler.CompileMethods(span)
+}
+
+// Create a new compiler that will define all methods
+func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
+	if c.IsHeader {
+		return nil
+	}
+	return c.compiler.InitMethodCompiler(span)
+}
+
+func (c *Checker) switchToMainCompiler() {
+	if c.compiler == nil {
+		return
+	}
+
+	c.compiler.EmitReturnNil()
+	c.compiler = c.compiler.Parent
+}
+
+// Create a new compiler and emit bytecode
+// that creates all classes/mixins/modules/interfaces
+func (c *Checker) initCompiler(span *position.Span) {
+	if c.IsHeader {
+		return
+	}
+
+	mainCompiler := compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
 func (c *Checker) checkClassesWithIvars() {
@@ -281,6 +346,7 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 
 func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_EXPRESSIONS
+
 	for _, importPath := range node.ImportPaths {
 		importedAst, ok := c.astCache.GetUnsafe(importPath)
 		if !ok {
@@ -290,14 +356,24 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		case ast.CHECKING_EXPRESSIONS, ast.CHECKED_EXPRESSIONS:
 			continue
 		}
+		prevCompiler := c.compiler
+		if c.compiler != nil {
+			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Span())
+		}
 		c.checkExpressionsInFile(importPath, importedAst)
+		c.compiler = prevCompiler
 	}
 
 	prevFilename := c.Filename
 	c.Filename = filename
 	c.checkStatements(node.Body)
 	c.Filename = prevFilename
+
 	node.State = ast.CHECKED_EXPRESSIONS
+
+	if c.compiler != nil {
+		c.compiler.CompileExpressionsInFile(node)
+	}
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
@@ -3321,7 +3397,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 		return
 	}
 	initialisedIvars := c.method.InitialisedInstanceVariables
-	if initialisedIvars == nil || c.method.InstanceVariablesChecked {
+	if initialisedIvars == nil || c.method.AreInstanceVariablesChecked() {
 		return
 	}
 
@@ -3344,7 +3420,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 		)
 	}
 
-	c.method.InstanceVariablesChecked = true
+	c.method.SetInstanceVariablesChecked(true)
 }
 
 func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, span *position.Span) {
@@ -3573,7 +3649,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 }
 
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
-	method := c.getMethod(c.selfType, value.ToSymbol(node.MethodName), node.Span())
+	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -3604,16 +3680,38 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
+	var receiver ast.ExpressionNode
+	switch under := method.DefinedUnder.(type) {
+	case *types.Module:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+	case *types.SingletonClass:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
+	default:
+		// from self
+		receiver = ast.NewSelfLiteralNode(node.Span())
+		c.checkNonNilableInstanceVariablesForSelf(node.Span())
+	}
+
 	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
-	node.PositionalArguments = typedPositionalArguments
-	node.NamedArguments = nil
-	node.SetType(method.ReturnType)
-	return node
+	newNode := ast.NewMethodCallNode(
+		node.Span(),
+		receiver,
+		token.New(node.Span(), token.DOT),
+		method.Name.String(),
+		typedPositionalArguments,
+		nil,
+	)
+	c.checkCalledMethodThrowType(method, node.Span())
+
+	newNode.SetType(method.ReturnType)
+	return newNode
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
 	method := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
-	if method == nil || method.IsPlaceholder {
+	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Untyped{})
@@ -3648,10 +3746,13 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	}
 
 	var receiver ast.ExpressionNode
-	switch method.DefinedUnder.(type) {
-	case *types.Module, *types.SingletonClass:
-		// from using
-		receiver = ast.NewPublicConstantNode(node.Span(), method.DefinedUnder.Name())
+	switch under := method.DefinedUnder.(type) {
+	case *types.Module:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+	case *types.SingletonClass:
+		// from using or self
+		receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
 	default:
 		// from self
 		receiver = ast.NewSelfLiteralNode(node.Span())
@@ -7003,7 +7104,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	structNode.Constant = ast.NewPublicConstantNode(structNode.Constant.Span(), fullConstantName)
 
 	init := ast.NewInitDefinitionNode(
-		structNode.Span(),
+		c.newLocation(structNode.Span()),
 		nil,
 		nil,
 		nil,
@@ -7565,7 +7666,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	)
 	initNode.SetType(method)
 	newNode := ast.NewMethodDefinitionNode(
-		initNode.Span(),
+		initNode.Location(),
 		initNode.DocComment(),
 		false,
 		false,
@@ -7601,9 +7702,12 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	}
 	newName := value.ToSymbol(node.NewName)
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
-	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Span())
-	namespace.SetMethod(newName, aliasedMethod)
-	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Span())
+	alias := aliasedMethod.Copy()
+	alias.Name = newName
+	c.checkMethodOverrideWithPlaceholder(alias, oldMethod, node.Span())
+	c.checkSpecialMethods(newName, alias, nil, node.Span())
+	namespace.SetMethod(newName, alias)
+	c.registerMethodCheck(alias, aliasedMethod.Node.(*ast.MethodDefinitionNode))
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
@@ -7621,6 +7725,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		node.ThrowType,
 		node.Span(),
 	)
+	method.Node = node
 	node.SetType(method)
 	c.registerMethodCheck(method, node)
 	if mod != nil {
@@ -8029,6 +8134,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
+				c.GlobalEnv,
 			)
 			t.Namespace = iface
 			namespace.DefineConstant(constantName, iface.Singleton())

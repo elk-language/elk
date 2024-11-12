@@ -229,7 +229,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		mixin      *value.Mixin
 		newName    string
 		oldName    string
-		err        *value.Error
 		mixinAfter *value.Mixin
 	}{
 		"alias method from parent": {
@@ -246,7 +245,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
@@ -282,7 +280,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
@@ -314,7 +311,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
@@ -324,89 +320,19 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
-			),
-		},
-		"alias override sealed method from mixin": {
-			mixin: value.NewMixinWithOptions(
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo_alias"),
-						vm.BytecodeFunctionWithSealed(),
-					),
-				}),
-			),
-			newName: "foo_alias",
-			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
-			mixinAfter: value.NewMixinWithOptions(
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo_alias"),
-						vm.BytecodeFunctionWithSealed(),
-					),
-				}),
-			),
-		},
-		"alias override sealed method from parent": {
-			mixin: value.NewMixinWithOptions(
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-								vm.BytecodeFunctionWithStringName("foo_alias"),
-								vm.BytecodeFunctionWithSealed(),
-							),
-						}),
-					),
-				),
-			),
-			newName: "foo_alias",
-			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
-			mixinAfter: value.NewMixinWithOptions(
-				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
-						vm.BytecodeFunctionWithStringName("foo"),
-					),
-				}),
-				value.MixinWithParent(
-					value.NewClassWithOptions(
-						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
-								vm.BytecodeFunctionWithStringName("foo_alias"),
-								vm.BytecodeFunctionWithSealed(),
-							),
-						}),
-					),
-				),
 			),
 		},
 		"alias nil method": {
 			mixin:      value.NewMixin(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			err:        value.NewError(value.NoMethodErrorClass, "cannot create an alias for a nonexistent method: foo"),
 			mixinAfter: value.NewMixin(),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()...); diff != "" {
-				t.Fatal(diff)
-			}
+			tc.mixin.DefineAliasString(tc.newName, tc.oldName)
 			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Options()...); diff != "" {
 				t.Fatal(diff)
 			}

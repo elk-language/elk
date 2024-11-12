@@ -24,3 +24,43 @@ func NewSingletonClass(attached Namespace, parent Namespace) *SingletonClass {
 func (s *SingletonClass) ToNonLiteral(env *GlobalEnvironment) Type {
 	return s
 }
+
+func (s *SingletonClass) Copy() *SingletonClass {
+	return &SingletonClass{
+		AttachedObject: s.AttachedObject,
+		Class:          s.Class,
+	}
+}
+
+func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *SingletonClass {
+	if newType, ok := NameToTypeOk(s.name, newEnv); ok {
+		return newType.(*SingletonClass)
+	}
+
+	newAttachedObject := DeepCopyEnv(s.AttachedObject, oldEnv, newEnv).(Namespace)
+	if newS := newAttachedObject.Singleton(); newS != nil {
+		return newS
+	}
+	newSingleton := &SingletonClass{
+		Class: Class{
+			primitive:     s.primitive,
+			sealed:        s.sealed,
+			abstract:      s.abstract,
+			defined:       s.defined,
+			compiled:      s.compiled,
+			NamespaceBase: MakeNamespaceBase(s.docComment, s.name),
+		},
+	}
+	newSingleton.AttachedObject = newAttachedObject
+
+	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
+	newSingleton.instanceVariables = TypesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)
+	newSingleton.subtypes = ConstantsDeepCopyEnv(s.subtypes, oldEnv, newEnv)
+	newSingleton.constants = ConstantsDeepCopyEnv(s.constants, oldEnv, newEnv)
+
+	if s.parent != nil {
+		newSingleton.parent = DeepCopyEnv(s.parent, oldEnv, newEnv).(Namespace)
+	}
+	newAttachedObject.SetSingleton(newSingleton)
+	return newSingleton
+}

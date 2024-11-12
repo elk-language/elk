@@ -26,8 +26,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -47,8 +46,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -68,8 +66,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -89,8 +86,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -110,8 +106,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -134,8 +129,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 }

@@ -38,7 +38,7 @@ func init() {
 				)
 			}
 		},
-		DefWithParameters("format_string"),
+		DefWithParameters(1),
 	)
 	Alias(c, "strftime", "format")
 
@@ -483,7 +483,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThan(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -493,7 +493,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -503,7 +503,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThan(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -513,7 +513,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -523,7 +523,7 @@ func init() {
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Alias(c, "===", "==")
 }

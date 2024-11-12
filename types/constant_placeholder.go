@@ -44,3 +44,37 @@ func (*ConstantPlaceholder) IsLiteral() bool {
 func (p *ConstantPlaceholder) inspect() string {
 	return fmt.Sprintf("<ConstantPlaceholder: %s>", p.FullName)
 }
+
+func (p *ConstantPlaceholder) Copy() *ConstantPlaceholder {
+	return &ConstantPlaceholder{
+		AsName:    p.AsName,
+		FullName:  p.FullName,
+		Container: p.Container,
+		Location:  p.Location,
+		Sibling:   p.Sibling,
+		Checked:   p.Checked,
+		Replaced:  p.Replaced,
+	}
+}
+
+func (p *ConstantPlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *ConstantPlaceholder {
+	if newType, ok := NameToTypeOk(p.FullName, newEnv); ok {
+		return newType.(*ConstantPlaceholder)
+	}
+
+	newPlaceholder := &ConstantPlaceholder{
+		AsName:    p.AsName,
+		FullName:  p.FullName,
+		Location:  p.Location,
+		Checked:   p.Checked,
+		Replaced:  p.Replaced,
+		Container: make(ConstantMap),
+	}
+	moduleConstantPath := GetConstantPath(p.FullName)
+	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
+	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newPlaceholder)
+
+	newPlaceholder.Container = ConstantsDeepCopyEnv(p.Container, oldEnv, newEnv)
+
+	return newPlaceholder
+}

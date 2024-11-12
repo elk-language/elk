@@ -102,16 +102,10 @@ func (*RightOpenRangeIterator) InstanceVariables() SymbolMap {
 }
 
 func initRightOpenRange() {
-	RightOpenRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	RightOpenRangeClass = NewClass()
 	RightOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("RightOpenRange", RightOpenRangeClass)
 
-	RightOpenRangeIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	RightOpenRangeIteratorClass = NewClass()
 	RightOpenRangeClass.AddConstantString("Iterator", RightOpenRangeIteratorClass)
 }

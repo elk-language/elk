@@ -41,8 +41,7 @@ func init() {
 			}
 			return result, nil
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -68,8 +67,7 @@ func init() {
 				return nil, value.NewCoerceError(value.HashRecordClass, other.Class())
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -89,8 +87,7 @@ func init() {
 				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
 			}
 		},
-		DefWithParameters("pair"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -104,8 +101,7 @@ func init() {
 
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -119,8 +115,7 @@ func init() {
 
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -137,8 +132,7 @@ func init() {
 			}
 			return value.ToElkBool(equal), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -162,8 +156,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -216,7 +209,7 @@ func init() {
 			}
 			return newRecord, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -261,7 +254,7 @@ func init() {
 			}
 			return newRecord, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 }
 

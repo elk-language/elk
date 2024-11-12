@@ -87,10 +87,7 @@ func (f Float32) IsInf(sign int) bool {
 }
 
 func initFloat32() {
-	Float32Class = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	Float32Class = NewClass()
 	StdModule.AddConstantString("Float32", Float32Class)
 	Float32Class.AddConstantString("NAN", Float32NaN())
 	Float32Class.AddConstantString("INF", Float32Inf())

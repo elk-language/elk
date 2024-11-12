@@ -151,16 +151,10 @@ func (h *HashMapIterator) Next() (Value, Value) {
 }
 
 func initHashMap() {
-	HashMapClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	HashMapClass = NewClass()
 	HashMapClass.IncludeMixin(MapMixin)
 	StdModule.AddConstantString("HashMap", HashMapClass)
 
-	HashMapIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	HashMapIteratorClass = NewClass()
 	HashMapClass.AddConstantString("Iterator", HashMapIteratorClass)
 }

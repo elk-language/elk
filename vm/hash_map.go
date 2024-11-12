@@ -59,8 +59,7 @@ func init() {
 			}
 			return result, nil
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -75,8 +74,7 @@ func init() {
 			}
 			return val, nil
 		},
-		DefWithParameters("key", "value"),
-		DefWithSealed(),
+		DefWithParameters(2),
 	)
 	Def(
 		c,
@@ -102,8 +100,7 @@ func init() {
 				return nil, value.NewCoerceError(value.HashMapClass, other.Class())
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -124,8 +121,7 @@ func init() {
 			HashMapGrow(vm, self, n)
 			return self, nil
 		},
-		DefWithParameters("new_slots"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -145,8 +141,7 @@ func init() {
 				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
 			}
 		},
-		DefWithParameters("pair"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -160,8 +155,7 @@ func init() {
 
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("key"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -175,8 +169,7 @@ func init() {
 
 			return value.ToElkBool(contains), nil
 		},
-		DefWithParameters("value"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -193,8 +186,7 @@ func init() {
 			}
 			return value.ToElkBool(equal), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -218,8 +210,7 @@ func init() {
 				return value.False, nil
 			}
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -272,7 +263,7 @@ func init() {
 			}
 			return newMap, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -317,7 +308,7 @@ func init() {
 			}
 			return newMap, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 
 	Def(
@@ -357,7 +348,7 @@ func init() {
 			}
 			return self, nil
 		},
-		DefWithParameters("func"),
+		DefWithParameters(1),
 	)
 }
 

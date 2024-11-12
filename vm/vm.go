@@ -358,7 +358,7 @@ func (vm *VM) run() {
 				return
 			}
 		case bytecode.RETURN_FIRST_ARG:
-			vm.getLocal(1)
+			vm.opGetLocal(1)
 			if len(vm.callFrames) == 0 {
 				return
 			}
@@ -400,124 +400,116 @@ func (vm *VM) run() {
 			for _, element := range vm.stack[vm.sp-n : vm.sp] {
 				vm.push(element)
 			}
-		case bytecode.CONSTANT_CONTAINER:
-			vm.constantContainer()
-		case bytecode.METHOD_CONTAINER:
-			vm.methodContainer()
 		case bytecode.SELF:
 			vm.self()
-		case bytecode.DEF_SINGLETON:
-			vm.throwIfErr(vm.defineSingleton())
+		case bytecode.DEF_NAMESPACE:
+			vm.opDefNamespace()
 		case bytecode.GET_SINGLETON:
-			vm.throwIfErr(vm.getSingletonClass())
+			vm.throwIfErr(vm.opGetSingleton())
 		case bytecode.GET_CLASS:
 			vm.getClass()
-		case bytecode.DEF_ALIAS:
-			vm.throwIfErr(vm.defineAlias())
 		case bytecode.DEF_GETTER:
-			vm.throwIfErr(vm.defineGetter())
+			vm.opDefGetter()
 		case bytecode.DEF_SETTER:
-			vm.throwIfErr(vm.defineSetter())
-		case bytecode.DEF_CLASS:
-			vm.throwIfErr(vm.defineClass())
-		case bytecode.DEF_MODULE:
-			vm.throwIfErr(vm.defineModule())
-		case bytecode.DEF_MIXIN:
-			vm.throwIfErr(vm.defineMixin())
+			vm.opDefSetter()
+		case bytecode.EXEC:
+			vm.opExec()
+		case bytecode.INIT_NAMESPACE:
+			vm.opInitNamespace()
 		case bytecode.DEF_METHOD:
-			vm.throwIfErr(vm.defineMethod())
+			vm.opDefMethod()
 		case bytecode.INCLUDE:
-			vm.throwIfErr(vm.includeMixin())
+			vm.throwIfErr(vm.opInclude())
 		case bytecode.DOC_COMMENT:
 			vm.throwIfErr(vm.docComment())
 		case bytecode.APPEND:
-			vm.appendCollection()
+			vm.opAppend()
 		case bytecode.MAP_SET:
-			vm.mapSet()
+			vm.opMapSet()
 		case bytecode.COPY:
-			vm.copy()
+			vm.opCopy()
 		case bytecode.APPEND_AT:
-			vm.throwIfErr(vm.appendAt())
+			vm.throwIfErr(vm.opAppendAt())
 		case bytecode.SUBSCRIPT:
-			vm.throwIfErr(vm.subscript())
+			vm.throwIfErr(vm.opSubscript())
 		case bytecode.SUBSCRIPT_SET:
-			vm.throwIfErr(vm.subscriptSet())
+			vm.throwIfErr(vm.opSubscriptSet())
 		case bytecode.INSTANTIATE8:
 			vm.throwIfErr(
-				vm.instantiate(int(vm.readByte())),
+				vm.opInstantiate(int(vm.readByte())),
 			)
 		case bytecode.INSTANTIATE16:
 			vm.throwIfErr(
-				vm.instantiate(int(vm.readUint16())),
+				vm.opInstantiate(int(vm.readUint16())),
 			)
 		case bytecode.INSTANTIATE32:
 			vm.throwIfErr(
-				vm.instantiate(int(vm.readUint32())),
+				vm.opInstantiate(int(vm.readUint32())),
 			)
 		case bytecode.GET_IVAR8:
 			vm.throwIfErr(
-				vm.getInstanceVariable(int(vm.readByte())),
+				vm.opGetIvar(int(vm.readByte())),
 			)
 		case bytecode.GET_IVAR16:
 			vm.throwIfErr(
-				vm.getInstanceVariable(int(vm.readUint16())),
+				vm.opGetIvar(int(vm.readUint16())),
 			)
 		case bytecode.GET_IVAR32:
 			vm.throwIfErr(
-				vm.getInstanceVariable(int(vm.readUint32())),
+				vm.opGetIvar(int(vm.readUint32())),
 			)
 		case bytecode.SET_IVAR8:
 			vm.throwIfErr(
-				vm.setInstanceVariable(int(vm.readByte())),
+				vm.opSetIvar(int(vm.readByte())),
 			)
 		case bytecode.SET_IVAR16:
 			vm.throwIfErr(
-				vm.setInstanceVariable(int(vm.readUint16())),
+				vm.opSetIvar(int(vm.readUint16())),
 			)
 		case bytecode.SET_IVAR32:
 			vm.throwIfErr(
-				vm.setInstanceVariable(int(vm.readUint32())),
+				vm.opSetIvar(int(vm.readUint32())),
 			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
-				vm.callMethod(int(vm.readByte())),
+				vm.opCallMethod(int(vm.readByte())),
 			)
 		case bytecode.CALL_METHOD16:
 			vm.throwIfErr(
-				vm.callMethod(int(vm.readUint16())),
+				vm.opCallMethod(int(vm.readUint16())),
 			)
 		case bytecode.CALL_METHOD32:
 			vm.throwIfErr(
-				vm.callMethod(int(vm.readUint32())),
+				vm.opCallMethod(int(vm.readUint32())),
 			)
 		case bytecode.CALL8:
 			vm.throwIfErr(
-				vm.call(int(vm.readByte())),
+				vm.opCall(int(vm.readByte())),
 			)
 		case bytecode.CALL16:
 			vm.throwIfErr(
-				vm.call(int(vm.readUint16())),
+				vm.opCall(int(vm.readUint16())),
 			)
 		case bytecode.CALL32:
 			vm.throwIfErr(
-				vm.call(int(vm.readUint32())),
+				vm.opCall(int(vm.readUint32())),
 			)
 		case bytecode.CALL_SELF8:
 			vm.throwIfErr(
-				vm.callFunction(int(vm.readByte())),
+				vm.opCallSelf(int(vm.readByte())),
 			)
 		case bytecode.CALL_SELF16:
 			vm.throwIfErr(
-				vm.callFunction(int(vm.readUint16())),
+				vm.opCallSelf(int(vm.readUint16())),
 			)
 		case bytecode.CALL_SELF32:
 			vm.throwIfErr(
-				vm.callFunction(int(vm.readUint32())),
+				vm.opCallSelf(int(vm.readUint32())),
 			)
 		case bytecode.INSTANCE_OF:
-			vm.throwIfErr(vm.instanceOf())
+			vm.throwIfErr(vm.opInstanceOf())
 		case bytecode.IS_A:
-			vm.throwIfErr(vm.isA())
+			vm.throwIfErr(vm.opIsA())
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.UNDEFINED:
@@ -529,21 +521,21 @@ func (vm *VM) run() {
 		case bytecode.LOAD_VALUE32:
 			vm.push(vm.readValue32())
 		case bytecode.ADD:
-			vm.throwIfErr(vm.add())
+			vm.throwIfErr(vm.opAdd())
 		case bytecode.SUBTRACT:
-			vm.throwIfErr(vm.subtract())
+			vm.throwIfErr(vm.opSubtract())
 		case bytecode.MULTIPLY:
-			vm.throwIfErr(vm.multiply())
+			vm.throwIfErr(vm.opMultiply())
 		case bytecode.DIVIDE:
-			vm.throwIfErr(vm.divide())
+			vm.throwIfErr(vm.opDivide())
 		case bytecode.EXPONENTIATE:
-			vm.throwIfErr(vm.exponentiate())
+			vm.throwIfErr(vm.opExponentiate())
 		case bytecode.NEGATE:
-			vm.throwIfErr(vm.negate())
+			vm.throwIfErr(vm.opNegate())
 		case bytecode.UNARY_PLUS:
-			vm.throwIfErr(vm.unaryPlus())
+			vm.throwIfErr(vm.opUnaryPlus())
 		case bytecode.BITWISE_NOT:
-			vm.throwIfErr(vm.bitwiseNot())
+			vm.throwIfErr(vm.opBitwiseNot())
 		case bytecode.NOT:
 			vm.replace(value.ToNotBool(vm.peek()))
 		case bytecode.TRUE:
@@ -563,115 +555,107 @@ func (vm *VM) run() {
 		case bytecode.POP_SKIP_ONE:
 			vm.popSkipOne()
 		case bytecode.INCREMENT:
-			vm.throwIfErr(vm.increment())
+			vm.throwIfErr(vm.opIncrement())
 		case bytecode.DECREMENT:
-			vm.throwIfErr(vm.decrement())
+			vm.throwIfErr(vm.opDecrement())
 		case bytecode.GET_LOCAL8:
-			vm.getLocal(int(vm.readByte()))
+			vm.opGetLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
-			vm.getLocal(int(vm.readUint16()))
+			vm.opGetLocal(int(vm.readUint16()))
 		case bytecode.SET_LOCAL8:
-			vm.setLocal(int(vm.readByte()))
+			vm.opSetLocal(int(vm.readByte()))
 		case bytecode.SET_LOCAL16:
-			vm.setLocal(int(vm.readUint16()))
+			vm.opSetLocal(int(vm.readUint16()))
 		case bytecode.GET_UPVALUE8:
-			vm.getUpvalue(int(vm.readByte()))
+			vm.opGetUpvalue(int(vm.readByte()))
 		case bytecode.GET_UPVALUE16:
-			vm.getUpvalue(int(vm.readUint16()))
+			vm.opGetUpvalue(int(vm.readUint16()))
 		case bytecode.SET_UPVALUE8:
-			vm.setUpvalue(int(vm.readByte()))
+			vm.opSetUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
-			vm.setUpvalue(int(vm.readUint16()))
+			vm.opSetUpvalue(int(vm.readUint16()))
 		case bytecode.CLOSE_UPVALUE8:
 			last := &vm.stack[vm.fp+int(vm.readByte())]
-			vm.closeUpvalues(last)
+			vm.opCloseUpvalues(last)
 		case bytecode.CLOSE_UPVALUE16:
 			last := &vm.stack[vm.fp+int(vm.readUint16())]
-			vm.closeUpvalues(last)
+			vm.opCloseUpvalues(last)
 		case bytecode.LEAVE_SCOPE16:
-			vm.leaveScope(int(vm.readByte()), int(vm.readByte()))
+			vm.opLeaveScope(int(vm.readByte()), int(vm.readByte()))
 		case bytecode.LEAVE_SCOPE32:
-			vm.leaveScope(int(vm.readUint16()), int(vm.readUint16()))
+			vm.opLeaveScope(int(vm.readUint16()), int(vm.readUint16()))
 		case bytecode.PREP_LOCALS8:
-			vm.prepLocals(int(vm.readByte()))
+			vm.opPrepLocals(int(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
-			vm.prepLocals(int(vm.readUint16()))
-		case bytecode.GET_MOD_CONST8:
-			vm.throwIfErr(vm.getModuleConstant(int(vm.readByte())))
-		case bytecode.GET_MOD_CONST16:
+			vm.opPrepLocals(int(vm.readUint16()))
+		case bytecode.SET_SUPERCLASS:
+			vm.opSetSuperclass()
+		case bytecode.GET_CONST8:
+			vm.throwIfErr(vm.opGetConst(int(vm.readByte())))
+		case bytecode.GET_CONST16:
 			vm.throwIfErr(
-				vm.getModuleConstant(int(vm.readUint16())),
+				vm.opGetConst(int(vm.readUint16())),
 			)
-		case bytecode.GET_MOD_CONST32:
+		case bytecode.GET_CONST32:
 			vm.throwIfErr(
-				vm.getModuleConstant(int(vm.readUint32())),
+				vm.opGetConst(int(vm.readUint32())),
 			)
-		case bytecode.DEF_MOD_CONST8:
-			vm.throwIfErr(
-				vm.defModuleConstant(int(vm.readByte())),
-			)
-		case bytecode.DEF_MOD_CONST16:
-			vm.throwIfErr(
-				vm.defModuleConstant(int(vm.readUint16())),
-			)
-		case bytecode.DEF_MOD_CONST32:
-			vm.throwIfErr(
-				vm.defModuleConstant(int(vm.readUint32())),
-			)
+		case bytecode.DEF_CONST:
+			vm.opDefConst()
 		case bytecode.NEW_RANGE:
-			vm.newRange()
+			vm.opNewRange()
 		case bytecode.NEW_ARRAY_TUPLE8:
-			vm.newArrayTuple(int(vm.readByte()))
+			vm.opNewArrayTuple(int(vm.readByte()))
 		case bytecode.NEW_ARRAY_TUPLE32:
-			vm.newArrayTuple(int(vm.readUint32()))
+			vm.opNewArrayTuple(int(vm.readUint32()))
 		case bytecode.NEW_ARRAY_LIST8:
 			vm.throwIfErr(
-				vm.newArrayList(int(vm.readByte())),
+				vm.opNewArrayList(int(vm.readByte())),
 			)
 		case bytecode.NEW_ARRAY_LIST32:
 			vm.throwIfErr(
-				vm.newArrayList(int(vm.readUint32())),
+				vm.opNewArrayList(int(vm.readUint32())),
 			)
 		case bytecode.NEW_HASH_SET8:
 			vm.throwIfErr(
-				vm.newHashSet(int(vm.readByte())),
+				vm.opNewHashSet(int(vm.readByte())),
 			)
 		case bytecode.NEW_HASH_SET32:
 			vm.throwIfErr(
-				vm.newHashSet(int(vm.readUint32())),
+				vm.opNewHashSet(int(vm.readUint32())),
 			)
 		case bytecode.NEW_HASH_MAP8:
 			vm.throwIfErr(
-				vm.newHashMap(int(vm.readByte())),
+				vm.opNewHashMap(int(vm.readByte())),
 			)
 		case bytecode.NEW_HASH_MAP32:
 			vm.throwIfErr(
-				vm.newHashMap(int(vm.readUint32())),
+				vm.opNewHashMap(int(vm.readUint32())),
 			)
 		case bytecode.NEW_HASH_RECORD8:
 			vm.throwIfErr(
-				vm.newHashRecord(int(vm.readByte())),
+				vm.opNewHashRecord(int(vm.readByte())),
 			)
 		case bytecode.NEW_HASH_RECORD32:
 			vm.throwIfErr(
-				vm.newHashRecord(int(vm.readUint32())),
+				vm.opNewHashRecord(int(vm.readUint32())),
 			)
 		case bytecode.NEW_STRING8:
-			vm.throwIfErr(vm.newString(int(vm.readByte())))
+			vm.throwIfErr(vm.opNewString(int(vm.readByte())))
 		case bytecode.NEW_STRING32:
-			vm.throwIfErr(vm.newString(int(vm.readUint32())))
+			vm.throwIfErr(vm.opNewString(int(vm.readUint32())))
 		case bytecode.NEW_SYMBOL8:
-			vm.throwIfErr(vm.newSymbol(int(vm.readByte())))
+			vm.throwIfErr(vm.opNewSymbol(int(vm.readByte())))
 		case bytecode.NEW_SYMBOL32:
-			vm.throwIfErr(vm.newSymbol(int(vm.readUint32())))
+			vm.throwIfErr(vm.opNewSymbol(int(vm.readUint32())))
 		case bytecode.NEW_REGEX8:
-			vm.throwIfErr(vm.newRegex(vm.readByte(), int(vm.readByte())))
+			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readByte())))
 		case bytecode.NEW_REGEX32:
-			vm.throwIfErr(vm.newRegex(vm.readByte(), int(vm.readUint32())))
+			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readUint32())))
 		case bytecode.FOR_IN:
-			vm.throwIfErr(vm.forIn())
+			vm.throwIfErr(vm.opForIn())
 		case bytecode.GET_ITERATOR:
-			vm.throwIfErr(vm.getIterator())
+			vm.throwIfErr(vm.opGetIterator())
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -709,53 +693,53 @@ func (vm *VM) run() {
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.MUST:
-			vm.must()
+			vm.opMust()
 		case bytecode.AS:
-			vm.as()
+			vm.mustAs()
 		case bytecode.RETHROW:
 			err := vm.pop()
 			stackTrace := vm.pop().(value.String)
 			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
-			vm.throwIfErr(vm.leftBitshift())
+			vm.throwIfErr(vm.opLeftBitshift())
 		case bytecode.LOGIC_LBITSHIFT:
-			vm.throwIfErr(vm.logicalLeftBitshift())
+			vm.throwIfErr(vm.opLogicalLeftBitshift())
 		case bytecode.RBITSHIFT:
-			vm.throwIfErr(vm.rightBitshift())
+			vm.throwIfErr(vm.opRightBitshift())
 		case bytecode.LOGIC_RBITSHIFT:
-			vm.throwIfErr(vm.logicalRightBitshift())
+			vm.throwIfErr(vm.opLogicalRightBitshift())
 		case bytecode.BITWISE_AND:
-			vm.throwIfErr(vm.bitwiseAnd())
+			vm.throwIfErr(vm.opBitwiseAnd())
 		case bytecode.BITWISE_AND_NOT:
-			vm.throwIfErr(vm.bitwiseAndNot())
+			vm.throwIfErr(vm.opBitwiseAndNot())
 		case bytecode.BITWISE_OR:
-			vm.throwIfErr(vm.bitwiseOr())
+			vm.throwIfErr(vm.opBitwiseOr())
 		case bytecode.BITWISE_XOR:
-			vm.throwIfErr(vm.bitwiseXor())
+			vm.throwIfErr(vm.opBitwiseXor())
 		case bytecode.MODULO:
-			vm.throwIfErr(vm.modulo())
+			vm.throwIfErr(vm.opModulo())
 		case bytecode.COMPARE:
-			vm.throwIfErr(vm.compare())
+			vm.throwIfErr(vm.opCompare())
 		case bytecode.EQUAL:
-			vm.throwIfErr(vm.equal())
+			vm.throwIfErr(vm.opEqual())
 		case bytecode.NOT_EQUAL:
-			vm.throwIfErr(vm.notEqual())
+			vm.throwIfErr(vm.opNotEqual())
 		case bytecode.LAX_EQUAL:
-			vm.throwIfErr(vm.laxEqual())
+			vm.throwIfErr(vm.opLaxEqual())
 		case bytecode.LAX_NOT_EQUAL:
-			vm.throwIfErr(vm.laxNotEqual())
+			vm.throwIfErr(vm.opLaxNotEqual())
 		case bytecode.STRICT_EQUAL:
-			vm.throwIfErr(vm.strictEqual())
+			vm.throwIfErr(vm.opStrictEqual())
 		case bytecode.STRICT_NOT_EQUAL:
-			vm.throwIfErr(vm.strictNotEqual())
+			vm.throwIfErr(vm.opStrictNotEqual())
 		case bytecode.GREATER:
-			vm.throwIfErr(vm.greaterThan())
+			vm.throwIfErr(vm.opGreaterThan())
 		case bytecode.GREATER_EQUAL:
-			vm.throwIfErr(vm.greaterThanEqual())
+			vm.throwIfErr(vm.opGreaterThanEqual())
 		case bytecode.LESS:
-			vm.throwIfErr(vm.lessThan())
+			vm.throwIfErr(vm.opLessThan())
 		case bytecode.LESS_EQUAL:
-			vm.throwIfErr(vm.lessThanEqual())
+			vm.throwIfErr(vm.opLessThanEqual())
 		case bytecode.INSPECT_STACK:
 			vm.InspectStack()
 		default:
@@ -839,7 +823,7 @@ func (vm *VM) restoreLastFrame() {
 	vm.callFrames = vm.callFrames[:lastIndex]
 
 	vm.ip = cf.ip
-	vm.closeUpvalues(&vm.stack[vm.fp])
+	vm.opCloseUpvalues(&vm.stack[vm.fp])
 	vm.popN(vm.sp - vm.fp)
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
@@ -936,27 +920,53 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
-func (vm *VM) constantContainer() {
-	vm.getLocal(1)
-}
-
-func (vm *VM) methodContainer() {
-	vm.getLocal(2)
-}
-
-func (vm *VM) methodContainerValue() value.Value {
-	return vm.getLocalValue(2)
-}
-
-func (vm *VM) constantContainerValue() value.Value {
-	return vm.getLocalValue(1)
-}
-
 func (vm *VM) self() {
-	vm.getLocal(0)
+	vm.opGetLocal(0)
 }
 
-func (vm *VM) getSingletonClass() (err value.Value) {
+func (vm *VM) opDefNamespace() {
+	typ := vm.readByte()
+	name := vm.pop().(value.Symbol)
+	parentNamespace := vm.pop()
+
+	var parentConstantContainer value.ConstantContainer
+	switch n := parentNamespace.(type) {
+	case *value.Class:
+		parentConstantContainer = n.ConstantContainer
+	case *value.Module:
+		parentConstantContainer = n.ConstantContainer
+	case *value.Interface:
+		parentConstantContainer = n.ConstantContainer
+	default:
+		panic(
+			fmt.Sprintf(
+				"tried to define %s under an invalid namespace: `%s`",
+				name,
+				parentNamespace.Inspect(),
+			),
+		)
+	}
+
+	if _, ok := parentConstantContainer.Constants[name]; ok {
+		return
+	}
+
+	var newNamespace value.Value
+	switch typ {
+	case bytecode.DEF_MODULE_FLAG:
+		newNamespace = value.NewModule()
+	case bytecode.DEF_CLASS_FLAG:
+		newNamespace = value.NewClassWithOptions(value.ClassWithParent(nil))
+	case bytecode.DEF_MIXIN_FLAG:
+		newNamespace = value.NewMixin()
+	case bytecode.DEF_INTERFACE_FLAG:
+		newNamespace = value.NewInterface()
+	}
+
+	parentConstantContainer.AddConstant(name, newNamespace)
+}
+
+func (vm *VM) opGetSingleton() (err value.Value) {
 	val := vm.pop()
 	singleton := val.SingletonClass()
 	if singleton == nil {
@@ -982,7 +992,7 @@ func (vm *VM) selfValue() value.Value {
 }
 
 // Call a method with an implicit receiver
-func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
+func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.selfValue()
@@ -1011,7 +1021,7 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 }
 
 // Set the value of an instance variable
-func (vm *VM) setInstanceVariable(nameIndex int) (err value.Value) {
+func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].(value.Symbol)
 	val := vm.peek()
 
@@ -1026,7 +1036,7 @@ func (vm *VM) setInstanceVariable(nameIndex int) (err value.Value) {
 }
 
 // Get the value of an instance variable
-func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
+func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].(value.Symbol)
 
 	self := vm.selfValue()
@@ -1045,14 +1055,14 @@ func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
 	return nil
 }
 
-// Pop the value on top of the stack and push its copy.
-func (vm *VM) copy() {
+// Pop the value on top of the stack and push its opCopy.
+func (vm *VM) opCopy() {
 	element := vm.peek()
 	vm.replace(element.Copy())
 }
 
 // Set the value under the given key in a hash-map or hash-record
-func (vm *VM) mapSet() {
+func (vm *VM) opMapSet() {
 	val := vm.pop()
 	key := vm.pop()
 	collection := vm.peek()
@@ -1070,7 +1080,7 @@ func (vm *VM) mapSet() {
 }
 
 // Append an element to a list, arrayTuple or hashSet.
-func (vm *VM) appendCollection() {
+func (vm *VM) opAppend() {
 	element := vm.pop()
 	collection := vm.peek()
 
@@ -1089,7 +1099,7 @@ func (vm *VM) appendCollection() {
 }
 
 // Call a method with an explicit receiver
-func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
+func (vm *VM) opInstantiate(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	classIndex := vm.sp - callInfo.ArgumentCount - 1
@@ -1188,13 +1198,13 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 	return nil
 }
 
-// Call the `call` method with an explicit receiver
-func (vm *VM) call(callInfoIndex int) (err value.Value) {
+// Call the `opCall` method with an explicit receiver
+func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self, isClosure := vm.stack[vm.sp-callInfo.ArgumentCount-1].(*Closure)
 	if !isClosure {
-		return vm.callMethod(callInfoIndex)
+		return vm.opCallMethod(callInfoIndex)
 	}
 
 	return vm.callClosure(self, callInfo)
@@ -1209,9 +1219,9 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 	vm.createCurrentCallFrame()
 
-	vm.localCount = len(function.parameters) + 1
+	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
-	vm.fp = vm.sp - function.ParameterCount() - 1
+	vm.fp = vm.sp - function.parameterCount - 1
 	vm.ip = 0
 	vm.upvalues = closure.Upvalues
 
@@ -1219,7 +1229,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 }
 
 // Call a method with an explicit receiver
-func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
+func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
@@ -1294,7 +1304,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 
 	vm.createCurrentCallFrame()
 
-	vm.localCount = len(method.parameters) + 1
+	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
 	vm.fp = vm.sp - method.ParameterCount() - 1
 	vm.ip = 0
@@ -1303,223 +1313,26 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 }
 
 func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	namedArgCount := callInfo.NamedArgumentCount()
-
-	if namedArgCount == 0 {
-		if err := vm.preparePositionalArguments(method, callInfo); err != nil {
-			return err
-		}
-	} else if err := vm.prepareNamedArguments(method, callInfo); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	paramCount := method.ParameterCount()
-	namedRestParam := method.NamedRestParameter()
-	if namedRestParam {
-		paramCount -= 1
-	}
-	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := paramCount - method.OptionalParameterCount()
-	posArgCount := callInfo.PositionalArgumentCount()
-
-	// create a slice containing the given arguments
-	// in original order
-	namedArgs := make([]value.Value, namedArgCount)
-	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
-
-	var posParamNames []value.Symbol
-	var namedParamNames []value.Symbol
-	var spIncrease int
-	paramNames := method.Parameters()
-
-	if method.PostRestParameterCount() >= 0 {
-		requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
-		if posArgCount < requiredPosParamCount {
-			return value.NewWrongPositionalArgumentCountError(
-				method.Name().String(),
-				posArgCount,
-				requiredPosParamCount,
-			)
-		}
-
-		firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
-		lastPosRestArg := callInfo.ArgumentCount - 1 - method.PostRestParameterCount()
-		if namedRestParam {
-			lastPosRestArg -= callInfo.NamedArgumentCount()
-		}
-		posRestArgCount := lastPosRestArg - firstPosRestArg + 1
-		postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
-		var postArgs []value.Value
-		var restList value.ArrayList
-		if postArgCount > 0 {
-			postArgs = make([]value.Value, postArgCount)
-			copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
-			vm.popN(postArgCount)
-		}
-
-		if posRestArgCount > 0 {
-			restList = make(value.ArrayList, posRestArgCount)
-		}
-		for i := 1; i <= posRestArgCount; i++ {
-			restList[posRestArgCount-i] = vm.pop()
-		}
-		vm.push(&restList)
-		for _, postArg := range postArgs {
-			vm.push(postArg)
-		}
-
-		posParamNames = paramNames[:firstPosRestArg+1]
-
-		if !namedRestParam {
-			namedParamNames = paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
-		}
-		spIncrease = paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
-	} else {
-		posParamNames = paramNames[:posArgCount]
-		namedParamNames = paramNames[posArgCount:]
-		spIncrease = paramCount - callInfo.ArgumentCount
-	}
-	if namedRestParam && len(namedParamNames) > 0 {
-		namedParamNames = namedParamNames[:len(namedParamNames)-1]
-	}
-
-	var foundNamedArgCount int
-
-	for _, paramName := range posParamNames {
-		for j := 0; j < namedArgCount; j++ {
-			if paramName == callInfo.NamedArguments[j] {
-				return value.NewDuplicatedArgumentError(
-					string(method.Name().ToString()),
-					string(paramName.ToString()),
-				)
-			}
-		}
-	}
-
-	var missingOptionalArgCount int
-methodParamLoop:
-	for i, paramName := range namedParamNames {
-		found := false
-		targetIndex := vm.sp - namedArgCount + i
-	namedArgLoop:
-		for j := 0; j < namedArgCount; j++ {
-			if paramName != callInfo.NamedArguments[j] {
-				continue namedArgLoop
-			}
-
-			found = true
-			foundNamedArgCount++
-			if i == j {
-				break namedArgLoop
-			}
-
-			vm.stack[targetIndex] = namedArgs[j]
-			// mark the found value as undefined
-			namedArgs[j] = value.Undefined
-		}
-
-		if found {
-			continue methodParamLoop
-		}
-
-		// the parameter is required
-		// but is not present in the call
-		if posArgCount+i < reqParamCount {
-			return value.NewRequiredArgumentMissingError(
-				string(method.Name().ToString()),
-				string(paramName.ToString()),
-			)
-		}
-
-		// the parameter is optional and is not present
-		// populate it with undefined
-		vm.stack[targetIndex] = value.Undefined
-		missingOptionalArgCount++
-	}
-
-	unknownNamedArgCount := namedArgCount - foundNamedArgCount
-	if namedRestParam {
-		hmap := value.NewHashMap(unknownNamedArgCount)
-		if unknownNamedArgCount != 0 {
-			// construct a hashmap of named arguments
-			// that are not defined in the method
-			for i, namedArg := range namedArgs {
-				if namedArg == value.Undefined {
-					continue
-				}
-
-				HashMapSet(vm, hmap, callInfo.NamedArguments[i], namedArg)
-			}
-			additionalNamedArgCount := hmap.Length() - missingOptionalArgCount
-			vm.popN(additionalNamedArgCount)
-			spIncrease += additionalNamedArgCount
-		}
-		vm.push(hmap)
-	} else if unknownNamedArgCount != 0 {
-		// construct a slice that contains
-		// the names of unknown named arguments
-		// that have been given
-		unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
-		for i, namedArg := range namedArgs {
-			if namedArg == value.Undefined {
-				continue
-			}
-
-			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
-		}
-
-		return value.NewUnknownArgumentsError(
-			method.Name().String(),
-			unknownNamedArgNames,
-		)
-	}
-
-	vm.sp += spIncrease
-	return nil
-}
-
-func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	optParamCount := method.OptionalParameterCount()
-	postParamCount := method.PostRestParameterCount()
 	paramCount := method.ParameterCount()
-	namedRestParam := method.NamedRestParameter()
-	if namedRestParam {
-		paramCount--
-	}
-	preRestParamCount := paramCount - postParamCount - 1
 	reqParamCount := paramCount - optParamCount
-	if postParamCount >= 0 {
-		reqParamCount -= 1
-	}
 
 	if callInfo.ArgumentCount < reqParamCount {
-		if postParamCount == -1 {
-			return value.NewWrongArgumentCountRangeError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				reqParamCount,
-				paramCount,
-			)
-		} else {
-			return value.NewWrongArgumentCountRestError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				reqParamCount,
-			)
-		}
+		return value.NewWrongArgumentCountRangeError(
+			method.Name().String(),
+			callInfo.ArgumentCount,
+			reqParamCount,
+			paramCount,
+		)
 	}
 
 	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
-		missingArgCount := preRestParamCount - callInfo.ArgumentCount
+		missingArgCount := paramCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
 			vm.push(value.Undefined)
 		}
-	} else if postParamCount == -1 && paramCount != callInfo.ArgumentCount {
+	} else if paramCount != callInfo.ArgumentCount {
 		return value.NewWrongArgumentCountError(
 			method.Name().String(),
 			callInfo.ArgumentCount,
@@ -1527,39 +1340,13 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 		)
 	}
 
-	if postParamCount >= 0 {
-		var postArgs []value.Value
-		if postParamCount > 0 {
-			postArgs = make([]value.Value, postParamCount)
-			copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
-			vm.popN(postParamCount)
-		}
-		var restList value.ArrayList
-		restArgCount := callInfo.ArgumentCount - preRestParamCount - postParamCount
-		if restArgCount > 0 {
-			// rest arguments
-			restList = make(value.ArrayList, restArgCount)
-			for i := 1; i <= restArgCount; i++ {
-				restList[restArgCount-i] = vm.pop()
-			}
-		}
-		vm.push(&restList)
-		for _, postArg := range postArgs {
-			vm.push(postArg)
-		}
-	}
-
-	if namedRestParam {
-		vm.push(&value.HashMap{})
-	}
-
 	return nil
 }
 
 // Include a mixin in a class/mixin.
-func (vm *VM) includeMixin() (err value.Value) {
-	targetValue := vm.pop()
+func (vm *VM) opInclude() (err value.Value) {
 	mixinVal := vm.pop()
+	targetValue := vm.pop()
 
 	mixin, ok := mixinVal.(*value.Mixin)
 	if !ok || !mixin.IsMixin() {
@@ -1606,296 +1393,59 @@ func (vm *VM) docComment() (err value.Value) {
 }
 
 // Define a new method
-func (vm *VM) defineMethod() value.Value {
-	nameVal := vm.pop()
-	bodyVal := vm.pop()
-
-	body := bodyVal.(*BytecodeFunction)
-	name := nameVal.(value.Symbol)
-
-	methodContainer := vm.methodContainerValue()
+func (vm *VM) opDefMethod() {
+	name := vm.pop().(value.Symbol)
+	body := vm.pop().(*BytecodeFunction)
+	methodContainer := vm.peek()
 
 	switch m := methodContainer.(type) {
 	case *value.Class:
-		if !m.CanOverride(name) {
-			return value.NewCantOverrideASealedMethod(string(name.ToString()))
-		}
 		m.Methods[name] = body
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
 
 	vm.push(body)
-	return nil
 }
 
-// Define a new mixin
-func (vm *VM) defineMixin() (err value.Value) {
-	constantNameVal := vm.pop()
-	parentModuleVal := vm.pop()
-	bodyVal := vm.pop()
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ConstantContainer
-
-	switch m := parentModuleVal.(type) {
-	case *value.Class:
-		parentModule = &m.ConstantContainer
-	case *value.Module:
-		parentModule = &m.ConstantContainer
-	default:
-		return value.NewIsNotModuleError(parentModuleVal.Inspect())
-	}
-
-	var mixin *value.Mixin
-	var ok bool
-
-	if mixinVal := parentModule.Constants.Get(constantName); mixinVal != nil {
-		mixin, ok = mixinVal.(*value.Mixin)
-		if !ok || !mixin.IsMixin() {
-			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
-		}
-	} else {
-		mixin = value.NewMixin()
-		parentModule.AddConstant(constantName, mixin)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeMixinBody(mixin, body)
-	case value.UndefinedType:
-		vm.push(mixin)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
+// Initialise a namespace
+func (vm *VM) opInitNamespace() {
+	body := vm.pop().(*BytecodeFunction)
+	namespace := vm.pop()
+	vm.executeNamespaceBody(namespace, body)
 }
 
-// Define a new module
-func (vm *VM) defineModule() (err value.Value) {
-	constantNameVal := vm.pop()
-	parentModuleVal := vm.pop()
-	bodyVal := vm.pop()
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ConstantContainer
-
-	switch m := parentModuleVal.(type) {
-	case *value.Class:
-		parentModule = &m.ConstantContainer
-	case *value.Module:
-		parentModule = &m.ConstantContainer
-	default:
-		return value.NewIsNotModuleError(parentModuleVal.Inspect())
-	}
-
-	var module *value.Module
-	var ok bool
-
-	if moduleVal := parentModule.Constants.Get(constantName); moduleVal != nil {
-		module, ok = moduleVal.(*value.Module)
-		if !ok {
-			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
-		}
-	} else {
-		module = value.NewModule()
-		parentModule.AddConstant(constantName, module)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeModuleBody(module, body)
-	case value.UndefinedType:
-		vm.push(module)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
+// Execute a chunk of bytecode
+func (vm *VM) opExec() {
+	bytecodeFunc := vm.pop().(*BytecodeFunction)
+	vm.executeFunc(bytecodeFunc)
+	vm.pop()
 }
 
 // Define a getter method
-func (vm *VM) defineGetter() value.Value {
+func (vm *VM) opDefGetter() {
 	name := vm.pop().(value.Symbol)
+	methodContainer := vm.peek()
 
-	var container *value.MethodContainer
-	methodContainerValue := vm.methodContainerValue()
-
-	switch methodContainer := methodContainerValue.(type) {
+	switch m := methodContainer.(type) {
 	case *value.Class:
-		container = &methodContainer.MethodContainer
+		DefineGetter(&m.MethodContainer, name)
+	default:
+		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %T", methodContainer))
 	}
-
-	err := DefineGetter(container, name, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Define a setter method
-func (vm *VM) defineSetter() value.Value {
+func (vm *VM) opDefSetter() {
 	name := vm.pop().(value.Symbol)
+	methodContainer := vm.peek()
 
-	var container *value.MethodContainer
-	methodContainerValue := vm.methodContainerValue()
-
-	switch methodContainer := methodContainerValue.(type) {
+	switch m := methodContainer.(type) {
 	case *value.Class:
-		container = &methodContainer.MethodContainer
-	}
-
-	err := DefineSetter(container, name, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Define a method alias
-func (vm *VM) defineSingleton() value.Value {
-	object := vm.pop()
-	bodyVal := vm.pop()
-	singletonClass := object.SingletonClass()
-
-	if singletonClass == nil {
-		return value.NewSingletonError(object.Inspect())
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeClassBody(singletonClass, body)
-	case value.UndefinedType:
-		vm.push(singletonClass)
+		DefineSetter(&m.MethodContainer, name)
 	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
+		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %T", methodContainer))
 	}
-
-	return nil
-}
-
-// Define a method alias
-func (vm *VM) defineAlias() value.Value {
-	newName := vm.pop().(value.Symbol)
-	oldName := vm.pop().(value.Symbol)
-
-	var err *value.Error
-	methodContainerValue := vm.methodContainerValue()
-
-	switch methodContainer := methodContainerValue.(type) {
-	case *value.Class:
-		err = methodContainer.DefineAlias(newName, oldName)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Define a new class
-func (vm *VM) defineClass() (err value.Value) {
-	superclassVal := vm.pop()
-	constantNameVal := vm.pop()
-	parentModuleVal := vm.pop()
-	bodyVal := vm.pop()
-	flags := bitfield.BitField8FromInt(vm.readByte())
-
-	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ConstantContainer
-
-	switch mod := parentModuleVal.(type) {
-	case *value.Class:
-		parentModule = &mod.ConstantContainer
-	case *value.Module:
-		parentModule = &mod.ConstantContainer
-	default:
-		return value.NewIsNotModuleError(parentModuleVal.Inspect())
-	}
-
-	var class *value.Class
-	var ok bool
-
-	if classVal := parentModule.Constants.Get(constantName); classVal != nil {
-		class, ok = classVal.(*value.Class)
-		if !ok {
-			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
-		}
-		switch superclass := superclassVal.(type) {
-		case *value.Class:
-			if class.Parent != superclass {
-				return value.NewSuperclassMismatchError(
-					class.Name,
-					class.Parent.Name,
-					superclass.Name,
-				)
-			}
-		case value.UndefinedType:
-		default:
-			return value.NewInvalidSuperclassError(superclass.Inspect())
-		}
-
-		if class.IsAbstract() {
-			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"sealed",
-					false,
-				)
-			}
-		} else if class.IsSealed() {
-			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"abstract",
-					false,
-				)
-			}
-		} else {
-			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"abstract",
-					false,
-				)
-			}
-			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"sealed",
-					false,
-				)
-			}
-		}
-	} else {
-		class = value.NewClass()
-		class.Flags = flags
-		switch superclass := superclassVal.(type) {
-		case *value.Class:
-			if superclass.IsSealed() {
-				return value.NewSealedClassError(string(constantName.ToString()), superclass.Inspect())
-			}
-			class.Parent = superclass
-		case value.UndefinedType:
-		default:
-			return value.NewInvalidSuperclassError(superclass.Inspect())
-		}
-		parentModule.AddConstant(constantName, class)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeClassBody(class, body)
-	case value.UndefinedType:
-		vm.push(class)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
 }
 
 func (vm *VM) addCallFrame(cf CallFrame) {
@@ -1918,56 +1468,30 @@ func (vm *VM) createCurrentCallFrame() {
 	)
 }
 
-// set up the vm to execute a class body
-func (vm *VM) executeClassBody(class value.Value, body *BytecodeFunction) {
+// set up the vm to execute a namespace body
+func (vm *VM) executeNamespaceBody(namespace value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
 	vm.fp = vm.sp
 	vm.ip = 0
-	vm.localCount = 3
-	// set class as `self`
-	vm.push(class)
-	// set class as constant container
-	vm.push(class)
-	// set class as method container
-	vm.push(class)
+	vm.localCount = 1
+	// set namespace as `self`
+	vm.push(namespace)
 }
 
-// set up the vm to execute a mixin body
-func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeFunction) {
+// set up the vm to execute a bytecode function
+func (vm *VM) executeFunc(fn *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
-	vm.bytecode = body
-	vm.fp = vm.sp
+	vm.bytecode = fn
 	vm.ip = 0
-	vm.localCount = 3
-	// set mixin as `self`
-	vm.push(mixin)
-	// set mixin as constant container
-	vm.push(mixin)
-	// set mixin as method container
-	vm.push(mixin)
-}
-
-// set up the vm to execute a module body
-func (vm *VM) executeModuleBody(module value.Value, body *BytecodeFunction) {
-	vm.createCurrentCallFrame()
-
-	vm.bytecode = body
-	vm.fp = vm.sp
-	vm.ip = 0
-	vm.localCount = 3
-	// set module as `self`
-	vm.push(module)
-	// set module as constant container
-	vm.push(module)
-	// set module's singleton class as method container
-	vm.push(module.SingletonClass())
+	vm.localCount = 1
+	vm.push(value.GlobalObject)
 }
 
 // Set a local variable or value.
-func (vm *VM) setLocal(index int) {
+func (vm *VM) opSetLocal(index int) {
 	vm.setLocalValue(index, vm.peek())
 }
 
@@ -1977,7 +1501,7 @@ func (vm *VM) setLocalValue(index int, val value.Value) {
 }
 
 // Read a local variable or value.
-func (vm *VM) getLocal(index int) {
+func (vm *VM) opGetLocal(index int) {
 	vm.push(vm.getLocalValue(index))
 }
 
@@ -1991,7 +1515,7 @@ func (vm *VM) getLocalValue(index int) value.Value {
 }
 
 // Set an upvalue.
-func (vm *VM) setUpvalue(index int) {
+func (vm *VM) opSetUpvalue(index int) {
 	vm.setUpvalueValue(index, vm.peek())
 }
 
@@ -2001,7 +1525,7 @@ func (vm *VM) setUpvalueValue(index int, val value.Value) {
 }
 
 // Read an upvalue.
-func (vm *VM) getUpvalue(index int) {
+func (vm *VM) opGetUpvalue(index int) {
 	vm.push(vm.getUpvalueValue(index))
 }
 
@@ -2011,7 +1535,7 @@ func (vm *VM) getUpvalueValue(index int) value.Value {
 }
 
 // Closes all upvalues up to the given local slot.
-func (vm *VM) closeUpvalues(lastToClose *value.Value) {
+func (vm *VM) opCloseUpvalues(lastToClose *value.Value) {
 	for {
 		if vm.openUpvalueHead == nil ||
 			uintptr(unsafe.Pointer(vm.openUpvalueHead.location)) <
@@ -2030,24 +1554,25 @@ func (vm *VM) closeUpvalues(lastToClose *value.Value) {
 	}
 }
 
-// Pop a module off the stack and look for a constant with the given name.
-func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
-	mod := vm.pop()
-	var constants value.SymbolMap
+// Set the superclass/parent of a class
+func (vm *VM) opSetSuperclass() {
+	newSuperclass := vm.pop().(*value.Class)
+	class := vm.pop().(*value.Class)
 
-	switch m := mod.(type) {
-	case *value.Class:
-		constants = m.Constants
-	case *value.Module:
-		constants = m.Constants
-	default:
-		return value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect())
+	if class.Parent != nil {
+		return
 	}
 
-	val := constants.Get(symbol)
+	class.Parent = newSuperclass
+}
+
+// Look for a constant with the given name.
+func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
+	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
+
+	val := value.RootModule.Constants.Get(symbol)
 	if val == nil {
-		return value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect())
+		return value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String())
 	}
 
 	vm.push(val)
@@ -2055,7 +1580,7 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 }
 
 // Get the iterator of the value on top of the stack.
-func (vm *VM) getIterator() value.Value {
+func (vm *VM) opGetIterator() value.Value {
 	val := vm.peek()
 	result, err := vm.CallMethodByName(iteratorSymbol, val)
 	if err != nil {
@@ -2071,7 +1596,7 @@ var stopIterationSymbol = value.ToSymbol("stop_iteration")
 var iteratorSymbol = value.ToSymbol("iter")
 
 // Drive the for..in loop.
-func (vm *VM) forIn() value.Value {
+func (vm *VM) opForIn() value.Value {
 	iterator := vm.pop()
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	switch e := err.(type) {
@@ -2094,7 +1619,7 @@ func (vm *VM) forIn() value.Value {
 var toStringSymbol = value.ToSymbol("to_string")
 
 // Create a new string.
-func (vm *VM) newString(dynamicElements int) value.Value {
+func (vm *VM) opNewString(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - dynamicElements
 
 	var buffer strings.Builder
@@ -2156,7 +1681,7 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 }
 
 // Create a new symbol.
-func (vm *VM) newSymbol(dynamicElements int) value.Value {
+func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - dynamicElements
 
 	var buffer strings.Builder
@@ -2218,7 +1743,7 @@ func (vm *VM) newSymbol(dynamicElements int) value.Value {
 }
 
 // Create a new regex.
-func (vm *VM) newRegex(flagByte byte, dynamicElements int) value.Value {
+func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	flags := bitfield.BitField8FromInt(flagByte)
 	firstElementIndex := vm.sp - dynamicElements
 
@@ -2285,7 +1810,7 @@ func (vm *VM) newRegex(flagByte byte, dynamicElements int) value.Value {
 }
 
 // Create a new hashset.
-func (vm *VM) newHashSet(dynamicElements int) value.Value {
+func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - dynamicElements
 	capacity := vm.stack[firstElementIndex-2]
 	baseSet := vm.stack[firstElementIndex-1]
@@ -2334,7 +1859,7 @@ func (vm *VM) newHashSet(dynamicElements int) value.Value {
 }
 
 // Create a new hashmap.
-func (vm *VM) newHashMap(dynamicElements int) value.Value {
+func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - (dynamicElements * 2)
 	capacity := vm.stack[firstElementIndex-2]
 	baseMap := vm.stack[firstElementIndex-1]
@@ -2384,7 +1909,7 @@ func (vm *VM) newHashMap(dynamicElements int) value.Value {
 }
 
 // Create a new hash record.
-func (vm *VM) newHashRecord(dynamicElements int) value.Value {
+func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - (dynamicElements * 2)
 	baseMap := vm.stack[firstElementIndex-1]
 	var newRecord *value.HashRecord
@@ -2409,7 +1934,7 @@ func (vm *VM) newHashRecord(dynamicElements int) value.Value {
 }
 
 // Create a new array list.
-func (vm *VM) newArrayList(dynamicElements int) value.Value {
+func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - dynamicElements
 	capacity := vm.stack[firstElementIndex-2]
 	baseList := vm.stack[firstElementIndex-1]
@@ -2449,7 +1974,7 @@ func (vm *VM) newArrayList(dynamicElements int) value.Value {
 }
 
 // Create a new range.
-func (vm *VM) newRange() {
+func (vm *VM) opNewRange() {
 	flag := vm.readByte()
 	var newRange value.Value
 
@@ -2486,7 +2011,7 @@ func (vm *VM) newRange() {
 }
 
 // Create a new arrayTuple.
-func (vm *VM) newArrayTuple(dynamicElements int) {
+func (vm *VM) opNewArrayTuple(dynamicElements int) {
 	firstElementIndex := vm.sp - dynamicElements
 	baseArrayTuple := vm.stack[firstElementIndex-1]
 	var newArrayTuple value.ArrayTuple
@@ -2505,31 +2030,32 @@ func (vm *VM) newArrayTuple(dynamicElements int) {
 	vm.push(&newArrayTuple)
 }
 
-// Pop two values off the stack and define a constant with the given name.
-func (vm *VM) defModuleConstant(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
-	mod := vm.pop()
+// Define a new constant
+func (vm *VM) opDefConst() {
+	constVal := vm.pop()
+	constName := vm.pop().(value.Symbol)
+	namespace := vm.pop()
 	var constants value.SymbolMap
 
-	switch m := mod.(type) {
+	switch n := namespace.(type) {
 	case *value.Class:
-		constants = m.Constants
+		constants = n.Constants
 	case *value.Module:
-		constants = m.Constants
+		constants = n.Constants
 	default:
-		return value.NewIsNotModuleError(mod.Inspect())
+		panic(
+			fmt.Sprintf(
+				"tried to define a constant under an invalid namespace: %T",
+				namespace,
+			),
+		)
 	}
 
-	val := vm.peek()
-	if constants.Has(symbol) {
-		return value.NewRedefinedConstantError(mod.Inspect(), symbol.Inspect())
-	}
-	constants.Set(symbol, val)
-	return nil
+	constants.Set(constName, constVal)
 }
 
 // Leave a local scope and pop all local variables associated with it.
-func (vm *VM) leaveScope(lastLocalIndex, varsToPop int) {
+func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 	firstLocalIndex := lastLocalIndex - varsToPop
 	for i := lastLocalIndex; i > firstLocalIndex; i-- {
 		vm.stack[i] = nil
@@ -2537,7 +2063,7 @@ func (vm *VM) leaveScope(lastLocalIndex, varsToPop int) {
 }
 
 // Register slots for local variables and values.
-func (vm *VM) prepLocals(count int) {
+func (vm *VM) opPrepLocals(count int) {
 	vm.sp += count
 	vm.localCount += count
 }
@@ -2650,31 +2176,31 @@ func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) val
 }
 
 // Increment the element on top of the stack
-func (vm *VM) increment() (err value.Value) {
+func (vm *VM) opIncrement() (err value.Value) {
 	return vm.unaryOperation(value.Increment, symbol.OpIncrement)
 }
 
 // Decrement the element on top of the stack
-func (vm *VM) decrement() (err value.Value) {
+func (vm *VM) opDecrement() (err value.Value) {
 	return vm.unaryOperation(value.Decrement, symbol.OpDecrement)
 }
 
 // Negate the element on top of the stack
-func (vm *VM) negate() (err value.Value) {
+func (vm *VM) opNegate() (err value.Value) {
 	return vm.unaryOperation(value.Negate, symbol.OpNegate)
 }
 
 // Perform unary plus on the element on top of the stack
-func (vm *VM) unaryPlus() (err value.Value) {
+func (vm *VM) opUnaryPlus() (err value.Value) {
 	return vm.unaryOperation(value.UnaryPlus, symbol.OpUnaryPlus)
 }
 
 // Preform bitwise not on the element on top of the stack
-func (vm *VM) bitwiseNot() (err value.Value) {
+func (vm *VM) opBitwiseNot() (err value.Value) {
 	return vm.unaryOperation(value.BitwiseNot, symbol.OpBitwiseNot)
 }
 
-func (vm *VM) appendAt() value.Value {
+func (vm *VM) opAppendAt() value.Value {
 	val := vm.pop()
 	key := vm.pop()
 	collection := vm.peek()
@@ -2727,7 +2253,7 @@ func (vm *VM) appendAt() value.Value {
 	return nil
 }
 
-func (vm *VM) subscriptSet() value.Value {
+func (vm *VM) opSubscriptSet() value.Value {
 	val := vm.peek()
 	key := vm.peekAt(1)
 	collection := vm.peekAt(2)
@@ -2749,7 +2275,7 @@ func (vm *VM) subscriptSet() value.Value {
 	return nil
 }
 
-func (vm *VM) isA() (err value.Value) {
+func (vm *VM) opIsA() (err value.Value) {
 	classVal := vm.pop()
 	val := vm.peek()
 
@@ -2764,7 +2290,7 @@ func (vm *VM) isA() (err value.Value) {
 	return nil
 }
 
-func (vm *VM) instanceOf() (err value.Value) {
+func (vm *VM) opInstanceOf() (err value.Value) {
 	classVal := vm.pop()
 	val := vm.peek()
 
@@ -2843,42 +2369,42 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 }
 
 // Perform a bitwise AND and push the result to the stack.
-func (vm *VM) bitwiseAnd() (err value.Value) {
+func (vm *VM) opBitwiseAnd() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAnd, symbol.OpAnd)
 }
 
 // Perform a bitwise AND NOT and push the result to the stack.
-func (vm *VM) bitwiseAndNot() (err value.Value) {
+func (vm *VM) opBitwiseAndNot() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAndNot, symbol.OpAndNot)
 }
 
 // Get the value under the given key and push the result to the stack.
-func (vm *VM) subscript() (err value.Value) {
+func (vm *VM) opSubscript() (err value.Value) {
 	return vm.binaryOperation(value.Subscript, symbol.OpSubscript)
 }
 
 // Perform a bitwise OR and push the result to the stack.
-func (vm *VM) bitwiseOr() (err value.Value) {
+func (vm *VM) opBitwiseOr() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseOr, symbol.OpOr)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
-func (vm *VM) bitwiseXor() (err value.Value) {
+func (vm *VM) opBitwiseXor() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseXor, symbol.OpXor)
 }
 
 // Perform a comparison and push the result to the stack.
-func (vm *VM) compare() (err value.Value) {
+func (vm *VM) opCompare() (err value.Value) {
 	return vm.binaryOperation(value.Compare, symbol.OpSpaceship)
 }
 
-// Perform modulo and push the result to the stack.
-func (vm *VM) modulo() (err value.Value) {
+// Perform opModulo and push the result to the stack.
+func (vm *VM) opModulo() (err value.Value) {
 	return vm.binaryOperation(value.Modulo, symbol.OpModulo)
 }
 
-// Check whether two top elements on the stack are equal and push the result to the stack.
-func (vm *VM) equal() (err value.Value) {
+// Check whether two top elements on the stack are opEqual and push the result to the stack.
+func (vm *VM) opEqual() (err value.Value) {
 	return vm.callEqualityOperator(value.Equal, symbol.OpEqual)
 }
 
@@ -2933,97 +2459,97 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
-func (vm *VM) notEqual() (err value.Value) {
+func (vm *VM) opNotEqual() (err value.Value) {
 	return vm.callNegatedEqualityOperator(value.NotEqual, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
-func (vm *VM) laxEqual() (err value.Value) {
+func (vm *VM) opLaxEqual() (err value.Value) {
 	return vm.callEqualityOperator(value.LaxEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
-func (vm *VM) laxNotEqual() (err value.Value) {
+func (vm *VM) opLaxNotEqual() (err value.Value) {
 	return vm.callNegatedEqualityOperator(value.LaxNotEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
-func (vm *VM) strictEqual() (err value.Value) {
+func (vm *VM) opStrictEqual() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.StrictEqual, symbol.OpStrictEqual)
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
-func (vm *VM) strictNotEqual() (err value.Value) {
+func (vm *VM) opStrictNotEqual() (err value.Value) {
 	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, symbol.OpStrictEqual)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
-func (vm *VM) greaterThan() (err value.Value) {
+func (vm *VM) opGreaterThan() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThan, symbol.OpGreaterThan)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
-func (vm *VM) greaterThanEqual() (err value.Value) {
+func (vm *VM) opGreaterThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThanEqual, symbol.OpGreaterThanEqual)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
-func (vm *VM) lessThan() (err value.Value) {
+func (vm *VM) opLessThan() (err value.Value) {
 	return vm.binaryOperation(value.LessThan, symbol.OpLessThan)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
-func (vm *VM) lessThanEqual() (err value.Value) {
+func (vm *VM) opLessThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.LessThanEqual, symbol.OpLessThanEqual)
 }
 
 // Perform a left bitshift and push the result to the stack.
-func (vm *VM) leftBitshift() (err value.Value) {
+func (vm *VM) opLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshift, symbol.OpLeftBitshift)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
-func (vm *VM) logicalLeftBitshift() (err value.Value) {
+func (vm *VM) opLogicalLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalLeftBitshift, symbol.OpLogicalLeftBitshift)
 }
 
 // Perform a right bitshift and push the result to the stack.
-func (vm *VM) rightBitshift() (err value.Value) {
+func (vm *VM) opRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.RightBitshift, symbol.OpRightBitshift)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
-func (vm *VM) logicalRightBitshift() (err value.Value) {
+func (vm *VM) opLogicalRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalRightBitshift, symbol.OpLogicalRightBitshift)
 }
 
 // Add two operands together and push the result to the stack.
-func (vm *VM) add() (err value.Value) {
+func (vm *VM) opAdd() (err value.Value) {
 	return vm.binaryOperation(value.Add, symbol.OpAdd)
 }
 
 // Subtract two operands and push the result to the stack.
-func (vm *VM) subtract() (err value.Value) {
+func (vm *VM) opSubtract() (err value.Value) {
 	return vm.binaryOperation(value.Subtract, symbol.OpSubtract)
 }
 
 // Multiply two operands together and push the result to the stack.
-func (vm *VM) multiply() (err value.Value) {
+func (vm *VM) opMultiply() (err value.Value) {
 	return vm.binaryOperation(value.Multiply, symbol.OpMultiply)
 }
 
 // Divide two operands and push the result to the stack.
-func (vm *VM) divide() (err value.Value) {
+func (vm *VM) opDivide() (err value.Value) {
 	return vm.binaryOperation(value.Divide, symbol.OpDivide)
 }
 
 // Exponentiate two operands and push the result to the stack.
-func (vm *VM) exponentiate() (err value.Value) {
+func (vm *VM) opExponentiate() (err value.Value) {
 	return vm.binaryOperation(value.Exponentiate, symbol.OpExponentiate)
 }
 
 // Throw an error when the value on top of the stack is `nil`
-func (vm *VM) must() {
+func (vm *VM) opMust() {
 	val := vm.peek()
 	if value.IsNil(val) {
 		vm.throw(value.NewUnexpectedNilError())
@@ -3031,7 +2557,7 @@ func (vm *VM) must() {
 }
 
 // Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
-func (vm *VM) as() {
+func (vm *VM) mustAs() {
 	class := vm.pop().(*value.Class)
 	val := vm.peek()
 	if !value.IsA(val, class) {

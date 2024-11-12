@@ -18,6 +18,23 @@ func NewTypeParamNamespace(docComment string) *TypeParamNamespace {
 	}
 }
 
+func (t *TypeParamNamespace) Copy() *TypeParamNamespace {
+	return &TypeParamNamespace{
+		docComment: t.docComment,
+		constants:  t.constants,
+		subtypes:   t.subtypes,
+	}
+}
+
+func (t *TypeParamNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeParamNamespace {
+	newNamespace := t.Copy()
+
+	newNamespace.constants = ConstantsDeepCopyEnv(t.constants, oldEnv, newEnv)
+	newNamespace.subtypes = ConstantsDeepCopyEnv(t.subtypes, oldEnv, newEnv)
+
+	return newNamespace
+}
+
 func (t *TypeParamNamespace) Name() string {
 	return ""
 }
@@ -31,11 +48,11 @@ func (t *TypeParamNamespace) DocComment() string {
 }
 
 func (t *TypeParamNamespace) SetDocComment(string) {
-	panic("cannot set doc comment on closures")
+	panic("cannot set doc comment on type param namespace")
 }
 
 func (t *TypeParamNamespace) AppendDocComment(string) {
-	panic("cannot append doc comment on closures")
+	panic("cannot append doc comment on type param namespace")
 }
 
 func (t *TypeParamNamespace) Parent() Namespace {
@@ -48,6 +65,18 @@ func (t *TypeParamNamespace) SetParent(Namespace) {
 
 func (t *TypeParamNamespace) Singleton() *SingletonClass {
 	return nil
+}
+
+func (t *TypeParamNamespace) SetSingleton(*SingletonClass) {
+	panic("cannot set singleton class of closure")
+}
+
+func (t *TypeParamNamespace) IsDefined() bool {
+	return false
+}
+
+func (t *TypeParamNamespace) SetDefined(bool) {
+	panic("cannot set `defined` in type param namespace")
 }
 
 func (t *TypeParamNamespace) IsAbstract() bool {

@@ -1,5 +1,7 @@
 package types
 
+import "github.com/elk-language/elk/value"
+
 type NamedType struct {
 	Name string
 	Type Type
@@ -22,4 +24,30 @@ func (*NamedType) IsLiteral() bool {
 
 func (n *NamedType) inspect() string {
 	return n.Name
+}
+
+func (n *NamedType) Copy() *NamedType {
+	return &NamedType{
+		Name: n.Name,
+		Type: n.Type,
+	}
+}
+
+func (n *NamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamedType {
+	if newType, ok := NameToTypeOk(n.Name, newEnv); ok {
+		return newType.(*NamedType)
+	}
+
+	newType := &NamedType{
+		Name: n.Name,
+	}
+
+	classConstantPath := GetConstantPath(n.Name)
+	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
+	classConstantName := classConstantPath[len(classConstantPath)-1]
+	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newType)
+
+	newType.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
+
+	return newType
 }

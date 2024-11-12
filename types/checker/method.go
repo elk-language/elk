@@ -44,6 +44,7 @@ func (c *Checker) newMethodChecker(
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+		compiler:             c.compiler,
 	}
 	if isInit {
 		checker.mode = initMode
@@ -53,11 +54,11 @@ func (c *Checker) newMethodChecker(
 
 func (c *Checker) checkMethodPlaceholders() {
 	for _, placeholder := range c.methodPlaceholders {
-		if placeholder.Checked {
+		if placeholder.IsChecked() {
 			continue
 		}
-		placeholder.Checked = true
-		if placeholder.Replaced {
+		placeholder.SetChecked(true)
+		if placeholder.IsReplaced() {
 			continue
 		}
 
@@ -70,7 +71,6 @@ func (c *Checker) checkMethodPlaceholders() {
 }
 
 type methodCheckEntry struct {
-	filename       string
 	method         *types.Method
 	constantScopes []constantScope
 	methodScopes   []methodScope
@@ -83,7 +83,6 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
-		filename:       c.Filename,
 	})
 }
 
@@ -95,8 +94,9 @@ func (c *Checker) checkMethods() {
 		c.methodChecks,
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
+			node := methodCheck.node
 			methodChecker := c.newMethodChecker(
-				methodCheck.filename,
+				node.Location().Filename,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
 				method.DefinedUnder,
@@ -104,8 +104,7 @@ func (c *Checker) checkMethods() {
 				method.ThrowType,
 				method.IsInit(),
 			)
-			node := methodCheck.node
-			methodChecker.checkMethodDefinition(node)
+			methodChecker.checkMethodDefinition(node, method)
 
 			// method has to be checked if it doesn't
 			// use the constants that use it in their initialisation
@@ -158,6 +157,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		node.Span(),
 	)
+	method.SetAttribute(true)
 
 	init := node.Initialiser
 	var body []ast.StatementNode
@@ -178,7 +178,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 	}
 
 	methodNode := ast.NewMethodDefinitionNode(
-		node.Span(),
+		c.newLocation(node.Span()),
 		"",
 		false,
 		false,
@@ -263,9 +263,10 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		node.Span(),
 	)
+	method.SetAttribute(true)
 
 	methodNode := ast.NewMethodDefinitionNode(
-		node.Span(),
+		c.newLocation(node.Span()),
 		docComment,
 		false,
 		false,
@@ -1003,7 +1004,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 	}
 
-	if method.HasNamedRestParam {
+	if method.HasNamedRestParam() {
 		namedRestArgs := ast.NewHashRecordLiteralNode(
 			span,
 			nil,
@@ -1287,7 +1288,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 		}
 	}
 
-	if method.HasNamedRestParam {
+	if method.HasNamedRestParam() {
 		namedRestArgs := ast.NewHashRecordLiteralNode(
 			span,
 			nil,
@@ -1502,8 +1503,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 	return returnType
 }
 
-func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
-	method := c.typeOf(node).(*types.Method)
+func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *types.Method) {
 	c.method = method
 	returnType, throwType := c.checkMethod(
 		c.currentMethodScope().container,
@@ -1522,6 +1522,10 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
+
+	if c.compiler != nil && method.IsCompilable() {
+		method.Bytecode = c.compiler.CompileMethodBody(node, method.Name)
+	}
 }
 
 func (c *Checker) declareMethod(
@@ -1818,8 +1822,8 @@ func (c *Checker) checkMethodOverrideWithPlaceholder(
 		return
 	}
 
-	if baseMethod.IsPlaceholder {
-		baseMethod.Replaced = true
+	if baseMethod.IsPlaceholder() {
+		baseMethod.SetReplaced(true)
 		baseMethod.DefinedUnder.SetMethod(baseMethod.Name, overrideMethod)
 		return
 	}

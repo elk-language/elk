@@ -55,3 +55,20 @@ func (m *MixinWithWhere) InspectExtend() string {
 func (m *MixinWithWhere) InspectExtendWithColor() string {
 	return lexer.Colorize(m.InspectExtend())
 }
+
+func (m *MixinWithWhere) Copy() *MixinWithWhere {
+	return &MixinWithWhere{
+		MixinProxy: m.MixinProxy,
+		Namespace:  m.Namespace,
+		Where:      m.Where,
+	}
+}
+
+func (m *MixinWithWhere) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *MixinWithWhere {
+	newMixin := m.Copy()
+	newMixin.MixinProxy = DeepCopyEnv(m.MixinProxy, oldEnv, newEnv).(*MixinProxy)
+	newMixin.Namespace = DeepCopyEnv(m.Namespace, oldEnv, newEnv).(Namespace)
+	newMixin.Where = TypeParametersDeepCopyEnv(m.Where, oldEnv, newEnv)
+
+	return newMixin
+}

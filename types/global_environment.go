@@ -7,6 +7,7 @@ import (
 
 type GlobalEnvironment struct {
 	Root *Module
+	Init bool // Whether the global environment is in its initialisation stage
 }
 
 func (g *GlobalEnvironment) Std() *Module {
@@ -49,19 +50,23 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	rootModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
+		compiled:      true,
 	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
+		Init: true,
 	}
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),
+		compiled:      true,
 	}
 	rootModule.DefineConstant(symbol.Std, stdModule)
 	rootModule.DefineSubtype(symbol.Std, stdModule)
 
 	valueClass := &Class{
 		NamespaceBase: MakeNamespaceBase("", "Std::Value"),
+		defined:       true,
 	}
 	valueClass.primitive = true
 	stdModule.DefineSubtype(symbol.Value, valueClass)
@@ -69,12 +74,14 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	objectClass := &Class{
 		parent:        valueClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
+		defined:       true,
 	}
 	stdModule.DefineSubtype(symbol.Object, objectClass)
 
 	classClass := &Class{
 		parent:        objectClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
+		defined:       true,
 	}
 	stdModule.DefineSubtype(symbol.Class, classClass)
 
@@ -128,12 +135,30 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, symbol.Method, valueClass, env)
 	stdModule.DefineClass("", false, true, true, symbol.Pair, valueClass, env)
 
+	env.Init = false
 	return env
 }
 
 // Create a new global environment for type checking.
 func NewGlobalEnvironment() *GlobalEnvironment {
 	env := NewGlobalEnvironmentWithoutHeaders()
+
+	env.Init = true
 	setupGlobalEnvironmentFromHeaders(env)
+	env.Init = false
+
 	return env
+}
+
+func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
+	newRoot := &Module{
+		NamespaceBase: MakeNamespaceBase("", "Root"),
+		compiled:      true,
+	}
+	newEnv := &GlobalEnvironment{
+		Init: g.Init,
+		Root: newRoot,
+	}
+	newRoot.deepCopyInPlace(g.Root, g, newEnv)
+	return newEnv
 }

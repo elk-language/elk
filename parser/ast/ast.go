@@ -83,12 +83,6 @@ func (d *DocCommentableNodeBase) SetDocComment(comment string) {
 	d.comment = comment
 }
 
-// Every node type implements this interface.
-type TypedNode interface {
-	Node
-	SetType(types.Type)
-}
-
 // Base typed AST node.
 type TypedNodeBase struct {
 	span *position.Span
@@ -113,6 +107,40 @@ func (t *TypedNodeBase) Span() *position.Span {
 
 func (t *TypedNodeBase) SetSpan(span *position.Span) {
 	t.span = span
+}
+
+// Base typed AST node.
+type TypedNodeBaseWithLoc struct {
+	loc *position.Location
+	typ types.Type
+}
+
+func (t *TypedNodeBaseWithLoc) Type(*types.GlobalEnvironment) types.Type {
+	return t.typ
+}
+
+func (t *TypedNodeBaseWithLoc) SkipTypechecking() bool {
+	return t.typ != nil
+}
+
+func (t *TypedNodeBaseWithLoc) SetType(typ types.Type) {
+	t.typ = typ
+}
+
+func (t *TypedNodeBaseWithLoc) Span() *position.Span {
+	return &t.loc.Span
+}
+
+func (t *TypedNodeBaseWithLoc) SetSpan(span *position.Span) {
+	t.loc.Span = *span
+}
+
+func (t *TypedNodeBaseWithLoc) Location() *position.Location {
+	return t.loc
+}
+
+func (t *TypedNodeBaseWithLoc) SetLocation(loc *position.Location) {
+	t.loc = loc
 }
 
 // Base AST node.
@@ -681,7 +709,7 @@ func (*VariantTypeParameterNode) typeVariableNode() {}
 // All nodes that should be valid in constant lookups
 // should implement this interface.
 type ComplexConstantNode interface {
-	TypedNode
+	Node
 	TypeNode
 	ExpressionNode
 	PatternNode
@@ -699,7 +727,7 @@ func (*NilLiteralNode) complexConstantNode()      {}
 
 // Represents all nodes that are valid in using declarations
 type UsingEntryNode interface {
-	TypedNode
+	Node
 	ExpressionNode
 	usingEntryNode()
 }
@@ -717,7 +745,7 @@ func (*GenericConstantNode) usingEntryNode()          {}
 func (*NilLiteralNode) usingEntryNode()               {}
 
 type UsingSubentryNode interface {
-	TypedNode
+	Node
 	ExpressionNode
 	usingSubentryNode()
 }
@@ -3630,7 +3658,7 @@ func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStr
 
 // Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
-	TypedNodeBase
+	TypedNodeBaseWithLoc
 	DocCommentableNodeBase
 	Name           string
 	TypeParameters []TypeParameterNode
@@ -3661,7 +3689,7 @@ func (m *MethodDefinitionNode) IsSetter() bool {
 
 // Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	abstract bool,
 	sealed bool,
@@ -3673,7 +3701,7 @@ func NewMethodDefinitionNode(
 	body []StatementNode,
 ) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBaseWithLoc: TypedNodeBaseWithLoc{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -3690,7 +3718,7 @@ func NewMethodDefinitionNode(
 
 // Represents a constructor definition eg. `init then 'hello world'`
 type InitDefinitionNode struct {
-	TypedNodeBase
+	TypedNodeBaseWithLoc
 	DocCommentableNodeBase
 	Parameters []ParameterNode // formal parameters
 	ThrowType  TypeNode
@@ -3702,12 +3730,12 @@ func (*InitDefinitionNode) IsStatic() bool {
 }
 
 // Create a constructor definition node eg. `init then 'hello world'`
-func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
+func NewInitDefinitionNode(loc *position.Location, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
 	return &InitDefinitionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
-		Parameters:    params,
-		ThrowType:     throwType,
-		Body:          body,
+		TypedNodeBaseWithLoc: TypedNodeBaseWithLoc{loc: loc},
+		Parameters:           params,
+		ThrowType:            throwType,
+		Body:                 body,
 	}
 }
 

@@ -16,8 +16,7 @@ func init() {
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,

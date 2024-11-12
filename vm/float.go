@@ -13,7 +13,6 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -22,7 +21,6 @@ func init() {
 			self := args[0].(value.Float)
 			return -self, nil
 		},
-		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -32,8 +30,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Add(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -43,8 +40,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Subtract(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -54,8 +50,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Multiply(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -65,8 +60,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Divide(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -76,8 +70,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Exponentiate(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -87,8 +80,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Compare(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -98,8 +90,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -109,8 +100,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -120,8 +110,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThan(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -131,8 +120,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -142,8 +130,7 @@ func init() {
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -153,8 +140,7 @@ func init() {
 			other := args[1]
 			return value.ToValueErr(self.Modulo(other))
 		},
-		DefWithParameters("other"),
-		DefWithSealed(),
+		DefWithParameters(1),
 	)
 
 	Def(

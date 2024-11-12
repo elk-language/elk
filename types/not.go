@@ -41,3 +41,15 @@ func (n *Not) inspect() string {
 	}
 	return buf.String()
 }
+
+func (n *Not) Copy() *Not {
+	return &Not{
+		Type: n.Type,
+	}
+}
+
+func (n *Not) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Not {
+	newNot := n.Copy()
+	newNot.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
+	return newNot
+}

@@ -28,8 +28,7 @@ func init() {
 
 			return value.Nil, nil
 		},
-		DefWithParameters("values"),
-		DefWithPositionalRestParameter(),
+		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -46,8 +45,7 @@ func init() {
 
 			return value.Nil, nil
 		},
-		DefWithParameters("values"),
-		DefWithPositionalRestParameter(),
+		DefWithParameters(1),
 	)
 	Alias(c, "puts", "println")
 	Def(
@@ -83,7 +81,7 @@ func init() {
 			other := args[1]
 			return value.ToElkBool(self == other), nil
 		},
-		DefWithParameters("other"),
+		DefWithParameters(1),
 	)
 	Alias(c, "===", "==")
 	Def(

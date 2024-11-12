@@ -23,3 +23,19 @@ func NewInterfaceProxy(iface *Interface, parent Namespace) *InterfaceProxy {
 func (i *InterfaceProxy) ToNonLiteral(env *GlobalEnvironment) Type {
 	return i
 }
+
+func (m *InterfaceProxy) Copy() *InterfaceProxy {
+	return &InterfaceProxy{
+		parent:    m.parent,
+		Interface: m.Interface,
+	}
+}
+
+func (i *InterfaceProxy) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *InterfaceProxy {
+	newIface := &InterfaceProxy{}
+	if i.parent != nil {
+		newIface.parent = DeepCopyEnv(i.parent, oldEnv, newEnv).(Namespace)
+	}
+	newIface.Interface = DeepCopyEnv(i.Interface, oldEnv, newEnv).(*Interface)
+	return newIface
+}

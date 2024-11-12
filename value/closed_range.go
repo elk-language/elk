@@ -102,16 +102,10 @@ func (*ClosedRangeIterator) InstanceVariables() SymbolMap {
 }
 
 func initClosedRange() {
-	ClosedRangeClass = NewClassWithOptions(
-		ClassWithNoInstanceVariables(),
-		ClassWithSealed(),
-	)
+	ClosedRangeClass = NewClass()
 	ClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("ClosedRange", ClosedRangeClass)
 
-	ClosedRangeIteratorClass = NewClassWithOptions(
-		ClassWithSealed(),
-		ClassWithNoInstanceVariables(),
-	)
+	ClosedRangeIteratorClass = NewClass()
 	ClosedRangeClass.AddConstantString("Iterator", ClosedRangeIteratorClass)
 }
