@@ -123,26 +123,13 @@ type Checker struct {
 
 // Instantiate a new Checker instance.
 func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
-	if globalEnv == nil {
-		globalEnv = types.NewGlobalEnvironment()
-	}
-	return &Checker{
+	c := &Checker{
 		Filename:   filename,
-		GlobalEnv:  globalEnv,
 		IsHeader:   headerMode,
-		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		throwType:  types.Never{},
 		mode:       topLevelMode,
 		Errors:     new(error.SyncErrorList),
-		constantScopes: []constantScope{
-			makeConstantScope(globalEnv.Std()),
-			makeLocalConstantScope(globalEnv.Root),
-		},
-		methodScopes: []methodScope{
-			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
-			makeUsingMethodScope(globalEnv.StdSubtypeModule(symbol.Kernel)),
-		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
@@ -151,6 +138,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 	}
+	if globalEnv == nil {
+		globalEnv = types.NewGlobalEnvironment()
+	}
+
+	c.setGlobalEnv(globalEnv)
+	return c
 }
 
 // Instantiate a new Checker instance.
@@ -165,11 +158,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 		return nil, err
 	}
 
-	prevEnv := c.GlobalEnv
+	// prevEnv := c.GlobalEnv
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
 	envCopy := c.GlobalEnv.DeepCopyEnv()
-	c.GlobalEnv = envCopy
 
 	c.Filename = sourceName
 	c.methodChecks = nil
@@ -178,10 +170,23 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	if c.Errors.IsFailure() {
 		// restore the previous global environment if the code
 		// did not compile
-		c.GlobalEnv = prevEnv
+		c.setGlobalEnv(envCopy)
 	}
 
 	return bytecodeFunc, c.Errors.ErrorList
+}
+
+func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
+	c.GlobalEnv = newEnv
+	c.selfType = newEnv.StdSubtype(symbol.Object)
+	c.constantScopes = []constantScope{
+		makeConstantScope(newEnv.Std()),
+		makeLocalConstantScope(newEnv.Root),
+	}
+	c.methodScopes = []methodScope{
+		makeLocalMethodScope(newEnv.StdSubtypeClass(symbol.Object)),
+		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
+	}
 }
 
 func (c *Checker) checkNamespacePlaceholders() {
