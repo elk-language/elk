@@ -151,22 +151,32 @@ func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 		return newType.(*Mixin)
 	}
 
-	newMixin := m.Copy()
+	newMixin := &Mixin{
+		abstract:      m.abstract,
+		defined:       m.defined,
+		Checked:       m.Checked,
+		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
+	}
 	mixinConstantPath := GetConstantPath(m.name)
 	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
 
 	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
 	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
+	newMixin.instanceVariables = TypesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
 	newMixin.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
 	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
 
 	if m.parent != nil {
 		newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
 	}
+	var singletonParent Namespace
+	if m.singleton.parent != nil {
+		singletonParent = DeepCopyEnv(m.singleton.parent, oldEnv, newEnv).(Namespace)
+	}
 	newMixin.singleton = NewSingletonClass(
 		newMixin,
-		DeepCopyEnv(newMixin.singleton.parent, oldEnv, newEnv).(Namespace),
+		singletonParent,
 	)
 	return newMixin
 }

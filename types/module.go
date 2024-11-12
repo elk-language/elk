@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -119,11 +121,15 @@ func (m *Module) Copy() *Module {
 }
 
 func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
+	fmt.Printf("module: %s\n", I(m))
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
+		fmt.Printf("module cached: %s\n", I(newType))
 		return newType.(*Module)
 	}
 
-	newModule := m.Copy()
+	newModule := &Module{
+		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
+	}
 	moduleConstantPath := GetConstantPath(m.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
 	if parentNamespace != nil {
@@ -131,6 +137,7 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 	}
 
 	newModule.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
+	newModule.instanceVariables = TypesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
 	newModule.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 	newModule.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
 

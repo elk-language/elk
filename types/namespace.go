@@ -80,6 +80,14 @@ func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironme
 	return newConstants
 }
 
+func TypesDeepCopyEnv(types TypeMap, oldEnv, newEnv *GlobalEnvironment) TypeMap {
+	newTypes := make(TypeMap, len(types))
+	for typeName, typ := range types {
+		newTypes[typeName] = DeepCopyEnv(typ, oldEnv, newEnv)
+	}
+	return newTypes
+}
+
 func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) MethodMap {
 	newMethods := make(MethodMap, len(methods))
 	for methodName, method := range methods {

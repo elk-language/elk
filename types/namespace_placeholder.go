@@ -76,7 +76,10 @@ func (n *NamespacePlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *N
 		return newType.(*NamespacePlaceholder)
 	}
 
-	newNamespace := n.Copy()
+	newNamespace := &NamespacePlaceholder{
+		name:      n.name,
+		Locations: n.Locations,
+	}
 	moduleConstantPath := GetConstantPath(n.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newNamespace)

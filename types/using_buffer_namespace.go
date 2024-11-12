@@ -22,6 +22,7 @@ func (u *UsingBufferNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *U
 	newNamespace := u.Copy()
 
 	newNamespace.methods = MethodsDeepCopyEnv(u.methods, oldEnv, newEnv)
+	newNamespace.instanceVariables = TypesDeepCopyEnv(u.instanceVariables, oldEnv, newEnv)
 	newNamespace.constants = ConstantsDeepCopyEnv(u.constants, oldEnv, newEnv)
 	newNamespace.subtypes = ConstantsDeepCopyEnv(u.subtypes, oldEnv, newEnv)
 

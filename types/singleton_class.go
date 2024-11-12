@@ -41,10 +41,20 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 	if newS := newAttachedObject.Singleton(); newS != nil {
 		return newS
 	}
-	newSingleton := s.Copy()
+	newSingleton := &SingletonClass{
+		Class: Class{
+			primitive:     s.primitive,
+			sealed:        s.sealed,
+			abstract:      s.abstract,
+			defined:       s.defined,
+			compiled:      s.compiled,
+			NamespaceBase: MakeNamespaceBase(s.docComment, s.name),
+		},
+	}
 	newSingleton.AttachedObject = newAttachedObject
 
 	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
+	newSingleton.instanceVariables = TypesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)
 	newSingleton.subtypes = ConstantsDeepCopyEnv(s.subtypes, oldEnv, newEnv)
 	newSingleton.constants = ConstantsDeepCopyEnv(s.constants, oldEnv, newEnv)
 

@@ -77,7 +77,9 @@ func (g *GenericNamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Gener
 		return newType.(*GenericNamedType)
 	}
 
-	newType := g.Copy()
+	newType := &GenericNamedType{
+		Name: g.Name,
+	}
 
 	classConstantPath := GetConstantPath(g.Name)
 	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)

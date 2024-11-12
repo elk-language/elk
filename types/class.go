@@ -208,8 +208,14 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 		return newType.(*Class)
 	}
 
-	newClass := c.Copy()
-	newClass.singleton = nil
+	newClass := &Class{
+		primitive:     c.primitive,
+		sealed:        c.sealed,
+		abstract:      c.abstract,
+		defined:       c.defined,
+		compiled:      c.compiled,
+		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
+	}
 
 	classConstantPath := GetConstantPath(c.name)
 	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
@@ -217,6 +223,7 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newClass)
 
 	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
+	newClass.instanceVariables = TypesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
 	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
 	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
 	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
@@ -224,9 +231,13 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	if c.parent != nil {
 		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
 	}
+	var singletonParent Namespace
+	if c.singleton.parent != nil {
+		singletonParent = DeepCopyEnv(c.singleton.parent, oldEnv, newEnv).(Namespace)
+	}
 	newClass.singleton = NewSingletonClass(
 		newClass,
-		DeepCopyEnv(newClass.singleton.parent, oldEnv, newEnv).(Namespace),
+		singletonParent,
 	)
 	return newClass
 }

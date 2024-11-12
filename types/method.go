@@ -213,7 +213,20 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		return newMethod
 	}
 
-	newMethod := m.Copy()
+	newMethod := &Method{
+		FullName:                     m.FullName,
+		Name:                         m.Name,
+		DocComment:                   m.DocComment,
+		OptionalParamCount:           m.OptionalParamCount,
+		PostParamCount:               m.PostParamCount,
+		flags:                        m.flags,
+		Bytecode:                     m.Bytecode,
+		location:                     m.location,
+		UsedInConstants:              m.UsedInConstants,
+		UsedConstants:                m.UsedConstants,
+		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
+		Node:                         m.Node,
+	}
 	newMethod.DefinedUnder = newDefinedUnder
 	newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
 	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
