@@ -32,8 +32,10 @@ func (m *MixinProxy) Copy() *MixinProxy {
 }
 
 func (m *MixinProxy) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *MixinProxy {
-	newMixin := m.Copy()
-	newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
+	newMixin := &MixinProxy{}
+	if m.parent != nil {
+		newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
+	}
 	newMixin.Mixin = DeepCopyEnv(m.Mixin, oldEnv, newEnv).(*Mixin)
 	return newMixin
 }

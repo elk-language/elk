@@ -63,15 +63,7 @@ func ToNamespaceInterface[T Namespace](typ T) Namespace {
 	return typ
 }
 
-var counter uint64
-
 func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
-	counter++
-	if counter > 500000 {
-		panic("dupa")
-	}
-	fmt.Printf("deep copy: %s\n", I(t))
-	// defer fmt.Printf("returned: %s\n", I(t))
 	switch t := t.(type) {
 	case *Module:
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))

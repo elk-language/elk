@@ -92,6 +92,9 @@ func (t *TypeArguments) DeepCopy() *TypeArguments {
 func (t *TypeArguments) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArguments {
 	newMap := make(TypeArgumentMap, len(t.ArgumentMap))
 	for key, val := range t.ArgumentMap {
+		if key == symbol.L_self {
+			continue
+		}
 		newMap[key] = val.DeepCopyEnv(oldEnv, newEnv)
 	}
 	return &TypeArguments{
@@ -271,7 +274,7 @@ func (g *Generic) Copy() *Generic {
 }
 
 func (g *Generic) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Generic {
-	newGeneric := g.Copy()
+	newGeneric := &Generic{}
 	newGeneric.Namespace = DeepCopyEnv(g.Namespace, oldEnv, newEnv).(Namespace)
 	newGeneric.TypeArguments = g.TypeArguments.DeepCopyEnv(oldEnv, newEnv)
 

@@ -208,9 +208,13 @@ func (m *Method) Copy() *Method {
 }
 
 func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
-	newDefinedUnder := DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
-	if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
-		return newMethod
+	var newDefinedUnder Namespace
+
+	if m.DefinedUnder != nil && !IsClosure(m.DefinedUnder) {
+		newDefinedUnder := DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
+		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
+			return newMethod
+		}
 	}
 
 	newMethod := &Method{
@@ -227,8 +231,10 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
 	}
-	newMethod.DefinedUnder = newDefinedUnder
-	newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
+	if newDefinedUnder != nil {
+		newMethod.DefinedUnder = newDefinedUnder
+		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
+	}
 	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
 	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
 
@@ -243,8 +249,6 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		newCalledMethods[i] = calledMethod.DeepCopyEnv(oldEnv, newEnv)
 	}
 	newMethod.Params = newParameters
-
-	newMethod.DefinedUnder = DeepCopyEnv(newMethod.DefinedUnder, oldEnv, newEnv).(Namespace)
 
 	return newMethod
 }

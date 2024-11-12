@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -121,9 +119,7 @@ func (m *Module) Copy() *Module {
 }
 
 func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
-	fmt.Printf("module: %s\n", I(m))
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
-		fmt.Printf("module cached: %s\n", I(newType))
 		return newType.(*Module)
 	}
 

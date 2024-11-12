@@ -151,7 +151,6 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 }
 
 func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
-	counter = 0
 	newRoot := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
 		compiled:      true,

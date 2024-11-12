@@ -32,7 +32,7 @@ func (m *InterfaceProxy) Copy() *InterfaceProxy {
 }
 
 func (i *InterfaceProxy) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *InterfaceProxy {
-	newIface := i.Copy()
+	newIface := &InterfaceProxy{}
 	if i.parent != nil {
 		newIface.parent = DeepCopyEnv(i.parent, oldEnv, newEnv).(Namespace)
 	}
