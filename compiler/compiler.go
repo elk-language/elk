@@ -709,6 +709,8 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		c.compileNilSafeSubscriptExpressionNode(node)
 	case *ast.AttributeAccessNode:
 		c.compileAttributeAccessNode(node)
+	case *ast.NewExpressionNode:
+		c.compileNewExpressionNode(node)
 	case *ast.ConstructorCallNode:
 		c.compileConstructorCallNode(node)
 	case *ast.GenericConstructorCallNode:
@@ -3217,6 +3219,16 @@ func (c *Compiler) compileConstructorCallNode(node *ast.ConstructorCallNode) {
 	)
 }
 
+func (c *Compiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
+	c.compileConstructorCall(
+		func() {
+			c.emit(node.Span().StartPos.Line, bytecode.SELF)
+		},
+		node.PositionalArguments,
+		node.Span(),
+	)
+}
+
 func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
@@ -3233,9 +3245,7 @@ func (c *Compiler) compileConstructorCall(class func(), args []ast.ExpressionNod
 		c.compileNode(posArg)
 	}
 
-	name := value.ToSymbol("#init")
-	callInfo := value.NewCallSiteInfo(name, len(args))
-	c.emitInstantiate(callInfo, span)
+	c.emitInstantiate(len(args), span)
 }
 
 func (c *Compiler) compileMethodCallNode(node *ast.MethodCallNode) {
@@ -4943,8 +4953,14 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 		c.emit(line, bytecode.COMPARE)
 	case token.INSTANCE_OF_OP:
 		c.emit(line, bytecode.INSTANCE_OF)
+	case token.REVERSE_INSTANCE_OF_OP:
+		c.emit(line, bytecode.INSTANCE_OF)
+		c.emit(line, bytecode.NOT)
 	case token.ISA_OP:
 		c.emit(line, bytecode.IS_A)
+	case token.REVERSE_ISA_OP:
+		c.emit(line, bytecode.IS_A)
+		c.emit(line, bytecode.NOT)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), c.newLocation(span))
 	}
@@ -5375,13 +5391,22 @@ func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
 }
 
 // Emit an instruction that instantiates an object
-func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.Span) int {
-	return c.emitAddValue(
-		callInfo,
-		span,
-		bytecode.INSTANTIATE8,
-		bytecode.INSTANTIATE16,
-		bytecode.INSTANTIATE32,
+func (c *Compiler) emitInstantiate(args int, span *position.Span) {
+	if args <= math.MaxUint8 {
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.INSTANTIATE8, byte(args))
+		return
+	}
+
+	if args <= math.MaxUint16 {
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(args))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.INSTANTIATE8, bytes...)
+		return
+	}
+
+	c.Errors.AddFailure(
+		fmt.Sprintf("constructor argument limit reached: %d", math.MaxUint16),
+		c.newLocation(span),
 	)
 }
 

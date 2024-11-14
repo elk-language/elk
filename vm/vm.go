@@ -438,10 +438,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opInstantiate(int(vm.readUint16())),
 			)
-		case bytecode.INSTANTIATE32:
-			vm.throwIfErr(
-				vm.opInstantiate(int(vm.readUint32())),
-			)
 		case bytecode.GET_IVAR8:
 			vm.throwIfErr(
 				vm.opGetIvar(int(vm.readByte())),
@@ -1094,13 +1090,18 @@ func (vm *VM) opAppend() {
 	}
 }
 
-// Call a method with an explicit receiver
-func (vm *VM) opInstantiate(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
-
+// Create a new instance of a class
+func (vm *VM) opInstantiate(args int) (err value.Value) {
+	callInfo := value.NewCallSiteInfo(symbol.S_init, args)
 	classIndex := vm.sp - callInfo.ArgumentCount - 1
 	classVal := vm.stack[classIndex]
-	class := classVal.(*value.Class)
+	var class *value.Class
+	switch c := classVal.(type) {
+	case *value.Class:
+		class = c
+	default:
+		class = c.Class()
+	}
 
 	instance := class.CreateInstance()
 	// replace the class with the instance
@@ -1121,7 +1122,7 @@ func (vm *VM) opInstantiate(callInfoIndex int) (err value.Value) {
 		}
 
 		return value.NewWrongArgumentCountError(
-			"#init",
+			callInfo.Name.String(),
 			callInfo.ArgumentCount,
 			0,
 		)

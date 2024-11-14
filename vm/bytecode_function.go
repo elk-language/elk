@@ -434,8 +434,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.CALL16, bytecode.GET_CONST16:
 		return f.disassembleValue(output, 3, offset)
 	case bytecode.LOAD_VALUE32, bytecode.CALL_METHOD32,
-		bytecode.CALL_SELF32, bytecode.INSTANTIATE32,
-		bytecode.GET_IVAR32, bytecode.SET_IVAR32,
+		bytecode.CALL_SELF32, bytecode.GET_IVAR32, bytecode.SET_IVAR32,
 		bytecode.CALL32, bytecode.GET_CONST32:
 		return f.disassembleValue(output, 5, offset)
 	default:

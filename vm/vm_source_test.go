@@ -49,13 +49,11 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	typechecker := checker.New()
 	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
-	if gotCompileErr != nil {
-		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
-			t.Log(pp.Sprint(gotCompileErr))
-			t.Fatal(diff)
-		}
-		return
+	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
+		t.Log(pp.Sprint(gotCompileErr))
+		t.Fatal(diff)
 	}
+
 	var stdout strings.Builder
 	v := vm.New(vm.WithStdout(&stdout))
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)

@@ -65,7 +65,7 @@ func (m *ConstantContainer) AddConstant(name Symbol, val Value) {
 }
 
 func (m *ConstantContainer) fullConstantName(name string) string {
-	if m == &RootModule.ConstantContainer {
+	if m.Name == "Root" {
 		return name
 	}
 

@@ -1138,9 +1138,10 @@ func TestSpecialMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:lol` is not a valid override of `Std::Value.:==`\n  is:        `def lol(): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
 				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `==` must return `bool`"),
 				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `==` must accept a single parameter, got 0"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(31, 3, 17)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(): void`\n  should be: `native def ==(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
 			},
 		},
 		"declare an equal method with too many params": {
@@ -1194,9 +1195,10 @@ func TestSpecialMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:lol` is not a valid override of `Std::Value.:=~`\n  is:        `def lol(): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
+				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
 				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `=~` must return `bool`"),
 				error.NewFailure(L("<main>", P(44, 4, 12), P(49, 4, 17)), "equality operator `=~` must accept a single parameter, got 0"),
+				error.NewFailure(L("<main>", P(20, 3, 6), P(31, 3, 17)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(): void`\n  should be: `native def =~(other: any): bool`\n\n  - has a different return type, is `void`, should be `bool`\n  - has less parameters"),
 			},
 		},
 		"declare a lax equal method with too many params": {

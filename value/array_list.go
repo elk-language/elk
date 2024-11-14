@@ -16,8 +16,6 @@ var ArrayListClass *Class
 // ArrayList iterator class.
 var ArrayListIteratorClass *Class
 
-var NilArrayList ArrayList = nil
-
 // Elk's ArrayList value
 type ArrayList []Value
 

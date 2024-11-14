@@ -7694,7 +7694,9 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	c.checkMethodOverrideWithPlaceholder(alias, oldMethod, node.Span())
 	c.checkSpecialMethods(newName, alias, nil, node.Span())
 	namespace.SetMethod(newName, alias)
-	c.registerMethodCheck(alias, aliasedMethod.Node.(*ast.MethodDefinitionNode))
+	if aliasedMethod.Node != nil {
+		c.registerMethodCheck(alias, aliasedMethod.Node.(*ast.MethodDefinitionNode))
+	}
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
@@ -7837,6 +7839,9 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
 	namespace := c.currentConstScope().container
 	singleton := namespace.Singleton()
+	if singleton == nil {
+		return
+	}
 
 	c.pushConstScope(makeLocalConstantScope(singleton))
 	c.pushMethodScope(makeLocalMethodScope(singleton))

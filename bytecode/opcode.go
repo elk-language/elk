@@ -122,10 +122,10 @@ const (
 	DEF_GETTER  // Define a getter method
 	DEF_SETTER  // Define a setter method
 	_
-	RETURN_FIRST_ARG  // Push the first given argument (constant container for modules, classes etc) and return
-	INSTANTIATE8      // Create a new instance of a class (8 bit operand)
-	INSTANTIATE16     // Create a new instance of a class (16 bit operand)
-	INSTANTIATE32     // Create a new instance of a class (32 bit operand)
+	RETURN_FIRST_ARG // Push the first given argument (constant container for modules, classes etc) and return
+	INSTANTIATE8     // Create a new instance of a class (8 bit operand)
+	INSTANTIATE16    // Create a new instance of a class (16 bit operand)
+	_
 	RETURN_SELF       // Push self and return
 	GET_IVAR8         // Get the value of an instance variable (8 bit operand)
 	GET_IVAR16        // Get the value of an instance variable (16 bit operand)
@@ -269,7 +269,6 @@ var opCodeNames = [...]string{
 	RETURN_FIRST_ARG:  "RETURN_FIRST_ARG",
 	INSTANTIATE8:      "INSTANTIATE8",
 	INSTANTIATE16:     "INSTANTIATE16",
-	INSTANTIATE32:     "INSTANTIATE32",
 	RETURN_SELF:       "RETURN_SELF",
 	GET_IVAR8:         "GET_IVAR8",
 	GET_IVAR16:        "GET_IVAR16",

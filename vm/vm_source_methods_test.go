@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -494,24 +495,23 @@ func TestVMSource_DefineMethod(t *testing.T) {
 	}
 }
 
-func TestVMSource_CallFunction(t *testing.T) {
+func TestVMSource_CallClosure(t *testing.T) {
 	tests := sourceTestTable{
 		"call": {
 			source: `
-				pow2 := |a| -> a ** 2
+				pow2 := |a: Int| -> a ** 2
 				pow2.call(5)
 			`,
 			wantStackTop: value.SmallInt(25),
 		},
 		"invalid args": {
 			source: `
-				pow2 := |a| -> a ** 2
+				pow2 := |a: Int| -> a ** 2
 				pow2.call(5, 8)
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`<closure>` wrong number of arguments, given: 2, expected: 1",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(36, 3, 5), P(50, 3, 19)), "expected 1 arguments in call to `call`, got 2"),
+			},
 		},
 	}
 
@@ -574,6 +574,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.add(5)
 			`,
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(58, 6, 5), P(68, 6, 15)), "argument `b` is missing in call to `add`"),
+			},
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
 				"`add` wrong number of arguments, given: 1, expected: 2..2",
@@ -584,7 +587,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method without optional arguments": {
 			source: `
-				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Float
 					a + b + c
 				end
 
@@ -663,25 +666,25 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with a named rest param and no args": {
 			source: `
 				def foo(**a: String): String
-					"a: ${a.inspect}"
+					"a: #{a}"
 				end
 
 				self.foo()
 			`,
-			wantStackTop: value.String("a: {}"),
+			wantStackTop: value.String("a: %{}"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with a named rest param and a few named args": {
 			source: `
-				def foo(**a: String): HashMap[Symbol, String]
+				def foo(**a: String): HashRecord[Symbol, String]
 					a
 				end
 
 				self.foo(d: "foo", a: "bar")
 			`,
-			wantStackTop: vm.MustNewHashMapWithElements(
+			wantStackTop: vm.MustNewHashRecordWithElements(
 				nil,
 				value.Pair{Key: value.ToSymbol("a"), Value: value.String("bar")},
 				value.Pair{Key: value.ToSymbol("d"), Value: value.String("foo")},
@@ -692,7 +695,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, named rest param and a few named args": {
 			source: `
-				def foo(a, **b: String): List
+				def foo(a: String, **b: String): List[String]
 					[a, b]
 				end
 
@@ -701,7 +704,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.NewArrayListWithElements(
 				2,
 				value.String("foo"),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
 					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
@@ -713,7 +716,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, named rest param and only required args": {
 			source: `
-				def foo(a, **b: String): List
+				def foo(a: String, **b: String): List[any]
 					[a, b]
 				end
 
@@ -722,7 +725,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.NewArrayListWithElements(
 				2,
 				value.String("foo"),
-				value.NewHashMap(0),
+				value.NewHashRecord(0),
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
@@ -730,7 +733,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
 			source: `
-				def foo(a, b = 5, **c: String): List
+				def foo(a: String, b: Int = 5, **c: String): List
 					[a, b, c]
 				end
 
@@ -740,7 +743,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				3,
 				value.String("foo"),
 				value.SmallInt(5),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
 					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
@@ -752,7 +755,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and all args": {
 			source: `
-				def foo(a, b = 5, **c): List
+				def foo(a: String, b: Int = 5, **c: String): List[String | Int]
 					[a, b, c]
 				end
 
@@ -762,7 +765,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				3,
 				value.String("foo"),
 				value.SmallInt(9),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
 					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
@@ -774,7 +777,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
-				def foo(a, b = 5, **c): ArrayList[Value]
+				def foo(a: String, b: String | Int = "b", **c: String): ArrayList[Value]
 					[a, b, c]
 				end
 
@@ -784,7 +787,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				2,
 				value.String("foo"),
 				value.SmallInt(9),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
 					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
@@ -796,33 +799,33 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and no args": {
 			source: `
-				def foo(*a, **b): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(*a: Int, **b: Int): String
+					"a: #{a}, b: #{b}"
 				end
 
 				self.foo()
 			`,
-			wantStackTop: value.String(`a: [], b: {}`),
+			wantStackTop: value.String(`a: %[], b: %{}`),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with positional rest params and named rest params and positional args": {
 			source: `
-				def foo(*a, **b): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(*a: Int, **b: Int): String
+					"a: #{a}, b: #{b}"
 				end
 
 				self.foo(1, 5, 7)
 			`,
-			wantStackTop: value.String(`a: [1, 5, 7], b: {}`),
+			wantStackTop: value.String(`a: %[1, 5, 7], b: %{}`),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with positional rest params and named rest params and named args": {
 			source: `
-				def foo(*a, **b): ArrayList[Value]
+				def foo(*a: Int, **b: Int): ArrayList[Value]
 					[a, b]
 				end
 
@@ -830,8 +833,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
-				&value.NilArrayList,
-				vm.MustNewHashMapWithElements(
+				(*value.ArrayList)(nil),
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
 					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
@@ -844,7 +847,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(*a, **b): ArrayList[Value]
+				def foo(*a: Int, **b: Int): ArrayList[Value]
 					[a, b]
 				end
 
@@ -852,13 +855,13 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
-				value.NewArrayListWithElements(
+				value.NewArrayTupleWithElements(
 					3,
 					value.SmallInt(10),
 					value.SmallInt(20),
 					value.SmallInt(30),
 				),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
 					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
@@ -872,33 +875,33 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 		"call a method with regular, positional rest params and named rest params and no args": {
 			source: `
-				def foo(a, *b, **c): String
+				def foo(a: Int, *b: Int, **c: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
 				self.foo(5)
 			`,
-			wantStackTop: value.String(`a: 5, b: [], c: {}`),
+			wantStackTop: value.String(`a: 5, b: %[], c: %{}`),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular, positional rest params and named rest params and positional args": {
 			source: `
-				def foo(a, *b, **c): String
+				def foo(a: Int, *b: Int, **c: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
 				self.foo(1, 5, 7)
 			`,
-			wantStackTop: value.String(`a: 1, b: [5, 7], c: {}`),
+			wantStackTop: value.String(`a: 1, b: %[5, 7], c: %{}`),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular, positional rest params and named rest params and named args": {
 			source: `
-				def foo(a, *b, **c): ArrayList[Value]
+				def foo(a: Int, *b: Int, **c: Int): ArrayList[Int]
 					[a, b, c]
 				end
 
@@ -907,8 +910,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.NewArrayListWithElements(
 				3,
 				value.SmallInt(1),
-				&value.NilArrayList,
-				vm.MustNewHashMapWithElements(
+				(*value.ArrayTuple)(nil),
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
 					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
@@ -921,7 +924,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular, positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(a, *b, **c): ArrayList[Value]
+				def foo(a: Int, *b: Int, **c: Int): ArrayList[Int]
 					[a, b, c]
 				end
 
@@ -930,12 +933,12 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.NewArrayListWithElements(
 				3,
 				value.SmallInt(10),
-				value.NewArrayListWithElements(
+				value.NewArrayTupleWithElements(
 					2,
 					value.SmallInt(20),
 					value.SmallInt(30),
 				),
-				vm.MustNewHashMapWithElements(
+				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
 					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
@@ -948,59 +951,59 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with rest parameters and no arguments": {
 			source: `
-				def foo(*b): String
+				def foo(*b: Int): String
 					b.inspect
 				end
 
 				self.foo()
 			`,
-			wantStackTop: value.String("[]"),
+			wantStackTop: value.String("%[]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and arguments": {
 			source: `
-				def foo(*b): String
+				def foo(*b: Int): String
 					b.inspect
 				end
 
 				self.foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("[1, 2, 3]"),
+			wantStackTop: value.String("%[1, 2, 3]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and required arguments": {
 			source: `
-				def foo(a, *b): String
+				def foo(a: Int, *b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1)
 			`,
-			wantStackTop: value.String("a: 1, b: []"),
+			wantStackTop: value.String("a: 1, b: %[]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and all arguments": {
 			source: `
-				def foo(a, *b): String
+				def foo(a: Int, *b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1, 2, 3, 4)
 			`,
-			wantStackTop: value.String("a: 1, b: [2, 3, 4]"),
+			wantStackTop: value.String("a: 1, b: %[2, 3, 4]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and named args": {
 			source: `
-				def foo(a, b, *c): String
+				def foo(a: Int, b: Int, *c: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
@@ -1016,46 +1019,46 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with rest parameters and no optional arguments": {
 			source: `
-				def foo(a = 3, *b): String
+				def foo(a: Int = 3, *b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo()
 			`,
-			wantStackTop: value.String("a: 3, b: []"),
+			wantStackTop: value.String("a: 3, b: %[]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and optional arguments": {
 			source: `
-				def foo(a = 3, *b): String
+				def foo(a: Int = 3, *b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1)
 			`,
-			wantStackTop: value.String("a: 1, b: []"),
+			wantStackTop: value.String("a: 1, b: %[]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and all optional arguments": {
 			source: `
-				def foo(a = 3, *b): String
+				def foo(a: Int = 3, *b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("a: 1, b: [2, 3]"),
+			wantStackTop: value.String("a: 1, b: %[2, 3]"),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with post parameters": {
 			source: `
-				def foo(*a, b): String
+				def foo(*a: Int, b: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
@@ -1094,7 +1097,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with named post arguments": {
 			source: `
-				def foo(*a, b, c): String
+				def foo(*a: Int, b: Int, c: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
@@ -1126,12 +1129,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo("a", e: "e")
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`foo` missing required argument `b`",
-			),
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(182, 6, 5), P(202, 6, 25)), "argument `b` is missing in call to `foo`"),
 			},
 		},
 		"call a method with duplicated arguments": {
@@ -1142,12 +1141,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo("a", b: "b", a: "a2")
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`foo` duplicated argument `a`",
-			),
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(100, 6, 27), P(108, 6, 33)), "duplicated argument `a` in call to `foo`"),
 			},
 		},
 		"call a method with unknown named arguments": {
@@ -1158,10 +1153,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo("a", unknown: "lala", moo: "meow", b: "b")
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`foo` unknown arguments: [:unknown, :moo]",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(94, 6, 19), P(108, 6, 33)), "nonexistent parameter `unknown` given in call to `foo`"),
+				error.NewFailure(L(P(111, 6, 36), P(121, 6, 46)), "nonexistent parameter `moo` given in call to `foo`"),
+			},
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
@@ -1213,7 +1208,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call an instance method with positional arguments": {
 			source: `
-				class ::Std::Object
+				class Std::Object < Std::Value
 					def add(a: Int, b: Int): Int
 						a + b
 					end
@@ -1239,7 +1234,7 @@ func TestVMSource_Setters(t *testing.T) {
 	tests := sourceTestTable{
 		"call a manually defined setter": {
 			source: `
-				def foo=(v)
+				def foo=(v: Int)
 					:bar
 				end
 
@@ -1250,7 +1245,7 @@ func TestVMSource_Setters(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo="))
 			},
 		},
-		"setter increment": {
+		"setter increment type error": {
 			source: `
 				class Foo
 				  attr bar: Int?
@@ -1265,11 +1260,26 @@ func TestVMSource_Setters(t *testing.T) {
 				value.RootModule.Constants.DeleteString("Foo")
 			},
 		},
+		"setter increment": {
+			source: `
+				class Foo
+				  attr bar: Int
+					init(@bar: Int); end
+				end
+
+				foo := ::Foo(1)
+				foo.bar++
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
 		"setter decrement": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(1)
@@ -1283,8 +1293,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter add": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(1)
@@ -1298,8 +1308,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter subtract": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(1)
@@ -1313,8 +1323,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter multiply": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(3)
@@ -1328,8 +1338,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter divide": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(12)
@@ -1343,8 +1353,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter exponentiate": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(12)
@@ -1358,8 +1368,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter modulo": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(12)
@@ -1373,8 +1383,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter left bitshift": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(5)
@@ -1388,8 +1398,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic left bitshift": {
 			source: `
 				class Foo
-				  attr bar: Int8?
-					init(@bar: Int8?); end
+				  attr bar: Int8
+					init(@bar: Int8); end
 				end
 
 				foo := ::Foo(5i8)
@@ -1403,8 +1413,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter right bitshift": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(10)
@@ -1418,8 +1428,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter logic right bitshift": {
 			source: `
 				class Foo
-				  attr bar: Int8?
-					init(@bar: Int8?); end
+				  attr bar: Int8
+					init(@bar: Int8); end
 				end
 
 				foo := ::Foo(10i8)
@@ -1433,8 +1443,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise and": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(6)
@@ -1448,8 +1458,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise or": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(6)
@@ -1561,6 +1571,10 @@ func TestVMSource_Setters(t *testing.T) {
 				foo.bar ??= 5
 			`,
 			wantStackTop: value.SmallInt(2),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
+				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
+			},
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
 			},
@@ -1641,58 +1655,65 @@ func TestVMSource_Setters(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(64),
 		},
-		"subscript setter modulo": {
+		"subscript setter modulo type error": {
 			source: `
 				list := [5, 8, 7.8]
 				list[0] %= 2
 			`,
 			wantStackTop: value.SmallInt(1),
 		},
+		"subscript setter modulo": {
+			source: `
+				list := [5, 8, 7]
+				list[0] %= 2
+			`,
+			wantStackTop: value.SmallInt(1),
+		},
 		"subscript setter left bitshift": {
 			source: `
-				list := [5, 8, 7.8]
+				list := [5, 8, 7]
 				list[0] <<= 2
 			`,
 			wantStackTop: value.SmallInt(20),
 		},
 		"subscript setter logic left bitshift": {
 			source: `
-				list := [5i8, 8, 7.8]
+				list := [5i8, 8i8, 7i8]
 				list[0] <<<= 2
 			`,
 			wantStackTop: value.Int8(20),
 		},
 		"subscript setter right bitshift": {
 			source: `
-				list := [10, 8, 7.8]
+				list := [10, 8, 7]
 				list[0] >>= 2
 			`,
 			wantStackTop: value.SmallInt(2),
 		},
 		"subscript setter logic right bitshift": {
 			source: `
-				list := [10i8, 8, 7.8]
+				list := [10i8, 8i8, 7i8]
 				list[0] >>>= 2
 			`,
 			wantStackTop: value.Int8(2),
 		},
 		"subscript setter bitwise and": {
 			source: `
-				list := [6, 8, 7.8]
+				list := [6, 8, 7]
 				list[0] &= 5
 			`,
 			wantStackTop: value.SmallInt(4),
 		},
 		"subscript setter bitwise or": {
 			source: `
-				list := [6, 8, 7.8]
+				list := [6, 8, 7]
 				list[0] |= 5
 			`,
 			wantStackTop: value.SmallInt(7),
 		},
 		"subscript setter bitwise xor": {
 			source: `
-				list := [6, 8, 7.8]
+				list := [6, 8, 7]
 				list[0] ^= 5
 			`,
 			wantStackTop: value.SmallInt(3),
@@ -1730,6 +1751,9 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [1, 8, 7.8]
 				list[0] &&= 5
 			`,
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
+			},
 			wantStackTop: value.SmallInt(5),
 		},
 		"subscript setter nil coalesce nil": {
