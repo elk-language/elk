@@ -369,7 +369,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		return
 	}
 
-	if c.compiler != nil {
+	if c.shouldCompile() {
 		c.compiler.CompileInclude(target, mixin, position.DefaultSpan)
 	}
 }
@@ -647,7 +647,7 @@ superclassSwitch:
 		)
 	}
 	class.Checked = true
-	if c.compiler != nil {
+	if c.shouldCompile() {
 		c.compiler.CompileClassInheritance(class, position.DefaultSpan)
 	}
 

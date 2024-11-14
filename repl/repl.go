@@ -5,11 +5,9 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
-	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -38,33 +36,29 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 }
 
 type evaluator struct {
-	compiler     *compiler.Compiler
 	typechecker  *checker.Checker
 	vm           *vm.VM
 	inspectStack bool
 }
 
 func (e *evaluator) evaluate(input string) {
-	var currentCompiler *compiler.Compiler
-	var compileErr error.ErrorList
-
-	if e.compiler == nil {
-		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
+	if e.typechecker == nil {
+		e.typechecker = checker.New()
 		e.vm = vm.New()
-	} else {
-		currentCompiler, compileErr = e.compiler.CompileREPL(input)
 	}
+	fn, err := e.typechecker.CheckSource("<repl>", input)
 
-	if compileErr != nil {
+	if err != nil {
 		fmt.Println()
-		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		if compileErr.IsFailure() {
+		fmt.Println(err.HumanStringWithSource(input, true))
+		isFailure := err.IsFailure()
+		e.typechecker.ClearErrors()
+		if isFailure {
 			return
 		}
 	}
 
-	e.compiler = currentCompiler
-	value, runtimeErr := e.vm.InterpretREPL(e.compiler.Bytecode)
+	value, runtimeErr := e.vm.InterpretREPL(fn)
 	if runtimeErr != nil {
 		e.vm.PrintError()
 		e.vm.ResetError()
@@ -75,31 +69,6 @@ func (e *evaluator) evaluate(input string) {
 	if e.inspectStack {
 		e.vm.InspectStack()
 	}
-}
-
-// compiles the input to bytecode and dumps it to the output
-func (e *evaluator) disassemble(input string) {
-	var currentCompiler *compiler.Compiler
-	var compileErr error.ErrorList
-	if e.compiler == nil {
-		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
-	} else {
-		currentCompiler, compileErr = e.compiler.CompileREPL(input)
-	}
-
-	// ast, _ := parser.Parse("<repl>", input)
-	// pp.Println(ast)
-	if compileErr != nil {
-		fmt.Println()
-		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		if compileErr.IsFailure() {
-			return
-		}
-	}
-
-	e.compiler = currentCompiler
-
-	currentCompiler.Bytecode.Disassemble(os.Stdout)
 }
 
 // parses the input and prints it to the output
@@ -116,8 +85,8 @@ func (e *evaluator) parse(input string) {
 	pp.Println(ast)
 }
 
-// parsers, typechecks the input and prints it to the output
-func (e *evaluator) typecheck(input string) {
+// compiles the input to bytecode and dumps it to the output
+func (e *evaluator) disassemble(input string) {
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
@@ -133,8 +102,27 @@ func (e *evaluator) typecheck(input string) {
 		}
 	}
 
-	fmt.Println("OK")
 	fn.Disassemble(os.Stdout)
+}
+
+// parsers, typechecks the input and prints it to the output
+func (e *evaluator) typecheck(input string) {
+	if e.typechecker == nil {
+		e.typechecker = checker.New()
+	}
+	_, err := e.typechecker.CheckSource("<repl>", input)
+
+	if err != nil {
+		fmt.Println()
+		fmt.Println(err.HumanStringWithSource(input, true))
+		isFailure := err.IsFailure()
+		e.typechecker.ClearErrors()
+		if isFailure {
+			return
+		}
+	}
+
+	fmt.Println("OK")
 }
 
 // lexes the input and prints it to the output

@@ -104,9 +104,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 	vm.bytecode = fn
 	vm.ip = 0
 	vm.push(value.GlobalObject)
-	vm.push(value.RootModule)
-	vm.push(value.GlobalObjectSingletonClass)
-	vm.localCount = 3
+	vm.localCount = 1
 	vm.run()
 	err := vm.Err()
 	if err != nil {
@@ -121,10 +119,8 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.ip = 0
 	if vm.sp == 0 {
 		// populate the predeclared local variables
-		vm.push(value.GlobalObject)               // populate self
-		vm.push(value.RootModule)                 // populate constant container
-		vm.push(value.GlobalObjectSingletonClass) // populate method container
-		vm.localCount = 3
+		vm.push(value.GlobalObject) // populate self
+		vm.localCount = 1
 	} else {
 		// pop the return value of the last run
 		vm.pop()
@@ -1419,7 +1415,6 @@ func (vm *VM) opInitNamespace() {
 func (vm *VM) opExec() {
 	bytecodeFunc := vm.pop().(*BytecodeFunction)
 	vm.executeFunc(bytecodeFunc)
-	vm.pop()
 }
 
 // Define a getter method
@@ -1485,6 +1480,7 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = fn
+	vm.fp = vm.sp
 	vm.ip = 0
 	vm.localCount = 1
 	vm.push(value.GlobalObject)

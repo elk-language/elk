@@ -8,6 +8,7 @@ import (
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
@@ -46,11 +47,12 @@ func L(startPos, endPos *position.Position) *position.Location {
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
-	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
+	typechecker := checker.New()
+	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
 	if gotCompileErr != nil {
 		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 			t.Log(pp.Sprint(gotCompileErr))
-			t.Fatalf(diff)
+			t.Fatal(diff)
 		}
 		return
 	}
@@ -63,20 +65,20 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotRuntimeErr))
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
 	}
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
 		}
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 

@@ -1523,7 +1523,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	method.CalledMethods = c.methodCache.Slice
 	c.methodCache.Slice = nil
 
-	if c.compiler != nil && method.IsCompilable() {
+	if c.shouldCompile() && method.IsCompilable() {
 		method.Bytecode = c.compiler.CompileMethodBody(node, method.Name)
 	}
 }

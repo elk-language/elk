@@ -6,8 +6,8 @@ import (
 )
 
 type Module struct {
-	compiled bool
-	parent   Namespace
+	defined bool
+	parent  Namespace
 	NamespaceBase
 }
 
@@ -40,11 +40,11 @@ func (m *Module) SetParent(parent Namespace) {
 }
 
 func (m *Module) IsDefined() bool {
-	return m.compiled
+	return m.defined
 }
 
-func (m *Module) SetDefined(compiled bool) {
-	m.compiled = compiled
+func (m *Module) SetDefined(defined bool) {
+	m.defined = defined
 }
 
 func (m *Module) IsAbstract() bool {
@@ -61,7 +61,7 @@ func (m *Module) IsPrimitive() bool {
 
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
-		compiled:      env.Init,
+		defined:       env.Init,
 		parent:        env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
@@ -107,7 +107,8 @@ func (m *Module) DefineMethod(docComment string, abstract, sealed, native bool, 
 
 func (m *Module) Copy() *Module {
 	return &Module{
-		parent: m.parent,
+		parent:  m.parent,
+		defined: m.defined,
 		NamespaceBase: NamespaceBase{
 			docComment: m.docComment,
 			name:       m.name,
@@ -125,6 +126,7 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 
 	newModule := &Module{
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
+		defined:       m.defined,
 	}
 	moduleConstantPath := GetConstantPath(m.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)

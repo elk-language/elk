@@ -1,6 +1,9 @@
 package checker
 
 import (
+	"fmt"
+
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
@@ -9,6 +12,7 @@ import (
 type local struct {
 	typ              types.Type
 	shadowOf         *local
+	envIndex         int
 	initialised      bool
 	singleAssignment bool
 }
@@ -18,6 +22,8 @@ func (l *local) copy() *local {
 		typ:              l.typ,
 		initialised:      l.initialised,
 		singleAssignment: l.singleAssignment,
+		shadowOf:         l.shadowOf,
+		envIndex:         l.envIndex,
 	}
 }
 
@@ -59,6 +65,15 @@ func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
 type localEnvironment struct {
 	parent *localEnvironment
 	locals map[value.Symbol]*local
+	index  int
+}
+
+func (l *localEnvironment) copy() *localEnvironment {
+	return &localEnvironment{
+		parent: l.parent,
+		locals: l.locals,
+		index:  l.index,
+	}
 }
 
 // Get the local with the specified name from this local environment
@@ -103,9 +118,67 @@ func (c *Checker) pushIsolatedLocalEnv() {
 }
 
 func (c *Checker) pushLocalEnv(env *localEnvironment) {
+	env.index = len(c.localEnvs)
 	c.localEnvs = append(c.localEnvs, env)
 }
 
 func (c *Checker) currentLocalEnv() *localEnvironment {
 	return c.localEnvs[len(c.localEnvs)-1]
+}
+
+// Add the local with the given name to the current local environment
+func (c *Checker) addLocal(name string, l *local) {
+	env := c.currentLocalEnv()
+	l.envIndex = env.index
+	env.locals[value.ToSymbol(name)] = l
+}
+
+// Get the local with the specified name from the current local environment
+func (c *Checker) getLocal(name string) *local {
+	env := c.currentLocalEnv()
+	local := env.getLocal(name)
+	if local == nil || local.isShadow() {
+		return nil
+	}
+
+	return local
+}
+
+// Resolve the local with the given name from the current local environment or any parent environment
+func (c *Checker) resolveLocal(name string, span *position.Span) (*local, bool) {
+	env := c.currentLocalEnv()
+	local, inCurrentEnv := env.resolveLocal(name)
+	if local == nil {
+		c.addFailure(
+			fmt.Sprintf("undefined local `%s`", name),
+			span,
+		)
+	}
+	return local, inCurrentEnv
+}
+
+func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*localEnvironment {
+	var newLocalEnvs []*localEnvironment
+
+	for _, localEnv := range c.localEnvs {
+		newLocalEnv := &localEnvironment{
+			index:  localEnv.index,
+			locals: make(map[value.Symbol]*local),
+		}
+		if localEnv.parent != nil {
+			newLocalEnv.parent = newLocalEnvs[localEnv.parent.index]
+		}
+		for localName, local := range localEnv.locals {
+			newLocal := local.copy()
+			newLocal.typ = types.DeepCopyEnv(local.typ, oldEnv, newEnv)
+			if local.shadowOf != nil {
+				newShadowLocalEnv := newLocalEnvs[local.shadowOf.envIndex]
+				newLocal.shadowOf = newShadowLocalEnv.locals[localName]
+			}
+			newLocalEnv.locals[localName] = newLocal
+		}
+		newLocalEnvs = append(newLocalEnvs, newLocalEnv)
+	}
+
+	return newLocalEnvs
 }

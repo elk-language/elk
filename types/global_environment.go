@@ -50,7 +50,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	rootModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
-		compiled:      true,
+		defined:       true,
 	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
@@ -59,7 +59,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),
-		compiled:      true,
+		defined:       true,
 	}
 	rootModule.DefineConstant(symbol.Std, stdModule)
 	rootModule.DefineSubtype(symbol.Std, stdModule)
@@ -153,7 +153,7 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
 	newRoot := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
-		compiled:      true,
+		defined:       true,
 	}
 	newEnv := &GlobalEnvironment{
 		Init: g.Init,

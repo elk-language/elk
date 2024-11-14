@@ -130,7 +130,9 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		container.DefineConstant(constantName, typ)
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
-		c.compiler.CompileConstantDeclaration(node, container, constantName)
+		if c.shouldCompile() {
+			c.compiler.CompileConstantDeclaration(node, container, constantName)
+		}
 		return
 	}
 
@@ -213,7 +215,9 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		method.UsedInConstants.Add(symbolName)
 	}
 
-	c.compiler.CompileConstantDeclaration(node, check.namespace, check.constName)
+	if c.shouldCompile() {
+		c.compiler.CompileConstantDeclaration(node, check.namespace, check.constName)
+	}
 
 	check.state = CHECKED_CONST
 	return true

@@ -44,24 +44,18 @@ func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, error.Er
 	return compiler.Bytecode, compiler.Errors.ErrorList
 }
 
-// Compile code for use in the REPL.
-func CompileREPL(sourceName string, source string) (*Compiler, error.ErrorList) {
-	ast, err := parser.Parse(sourceName, source)
-	if err != nil {
-		return nil, err
-	}
-
-	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()), nil)
-	compiler.compileProgram(ast)
-
-	if compiler.Errors.IsFailure() {
-		return nil, compiler.Errors.ErrorList
-	}
-	return compiler, nil
-}
-
 func CreateMainCompiler(env *types.GlobalEnvironment, loc *position.Location, errors *error.SyncErrorList) *Compiler {
 	compiler := New(loc.Filename, topLevelMode, loc, env)
+	compiler.Errors = errors
+	return compiler
+}
+
+func (c *Compiler) CreateMainCompiler(env *types.GlobalEnvironment, loc *position.Location, errors *error.SyncErrorList) *Compiler {
+	compiler := New(loc.Filename, topLevelMode, loc, env)
+	compiler.predefinedLocals = c.maxLocalIndex + 1
+	compiler.scopes = c.scopes
+	compiler.lastLocalIndex = c.lastLocalIndex
+	compiler.maxLocalIndex = c.maxLocalIndex
 	compiler.Errors = errors
 	return compiler
 }
@@ -75,6 +69,8 @@ func (c *Compiler) InitGlobalEnv() *Compiler {
 	span := &c.Bytecode.Location.Span
 	c.emitValue(envCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
 	return envCompiler
 }
 
@@ -206,34 +202,16 @@ func New(name string, mode mode, loc *position.Location, env *types.GlobalEnviro
 	return c
 }
 
-// Create a new compiler based on the current compiler and compile
-// new code using it.
-// The new bytecode will be able to access variables defined in the previous
-// chunk of bytecode produced by the previous compiler.
-func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
-	filename := c.Bytecode.Location.Filename
-	ast, err := parser.Parse(filename, source)
-	if err != nil {
-		return nil, err
-	}
-
-	compiler := New(MainName, topLevelMode, position.NewLocationWithSpan(filename, ast.Span()), nil)
-	compiler.predefinedLocals = c.maxLocalIndex + 1
-	compiler.scopes = c.scopes
-	compiler.lastLocalIndex = c.lastLocalIndex
-	compiler.maxLocalIndex = c.maxLocalIndex
-	compiler.compileProgram(ast)
-
-	if compiler.Errors.IsFailure() {
-		return nil, compiler.Errors.ErrorList
-	}
-	return compiler, nil
-}
-
 func (c *Compiler) EmitReturnNil() {
 	span := &c.Bytecode.Location.Span
 	c.emit(span.EndPos.Line, bytecode.NIL)
 	c.emit(span.EndPos.Line, bytecode.RETURN)
+}
+
+func (c *Compiler) EmitReturn() {
+	span := &c.Bytecode.Location.Span
+	c.emit(span.EndPos.Line, bytecode.RETURN)
+	c.prepLocals()
 }
 
 func (c *Compiler) compileGlobalEnv() {
@@ -332,6 +310,7 @@ func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) 
 
 	c.emitValue(exprCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return exprCompiler
 }
@@ -389,6 +368,7 @@ func (c *Compiler) InitMethodCompiler(span *position.Span) *Compiler {
 
 	c.emitValue(methodCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	return methodCompiler
 }
@@ -3573,9 +3553,6 @@ func (c *Compiler) compileStatements(collection []ast.StatementNode, span *posit
 func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 	var isPresent bool
 	for _, s := range collection {
-		if s.IsStatic() {
-			continue
-		}
 		exprIsPresent := c.compileNode(s)
 		if exprIsPresent {
 			isPresent = true

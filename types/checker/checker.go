@@ -158,10 +158,14 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 		return nil, err
 	}
 
-	// prevEnv := c.GlobalEnv
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
 	envCopy := c.GlobalEnv.DeepCopyEnv()
+	localEnvsCopy := c.deepCopyLocalEnvs(c.GlobalEnv, envCopy)
+	constantScopesCopy := c.deepCopyConstantScopes(c.GlobalEnv, envCopy)
+	methodScopesCopy := c.deepCopyMethodScopes(c.GlobalEnv, envCopy)
+	c.methodScopesCopyCache = nil
+	c.constantScopesCopyCache = nil
 
 	c.Filename = sourceName
 	c.methodChecks = nil
@@ -171,6 +175,9 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 		// restore the previous global environment if the code
 		// did not compile
 		c.setGlobalEnv(envCopy)
+		c.localEnvs = localEnvsCopy
+		c.constantScopes = constantScopesCopy
+		c.methodScopes = methodScopesCopy
 	}
 
 	return bytecodeFunc, c.Errors.ErrorList
@@ -230,9 +237,10 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
-	if c.Errors.IsFailure() || c.compiler == nil {
+	if !c.shouldCompile() {
 		return nil
 	}
+	c.compiler.EmitReturn()
 	return c.compiler.Bytecode
 }
 
@@ -244,16 +252,20 @@ func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, span *positi
 	methodCompiler.CompileMethods(span)
 }
 
+func (c *Checker) shouldCompile() bool {
+	return c.compiler != nil && !c.Errors.IsFailure()
+}
+
 // Create a new compiler that will define all methods
 func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
-	if c.IsHeader {
+	if c.IsHeader || c.Errors.IsFailure() {
 		return nil
 	}
 	return c.compiler.InitMethodCompiler(span)
 }
 
 func (c *Checker) switchToMainCompiler() {
-	if c.compiler == nil {
+	if !c.shouldCompile() {
 		return
 	}
 
@@ -268,7 +280,12 @@ func (c *Checker) initCompiler(span *position.Span) {
 		return
 	}
 
-	mainCompiler := compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+	var mainCompiler *compiler.Compiler
+	if c.compiler != nil {
+		mainCompiler = c.compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+	} else {
+		mainCompiler = compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+	}
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
@@ -357,7 +374,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 			continue
 		}
 		prevCompiler := c.compiler
-		if c.compiler != nil {
+		if c.shouldCompile() {
 			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Span())
 		}
 		c.checkExpressionsInFile(importPath, importedAst)
@@ -371,7 +388,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 
 	node.State = ast.CHECKED_EXPRESSIONS
 
-	if c.compiler != nil {
+	if c.shouldCompile() {
 		c.compiler.CompileExpressionsInFile(node)
 	}
 }
@@ -4988,23 +5005,6 @@ func (c *Checker) resolveType(name string, span *position.Span) (types.Type, str
 	return nil, name
 }
 
-// Add the local with the given name to the current local environment
-func (c *Checker) addLocal(name string, l *local) {
-	env := c.currentLocalEnv()
-	env.locals[value.ToSymbol(name)] = l
-}
-
-// Get the local with the specified name from the current local environment
-func (c *Checker) getLocal(name string) *local {
-	env := c.currentLocalEnv()
-	local := env.getLocal(name)
-	if local == nil || local.isShadow() {
-		return nil
-	}
-
-	return local
-}
-
 // Get the instance variable with the specified name
 func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) (types.Type, types.Namespace) {
 	if typ == nil {
@@ -5081,19 +5081,6 @@ func (c *Checker) getInstanceVariable(name value.Symbol) (types.Type, types.Name
 
 	typ, _ := c.getInstanceVariableIn(name, container)
 	return typ, container
-}
-
-// Resolve the local with the given name from the current local environment or any parent environment
-func (c *Checker) resolveLocal(name string, span *position.Span) (*local, bool) {
-	env := c.currentLocalEnv()
-	local, inCurrentEnv := env.resolveLocal(name)
-	if local == nil {
-		c.addFailure(
-			fmt.Sprintf("undefined local `%s`", name),
-			span,
-		)
-	}
-	return local, inCurrentEnv
 }
 
 func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
