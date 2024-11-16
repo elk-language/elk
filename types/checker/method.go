@@ -481,7 +481,11 @@ func (c *Checker) checkMethod(
 		}
 	}
 
-	c.pushIsolatedLocalEnv()
+	if isClosure {
+		c.pushNestedLocalEnv()
+	} else {
+		c.pushIsolatedLocalEnv()
+	}
 	defer c.popLocalEnv()
 
 	c.mode = prevMode
@@ -497,6 +501,12 @@ func (c *Checker) checkMethod(
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				declaredType = c.typeOf(declaredTypeNode)
+				switch p.Kind {
+				case ast.PositionalRestParameterKind:
+					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+				case ast.NamedRestParameterKind:
+					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+				}
 			}
 			var initNode ast.ExpressionNode
 			if p.Initialiser != nil {
@@ -513,6 +523,12 @@ func (c *Checker) checkMethod(
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				declaredType = c.typeOf(declaredTypeNode)
+				switch p.Kind {
+				case ast.PositionalRestParameterKind:
+					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+				case ast.NamedRestParameterKind:
+					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+				}
 			}
 			var initNode ast.ExpressionNode
 			if p.Initialiser != nil {

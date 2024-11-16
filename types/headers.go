@@ -204,6 +204,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, value.ToSymbol("Pair"), objectClass, env)
+			{
+				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -1966,6 +1970,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout.", false, false, true, value.ToSymbol("print"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout with a newline.", false, false, true, value.ToSymbol("println"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout with a newline.", false, false, true, value.ToSymbol("puts"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
 
 				// Define constants
 
@@ -2279,12 +2284,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 				// Define methods
 				namespace.DefineMethod("Instantiate the `Pair` with the given key and value.", false, false, true, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Pair::Value", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Check whether the given value\nis a `Pair` that is equal to this `Pair`.", false, false, true, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
-				namespace.DefineMethod("Get the element with the given index.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false)}, NameToType("Std::Pair::Value", env), Never{})
-				namespace.DefineMethod("Set the element with the given index to the given value.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Pair::Key", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Pair::Value", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Get the element with the given index.\nThe key is `0`, value is `1`.", false, false, true, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the pair.", false, false, true, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Pair::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Pair::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Pair::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), Never{})
 				namespace.DefineMethod("Returns the key, the first element of the tuple.", false, false, true, value.ToSymbol("key"), nil, nil, NameToType("Std::Pair::Key", env), Never{})
 				namespace.DefineMethod("Always returns `2`.\nFor compatibility with `Tuple`.", false, false, true, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the value, the second element of the tuple.", false, false, true, value.ToSymbol("value"), nil, nil, NameToType("Std::Pair::Value", env), Never{})
@@ -2292,6 +2298,38 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 2)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Key"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Key"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Key"), NoValue{})
+
+					typeParam = NewTypeParameter(value.ToSymbol("Value"), namespace, Never{}, Any{}, COVARIANT)
+					typeParams[1] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Value"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
+
+					namespace.SetTypeParameters(typeParams)
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Iterator::Key", env), NameToType("Std::Pair::Iterator::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+					// Define methods
+					namespace.DefineMethod("Get the next element of the pair.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, value.ToSymbol("next"), nil, nil, NewUnion(NameToType("Std::Pair::Iterator::Key", env), NameToType("Std::Pair::Iterator::Value", env)), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("PrimitiveIterable").(*Interface)

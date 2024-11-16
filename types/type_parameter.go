@@ -66,7 +66,7 @@ func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypePara
 		newTypeParam.Namespace = DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace)
 	}
 	newTypeParam.LowerBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
-	newTypeParam.UpperBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
+	newTypeParam.UpperBound = DeepCopyEnv(t.UpperBound, oldEnv, newEnv)
 	return newTypeParam
 }
 

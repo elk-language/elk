@@ -13,4 +13,5 @@ module Std::Kernel
     and prints them to stdout with a newline.
   ]##
   def println(*values: StringConvertible); end
+  alias puts println
 end

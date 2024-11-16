@@ -4161,7 +4161,7 @@ func NewNilSafeSubscriptExpressionNode(span *position.Span, recv, key Expression
 
 // Represents a method call eg. `'123'.()`
 type CallNode struct {
-	NodeBase
+	TypedNodeBase
 	Receiver            ExpressionNode
 	NilSafe             bool
 	PositionalArguments []ExpressionNode
@@ -4175,7 +4175,7 @@ func (*CallNode) IsStatic() bool {
 // Create a method call node eg. `'123'.to_int()`
 func NewCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *CallNode {
 	return &CallNode{
-		NodeBase:            NodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{span: span},
 		Receiver:            recv,
 		NilSafe:             nilSafe,
 		PositionalArguments: posArgs,

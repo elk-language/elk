@@ -13,7 +13,7 @@ import (
 	"github.com/elk-language/elk/vm"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
-	"github.com/k0kubun/pp"
+	"github.com/k0kubun/pp/v3"
 )
 
 // Adapter for `lexer.Lexer` that

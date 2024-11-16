@@ -8,6 +8,17 @@ import (
 
 func TestIdentifierPattern(t *testing.T) {
 	tests := testTable{
+		"cannot use void in initialiser": {
+			input: `
+				z := ||: void -> 6
+				var [a] = z.()
+				var b: 9 = a
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(38, 3, 15), P(41, 3, 18)), "cannot use type `void` as a value in this context"),
+				error.NewFailure(L("<main>", P(58, 4, 16), P(58, 4, 16)), "type `any` cannot be assigned to type `9`"),
+			},
+		},
 		"public identifier pattern": {
 			input: `
 				var [a] = [1]

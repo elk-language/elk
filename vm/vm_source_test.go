@@ -12,7 +12,7 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
-	"github.com/k0kubun/pp"
+	"github.com/k0kubun/pp/v3"
 )
 
 // Represents a single VM source code test case.
@@ -47,11 +47,15 @@ func L(startPos, endPos *position.Position) *position.Location {
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
+	pp.Default.SetColoringEnabled(false)
 	typechecker := checker.New()
 	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
 	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotCompileErr))
 		t.Fatal(diff)
+	}
+	if gotCompileErr.IsFailure() {
+		return
 	}
 
 	var stdout strings.Builder

@@ -12,7 +12,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/google/go-cmp/cmp"
-	"github.com/k0kubun/pp"
+	"github.com/k0kubun/pp/v3"
 )
 
 func TestMain(m *testing.M) {

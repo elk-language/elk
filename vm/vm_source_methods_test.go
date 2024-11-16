@@ -733,7 +733,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
 			source: `
-				def foo(a: String, b: Int = 5, **c: String): List
+				def foo(a: String, b: Int = 5, **c: String): List[any]
 					[a, b, c]
 				end
 
@@ -1608,56 +1608,56 @@ func TestVMSource_Setters(t *testing.T) {
 		},
 		"subscript setter increment": {
 			source: `
-				list := [5, 2, 7.8]
+				list := [5, 2, 7]
 				list[0]++
 			`,
 			wantStackTop: value.SmallInt(6),
 		},
 		"subscript setter decrement": {
 			source: `
-				list := [5, 2, 7.8]
+				list := [5, 2, 7]
 				list[0]--
 			`,
 			wantStackTop: value.SmallInt(4),
 		},
 		"subscript setter add": {
 			source: `
-				list := [5, 2, 7.8]
+				list := [5, 2, 7]
 				list[0] += 8
 			`,
 			wantStackTop: value.SmallInt(13),
 		},
 		"subscript setter subtract": {
 			source: `
-				list := [5, 2, 7.8]
+				list := [5, 2, 7]
 				list[0] -= 8
 			`,
 			wantStackTop: value.SmallInt(-3),
 		},
 		"subscript setter multiply": {
 			source: `
-				list := [5, 2, 7.8]
+				list := [5, 2, 7]
 				list[1] *= 3
 			`,
 			wantStackTop: value.SmallInt(6),
 		},
 		"subscript setter divide": {
 			source: `
-				list := [5, 8, 7.8]
+				list := [5, 8, 7]
 				list[1] /= 2
 			`,
 			wantStackTop: value.SmallInt(4),
 		},
 		"subscript setter exponentiate": {
 			source: `
-				list := [5, 8, 7.8]
+				list := [5, 8, 7]
 				list[1] **= 2
 			`,
 			wantStackTop: value.SmallInt(64),
 		},
 		"subscript setter modulo type error": {
 			source: `
-				list := [5, 8, 7.8]
+				list := [5, 8, 7]
 				list[0] %= 2
 			`,
 			wantStackTop: value.SmallInt(1),
@@ -1769,6 +1769,10 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] ??= 5
 			`,
 			wantStackTop: value.False,
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(33, 3, 5), P(39, 3, 11)), "this condition will always have the same result since type `bool | Std::Int | Std::Float` can never be nil"),
+				error.NewWarning(L(P(45, 3, 17), P(45, 3, 17)), "unreachable code"),
+			},
 		},
 		"subscript setter nil coalesce truthy": {
 			source: `

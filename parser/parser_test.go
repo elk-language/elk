@@ -10,7 +10,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/k0kubun/pp"
+	"github.com/k0kubun/pp/v3"
 )
 
 // Represents a single parser test case.

@@ -3,6 +3,8 @@
 	or a key-value pair.
 ]##
 sealed primitive class ::Std::Pair[Key, Value] < ::Std::Value
+	include Tuple[Key | Value]
+
 	##[
 		Instantiate the `Pair` with the given key and value.
 	]##
@@ -28,17 +30,27 @@ sealed primitive class ::Std::Pair[Key, Value] < ::Std::Value
 		Get the element with the given index.
 		The key is `0`, value is `1`.
 	]##
-	def [](key: Key): Value; end
-
-	##[
-		Set the element with the given index to the given value.
-		The key is `0`, value is `1`.
-	]##
-	def []=(key: Key, value: Value); end
+	def [](index: AnyInt): Key | Value; end
 
 	##[
 		Check whether the given value
 		is a `Pair` that is equal to this `Pair`.
 	]##
 	def ==(other: any): Bool; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the pair.
+	]##
+	def iter: Iterator[Key, Value]; end
+
+	sealed primitive class Iterator[+Key, +Value]
+		include ::Std::Iterator::Base[Key | Value]
+
+		##[
+			Get the next element of the pair.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Key | Value ! :stop_iteration; end
+	end
 end

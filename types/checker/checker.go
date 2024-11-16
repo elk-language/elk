@@ -5886,7 +5886,7 @@ func (c *Checker) checkVariableDeclaration(
 
 func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *ast.VariablePatternDeclarationNode {
 	node.Initialiser = c.checkExpression(node.Initialiser)
-	initType := c.typeOf(node.Initialiser)
+	initType := c.typeOfGuardVoid(node.Initialiser)
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, initType)
 	return node
@@ -5894,7 +5894,7 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 
 func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *ast.ValuePatternDeclarationNode {
 	node.Initialiser = c.checkExpression(node.Initialiser)
-	initType := c.typeOf(node.Initialiser)
+	initType := c.typeOfGuardVoid(node.Initialiser)
 
 	prevMode := c.mode
 	c.mode = valuePatternMode

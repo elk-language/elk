@@ -3,6 +3,7 @@ package vm_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 )
 
@@ -14,11 +15,9 @@ func TestVMSource_Exponentiate(t *testing.T) {
 		},
 		"Int64 ** Int32": {
 			source: "2i64 ** 10i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(2),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `**`, got type `10i32`"),
+			},
 		},
 	}
 
@@ -36,16 +35,16 @@ func TestVMSource_Modulo(t *testing.T) {
 			wantStackTop: value.Int64(2),
 		},
 		"SmallInt % Float": {
-			source:       "250 % 4.5",
-			wantStackTop: value.Float(2.5),
+			source: "250 % 4.5",
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `%`, got type `4.5`"),
+			},
 		},
 		"Int64 % Int32": {
 			source: "11i64 % 2i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(11),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `%`, got type `2i32`"),
+			},
 		},
 	}
 
@@ -60,27 +59,21 @@ func TestVMSource_RightBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int >> String": {
 			source: "3 >> 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `\"foo\"`"),
+			},
 		},
 		"UInt16 >> Float": {
 			source: "3u16 >> 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `5.2`"),
+			},
 		},
 		"String >> Int": {
 			source: "'36' >> 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `>>` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `>>` is not defined on type `Std::String`"),
+			},
 		},
 
 		"Int >> Int": {
@@ -264,35 +257,27 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int >>> String": {
 			source: "3 >>> 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `>>>` is not available to value of class `Std::Int`: 3",
-			),
-			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(10, 1, 11)), "method `>>>` is not defined on type `Std::Int`"),
+			},
 		},
 		"Int64 >>> String": {
 			source: "3i64 >>> 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `\"foo\"`"),
+			},
 		},
 		"UInt16 >>> Float": {
 			source: "3u16 >>> 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `5.2`"),
+			},
 		},
 		"String >>> Int": {
 			source: "'36' >>> 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `>>>` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `>>>` is not defined on type `Std::String`"),
+			},
 		},
 
 		"Int64 >>> Int64": {
@@ -459,27 +444,21 @@ func TestVMSource_LeftBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int << String": {
 			source: "3 << 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `\"foo\"`"),
+			},
 		},
 		"UInt16 << Float": {
 			source: "3u16 << 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `5.2`"),
+			},
 		},
 		"String << Int": {
 			source: "'36' << 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `<<` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `<<` is not defined on type `Std::String`"),
+			},
 		},
 
 		"Int << Int": {
@@ -663,35 +642,27 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 <<< String": {
 			source: "3i64 <<< 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `\"foo\"`"),
+			},
 		},
 		"UInt16 <<< Float": {
 			source: "3u16 <<< 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be used as a bitshift operand",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `5.2`"),
+			},
 		},
 		"String <<< Int": {
 			source: "'36' <<< 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `<<<` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `<<<` is not defined on type `Std::String`"),
+			},
 		},
 		"Int <<< Int": {
 			source: "16 <<< 2",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `<<<` is not available to value of class `Std::Int`: 16",
-			),
-			wantStackTop: value.SmallInt(16),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `<<<` is not defined on type `Std::Int`"),
+			},
 		},
 
 		"Int64 <<< Int64": {
@@ -856,45 +827,35 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 
 func TestVMSource_BitwiseAnd(t *testing.T) {
 	tests := sourceTestTable{
+		"Float & Int": {
+			source: "3.6 & 5",
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `&` is not defined on type `Std::Float`"),
+			},
+		},
 		"Int64 & String": {
 			source: "3i64 & 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `\"foo\"`"),
+			},
 		},
 		"Int64 & SmallInt": {
 			source: "3i64 & 5",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `5`"),
+			},
 		},
 		"UInt16 & Float": {
 			source: "3u16 & 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `&`, got type `5.2`"),
+			},
 		},
 		"String & Int": {
 			source: "'36' & 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `&` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
-		},
-		"Float & Int": {
-			source: "3.6 & 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `&` is not available to value of class `Std::Float`: 3.6",
-			),
-			wantStackTop: value.Float(3.6),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&` is not defined on type `Std::String`"),
+			},
 		},
 		"Int & Int": {
 			source:       "25 & 14",
@@ -921,43 +882,33 @@ func TestVMSource_BitwiseAndNot(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 &~ String": {
 			source: "3i64 &~ 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `\"foo\"`"),
+			},
 		},
 		"Int64 &~ SmallInt": {
 			source: "3i64 &~ 5",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `5`"),
+			},
 		},
 		"UInt16 &~ Float": {
 			source: "3u16 &~ 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `&~`, got type `5.2`"),
+			},
 		},
 		"String &~ Int": {
 			source: "'36' &~ 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `&~` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `&~` is not defined on type `Std::String`"),
+			},
 		},
 		"Float &~ Int": {
 			source: "3.6 &~ 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `&~` is not available to value of class `Std::Float`: 3.6",
-			),
-			wantStackTop: value.Float(3.6),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&~` is not defined on type `Std::Float`"),
+			},
 		},
 		"Int &~ Int": {
 			source:       "25 &~ 14",
@@ -984,43 +935,33 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 | String": {
 			source: "3i64 | 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `\"foo\"`"),
+			},
 		},
 		"Int64 | SmallInt": {
 			source: "3i64 | 5",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `5`"),
+			},
 		},
 		"UInt16 | Float": {
 			source: "3u16 | 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `|`, got type `5.2`"),
+			},
 		},
 		"String | Int": {
 			source: "'36' | 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `|` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `|` is not defined on type `Std::String`"),
+			},
 		},
 		"Float | Int": {
 			source: "3.6 | 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `|` is not available to value of class `Std::Float`: 3.6",
-			),
-			wantStackTop: value.Float(3.6),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `|` is not defined on type `Std::Float`"),
+			},
 		},
 		"Int | Int": {
 			source:       "25 | 14",
@@ -1047,43 +988,33 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 ^ String": {
 			source: "3i64 ^ 'foo'",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `\"foo\"`"),
+			},
 		},
 		"Int64 ^ SmallInt": {
 			source: "3i64 ^ 5",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
-			wantStackTop: value.Int64(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `5`"),
+			},
 		},
 		"UInt16 ^ Float": {
 			source: "3u16 ^ 5.2",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
-			wantStackTop: value.UInt16(3),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `^`, got type `5.2`"),
+			},
 		},
 		"String ^ Int": {
 			source: "'36' ^ 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `^` is not available to value of class `Std::String`: \"36\"",
-			),
-			wantStackTop: value.String("36"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `^` is not defined on type `Std::String`"),
+			},
 		},
 		"Float ^ Int": {
 			source: "3.6 ^ 5",
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `^` is not available to value of class `Std::Float`: 3.6",
-			),
-			wantStackTop: value.Float(3.6),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `^` is not defined on type `Std::Float`"),
+			},
 		},
 		"Int ^ Int": {
 			source:       "25 ^ 14",

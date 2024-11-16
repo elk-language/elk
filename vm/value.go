@@ -2,7 +2,6 @@ package vm
 
 import (
 	"encoding/binary"
-	"fmt"
 	"reflect"
 
 	"github.com/cespare/xxhash/v2"
@@ -15,53 +14,10 @@ func init() {
 	c := &value.ValueClass.MethodContainer
 	Def(
 		c,
-		"print",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(*value.ArrayList)
-			for _, val := range *values {
-				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if err != nil {
-					return nil, err
-				}
-				fmt.Fprint(vm.Stdout, result)
-			}
-
-			return value.Nil, nil
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"println",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(*value.ArrayList)
-			for _, val := range *values {
-				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if err != nil {
-					return nil, err
-				}
-				fmt.Fprintln(vm.Stdout, result)
-			}
-
-			return value.Nil, nil
-		},
-		DefWithParameters(1),
-	)
-	Alias(c, "puts", "println")
-	Def(
-		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.String(self.Inspect()), nil
-		},
-	)
-	Def(
-		c,
-		"inspect_stack",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
-			v.InspectStack()
-			return value.Nil, nil
 		},
 	)
 	Def(
@@ -72,7 +28,6 @@ func init() {
 			return self.Class(), nil
 		},
 	)
-
 	Def(
 		c,
 		"==",

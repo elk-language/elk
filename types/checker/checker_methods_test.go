@@ -1430,6 +1430,30 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(18, 3, 6), P(29, 3, 17)), "method definitions cannot appear in this context"),
 			},
 		},
+		"positional rest params have tuple types": {
+			input: `
+				module Foo
+					def baz(*b: Float)
+						var c: nil = b
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 20), P(59, 4, 20)), "type `Std::ArrayTuple[Std::Float]` cannot be assigned to type `nil`"),
+			},
+		},
+		"named rest params have record types": {
+			input: `
+				module Foo
+					def baz(**b: Float)
+						var c: nil = b
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 4, 20), P(60, 4, 20)), "type `Std::HashRecord[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
+			},
+		},
 		"declare with type parameters": {
 			input: `
 				def foo[V](a: V): V
@@ -3898,6 +3922,12 @@ func TestClosureLiteral(t *testing.T) {
 				a := |a: Int|: Int -> a
 			`,
 		},
+		"use variables from outer scope": {
+			input: `
+				a := 6
+				b := |c: Int|: Int -> c + a
+			`,
+		},
 		"infer return type": {
 			input: `
 				var a: 8 = |a: Int| -> 9.2
@@ -3991,6 +4021,15 @@ func TestClosureLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(36, 3, 8), P(38, 3, 10)), "expected type `Std::Int` for parameter `a` in call to `call`, got type `2.5`"),
+			},
+		},
+		"closure call returns the specified type": {
+			input: `
+				a := |a: Int|: Int -> a
+				var b: nil = a.(2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(46, 3, 18), P(50, 3, 22)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 	}

@@ -52,6 +52,7 @@ func initBootstrap() {
 func init() {
 	initBootstrap()
 	initGlobalObject()
+	initKernel()
 	initUndefined()
 	initFunction()
 	initMethod()

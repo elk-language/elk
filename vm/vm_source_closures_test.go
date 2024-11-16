@@ -34,11 +34,11 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"closed upvalue": {
 			source: `
-				outer := ->
+				outer := ||: Pair[||: void, |v: String|: String] ->
 					x := "outside"
-					::Std::Pair(-> println(x), |v| -> x = v)
+					Pair(-> println(x), |v: String| -> x = v)
 				end
-				var %[show, set] = outer.()
+				var Pair(key: show, value: set) = outer.()
 				show.()
 				set.("new value")
 				show.()
@@ -48,7 +48,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in for in loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				for i in 1...2
 					closures << -> println i
 				end
@@ -60,7 +60,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in modifier for in loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				(closures << -> println i) for i in 1...2
 				closures[0].()
 				closures[1].()
@@ -70,7 +70,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in fornum loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				fornum i := 1; i <= 2; i++
 					closures << -> println i
 				end
@@ -82,7 +82,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in body of fornum loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				fornum i := 1; i <= 2; i++
 					j := i
 					closures << -> println j
@@ -95,7 +95,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in while loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				i := 1
 				while i <= 2
 					j := i
@@ -110,7 +110,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in do while loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				i := 1
 				do
 					j := i
@@ -125,7 +125,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				i := 1
 				loop
 					break if i > 2
@@ -141,7 +141,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in until loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				i := 1
 				until i > 2
 					j := i
@@ -156,7 +156,7 @@ func TestVMSource_Closure(t *testing.T) {
 		},
 		"upvalue in do until loop": {
 			source: `
-				closures := []
+				var closures: List[||: void] = []
 				i := 1
 				do
 					j := i

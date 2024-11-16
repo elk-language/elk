@@ -10,7 +10,7 @@ package compiler
 // 	"github.com/elk-language/elk/value"
 // 	"github.com/elk-language/elk/vm"
 // 	"github.com/google/go-cmp/cmp"
-// 	"github.com/k0kubun/pp"
+// 	"github.com/k0kubun/pp/v3"
 // )
 
 // var classSymbol value.Symbol = value.ToSymbol("<class>")
