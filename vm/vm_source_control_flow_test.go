@@ -17,6 +17,9 @@ func TestVMSource_Must(t *testing.T) {
 			`,
 			wantStdout:   "1\n5\n",
 			wantStackTop: value.NilType{},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(26, 3, 10), P(31, 3, 15)), "unnecessary `must`, type `5` is not nilable"),
+			},
 		},
 		"must with nil": {
 			source: `
@@ -54,7 +57,7 @@ func TestVMSource_As(t *testing.T) {
 				println "1"
 				a := 5
 				b := a as ::Std::Value
-				println b
+				println b.inspect
 			`,
 			wantStdout:   "1\n5\n",
 			wantStackTop: value.NilType{},
@@ -64,7 +67,7 @@ func TestVMSource_As(t *testing.T) {
 				println "1"
 				var a: Int | Float = 5
 				b := a as ::Std::Float
-				println b
+				println b.inspect
 			`,
 			wantStdout:     "1\n",
 			wantRuntimeErr: value.NewError(value.TypeErrorClass, "failed type cast, `5` is not an instance of `Std::Float`"),
@@ -83,11 +86,14 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		"throw": {
 			source: `
 				println "1"
-				throw :foo
+				throw unchecked :foo
 				println "2"
 			`,
 			wantStdout:     "1\n",
 			wantRuntimeErr: value.ToSymbol("foo"),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(46, 4, 5), P(56, 4, 15)), "unreachable code"),
+			},
 		},
 		"throw and catch": {
 			source: `
@@ -106,6 +112,9 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n2\n4\n5\n",
 			wantStackTop: value.SmallInt(2),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
+			},
 		},
 		"throw and catch in second branch": {
 			source: `
@@ -127,6 +136,9 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n2\n5\n6\n",
 			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
+			},
 		},
 		"throw and catch with pattern matching": {
 			source: `
@@ -148,6 +160,31 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantStdout:   "1\n4, str: foo\n5\n",
 			wantStackTop: value.SmallInt(3),
 		},
+		"throw unchecked and do not catch": {
+			source: `
+				println "1"
+				a := do
+					println "2"
+					throw unchecked :foo
+					println "3"
+					1
+				catch :bar
+					println "4"
+					2
+				catch :baz
+					println "5"
+					3
+				end
+				println "6"
+				a
+			`,
+			wantStdout:     "1\n2\n",
+			wantStackTop:   value.SmallInt(3),
+			wantRuntimeErr: value.ToSymbol("foo"),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(77, 6, 6), P(87, 6, 16)), "unreachable code"),
+			},
+		},
 		"throw and do not catch": {
 			source: `
 				println "1"
@@ -166,9 +203,10 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				println "6"
 				a
 			`,
-			wantStdout:     "1\n2\n",
-			wantStackTop:   value.SmallInt(3),
-			wantRuntimeErr: value.ToSymbol("foo"),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(51, 5, 6), P(60, 5, 15)), "thrown value of type `:foo` must be caught"),
+				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
+			},
 		},
 		"throw and catch in parent": {
 			source: `
@@ -221,6 +259,10 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n3\n7\n8\n",
 			wantStackTop: value.SmallInt(2),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(143, 11, 8), P(153, 11, 18)), "unreachable code"),
+				error.NewWarning(L(P(62, 6, 7), P(72, 6, 17)), "unreachable code"),
+			},
 		},
 		"finally without throw": {
 			source: `
@@ -256,6 +298,9 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n3\n4\n5\n",
 			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(51, 5, 6), P(61, 5, 16)), "unreachable code"),
+			},
 		},
 		"throw, execute finally and rethrow": {
 			source: `
@@ -273,12 +318,15 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:     "1\n3\n",
 			wantRuntimeErr: value.ToSymbol("foo"),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(79, 7, 7), P(89, 7, 17)), "unreachable code"),
+			},
 		},
 		"throw, execute finally, throw and catch in finally, rethrow": {
 			source: `
 				a := do
 					println "1"
-					throw :foo
+					throw unchecked :foo
 					println "2"
 					1
 				finally
@@ -297,6 +345,11 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:     "1\n3\n5\n",
 			wantRuntimeErr: value.ToSymbol("foo"),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(141, 11, 7), P(151, 11, 17)), "unreachable code"),
+				error.NewWarning(L(P(61, 5, 6), P(71, 5, 16)), "unreachable code"),
+				error.NewWarning(L(P(224, 18, 5), P(234, 18, 15)), "unreachable code"),
+			},
 		},
 		"execute finally, throw and catch in finally": {
 			source: `
@@ -326,7 +379,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 					println "1"
 					do
 						println "2"
-						throw :foo
+						throw unchecked :foo
 						println "3"
 						1
 					finally
@@ -344,6 +397,10 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n2\n4\n6\n7\n",
 			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(163, 12, 7), P(173, 12, 17)), "unreachable code"),
+				error.NewWarning(L(P(89, 7, 7), P(99, 7, 17)), "unreachable code"),
+			},
 		},
 		"execute finally, throw and catch in parent": {
 			source: `
@@ -393,7 +450,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"throw in method and catch in parent context": {
 			source: `
-				def foo
+				def foo! :foo
 					println "1"
 					throw :foo
 					println "2"
@@ -413,6 +470,9 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n4\n5\n",
 			wantStackTop: value.SmallInt(3),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(57, 5, 6), P(67, 5, 16)), "unreachable code"),
+			},
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
@@ -495,12 +555,16 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute nested finally before return": {
 			source: `
+				def bar: Int
+					println("3")
+					1
+				end
 				def foo
 					println "1"
 					do
 						do
 							println "2"
-							return println("3") ?? 1
+							return bar()
 						finally
 							println "4"
 							2
@@ -516,17 +580,25 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n2\n3\n4\n5\n",
 			wantStackTop: value.SmallInt(1),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(130, 11, 15), P(134, 11, 19)), "unreachable code"),
+				error.NewWarning(L(P(241, 20, 6), P(251, 20, 16)), "unreachable code"),
+			},
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"execute finally before return in a setter method": {
 			source: `
-				def foo=(value)
+				def bar: Int
+					println("3")
+					1
+				end
+				def foo=(value: Int)
 					println "1"
 					do
 						println "2"
-						return println("3") ?? 1
+						return bar()
 					finally
 						println "4"
 						2
@@ -538,17 +610,26 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
 			wantStackTop: value.SmallInt(25),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(132, 10, 14), P(136, 10, 18)), " values returned in void context will be ignored"),
+				error.NewWarning(L(P(191, 15, 16), P(201, 15, 16)), "unreachable code"),
+			},
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"execute finally before return in a module": {
 			source: `
+				def foo: Int
+					println("3")
+					1
+				end
+
 				module D
 					println "1"
 					do
 						println "2"
-						return println("3") ?? 1
+						return foo()
 					finally
 						println "4"
 						2
@@ -556,16 +637,25 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 					println "5"
 					3
 				end
+				nil
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
-			wantStackTop: value.NewModuleWithOptions(value.ModuleWithName("D"), value.ModuleWithSingletonClass()),
+			wantStackTop: value.Nil,
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(121, 11, 14), P(125, 11, 18)), "values returned in void context will be ignored"),
+				error.NewWarning(L(P(180, 16, 6), P(190, 16, 16)), "unreachable code"),
+			},
 		},
 		"execute finally before break": {
 			source: `
+				def foo: Int
+					println("2")
+					1
+				end
 				a := loop
 					do
 						println "1"
-						break println("2") ?? 1
+						break foo()
 						println "3"
 						2
 					finally
@@ -583,13 +673,17 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute nested finally before break": {
 			source: `
+				def foo: Int
+					println("2")
+					1
+				end
 				var a
 				do
 					a = loop
 						do
 							do
 								println "1"
-								break println("2") ?? 1
+								break foo()
 								println "3"
 								2
 							finally
@@ -617,10 +711,14 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute finally before continue": {
 			source: `
+				def foo: Int
+					println("2")
+					1
+				end
 				a := (do
 					do
 						println "1"
-						continue println("2") ?? 1
+						continue foo()
 						println "3"
 						2
 					finally
@@ -638,13 +736,17 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute nested finally before continue": {
 			source: `
+				def foo: Int
+					println("2")
+					1
+				end
 				var a
 				do
 					a = (do
 						do
 							do
 								println "1"
-								continue println("2") ?? 1
+								continue foo()
 								println "3"
 								2
 							finally

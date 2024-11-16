@@ -613,7 +613,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with all optional arguments": {
 			source: `
-				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Float
 					a + b + c
 				end
 
@@ -1193,7 +1193,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call an instance method without arguments": {
 			source: `
-				class ::Std::Object
+				class ::Std::Object < Value
 					def bar: Symbol
 						:baz
 					end
@@ -1255,9 +1255,8 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar++
 			`,
-			wantStackTop: value.SmallInt(2),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(96, 8, 5), P(104, 8, 13)), "method `++` is not defined on type `Std::Nil`"),
 			},
 		},
 		"setter increment": {

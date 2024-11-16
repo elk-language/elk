@@ -83,7 +83,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 		"'2' > 2.0": {
 			source: "'2' > 2.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `2.0`"),
+				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `2.0`"),
 			},
 		},
 
@@ -218,73 +218,73 @@ func TestVMSource_GreaterThan(t *testing.T) {
 		"`2` > 2.0": {
 			source: "`2` > 2.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `2.0`"),
+				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `2.0`"),
 			},
 		},
 		"`i` > 25.2bf": {
 			source: "`i` > 25.2bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `25.2bf`"),
+				error.NewFailure(L(P(6, 1, 7), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `25.2bf`"),
 			},
 		},
 		"`f` > 12.9f64": {
 			source: "`f` > 12.9f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `12.9f64`"),
+				error.NewFailure(L(P(6, 1, 7), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `12.9f64`"),
 			},
 		},
 		"`0` > 12.9f32": {
 			source: "`0` > 12.9f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `12.9f32`"),
+				error.NewFailure(L(P(6, 1, 7), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `12.9f32`"),
 			},
 		},
 		"`9` > 19i64": {
 			source: "`9` > 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i64`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i64`"),
 			},
 		},
 		"`u` > 19i32": {
 			source: "`u` > 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i32`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i32`"),
 			},
 		},
 		"`4` > 19i16": {
 			source: "`4` > 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i16`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i16`"),
 			},
 		},
 		"`6` > 19i8": {
 			source: "`6` > 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i8`"),
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19i8`"),
 			},
 		},
 		"`9` > 19u64": {
 			source: "`9` > 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u64`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u64`"),
 			},
 		},
 		"`u` > 19u32": {
 			source: "`u` > 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u32`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u32`"),
 			},
 		},
 		"`4` > 19u16": {
 			source: "`4` > 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u16`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u16`"),
 			},
 		},
 		"`6` > 19u8": {
 			source: "`6` > 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u8`"),
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>`, got type `19u8`"),
 			},
 		},
 
@@ -1342,77 +1342,76 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source:       "7u64 > 13u64",
 			wantStackTop: value.False,
 		},
-
 		"6u64 > 19": {
 			source: "6u64 > 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19`"),
 			},
 		},
 		"6u64 > 19.0": {
 			source: "6u64 > 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19.0`"),
 			},
 		},
 		"6u64 > 19bf": {
 			source: "6u64 > 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19bf`"),
 			},
 		},
 		"6u64 > 19f64": {
 			source: "6u64 > 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19f64`"),
 			},
 		},
 		"6u64 > 19f32": {
 			source: "6u64 > 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19f32`"),
 			},
 		},
 		"6u64 > 19i64": {
 			source: "6u64 > 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i64`"),
 			},
 		},
 		"6u64 > 19i32": {
 			source: "6u64 > 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i32`"),
 			},
 		},
 		"6u64 > 19i16": {
 			source: "6u64 > 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i16`"),
 			},
 		},
 		"6u64 > 19i8": {
 			source: "6u64 > 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19i8`"),
 			},
 		},
 		"6u64 > 19u32": {
 			source: "6u64 > 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u32`"),
 			},
 		},
 		"6u64 > 19u16": {
 			source: "6u64 > 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u16`"),
 			},
 		},
 		"6u64 > 19u8": {
 			source: "6u64 > 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>`, got type `19u8`"),
 			},
 		},
 
@@ -1429,77 +1428,76 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source:       "7u32 > 13u32",
 			wantStackTop: value.False,
 		},
-
 		"6u32 > 19": {
 			source: "6u32 > 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19`"),
 			},
 		},
 		"6u32 > 19.0": {
 			source: "6u32 > 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19.0`"),
 			},
 		},
 		"6u32 > 19bf": {
 			source: "6u32 > 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19bf`"),
 			},
 		},
 		"6u32 > 19f64": {
 			source: "6u32 > 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19f64`"),
 			},
 		},
 		"6u32 > 19f32": {
 			source: "6u32 > 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19f32`"),
 			},
 		},
 		"6u32 > 19i64": {
 			source: "6u32 > 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i64`"),
 			},
 		},
 		"6u32 > 19i32": {
 			source: "6u32 > 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i32`"),
 			},
 		},
 		"6u32 > 19i16": {
 			source: "6u32 > 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i16`"),
 			},
 		},
 		"6u32 > 19i8": {
 			source: "6u32 > 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19i8`"),
 			},
 		},
 		"6u32 > 19u64": {
 			source: "6u32 > 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u64`"),
 			},
 		},
 		"6u32 > 19u16": {
 			source: "6u32 > 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u16`"),
 			},
 		},
 		"6u32 > 19u8": {
 			source: "6u32 > 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>`, got type `19u8`"),
 			},
 		},
 
@@ -1516,77 +1514,76 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source:       "7u16 > 13u16",
 			wantStackTop: value.False,
 		},
-
 		"6u16 > 19": {
 			source: "6u16 > 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19`"),
 			},
 		},
 		"6u16 > 19.0": {
 			source: "6u16 > 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19.0`"),
 			},
 		},
 		"6u16 > 19bf": {
 			source: "6u16 > 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19bf`"),
 			},
 		},
 		"6u16 > 19f64": {
 			source: "6u16 > 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19f64`"),
 			},
 		},
 		"6u16 > 19f32": {
 			source: "6u16 > 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19f32`"),
 			},
 		},
 		"6u16 > 19i64": {
 			source: "6u16 > 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i64`"),
 			},
 		},
 		"6u16 > 19i32": {
 			source: "6u16 > 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i32`"),
 			},
 		},
 		"6u16 > 19i16": {
 			source: "6u16 > 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i16`"),
 			},
 		},
 		"6u16 > 19i8": {
 			source: "6u16 > 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19i8`"),
 			},
 		},
 		"6u16 > 19u64": {
 			source: "6u16 > 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u64`"),
 			},
 		},
 		"6u16 > 19u32": {
 			source: "6u16 > 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u32`"),
 			},
 		},
 		"6u16 > 19u8": {
 			source: "6u16 > 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>`, got type `19u8`"),
 			},
 		},
 
@@ -3010,77 +3007,76 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7u64 >= 13u64",
 			wantStackTop: value.False,
 		},
-
 		"6u64 >= 19": {
 			source: "6u64 >= 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19`"),
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19`"),
 			},
 		},
 		"6u64 >= 19.0": {
 			source: "6u64 >= 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19.0`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19.0`"),
 			},
 		},
 		"6u64 >= 19bf": {
 			source: "6u64 >= 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19bf`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19bf`"),
 			},
 		},
 		"6u64 >= 19f64": {
 			source: "6u64 >= 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f64`"),
 			},
 		},
 		"6u64 >= 19f32": {
 			source: "6u64 >= 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f32`"),
 			},
 		},
 		"6u64 >= 19i64": {
 			source: "6u64 >= 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i64`"),
 			},
 		},
 		"6u64 >= 19i32": {
 			source: "6u64 >= 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i32`"),
 			},
 		},
 		"6u64 >= 19i16": {
 			source: "6u64 >= 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i16`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i16`"),
 			},
 		},
 		"6u64 >= 19i8": {
 			source: "6u64 >= 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i8`"),
 			},
 		},
 		"6u64 >= 19u32": {
 			source: "6u64 >= 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u32`"),
 			},
 		},
 		"6u64 >= 19u16": {
 			source: "6u64 >= 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u16`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u16`"),
 			},
 		},
 		"6u64 >= 19u8": {
 			source: "6u64 >= 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u8`"),
 			},
 		},
 
@@ -3100,73 +3096,73 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 		"6u32 >= 19": {
 			source: "6u32 >= 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19`"),
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19`"),
 			},
 		},
 		"6u32 >= 19.0": {
 			source: "6u32 >= 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19.0`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19.0`"),
 			},
 		},
 		"6u32 >= 19bf": {
 			source: "6u32 >= 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19bf`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19bf`"),
 			},
 		},
 		"6u32 >= 19f64": {
 			source: "6u32 >= 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f64`"),
 			},
 		},
 		"6u32 >= 19f32": {
 			source: "6u32 >= 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f32`"),
 			},
 		},
 		"6u32 >= 19i64": {
 			source: "6u32 >= 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i64`"),
 			},
 		},
 		"6u32 >= 19i32": {
 			source: "6u32 >= 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i32`"),
 			},
 		},
 		"6u32 >= 19i16": {
 			source: "6u32 >= 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i16`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i16`"),
 			},
 		},
 		"6u32 >= 19i8": {
 			source: "6u32 >= 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i8`"),
 			},
 		},
 		"6u32 >= 19u64": {
 			source: "6u32 >= 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u64`"),
 			},
 		},
 		"6u32 >= 19u16": {
 			source: "6u32 >= 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u16`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u16`"),
 			},
 		},
 		"6u32 >= 19u8": {
 			source: "6u32 >= 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u8`"),
 			},
 		},
 
@@ -3186,73 +3182,73 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 		"6u16 >= 19": {
 			source: "6u16 >= 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19`"),
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19`"),
 			},
 		},
 		"6u16 >= 19.0": {
 			source: "6u16 >= 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19.0`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19.0`"),
 			},
 		},
 		"6u16 >= 19bf": {
 			source: "6u16 >= 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19bf`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19bf`"),
 			},
 		},
 		"6u16 >= 19f64": {
 			source: "6u16 >= 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f64`"),
 			},
 		},
 		"6u16 >= 19f32": {
 			source: "6u16 >= 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f32`"),
 			},
 		},
 		"6u16 >= 19i64": {
 			source: "6u16 >= 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i64`"),
 			},
 		},
 		"6u16 >= 19i32": {
 			source: "6u16 >= 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i32`"),
 			},
 		},
 		"6u16 >= 19i16": {
 			source: "6u16 >= 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i16`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i16`"),
 			},
 		},
 		"6u16 >= 19i8": {
 			source: "6u16 >= 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i8`"),
 			},
 		},
 		"6u16 >= 19u64": {
 			source: "6u16 >= 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u64`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u64`"),
 			},
 		},
 		"6u16 >= 19u32": {
 			source: "6u16 >= 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u32`"),
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u32`"),
 			},
 		},
 		"6u16 >= 19u8": {
 			source: "6u16 >= 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u8`"),
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u8`"),
 			},
 		},
 
@@ -3565,67 +3561,67 @@ func TestVMSource_LessThan(t *testing.T) {
 		"`i` < 25.2bf": {
 			source: "`i` < 25.2bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `25.2bf`"),
+				error.NewFailure(L(P(6, 1, 7), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `25.2bf`"),
 			},
 		},
 		"`f` < 12.9f64": {
 			source: "`f` < 12.9f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f64`"),
+				error.NewFailure(L(P(6, 1, 7), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f64`"),
 			},
 		},
 		"`0` < 12.9f32": {
 			source: "`0` < 12.9f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f32`"),
+				error.NewFailure(L(P(6, 1, 7), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f32`"),
 			},
 		},
 		"`9` < 19i64": {
 			source: "`9` < 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i64`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i64`"),
 			},
 		},
 		"`u` < 19i32": {
 			source: "`u` < 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i32`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i32`"),
 			},
 		},
 		"`4` < 19i16": {
 			source: "`4` < 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i16`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i16`"),
 			},
 		},
 		"`6` < 19i8": {
 			source: "`6` < 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i8`"),
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i8`"),
 			},
 		},
 		"`9` < 19u64": {
 			source: "`9` < 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u64`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u64`"),
 			},
 		},
 		"`u` < 19u32": {
 			source: "`u` < 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u32`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u32`"),
 			},
 		},
 		"`4` < 19u16": {
 			source: "`4` < 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u16`"),
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u16`"),
 			},
 		},
 		"`6` < 19u8": {
 			source: "`6` < 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u8`"),
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u8`"),
 			},
 		},
 
@@ -4216,10 +4212,9 @@ func TestVMSource_LessThan(t *testing.T) {
 
 		"6f32 < 19.0": {
 			source: "6f32 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6f32 < 19": {
 			source: "6f32 < 19",
@@ -4678,77 +4673,76 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7u64 < 13u64",
 			wantStackTop: value.True,
 		},
-
 		"6u64 < 19": {
 			source: "6u64 < 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19`"),
 			},
 		},
 		"6u64 < 19.0": {
 			source: "6u64 < 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19.0`"),
 			},
 		},
 		"6u64 < 19bf": {
 			source: "6u64 < 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19bf`"),
 			},
 		},
 		"6u64 < 19f64": {
 			source: "6u64 < 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f64`"),
 			},
 		},
 		"6u64 < 19f32": {
 			source: "6u64 < 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f32`"),
 			},
 		},
 		"6u64 < 19i64": {
 			source: "6u64 < 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i64`"),
 			},
 		},
 		"6u64 < 19i32": {
 			source: "6u64 < 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i32`"),
 			},
 		},
 		"6u64 < 19i16": {
 			source: "6u64 < 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i16`"),
 			},
 		},
 		"6u64 < 19i8": {
 			source: "6u64 < 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i8`"),
 			},
 		},
 		"6u64 < 19u32": {
 			source: "6u64 < 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u32`"),
 			},
 		},
 		"6u64 < 19u16": {
 			source: "6u64 < 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u16`"),
 			},
 		},
 		"6u64 < 19u8": {
 			source: "6u64 < 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u8`"),
 			},
 		},
 
@@ -4768,73 +4762,73 @@ func TestVMSource_LessThan(t *testing.T) {
 		"6u32 < 19": {
 			source: "6u32 < 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19`"),
 			},
 		},
 		"6u32 < 19.0": {
 			source: "6u32 < 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19.0`"),
 			},
 		},
 		"6u32 < 19bf": {
 			source: "6u32 < 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19bf`"),
 			},
 		},
 		"6u32 < 19f64": {
 			source: "6u32 < 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f64`"),
 			},
 		},
 		"6u32 < 19f32": {
 			source: "6u32 < 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f32`"),
 			},
 		},
 		"6u32 < 19i64": {
 			source: "6u32 < 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i64`"),
 			},
 		},
 		"6u32 < 19i32": {
 			source: "6u32 < 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i32`"),
 			},
 		},
 		"6u32 < 19i16": {
 			source: "6u32 < 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i16`"),
 			},
 		},
 		"6u32 < 19i8": {
 			source: "6u32 < 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i8`"),
 			},
 		},
 		"6u32 < 19u64": {
 			source: "6u32 < 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u64`"),
 			},
 		},
 		"6u32 < 19u16": {
 			source: "6u32 < 19u16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u16`"),
 			},
 		},
 		"6u32 < 19u8": {
 			source: "6u32 < 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u8`"),
 			},
 		},
 
@@ -4854,73 +4848,73 @@ func TestVMSource_LessThan(t *testing.T) {
 		"6u16 < 19": {
 			source: "6u16 < 19",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19`"),
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19`"),
 			},
 		},
 		"6u16 < 19.0": {
 			source: "6u16 < 19.0",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19.0`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19.0`"),
 			},
 		},
 		"6u16 < 19bf": {
 			source: "6u16 < 19bf",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19bf`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19bf`"),
 			},
 		},
 		"6u16 < 19f64": {
 			source: "6u16 < 19f64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f64`"),
 			},
 		},
 		"6u16 < 19f32": {
 			source: "6u16 < 19f32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f32`"),
 			},
 		},
 		"6u16 < 19i64": {
 			source: "6u16 < 19i64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i64`"),
 			},
 		},
 		"6u16 < 19i32": {
 			source: "6u16 < 19i32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i32`"),
 			},
 		},
 		"6u16 < 19i16": {
 			source: "6u16 < 19i16",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i16`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i16`"),
 			},
 		},
 		"6u16 < 19i8": {
 			source: "6u16 < 19i8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i8`"),
 			},
 		},
 		"6u16 < 19u64": {
 			source: "6u16 < 19u64",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u64`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u64`"),
 			},
 		},
 		"6u16 < 19u32": {
 			source: "6u16 < 19u32",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u32`"),
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u32`"),
 			},
 		},
 		"6u16 < 19u8": {
 			source: "6u16 < 19u8",
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u8`"),
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u8`"),
 			},
 		},
 

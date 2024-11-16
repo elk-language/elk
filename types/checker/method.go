@@ -1128,6 +1128,15 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
 
+	// push `undefined` for every missing optional positional argument
+	// before the rest parameter
+	for range positionalRestParamIndex - len(positionalArguments) {
+		typedPositionalArguments = append(
+			typedPositionalArguments,
+			ast.NewUndefinedLiteralNode(span),
+		)
+	}
+
 	var currentParamIndex int
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
 		posArg := positionalArguments[currentParamIndex]
