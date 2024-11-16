@@ -1757,101 +1757,88 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "'a' >= `b`",
 			wantStackTop: value.False,
 		},
-
 		"'2' >= 2.0": {
 			source: "'2' >= 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `2.0`"),
+			},
 		},
 
 		"'28' >= 25.2bf": {
 			source: "'28' >= 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `25.2bf`"),
+			},
 		},
 
 		"'28.8' >= 12.9f64": {
 			source: "'28.8' >= 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(10, 1, 11), P(16, 1, 17)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `12.9f64`"),
+			},
 		},
 
 		"'28.8' >= 12.9f32": {
 			source: "'28.8' >= 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(10, 1, 11), P(16, 1, 17)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `12.9f32`"),
+			},
 		},
 
 		"'93' >= 19i64": {
 			source: "'93' >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 
 		"'93' >= 19i32": {
 			source: "'93' >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 
 		"'93' >= 19i16": {
 			source: "'93' >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 
 		"'93' >= 19i8": {
 			source: "'93' >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 
 		"'93' >= 19u64": {
 			source: "'93' >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 
 		"'93' >= 19u32": {
 			source: "'93' >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 
 		"'93' >= 19u16": {
 			source: "'93' >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 
 		"'93' >= 19u8": {
 			source: "'93' >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Char
@@ -1904,90 +1891,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "`a` >= 'b'",
 			wantStackTop: value.False,
 		},
-
 		"`2` >= 2.0": {
 			source: "`2` >= 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `2.0`"),
+			},
 		},
 		"`i` >= 25.2bf": {
 			source: "`i` >= 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `25.2bf`"),
+			},
 		},
 		"`f` >= 12.9f64": {
 			source: "`f` >= 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `12.9f64`"),
+			},
 		},
 		"`0` >= 12.9f32": {
 			source: "`0` >= 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `12.9f32`"),
+			},
 		},
 		"`9` >= 19i64": {
 			source: "`9` >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"`u` >= 19i32": {
 			source: "`u` >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"`4` >= 19i16": {
 			source: "`4` >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"`6` >= 19i8": {
 			source: "`6` >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"`9` >= 19u64": {
 			source: "`9` >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"`u` >= 19u32": {
 			source: "`u` >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"`4` >= 19u16": {
 			source: "`4` >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"`6` >= 19u8": {
 			source: "`6` >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int
@@ -2069,76 +2043,65 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7 >= 6.9bf",
 			wantStackTop: value.True,
 		},
-
 		"6 >= 19f64": {
 			source: "6 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6 >= 19f32": {
 			source: "6 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6 >= 19i64": {
 			source: "6 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6 >= 19i32": {
 			source: "6 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6 >= 19i16": {
 			source: "6 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6 >= 19i8": {
 			source: "6 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6 >= 19u64": {
 			source: "6 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6 >= 19u32": {
 			source: "6 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6 >= 19u16": {
 			source: "6 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6 >= 19u8": {
 			source: "6 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Float
@@ -2232,76 +2195,65 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7.0 >= 6.9bf",
 			wantStackTop: value.True,
 		},
-
 		"6.0 >= 19f64": {
 			source: "6.0 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6.0 >= 19f32": {
 			source: "6.0 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6.0 >= 19i64": {
 			source: "6.0 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6.0 >= 19i32": {
 			source: "6.0 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6.0 >= 19i16": {
 			source: "6.0 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6.0 >= 19i8": {
 			source: "6.0 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6.0 >= 19u64": {
 			source: "6.0 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6.0 >= 19u32": {
 			source: "6.0 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6.0 >= 19u16": {
 			source: "6.0 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6.0 >= 19u8": {
 			source: "6.0 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// BigFloat
@@ -2395,76 +2347,65 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7bf >= 6.9bf",
 			wantStackTop: value.True,
 		},
-
 		"6bf >= 19f64": {
 			source: "6bf >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6bf >= 19f32": {
 			source: "6bf >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6bf >= 19i64": {
 			source: "6bf >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6bf >= 19i32": {
 			source: "6bf >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6bf >= 19i16": {
 			source: "6bf >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6bf >= 19i8": {
 			source: "6bf >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6bf >= 19u64": {
 			source: "6bf >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6bf >= 19u32": {
 			source: "6bf >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6bf >= 19u16": {
 			source: "6bf >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6bf >= 19u8": {
 			source: "6bf >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Float64
@@ -2500,91 +2441,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7f64 >= 6.9f64",
 			wantStackTop: value.True,
 		},
-
 		"6f64 >= 19.0": {
 			source: "6f64 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
-
 		"6f64 >= 19": {
 			source: "6f64 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6f64 >= 19bf": {
 			source: "6f64 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6f64 >= 19f32": {
 			source: "6f64 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6f64 >= 19i64": {
 			source: "6f64 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6f64 >= 19i32": {
 			source: "6f64 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6f64 >= 19i16": {
 			source: "6f64 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6f64 >= 19i8": {
 			source: "6f64 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6f64 >= 19u64": {
 			source: "6f64 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6f64 >= 19u32": {
 			source: "6f64 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6f64 >= 19u16": {
 			source: "6f64 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6f64 >= 19u8": {
 			source: "6f64 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Float32
@@ -2620,91 +2547,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7f32 >= 6.9f32",
 			wantStackTop: value.True,
 		},
-
 		"6f32 >= 19.0": {
 			source: "6f32 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
-
 		"6f32 >= 19": {
 			source: "6f32 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6f32 >= 19bf": {
 			source: "6f32 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6f32 >= 19f64": {
 			source: "6f32 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6f32 >= 19i64": {
 			source: "6f32 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6f32 >= 19i32": {
 			source: "6f32 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6f32 >= 19i16": {
 			source: "6f32 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6f32 >= 19i8": {
 			source: "6f32 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6f32 >= 19u64": {
 			source: "6f32 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6f32 >= 19u32": {
 			source: "6f32 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6f32 >= 19u16": {
 			source: "6f32 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6f32 >= 19u8": {
 			source: "6f32 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int64
@@ -2728,90 +2641,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7i64 >= 13i64",
 			wantStackTop: value.False,
 		},
-
 		"6i64 >= 19": {
 			source: "6i64 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6i64 >= 19.0": {
 			source: "6i64 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6i64 >= 19bf": {
 			source: "6i64 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6i64 >= 19f64": {
 			source: "6i64 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6i64 >= 19f32": {
 			source: "6i64 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6i64 >= 19i32": {
 			source: "6i64 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6i64 >= 19i16": {
 			source: "6i64 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6i64 >= 19i8": {
 			source: "6i64 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6i64 >= 19u64": {
 			source: "6i64 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6i64 >= 19u32": {
 			source: "6i64 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6i64 >= 19u16": {
 			source: "6i64 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6i64 >= 19u8": {
 			source: "6i64 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int32
@@ -2835,90 +2735,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7i32 >= 13i32",
 			wantStackTop: value.False,
 		},
-
 		"6i32 >= 19": {
 			source: "6i32 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6i32 >= 19.0": {
 			source: "6i32 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6i32 >= 19bf": {
 			source: "6i32 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6i32 >= 19f64": {
 			source: "6i32 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6i32 >= 19f32": {
 			source: "6i32 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6i32 >= 19i64": {
 			source: "6i32 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6i32 >= 19i16": {
 			source: "6i32 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6i32 >= 19i8": {
 			source: "6i32 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6i32 >= 19u64": {
 			source: "6i32 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6i32 >= 19u32": {
 			source: "6i32 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6i32 >= 19u16": {
 			source: "6i32 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6i32 >= 19u8": {
 			source: "6i32 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -2945,87 +2832,75 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 
 		"6i16 >= 19": {
 			source: "6i16 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6i16 >= 19.0": {
 			source: "6i16 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6i16 >= 19bf": {
 			source: "6i16 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6i16 >= 19f64": {
 			source: "6i16 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6i16 >= 19f32": {
 			source: "6i16 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6i16 >= 19i64": {
 			source: "6i16 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6i16 >= 19i32": {
 			source: "6i16 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6i16 >= 19i8": {
 			source: "6i16 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6i16 >= 19u64": {
 			source: "6i16 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6i16 >= 19u32": {
 			source: "6i16 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6i16 >= 19u16": {
 			source: "6i16 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6i16 >= 19u8": {
 			source: "6i16 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -3049,90 +2924,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7i8 >= 13i8",
 			wantStackTop: value.False,
 		},
-
 		"6i8 >= 19": {
 			source: "6i8 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6i8 >= 19.0": {
 			source: "6i8 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6i8 >= 19bf": {
 			source: "6i8 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6i8 >= 19f64": {
 			source: "6i8 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6i8 >= 19f32": {
 			source: "6i8 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6i8 >= 19i64": {
 			source: "6i8 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6i8 >= 19i32": {
 			source: "6i8 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6i8 >= 19i16": {
 			source: "6i8 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6i8 >= 19u64": {
 			source: "6i8 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6i8 >= 19u32": {
 			source: "6i8 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6i8 >= 19u16": {
 			source: "6i8 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6i8 >= 19u8": {
 			source: "6i8 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// UInt64
@@ -3151,87 +3013,75 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 
 		"6u64 >= 19": {
 			source: "6u64 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6u64 >= 19.0": {
 			source: "6u64 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6u64 >= 19bf": {
 			source: "6u64 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6u64 >= 19f64": {
 			source: "6u64 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6u64 >= 19f32": {
 			source: "6u64 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6u64 >= 19i64": {
 			source: "6u64 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6u64 >= 19i32": {
 			source: "6u64 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6u64 >= 19i16": {
 			source: "6u64 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6u64 >= 19i8": {
 			source: "6u64 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6u64 >= 19u32": {
 			source: "6u64 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6u64 >= 19u16": {
 			source: "6u64 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6u64 >= 19u8": {
 			source: "6u64 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// UInt32
@@ -3247,90 +3097,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7u32 >= 13u32",
 			wantStackTop: value.False,
 		},
-
 		"6u32 >= 19": {
 			source: "6u32 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6u32 >= 19.0": {
 			source: "6u32 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6u32 >= 19bf": {
 			source: "6u32 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6u32 >= 19f64": {
 			source: "6u32 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6u32 >= 19f32": {
 			source: "6u32 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6u32 >= 19i64": {
 			source: "6u32 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6u32 >= 19i32": {
 			source: "6u32 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6u32 >= 19i16": {
 			source: "6u32 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6u32 >= 19i8": {
 			source: "6u32 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6u32 >= 19u64": {
 			source: "6u32 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6u32 >= 19u16": {
 			source: "6u32 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 		"6u32 >= 19u8": {
 			source: "6u32 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -3346,90 +3183,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7u16 >= 13u16",
 			wantStackTop: value.False,
 		},
-
 		"6u16 >= 19": {
 			source: "6u16 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6u16 >= 19.0": {
 			source: "6u16 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6u16 >= 19bf": {
 			source: "6u16 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6u16 >= 19f64": {
 			source: "6u16 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6u16 >= 19f32": {
 			source: "6u16 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6u16 >= 19i64": {
 			source: "6u16 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6u16 >= 19i32": {
 			source: "6u16 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6u16 >= 19i16": {
 			source: "6u16 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6u16 >= 19i8": {
 			source: "6u16 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6u16 >= 19u64": {
 			source: "6u16 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6u16 >= 19u32": {
 			source: "6u16 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6u16 >= 19u8": {
 			source: "6u16 >= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `>=`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -3445,90 +3269,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source:       "7u8 >= 13u8",
 			wantStackTop: value.False,
 		},
-
 		"6u8 >= 19": {
 			source: "6u8 >= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19`"),
+			},
 		},
 		"6u8 >= 19.0": {
 			source: "6u8 >= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19.0`"),
+			},
 		},
 		"6u8 >= 19bf": {
 			source: "6u8 >= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19bf`"),
+			},
 		},
 		"6u8 >= 19f64": {
 			source: "6u8 >= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19f64`"),
+			},
 		},
 		"6u8 >= 19f32": {
 			source: "6u8 >= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19f32`"),
+			},
 		},
 		"6u8 >= 19i64": {
 			source: "6u8 >= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19i64`"),
+			},
 		},
 		"6u8 >= 19i32": {
 			source: "6u8 >= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19i32`"),
+			},
 		},
 		"6u8 >= 19i16": {
 			source: "6u8 >= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19i16`"),
+			},
 		},
 		"6u8 >= 19i8": {
 			source: "6u8 >= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19i8`"),
+			},
 		},
 		"6u8 >= 19u64": {
 			source: "6u8 >= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19u64`"),
+			},
 		},
 		"6u8 >= 19u32": {
 			source: "6u8 >= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19u32`"),
+			},
 		},
 		"6u8 >= 19u16": {
 			source: "6u8 >= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `>=`, got type `19u16`"),
+			},
 		},
 	}
 
@@ -3611,101 +3422,88 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "'a' < `b`",
 			wantStackTop: value.True,
 		},
-
 		"'2' < 2.0": {
 			source: "'2' < 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `2.0`"),
+			},
 		},
 
 		"'28' < 25.2bf": {
 			source: "'28' < 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `25.2bf`"),
+			},
 		},
 
 		"'28.8' < 12.9f64": {
 			source: "'28.8' < 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(15, 1, 16)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f64`"),
+			},
 		},
 
 		"'28.8' < 12.9f32": {
 			source: "'28.8' < 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(9, 1, 10), P(15, 1, 16)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f32`"),
+			},
 		},
 
 		"'93' < 19i64": {
 			source: "'93' < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 
 		"'93' < 19i32": {
 			source: "'93' < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 
 		"'93' < 19i16": {
 			source: "'93' < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 
 		"'93' < 19i8": {
 			source: "'93' < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 
 		"'93' < 19u64": {
 			source: "'93' < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 
 		"'93' < 19u32": {
 			source: "'93' < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 
 		"'93' < 19u16": {
 			source: "'93' < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 
 		"'93' < 19u8": {
 			source: "'93' < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Char
@@ -3758,90 +3556,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "`a` < 'b'",
 			wantStackTop: value.True,
 		},
-
 		"`2` < 2.0": {
 			source: "`2` < 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `2.0`"),
+			},
 		},
 		"`i` < 25.2bf": {
 			source: "`i` < 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `25.2bf`"),
+			},
 		},
 		"`f` < 12.9f64": {
 			source: "`f` < 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f64`"),
+			},
 		},
 		"`0` < 12.9f32": {
 			source: "`0` < 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `12.9f32`"),
+			},
 		},
 		"`9` < 19i64": {
 			source: "`9` < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"`u` < 19i32": {
 			source: "`u` < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"`4` < 19i16": {
 			source: "`4` < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"`6` < 19i8": {
 			source: "`6` < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"`9` < 19u64": {
 			source: "`9` < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"`u` < 19u32": {
 			source: "`u` < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"`4` < 19u16": {
 			source: "`4` < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"`6` < 19u8": {
 			source: "`6` < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int
@@ -3923,76 +3708,65 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7 < 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6 < 19f64": {
 			source: "6 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6 < 19f32": {
 			source: "6 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6 < 19i64": {
 			source: "6 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6 < 19i32": {
 			source: "6 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6 < 19i16": {
 			source: "6 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6 < 19i8": {
 			source: "6 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(7, 1, 8)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6 < 19u64": {
 			source: "6 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6 < 19u32": {
 			source: "6 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6 < 19u16": {
 			source: "6 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6 < 19u8": {
 			source: "6 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(4, 1, 5), P(7, 1, 8)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Float
@@ -4086,76 +3860,65 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7.0 < 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6.0 < 19f64": {
 			source: "6.0 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6.0 < 19f32": {
 			source: "6.0 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6.0 < 19i64": {
 			source: "6.0 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6.0 < 19i32": {
 			source: "6.0 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6.0 < 19i16": {
 			source: "6.0 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6.0 < 19i8": {
 			source: "6.0 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6.0 < 19u64": {
 			source: "6.0 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6.0 < 19u32": {
 			source: "6.0 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6.0 < 19u16": {
 			source: "6.0 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6.0 < 19u8": {
 			source: "6.0 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// BigFloat
@@ -4249,76 +4012,65 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7bf < 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6bf < 19f64": {
 			source: "6bf < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6bf < 19f32": {
 			source: "6bf < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6bf < 19i64": {
 			source: "6bf < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6bf < 19i32": {
 			source: "6bf < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6bf < 19i16": {
 			source: "6bf < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6bf < 19i8": {
 			source: "6bf < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6bf < 19u64": {
 			source: "6bf < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6bf < 19u32": {
 			source: "6bf < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6bf < 19u16": {
 			source: "6bf < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6bf < 19u8": {
 			source: "6bf < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Float64
@@ -4354,91 +4106,78 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7f64 < 6.9f64",
 			wantStackTop: value.False,
 		},
-
 		"6f64 < 19.0": {
 			source: "6f64 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 
 		"6f64 < 19": {
 			source: "6f64 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6f64 < 19bf": {
 			source: "6f64 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6f64 < 19f32": {
 			source: "6f64 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6f64 < 19i64": {
 			source: "6f64 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6f64 < 19i32": {
 			source: "6f64 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6f64 < 19i16": {
 			source: "6f64 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6f64 < 19i8": {
 			source: "6f64 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6f64 < 19u64": {
 			source: "6f64 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6f64 < 19u32": {
 			source: "6f64 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6f64 < 19u16": {
 			source: "6f64 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6f64 < 19u8": {
 			source: "6f64 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float64` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Float32
@@ -4482,83 +4221,71 @@ func TestVMSource_LessThan(t *testing.T) {
 				"`Std::Float` cannot be coerced into `Std::Float32`",
 			),
 		},
-
 		"6f32 < 19": {
 			source: "6f32 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6f32 < 19bf": {
 			source: "6f32 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6f32 < 19f64": {
 			source: "6f32 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6f32 < 19i64": {
 			source: "6f32 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6f32 < 19i32": {
 			source: "6f32 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6f32 < 19i16": {
 			source: "6f32 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6f32 < 19i8": {
 			source: "6f32 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6f32 < 19u64": {
 			source: "6f32 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6f32 < 19u32": {
 			source: "6f32 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6f32 < 19u16": {
 			source: "6f32 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6f32 < 19u8": {
 			source: "6f32 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Float32` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int64
@@ -4582,90 +4309,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7i64 < 13i64",
 			wantStackTop: value.True,
 		},
-
 		"6i64 < 19": {
 			source: "6i64 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6i64 < 19.0": {
 			source: "6i64 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6i64 < 19bf": {
 			source: "6i64 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6i64 < 19f64": {
 			source: "6i64 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6i64 < 19f32": {
 			source: "6i64 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6i64 < 19i32": {
 			source: "6i64 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6i64 < 19i16": {
 			source: "6i64 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6i64 < 19i8": {
 			source: "6i64 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6i64 < 19u64": {
 			source: "6i64 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6i64 < 19u32": {
 			source: "6i64 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6i64 < 19u16": {
 			source: "6i64 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6i64 < 19u8": {
 			source: "6i64 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int64` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int32
@@ -4689,90 +4403,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7i32 < 13i32",
 			wantStackTop: value.True,
 		},
-
 		"6i32 < 19": {
 			source: "6i32 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6i32 < 19.0": {
 			source: "6i32 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6i32 < 19bf": {
 			source: "6i32 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6i32 < 19f64": {
 			source: "6i32 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6i32 < 19f32": {
 			source: "6i32 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6i32 < 19i64": {
 			source: "6i32 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6i32 < 19i16": {
 			source: "6i32 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6i32 < 19i8": {
 			source: "6i32 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6i32 < 19u64": {
 			source: "6i32 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6i32 < 19u32": {
 			source: "6i32 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6i32 < 19u16": {
 			source: "6i32 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6i32 < 19u8": {
 			source: "6i32 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int32` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -4799,87 +4500,75 @@ func TestVMSource_LessThan(t *testing.T) {
 
 		"6i16 < 19": {
 			source: "6i16 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6i16 < 19.0": {
 			source: "6i16 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6i16 < 19bf": {
 			source: "6i16 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6i16 < 19f64": {
 			source: "6i16 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6i16 < 19f32": {
 			source: "6i16 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6i16 < 19i64": {
 			source: "6i16 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6i16 < 19i32": {
 			source: "6i16 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6i16 < 19i8": {
 			source: "6i16 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6i16 < 19u64": {
 			source: "6i16 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6i16 < 19u32": {
 			source: "6i16 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6i16 < 19u16": {
 			source: "6i16 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6i16 < 19u8": {
 			source: "6i16 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int16` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -4903,90 +4592,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7i8 < 13i8",
 			wantStackTop: value.True,
 		},
-
 		"6i8 < 19": {
 			source: "6i8 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6i8 < 19.0": {
 			source: "6i8 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6i8 < 19bf": {
 			source: "6i8 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6i8 < 19f64": {
 			source: "6i8 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6i8 < 19f32": {
 			source: "6i8 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6i8 < 19i64": {
 			source: "6i8 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6i8 < 19i32": {
 			source: "6i8 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6i8 < 19i16": {
 			source: "6i8 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6i8 < 19u64": {
 			source: "6i8 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6i8 < 19u32": {
 			source: "6i8 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6i8 < 19u16": {
 			source: "6i8 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6i8 < 19u8": {
 			source: "6i8 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::Int8` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// UInt64
@@ -5005,87 +4681,75 @@ func TestVMSource_LessThan(t *testing.T) {
 
 		"6u64 < 19": {
 			source: "6u64 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6u64 < 19.0": {
 			source: "6u64 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6u64 < 19bf": {
 			source: "6u64 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6u64 < 19f64": {
 			source: "6u64 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6u64 < 19f32": {
 			source: "6u64 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6u64 < 19i64": {
 			source: "6u64 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6u64 < 19i32": {
 			source: "6u64 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6u64 < 19i16": {
 			source: "6u64 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6u64 < 19i8": {
 			source: "6u64 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6u64 < 19u32": {
 			source: "6u64 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6u64 < 19u16": {
 			source: "6u64 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6u64 < 19u8": {
 			source: "6u64 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// UInt32
@@ -5101,90 +4765,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7u32 < 13u32",
 			wantStackTop: value.True,
 		},
-
 		"6u32 < 19": {
 			source: "6u32 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6u32 < 19.0": {
 			source: "6u32 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6u32 < 19bf": {
 			source: "6u32 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6u32 < 19f64": {
 			source: "6u32 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6u32 < 19f32": {
 			source: "6u32 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6u32 < 19i64": {
 			source: "6u32 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6u32 < 19i32": {
 			source: "6u32 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6u32 < 19i16": {
 			source: "6u32 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6u32 < 19i8": {
 			source: "6u32 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6u32 < 19u64": {
 			source: "6u32 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6u32 < 19u16": {
 			source: "6u32 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 		"6u32 < 19u8": {
 			source: "6u32 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -5200,90 +4851,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7u16 < 13u16",
 			wantStackTop: value.True,
 		},
-
 		"6u16 < 19": {
 			source: "6u16 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6u16 < 19.0": {
 			source: "6u16 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6u16 < 19bf": {
 			source: "6u16 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6u16 < 19f64": {
 			source: "6u16 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6u16 < 19f32": {
 			source: "6u16 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6u16 < 19i64": {
 			source: "6u16 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6u16 < 19i32": {
 			source: "6u16 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6u16 < 19i16": {
 			source: "6u16 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6u16 < 19i8": {
 			source: "6u16 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6u16 < 19u64": {
 			source: "6u16 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6u16 < 19u32": {
 			source: "6u16 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6u16 < 19u8": {
 			source: "6u16 < 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -5299,90 +4937,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source:       "7u8 < 13u8",
 			wantStackTop: value.True,
 		},
-
 		"6u8 < 19": {
 			source: "6u8 < 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(7, 1, 8)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19`"),
+			},
 		},
 		"6u8 < 19.0": {
 			source: "6u8 < 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19.0`"),
+			},
 		},
 		"6u8 < 19bf": {
 			source: "6u8 < 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19bf`"),
+			},
 		},
 		"6u8 < 19f64": {
 			source: "6u8 < 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19f64`"),
+			},
 		},
 		"6u8 < 19f32": {
 			source: "6u8 < 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19f32`"),
+			},
 		},
 		"6u8 < 19i64": {
 			source: "6u8 < 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19i64`"),
+			},
 		},
 		"6u8 < 19i32": {
 			source: "6u8 < 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19i32`"),
+			},
 		},
 		"6u8 < 19i16": {
 			source: "6u8 < 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19i16`"),
+			},
 		},
 		"6u8 < 19i8": {
 			source: "6u8 < 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(9, 1, 10)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19i8`"),
+			},
 		},
 		"6u8 < 19u64": {
 			source: "6u8 < 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19u64`"),
+			},
 		},
 		"6u8 < 19u32": {
 			source: "6u8 < 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19u32`"),
+			},
 		},
 		"6u8 < 19u16": {
 			source: "6u8 < 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(6, 1, 7), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<`, got type `19u16`"),
+			},
 		},
 	}
 
@@ -5465,101 +5090,88 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "'a' <= `b`",
 			wantStackTop: value.True,
 		},
-
 		"'2' <= 2.0": {
 			source: "'2' <= 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `2.0`"),
+			},
 		},
 
 		"'28' <= 25.2bf": {
 			source: "'28' <= 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `25.2bf`"),
+			},
 		},
 
 		"'28.8' <= 12.9f64": {
 			source: "'28.8' <= 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(10, 1, 11), P(16, 1, 17)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `12.9f64`"),
+			},
 		},
 
 		"'28.8' <= 12.9f32": {
 			source: "'28.8' <= 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(10, 1, 11), P(16, 1, 17)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `12.9f32`"),
+			},
 		},
 
 		"'93' <= 19i64": {
 			source: "'93' <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 
 		"'93' <= 19i32": {
 			source: "'93' <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 
 		"'93' <= 19i16": {
 			source: "'93' <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 
 		"'93' <= 19i8": {
 			source: "'93' <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 
 		"'93' <= 19u64": {
 			source: "'93' <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 
 		"'93' <= 19u32": {
 			source: "'93' <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 
 		"'93' <= 19u16": {
 			source: "'93' <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 
 		"'93' <= 19u8": {
 			source: "'93' <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::String`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Char
@@ -5612,90 +5224,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "`a` <= 'b'",
 			wantStackTop: value.True,
 		},
-
 		"`2` <= 2.0": {
 			source: "`2` <= 2.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `2.0`"),
+			},
 		},
 		"`i` <= 25.2bf": {
 			source: "`i` <= 25.2bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(12, 1, 13)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `25.2bf`"),
+			},
 		},
 		"`f` <= 12.9f64": {
 			source: "`f` <= 12.9f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `12.9f64`"),
+			},
 		},
 		"`0` <= 12.9f32": {
 			source: "`0` <= 12.9f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(13, 1, 14)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `12.9f32`"),
+			},
 		},
 		"`9` <= 19i64": {
 			source: "`9` <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"`u` <= 19i32": {
 			source: "`u` <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"`4` <= 19i16": {
 			source: "`4` <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"`6` <= 19i8": {
 			source: "`6` <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"`9` <= 19u64": {
 			source: "`9` <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"`u` <= 19u32": {
 			source: "`u` <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"`4` <= 19u16": {
 			source: "`4` <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"`6` <= 19u8": {
 			source: "`6` <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Char`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::String | Std::Char` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int
@@ -5777,76 +5376,65 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7 <= 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6 <= 19f64": {
 			source: "6 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6 <= 19f32": {
 			source: "6 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6 <= 19i64": {
 			source: "6 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6 <= 19i32": {
 			source: "6 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6 <= 19i16": {
 			source: "6 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6 <= 19i8": {
 			source: "6 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6 <= 19u64": {
 			source: "6 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6 <= 19u32": {
 			source: "6 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6 <= 19u16": {
 			source: "6 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6 <= 19u8": {
 			source: "6 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 1, 6), P(8, 1, 9)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Float
@@ -5940,76 +5528,65 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7.0 <= 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6.0 <= 19f64": {
 			source: "6.0 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6.0 <= 19f32": {
 			source: "6.0 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6.0 <= 19i64": {
 			source: "6.0 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6.0 <= 19i32": {
 			source: "6.0 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6.0 <= 19i16": {
 			source: "6.0 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6.0 <= 19i8": {
 			source: "6.0 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6.0 <= 19u64": {
 			source: "6.0 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6.0 <= 19u32": {
 			source: "6.0 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6.0 <= 19u16": {
 			source: "6.0 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6.0 <= 19u8": {
 			source: "6.0 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// BigFloat
@@ -6103,76 +5680,65 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7bf <= 6.9bf",
 			wantStackTop: value.False,
 		},
-
 		"6bf <= 19f64": {
 			source: "6bf <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6bf <= 19f32": {
 			source: "6bf <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6bf <= 19i64": {
 			source: "6bf <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6bf <= 19i32": {
 			source: "6bf <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6bf <= 19i16": {
 			source: "6bf <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6bf <= 19i8": {
 			source: "6bf <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6bf <= 19u64": {
 			source: "6bf <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6bf <= 19u32": {
 			source: "6bf <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6bf <= 19u16": {
 			source: "6bf <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6bf <= 19u8": {
 			source: "6bf <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::CoercibleNumeric` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Float64
@@ -6208,91 +5774,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7f64 <= 6.9f64",
 			wantStackTop: value.False,
 		},
-
 		"6f64 <= 19.0": {
 			source: "6f64 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
-
 		"6f64 <= 19": {
 			source: "6f64 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6f64 <= 19bf": {
 			source: "6f64 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6f64 <= 19f32": {
 			source: "6f64 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6f64 <= 19i64": {
 			source: "6f64 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6f64 <= 19i32": {
 			source: "6f64 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6f64 <= 19i16": {
 			source: "6f64 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6f64 <= 19i8": {
 			source: "6f64 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6f64 <= 19u64": {
 			source: "6f64 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6f64 <= 19u32": {
 			source: "6f64 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6f64 <= 19u16": {
 			source: "6f64 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6f64 <= 19u8": {
 			source: "6f64 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float64` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Float32
@@ -6328,91 +5880,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7f32 <= 6.9f32",
 			wantStackTop: value.False,
 		},
-
 		"6f32 <= 19.0": {
 			source: "6f32 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
-
 		"6f32 <= 19": {
 			source: "6f32 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6f32 <= 19bf": {
 			source: "6f32 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6f32 <= 19f64": {
 			source: "6f32 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6f32 <= 19i64": {
 			source: "6f32 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6f32 <= 19i32": {
 			source: "6f32 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6f32 <= 19i16": {
 			source: "6f32 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6f32 <= 19i8": {
 			source: "6f32 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6f32 <= 19u64": {
 			source: "6f32 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6f32 <= 19u32": {
 			source: "6f32 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6f32 <= 19u16": {
 			source: "6f32 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6f32 <= 19u8": {
 			source: "6f32 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Float32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Float32` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int64
@@ -6436,90 +5974,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7i64 <= 13i64",
 			wantStackTop: value.True,
 		},
-
 		"6i64 <= 19": {
 			source: "6i64 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6i64 <= 19.0": {
 			source: "6i64 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6i64 <= 19bf": {
 			source: "6i64 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6i64 <= 19f64": {
 			source: "6i64 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6i64 <= 19f32": {
 			source: "6i64 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6i64 <= 19i32": {
 			source: "6i64 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6i64 <= 19i16": {
 			source: "6i64 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6i64 <= 19i8": {
 			source: "6i64 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6i64 <= 19u64": {
 			source: "6i64 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6i64 <= 19u32": {
 			source: "6i64 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6i64 <= 19u16": {
 			source: "6i64 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6i64 <= 19u8": {
 			source: "6i64 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int32
@@ -6543,90 +6068,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7i32 <= 13i32",
 			wantStackTop: value.True,
 		},
-
 		"6i32 <= 19": {
 			source: "6i32 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6i32 <= 19.0": {
 			source: "6i32 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6i32 <= 19bf": {
 			source: "6i32 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6i32 <= 19f64": {
 			source: "6i32 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6i32 <= 19f32": {
 			source: "6i32 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6i32 <= 19i64": {
 			source: "6i32 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6i32 <= 19i16": {
 			source: "6i32 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6i32 <= 19i8": {
 			source: "6i32 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6i32 <= 19u64": {
 			source: "6i32 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6i32 <= 19u32": {
 			source: "6i32 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6i32 <= 19u16": {
 			source: "6i32 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6i32 <= 19u8": {
 			source: "6i32 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int32` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -6650,90 +6162,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7i16 <= 13i16",
 			wantStackTop: value.True,
 		},
-
 		"6i16 <= 19": {
 			source: "6i16 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6i16 <= 19.0": {
 			source: "6i16 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6i16 <= 19bf": {
 			source: "6i16 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6i16 <= 19f64": {
 			source: "6i16 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6i16 <= 19f32": {
 			source: "6i16 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6i16 <= 19i64": {
 			source: "6i16 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6i16 <= 19i32": {
 			source: "6i16 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6i16 <= 19i8": {
 			source: "6i16 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6i16 <= 19u64": {
 			source: "6i16 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6i16 <= 19u32": {
 			source: "6i16 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6i16 <= 19u16": {
 			source: "6i16 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6i16 <= 19u8": {
 			source: "6i16 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int16` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -6757,90 +6256,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7i8 <= 13i8",
 			wantStackTop: value.True,
 		},
-
 		"6i8 <= 19": {
 			source: "6i8 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6i8 <= 19.0": {
 			source: "6i8 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6i8 <= 19bf": {
 			source: "6i8 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6i8 <= 19f64": {
 			source: "6i8 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6i8 <= 19f32": {
 			source: "6i8 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6i8 <= 19i64": {
 			source: "6i8 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6i8 <= 19i32": {
 			source: "6i8 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6i8 <= 19i16": {
 			source: "6i8 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6i8 <= 19u64": {
 			source: "6i8 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6i8 <= 19u32": {
 			source: "6i8 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6i8 <= 19u16": {
 			source: "6i8 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6i8 <= 19u8": {
 			source: "6i8 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::Int8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::Int8` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// UInt64
@@ -6856,90 +6342,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7u64 <= 13u64",
 			wantStackTop: value.True,
 		},
-
 		"6u64 <= 19": {
 			source: "6u64 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6u64 <= 19.0": {
 			source: "6u64 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6u64 <= 19bf": {
 			source: "6u64 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6u64 <= 19f64": {
 			source: "6u64 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6u64 <= 19f32": {
 			source: "6u64 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6u64 <= 19i64": {
 			source: "6u64 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6u64 <= 19i32": {
 			source: "6u64 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6u64 <= 19i16": {
 			source: "6u64 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6u64 <= 19i8": {
 			source: "6u64 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6u64 <= 19u32": {
 			source: "6u64 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6u64 <= 19u16": {
 			source: "6u64 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6u64 <= 19u8": {
 			source: "6u64 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt64` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// UInt32
@@ -6955,90 +6428,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7u32 <= 13u32",
 			wantStackTop: value.True,
 		},
-
 		"6u32 <= 19": {
 			source: "6u32 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6u32 <= 19.0": {
 			source: "6u32 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6u32 <= 19bf": {
 			source: "6u32 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6u32 <= 19f64": {
 			source: "6u32 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6u32 <= 19f32": {
 			source: "6u32 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6u32 <= 19i64": {
 			source: "6u32 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6u32 <= 19i32": {
 			source: "6u32 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6u32 <= 19i16": {
 			source: "6u32 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6u32 <= 19i8": {
 			source: "6u32 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6u32 <= 19u64": {
 			source: "6u32 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6u32 <= 19u16": {
 			source: "6u32 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 		"6u32 <= 19u8": {
 			source: "6u32 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt32` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int16
@@ -7054,90 +6514,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7u16 <= 13u16",
 			wantStackTop: value.True,
 		},
-
 		"6u16 <= 19": {
 			source: "6u16 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6u16 <= 19.0": {
 			source: "6u16 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6u16 <= 19bf": {
 			source: "6u16 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6u16 <= 19f64": {
 			source: "6u16 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6u16 <= 19f32": {
 			source: "6u16 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6u16 <= 19i64": {
 			source: "6u16 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6u16 <= 19i32": {
 			source: "6u16 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6u16 <= 19i16": {
 			source: "6u16 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6u16 <= 19i8": {
 			source: "6u16 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6u16 <= 19u64": {
 			source: "6u16 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6u16 <= 19u32": {
 			source: "6u16 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6u16 <= 19u8": {
 			source: "6u16 <= 19u8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::UInt16` for parameter `other` in call to `<=`, got type `19u8`"),
+			},
 		},
 
 		// Int8
@@ -7153,90 +6600,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source:       "7u8 <= 13u8",
 			wantStackTop: value.True,
 		},
-
 		"6u8 <= 19": {
 			source: "6u8 <= 19",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(8, 1, 9)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19`"),
+			},
 		},
 		"6u8 <= 19.0": {
 			source: "6u8 <= 19.0",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19.0`"),
+			},
 		},
 		"6u8 <= 19bf": {
 			source: "6u8 <= 19bf",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19bf`"),
+			},
 		},
 		"6u8 <= 19f64": {
 			source: "6u8 <= 19f64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19f64`"),
+			},
 		},
 		"6u8 <= 19f32": {
 			source: "6u8 <= 19f32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Float32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19f32`"),
+			},
 		},
 		"6u8 <= 19i64": {
 			source: "6u8 <= 19i64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19i64`"),
+			},
 		},
 		"6u8 <= 19i32": {
 			source: "6u8 <= 19i32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19i32`"),
+			},
 		},
 		"6u8 <= 19i16": {
 			source: "6u8 <= 19i16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19i16`"),
+			},
 		},
 		"6u8 <= 19i8": {
 			source: "6u8 <= 19i8",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int8` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(10, 1, 11)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19i8`"),
+			},
 		},
 		"6u8 <= 19u64": {
 			source: "6u8 <= 19u64",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19u64`"),
+			},
 		},
 		"6u8 <= 19u32": {
 			source: "6u8 <= 19u32",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19u32`"),
+			},
 		},
 		"6u8 <= 19u16": {
 			source: "6u8 <= 19u16",
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::UInt8` for parameter `other` in call to `<=`, got type `19u16`"),
+			},
 		},
 	}
 
