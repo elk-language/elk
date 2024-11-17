@@ -8,7 +8,7 @@ import (
 )
 
 // ::Std::HashMap
-func init() {
+func initHashMap() {
 	// Instance methods
 	c := &value.HashMapClass.MethodContainer
 	Def(
@@ -353,7 +353,7 @@ func init() {
 }
 
 // ::Std::HashMap::Iterator
-func init() {
+func initHashMapIterator() {
 	// Instance methods
 	c := &value.HashMapIteratorClass.MethodContainer
 	Def(

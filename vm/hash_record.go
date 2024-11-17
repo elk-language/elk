@@ -6,7 +6,7 @@ import (
 )
 
 // ::Std::HashRecord
-func init() {
+func initHashRecord() {
 	// Instance methods
 	c := &value.HashRecordClass.MethodContainer
 	Def(
@@ -259,7 +259,7 @@ func init() {
 }
 
 // ::Std::HashRecord::Iterator
-func init() {
+func initHashRecordIterator() {
 	// Instance methods
 	c := &value.HashRecordIteratorClass.MethodContainer
 	Def(

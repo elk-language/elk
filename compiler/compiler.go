@@ -463,6 +463,8 @@ func (c *Compiler) compileMethodsWithinType(typ types.Type, span *position.Span)
 		c.compileMethodsWithinNamespace(t, span)
 	case *types.Mixin:
 		c.compileMethodsWithinNamespace(t, span)
+	case *types.Interface:
+		c.compileMethodsWithinNamespace(t, span)
 	}
 }
 

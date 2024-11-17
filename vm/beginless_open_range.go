@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::BeginlessOpenRange
-func init() {
+func initBeginlessOpenRange() {
 	// Instance methods
 	c := &value.BeginlessOpenRangeClass.MethodContainer
 	Def(

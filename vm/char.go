@@ -4,7 +4,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+func initChar() {
 	// Instance methods
 	c := &value.CharClass.MethodContainer
 	Def(

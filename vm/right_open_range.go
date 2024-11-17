@@ -4,8 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// ::Std::rightOpenRange
-func init() {
+// ::Std::RightOpenRange
+func initRightOpenRange() {
 	// Instance methods
 	c := &value.RightOpenRangeClass.MethodContainer
 	Def(
@@ -115,7 +115,7 @@ func init() {
 }
 
 // ::Std::RightOpenRange::Iterator
-func init() {
+func initRightOpenRangeIterator() {
 	// Instance methods
 	c := &value.RightOpenRangeIteratorClass.MethodContainer
 	Def(

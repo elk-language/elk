@@ -49,9 +49,10 @@ func initBootstrap() {
 }
 
 // Initialize all built-ins
-func init() {
+func InitGlobalEnvironment() {
 	initBootstrap()
 	initGlobalObject()
+	initInterface()
 	initKernel()
 	initUndefined()
 	initFunction()
@@ -103,4 +104,8 @@ func init() {
 	initEndlessOpenRange()
 	initTimezone()
 	initTime()
+}
+
+func init() {
+	InitGlobalEnvironment()
 }

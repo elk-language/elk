@@ -4,7 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::Symbol
+func initSymbol() {
 	// Instance methods
 	c := &value.SymbolClass.MethodContainer
 

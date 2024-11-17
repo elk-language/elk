@@ -47,6 +47,7 @@ func L(startPos, endPos *position.Position) *position.Location {
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
+	vm.InitGlobalEnvironment() // reset the global environment
 	pp.Default.SetColoringEnabled(false)
 	typechecker := checker.New()
 	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)

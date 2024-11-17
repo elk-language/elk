@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::ClosedRange
-func init() {
+func initClosedRange() {
 	// Instance methods
 	c := &value.ClosedRangeClass.MethodContainer
 	Def(
@@ -115,7 +115,7 @@ func init() {
 }
 
 // ::Std::ClosedRange::Iterator
-func init() {
+func initClosedRangeIterator() {
 	// Instance methods
 	c := &value.ClosedRangeIteratorClass.MethodContainer
 	Def(

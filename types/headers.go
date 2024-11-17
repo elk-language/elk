@@ -2604,6 +2604,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.Name() // noop - avoid unused variable error
 
 					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::UInt8", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::ByteIterator", env), Never{})
@@ -2619,6 +2620,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.Name() // noop - avoid unused variable error
 
 					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Char", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
 					// Define methods
 					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})

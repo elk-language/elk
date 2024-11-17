@@ -6,7 +6,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::Int
+func initInt() {
 	// Instance methods
 	c := &value.IntClass.MethodContainer
 	Def(

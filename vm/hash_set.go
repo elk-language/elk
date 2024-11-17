@@ -8,7 +8,7 @@ import (
 )
 
 // ::Std::HashSet
-func init() {
+func initHashSet() {
 	// Instance methods
 	c := &value.HashSetClass.MethodContainer
 	Def(
@@ -217,7 +217,7 @@ func init() {
 }
 
 // ::Std::HashSet::Iterator
-func init() {
+func initHashSetIterator() {
 	// Instance methods
 	c := &value.HashSetIteratorClass.MethodContainer
 	Def(

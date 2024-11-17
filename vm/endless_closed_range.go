@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::EndlessClosedRange
-func init() {
+func initEndlessClosedRange() {
 	// Instance methods
 	c := &value.EndlessClosedRangeClass.MethodContainer
 	Def(
@@ -114,7 +114,7 @@ func init() {
 }
 
 // ::Std::EndlessClosedRange::Iterator
-func init() {
+func initEndlessClosedRangeIterator() {
 	// Instance methods
 	c := &value.EndlessClosedRangeIteratorClass.MethodContainer
 	Def(

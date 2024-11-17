@@ -4,7 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::Mixin
+func initMixin() {
 	// Instance methods
 	c := &value.MixinClass.MethodContainer
 	Accessor(c, "doc")

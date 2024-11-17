@@ -5,7 +5,8 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-func init() {
+// Std::Comparable
+func initComparable() {
 	// Instance methods
 	c := &value.ComparableMixin.MethodContainer
 	Def(

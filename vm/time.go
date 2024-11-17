@@ -4,7 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::Time
+func initTime() {
 	// Class methods
 	c := &value.TimeClass.SingletonClass().MethodContainer
 	Def(

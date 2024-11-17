@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::EndlessOpenRange
-func init() {
+func initEndlessOpenRange() {
 	// Instance methods
 	c := &value.EndlessOpenRangeClass.MethodContainer
 	Def(
@@ -114,7 +114,7 @@ func init() {
 }
 
 // ::Std::EndlessOpenRange::Iterator
-func init() {
+func initEndlessOpenRangeIterator() {
 	// Instance methods
 	c := &value.EndlessOpenRangeIteratorClass.MethodContainer
 	Def(

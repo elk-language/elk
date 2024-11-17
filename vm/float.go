@@ -4,7 +4,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+func initFloat() {
 	// Instance methods
 	c := &value.FloatClass.MethodContainer
 	Def(

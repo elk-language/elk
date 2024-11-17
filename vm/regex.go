@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::Regex
-func init() {
+func initRegex() {
 	// Instance methods
 	c := &value.RegexClass.MethodContainer
 	Def(

@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::LeftOpenRange
-func init() {
+func initLeftOpenRange() {
 	// Instance methods
 	c := &value.LeftOpenRangeClass.MethodContainer
 	Def(
@@ -115,7 +115,7 @@ func init() {
 }
 
 // ::Std::LeftOpenRange::Iterator
-func init() {
+func initLeftOpenRangeIterator() {
 	// Instance methods
 	c := &value.LeftOpenRangeIteratorClass.MethodContainer
 	Def(

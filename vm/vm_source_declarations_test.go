@@ -3,6 +3,7 @@ package vm_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 )
 
@@ -37,6 +38,19 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 		"define singleton methods on a module": {
 			source: `
 				module Foo
+					singleton
+						def bar then :boo
+					end
+				end
+			`,
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(21, 3, 6), P(62, 5, 8)), "singleton definitions cannot appear in this context"),
+				error.NewFailure(L(P(37, 4, 7), P(53, 4, 23)), "method definitions cannot appear in this context"),
+			},
+		},
+		"define singleton methods on an interface": {
+			source: `
+				interface Foo
 					singleton
 						def bar then :boo
 					end

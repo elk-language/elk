@@ -4,7 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::Module
+func initModule() {
 	// Instance methods
 	c := &value.ModuleClass.MethodContainer
 	Accessor(c, "doc")

@@ -7,7 +7,7 @@ import (
 )
 
 // ::Std::Kernel
-func init() {
+func initKernel() {
 	// Instance methods
 	c := &value.KernelModule.SingletonClass().MethodContainer
 	Def(

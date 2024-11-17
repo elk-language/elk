@@ -6,7 +6,7 @@ import (
 )
 
 // ::Std::ArrayList
-func init() {
+func initArrayList() {
 	// Instance methods
 	c := &value.ArrayListClass.MethodContainer
 	Def(
@@ -256,7 +256,7 @@ func init() {
 }
 
 // ::Std::ArrayList::Iterator
-func init() {
+func initArrayListIterator() {
 	// Instance methods
 	c := &value.ArrayListIteratorClass.MethodContainer
 	Def(

@@ -124,6 +124,13 @@ func NewErrorComparer(opts *cmp.Options) cmp.Option {
 			return false
 		}
 
+		if x.class == y.class {
+			return true
+		}
+		if x.class != nil && x.class.Name == y.class.Name {
+			return true
+		}
+
 		return x.class == y.class &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...)
 	})

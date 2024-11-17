@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::BeginlessClosedRange
-func init() {
+func initBeginlessClosedRange() {
 	// Instance methods
 	c := &value.BeginlessClosedRangeClass.MethodContainer
 	Def(

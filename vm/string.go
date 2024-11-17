@@ -4,7 +4,8 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+// Std::String
+func initString() {
 	// Instance methods
 	c := &value.StringClass.MethodContainer
 	Def(
@@ -232,7 +233,7 @@ func init() {
 }
 
 // ::Std::String::CharIterator
-func init() {
+func initStringCharIterator() {
 	// Instance methods
 	c := &value.StringCharIteratorClass.MethodContainer
 	Def(
@@ -254,7 +255,7 @@ func init() {
 }
 
 // ::Std::String::ByteIterator
-func init() {
+func initStringByteIterator() {
 	// Instance methods
 	c := &value.StringByteIteratorClass.MethodContainer
 	Def(

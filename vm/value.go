@@ -9,7 +9,8 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-func init() {
+// Std::Value
+func initValue() {
 	// Instance methods
 	c := &value.ValueClass.MethodContainer
 	Def(

@@ -1401,8 +1401,6 @@ func (vm *VM) opDefMethod() {
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
-
-	vm.push(body)
 }
 
 // Initialise a namespace

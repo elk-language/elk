@@ -128,6 +128,8 @@ sealed primitive class ::Std::String < Value
 		Iterates over all unicode code points of a `String`.
 	]##
 	sealed primitive class CharIterator
+		include Std::Iterator::Base[Char]
+
 		##[
 			Get the next character.
 			Throws `:stop_iteration` when no more characters are available.
@@ -144,6 +146,8 @@ sealed primitive class ::Std::String < Value
 		Iterates over all bytes of a `String`.
 	]##
 	sealed primitive class ByteIterator
+		include Std::Iterator::Base[UInt8]
+
 		##[
 			Get the next byte.
 			Throws `:stop_iteration` when no more bytes are available.

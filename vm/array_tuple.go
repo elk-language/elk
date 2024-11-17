@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::ArrayTuple
-func init() {
+func initArrayTuple() {
 	// Instance methods
 	c := &value.ArrayTupleClass.MethodContainer
 	Def(
@@ -149,7 +149,7 @@ func init() {
 }
 
 // ::Std::ArrayTupleIterator
-func init() {
+func initArrayTupleIterator() {
 	// Instance methods
 	c := &value.ArrayTupleIteratorClass.MethodContainer
 	Def(

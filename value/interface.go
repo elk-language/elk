@@ -9,6 +9,7 @@ import (
 
 // Represents an Elk interface.
 type Interface struct {
+	class *Class // The class that this interface is an instance of
 	ConstantContainer
 }
 
@@ -24,6 +25,7 @@ func InterfaceWithName(name string) InterfaceOption {
 // Create a new module.
 func NewInterface() *Interface {
 	return &Interface{
+		class: InterfaceClass,
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
@@ -65,11 +67,17 @@ func (i *Interface) Class() *Class {
 }
 
 func (i *Interface) DirectClass() *Class {
-	return InterfaceClass
+	return i.class
 }
 
 func (i *Interface) SingletonClass() *Class {
-	return nil
+	if i.class.IsSingleton() {
+		return i.class
+	}
+
+	singletonClass := NewSingletonClass(i.class, i.Name)
+	i.class = singletonClass
+	return singletonClass
 }
 
 func (i *Interface) Inspect() string {
@@ -92,3 +100,8 @@ func NewInterfaceComparer(opts *cmp.Options) cmp.Option {
 }
 
 var InterfaceClass *Class // ::Std::Interface
+
+func initInterface() {
+	InterfaceClass = NewClassWithOptions()
+	StdModule.AddConstantString("Interface", InterfaceClass)
+}

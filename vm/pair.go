@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::Pair
-func init() {
+func initPair() {
 	// Instance methods
 	c := &value.PairClass.MethodContainer
 	Def(

@@ -4,7 +4,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func init() {
+func initClass() {
 	// Instance methods
 	c := &value.ClassClass.MethodContainer
 	Accessor(c, "doc")

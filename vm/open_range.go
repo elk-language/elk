@@ -5,7 +5,7 @@ import (
 )
 
 // ::Std::OpenRange
-func init() {
+func initOpenRange() {
 	// Instance methods
 	c := &value.OpenRangeClass.MethodContainer
 	Def(
@@ -115,7 +115,7 @@ func init() {
 }
 
 // ::Std::OpenRange::Iterator
-func init() {
+func initOpenRangeIterator() {
 	// Instance methods
 	c := &value.OpenRangeIteratorClass.MethodContainer
 	Def(
