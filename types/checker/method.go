@@ -239,9 +239,15 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	setterName := node.Name + "="
 
 	methodScope := c.currentMethodScope()
+	var paramSpan *position.Span
+	if node.TypeNode != nil {
+		paramSpan = node.TypeNode.Span()
+	} else {
+		node.Span()
+	}
 	params := []ast.ParameterNode{
 		ast.NewMethodParameterNode(
-			node.TypeNode.Span(),
+			paramSpan,
 			node.Name,
 			true,
 			node.TypeNode,
