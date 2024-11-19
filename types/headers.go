@@ -46,7 +46,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Class"), objectClass, env)
+		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, value.ToSymbol("Class"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, value.ToSymbol("ClosedRange"), objectClass, env)
 			{
@@ -145,7 +145,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, value.ToSymbol("Int32"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, value.ToSymbol("Int64"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, value.ToSymbol("Int8"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Interface"), objectClass, env)
+		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, value.ToSymbol("Interface"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop and implement\nmany useful methods.", value.ToSymbol("Iterable"), env)
 			{
@@ -189,8 +189,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Method"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Mixin"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Module"), objectClass, env)
+		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, value.ToSymbol("Mixin"), objectClass, env)
+		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, value.ToSymbol("Module"), objectClass, env)
 		namespace.TryDefineClass("Represents an empty value.", false, true, true, value.ToSymbol("Nil"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Object"), objectClass, env)
 		{
@@ -578,6 +578,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Creates a new string with this character.", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Converts the `Char` to a `Symbol`.", false, false, true, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 				namespace.DefineMethod("Return the uppercase version of this character.", false, false, true, value.ToSymbol("uppercase"), nil, nil, NameToType("Std::Char", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Class").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the name of the class.", false, false, true, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the superclass (parent class) of this class.\nReturns `nil` when the class does not inherit from any class.", false, false, true, value.ToSymbol("superclass"), nil, nil, NewNilable(NameToType("Std::Class", env)), Never{})
 
 				// Define constants
 
@@ -1002,6 +1017,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the float to an unsigned 8-bit integer.", false, false, true, value.ToSymbol("to_uint8"), nil, nil, NameToType("Std::UInt8", env), Never{})
 
 				// Define constants
+				namespace.DefineConstant(value.ToSymbol("INF"), NameToType("Std::Float", env))
+				namespace.DefineConstant(value.ToSymbol("NAN"), NameToType("Std::Float", env))
+				namespace.DefineConstant(value.ToSymbol("NEG_INF"), NameToType("Std::Float", env))
 
 				// Define instance variables
 			}
@@ -1727,6 +1745,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("Interface").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the name of the interface.", false, false, true, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -2122,6 +2154,34 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Mixin").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the name of the mixin.", false, false, true, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Module").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the name of the module.", false, false, true, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
 

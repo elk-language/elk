@@ -7,6 +7,10 @@
 sealed primitive class ::Std::Float < Value
 	implement Hashable
 
+	const INF: Float
+	const NAN: Float
+	const NEG_INF: Float
+
 	##[
 		Returns itself.
 

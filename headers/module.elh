@@ -1,0 +1,9 @@
+##[
+	`Module` is the class of all modules.
+]##
+class ::Std::Module < Object
+	##[
+		Returns the name of the module.
+	]##
+	def name: String; end
+end

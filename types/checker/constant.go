@@ -114,7 +114,14 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		c.addRedeclaredConstantError(fullConstantName, node.Span())
 	}
 
-	if node.Initialiser.IsStatic() {
+	if node.Initialiser == nil {
+		if !c.IsHeader {
+			c.addFailure(
+				"constants must be initialised",
+				node.Span(),
+			)
+		}
+	} else if node.Initialiser.IsStatic() {
 		node.Initialiser = c.checkExpression(node.Initialiser)
 		init := node.Initialiser
 		actualType := c.typeOfGuardVoid(init)
@@ -206,8 +213,10 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 	declaredType := c.typeOf(node.TypeNode)
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	init := node.Initialiser
-	actualType := c.typeOfGuardVoid(init)
-	c.checkCanAssign(actualType, declaredType, init.Span())
+	if init != nil {
+		actualType := c.typeOfGuardVoid(init)
+		c.checkCanAssign(actualType, declaredType, init.Span())
+	}
 
 	symbolName := value.ToSymbol(name)
 	check.referencedMethods = slices.Clone(c.methodCache.Slice)
@@ -428,6 +437,7 @@ func (c *Checker) addToConstantCache(name value.Symbol) {
 
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node, node.Span())
+
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {

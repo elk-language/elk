@@ -4305,7 +4305,7 @@ func NewSymbolKeyValueExpressionNode(span *position.Span, key string, val Expres
 
 // Represents a key value expression eg. `foo => bar`
 type KeyValueExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Key    ExpressionNode
 	Value  ExpressionNode
 	static bool
@@ -4318,10 +4318,10 @@ func (k *KeyValueExpressionNode) IsStatic() bool {
 // Create a key value expression node eg. `foo => bar`
 func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *KeyValueExpressionNode {
 	return &KeyValueExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Key:      key,
-		Value:    val,
-		static:   areExpressionsStatic(key, val),
+		TypedNodeBase: TypedNodeBase{span: span},
+		Key:           key,
+		Value:         val,
+		static:        areExpressionsStatic(key, val),
 	}
 }
 

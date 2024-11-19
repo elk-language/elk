@@ -2030,13 +2030,15 @@ func (vm *VM) opDefConst() {
 	constVal := vm.pop()
 	constName := vm.pop().(value.Symbol)
 	namespace := vm.pop()
-	var constants value.SymbolMap
+	var constants value.ConstantContainer
 
 	switch n := namespace.(type) {
 	case *value.Class:
-		constants = n.Constants
+		constants = n.ConstantContainer
 	case *value.Module:
-		constants = n.Constants
+		constants = n.ConstantContainer
+	case *value.Interface:
+		constants = n.ConstantContainer
 	default:
 		panic(
 			fmt.Sprintf(
@@ -2046,7 +2048,7 @@ func (vm *VM) opDefConst() {
 		)
 	}
 
-	constants.Set(constName, constVal)
+	constants.AddConstant(constName, constVal)
 }
 
 // Leave a local scope and pop all local variables associated with it.

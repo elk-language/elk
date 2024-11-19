@@ -4067,8 +4067,6 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
-	} else {
-		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
 	span := constTok.Span().Join(lastSpan)

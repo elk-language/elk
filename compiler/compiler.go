@@ -3356,11 +3356,12 @@ func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 }
 
 func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) {
+	span := node.Span()
 	if len(node.Body) <= 0 {
+		c.emit(span.StartPos.Line, bytecode.NIL)
 		return
 	}
 
-	span := node.Span()
 	singletonType := node.Type(c.env).(*types.SingletonClass)
 	singletonName := singletonType.Name()
 
@@ -3374,7 +3375,7 @@ func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockE
 	result := singletonCompiler.Bytecode
 	c.emitValue(result, span)
 
-	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
@@ -3409,7 +3410,9 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 }
 
 func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) {
+	span := node.Span()
 	if len(node.Body) <= 0 {
+		c.emit(span.StartPos.Line, bytecode.NIL)
 		return
 	}
 
@@ -3422,13 +3425,15 @@ func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) {
 	mixinCompiler.compileNamespace(node)
 
 	result := mixinCompiler.Bytecode
-	c.emitValue(result, node.Span())
+	c.emitValue(result, span)
 
-	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
 func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) {
+	span := node.Span()
 	if len(node.Body) <= 0 {
+		c.emit(span.StartPos.Line, bytecode.NIL)
 		return
 	}
 
@@ -3441,13 +3446,15 @@ func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode)
 	modCompiler.compileNamespace(node)
 
 	result := modCompiler.Bytecode
-	c.emitValue(result, node.Span())
+	c.emitValue(result, span)
 
-	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
 func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) {
+	span := node.Span()
 	if len(node.Body) <= 0 {
+		c.emit(span.StartPos.Line, bytecode.NIL)
 		return
 	}
 
@@ -3460,13 +3467,15 @@ func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclaratio
 	modCompiler.compileNamespace(node)
 
 	result := modCompiler.Bytecode
-	c.emitValue(result, node.Span())
+	c.emitValue(result, span)
 
-	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
 func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) {
+	span := node.Span()
 	if len(node.Body) <= 0 {
+		c.emit(span.StartPos.Line, bytecode.NIL)
 		return
 	}
 
@@ -3479,9 +3488,9 @@ func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) {
 	modCompiler.compileNamespace(node)
 
 	result := modCompiler.Bytecode
-	c.emitValue(result, node.Span())
+	c.emitValue(result, span)
 
-	c.emit(node.Span().StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 }
 
 func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {

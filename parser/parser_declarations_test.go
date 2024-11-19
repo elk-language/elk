@@ -2465,9 +2465,6 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constants must be initialised"),
-			},
 		},
 		"is not valid without an initialiser and without a type": {
 			input: "const Foo",
@@ -2489,9 +2486,6 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
-			},
 		},
 		"cannot be a part of an expression": {
 			input: "a = const _Foo: String = 'bar'",

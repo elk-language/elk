@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
-	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/types/checker"
@@ -22,7 +21,6 @@ type sourceTestCase struct {
 	wantStdout     string
 	wantRuntimeErr value.Value
 	wantCompileErr error.ErrorList
-	teardown       func()
 }
 
 // Type of the compiler test table.
@@ -49,6 +47,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	vm.InitGlobalEnvironment() // reset the global environment
 	pp.Default.SetColoringEnabled(false)
+
 	typechecker := checker.New()
 	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
 	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
@@ -63,9 +62,6 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	v := vm.New(vm.WithStdout(&stdout))
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
-	if tc.teardown != nil {
-		tc.teardown()
-	}
 	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotRuntimeErr))
 		t.Fatal(diff)
@@ -90,11 +86,16 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 
 	opts := comparer.Options()
 
-	chunk, gotCompileErr := compiler.CompileSource(testFileName, source)
-	if gotCompileErr != nil {
+	vm.InitGlobalEnvironment() // reset the global environment
+	pp.Default.SetColoringEnabled(false)
+
+	typechecker := checker.New()
+	chunk, gotCompileErr := typechecker.CheckSource(testFileName, source)
+	if gotCompileErr.IsFailure() {
 		t.Fatalf("Compile Error: %s", gotCompileErr.Error())
 		return
 	}
+
 	var stdout strings.Builder
 	vm := vm.New(vm.WithStdout(&stdout))
 	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
@@ -103,6 +104,6 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	}
 	if diff := cmp.Diff(want, got, opts...); diff != "" {
 		t.Logf("got: %s, want: %s", got.Inspect(), want.Inspect())
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }

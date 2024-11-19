@@ -1603,6 +1603,56 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode) ast.Expressi
 	}
 }
 
+func (c *Checker) checkArrayListElements(elements []ast.ExpressionNode) []types.Type {
+	var elementTypes []types.Type
+	for i, elementNode := range elements {
+		switch e := elementNode.(type) {
+		case *ast.ModifierNode:
+			elementNode := c.checkModifierInCollection(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		case *ast.ModifierIfElseNode:
+			elementNode := c.checkCollectionIfElseModifier(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		case *ast.ModifierForInNode:
+			elementNode := c.checkCollectionForInModifier(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		case *ast.KeyValueExpressionNode:
+			elementNode := c.checkArrayListKeyValueExpression(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		default:
+			elementNode := c.checkExpression(elementNode)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		}
+	}
+
+	return elementTypes
+}
+
+func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
+	node.Key = c.checkExpression(node.Key)
+	keyType := c.typeOfGuardVoid(node.Key)
+	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"index must be an integer, got type `%s`",
+				types.InspectWithColor(keyType),
+			),
+			node.Key.Span(),
+		)
+	}
+
+	node.Value = c.checkExpression(node.Value)
+	node.SetType(
+		types.NewNilable(c.toNonLiteral(c.typeOf(node.Value), false)),
+	)
+	return node
+}
+
 func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
@@ -1629,7 +1679,7 @@ func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) 
 	return elementTypes
 }
 
-func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode) []types.Type {
+func (c *Checker) checkArrayTupleElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
 		switch e := elementNode.(type) {
@@ -1645,6 +1695,10 @@ func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode
 			elementNode := c.checkCollectionForInModifier(e)
 			elements[i] = elementNode
 			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
+		case *ast.KeyValueExpressionNode:
+			elementNode := c.checkArrayTupleKeyValueExpression(e)
+			elements[i] = elementNode
+			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 		default:
 			elementNode := c.checkExpression(elementNode)
 			elements[i] = elementNode
@@ -1655,12 +1709,32 @@ func (c *Checker) checkImmutableCollectionElements(elements []ast.ExpressionNode
 	return elementTypes
 }
 
+func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
+	node.Key = c.checkExpression(node.Key)
+	keyType := c.typeOfGuardVoid(node.Key)
+	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"index must be an integer, got type `%s`",
+				types.InspectWithColor(keyType),
+			),
+			node.Key.Span(),
+		)
+	}
+
+	node.Value = c.checkExpression(node.Value)
+	node.SetType(
+		types.NewNilable(c.typeOf(node.Value)),
+	)
+	return node
+}
+
 func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
 	return c.checkArrayListLiteralNodeWithType(node, nil)
 }
 
 func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	elementTypes := c.checkMutableCollectionElements(node.Elements)
+	elementTypes := c.checkArrayListElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	if typ != nil {
@@ -1908,7 +1982,7 @@ func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) as
 }
 
 func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	elementTypes := c.checkImmutableCollectionElements(node.Elements)
+	elementTypes := c.checkArrayTupleElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	if typ != nil {

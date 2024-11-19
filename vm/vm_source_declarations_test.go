@@ -20,7 +20,6 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 				::Foo.bar
 			`,
 			wantStackTop: value.ToSymbol("boo"),
-			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 		"define singleton methods on a mixin": {
 			source: `
@@ -33,7 +32,6 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 				::Foo.bar
 			`,
 			wantStackTop: value.ToSymbol("boo"),
-			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 		"define singleton methods on a module": {
 			source: `
@@ -59,7 +57,6 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 				::Foo.bar
 			`,
 			wantStackTop: value.ToSymbol("boo"),
-			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 	}
 
@@ -73,38 +70,28 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 func TestVMSource_DefineMixin(t *testing.T) {
 	tests := sourceTestTable{
 		"mixin without a body with a relative name": {
-			source: "mixin Foo; end",
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "mixin Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"mixin without a body with an absolute name": {
-			source: "mixin ::Foo; end",
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "mixin ::Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"mixin with a body": {
 			source: `
 				mixin Foo
 					a := 5
-					const Bar: Int = a - 2
+					println a
 				end
+				nil
 			`,
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n",
 		},
 		"nested mixins": {
 			source: `
+				println Gdańsk::Gdynia::Sopot::Trójmiasto
+
 				mixin Gdańsk
 					mixin Gdynia
 						mixin Sopot
@@ -112,33 +99,16 @@ func TestVMSource_DefineMixin(t *testing.T) {
 						end
 					end
 				end
+				nil
 			`,
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithName("Gdańsk"),
-				value.MixinWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Gdynia"): value.NewMixinWithOptions(
-							value.MixinWithName("Gdańsk::Gdynia"),
-							value.MixinWithConstants(
-								value.SymbolMap{
-									value.ToSymbol("Sopot"): value.NewMixinWithOptions(
-										value.MixinWithName("Gdańsk::Gdynia::Sopot"),
-										value.MixinWithConstants(
-											value.SymbolMap{
-												value.ToSymbol("Trójmiasto"): value.String("jest super"),
-											},
-										),
-									),
-								},
-							),
-						),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
+			wantStackTop: value.Nil,
+			wantStdout:   "jest super\n",
 		},
 		"open an existing mixin": {
 			source: `
+				println Foo::FIRST_CONSTANT
+				println Foo::SECOND_CONSTANT
+
 				mixin Foo
 					const FIRST_CONSTANT = "oguem"
 				end
@@ -146,39 +116,109 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				mixin Foo
 					const SECOND_CONSTANT = "całe te"
 				end
+				nil
 			`,
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithName("Foo"),
-				value.MixinWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("FIRST_CONSTANT"):  value.String("oguem"),
-						value.ToSymbol("SECOND_CONSTANT"): value.String("całe te"),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "oguem\ncałe te\n",
 		},
 		"redefined constant": {
 			source: `
 				const Foo = 3
 				mixin Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.RedefinedConstantErrorClass,
-				"module Root already has a constant named `:Foo`",
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			},
 		},
 		"redefined class as mixin": {
 			source: `
 				class Foo; end
 				mixin Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.RedefinedConstantErrorClass,
-				"module Root already has a constant named `:Foo`",
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(24, 3, 5), P(37, 3, 18)), "cannot redeclare constant `Foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_DefineInterface(t *testing.T) {
+	tests := sourceTestTable{
+		"without a body with a relative name": {
+			source:       "interface Foo; end",
+			wantStackTop: value.Nil,
+		},
+		"without a body with an absolute name": {
+			source:       "interface ::Foo; end",
+			wantStackTop: value.Nil,
+		},
+		"with a body": {
+			source: `
+				interface Foo
+					a := 5
+					println a
+				end
+				nil
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n",
+		},
+		"nested": {
+			source: `
+				println Gdańsk::Gdynia::Sopot::Trójmiasto
+
+				interface Gdańsk
+					interface Gdynia
+						interface Sopot
+							const Trójmiasto = "jest super"
+						end
+					end
+				end
+				nil
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "jest super\n",
+		},
+		"open an existing interface": {
+			source: `
+				println Foo::FIRST_CONSTANT
+				println Foo::SECOND_CONSTANT
+
+				interface Foo
+					const FIRST_CONSTANT = "oguem"
+				end
+
+				interface Foo
+					const SECOND_CONSTANT = "całe te"
+				end
+				nil
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "oguem\ncałe te\n",
+		},
+		"redefined constant": {
+			source: `
+				const Foo = 3
+				interface Foo; end
+			`,
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			},
+		},
+		"redefined class as interface": {
+			source: `
+				class Foo; end
+				interface Foo; end
+			`,
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(24, 3, 5), P(41, 3, 22)), "cannot redeclare constant `Foo`"),
+			},
 		},
 	}
 
@@ -199,17 +239,13 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				class ::Std::Object
+				class ::Std::Object < Value
 					include ::Foo
 				end
 
 				self.foo
 			`,
 			wantStackTop: value.String("hey, it's foo"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.ObjectClass.Parent = value.ValueClass
-			},
 		},
 		"include two mixins to a class": {
 			source: `
@@ -225,18 +261,13 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				class ::Std::Object
+				class ::Std::Object < Value
 					include ::Foo, ::Bar
 				end
 
 				self.foo + "; " + self.bar
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.RootModule.Constants.DeleteString("Bar")
-				value.ObjectClass.Parent = value.ValueClass
-			},
 		},
 		"include a complex mixin in a class": {
 			source: `
@@ -254,18 +285,13 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				sealed class ::Std::Int
+				sealed primitive class ::Std::Int < Value
 					include ::Bar
 				end
 
 				1.foo + "; " + 1.bar
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.RootModule.Constants.DeleteString("Bar")
-				value.ObjectClass.Parent = value.ValueClass
-			},
 		},
 	}
 
@@ -279,46 +305,36 @@ func TestVMSource_Include(t *testing.T) {
 func TestVMSource_DefineClass(t *testing.T) {
 	tests := sourceTestTable{
 		"class without a body with a relative name": {
-			source: "class Foo; end",
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "class Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"class without a body with an absolute name": {
-			source: "class ::Foo; end",
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "class ::Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"class without a body with a parent": {
-			source: "class Foo < ::Std::Error; end",
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Foo"),
-				value.ClassWithParent(value.ErrorClass),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source: `
+				class Foo < ::Std::Error; end
+				println Foo.superclass?.name
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "Std::Error\n",
 		},
 		"class with a body": {
 			source: `
 				class Foo
 					a := 5
-					const Bar: Int = a - 2
+					println a
 				end
+				nil
 			`,
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Foo"),
-				value.ClassWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n",
 		},
 		"nested classes": {
 			source: `
+				println Gdańsk::Gdynia::Sopot::Trójmiasto
+
 				class Gdańsk
 					class Gdynia
 						class Sopot
@@ -326,33 +342,16 @@ func TestVMSource_DefineClass(t *testing.T) {
 						end
 					end
 				end
+				nil
 			`,
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Gdańsk"),
-				value.ClassWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Gdynia"): value.NewClassWithOptions(
-							value.ClassWithName("Gdańsk::Gdynia"),
-							value.ClassWithConstants(
-								value.SymbolMap{
-									value.ToSymbol("Sopot"): value.NewClassWithOptions(
-										value.ClassWithName("Gdańsk::Gdynia::Sopot"),
-										value.ClassWithConstants(
-											value.SymbolMap{
-												value.ToSymbol("Trójmiasto"): value.String("jest super"),
-											},
-										),
-									),
-								},
-							),
-						),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
+			wantStackTop: value.Nil,
+			wantStdout:   "jest super\n",
 		},
 		"open an existing class": {
 			source: `
+				println Foo::FIRST_CONSTANT
+				println Foo::SECOND_CONSTANT
+
 				class Foo
 					const FIRST_CONSTANT = "oguem"
 				end
@@ -360,17 +359,10 @@ func TestVMSource_DefineClass(t *testing.T) {
 				class Foo
 					const SECOND_CONSTANT = "całe te"
 				end
+				nil
 			`,
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Foo"),
-				value.ClassWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("FIRST_CONSTANT"):  value.String("oguem"),
-						value.ToSymbol("SECOND_CONSTANT"): value.String("całe te"),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "oguem\ncałe te\n",
 		},
 		"superclass mismatch": {
 			source: `
@@ -384,13 +376,8 @@ func TestVMSource_DefineClass(t *testing.T) {
 					const SECOND_CONSTANT = "całe te"
 				end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"superclass mismatch in Bar, expected: Foo, got: Std::Error",
-			),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.RootModule.Constants.DeleteString("Bar")
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(104, 8, 17), P(115, 8, 28)), "superclass mismatch in `Bar`, got `Std::Error`, expected `Foo`"),
 			},
 		},
 		"incorrect superclass": {
@@ -398,13 +385,8 @@ func TestVMSource_DefineClass(t *testing.T) {
 				const A = 3
 				class Foo < ::A; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`3` cannot be used as a superclass",
-			),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-				value.RootModule.Constants.DeleteString("A")
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(35, 3, 19), P(35, 3, 19)), "undefined type `A`"),
 			},
 		},
 		"redefined constant": {
@@ -412,11 +394,9 @@ func TestVMSource_DefineClass(t *testing.T) {
 				const Foo = 3
 				class Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.RedefinedConstantErrorClass,
-				"module Root already has a constant named `:Foo`",
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			},
 		},
 	}
 
@@ -430,45 +410,29 @@ func TestVMSource_DefineClass(t *testing.T) {
 func TestVMSource_DefineModule(t *testing.T) {
 	tests := sourceTestTable{
 		"module without a body with a relative name": {
-			source: "module Foo; end",
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "module Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"module without a body with an absolute name": {
-			source: "module ::Foo; end",
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithName("Foo"),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			source:       "module ::Foo; end",
+			wantStackTop: value.Nil,
 		},
 		"module with a body": {
 			source: `
 				module Foo
+					const B = 2
 					a := 5
-					const Bar: Int = a - 2
+					println a + B
 				end
+				nil
 			`,
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithName("&Foo"),
-						value.ClassWithParent(value.ModuleClass),
-					),
-				),
-				value.ModuleWithName("Foo"),
-				value.ModuleWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "7\n",
 		},
 		"nested modules": {
 			source: `
+				println Gdańsk::Gdynia::Sopot::Trójmiasto
+
 				module Gdańsk
 					module Gdynia
 						module Sopot
@@ -476,54 +440,16 @@ func TestVMSource_DefineModule(t *testing.T) {
 						end
 					end
 				end
+				nil
 			`,
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithName("Gdańsk"),
-				value.ModuleWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithName("&Gdańsk"),
-						value.ClassWithParent(value.ModuleClass),
-					),
-				),
-				value.ModuleWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Gdynia"): value.NewModuleWithOptions(
-							value.ModuleWithName("Gdańsk::Gdynia"),
-							value.ModuleWithClass(
-								value.NewClassWithOptions(
-									value.ClassWithSingleton(),
-									value.ClassWithName("&Gdańsk::Gdynia"),
-									value.ClassWithParent(value.ModuleClass),
-								),
-							),
-							value.ModuleWithConstants(
-								value.SymbolMap{
-									value.ToSymbol("Sopot"): value.NewModuleWithOptions(
-										value.ModuleWithName("Gdańsk::Gdynia::Sopot"),
-										value.ModuleWithClass(
-											value.NewClassWithOptions(
-												value.ClassWithSingleton(),
-												value.ClassWithName("&Gdańsk::Gdynia::Sopot"),
-												value.ClassWithParent(value.ModuleClass),
-											),
-										),
-										value.ModuleWithConstants(
-											value.SymbolMap{
-												value.ToSymbol("Trójmiasto"): value.String("jest super"),
-											},
-										),
-									),
-								},
-							),
-						),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
+			wantStackTop: value.Nil,
+			wantStdout:   "jest super\n",
 		},
 		"open an existing module": {
 			source: `
+				println Foo::FIRST_CONSTANT
+				println Foo::SECOND_CONSTANT
+
 				module Foo
 					const FIRST_CONSTANT = "oguem"
 				end
@@ -531,46 +457,28 @@ func TestVMSource_DefineModule(t *testing.T) {
 				module Foo
 					const SECOND_CONSTANT = "całe te"
 				end
+				nil
 			`,
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithName("&Foo"),
-						value.ClassWithParent(value.ModuleClass),
-					),
-				),
-				value.ModuleWithName("Foo"),
-				value.ModuleWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("FIRST_CONSTANT"):  value.String("oguem"),
-						value.ToSymbol("SECOND_CONSTANT"): value.String("całe te"),
-					},
-				),
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.Nil,
+			wantStdout:   "oguem\ncałe te\n",
 		},
 		"redefined constant": {
 			source: `
 				const Foo = 3
 				module Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.RedefinedConstantErrorClass,
-				"module Root already has a constant named `:Foo`",
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			},
 		},
 		"redefined class as module": {
 			source: `
 				class Foo; end
 				module Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.RedefinedConstantErrorClass,
-				"module Root already has a constant named `:Foo`",
-			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(24, 3, 5), P(38, 3, 19)), "cannot redeclare constant `Foo`"),
+			},
 		},
 	}
 
@@ -583,10 +491,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 
 func TestVMSource_GetModuleConstant(t *testing.T) {
 	tests := simpleSourceTestTable{
-		"::Std":                     value.StdModule,
-		"::Std::Int":                value.IntClass,
-		"::Std::Float::INF":         value.FloatInf(),
-		"a := ::Std::Float; a::INF": value.FloatInf(),
+		"::Std::Float::INF": value.FloatInf(),
 	}
 
 	for source, want := range tests {
@@ -599,30 +504,23 @@ func TestVMSource_GetModuleConstant(t *testing.T) {
 func TestVMSource_DefineModuleConstant(t *testing.T) {
 	tests := sourceTestTable{
 		"Set constant under Root": {
-			source:       "const Foo = 3i64",
-			wantStackTop: value.Int64(3),
-			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
-		},
-		"Set constant under Root and read it": {
 			source: `
 				const Foo = 3i64
-				::Foo
+				Foo
 			`,
 			wantStackTop: value.Int64(3),
-			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
 		"Set constant under nested modules": {
 			source: `
 				module ::Std
-					class Int
+					sealed primitive class Int < Value
 						const Foo = 3i64
 					end
 				end
 
-				::Std::Int::Foo
+				Int::Foo
 			`,
 			wantStackTop: value.Int64(3),
-			teardown:     func() { value.IntClass.Constants.DeleteString("Foo") },
 		},
 	}
 

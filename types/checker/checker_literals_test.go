@@ -8,6 +8,35 @@ import (
 
 func TestArrayTupleLiteral(t *testing.T) {
 	tests := testTable{
+		"with explicit index from a variable": {
+			input: `
+				a := 1
+				var foo = %[a => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 4, 16), P(56, 4, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+			},
+		},
+		"with explicit int indices": {
+			input: `
+				var foo = %[1 => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 16), P(45, 3, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+			},
+		},
+		"with explicit invalid indices": {
+			input: `
+				var foo = %["lol" => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(17, 2, 17), P(21, 2, 21)), "index must be an integer, got type `\"lol\"`"),
+				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier for in": {
 			input: `
 				var foo = %[1, i.to_float for i in 5...20]
@@ -541,6 +570,35 @@ func TestHashSetLiteral(t *testing.T) {
 
 func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
+		"with explicit index from a variable": {
+			input: `
+				a := 1
+				var foo = [a => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::ArrayList[Std::Symbol | nil]` cannot be assigned to type `9`"),
+			},
+		},
+		"with explicit int indices": {
+			input: `
+				var foo = [1 => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 16), P(44, 3, 18)), "type `Std::ArrayList[Std::Symbol | nil]` cannot be assigned to type `9`"),
+			},
+		},
+		"with explicit invalid indices": {
+			input: `
+				var foo = ["lol" => :bar]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(20, 2, 20)), "index must be an integer, got type `\"lol\"`"),
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::ArrayList[Std::Symbol | nil]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier for in": {
 			input: `
 				var foo = [1, i.to_float for i in 5...20]

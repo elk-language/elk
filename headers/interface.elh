@@ -1,0 +1,9 @@
+##[
+	`Interface` is the class of all interfaces.
+]##
+class ::Std::Interface < Object
+	##[
+		Returns the name of the interface.
+	]##
+	def name: String; end
+end

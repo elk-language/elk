@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -188,6 +189,10 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.ToSymbol("bar"),
+			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(38, 3, 23), P(40, 3, 25)), "this condition will always have the same result since type `SmallInt` is truthy"),
+				error.NewWarning(L(P(33, 3, 18), P(40, 3, 25)), "unreachable code"),
 			},
 		},
 		"with falsy unless": {

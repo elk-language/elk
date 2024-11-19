@@ -4,17 +4,16 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Mixin
-func initMixin() {
+// Std::Interface
+func initInterface() {
 	// Instance methods
-	c := &value.MixinClass.MethodContainer
-	Accessor(c, "doc")
+	c := &value.InterfaceClass.MethodContainer
 
 	Def(
 		c,
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Mixin)
+			self := args[0].(*value.Interface)
 			return value.String(self.Name), nil
 		},
 	)

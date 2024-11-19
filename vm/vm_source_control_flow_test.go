@@ -492,9 +492,6 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(57, 5, 6), P(67, 5, 16)), "unreachable code"),
 			},
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-			},
 		},
 		"throw in nested method and catch in parent context": {
 			source: `
@@ -531,10 +528,6 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantStackTop: value.SmallInt(5),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(57, 5, 6), P(67, 5, 16)), "unreachable code"),
-			},
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("bar"))
 			},
 		},
 		"throw, catch and break in loop": {
@@ -579,9 +572,6 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				error.NewWarning(L(P(119, 10, 14), P(123, 10, 18)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(178, 15, 6), P(188, 15, 16)), "unreachable code"),
 			},
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-			},
 		},
 		"execute nested finally before return": {
 			source: `
@@ -614,9 +604,6 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				error.NewWarning(L(P(130, 11, 15), P(134, 11, 19)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(241, 20, 6), P(251, 20, 16)), "unreachable code"),
 			},
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-			},
 		},
 		"execute finally before return in a setter method": {
 			source: `
@@ -643,9 +630,6 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(132, 10, 14), P(136, 10, 18)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(191, 15, 6), P(201, 15, 16)), "unreachable code"),
-			},
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"execute finally before return in a module": {

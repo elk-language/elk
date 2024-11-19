@@ -348,9 +348,6 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				f.bar
 			`,
 			wantStackTop: value.String("bar value"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-			},
 		},
 		"read an instance variable of a primitive": {
 			source: `
@@ -361,9 +358,6 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				value.PrimitiveValueErrorClass,
 				"cannot access instance variables of a primitive value `<GlobalObject>`",
 			),
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-			},
 		},
 		"set an instance variable of a primitive": {
 			source: `
@@ -374,9 +368,6 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				value.PrimitiveValueErrorClass,
 				"cannot set instance variables of a primitive value `<GlobalObject>`",
 			),
-			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
-			},
 		},
 		"set an instance variable of an instance": {
 			source: `
@@ -391,9 +382,6 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				f.bar
 			`,
 			wantStackTop: value.String("bar value"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-			},
 		},
 		"set an instance variable of a class": {
 			source: `
@@ -409,9 +397,6 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				::Foo.bar
 			`,
 			wantStackTop: value.String("bar value"),
-			teardown: func() {
-				value.RootModule.Constants.DeleteString("Foo")
-			},
 		},
 	}
 

@@ -48,6 +48,7 @@ func parserTest(tc testCase, t *testing.T) {
 		cmp.AllowUnexported(
 			ast.NodeBase{},
 			ast.TypedNodeBase{},
+			ast.TypedNodeBaseWithLoc{},
 			token.Token{},
 			ast.DocCommentableNodeBase{},
 			ast.BinaryExpressionNode{},
