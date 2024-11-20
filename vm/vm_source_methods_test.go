@@ -3,7 +3,6 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -204,12 +203,6 @@ func TestVMSource_Alias(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(7),
 		},
-		"add an alias to a builtin method": {
-			source: `
-				alias klass class
-			`,
-			wantStackTop: value.Nil,
-		},
 		"add an alias to a nonexistent method": {
 			source: `
 				alias foo blabla
@@ -232,23 +225,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 		"define a method in top level": {
 			source: `
 				def foo: Symbol then :bar
+				foo()
 			`,
-			wantStackTop: vm.NewBytecodeFunction(
-				value.ToSymbol("foo"),
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.RETURN),
-				},
-				L(P(5, 2, 5), P(29, 2, 29)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
-				},
-				0,
-				0,
-				[]value.Value{
-					value.ToSymbol("bar"),
-				},
-			),
+			wantStackTop: value.ToSymbol("bar"),
 		},
 		"define a method with positional arguments in top level": {
 			source: `
@@ -256,33 +235,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					c := 5
 					a + b + c
 				end
+				foo(1, 2)
 			`,
-			wantStackTop: vm.NewBytecodeFunction(
-				value.ToSymbol("foo"),
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.SET_LOCAL8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.ADD),
-					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.ADD),
-					byte(bytecode.RETURN),
-				},
-				L(P(5, 2, 5), P(67, 5, 7)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 7),
-					bytecode.NewLineInfo(4, 8),
-					bytecode.NewLineInfo(5, 1),
-				},
-				2,
-				0,
-				[]value.Value{
-					value.SmallInt(5),
-				},
-			),
+			wantStackTop: value.SmallInt(8),
 		},
 		"define a method with positional arguments in a class": {
 			source: `
@@ -292,40 +247,10 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						a + b + c
 					end
 				end
+
+				Bar().foo(1, 2)
 			`,
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithName("Bar"),
-				value.ClassWithMethods(
-					value.MethodMap{
-						value.ToSymbol("foo"): vm.NewBytecodeFunction(
-							value.ToSymbol("foo"),
-							[]byte{
-								byte(bytecode.PREP_LOCALS8), 1,
-								byte(bytecode.LOAD_VALUE8), 0,
-								byte(bytecode.SET_LOCAL8), 3,
-								byte(bytecode.POP),
-								byte(bytecode.GET_LOCAL8), 1,
-								byte(bytecode.GET_LOCAL8), 2,
-								byte(bytecode.ADD),
-								byte(bytecode.GET_LOCAL8), 3,
-								byte(bytecode.ADD),
-								byte(bytecode.RETURN),
-							},
-							L(P(20, 3, 6), P(85, 6, 8)),
-							bytecode.LineInfoList{
-								bytecode.NewLineInfo(4, 7),
-								bytecode.NewLineInfo(5, 8),
-								bytecode.NewLineInfo(6, 1),
-							},
-							2,
-							0,
-							[]value.Value{
-								value.SmallInt(5),
-							},
-						),
-					},
-				),
-			),
+			wantStackTop: value.SmallInt(8),
 		},
 		"define a method with positional arguments in a module": {
 			source: `
@@ -335,47 +260,10 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						a + b + c
 					end
 				end
+
+				Bar.foo(1, 2)
 			`,
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithName("Bar"),
-				value.ModuleWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithParent(value.ModuleClass),
-						value.ClassWithName("&Bar"),
-						value.ClassWithMethods(
-							value.MethodMap{
-								value.ToSymbol("foo"): vm.NewBytecodeFunction(
-									value.ToSymbol("foo"),
-									[]byte{
-										byte(bytecode.PREP_LOCALS8), 1,
-										byte(bytecode.LOAD_VALUE8), 0,
-										byte(bytecode.SET_LOCAL8), 3,
-										byte(bytecode.POP),
-										byte(bytecode.GET_LOCAL8), 1,
-										byte(bytecode.GET_LOCAL8), 2,
-										byte(bytecode.ADD),
-										byte(bytecode.GET_LOCAL8), 3,
-										byte(bytecode.ADD),
-										byte(bytecode.RETURN),
-									},
-									L(P(21, 3, 6), P(86, 6, 8)),
-									bytecode.LineInfoList{
-										bytecode.NewLineInfo(4, 7),
-										bytecode.NewLineInfo(5, 8),
-										bytecode.NewLineInfo(6, 1),
-									},
-									2,
-									0,
-									[]value.Value{
-										value.SmallInt(5),
-									},
-								),
-							},
-						),
-					),
-				),
-			),
+			wantStackTop: value.SmallInt(8),
 		},
 	}
 
@@ -417,15 +305,15 @@ func TestVMSource_CallMethod(t *testing.T) {
 	tests := sourceTestTable{
 		"nil safe call on nil": {
 			source: `
-				a := nil
+				var a: Int? = nil
 
-				a?.foo(3, 4)?.bar
+				a?.to_string?.to_int
 			`,
 			wantStackTop: value.Nil,
 		},
 		"nil safe call on not nil": {
 			source: `
-				a := 5
+				var a: Int? = 5
 
 				a?.inspect
 			`,
@@ -479,7 +367,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with some optional arguments": {
 			source: `
-				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Float
 					a + b + c
 				end
 
@@ -571,7 +459,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, named rest param and only required args": {
 			source: `
-				def foo(a: String, **b: String): List[any]
+				def foo(a: String, **b: String): Tuple[any]
 					[a, b]
 				end
 
@@ -585,7 +473,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
 			source: `
-				def foo(a: String, b: Int = 5, **c: String): List[any]
+				def foo(a: String, b: Int = 5, **c: String): Tuple[any]
 					[a, b, c]
 				end
 
@@ -623,7 +511,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
-				def foo(a: String, b: String | Int = "b", **c: String): ArrayList[Value]
+				def foo(a: String, b: String | Int = "b", **c: String): Tuple[Value]
 					[a, b, c]
 				end
 
@@ -662,7 +550,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and named args": {
 			source: `
-				def foo(*a: Int, **b: Int): ArrayList[Value]
+				def foo(*a: Int, **b: Int): Tuple[Value]
 					[a, b]
 				end
 
@@ -670,7 +558,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
-				(*value.ArrayList)(nil),
+				&value.ArrayList{},
 				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
@@ -681,7 +569,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(*a: Int, **b: Int): ArrayList[Value]
+				def foo(*a: Int, **b: Int): Tuple[Value]
 					[a, b]
 				end
 
@@ -726,7 +614,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular, positional rest params and named rest params and named args": {
 			source: `
-				def foo(a: Int, *b: Int, **c: Int): ArrayList[Int]
+				def foo(a: Int, *b: Int, **c: Int): Tuple[any]
 					[a, b, c]
 				end
 
@@ -735,7 +623,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.NewArrayListWithElements(
 				3,
 				value.SmallInt(1),
-				(*value.ArrayTuple)(nil),
+				&value.ArrayTuple{},
 				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
@@ -746,7 +634,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular, positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(a: Int, *b: Int, **c: Int): ArrayList[Int]
+				def foo(a: Int, *b: Int, **c: Int): Tuple[any]
 					[a, b, c]
 				end
 
@@ -816,10 +704,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo(b: 1, a: 2)
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`foo` wrong number of positional arguments, given: 0, expected: 2..",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(99, 6, 5), P(118, 6, 24)), "expected 2... positional arguments in call to `foo`, got 0"),
+			},
 		},
 		"call a method with rest parameters and no optional arguments": {
 			source: `
@@ -859,7 +746,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("a: [1, 2], b: 3"),
+			wantStackTop: value.String("a: %[1, 2], b: 3"),
 		},
 		"call a method with multiple post arguments": {
 			source: `
@@ -869,7 +756,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo(1, 2, 3, 4)
 			`,
-			wantStackTop: value.String("a: [1, 2], b: 3, c: 4"),
+			wantStackTop: value.String("a: %[1, 2], b: 3, c: 4"),
 		},
 		"call a method with pre and post arguments": {
 			source: `
@@ -879,7 +766,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo(1, 2, 3, 4, 5, 6)
 			`,
-			wantStackTop: value.String("a: 1, b: 2, c: [3, 4], d: 5, e: 6"),
+			wantStackTop: value.String("a: 1, b: 2, c: %[3, 4], d: 5, e: 6"),
 		},
 		"call a method with named post arguments": {
 			source: `
@@ -889,17 +776,17 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo(1, 2, c: 3, b: 4)
 			`,
-			wantStackTop: value.String("a: [1, 2], b: 4, c: 3"),
+			wantStackTop: value.String("a: %[1, 2], b: 4, c: 3"),
 		},
 		"call a method with pre and named post arguments": {
 			source: `
-				def foo(a, *b, c, d): String
+				def foo(a: Int, *b: Int, c: Int, d: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}"
 				end
 
 				self.foo(1, 2, 3, d: 4, c: 5)
 			`,
-			wantStackTop: value.String("a: 1, b: [2, 3], c: 5, d: 4"),
+			wantStackTop: value.String("a: 1, b: %[2, 3], c: 5, d: 4"),
 		},
 		"call a method with named arguments and missing required arguments": {
 			source: `
@@ -922,7 +809,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				self.foo("a", b: "b", a: "a2")
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(100, 6, 27), P(108, 6, 33)), "duplicated argument `a` in call to `foo`"),
+				error.NewFailure(L(P(102, 6, 27), P(108, 6, 33)), "duplicated argument `a` in call to `foo`"),
 			},
 		},
 		"call a method with unknown named arguments": {

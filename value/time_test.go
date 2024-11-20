@@ -12,7 +12,7 @@ func TestTimeFormat(t *testing.T) {
 		time   value.Time
 		format string
 		want   string
-		err    *value.Error
+		err    value.Value
 	}{
 		"simple date with zero padding": {
 			time:   value.NewTime(2023, 5, 3, 0, 0, 0, 0, nil),

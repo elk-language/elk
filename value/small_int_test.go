@@ -15,7 +15,7 @@ func TestSmallInt_Add(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"add String and return an error": {
 			a:   value.SmallInt(3),
@@ -108,7 +108,7 @@ func TestSmallInt_Subtract(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"subtract String and return an error": {
 			a:   value.SmallInt(3),
@@ -204,7 +204,7 @@ func TestSmallInt_Multiply(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"multiply by String and return an error": {
 			a:   value.SmallInt(3),
@@ -319,7 +319,7 @@ func TestSmallInt_Divide(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"divide by String and return an error": {
 			a:   value.SmallInt(3),
@@ -599,7 +599,7 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.SmallInt(5),
@@ -897,7 +897,7 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.SmallInt(5),
@@ -1215,7 +1215,7 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.SmallInt(5),
@@ -1593,7 +1593,7 @@ func TestSmallInt_BitwiseAnd(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt & String and return an error": {
 			a:   value.SmallInt(5),
@@ -1663,7 +1663,7 @@ func TestSmallInt_BitwiseOr(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt | String and return an error": {
 			a:   value.SmallInt(5),
@@ -1733,7 +1733,7 @@ func TestSmallInt_BitwiseXor(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt ^ String and return an error": {
 			a:   value.SmallInt(5),
@@ -1803,7 +1803,7 @@ func TestSmallInt_Modulo(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.SmallInt(5),
@@ -2026,7 +2026,7 @@ func TestSmallInt_GreaterThan(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.SmallInt(5),
@@ -2149,7 +2149,7 @@ func TestSmallInt_GreaterThanEqual(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.SmallInt(5),
@@ -2272,7 +2272,7 @@ func TestSmallInt_LessThan(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.SmallInt(5),
@@ -2395,7 +2395,7 @@ func TestSmallInt_LessThanEqual(t *testing.T) {
 		a    value.SmallInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.SmallInt(5),

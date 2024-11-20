@@ -60,7 +60,7 @@ func LogicalRightShift8[L SimpleInt](left L, right uint64) L {
 type logicalShiftFunc[L SimpleInt] func(left L, right uint64) L
 
 // Bitshift a strict int to the left.
-func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
+func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, Value) {
 	switch r := right.(type) {
 	case SmallInt:
 		if r < 0 {
@@ -111,7 +111,7 @@ func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc lo
 }
 
 // Logically bitshift a strict int to the right.
-func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
+func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, Value) {
 	switch r := right.(type) {
 	case SmallInt:
 		if r < 0 {
@@ -162,7 +162,7 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 }
 
 // Bitshift a strict int to the right.
-func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 	switch r := right.(type) {
 	case SmallInt:
 		if r < 0 {
@@ -213,7 +213,7 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Bitshift a strict int to the left.
-func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 	switch r := right.(type) {
 	case SmallInt:
 		if r < 0 {
@@ -264,7 +264,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Perform a bitwise AND.
-func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -274,7 +274,7 @@ func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Perform a bitwise AND NOT.
-func StrictIntBitwiseAndNot[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntBitwiseAndNot[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -284,7 +284,7 @@ func StrictIntBitwiseAndNot[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Perform a bitwise OR.
-func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -294,7 +294,7 @@ func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Perform a bitwise XOR.
-func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -304,7 +304,7 @@ func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, *Error) {
 }
 
 // Exponentiate a strict int by the right value.
-func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
+func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -314,7 +314,7 @@ func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
 }
 
 // Exponentiate a strict int by the right value.
-func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntExponentiate[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -333,7 +333,7 @@ func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
 
 // Add a strict numeric to another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
+func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -344,7 +344,7 @@ func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 
 // Subtract a strict numeric from another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, *Error) {
+func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -355,7 +355,7 @@ func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, *Error) {
 
 // Multiply a strict numeric by another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
+func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -366,7 +366,7 @@ func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 
 // Perform modulo on a strict integer and return the result.
 // If the operation is illegal an error will be returned.
-func StrictIntModulo[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntModulo[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -380,7 +380,7 @@ func StrictIntModulo[T StrictInt](left T, right Value) (T, *Error) {
 
 // Perform modulo on a strict integer and return the result.
 // If the operation is illegal an error will be returned.
-func StrictFloatModulo[T StrictFloat](left T, right Value) (T, *Error) {
+func StrictFloatModulo[T StrictFloat](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -391,7 +391,7 @@ func StrictFloatModulo[T StrictFloat](left T, right Value) (T, *Error) {
 
 // Divide a strict float by another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
+func StrictFloatDivide[T StrictFloat](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -402,7 +402,7 @@ func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
 
 // Divide a strict int by another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntDivide[T StrictInt](left T, right Value) (T, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left.Class(), right.Class())
@@ -418,7 +418,7 @@ func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, *Error) {
+func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -439,7 +439,7 @@ func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, *Error) {
 
 // Check whether left is greater than right.
 // If the operation is illegal an error will be returned.
-func StrictIntCompare[T StrictInt](left T, right Value) (Value, *Error) {
+func StrictIntCompare[T StrictInt](left T, right Value) (Value, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -456,7 +456,7 @@ func StrictIntCompare[T StrictInt](left T, right Value) (Value, *Error) {
 
 // Check whether left is greater than right.
 // If the operation is illegal an error will be returned.
-func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
+func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -467,7 +467,7 @@ func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Erro
 
 // Check whether left is greater than or equal to right.
 // If the operation is illegal an error will be returned.
-func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
+func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -478,7 +478,7 @@ func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, 
 
 // Check whether left is less than right.
 // If the operation is illegal an error will be returned.
-func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
+func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -489,7 +489,7 @@ func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, *Error) 
 
 // Check whether left is less than or equal to right.
 // If the operation is illegal an error will be returned.
-func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
+func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, Value) {
 	r, ok := right.(T)
 	if !ok {
 		return nil, NewCoerceError(left.Class(), right.Class())
@@ -660,7 +660,7 @@ func StrictNumericStrictEqual[T StrictNumeric](left T, right Value) Bool {
 }
 
 // Parses an unsigned strict integer from a string using Elk syntax.
-func StrictParseUint(s string, base int, bitSize int) (uint64, *Error) {
+func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 	if s == "" {
 		return 0, Errorf(FormatErrorClass, "invalid integer format")
 	}
@@ -758,7 +758,7 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, *Error) {
 }
 
 // Parses a signed strict integer from a string using Elk syntax.
-func StrictParseInt(s string, base int, bitSize int) (int64, *Error) {
+func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	if s == "" {
 		return 0, Errorf(FormatErrorClass, "invalid integer format")
 	}

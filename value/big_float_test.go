@@ -13,7 +13,7 @@ func TestBigFloatAdd(t *testing.T) {
 		left  *value.BigFloat
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"BigFloat + BigFloat => BigFloat": {
 			left:  value.NewBigFloat(2.5),
@@ -220,7 +220,7 @@ func TestBigFloatSubtract(t *testing.T) {
 		left  *value.BigFloat
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"BigFloat - BigFloat => BigFloat": {
 			left:  value.NewBigFloat(10.0),
@@ -385,7 +385,7 @@ func TestBigFloatMultiply(t *testing.T) {
 		left  *value.BigFloat
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"BigFloat * BigFloat => BigFloat": {
 			left:  value.NewBigFloat(2.55),
@@ -590,7 +590,7 @@ func TestBigFloatDivide(t *testing.T) {
 		left  *value.BigFloat
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"BigFloat / BigFloat => BigFloat": {
 			left:  value.NewBigFloat(2.68),
@@ -796,7 +796,7 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -1324,7 +1324,7 @@ func TestBigFloat_Modulo(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -1602,7 +1602,7 @@ func TestBigFloat_GreaterThan(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -1864,7 +1864,7 @@ func TestBigFloat_GreaterThanEqual(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -2127,7 +2127,7 @@ func TestBigFloat_LessThan(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -2354,7 +2354,7 @@ func TestBigFloat_LessThanEqual(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
@@ -2592,7 +2592,7 @@ func TestBigFloat_Compare(t *testing.T) {
 		a    *value.BigFloat
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigFloat(5),

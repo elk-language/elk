@@ -66,7 +66,7 @@ func MustLoadTimezone(name string) *Timezone {
 }
 
 // Load a timezone from the IANA database.
-func LoadTimezone(name string) (*Timezone, *Error) {
+func LoadTimezone(name string) (*Timezone, Value) {
 	loc, err := time.LoadLocation(name)
 	if err != nil {
 		return nil, Errorf(

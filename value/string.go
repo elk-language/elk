@@ -118,6 +118,11 @@ func (s String) ToChar() (Char, bool) {
 	return Char(r), true
 }
 
+// Convert this String to an Int.
+func (s String) ToInt() (Value, Value) {
+	return ParseInt(string(s), 0)
+}
+
 // Return a new string that has all characters turned to lowercase.
 func (s String) Lowercase() String {
 	return String(strings.ToLower(string(s)))
@@ -178,7 +183,7 @@ func (s String) ReverseGraphemes() String {
 
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
-func (s String) Concat(other Value) (String, *Error) {
+func (s String) Concat(other Value) (String, Value) {
 	switch o := other.(type) {
 	case Char:
 		var buff strings.Builder
@@ -194,7 +199,7 @@ func (s String) Concat(other Value) (String, *Error) {
 
 // Repeat the content of this string n times and return a new string containing the result.
 // If the operation is illegal an error will be returned.
-func (s String) Repeat(other Value) (String, *Error) {
+func (s String) Repeat(other Value) (String, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -217,7 +222,7 @@ func (s String) Repeat(other Value) (String, *Error) {
 }
 
 // Return a copy of the string without the given suffix.
-func (s String) RemoveSuffix(other Value) (String, *Error) {
+func (s String) RemoveSuffix(other Value) (String, Value) {
 	switch o := other.(type) {
 	case Char:
 		r, rLen := utf8.DecodeLastRuneInString(string(s))
@@ -237,7 +242,7 @@ func (s String) RemoveSuffix(other Value) (String, *Error) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (s String) Compare(other Value) (Value, *Error) {
+func (s String) Compare(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return SmallInt(s.Cmp(o)), nil
@@ -250,7 +255,7 @@ func (s String) Compare(other Value) (Value, *Error) {
 
 // Check whether s is greater than other and return an error
 // if something went wrong.
-func (s String) GreaterThan(other Value) (Value, *Error) {
+func (s String) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s > o), nil
@@ -263,7 +268,7 @@ func (s String) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether s is greater than or equal to other and return an error
 // if something went wrong.
-func (s String) GreaterThanEqual(other Value) (Value, *Error) {
+func (s String) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s >= o), nil
@@ -276,7 +281,7 @@ func (s String) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether s is less than other and return an error
 // if something went wrong.
-func (s String) LessThan(other Value) (Value, *Error) {
+func (s String) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s < o), nil
@@ -289,7 +294,7 @@ func (s String) LessThan(other Value) (Value, *Error) {
 
 // Check whether s is less than or equal to other and return an error
 // if something went wrong.
-func (s String) LessThanEqual(other Value) (Value, *Error) {
+func (s String) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s <= o), nil
@@ -333,7 +338,7 @@ func (s String) StrictEqual(other Value) Value {
 }
 
 // Get an element under the given index.
-func (s String) Get(index int) (Char, *Error) {
+func (s String) Get(index int) (Char, Value) {
 	var i int
 	if index < 0 {
 		l := s.CharCount()
@@ -367,7 +372,7 @@ func (s String) Get(index int) (Char, *Error) {
 }
 
 // Get the character under the given index.
-func (s String) Subscript(key Value) (Char, *Error) {
+func (s String) Subscript(key Value) (Char, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -382,7 +387,7 @@ func (s String) Subscript(key Value) (Char, *Error) {
 }
 
 // Get the byte under the given index.
-func (s String) ByteAtInt(index int) (UInt8, *Error) {
+func (s String) ByteAtInt(index int) (UInt8, Value) {
 	l := len(s)
 	if index >= l || index < -l {
 		return 0, NewIndexOutOfRangeError(fmt.Sprint(index), l)
@@ -394,7 +399,7 @@ func (s String) ByteAtInt(index int) (UInt8, *Error) {
 }
 
 // Get the byte under the given index.
-func (s String) ByteAt(key Value) (UInt8, *Error) {
+func (s String) ByteAt(key Value) (UInt8, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -409,7 +414,7 @@ func (s String) ByteAt(key Value) (UInt8, *Error) {
 }
 
 // Get the grapheme under the given index.
-func (s String) GraphemeAtInt(index int) (String, *Error) {
+func (s String) GraphemeAtInt(index int) (String, Value) {
 	var i int
 	if index < 0 {
 		l := s.GraphemeCount()
@@ -438,7 +443,7 @@ func (s String) GraphemeAtInt(index int) (String, *Error) {
 }
 
 // Get the grapheme under the given index.
-func (s String) GraphemeAt(key Value) (String, *Error) {
+func (s String) GraphemeAt(key Value) (String, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)

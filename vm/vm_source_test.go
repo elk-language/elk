@@ -75,6 +75,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
+			t.Logf("got: %#v, want: %#v", gotStackTop, tc.wantStackTop)
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
 		}
 		t.Fatal(diff)

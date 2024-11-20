@@ -146,7 +146,7 @@ func (i SmallInt) ToUInt8() UInt8 {
 
 // Add another value and return an error
 // if something went wrong.
-func (i SmallInt) Add(other Value) (Value, *Error) {
+func (i SmallInt) Add(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		result, ok := i.AddOverflow(o)
@@ -185,7 +185,7 @@ func (a SmallInt) SubtractOverflow(b SmallInt) (result SmallInt, ok bool) {
 
 // Add another value and return an error
 // if something went wrong.
-func (i SmallInt) Subtract(other Value) (Value, *Error) {
+func (i SmallInt) Subtract(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		result, ok := i.SubtractOverflow(o)
@@ -229,7 +229,7 @@ func (a SmallInt) MultiplyOverflow(b SmallInt) (result SmallInt, ok bool) {
 
 // Multiply another value and return an error
 // if something went wrong.
-func (i SmallInt) Multiply(other Value) (Value, *Error) {
+func (i SmallInt) Multiply(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		result, ok := i.MultiplyOverflow(o)
@@ -267,7 +267,7 @@ func (a SmallInt) DivideOverflow(b SmallInt) (result SmallInt, ok bool) {
 
 // Divide another value and return an error
 // if something went wrong.
-func (i SmallInt) Divide(other Value) (Value, *Error) {
+func (i SmallInt) Divide(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o == 0 {
@@ -303,7 +303,7 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 
 // Exponentiate by another value and return an error
 // if something went wrong.
-func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
+func (i SmallInt) Exponentiate(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		iBigInt := big.NewInt(int64(i))
@@ -351,7 +351,7 @@ func (x SmallInt) Cmp(y SmallInt) int {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (i SmallInt) Compare(other Value) (Value, *Error) {
+func (i SmallInt) Compare(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return SmallInt(i.Cmp(o)), nil
@@ -376,7 +376,7 @@ func (i SmallInt) Compare(other Value) (Value, *Error) {
 
 // Check whether i is greater than other and return an error
 // if something went wrong.
-func (i SmallInt) GreaterThan(other Value) (Value, *Error) {
+func (i SmallInt) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(i > o), nil
@@ -398,7 +398,7 @@ func (i SmallInt) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
-func (i SmallInt) GreaterThanEqual(other Value) (Value, *Error) {
+func (i SmallInt) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(i >= o), nil
@@ -420,7 +420,7 @@ func (i SmallInt) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether i is less than other and return an error
 // if something went wrong.
-func (i SmallInt) LessThan(other Value) (Value, *Error) {
+func (i SmallInt) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(i < o), nil
@@ -442,7 +442,7 @@ func (i SmallInt) LessThan(other Value) (Value, *Error) {
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
-func (i SmallInt) LessThanEqual(other Value) (Value, *Error) {
+func (i SmallInt) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(i <= o), nil
@@ -548,7 +548,7 @@ func rightBitshiftSmallInt[T SimpleInt](i SmallInt, other T) Value {
 
 // Bitshift to the left by another integer value and return an error
 // if something went wrong.
-func (i SmallInt) LeftBitshift(other Value) (Value, *Error) {
+func (i SmallInt) LeftBitshift(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -599,7 +599,7 @@ func (i SmallInt) LeftBitshift(other Value) (Value, *Error) {
 
 // Bitshift to the right by another integer value and return an error
 // if something went wrong.
-func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
+func (i SmallInt) RightBitshift(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -650,7 +650,7 @@ func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
 
 // Perform a bitwise AND with another integer value and return an error
 // if something went wrong.
-func (i SmallInt) BitwiseAnd(other Value) (Value, *Error) {
+func (i SmallInt) BitwiseAnd(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return i & o, nil
@@ -674,7 +674,7 @@ func (i SmallInt) BitwiseNot() SmallInt {
 
 // Perform a bitwise AND NOT with another integer value and return an error
 // if something went wrong.
-func (i SmallInt) BitwiseAndNot(other Value) (Value, *Error) {
+func (i SmallInt) BitwiseAndNot(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return i &^ o, nil
@@ -693,7 +693,7 @@ func (i SmallInt) BitwiseAndNot(other Value) (Value, *Error) {
 
 // Perform a bitwise OR with another integer value and return an error
 // if something went wrong.
-func (i SmallInt) BitwiseOr(other Value) (Value, *Error) {
+func (i SmallInt) BitwiseOr(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return i | o, nil
@@ -712,7 +712,7 @@ func (i SmallInt) BitwiseOr(other Value) (Value, *Error) {
 
 // Perform a bitwise XOR with another integer value and return an error
 // if something went wrong.
-func (i SmallInt) BitwiseXor(other Value) (Value, *Error) {
+func (i SmallInt) BitwiseXor(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return i ^ o, nil
@@ -731,7 +731,7 @@ func (i SmallInt) BitwiseXor(other Value) (Value, *Error) {
 
 // Perform modulo by another numeric value and return an error
 // if something went wrong.
-func (i SmallInt) Modulo(other Value) (Value, *Error) {
+func (i SmallInt) Modulo(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return i % o, nil

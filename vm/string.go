@@ -14,7 +14,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.Concat(other))
+			return self.Concat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -26,7 +26,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.RemoveSuffix(other))
+			return self.RemoveSuffix(other)
 		},
 		DefWithParameters(1),
 	)
@@ -38,7 +38,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.Repeat(other))
+			return self.Repeat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -50,7 +50,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.Compare(other))
+			return self.Compare(other)
 		},
 		DefWithParameters(1),
 	)
@@ -60,7 +60,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.LessThanEqual(other))
+			return self.LessThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -70,7 +70,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.LessThan(other))
+			return self.LessThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -80,7 +80,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThan(other))
+			return self.GreaterThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -90,7 +90,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThanEqual(other))
+			return self.GreaterThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -110,7 +110,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.Subscript(other))
+			return self.Subscript(other)
 		},
 		DefWithParameters(1),
 	)
@@ -121,7 +121,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.ByteAt(other))
+			return self.ByteAt(other)
 		},
 		DefWithParameters(1),
 	)
@@ -131,7 +131,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			return value.ToValueErr(self.GraphemeAt(other))
+			return self.GraphemeAt(other)
 		},
 		DefWithParameters(1),
 	)
@@ -192,6 +192,14 @@ func initString() {
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], nil
+		},
+	)
+	Def(
+		c,
+		"to_int",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return self.ToInt()
 		},
 	)
 	Def(

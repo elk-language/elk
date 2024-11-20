@@ -16,6 +16,7 @@ type Value interface {
 	Inspect() string              // Returns the string representation of the value
 	InstanceVariables() SymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
 	Copy() Value                  // Creates a shallow copy of the value. If the value is immutable, no copying should be done, the same value should be returned.
+	Error() string                // Implements the error interface
 }
 
 func IsMutableCollection(val Value) bool {
@@ -56,15 +57,6 @@ func InspectSlice[T Value](slice []T) string {
 
 	builder.WriteString("]")
 	return builder.String()
-}
-
-// Convert a pair of (Value, *Error) return values
-// to (Value, Value)
-func ToValueErr(val Value, err *Error) (Value, Value) {
-	if err != nil {
-		return nil, err
-	}
-	return val, nil
 }
 
 // Convert a Go bool value to Elk.
@@ -284,10 +276,7 @@ func mixinIsA(val Value, mixin *Mixin) bool {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Subscript(collection, key Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Subscript(collection, key Value) (result, err Value) {
 	switch l := collection.(type) {
 	case *ArrayTuple:
 		result, err = l.Subscript(key)
@@ -307,9 +296,7 @@ func Subscript(collection, key Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func SubscriptSet(collection, key, val Value) (Value, *Error) {
-	var err *Error
-
+func SubscriptSet(collection, key, val Value) (result, err Value) {
 	switch l := collection.(type) {
 	case *ArrayList:
 		err = l.SubscriptSet(key, val)
@@ -327,7 +314,7 @@ func SubscriptSet(collection, key, val Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (0, error).
 // When there are no builtin addition functions for the given type returns (0, NotBuiltinError).
-func Hash(key Value) (UInt64, *Error) {
+func Hash(key Value) (UInt64, Value) {
 	var result UInt64
 
 	switch k := key.(type) {
@@ -382,10 +369,7 @@ func Hash(key Value) (UInt64, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Add(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Add(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Add(right)
@@ -439,10 +423,7 @@ func Add(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Subtract(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Subtract(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Subtract(right)
@@ -488,10 +469,7 @@ func Subtract(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Multiply(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Multiply(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Multiply(right)
@@ -545,10 +523,7 @@ func Multiply(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Divide(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Divide(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Divide(right)
@@ -738,10 +713,7 @@ func BitwiseNot(operand Value) Value {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Exponentiate(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Exponentiate(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Exponentiate(right)
@@ -785,10 +757,7 @@ func Exponentiate(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Modulo(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Modulo(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Modulo(right)
@@ -836,10 +805,7 @@ func Modulo(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func Compare(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func Compare(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Compare(right)
@@ -887,10 +853,7 @@ func Compare(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func GreaterThan(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func GreaterThan(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.GreaterThan(right)
@@ -938,10 +901,7 @@ func GreaterThan(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func GreaterThanEqual(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func GreaterThanEqual(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.GreaterThanEqual(right)
@@ -989,10 +949,7 @@ func GreaterThanEqual(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func LessThan(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func LessThan(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.LessThan(right)
@@ -1040,10 +997,7 @@ func LessThan(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func LessThanEqual(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func LessThanEqual(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.LessThanEqual(right)
@@ -1276,10 +1230,7 @@ func StrictNotEqual(left, right Value) Value {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func RightBitshift(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func RightBitshift(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.RightBitshift(right)
@@ -1315,10 +1266,7 @@ func RightBitshift(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func LogicalRightBitshift(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func LogicalRightBitshift(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case Int64:
 		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift64)
@@ -1350,10 +1298,7 @@ func LogicalRightBitshift(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func LeftBitshift(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func LeftBitshift(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.LeftBitshift(right)
@@ -1392,10 +1337,7 @@ func LeftBitshift(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func LogicalLeftBitshift(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func LogicalLeftBitshift(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case Int64:
 		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift64)
@@ -1427,10 +1369,7 @@ func LogicalLeftBitshift(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func BitwiseAnd(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func BitwiseAnd(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.BitwiseAnd(right)
@@ -1466,10 +1405,7 @@ func BitwiseAnd(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func BitwiseAndNot(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func BitwiseAndNot(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.BitwiseAndNot(right)
@@ -1505,10 +1441,7 @@ func BitwiseAndNot(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func BitwiseOr(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func BitwiseOr(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.BitwiseOr(right)
@@ -1544,10 +1477,7 @@ func BitwiseOr(left, right Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func BitwiseXor(left, right Value) (Value, *Error) {
-	var result Value
-	var err *Error
-
+func BitwiseXor(left, right Value) (result, err Value) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.BitwiseXor(right)

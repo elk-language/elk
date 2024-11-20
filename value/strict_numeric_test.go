@@ -14,7 +14,7 @@ func TestStrictFloat_Exponentiate(t *testing.T) {
 		a    value.Float64
 		b    value.Value
 		want value.Float64
-		err  *value.Error
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.Float64(5),
@@ -62,7 +62,7 @@ func TestStrictInt_Exponentiate(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.Int64(5),
@@ -125,7 +125,7 @@ func TestStrictNumeric_Add(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"add String and return an error": {
 			a:   value.Int64(5),
@@ -168,7 +168,7 @@ func TestStrictNumeric_Subtract(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"subtract String and return an error": {
 			a:   value.Int64(5),
@@ -211,7 +211,7 @@ func TestStrictNumeric_Multiply(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"multiply String and return an error": {
 			a:   value.Int64(5),
@@ -254,7 +254,7 @@ func TestStrictNumeric_GreaterThan(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Int64(5),
@@ -302,7 +302,7 @@ func TestStrictNumeric_GreaterThanEqual(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Int64(5),
@@ -350,7 +350,7 @@ func TestStrictNumeric_LessThan(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Int64(5),
@@ -398,7 +398,7 @@ func TestStrictNumeric_LessThanEqual(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Int64(5),
@@ -446,7 +446,7 @@ func TestStrictNumeric_Equal(t *testing.T) {
 		a    value.Float64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String 5.5f64 == '5.5'": {
 			a:    value.Float64(5.5),
@@ -936,7 +936,7 @@ func TestStrictFloat_LaxEqual(t *testing.T) {
 		a    value.Float64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String 5.5f64 =~ '5.5'": {
 			a:    value.Float64(5.5),
@@ -1426,7 +1426,7 @@ func TestStrictSignedInt_LaxEqual(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String 5i64 =~ '5'": {
 			a:    value.Int64(5),
@@ -1766,7 +1766,7 @@ func TestStrictUnsignedInt_LaxEqual(t *testing.T) {
 		a    value.UInt64
 		b    value.Value
 		want value.Bool
-		err  *value.Error
+		err  value.Value
 	}{
 		"String 5u64 =~ '5'": {
 			a:    value.UInt64(5),
@@ -2046,7 +2046,7 @@ func TestStrictInt_Divide(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"divide by String and return an error": {
 			a:   value.Int64(5),
@@ -2094,7 +2094,7 @@ func TestStrictFloat_Divide(t *testing.T) {
 		a    value.Float64
 		b    value.Value
 		want value.Float64
-		err  *value.Error
+		err  value.Value
 	}{
 		"divide by String and return an error": {
 			a:   value.Float64(5),
@@ -2143,7 +2143,7 @@ func TestStrictNumeric_ParseUint(t *testing.T) {
 		base    int
 		bitSize int
 		want    uint64
-		err     *value.Error
+		err     value.Value
 	}{
 		"explicit decimal": {
 			str:     "123",
@@ -2322,7 +2322,7 @@ func TestStrictInt_RightBitshift(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.Int64(5),
@@ -2405,7 +2405,7 @@ func TestStrictInt_LogicalRightBitshift(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.Int64(5),
@@ -2488,7 +2488,7 @@ func TestStrictInt_LeftBitshift(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.Int64(5),
@@ -2566,7 +2566,7 @@ func TestStrictInt_BitwiseAnd(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"perform AND for String and return an error": {
 			a:   value.Int64(5),
@@ -2619,7 +2619,7 @@ func TestStrictInt_BitwiseOr(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"perform OR for String and return an error": {
 			a:   value.Int64(5),
@@ -2672,7 +2672,7 @@ func TestStrictInt_BitwiseXor(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"perform XOR for String and return an error": {
 			a:   value.Int64(5),
@@ -2725,7 +2725,7 @@ func TestStrictInt_Modulo(t *testing.T) {
 		a    value.Int64
 		b    value.Value
 		want value.Int64
-		err  *value.Error
+		err  value.Value
 	}{
 		"perform modulo for String and return an error": {
 			a:   value.Int64(5),
@@ -2778,7 +2778,7 @@ func TestStrictFloat_Modulo(t *testing.T) {
 		a    value.Float64
 		b    value.Value
 		want value.Float64
-		err  *value.Error
+		err  value.Value
 	}{
 		"perform modulo for String and return an error": {
 			a:   value.Float64(5),

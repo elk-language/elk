@@ -550,7 +550,7 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 	}
 
 	var result value.Value
-	var err *value.Error
+	var err value.Value
 
 	switch node.Op.Type {
 	case token.PLUS:

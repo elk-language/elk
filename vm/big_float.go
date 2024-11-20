@@ -52,7 +52,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Add(other))
+			return self.Add(other)
 		},
 		DefWithParameters(1),
 	)
@@ -62,7 +62,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Subtract(other))
+			return self.Subtract(other)
 		},
 		DefWithParameters(1),
 	)
@@ -72,7 +72,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Multiply(other))
+			return self.Multiply(other)
 		},
 		DefWithParameters(1),
 	)
@@ -82,7 +82,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Divide(other))
+			return self.Divide(other)
 		},
 		DefWithParameters(1),
 	)
@@ -92,7 +92,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Exponentiate(other))
+			return self.Exponentiate(other)
 		},
 		DefWithParameters(1),
 	)
@@ -102,7 +102,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Compare(other))
+			return self.Compare(other)
 		},
 		DefWithParameters(1),
 	)
@@ -112,7 +112,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThan(other))
+			return self.GreaterThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -122,7 +122,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThanEqual(other))
+			return self.GreaterThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -132,7 +132,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.LessThan(other))
+			return self.LessThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -142,7 +142,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.LessThanEqual(other))
+			return self.LessThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -162,7 +162,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.BigFloat)
 			other := args[1]
-			return value.ToValueErr(self.Modulo(other))
+			return self.Modulo(other)
 		},
 		DefWithParameters(1),
 	)

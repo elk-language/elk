@@ -158,7 +158,7 @@ func (x *BigInt) Cmp(y *BigInt) int {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (i *BigInt) Compare(other Value) (Value, *Error) {
+func (i *BigInt) Compare(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -183,7 +183,7 @@ func (i *BigInt) Compare(other Value) (Value, *Error) {
 
 // Add another value and return an error
 // if something went wrong.
-func (i *BigInt) Add(other Value) (Value, *Error) {
+func (i *BigInt) Add(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -213,7 +213,7 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 
 // Subtract another value and return an error
 // if something went wrong.
-func (i *BigInt) Subtract(other Value) (Value, *Error) {
+func (i *BigInt) Subtract(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -243,7 +243,7 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 
 // Multiply by another value and return an error
 // if something went wrong.
-func (i *BigInt) Multiply(other Value) (Value, *Error) {
+func (i *BigInt) Multiply(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -272,7 +272,7 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 
 // Divide by another value and return an error
 // if something went wrong.
-func (i *BigInt) Divide(other Value) (Value, *Error) {
+func (i *BigInt) Divide(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o == 0 {
@@ -307,7 +307,7 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 
 // Exponentiate by another value and return an error
 // if something went wrong.
-func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
+func (i *BigInt) Exponentiate(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -338,7 +338,7 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 
 // Perform modulo with another numeric value and return an error
 // if something went wrong.
-func (i *BigInt) Modulo(other Value) (Value, *Error) {
+func (i *BigInt) Modulo(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o == 0 {
@@ -379,7 +379,7 @@ func (i *BigInt) Modulo(other Value) (Value, *Error) {
 
 // Check whether i is greater than other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThan(other Value) (Value, *Error) {
+func (i *BigInt) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -401,7 +401,7 @@ func (i *BigInt) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThanEqual(other Value) (Value, *Error) {
+func (i *BigInt) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -423,7 +423,7 @@ func (i *BigInt) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether i is less than other and return an error
 // if something went wrong.
-func (i *BigInt) LessThan(other Value) (Value, *Error) {
+func (i *BigInt) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -445,7 +445,7 @@ func (i *BigInt) LessThan(other Value) (Value, *Error) {
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) LessThanEqual(other Value) (Value, *Error) {
+func (i *BigInt) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -546,7 +546,7 @@ func rightBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
 
 // Bitshift to the right by another integer value and return an error
 // if something went wrong.
-func (i *BigInt) RightBitshift(other Value) (Value, *Error) {
+func (i *BigInt) RightBitshift(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -605,7 +605,7 @@ func leftBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
 
 // Bitshift to the left by another integer value and return an error
 // if something went wrong.
-func (i *BigInt) LeftBitshift(other Value) (Value, *Error) {
+func (i *BigInt) LeftBitshift(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return leftBitshiftBigInt(i, o), nil
@@ -638,7 +638,7 @@ func (i *BigInt) LeftBitshift(other Value) (Value, *Error) {
 
 // Perform bitwise AND with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseAnd(other Value) (Value, *Error) {
+func (i *BigInt) BitwiseAnd(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -661,7 +661,7 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, *Error) {
 
 // Perform bitwise AND NOT with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseAndNot(other Value) (Value, *Error) {
+func (i *BigInt) BitwiseAndNot(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -684,7 +684,7 @@ func (i *BigInt) BitwiseAndNot(other Value) (Value, *Error) {
 
 // Perform bitwise OR with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseOr(other Value) (Value, *Error) {
+func (i *BigInt) BitwiseOr(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -707,7 +707,7 @@ func (i *BigInt) BitwiseOr(other Value) (Value, *Error) {
 
 // Perform bitwise XOR with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseXor(other Value) (Value, *Error) {
+func (i *BigInt) BitwiseXor(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
@@ -759,7 +759,7 @@ func (i *BigInt) Hash() UInt64 {
 }
 
 // Parses an unsigned big.Int from a string using Elk syntax.
-func ParseUBigInt(s string, base int) (*BigInt, *Error) {
+func ParseUBigInt(s string, base int) (*BigInt, Value) {
 	if s == "" {
 		return nil, Errorf(FormatErrorClass, "invalid integer format")
 	}
@@ -824,7 +824,7 @@ func ParseUBigInt(s string, base int) (*BigInt, *Error) {
 }
 
 // Parses a signed big.Int from a string using Elk syntax.
-func ParseBigInt(s string, base int) (*BigInt, *Error) {
+func ParseBigInt(s string, base int) (*BigInt, Value) {
 	if s == "" {
 		return nil, Errorf(FormatErrorClass, "invalid integer format")
 	}
@@ -851,6 +851,19 @@ func ParseBigInt(s string, base int) (*BigInt, *Error) {
 	}
 
 	return ToElkBigInt(un), nil
+}
+
+func ParseInt(s string, base int) (Value, Value) {
+	val, err := ParseBigInt(s, base)
+	if err != nil {
+		return nil, err
+	}
+
+	if val.IsSmallInt() {
+		return val.ToSmallInt(), nil
+	}
+
+	return val, nil
 }
 
 // Same as [ParseBigInt] but panics on error.

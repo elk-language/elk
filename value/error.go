@@ -3,8 +3,6 @@ package value
 import (
 	"fmt"
 	"math"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 // ::Std::Error
@@ -108,49 +106,21 @@ var InvalidTimezoneErrorClass *Class
 // Thrown when the called method is not builtin.
 var NotBuiltinErrorClass *Class
 
-var NotBuiltinError *Error
-
-type Error struct {
-	Object
-}
-
-func NewErrorComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y *Error) bool {
-		if x == nil && y == nil {
-			return true
-		}
-
-		if x == nil || y == nil {
-			return false
-		}
-
-		if x.class == y.class {
-			return true
-		}
-		if x.class != nil && x.class.Name == y.class.Name {
-			return true
-		}
-
-		return x.class == y.class &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...)
-	})
-}
+var NotBuiltinError *Object
 
 // Create a new Elk error.
-func NewError(class *Class, message string) *Error {
-	return &Error{
-		Object: Object{
-			class: class,
-			instanceVariables: SymbolMap{
-				SymbolTable.Add("message"): String(message),
-			},
+func NewError(class *Class, message string) *Object {
+	return &Object{
+		class: class,
+		instanceVariables: SymbolMap{
+			SymbolTable.Add("message"): String(message),
 		},
 	}
 }
 
 // Create a new error that signals that
 // the given index is out of range.
-func NewIndexOutOfRangeError(index string, length int) *Error {
+func NewIndexOutOfRangeError(index string, length int) *Object {
 	return Errorf(
 		IndexErrorClass,
 		"index %s out of range: %d...%d",
@@ -162,7 +132,7 @@ func NewIndexOutOfRangeError(index string, length int) *Error {
 
 // Create a new error that signals that
 // the big float precision is out of range (negative or too large).
-func NewBigFloatPrecisionError(precision string) *Error {
+func NewBigFloatPrecisionError(precision string) *Object {
 	return Errorf(
 		OutOfRangeErrorClass,
 		"BigFloat precision cannot be negative or larger than %d, got: %s",
@@ -173,7 +143,7 @@ func NewBigFloatPrecisionError(precision string) *Error {
 
 // Create a new error that signals that
 // negative indices cannot be used in collection literals.
-func NewNegativeIndicesInCollectionLiteralsError(index string) *Error {
+func NewNegativeIndicesInCollectionLiteralsError(index string) *Object {
 	return Errorf(
 		OutOfRangeErrorClass,
 		"cannot use negative indices in collection literals: %s",
@@ -183,7 +153,7 @@ func NewNegativeIndicesInCollectionLiteralsError(index string) *Error {
 
 // Create a new error that signals that
 // the given capacity is too large.
-func NewTooLargeCapacityError(capacity string) *Error {
+func NewTooLargeCapacityError(capacity string) *Object {
 	return Errorf(
 		OutOfRangeErrorClass,
 		"too large collection literal capacity: %s",
@@ -193,7 +163,7 @@ func NewTooLargeCapacityError(capacity string) *Error {
 
 // Create a new error that signals that
 // the given capacity should not be negative.
-func NewNegativeCapacityError(capacity string) *Error {
+func NewNegativeCapacityError(capacity string) *Object {
 	return Errorf(
 		OutOfRangeErrorClass,
 		"capacity cannot be negative: %s",
@@ -203,7 +173,7 @@ func NewNegativeCapacityError(capacity string) *Error {
 
 // Create a new error that signals that
 // the given object cannot have a singleton class.
-func NewSingletonError(given string) *Error {
+func NewSingletonError(given string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"cannot get the singleton class of a primitive: `%s`",
@@ -213,7 +183,7 @@ func NewSingletonError(given string) *Error {
 
 // Create a new error that signals that
 // the given superclass is not a valid class object.
-func NewInvalidSuperclassError(superclass string) *Error {
+func NewInvalidSuperclassError(superclass string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` cannot be used as a superclass",
@@ -223,7 +193,7 @@ func NewInvalidSuperclassError(superclass string) *Error {
 
 // Create a new error that signals that
 // the given superclass doesn't match the original one.
-func NewSuperclassMismatchError(class, wantSuperclass, gotSuperclass string) *Error {
+func NewSuperclassMismatchError(class, wantSuperclass, gotSuperclass string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"superclass mismatch in %s, expected: %s, got: %s",
@@ -235,7 +205,7 @@ func NewSuperclassMismatchError(class, wantSuperclass, gotSuperclass string) *Er
 
 // Create a new error that signals that
 // the given class should have different modifiers.
-func NewModifierMismatchError(object, modifier string, with bool) *Error {
+func NewModifierMismatchError(object, modifier string, with bool) *Object {
 	var withStr string
 	if with {
 		withStr = "with"
@@ -253,7 +223,7 @@ func NewModifierMismatchError(object, modifier string, with bool) *Error {
 
 // Create a new error that signals that
 // the type of the given argument is wrong.
-func NewArgumentTypeError(argName, given, expected string) *Error {
+func NewArgumentTypeError(argName, given, expected string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"wrong argument type for `%s`, given: `%s`, expected: `%s`",
@@ -265,7 +235,7 @@ func NewArgumentTypeError(argName, given, expected string) *Error {
 
 // Create a new error that signals that
 // the number of given arguments is wrong.
-func NewWrongArgumentCountError(method string, given, expected int) *Error {
+func NewWrongArgumentCountError(method string, given, expected int) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` wrong number of arguments, given: %d, expected: %d",
@@ -277,7 +247,7 @@ func NewWrongArgumentCountError(method string, given, expected int) *Error {
 
 // Create a new error that signals that
 // some given arguments are not defined in the method.
-func NewUnknownArgumentsError(method string, names []Symbol) *Error {
+func NewUnknownArgumentsError(method string, names []Symbol) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` unknown arguments: %s",
@@ -289,7 +259,7 @@ func NewUnknownArgumentsError(method string, names []Symbol) *Error {
 // Create a new error that signals that
 // accessing instance variables of primitive values
 // is impossible.
-func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
+func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Object {
 	return Errorf(
 		PrimitiveValueErrorClass,
 		"cannot access instance variables of a primitive value `%s`",
@@ -300,7 +270,7 @@ func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
 // Create a new error that signals that
 // setting instance variables of primitive values
 // is impossible.
-func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Error {
+func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Object {
 	return Errorf(
 		PrimitiveValueErrorClass,
 		"cannot set instance variables of a primitive value `%s`",
@@ -310,7 +280,7 @@ func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Error {
 
 // Create a new error that signals that
 // a required argument was not given.
-func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
+func NewRequiredArgumentMissingError(methodName, paramName string) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` missing required argument `%s`",
@@ -321,7 +291,7 @@ func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 
 // Create a new error that signals that
 // an argument is duplicated
-func NewDuplicatedArgumentError(methodName, paramName string) *Error {
+func NewDuplicatedArgumentError(methodName, paramName string) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` duplicated argument `%s`",
@@ -332,7 +302,7 @@ func NewDuplicatedArgumentError(methodName, paramName string) *Error {
 
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
-func NewWrongArgumentCountRangeError(method string, given, expectedFrom, expectedTo int) *Error {
+func NewWrongArgumentCountRangeError(method string, given, expectedFrom, expectedTo int) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` wrong number of arguments, given: %d, expected: %d..%d",
@@ -346,7 +316,7 @@ func NewWrongArgumentCountRangeError(method string, given, expectedFrom, expecte
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
 // For methods with rest parameters.
-func NewWrongArgumentCountRestError(method string, given, expectedFrom int) *Error {
+func NewWrongArgumentCountRestError(method string, given, expectedFrom int) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` wrong number of arguments, given: %d, expected: %d..",
@@ -359,7 +329,7 @@ func NewWrongArgumentCountRestError(method string, given, expectedFrom int) *Err
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
 // For methods with rest parameters.
-func NewWrongPositionalArgumentCountError(method string, given, expectedFrom int) *Error {
+func NewWrongPositionalArgumentCountError(method string, given, expectedFrom int) *Object {
 	return Errorf(
 		ArgumentErrorClass,
 		"`%s` wrong number of positional arguments, given: %d, expected: %d..",
@@ -371,7 +341,7 @@ func NewWrongPositionalArgumentCountError(method string, given, expectedFrom int
 
 // Create a new error that signals that the
 // given value is not a class, even though it should be.
-func NewIsNotClassError(value string) *Error {
+func NewIsNotClassError(value string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` is not a class",
@@ -381,7 +351,7 @@ func NewIsNotClassError(value string) *Error {
 
 // Create a new error that signals that the
 // given value is not a class or mixin, even though it should be.
-func NewIsNotClassOrMixinError(value string) *Error {
+func NewIsNotClassOrMixinError(value string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` is not a class or mixin",
@@ -391,7 +361,7 @@ func NewIsNotClassOrMixinError(value string) *Error {
 
 // Create a new error that signals that the
 // given value is not a mixin, even though it should be.
-func NewIsNotMixinError(value string) *Error {
+func NewIsNotMixinError(value string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` is not a mixin",
@@ -400,7 +370,7 @@ func NewIsNotMixinError(value string) *Error {
 }
 
 // Create a new Std::RedefinedConstantError
-func NewRedefinedConstantError(module, symbol string) *Error {
+func NewRedefinedConstantError(module, symbol string) *Object {
 	return Errorf(
 		RedefinedConstantErrorClass,
 		"%s already has a constant named `%s`",
@@ -410,7 +380,7 @@ func NewRedefinedConstantError(module, symbol string) *Error {
 }
 
 // Create a new Std::NoMethodError.
-func NewNoMethodError(methodName string, receiver Value) *Error {
+func NewNoMethodError(methodName string, receiver Value) *Object {
 	return Errorf(
 		NoMethodErrorClass,
 		"method `%s` is not available to value of class `%s`: %s",
@@ -423,7 +393,7 @@ func NewNoMethodError(methodName string, receiver Value) *Error {
 // Create a new error which signals
 // that a value of one type cannot be coerced
 // into the other type.
-func NewCoerceError(target, other *Class) *Error {
+func NewCoerceError(target, other *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` cannot be coerced into `%s`",
@@ -434,7 +404,7 @@ func NewCoerceError(target, other *Class) *Error {
 
 // Create a new error which signals
 // that a `nil` value has been encountered in a `must` expression
-func NewUnexpectedNilError() *Error {
+func NewUnexpectedNilError() *Object {
 	return NewError(
 		TypeErrorClass,
 		"unexpected nil value in a must expression",
@@ -443,7 +413,7 @@ func NewUnexpectedNilError() *Error {
 
 // Create a new error which signals
 // that the value can't be used as capacity.
-func NewCapacityTypeError(val string) *Error {
+func NewCapacityTypeError(val string) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` cannot be used as a collection literal's capacity",
@@ -453,7 +423,7 @@ func NewCapacityTypeError(val string) *Error {
 
 // Create a new error which signals
 // that the given operand is not suitable for bit shifting
-func NewBitshiftOperandError(other Value) *Error {
+func NewBitshiftOperandError(other Value) *Object {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` cannot be used as a bitshift operand",
@@ -463,7 +433,7 @@ func NewBitshiftOperandError(other Value) *Error {
 
 // Create a new error which signals
 // that a the program tried to divide by zero.
-func NewZeroDivisionError() *Error {
+func NewZeroDivisionError() *Object {
 	return NewError(
 		ZeroDivisionErrorClass,
 		"cannot divide by zero",
@@ -471,12 +441,12 @@ func NewZeroDivisionError() *Error {
 }
 
 // Mimics fmt.Errorf but creates an Elk error value.
-func Errorf(class *Class, format string, a ...any) *Error {
+func Errorf(class *Class, format string, a ...any) *Object {
 	return NewError(class, fmt.Sprintf(format, a...))
 }
 
 // Implement the error interface.
-func (e *Error) Error() string {
+func (e *Object) Error() string {
 	switch msg := e.Message().(type) {
 	case String:
 		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg)
@@ -486,12 +456,12 @@ func (e *Error) Error() string {
 }
 
 // Set the error message.
-func (e *Error) SetMessage(message string) {
+func (e *Object) SetMessage(message string) {
 	e.instanceVariables.SetString("message", String(message))
 }
 
 // Get the error message.
-func (e *Error) Message() Value {
+func (e *Object) Message() Value {
 	return e.instanceVariables.GetString("message")
 }
 

@@ -86,7 +86,7 @@ func DefineNativeMethod(
 	params int,
 	optParams int,
 	function NativeFunction,
-) *value.Error {
+) (err value.Value) {
 	nativeMethod := NewNativeMethod(
 		name,
 		params,

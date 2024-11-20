@@ -13,7 +13,7 @@ func TestFloatAdd(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   *value.Object
 	}{
 		"Float + Float => Float": {
 			left:  2.5,
@@ -127,7 +127,7 @@ func TestFloatSubtract(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   *value.Object
 	}{
 		"Float - Float => Float": {
 			left:  10.0,
@@ -242,7 +242,7 @@ func TestFloatMultiply(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   *value.Object
 	}{
 		"Float * Float => Float": {
 			left:  2.55,
@@ -447,7 +447,7 @@ func TestFloatDivide(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   *value.Object
 	}{
 		"Float / Float => Float": {
 			left:  2.68,
@@ -652,7 +652,7 @@ func TestFloat_Exponentiate(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"exponentiate String and return an error": {
 			a:   value.Float(5),
@@ -1048,7 +1048,7 @@ func TestFloat_Modulo(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1316,7 +1316,7 @@ func TestFloat_Compare(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1579,7 +1579,7 @@ func TestFloat_GreaterThan(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1841,7 +1841,7 @@ func TestFloat_GreaterThanEqual(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -2104,7 +2104,7 @@ func TestFloat_LessThan(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -2331,7 +2331,7 @@ func TestFloat_LessThanEqual(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  *value.Object
 	}{
 		"String and return an error": {
 			a:   value.Float(5),

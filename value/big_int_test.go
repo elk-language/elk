@@ -16,7 +16,7 @@ func TestBigInt_Add(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"add String and return an error": {
 			a:   value.NewBigInt(3),
@@ -109,7 +109,7 @@ func TestBigInt_Subtract(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"subtract String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
@@ -199,7 +199,7 @@ func TestBigInt_Multiply(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"multiply by String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
@@ -304,7 +304,7 @@ func TestBigInt_Divide(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"divide by String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
@@ -455,7 +455,7 @@ func TestBigInt_Exponentiate(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.NewBigInt(5),
@@ -773,7 +773,7 @@ func TestBigInt_Compare(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),
@@ -901,7 +901,7 @@ func TestBigInt_GreaterThan(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),
@@ -1029,7 +1029,7 @@ func TestBigInt_GreaterThanEqual(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),
@@ -1157,7 +1157,7 @@ func TestBigInt_LessThan(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),
@@ -1285,7 +1285,7 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),
@@ -1901,7 +1901,7 @@ func TestBigInt_RightBitshift(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"shift by String and return an error": {
 			a:   value.NewBigInt(5),
@@ -2344,7 +2344,7 @@ func TestBigInt_BitwiseAnd(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"BigInt & String and return an error": {
 			a:   value.NewBigInt(5),
@@ -2419,7 +2419,7 @@ func TestBigInt_BitwiseOr(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"BigInt | String and return an error": {
 			a:   value.NewBigInt(5),
@@ -2494,7 +2494,7 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"BigInt ^ String and return an error": {
 			a:   value.NewBigInt(5),
@@ -2569,7 +2569,7 @@ func TestBigInt_Modulo(t *testing.T) {
 		a    *value.BigInt
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.NewBigInt(5),

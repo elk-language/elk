@@ -819,8 +819,21 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	if method.PostParamCount != -1 {
 		requiredPosParamCount -= method.PostParamCount + 1
 	}
+	if method.HasNamedRestParam() {
+		requiredPosParamCount--
+	}
+	argCount := len(positionalArguments) + len(namedArguments)
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
+
+	// push `undefined` for every missing optional positional argument
+	// before the rest parameter
+	for range positionalRestParamIndex - len(positionalArguments) {
+		typedPositionalArguments = append(
+			typedPositionalArguments,
+			ast.NewUndefinedLiteralNode(span),
+		)
+	}
 
 	typeArgMap := make(types.TypeArgumentMap)
 	var currentParamIndex int
@@ -884,7 +897,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		posRestParam := method.Params[positionalRestParamIndex]
 
 		currentArgIndex := currentParamIndex
-		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			posArgType := c.typeOf(typedPosArg)
@@ -1131,6 +1144,10 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 	if method.PostParamCount != -1 {
 		requiredPosParamCount -= method.PostParamCount + 1
 	}
+	if method.HasNamedRestParam() {
+		requiredPosParamCount--
+	}
+	argCount := len(positionalArguments) + len(namedArguments)
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
 
@@ -1196,7 +1213,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 		posRestParam := method.Params[positionalRestParamIndex]
 
 		currentArgIndex := currentParamIndex
-		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)

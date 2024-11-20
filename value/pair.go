@@ -57,7 +57,7 @@ func (*Pair) Length() int {
 }
 
 // Get an element under the given index.
-func (p *Pair) Subscript(key Value) (Value, *Error) {
+func (p *Pair) Subscript(key Value) (Value, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -72,7 +72,7 @@ func (p *Pair) Subscript(key Value) (Value, *Error) {
 }
 
 // Get an element under the given index.
-func (p *Pair) Get(index int) (Value, *Error) {
+func (p *Pair) Get(index int) (Value, Value) {
 	switch index {
 	case 0, -2:
 		return p.Key, nil
@@ -84,7 +84,7 @@ func (p *Pair) Get(index int) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func (p *Pair) SubscriptSet(key, val Value) *Error {
+func (p *Pair) SubscriptSet(key, val Value) Value {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
@@ -97,7 +97,7 @@ func (p *Pair) SubscriptSet(key, val Value) *Error {
 }
 
 // Set an element under the given index.
-func (p *Pair) Set(index int, val Value) *Error {
+func (p *Pair) Set(index int, val Value) Value {
 	switch index {
 	case 0, -2:
 		p.Key = val
