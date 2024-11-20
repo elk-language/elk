@@ -1592,12 +1592,14 @@ func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteral
 	return node
 }
 
-func (c *Checker) checkModifierInCollection(node *ast.ModifierNode) ast.ExpressionNode {
+type CheckExpressionFunc func(ast.ExpressionNode) ast.ExpressionNode
+
+func (c *Checker) checkModifierInCollection(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	switch node.Modifier.Type {
 	case token.IF:
-		return c.checkCollectionIfModifier(node)
+		return c.checkCollectionIfModifier(node, fn)
 	case token.UNLESS:
-		return c.checkCollectionUnlessModifier(node)
+		return c.checkCollectionUnlessModifier(node, fn)
 	default:
 		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
@@ -1606,31 +1608,27 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode) ast.Expressi
 func (c *Checker) checkArrayListElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
-		switch e := elementNode.(type) {
-		case *ast.ModifierNode:
-			elementNode := c.checkModifierInCollection(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		case *ast.ModifierIfElseNode:
-			elementNode := c.checkCollectionIfElseModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		case *ast.ModifierForInNode:
-			elementNode := c.checkCollectionForInModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		case *ast.KeyValueExpressionNode:
-			elementNode := c.checkArrayListKeyValueExpression(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		default:
-			elementNode := c.checkExpression(elementNode)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		}
+		elementNode = c.checkArrayListElement(elementNode)
+		elements[i] = elementNode
+		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
 	}
 
 	return elementTypes
+}
+
+func (c *Checker) checkArrayListElement(node ast.ExpressionNode) ast.ExpressionNode {
+	switch e := node.(type) {
+	case *ast.ModifierNode:
+		return c.checkModifierInCollection(e, c.checkArrayListElement)
+	case *ast.ModifierIfElseNode:
+		return c.checkCollectionIfElseModifier(e, c.checkArrayListElement)
+	case *ast.ModifierForInNode:
+		return c.checkCollectionForInModifier(e, c.checkArrayListElement)
+	case *ast.KeyValueExpressionNode:
+		return c.checkArrayListKeyValueExpression(e)
+	default:
+		return c.checkExpression(node)
+	}
 }
 
 func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
@@ -1653,60 +1651,54 @@ func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionN
 	return node
 }
 
-func (c *Checker) checkMutableCollectionElements(elements []ast.ExpressionNode) []types.Type {
+func (c *Checker) checkHashSetElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
-		switch e := elementNode.(type) {
-		case *ast.ModifierNode:
-			elementNode := c.checkModifierInCollection(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		case *ast.ModifierIfElseNode:
-			elementNode := c.checkCollectionIfElseModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		case *ast.ModifierForInNode:
-			elementNode := c.checkCollectionForInModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		default:
-			elementNode := c.checkExpression(elementNode)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
-		}
+		elementNode = c.checkHashSetElement(elementNode)
+		elements[i] = elementNode
+		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
 	}
 
 	return elementTypes
 }
 
+func (c *Checker) checkHashSetElement(node ast.ExpressionNode) ast.ExpressionNode {
+	switch e := node.(type) {
+	case *ast.ModifierNode:
+		return c.checkModifierInCollection(e, c.checkHashSetElement)
+	case *ast.ModifierIfElseNode:
+		return c.checkCollectionIfElseModifier(e, c.checkHashSetElement)
+	case *ast.ModifierForInNode:
+		return c.checkCollectionForInModifier(e, c.checkHashSetElement)
+	default:
+		return c.checkExpression(node)
+	}
+}
+
 func (c *Checker) checkArrayTupleElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
-		switch e := elementNode.(type) {
-		case *ast.ModifierNode:
-			elementNode := c.checkModifierInCollection(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-		case *ast.ModifierIfElseNode:
-			elementNode := c.checkCollectionIfElseModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-		case *ast.ModifierForInNode:
-			elementNode := c.checkCollectionForInModifier(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-		case *ast.KeyValueExpressionNode:
-			elementNode := c.checkArrayTupleKeyValueExpression(e)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-		default:
-			elementNode := c.checkExpression(elementNode)
-			elements[i] = elementNode
-			elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-		}
+		elementNode = c.checkArrayTupleElement(elementNode)
+		elements[i] = elementNode
+		elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
 	}
 
 	return elementTypes
+}
+
+func (c *Checker) checkArrayTupleElement(node ast.ExpressionNode) ast.ExpressionNode {
+	switch e := node.(type) {
+	case *ast.ModifierNode:
+		return c.checkModifierInCollection(e, c.checkArrayTupleElement)
+	case *ast.ModifierIfElseNode:
+		return c.checkCollectionIfElseModifier(e, c.checkArrayTupleElement)
+	case *ast.ModifierForInNode:
+		return c.checkCollectionForInModifier(e, c.checkArrayTupleElement)
+	case *ast.KeyValueExpressionNode:
+		return c.checkArrayTupleKeyValueExpression(e)
+	default:
+		return c.checkExpression(node)
+	}
 }
 
 func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
@@ -1948,7 +1940,7 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	elementTypes := c.checkMutableCollectionElements(node.Elements)
+	elementTypes := c.checkHashSetElements(node.Elements)
 
 	elementType := c.newNormalisedUnion(elementTypes...)
 	if typ != nil {
@@ -2223,7 +2215,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 	return keyType, valueType
 }
 
-func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode) ast.ExpressionNode {
+func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.typeOf(node.InExpression)
@@ -2232,7 +2224,7 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode) ast.
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
-	node.ThenExpression = c.checkExpression(node.ThenExpression)
+	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.typeOf(node.ThenExpression)
 	c.popLocalEnv()
 
@@ -2684,20 +2676,20 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 	return node
 }
 
-func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode) ast.ExpressionNode {
+func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	node.ThenExpression = c.checkExpression(node.ThenExpression)
+	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.typeOf(node.ThenExpression)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
-	node.ElseExpression = c.checkExpression(node.ElseExpression)
+	node.ElseExpression = fn(node.ElseExpression)
 	elseType := c.typeOf(node.ElseExpression)
 	c.popLocalEnv()
 
@@ -2732,14 +2724,14 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode) as
 	return node
 }
 
-func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode) ast.ExpressionNode {
+func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Right, assumptionTruthy)
-	node.Left = c.checkExpression(node.Left)
+	node.Left = fn(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
 	c.popLocalEnv()
 
@@ -2773,7 +2765,7 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode) ast.Expressi
 	return node
 }
 
-func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode) ast.ExpressionNode {
+func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
@@ -7759,21 +7751,16 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 
 func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace types.Namespace) {
 	oldName := value.ToSymbol(node.OldName)
-	aliasedMethod := c.resolveMethodInNamespace(namespace, oldName)
+	aliasedMethod := namespace.Method(oldName)
 	if aliasedMethod == nil {
 		c.addMissingMethodError(namespace, node.OldName, node.Span())
 		return
 	}
 	newName := value.ToSymbol(node.NewName)
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
-	alias := aliasedMethod.Copy()
-	alias.Name = newName
-	c.checkMethodOverrideWithPlaceholder(alias, oldMethod, node.Span())
-	c.checkSpecialMethods(newName, alias, nil, node.Span())
-	namespace.SetMethod(newName, alias)
-	if aliasedMethod.Node != nil {
-		c.registerMethodCheck(alias, aliasedMethod.Node.(*ast.MethodDefinitionNode))
-	}
+	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Span())
+	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Span())
+	namespace.SetMethodAlias(newName, aliasedMethod)
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {

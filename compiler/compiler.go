@@ -380,14 +380,16 @@ func (c *Compiler) CompileMethods(span *position.Span) {
 }
 
 func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *position.Span) {
-	moduleHasCompiledMethods := types.NamespaceHasAnyCompilableMethods(module)
-
-	if moduleHasCompiledMethods {
+	if types.NamespaceHasAnyDefinableMethods(module) {
 		c.emitGetConst(value.ToSymbol(module.Name()), span)
 		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
 		for methodName, method := range module.Methods() {
 			c.compileMethodDefinition(methodName, method, span)
+		}
+
+		for aliasName, alias := range module.MethodAliases() {
+			c.compileMethodAliasDefinition(aliasName, alias, span)
 		}
 
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -396,6 +398,17 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 	for _, subtype := range module.Subtypes() {
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
+}
+
+func (c *Compiler) compileMethodAliasDefinition(aliasName value.Symbol, alias *types.MethodAlias, span *position.Span) {
+	if !alias.IsDefinable() {
+		return
+	}
+
+	c.emitValue(alias.Method.Name, span)
+	c.emitValue(aliasName, span)
+	c.emit(span.StartPos.Line, bytecode.DEF_METHOD_ALIAS)
+	alias.Compiled = true
 }
 
 func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, span *position.Span) {
@@ -425,25 +438,31 @@ func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Meth
 }
 
 func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span *position.Span) {
-	namespaceMethods := namespace.Methods()
-	namespaceHasCompiledMethods := types.NamespaceHasAnyCompilableMethods(namespace)
+	namespaceHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(namespace)
 
 	singleton := namespace.Singleton()
-	singletonMethods := singleton.Methods()
-	singletonHasCompiledMethods := types.NamespaceHasAnyCompilableMethods(singleton)
+	singletonHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(singleton)
 
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
 		c.emitGetConst(value.ToSymbol(namespace.Name()), span)
 
-		for methodName, method := range namespaceMethods {
+		for methodName, method := range namespace.Methods() {
 			c.compileMethodDefinition(methodName, method, span)
+		}
+
+		for aliasName, alias := range namespace.MethodAliases() {
+			c.compileMethodAliasDefinition(aliasName, alias, span)
 		}
 
 		if singletonHasCompiledMethods {
 			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
-			for methodName, method := range singletonMethods {
+			for methodName, method := range singleton.Methods() {
 				c.compileMethodDefinition(methodName, method, span)
+			}
+
+			for aliasName, alias := range singleton.MethodAliases() {
+				c.compileMethodAliasDefinition(aliasName, alias, span)
 			}
 		}
 

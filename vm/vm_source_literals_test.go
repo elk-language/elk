@@ -178,6 +178,10 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(38, 3, 23), P(40, 3, 25)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
+			},
 		},
 		"with truthy if": {
 			source: `
@@ -191,8 +195,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.ToSymbol("bar"),
 			},
 			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(38, 3, 23), P(40, 3, 25)), "this condition will always have the same result since type `SmallInt` is truthy"),
-				error.NewWarning(L(P(33, 3, 18), P(40, 3, 25)), "unreachable code"),
+				error.NewWarning(L(P(37, 3, 23), P(39, 3, 25)), "this condition will always have the same result since type `Std::Int` is truthy"),
 			},
 		},
 		"with falsy unless": {
@@ -205,6 +208,9 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.ToSymbol("bar"),
+			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(42, 3, 27), P(44, 3, 29)), "this condition will always have the same result since type `nil` is falsy"),
 			},
 		},
 		"with truthy unless": {
@@ -300,10 +306,9 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := "3"
 				%[foo => :bar]
 			`,
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(23, 3, 7), P(25, 3, 9)), "index must be an integer, got type `Std::String`"),
+			},
 		},
 		"with indices and if modifiers": {
 			source: `
@@ -315,6 +320,9 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.Nil,
 				value.Nil,
 				value.ToSymbol("bar"),
+			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(36, 3, 20), P(38, 3, 22)), "this condition will always have the same result since type `Std::String` is truthy"),
 			},
 		},
 	}
@@ -433,6 +441,10 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(37, 3, 22), P(39, 3, 24)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L(P(32, 3, 17), P(32, 3, 17)), "unreachable code"),
+			},
 		},
 		"with truthy if": {
 			source: `
@@ -445,6 +457,9 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(36, 3, 22), P(38, 3, 24)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			},
 		},
 		"with falsy unless": {
 			source: `
@@ -456,6 +471,9 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.ToSymbol("bar"),
+			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(41, 3, 26), P(43, 3, 28)), "this condition will always have the same result since type `nil` is falsy"),
 			},
 		},
 		"with truthy unless": {
@@ -551,10 +569,9 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := "3"
 				[foo => :bar]
 			`,
-			wantRuntimeErr: value.NewError(
-				value.TypeErrorClass,
-				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(22, 3, 6), P(24, 3, 8)), "index must be an integer, got type `Std::String`"),
+			},
 		},
 		"with indices and if modifiers": {
 			source: `
@@ -566,6 +583,9 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.Nil,
 				value.Nil,
 				value.ToSymbol("bar"),
+			},
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(35, 3, 19), P(37, 3, 21)), "this condition will always have the same result since type `Std::String` is truthy"),
 			},
 		},
 	}
@@ -714,6 +734,10 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(38, 3, 23), P(40, 3, 25)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
+			},
 		},
 		"with truthy if": {
 			source: `
@@ -729,6 +753,9 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(37, 3, 23), P(39, 3, 25)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			},
 		},
 		"with falsy unless": {
 			source: `
@@ -744,6 +771,9 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(42, 3, 27), P(44, 3, 29)), "this condition will always have the same result since type `nil` is falsy"),
+			},
 		},
 		"with truthy unless": {
 			source: `
@@ -970,6 +1000,10 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(40, 3, 25), P(42, 3, 27)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L(P(22, 3, 7), P(35, 3, 20)), "unreachable code"),
+			},
 		},
 		"with truthy if": {
 			source: `
@@ -987,6 +1021,9 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(39, 3, 25), P(41, 3, 27)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			},
 		},
 		"with falsy unless": {
 			source: `
@@ -1004,6 +1041,9 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(44, 3, 29), P(46, 3, 31)), "this condition will always have the same result since type `nil` is falsy"),
+			},
 		},
 		"with truthy unless": {
 			source: `
@@ -1185,6 +1225,10 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(41, 3, 26), P(43, 3, 28)), "this condition will always have the same result since type `nil` is falsy"),
+				error.NewWarning(L(P(23, 3, 8), P(36, 3, 21)), "unreachable code"),
+			},
 		},
 		"with truthy if": {
 			source: `
@@ -1203,6 +1247,9 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(40, 3, 26), P(42, 3, 28)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			},
 		},
 		"with falsy unless": {
 			source: `
@@ -1221,6 +1268,9 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 					Value: value.ToSymbol("bar"),
 				},
 			),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(45, 3, 30), P(47, 3, 32)), "this condition will always have the same result since type `nil` is falsy"),
+			},
 		},
 		"with truthy unless": {
 			source: `

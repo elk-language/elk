@@ -50,10 +50,9 @@ func TestVMSource_Subscript(t *testing.T) {
 				list := nil
 				list[-10]
 			`,
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"method `[]` is not available to value of class `Std::Nil`: nil",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(21, 3, 5), P(29, 3, 13)), "method `[]` is not defined on type `Std::Nil`"),
+			},
 		},
 	}
 
@@ -68,21 +67,21 @@ func TestVMSource_NilSafeSubscript(t *testing.T) {
 	tests := sourceTestTable{
 		"get index 0 of a list": {
 			source: `
-				list := ["foo", 2, 7.8]
+				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[0]
 			`,
 			wantStackTop: value.String("foo"),
 		},
 		"get index -1 of a list": {
 			source: `
-				list := ["foo", 2, 7.8]
+				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[-1]
 			`,
 			wantStackTop: value.Float(7.8),
 		},
 		"get too big index": {
 			source: `
-				list := ["foo", 2, 7.8]
+				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[50]
 			`,
 			wantRuntimeErr: value.NewError(
@@ -92,7 +91,7 @@ func TestVMSource_NilSafeSubscript(t *testing.T) {
 		},
 		"get too small index": {
 			source: `
-				list := ["foo", 2, 7.8]
+				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[-10]
 			`,
 			wantRuntimeErr: value.NewError(
@@ -102,7 +101,7 @@ func TestVMSource_NilSafeSubscript(t *testing.T) {
 		},
 		"get from nil": {
 			source: `
-				list := nil
+				var list: List[Int]? =  nil
 				list?[-10]
 			`,
 			wantStackTop: value.Nil,
@@ -138,129 +137,51 @@ func TestVMSource_Instantiate(t *testing.T) {
 
 				::Foo(2)
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`#init` wrong number of arguments, given: 1, expected: 0",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(25, 4, 5), P(32, 4, 12)), "expected 0 arguments in call to `#init`, got 1"),
+			},
 		},
 		"instantiate a class with an initialiser without arguments": {
 			source: `
 				class Foo
-					init(a); end
+					init(a: String); end
 				end
 
 				::Foo()
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ArgumentErrorClass,
-				"`#init` wrong number of arguments, given: 0, expected: 1..1",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(54, 6, 5), P(60, 6, 11)), "argument `a` is missing in call to `#init`"),
+			},
 		},
 		"instantiate a class with an initialiser with arguments": {
 			source: `
 				class Foo
-					init(a)
+					init(a: String)
 						println("a: " + a)
 					end
 				end
 
 				::Foo("bar")
+				nil
 			`,
-			wantStdout: "a: bar\n",
-			wantStackTop: value.NewObject(
-				value.ObjectWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithName("Foo"),
-						value.ClassWithMethods(
-							value.MethodMap{
-								value.ToSymbol("#init"): vm.NewBytecodeFunction(
-									value.ToSymbol("#init"),
-									[]byte{
-										byte(bytecode.LOAD_VALUE8), 0,
-										byte(bytecode.GET_LOCAL8), 1,
-										byte(bytecode.ADD),
-										byte(bytecode.CALL_SELF8), 1,
-										byte(bytecode.POP),
-										byte(bytecode.RETURN_SELF),
-									},
-									L(P(20, 3, 6), P(60, 5, 8)),
-									bytecode.LineInfoList{
-										bytecode.NewLineInfo(4, 7),
-										bytecode.NewLineInfo(5, 2),
-									},
-									1,
-									0,
-									[]value.Value{
-										value.String("a: "),
-										value.NewCallSiteInfo(
-											value.ToSymbol("println"),
-											1,
-										),
-									},
-								),
-							},
-						),
-					),
-				),
-			),
+			wantStdout:   "a: bar\n",
+			wantStackTop: value.Nil,
 		},
 		"instantiate a class with an initialiser with ivar parameters": {
 			source: `
 				class Foo
-					init(@a)
+					init(@a: String)
 						println("a: " + a)
 					end
+
+					getter a: String
 				end
 
-				::Foo("bar")
+				f := Foo("bar")
+				f.a
 			`,
-			wantStdout: "a: bar\n",
-			wantStackTop: value.NewObject(
-				value.ObjectWithInstanceVariables(
-					value.SymbolMap{
-						value.ToSymbol("a"): value.String("bar"),
-					},
-				),
-				value.ObjectWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithName("Foo"),
-						value.ClassWithMethods(
-							value.MethodMap{
-								value.ToSymbol("#init"): vm.NewBytecodeFunction(
-									value.ToSymbol("#init"),
-									[]byte{
-										byte(bytecode.GET_LOCAL8), 1,
-										byte(bytecode.SET_IVAR8), 0,
-										byte(bytecode.POP),
-										byte(bytecode.LOAD_VALUE8), 1,
-										byte(bytecode.GET_LOCAL8), 1,
-										byte(bytecode.ADD),
-										byte(bytecode.CALL_SELF8), 2,
-										byte(bytecode.POP),
-										byte(bytecode.RETURN_SELF),
-									},
-									L(P(20, 3, 6), P(61, 5, 8)),
-									bytecode.LineInfoList{
-										bytecode.NewLineInfo(3, 5),
-										bytecode.NewLineInfo(4, 7),
-										bytecode.NewLineInfo(5, 2),
-									},
-									1,
-									0,
-									[]value.Value{
-										value.ToSymbol("a"),
-										value.String("a: "),
-										value.NewCallSiteInfo(
-											value.ToSymbol("println"),
-											1,
-										),
-									},
-								),
-							},
-						),
-					),
-				),
-			),
+			wantStdout:   "a: bar\n",
+			wantStackTop: value.String("bar"),
 		},
 	}
 
@@ -275,7 +196,7 @@ func TestVMSource_Alias(t *testing.T) {
 	tests := sourceTestTable{
 		"add an alias to a builtin method in Std::Int": {
 			source: `
-				sealed class ::Std::Int
+				sealed primitive class ::Std::Int < Value
 					alias add +
 				end
 
@@ -293,10 +214,9 @@ func TestVMSource_Alias(t *testing.T) {
 			source: `
 				alias foo blabla
 			`,
-			wantRuntimeErr: value.NewError(
-				value.NoMethodErrorClass,
-				"cannot create an alias for a nonexistent method: blabla",
-			),
+			wantCompileErr: error.ErrorList{
+				error.NewFailure(L(P(11, 2, 11), P(20, 2, 20)), "method `blabla` is not defined on type `Std::Object`"),
+			},
 		},
 	}
 

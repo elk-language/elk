@@ -84,6 +84,11 @@ sealed primitive class ::Std::Float < Value
 	sealed def %(other: Float): Float; end
 
 	##[
+		Converts the Float to a String.
+	]##
+	def to_string: String; end
+
+	##[
 		Returns itself.
 	]##
 	def to_float: Float; end

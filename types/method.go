@@ -211,7 +211,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	var newDefinedUnder Namespace
 
 	if m.DefinedUnder != nil && !IsClosure(m.DefinedUnder) {
-		newDefinedUnder := DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
+		newDefinedUnder = DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
 		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
 			return newMethod
 		}

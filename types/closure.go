@@ -105,6 +105,14 @@ func (c *Closure) IsPrimitive() bool {
 	return true
 }
 
+func (c *Closure) MethodAliases() MethodAliasMap {
+	return nil
+}
+
+func (c *Closure) SetMethodAlias(name value.Symbol, method *Method) {
+	panic("cannot define method aliases in a closure")
+}
+
 func (c *Closure) Constants() ConstantMap {
 	return nil
 }

@@ -1011,6 +1011,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the float to a 32-bit integer.", false, false, true, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the float to a 64-bit integer.", false, false, true, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the float to a 8-bit integer.", false, false, true, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Converts the Float to a String.", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 16-bit integer.", false, false, true, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 32-bit integer.", false, false, true, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 64-bit integer.", false, false, true, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})

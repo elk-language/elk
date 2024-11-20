@@ -55,6 +55,9 @@ type Namespace interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name value.Symbol, val Type)
 
+	MethodAliases() MethodAliasMap
+	SetMethodAlias(name value.Symbol, method *Method)
+
 	DefineClass(docComment string, primitive, abstract, sealed bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
@@ -96,9 +99,15 @@ func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) Me
 	return newMethods
 }
 
-func NamespaceHasAnyCompilableMethods(namespace Namespace) bool {
+func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	for _, method := range namespace.Methods() {
 		if method.IsDefinable() {
+			return true
+		}
+	}
+
+	for _, alias := range namespace.MethodAliases() {
+		if alias.IsDefinable() {
 			return true
 		}
 	}

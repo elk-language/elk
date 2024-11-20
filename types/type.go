@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/elk-language/elk/lexer"
-	"github.com/elk-language/elk/value/symbol"
 )
 
 type Type interface {
@@ -115,68 +114,6 @@ func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	default:
 		return ToTypeInterface(t)
-	}
-}
-
-func CanBeFalsy(typ Type, env *GlobalEnvironment) bool {
-	switch t := typ.(type) {
-	case *Nilable, Nil, False, Bool, Untyped, Void:
-		return true
-	case *Class:
-		if t == env.StdSubtype(symbol.Bool) || t == env.StdSubtype(symbol.False) || t == env.StdSubtype(symbol.Nil) {
-			return true
-		}
-		return false
-	case *Union:
-		for _, element := range t.Elements {
-			if CanBeFalsy(element, env) {
-				return true
-			}
-		}
-		return false
-	case *Intersection:
-		for _, element := range t.Elements {
-			if CanBeFalsy(element, env) {
-				return true
-			}
-		}
-		return false
-	case *NamedType:
-		return CanBeFalsy(t.Type, env)
-	default:
-		return false
-	}
-}
-
-func CanBeTruthy(typ Type, env *GlobalEnvironment) bool {
-	switch t := typ.(type) {
-	case *Nilable:
-		return CanBeTruthy(t.Type, env)
-	case Nil, False:
-		return false
-	case *Class:
-		if t == env.StdSubtype(symbol.False) || t == env.StdSubtype(symbol.Nil) {
-			return false
-		}
-		return true
-	case *Union:
-		for _, element := range t.Elements {
-			if CanBeTruthy(element, env) {
-				return true
-			}
-		}
-		return false
-	case *Intersection:
-		for _, element := range t.Elements {
-			if CanBeTruthy(element, env) {
-				return true
-			}
-		}
-		return false
-	case *NamedType:
-		return CanBeTruthy(t.Type, env)
-	default:
-		return true
 	}
 }
 

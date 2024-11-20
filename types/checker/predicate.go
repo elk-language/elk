@@ -12,12 +12,12 @@ import (
 
 // Type can be `nil`
 func (c *Checker) isNilable(typ types.Type) bool {
-	return types.IsNilable(typ, c.GlobalEnv)
+	return c.isSubtype(types.Nil{}, typ, nil)
 }
 
 // Type cannot be `nil`
 func (c *Checker) isNotNilable(typ types.Type) bool {
-	return !types.IsNilable(typ, c.GlobalEnv)
+	return !c.isNilable(typ)
 }
 
 // Type is always `nil`
@@ -37,12 +37,12 @@ func (c *Checker) isTruthy(typ types.Type) bool {
 
 // Type can be falsy
 func (c *Checker) canBeFalsy(typ types.Type) bool {
-	return types.CanBeFalsy(typ, c.GlobalEnv)
+	return c.isSubtype(types.False{}, typ, nil) || c.isSubtype(types.Nil{}, typ, nil)
 }
 
 // Type can be truthy
 func (c *Checker) canBeTruthy(typ types.Type) bool {
-	return types.CanBeTruthy(typ, c.GlobalEnv)
+	return !types.IsNever(c.newNormalisedIntersection(typ, types.NewNot(types.False{}), types.NewNot(types.Nil{})))
 }
 
 // Check whether the two given types represent the same type.
