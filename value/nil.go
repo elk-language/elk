@@ -33,6 +33,10 @@ func (n NilType) Copy() Value {
 	return n
 }
 
+func (n NilType) Error() string {
+	return n.Inspect()
+}
+
 func (NilType) InstanceVariables() SymbolMap {
 	return nil
 }

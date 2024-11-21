@@ -34,6 +34,10 @@ func (c Char) Copy() Value {
 	return c
 }
 
+func (c Char) Error() string {
+	return c.Inspect()
+}
+
 func (c Char) Inspect() string {
 	var buff strings.Builder
 	buff.WriteRune('`')
@@ -114,7 +118,7 @@ func (x Char) Cmp(y Char) int {
 
 // Concatenate another value with this character, creating a new string, and return the result.
 // If the operation is illegal an error will be returned.
-func (c Char) Concat(other Value) (String, *Error) {
+func (c Char) Concat(other Value) (String, Value) {
 	switch o := other.(type) {
 	case Char:
 		var buff strings.Builder
@@ -133,7 +137,7 @@ func (c Char) Concat(other Value) (String, *Error) {
 
 // Repeat this character n times and return a new string containing the result.
 // If the operation is illegal an error will be returned.
-func (c Char) Repeat(other Value) (String, *Error) {
+func (c Char) Repeat(other Value) (String, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -163,7 +167,7 @@ func (c Char) Repeat(other Value) (String, *Error) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (c Char) Compare(other Value) (Value, *Error) {
+func (c Char) Compare(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Char:
 		return SmallInt(c.Cmp(o)), nil
@@ -176,7 +180,7 @@ func (c Char) Compare(other Value) (Value, *Error) {
 
 // Check whether c is greater than other and return an error
 // if something went wrong.
-func (c Char) GreaterThan(other Value) (Value, *Error) {
+func (c Char) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c > o), nil
@@ -189,7 +193,7 @@ func (c Char) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether c is greater than or equal to other and return an error
 // if something went wrong.
-func (c Char) GreaterThanEqual(other Value) (Value, *Error) {
+func (c Char) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c >= o), nil
@@ -202,7 +206,7 @@ func (c Char) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether c is less than other and return an error
 // if something went wrong.
-func (c Char) LessThan(other Value) (Value, *Error) {
+func (c Char) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c < o), nil
@@ -215,7 +219,7 @@ func (c Char) LessThan(other Value) (Value, *Error) {
 
 // Check whether c is less than or equal to other and return an error
 // if something went wrong.
-func (c Char) LessThanEqual(other Value) (Value, *Error) {
+func (c Char) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c <= o), nil

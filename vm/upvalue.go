@@ -47,6 +47,10 @@ func (*Upvalue) Inspect() string {
 	return "upvalue"
 }
 
+func (u *Upvalue) Error() string {
+	return u.Inspect()
+}
+
 func (*Upvalue) InstanceVariables() value.SymbolMap {
 	return nil
 }

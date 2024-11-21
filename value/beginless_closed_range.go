@@ -40,6 +40,10 @@ func (r *BeginlessClosedRange) Inspect() string {
 	return buff.String()
 }
 
+func (r *BeginlessClosedRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *BeginlessClosedRange) InstanceVariables() SymbolMap {
 	return nil
 }

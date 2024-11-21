@@ -27,6 +27,10 @@ func (t *Timezone) Copy() Value {
 	return t
 }
 
+func (t *Timezone) Error() string {
+	return t.Inspect()
+}
+
 func (t *Timezone) Inspect() string {
 	return fmt.Sprintf("Timezone('%s')", t.Name())
 }
@@ -66,7 +70,7 @@ func MustLoadTimezone(name string) *Timezone {
 }
 
 // Load a timezone from the IANA database.
-func LoadTimezone(name string) (*Timezone, *Error) {
+func LoadTimezone(name string) (*Timezone, Value) {
 	loc, err := time.LoadLocation(name)
 	if err != nil {
 		return nil, Errorf(

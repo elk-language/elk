@@ -44,6 +44,10 @@ func (r *RightOpenRange) Inspect() string {
 	return buff.String()
 }
 
+func (r *RightOpenRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *RightOpenRange) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -95,6 +99,10 @@ func (r *RightOpenRangeIterator) Copy() Value {
 
 func (r *RightOpenRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::RightOpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (r *RightOpenRangeIterator) Error() string {
+	return r.Inspect()
 }
 
 func (*RightOpenRangeIterator) InstanceVariables() SymbolMap {

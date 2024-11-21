@@ -234,7 +234,7 @@ func (f *BigFloat) IsInf(sign int) bool {
 }
 
 // Parse a big float value from the given string.
-func ParseBigFloat(str string) (*BigFloat, *Error) {
+func ParseBigFloat(str string) (*BigFloat, Value) {
 	f, _, err := big.ParseFloat(
 		str,
 		10,
@@ -353,6 +353,10 @@ func (*BigFloat) SingletonClass() *Class {
 
 func (f *BigFloat) Copy() Value {
 	return f
+}
+
+func (f *BigFloat) Error() string {
+	return f.Inspect()
 }
 
 func (f *BigFloat) Inspect() string {
@@ -524,7 +528,7 @@ func (f *BigFloat) FloorBigFloat() *BigFloat {
 
 // Add another value and return an error
 // if something went wrong.
-func (f *BigFloat) Add(other Value) (Value, *Error) {
+func (f *BigFloat) Add(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *BigFloat:
 		result := (&BigFloat{}).AddBigFloat(f, o)
@@ -550,7 +554,7 @@ func (f *BigFloat) Add(other Value) (Value, *Error) {
 
 // Subtract another value and return an error
 // if something went wrong.
-func (f *BigFloat) Subtract(other Value) (Value, *Error) {
+func (f *BigFloat) Subtract(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *BigFloat:
 		return (&BigFloat{}).SubBigFloat(f, o), nil
@@ -574,7 +578,7 @@ func (f *BigFloat) Subtract(other Value) (Value, *Error) {
 
 // Multiply by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Multiply(other Value) (Value, *Error) {
+func (f *BigFloat) Multiply(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *BigFloat:
 		return (&BigFloat{}).MulBigFloat(f, o), nil
@@ -597,7 +601,7 @@ func (f *BigFloat) Multiply(other Value) (Value, *Error) {
 
 // Divide by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Divide(other Value) (Value, *Error) {
+func (f *BigFloat) Divide(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *BigFloat:
 		return (&BigFloat{}).DivBigFloat(f, o), nil
@@ -688,7 +692,7 @@ func (z *BigFloat) ExpBigFloat(x, y *BigFloat) *BigFloat {
 
 // Exponentiate by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
+func (f *BigFloat) Exponentiate(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		prec := max(f.Precision(), 64)
@@ -717,7 +721,7 @@ func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
 
 // Perform modulo by another numeric value and return an error
 // if something went wrong.
-func (f *BigFloat) Modulo(other Value) (Value, *Error) {
+func (f *BigFloat) Modulo(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		prec := max(f.Precision(), 64)
@@ -744,7 +748,7 @@ func (f *BigFloat) Modulo(other Value) (Value, *Error) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (f *BigFloat) Compare(other Value) (Value, *Error) {
+func (f *BigFloat) Compare(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -780,7 +784,7 @@ func (f *BigFloat) Compare(other Value) (Value, *Error) {
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThan(other Value) (Value, *Error) {
+func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -816,7 +820,7 @@ func (f *BigFloat) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThanEqual(other Value) (Value, *Error) {
+func (f *BigFloat) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -852,7 +856,7 @@ func (f *BigFloat) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThan(other Value) (Value, *Error) {
+func (f *BigFloat) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -888,7 +892,7 @@ func (f *BigFloat) LessThan(other Value) (Value, *Error) {
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThanEqual(other Value) (Value, *Error) {
+func (f *BigFloat) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {

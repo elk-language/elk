@@ -98,6 +98,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, value.ToSymbol("Float"), objectClass, env)
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float32"), objectClass, env)
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float64"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, value.ToSymbol("HashMap"), objectClass, env)
 			{
@@ -1113,6 +1114,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("FormatError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Error", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1777,6 +1792,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NewGeneric(NameToType("Std::PrimitiveIterable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NameToType("Std::Inspectable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
@@ -2651,6 +2667,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Create a new string with all of the characters\nof this one turned into lowercase.", false, false, true, value.ToSymbol("lowercase"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Remove the given suffix from the `String`.\n\nDoes nothing if the `String` doesn't end\nwith `suffix` and returns `self`.\n\nIf the `String` ends with the given suffix\na new `String` gets created and returned that doesn't contain\nthe suffix.", false, true, true, value.ToSymbol("remove_suffix"), nil, []*Parameter{NewParameter(value.ToSymbol("suffix"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env)), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Creates a new `String` that contains the\ncontent of `self` repeated `n` times.", false, true, true, value.ToSymbol("repeat"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Convert the `String` to an `Int`.", false, false, true, value.ToSymbol("to_int"), nil, nil, NameToType("Std::Int", env), NameToType("Std::FormatError", env))
 				namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Convert the `String` to a `Symbol`.", false, false, true, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 				namespace.DefineMethod("Create a new string with all of the characters\nof this one turned into uppercase.", false, false, true, value.ToSymbol("uppercase"), nil, nil, NameToType("Std::String", env), Never{})

@@ -8,3 +8,8 @@ class Std::Error; end
 ]##
 class Std::OutOfRangeError < Std::Error; end
 
+##[
+	Thrown when a literal or interpreted string has an incorrect format.
+]##
+class Std::FormatError < Std::Error; end
+

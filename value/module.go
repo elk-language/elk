@@ -123,6 +123,10 @@ func (m *Module) Inspect() string {
 	return fmt.Sprintf("module %s", m.PrintableName())
 }
 
+func (m *Module) Error() string {
+	return m.Inspect()
+}
+
 func (m *Module) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }

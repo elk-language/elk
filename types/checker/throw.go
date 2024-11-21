@@ -56,6 +56,11 @@ func (c *Checker) checkCalledMethodThrowType(method *types.Method, span *positio
 		return
 	}
 
+	if c.mode == tryMode {
+		c.mode = validTryMode
+		return
+	}
+
 	c.checkThrowType(method.ThrowType, span)
 }
 

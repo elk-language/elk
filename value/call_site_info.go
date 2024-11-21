@@ -46,3 +46,7 @@ func (c *CallSiteInfo) Inspect() string {
 		c.ArgumentCount,
 	)
 }
+
+func (c *CallSiteInfo) Error() string {
+	return c.Inspect()
+}

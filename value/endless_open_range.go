@@ -33,6 +33,10 @@ func (*EndlessOpenRange) SingletonClass() *Class {
 	return nil
 }
 
+func (r *EndlessOpenRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *EndlessOpenRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString(r.Start.Inspect())
@@ -88,6 +92,10 @@ func (r *EndlessOpenRangeIterator) Copy() Value {
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
 	}
+}
+
+func (r *EndlessOpenRangeIterator) Error() string {
+	return r.Inspect()
 }
 
 func (r *EndlessOpenRangeIterator) Inspect() string {

@@ -13,7 +13,7 @@ func TestString_GraphemeAt(t *testing.T) {
 		s    value.String
 		i    value.Value
 		want value.String
-		err  *value.Error
+		err  value.Value
 	}{
 		"get index 0 in an empty string": {
 			s: "",
@@ -139,7 +139,7 @@ func TestString_Subscript(t *testing.T) {
 		s    value.String
 		i    value.Value
 		want value.Char
-		err  *value.Error
+		err  value.Value
 	}{
 		"get index 0 in an empty string": {
 			s: "",
@@ -250,7 +250,7 @@ func TestString_ByteAt(t *testing.T) {
 		s    value.String
 		i    value.Value
 		want value.UInt8
-		err  *value.Error
+		err  value.Value
 	}{
 		"get index 0 in an empty string": {
 			s: "",
@@ -408,7 +408,7 @@ func TestStringConcat(t *testing.T) {
 		left  value.String
 		right value.Value
 		want  value.String
-		err   *value.Error
+		err   value.Value
 	}{
 		"String + String => String": {
 			left:  value.String("foo"),
@@ -446,7 +446,7 @@ func TestStringRepeat(t *testing.T) {
 		left  value.String
 		right value.Value
 		want  value.String
-		err   *value.Error
+		err   value.Value
 	}{
 		"String * SmallInt => String": {
 			left:  value.String("a"),
@@ -499,7 +499,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 		str    value.String
 		suffix value.Value
 		want   value.String
-		err    *value.Error
+		err    value.Value
 	}{
 		"return a type error when int is given": {
 			str:    value.String("foo bar"),
@@ -721,7 +721,7 @@ func TestString_Compare(t *testing.T) {
 		a    value.String
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.String("a"),
@@ -902,7 +902,7 @@ func TestString_GreaterThan(t *testing.T) {
 		a    value.String
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.String("a"),
@@ -1083,7 +1083,7 @@ func TestString_GreaterThanEqual(t *testing.T) {
 		a    value.String
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.String("a"),
@@ -1269,7 +1269,7 @@ func TestString_LessThan(t *testing.T) {
 		a    value.String
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.String("a"),
@@ -1455,7 +1455,7 @@ func TestString_LessThanEqual(t *testing.T) {
 		a    value.String
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.String("a"),

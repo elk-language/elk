@@ -48,7 +48,7 @@ func initPair() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.Pair)
 			other := args[1]
-			return value.ToValueErr(self.Subscript(other))
+			return self.Subscript(other)
 		},
 		DefWithParameters(1),
 	)

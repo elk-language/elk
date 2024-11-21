@@ -93,6 +93,10 @@ func (i Int16) Inspect() string {
 	return fmt.Sprintf("%di16", i)
 }
 
+func (i Int16) Error() string {
+	return i.Inspect()
+}
+
 func (i Int16) InstanceVariables() SymbolMap {
 	return nil
 }

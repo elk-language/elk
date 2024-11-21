@@ -2358,7 +2358,7 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 	return nil
 }
 
-type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error)
+type binaryOperationFunc func(left value.Value, right value.Value) (result value.Value, err value.Value)
 
 func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) value.Value {
 	right := vm.peek()

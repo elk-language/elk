@@ -96,6 +96,10 @@ func (r *Regex) Inspect() string {
 	return buff.String()
 }
 
+func (r *Regex) Error() string {
+	return r.Inspect()
+}
+
 func (r *Regex) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -131,7 +135,7 @@ func (r *Regex) WriteSourceTo(w io.StringWriter) {
 }
 
 // Create a new regex concatenating r with other
-func (r *Regex) Concat(other Value) (Value, *Error) {
+func (r *Regex) Concat(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *Regex:
 		var buff strings.Builder
@@ -148,7 +152,7 @@ func (r *Regex) Concat(other Value) (Value, *Error) {
 }
 
 // Repeat the content of this Regex n times and return a new Regex.
-func (r *Regex) Repeat(other Value) (Value, *Error) {
+func (r *Regex) Repeat(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		var buff strings.Builder
@@ -169,7 +173,7 @@ func (r *Regex) Repeat(other Value) (Value, *Error) {
 }
 
 // Check whether the regex matches the given string
-func (r *Regex) Matches(other Value) (Value, *Error) {
+func (r *Regex) Matches(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(r.Re.MatchString(string(o))), nil

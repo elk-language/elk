@@ -245,7 +245,7 @@ func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*t
 		fmt.Fprintf(
 			buffer,
 			"NewTypeParameter(value.ToSymbol(%q), mixin, %s, %s, %s)",
-			param.Name,
+			param.Name.String(),
 			typeToCode(param.LowerBound, false),
 			typeToCode(param.UpperBound, false),
 			param.Variance.String(),
@@ -283,7 +283,7 @@ func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineConstant(value.ToSymbol(%q), %s)\n",
-			name,
+			name.String(),
 			typeToCode(typ.Type, false),
 		)
 	}
@@ -315,7 +315,7 @@ func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
-	for _, method := range types.SortedOwnMethods(namespace) {
+	for methodName, method := range types.SortedOwnMethods(namespace) {
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
@@ -323,7 +323,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			method.IsAbstract(),
 			method.IsSealed(),
 			method.IsNative(),
-			method.Name,
+			methodName.String(),
 		)
 
 		if len(method.TypeParameters) > 0 {
@@ -346,7 +346,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 				fmt.Fprintf(
 					buffer,
 					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
-					param.Name,
+					param.Name.String(),
 					typeToCode(param.Type, false),
 					param.Kind,
 					param.InstanceVariable,
@@ -588,7 +588,7 @@ func typeToCode(typ types.Type, init bool) string {
 		if init || len(namespaceName) == 0 {
 			return fmt.Sprintf(
 				"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s)",
-				t.Name,
+				t.Name.String(),
 				namespaceToCode(t.Namespace),
 				typeToCode(t.LowerBound, false),
 				typeToCode(t.UpperBound, false),
@@ -750,7 +750,7 @@ func typeToCode(typ types.Type, init bool) string {
 				fmt.Fprintf(
 					buff,
 					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
-					param.Name,
+					param.Name.String(),
 					typeToCode(param.Type, false),
 					param.Kind,
 					param.InstanceVariable,

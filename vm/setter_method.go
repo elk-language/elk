@@ -59,6 +59,10 @@ func (s *SetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :setter}", s.AttributeName.Inspect())
 }
 
+func (s *SetterMethod) Error() string {
+	return s.Inspect()
+}
+
 func (*SetterMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }

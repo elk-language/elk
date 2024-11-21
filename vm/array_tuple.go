@@ -31,7 +31,7 @@ func initArrayTuple() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			other := args[1]
-			return value.ToValueErr(self.Subscript(other))
+			return self.Subscript(other)
 		},
 		DefWithParameters(1),
 	)
@@ -41,7 +41,7 @@ func initArrayTuple() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			other := args[1]
-			return value.ToValueErr(self.Concat(other))
+			return self.Concat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -51,7 +51,7 @@ func initArrayTuple() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			other := args[1]
-			return value.ToValueErr(self.Repeat(other))
+			return self.Repeat(other)
 		},
 		DefWithParameters(1),
 	)

@@ -39,6 +39,10 @@ func (FalseType) InstanceVariables() SymbolMap {
 	return nil
 }
 
+func (f FalseType) Error() string {
+	return f.Inspect()
+}
+
 func initFalse() {
 	FalseClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),

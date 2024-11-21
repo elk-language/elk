@@ -35,6 +35,10 @@ func (TrueType) Inspect() string {
 	return "true"
 }
 
+func (t TrueType) Error() string {
+	return t.Inspect()
+}
+
 func (TrueType) InstanceVariables() SymbolMap {
 	return nil
 }

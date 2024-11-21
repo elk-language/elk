@@ -48,9 +48,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Add(other))
+				return s.Add(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Add(other))
+				return s.Add(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -65,9 +65,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Subtract(other))
+				return s.Subtract(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Subtract(other))
+				return s.Subtract(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -82,9 +82,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Multiply(other))
+				return s.Multiply(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Multiply(other))
+				return s.Multiply(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -99,9 +99,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Divide(other))
+				return s.Divide(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Divide(other))
+				return s.Divide(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -116,9 +116,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Exponentiate(other))
+				return s.Exponentiate(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Exponentiate(other))
+				return s.Exponentiate(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -133,9 +133,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Compare(other))
+				return s.Compare(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Compare(other))
+				return s.Compare(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -150,9 +150,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.GreaterThan(other))
+				return s.GreaterThan(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.GreaterThan(other))
+				return s.GreaterThan(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -167,9 +167,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.GreaterThanEqual(other))
+				return s.GreaterThanEqual(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.GreaterThanEqual(other))
+				return s.GreaterThanEqual(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -184,9 +184,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.LessThan(other))
+				return s.LessThan(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.LessThan(other))
+				return s.LessThan(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -201,9 +201,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.LessThanEqual(other))
+				return s.LessThanEqual(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.LessThanEqual(other))
+				return s.LessThanEqual(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -235,9 +235,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.LeftBitshift(other))
+				return s.LeftBitshift(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.LeftBitshift(other))
+				return s.LeftBitshift(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -252,9 +252,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.RightBitshift(other))
+				return s.RightBitshift(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.RightBitshift(other))
+				return s.RightBitshift(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -269,9 +269,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.BitwiseAnd(other))
+				return s.BitwiseAnd(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.BitwiseAnd(other))
+				return s.BitwiseAnd(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -301,9 +301,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.BitwiseAndNot(other))
+				return s.BitwiseAndNot(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.BitwiseAndNot(other))
+				return s.BitwiseAndNot(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -318,9 +318,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.BitwiseOr(other))
+				return s.BitwiseOr(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.BitwiseOr(other))
+				return s.BitwiseOr(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -335,9 +335,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.BitwiseXor(other))
+				return s.BitwiseXor(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.BitwiseXor(other))
+				return s.BitwiseXor(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
@@ -352,9 +352,9 @@ func initInt() {
 			other := args[1]
 			switch s := self.(type) {
 			case value.SmallInt:
-				return value.ToValueErr(s.Modulo(other))
+				return s.Modulo(other)
 			case *value.BigInt:
-				return value.ToValueErr(s.Modulo(other))
+				return s.Modulo(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))

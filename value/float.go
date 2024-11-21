@@ -159,6 +159,10 @@ func (f Float) Inspect() string {
 	return fmt.Sprintf("%g", f)
 }
 
+func (f Float) Error() string {
+	return f.Inspect()
+}
+
 func (f Float) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -177,7 +181,7 @@ func (f Float) Hash() UInt64 {
 
 // Add another value and return an error
 // if something went wrong.
-func (f Float) Add(other Value) (Value, *Error) {
+func (f Float) Add(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case Float:
 		return f + o, nil
@@ -196,7 +200,7 @@ func (f Float) Add(other Value) (Value, *Error) {
 
 // Subtract another value and return an error
 // if something went wrong.
-func (f Float) Subtract(other Value) (Value, *Error) {
+func (f Float) Subtract(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case Float:
 		return f - o, nil
@@ -214,7 +218,7 @@ func (f Float) Subtract(other Value) (Value, *Error) {
 
 // Add another value and return an error
 // if something went wrong.
-func (f Float) Multiply(other Value) (Value, *Error) {
+func (f Float) Multiply(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case Float:
 		return f * o, nil
@@ -233,7 +237,7 @@ func (f Float) Multiply(other Value) (Value, *Error) {
 
 // Divide by another value and return an error
 // if something went wrong.
-func (f Float) Divide(other Value) (Value, *Error) {
+func (f Float) Divide(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case Float:
 		return f / o, nil
@@ -251,7 +255,7 @@ func (f Float) Divide(other Value) (Value, *Error) {
 
 // Exponentiate by another value and return an error
 // if something went wrong.
-func (f Float) Exponentiate(other Value) (Value, *Error) {
+func (f Float) Exponentiate(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case Float:
 		return Float(math.Pow(float64(f), float64(o))), nil
@@ -276,7 +280,7 @@ func (a Float) Mod(b Float) Float {
 
 // Perform modulo by another numeric value and return an error
 // if something went wrong.
-func (f Float) Modulo(other Value) (Value, *Error) {
+func (f Float) Modulo(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return f.Mod(Float(o)), nil
@@ -297,7 +301,7 @@ func (f Float) Modulo(other Value) (Value, *Error) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (f Float) Compare(other Value) (Value, *Error) {
+func (f Float) Compare(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -327,7 +331,7 @@ func (f Float) Compare(other Value) (Value, *Error) {
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f Float) GreaterThan(other Value) (Value, *Error) {
+func (f Float) GreaterThan(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(f > Float(o)), nil
@@ -348,7 +352,7 @@ func (f Float) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f Float) GreaterThanEqual(other Value) (Value, *Error) {
+func (f Float) GreaterThanEqual(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(f >= Float(o)), nil
@@ -369,7 +373,7 @@ func (f Float) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f Float) LessThan(other Value) (Value, *Error) {
+func (f Float) LessThan(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(f < Float(o)), nil
@@ -390,7 +394,7 @@ func (f Float) LessThan(other Value) (Value, *Error) {
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f Float) LessThanEqual(other Value) (Value, *Error) {
+func (f Float) LessThanEqual(other Value) (result, err Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(f <= Float(o)), nil

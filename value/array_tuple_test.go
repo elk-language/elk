@@ -13,7 +13,7 @@ func TestArrayTuple_Concat(t *testing.T) {
 		left  *value.ArrayTuple
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"ArrayTuple + ArrayTuple => ArrayTuple": {
 			left:  &value.ArrayTuple{value.SmallInt(2)},
@@ -51,7 +51,7 @@ func TestArrayTuple_Repeat(t *testing.T) {
 		left  *value.ArrayTuple
 		right value.Value
 		want  *value.ArrayTuple
-		err   *value.Error
+		err   value.Value
 	}{
 		"ArrayTuple * SmallInt => ArrayTuple": {
 			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
@@ -200,7 +200,7 @@ func TestArrayTuple_SubscriptSet(t *testing.T) {
 		key  value.Value
 		val  value.Value
 		want *value.ArrayTuple
-		err  *value.Error
+		err  value.Value
 	}{
 		"set index 0 in an empty arrayTuple": {
 			l:    &value.ArrayTuple{},
@@ -282,7 +282,7 @@ func TestArrayTuple_Subscript(t *testing.T) {
 		l    *value.ArrayTuple
 		key  value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"get index 0 in an empty arrayTuple": {
 			l:   &value.ArrayTuple{},

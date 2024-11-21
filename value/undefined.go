@@ -34,6 +34,10 @@ func (UndefinedType) Inspect() string {
 	return "undefined"
 }
 
+func (u UndefinedType) Error() string {
+	return u.Inspect()
+}
+
 func (UndefinedType) InstanceVariables() SymbolMap {
 	return nil
 }

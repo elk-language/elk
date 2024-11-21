@@ -51,6 +51,10 @@ func (t *ArrayTuple) Copy() Value {
 	return t
 }
 
+func (t *ArrayTuple) Error() string {
+	return t.Inspect()
+}
+
 // Add a new element.
 func (t *ArrayTuple) Append(element Value) {
 	*t = append(*t, element)
@@ -78,7 +82,7 @@ func (*ArrayTuple) InstanceVariables() SymbolMap {
 }
 
 // Get an element under the given index.
-func (t *ArrayTuple) Get(index int) (Value, *Error) {
+func (t *ArrayTuple) Get(index int) (Value, Value) {
 	return GetFromSlice((*[]Value)(t), index)
 }
 
@@ -88,7 +92,7 @@ func (t *ArrayTuple) At(i int) Value {
 }
 
 // Get an element under the given index.
-func (t *ArrayTuple) Subscript(key Value) (Value, *Error) {
+func (t *ArrayTuple) Subscript(key Value) (Value, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -103,7 +107,7 @@ func (t *ArrayTuple) Subscript(key Value) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func (t *ArrayTuple) Set(index int, val Value) *Error {
+func (t *ArrayTuple) Set(index int, val Value) Value {
 	return SetInSlice((*[]Value)(t), index, val)
 }
 
@@ -113,7 +117,7 @@ func (t *ArrayTuple) SetAt(index int, val Value) {
 }
 
 // Set an element under the given index.
-func (t *ArrayTuple) SubscriptSet(key, val Value) *Error {
+func (t *ArrayTuple) SubscriptSet(key, val Value) Value {
 	length := len(*t)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -128,7 +132,7 @@ func (t *ArrayTuple) SubscriptSet(key, val Value) *Error {
 
 // Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
-func (t *ArrayTuple) Concat(other Value) (Value, *Error) {
+func (t *ArrayTuple) Concat(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case *ArrayList:
 		newList := make(ArrayList, len(*t), len(*t)+len(*o))
@@ -147,7 +151,7 @@ func (t *ArrayTuple) Concat(other Value) (Value, *Error) {
 
 // Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.
 // If the operation is illegal an error will be returned.
-func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, *Error) {
+func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -237,6 +241,10 @@ func (t *ArrayTupleIterator) Copy() Value {
 
 func (t *ArrayTupleIterator) Inspect() string {
 	return fmt.Sprintf("Std::ArrayTuple::Iterator{arrayTuple: %s, index: %d}", t.ArrayTuple.Inspect(), t.Index)
+}
+
+func (t *ArrayTupleIterator) Error() string {
+	return t.Inspect()
 }
 
 func (*ArrayTupleIterator) InstanceVariables() SymbolMap {

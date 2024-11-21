@@ -59,6 +59,10 @@ func (n *NativeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :native}", n.name.Inspect())
 }
 
+func (n *NativeMethod) Error() string {
+	return n.Inspect()
+}
+
 func (*NativeMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
@@ -86,7 +90,7 @@ func DefineNativeMethod(
 	params int,
 	optParams int,
 	function NativeFunction,
-) *value.Error {
+) (err value.Value) {
 	nativeMethod := NewNativeMethod(
 		name,
 		params,

@@ -29,7 +29,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.Concat(other))
+			return self.Concat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -41,7 +41,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.Repeat(other))
+			return self.Repeat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -53,7 +53,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.Compare(other))
+			return self.Compare(other)
 		},
 		DefWithParameters(1),
 	)
@@ -63,7 +63,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.LessThanEqual(other))
+			return self.LessThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -73,7 +73,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.LessThan(other))
+			return self.LessThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -83,7 +83,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThan(other))
+			return self.GreaterThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -93,7 +93,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThanEqual(other))
+			return self.GreaterThanEqual(other)
 		},
 		DefWithParameters(1),
 	)

@@ -51,7 +51,7 @@ func TestArrayList_Concat(t *testing.T) {
 		left  *value.ArrayList
 		right value.Value
 		want  value.Value
-		err   *value.Error
+		err   value.Value
 	}{
 		"ArrayList + ArrayList => ArrayList": {
 			left:  &value.ArrayList{value.SmallInt(2)},
@@ -92,7 +92,7 @@ func TestArrayList_Repeat(t *testing.T) {
 		left  *value.ArrayList
 		right value.Value
 		want  *value.ArrayList
-		err   *value.Error
+		err   value.Value
 	}{
 		"ArrayList * SmallInt => ArrayList": {
 			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
@@ -241,7 +241,7 @@ func TestArrayList_SubscriptSet(t *testing.T) {
 		key  value.Value
 		val  value.Value
 		want *value.ArrayList
-		err  *value.Error
+		err  value.Value
 	}{
 		"set index 0 in an empty list": {
 			l:    &value.ArrayList{},
@@ -323,7 +323,7 @@ func TestArrayList_Subscript(t *testing.T) {
 		l    *value.ArrayList
 		key  value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"get index 0 in an empty list": {
 			l:   &value.ArrayList{},

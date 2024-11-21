@@ -64,11 +64,11 @@ func TestVMSource_Variables(t *testing.T) {
 		},
 		"try to read an uninitialised variable": {
 			source: `
-				var a
+				var a: String
 				a
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+				error.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"try to read a nonexistent variable": {
@@ -76,7 +76,7 @@ func TestVMSource_Variables(t *testing.T) {
 				a
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(5, 2, 5)), "undeclared variable: a"),
+				error.NewFailure(L(P(5, 2, 5), P(5, 2, 5)), "undefined local `a`"),
 			},
 		},
 		"increment": {
@@ -186,14 +186,14 @@ func TestVMSource_Variables(t *testing.T) {
 		},
 		"set logic or false": {
 			source: `
-				a := false
+				var a: Int | bool = false
 				a ||= 5
 			`,
 			wantStackTop: value.SmallInt(5),
 		},
 		"set logic or nil": {
 			source: `
-				a := nil
+				var a: Int? = nil
 				a ||= 5
 			`,
 			wantStackTop: value.SmallInt(5),
@@ -204,17 +204,21 @@ func TestVMSource_Variables(t *testing.T) {
 				a ||= 5
 			`,
 			wantStackTop: value.SmallInt(1),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
+				error.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
+			},
 		},
 		"set logic and nil": {
 			source: `
-				a := nil
+				var a: Int? = nil
 				a &&= 5
 			`,
 			wantStackTop: value.Nil,
 		},
 		"set logic and false": {
 			source: `
-				a := false
+				var a: Int | bool = false
 				a &&= 5
 			`,
 			wantStackTop: value.False,
@@ -225,20 +229,27 @@ func TestVMSource_Variables(t *testing.T) {
 				a &&= 5
 			`,
 			wantStackTop: value.SmallInt(5),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			},
 		},
 		"set nil coalesce nil": {
 			source: `
-				a := nil
+				var a: Int? = nil
 				a ??= 5
 			`,
 			wantStackTop: value.SmallInt(5),
 		},
 		"set nil coalesce false": {
 			source: `
-				a := false
+				var a: Int | bool = false
 				a ??= 5
 			`,
 			wantStackTop: value.False,
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(35, 3, 5), P(35, 3, 5)), "this condition will always have the same result since type `Std::Int | bool` can never be nil"),
+				error.NewWarning(L(P(41, 3, 11), P(41, 3, 11)), "unreachable code"),
+			},
 		},
 		"set nil coalesce truthy": {
 			source: `
@@ -246,6 +257,10 @@ func TestVMSource_Variables(t *testing.T) {
 				a ??= 5
 			`,
 			wantStackTop: value.SmallInt(1),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` can never be nil"),
+				error.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
+			},
 		},
 	}
 
@@ -280,7 +295,8 @@ func TestVMSource_Values(t *testing.T) {
 				a
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(23, 3, 5), P(36, 3, 18)), "cannot reassign a val: a"),
+				error.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "local value `a` cannot be reassigned"),
+				error.NewFailure(L(P(27, 3, 9), P(36, 3, 18)), "type `Std::String` cannot be assigned to type `\"foo\"`"),
 			},
 		},
 		"define variables with a pattern": {
@@ -298,10 +314,8 @@ func TestVMSource_Values(t *testing.T) {
 				[a, b]
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(39, 4, 10), P(39, 4, 10)), "a variable with this name has already been declared in this scope: b"),
-				error.NewFailure(L(P(39, 4, 10), P(39, 4, 10)), "cannot reassign a val: b"),
-				error.NewFailure(L(P(42, 4, 13), P(42, 4, 13)), "a variable with this name has already been declared in this scope: a"),
-				error.NewFailure(L(P(42, 4, 13), P(42, 4, 13)), "cannot reassign a val: a"),
+				error.NewFailure(L(P(39, 4, 10), P(39, 4, 10)), "local value `b` cannot be reassigned"),
+				error.NewFailure(L(P(42, 4, 13), P(42, 4, 13)), "local value `a` cannot be reassigned"),
 			},
 		},
 		"define with a pattern that does not match": {
@@ -317,11 +331,11 @@ func TestVMSource_Values(t *testing.T) {
 		},
 		"try to read uninitialised": {
 			source: `
-				val a
+				val a: Int
 				a
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+				error.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 	}
@@ -338,9 +352,9 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 		"read an instance variable of an instance": {
 			source: `
 				class Foo
-				 	setter bar
+				 	setter bar: String?
 
-					def bar then @bar
+					def bar: String? then @bar
 				end
 
 				f := ::Foo()
@@ -349,32 +363,12 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 			`,
 			wantStackTop: value.String("bar value"),
 		},
-		"read an instance variable of a primitive": {
-			source: `
-				def foo then @foo
-				self.foo()
-			`,
-			wantRuntimeErr: value.NewError(
-				value.PrimitiveValueErrorClass,
-				"cannot access instance variables of a primitive value `<GlobalObject>`",
-			),
-		},
-		"set an instance variable of a primitive": {
-			source: `
-				def foo=(arg) then @foo = arg
-				self.foo = 2
-			`,
-			wantRuntimeErr: value.NewError(
-				value.PrimitiveValueErrorClass,
-				"cannot set instance variables of a primitive value `<GlobalObject>`",
-			),
-		},
 		"set an instance variable of an instance": {
 			source: `
 				class Foo
-				 	getter bar
+				 	getter bar: String?
 
-					def bar=(arg) then @bar = arg
+					def bar=(arg: String?) then @bar = arg
 				end
 
 				f := ::Foo()
@@ -387,9 +381,9 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 			source: `
 				class Foo
 				  singleton
-				 		getter bar
+				 		getter bar: String?
 
-						def bar=(arg) then @bar = arg
+						def bar=(arg: String?) then @bar = arg
 					end
 				end
 

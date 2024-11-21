@@ -13,7 +13,7 @@ func TestErrorf(t *testing.T) {
 		class  *value.Class
 		format string
 		args   []any
-		want   *value.Error
+		want   *value.Object
 	}{
 		"format correctly": {
 			class:  value.TypeErrorClass,
@@ -36,7 +36,7 @@ func TestErrorf(t *testing.T) {
 
 func TestErrorError(t *testing.T) {
 	tests := map[string]struct {
-		err  *value.Error
+		err  *value.Object
 		want string
 	}{
 		"format correctly": {

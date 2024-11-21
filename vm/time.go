@@ -482,7 +482,7 @@ func initTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThan(other))
+			return self.GreaterThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -492,7 +492,7 @@ func initTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
-			return value.ToValueErr(self.GreaterThanEqual(other))
+			return self.GreaterThanEqual(other)
 		},
 		DefWithParameters(1),
 	)
@@ -502,7 +502,7 @@ func initTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
-			return value.ToValueErr(self.LessThan(other))
+			return self.LessThan(other)
 		},
 		DefWithParameters(1),
 	)
@@ -512,7 +512,7 @@ func initTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
-			return value.ToValueErr(self.LessThanEqual(other))
+			return self.LessThanEqual(other)
 		},
 		DefWithParameters(1),
 	)

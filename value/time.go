@@ -38,6 +38,10 @@ func (t Time) Inspect() string {
 	return fmt.Sprintf("Time('%s')", t.ToString())
 }
 
+func (t Time) Error() string {
+	return t.Inspect()
+}
+
 func (t Time) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -407,7 +411,7 @@ func (t Time) MustFormat(formatString string) string {
 }
 
 // Create a string formatted according to the given format string.
-func (t Time) Format(formatString string) (string, *Error) {
+func (t Time) Format(formatString string) (string, Value) {
 	scanner := timescanner.New(formatString)
 	var buffer strings.Builder
 
@@ -715,7 +719,7 @@ tokenLoop:
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
-func (t Time) GreaterThan(other Value) (Value, *Error) {
+func (t Time) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Time:
 		return ToElkBool(t.Cmp(o) == 1), nil
@@ -726,7 +730,7 @@ func (t Time) GreaterThan(other Value) (Value, *Error) {
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
-func (t Time) GreaterThanEqual(other Value) (Value, *Error) {
+func (t Time) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Time:
 		return ToElkBool(t.Cmp(o) >= 0), nil
@@ -737,7 +741,7 @@ func (t Time) GreaterThanEqual(other Value) (Value, *Error) {
 
 // Check whether t is less than other and return an error
 // if something went wrong.
-func (t Time) LessThan(other Value) (Value, *Error) {
+func (t Time) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Time:
 		return ToElkBool(t.Cmp(o) == -1), nil
@@ -748,7 +752,7 @@ func (t Time) LessThan(other Value) (Value, *Error) {
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
-func (t Time) LessThanEqual(other Value) (Value, *Error) {
+func (t Time) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
 	case Time:
 		return ToElkBool(t.Cmp(o) <= 0), nil

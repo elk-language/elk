@@ -2722,6 +2722,57 @@ func TestContinue(t *testing.T) {
 	}
 }
 
+func TestTry(t *testing.T) {
+	tests := testTable{
+		"can have an argument": {
+			input: `try 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewTryExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && try bar()`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewLogicalExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewTryExpressionNode(
+								S(P(7, 1, 8), P(15, 1, 16)),
+								ast.NewReceiverlessMethodCallNode(
+									S(P(11, 1, 12), P(15, 1, 16)),
+									"bar",
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestMust(t *testing.T) {
 	tests := testTable{
 		"can have an argument": {

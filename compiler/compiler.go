@@ -828,6 +828,8 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		c.compileThrowExpressionNode(node)
 	case *ast.MustExpressionNode:
 		c.compileMustExpressionNode(node)
+	case *ast.TryExpressionNode:
+		c.compileTryExpressionNode(node)
 	case *ast.AsExpressionNode:
 		c.compileAsExpressionNode(node)
 	case *ast.TypeofExpressionNode:
@@ -961,6 +963,10 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 }
 
 func (c *Compiler) compileTypeofExpressionNode(node *ast.TypeofExpressionNode) {
+	c.compileNode(node.Value)
+}
+
+func (c *Compiler) compileTryExpressionNode(node *ast.TryExpressionNode) {
 	c.compileNode(node.Value)
 }
 
@@ -5570,7 +5576,7 @@ func (c *Compiler) defineLocal(name string, span *position.Span) *local {
 	_, ok := varScope.localTable[name]
 	if ok {
 		c.Errors.AddFailure(
-			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
+			fmt.Sprintf("a variable with this name has already been declared in this scope `%s`", name),
 			c.newLocation(span),
 		)
 		return nil

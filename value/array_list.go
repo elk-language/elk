@@ -57,6 +57,10 @@ func (l *ArrayList) Copy() Value {
 	return &newList
 }
 
+func (l *ArrayList) Error() string {
+	return l.Inspect()
+}
+
 func (l *ArrayList) Inspect() string {
 	var builder strings.Builder
 
@@ -109,7 +113,7 @@ func (l *ArrayList) Grow(newSlots int) {
 }
 
 // Get an element under the given index.
-func GetFromSlice(collection *[]Value, index int) (Value, *Error) {
+func GetFromSlice(collection *[]Value, index int) (Value, Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
 		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
@@ -123,7 +127,7 @@ func GetFromSlice(collection *[]Value, index int) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func SetInSlice(collection *[]Value, index int, val Value) *Error {
+func SetInSlice(collection *[]Value, index int, val Value) Value {
 	l := len(*collection)
 	if index >= l || index < -l {
 		return NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
@@ -138,7 +142,7 @@ func SetInSlice(collection *[]Value, index int, val Value) *Error {
 }
 
 // Get an element under the given index.
-func (l *ArrayList) Get(index int) (Value, *Error) {
+func (l *ArrayList) Get(index int) (Value, Value) {
 	return GetFromSlice((*[]Value)(l), index)
 }
 
@@ -148,7 +152,7 @@ func (l *ArrayList) At(i int) Value {
 }
 
 // Get an element under the given index.
-func (l *ArrayList) Subscript(key Value) (Value, *Error) {
+func (l *ArrayList) Subscript(key Value) (Value, Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -163,7 +167,7 @@ func (l *ArrayList) Subscript(key Value) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func (l *ArrayList) Set(index int, val Value) *Error {
+func (l *ArrayList) Set(index int, val Value) Value {
 	return SetInSlice((*[]Value)(l), index, val)
 }
 
@@ -173,7 +177,7 @@ func (l *ArrayList) SetAt(index int, val Value) {
 }
 
 // Set an element under the given index.
-func (l *ArrayList) SubscriptSet(key, val Value) *Error {
+func (l *ArrayList) SubscriptSet(key, val Value) Value {
 	length := len(*l)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -188,7 +192,7 @@ func (l *ArrayList) SubscriptSet(key, val Value) *Error {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *ArrayList) Concat(other Value) (*ArrayList, *Error) {
+func (l *ArrayList) Concat(other Value) (*ArrayList, Value) {
 	switch o := other.(type) {
 	case *ArrayList:
 		newList := make(ArrayList, len(*l), len(*l)+len(*o))
@@ -207,7 +211,7 @@ func (l *ArrayList) Concat(other Value) (*ArrayList, *Error) {
 
 // Repeat the content of this list n times and return a new list containing the result.
 // If the operation is illegal an error will be returned.
-func (l *ArrayList) Repeat(other Value) (*ArrayList, *Error) {
+func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -294,6 +298,10 @@ func (l *ArrayListIterator) Copy() Value {
 
 func (l *ArrayListIterator) Inspect() string {
 	return fmt.Sprintf("Std::ArrayList::Iterator{list: %s, index: %d}", l.ArrayList.Inspect(), l.Index)
+}
+
+func (l *ArrayListIterator) Error() string {
+	return l.Inspect()
 }
 
 func (*ArrayListIterator) InstanceVariables() SymbolMap {

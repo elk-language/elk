@@ -13,7 +13,7 @@ func initRegex() {
 		"matches",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.Regex)
-			return value.ToValueErr(self.Matches(args[1]))
+			return self.Matches(args[1])
 		},
 		DefWithParameters(1),
 	)
@@ -23,7 +23,7 @@ func initRegex() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.Regex)
 			other := args[1]
-			return value.ToValueErr(self.Concat(other))
+			return self.Concat(other)
 		},
 		DefWithParameters(1),
 	)
@@ -33,7 +33,7 @@ func initRegex() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.Regex)
 			other := args[1]
-			return value.ToValueErr(self.Repeat(other))
+			return self.Repeat(other)
 		},
 		DefWithParameters(1),
 	)

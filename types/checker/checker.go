@@ -79,6 +79,8 @@ const (
 	nilableValuePatternMode
 	nilablePatternMode
 	mutateLocalsInNarrowing // mutate local variables when doing narrowing, instead of creating shadow locals
+	tryMode
+	validTryMode
 )
 
 type phase uint8
@@ -983,6 +985,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkThrowExpressionNode(n)
 	case *ast.MustExpressionNode:
 		return c.checkMustExpressionNode(n)
+	case *ast.TryExpressionNode:
+		return c.checkTryExpressionNode(n)
 	case *ast.AsExpressionNode:
 		return c.checkAsExpressionNode(n)
 	default:
@@ -1127,6 +1131,27 @@ func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpre
 	}
 
 	node.SetType(runtimeType)
+	return node
+}
+
+func (c *Checker) checkTryExpressionNode(node *ast.TryExpressionNode) *ast.TryExpressionNode {
+	prevMode := c.mode
+	c.mode = tryMode
+	node.Value = c.checkExpression(node.Value)
+
+	if c.mode != validTryMode {
+		c.addWarning(
+			fmt.Sprintf(
+				"unnecessary `%s`, the expression does not throw a checked error",
+				lexer.Colorize("try"),
+			),
+			node.Span(),
+		)
+	}
+	c.mode = prevMode
+
+	tryType := c.typeOf(node.Value)
+	node.SetType(tryType)
 	return node
 }
 
@@ -3644,7 +3669,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			fmt.Fprintf(
 				detailsBuff,
 				"\n  - incompatible definitions of method `%s`\n      `%s`% *s has: `%s`\n      `%s`% *s has: `%s`\n",
-				override.Name,
+				override.Name.String(),
 				overrideNamespaceName,
 				overrideWidthDiff,
 				"",
@@ -4514,6 +4539,13 @@ func (c *Checker) registerInitialisedInstanceVariable(name value.Symbol) {
 	c.method.InitialisedInstanceVariables.Add(name)
 }
 
+func (c *Checker) addValueReassignedError(name string, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf("local value `%s` cannot be reassigned", name),
+		span,
+	)
+}
+
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	variable, _ := c.resolveLocal(name, node.Left.Span())
 	if variable == nil {
@@ -4524,10 +4556,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 
 	if variable.singleAssignment && variable.initialised {
-		c.addFailure(
-			fmt.Sprintf("local value `%s` cannot be reassigned", name),
-			node.Left.Span(),
-		)
+		c.addValueReassignedError(name, node.Left.Span())
 	}
 
 	node.Right = c.checkExpression(node.Right)
@@ -6854,6 +6883,10 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 	}
 
 	variable.initialised = true
+	if variable.singleAssignment {
+		c.addValueReassignedError(name, span)
+		return variable.typ
+	}
 	c.checkCanAssign(valueType, variable.typ, span)
 	return variable.typ
 }
@@ -6992,7 +7025,11 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 	container := c.currentConstScope().container
 	if container.IsPrimitive() {
 		c.addFailure(
-			fmt.Sprintf("cannot declare instance variable `%s` in a primitive `%s`", name, types.InspectWithColor(container)),
+			fmt.Sprintf(
+				"cannot declare instance variable `%s` in a primitive `%s`",
+				name.String(),
+				types.InspectWithColor(container),
+			),
 			errSpan,
 		)
 	}

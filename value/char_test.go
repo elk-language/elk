@@ -13,7 +13,7 @@ func TestCharConcat(t *testing.T) {
 		left  value.Char
 		right value.Value
 		want  value.String
-		err   *value.Error
+		err   value.Value
 	}{
 		"Char + String => String": {
 			left:  value.Char('f'),
@@ -51,7 +51,7 @@ func TestCharRepeat(t *testing.T) {
 		left  value.Char
 		right value.Value
 		want  value.String
-		err   *value.Error
+		err   value.Value
 	}{
 		"Char * SmallInt => String": {
 			left:  value.Char('a'),
@@ -157,7 +157,7 @@ func TestChar_Compare(t *testing.T) {
 		a    value.Char
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
@@ -308,7 +308,7 @@ func TestChar_GreaterThan(t *testing.T) {
 		a    value.Char
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
@@ -459,7 +459,7 @@ func TestChar_GreaterThanEqual(t *testing.T) {
 		a    value.Char
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
@@ -610,7 +610,7 @@ func TestChar_LessThan(t *testing.T) {
 		a    value.Char
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
@@ -761,7 +761,7 @@ func TestChar_LessThanEqual(t *testing.T) {
 		a    value.Char
 		b    value.Value
 		want value.Value
-		err  *value.Error
+		err  value.Value
 	}{
 		"SmallInt and return an error": {
 			a:   value.Char('a'),

@@ -47,7 +47,7 @@ func init() {
 	*Comparer = append(
 		*Comparer,
 		cmp.AllowUnexported(
-			value.Error{},
+			value.Object{},
 			value.BigInt{},
 			value.Class{},
 			bitfield.BitField8{},
@@ -61,7 +61,6 @@ func init() {
 		vm.NewNativeMethodComparer(),
 		// value.NewArrayListComparer(Comparer),
 		value.NewObjectComparer(Comparer),
-		value.NewErrorComparer(Comparer),
 		value.NewClassComparer(Comparer),
 		value.NewModuleComparer(Comparer),
 		value.NewRegexComparer(Comparer),

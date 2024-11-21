@@ -304,7 +304,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, loc *po
 	c.addFailureWithLocation(
 		fmt.Sprintf(
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: `%s`",
-			baseMethod.Name,
+			baseMethod.Name.String(),
 			types.InspectWithColor(baseMethod.DefinedUnder),
 			baseMethod.InspectSignatureWithColor(true),
 		),
@@ -509,9 +509,9 @@ func (c *Checker) checkMethod(
 				declaredType = c.typeOf(declaredTypeNode)
 				switch p.Kind {
 				case ast.PositionalRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdTuple(), declaredType)
 				case ast.NamedRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdRecord(), c.Std(symbol.Symbol), declaredType)
 				}
 			}
 			var initNode ast.ExpressionNode
@@ -531,9 +531,9 @@ func (c *Checker) checkMethod(
 				declaredType = c.typeOf(declaredTypeNode)
 				switch p.Kind {
 				case ast.PositionalRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdTuple(), declaredType)
 				case ast.NamedRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdRecord(), c.Std(symbol.Symbol), declaredType)
 				}
 			}
 			var initNode ast.ExpressionNode
@@ -570,7 +570,7 @@ func (c *Checker) checkMethod(
 		c.addFailure(
 			fmt.Sprintf(
 				"method `%s` cannot have a body because it is abstract",
-				name,
+				name.String(),
 			),
 			span,
 		)
@@ -819,8 +819,21 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	if method.PostParamCount != -1 {
 		requiredPosParamCount -= method.PostParamCount + 1
 	}
+	if method.HasNamedRestParam() {
+		requiredPosParamCount--
+	}
+	argCount := len(positionalArguments) + len(namedArguments)
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
+
+	// push `undefined` for every missing optional positional argument
+	// before the rest parameter
+	for range positionalRestParamIndex - len(positionalArguments) {
+		typedPositionalArguments = append(
+			typedPositionalArguments,
+			ast.NewUndefinedLiteralNode(span),
+		)
+	}
 
 	typeArgMap := make(types.TypeArgumentMap)
 	var currentParamIndex int
@@ -855,7 +868,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
-					param.Name,
+					param.Name.String(),
 					lexer.Colorize(method.Name.String()),
 					types.InspectWithColor(posArgType),
 				),
@@ -884,7 +897,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		posRestParam := method.Params[positionalRestParamIndex]
 
 		currentArgIndex := currentParamIndex
-		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			posArgType := c.typeOf(typedPosArg)
@@ -900,7 +913,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
-						posRestParam.Name,
+						posRestParam.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
@@ -930,7 +943,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
-						param.Name,
+						param.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
@@ -989,7 +1002,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
-						param.Name,
+						param.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
@@ -1062,7 +1075,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(namedRestParam.Type),
-						namedRestParam.Name,
+						namedRestParam.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
@@ -1131,6 +1144,10 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 	if method.PostParamCount != -1 {
 		requiredPosParamCount -= method.PostParamCount + 1
 	}
+	if method.HasNamedRestParam() {
+		requiredPosParamCount--
+	}
+	argCount := len(positionalArguments) + len(namedArguments)
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []ast.ExpressionNode
 
@@ -1167,7 +1184,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
-					param.Name,
+					param.Name.String(),
 					lexer.Colorize(method.Name.String()),
 					types.InspectWithColor(posArgType),
 				),
@@ -1196,7 +1213,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 		posRestParam := method.Params[positionalRestParamIndex]
 
 		currentArgIndex := currentParamIndex
-		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
@@ -1206,7 +1223,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
-						posRestParam.Name,
+						posRestParam.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
@@ -1230,7 +1247,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
-						param.Name,
+						param.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
@@ -1282,7 +1299,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
-						param.Name,
+						param.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
@@ -1347,7 +1364,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(namedRestParam.Type),
-						namedRestParam.Name,
+						namedRestParam.Name.String(),
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
@@ -1583,7 +1600,7 @@ func (c *Checker) declareMethod(
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
-					name,
+					name.String(),
 					types.InspectModifier(abstract, sealed, false),
 					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
 				),
@@ -1599,7 +1616,7 @@ func (c *Checker) declareMethod(
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract class `%s`",
-					name,
+					name.String(),
 					types.InspectWithColor(methodNamespace),
 				),
 				span,
@@ -1610,7 +1627,7 @@ func (c *Checker) declareMethod(
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
-					name,
+					name.String(),
 					types.InspectWithColor(methodNamespace),
 				),
 				span,
@@ -1621,7 +1638,7 @@ func (c *Checker) declareMethod(
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in this context",
-					name,
+					name.String(),
 				),
 				span,
 			)
@@ -1986,7 +2003,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
 					types.InspectWithColor(overrideMethod),
 					types.InspectWithColor(baseMethod),
-					param.Name,
+					param.Name.String(),
 				)
 				areCompatible = false
 			}
@@ -2082,7 +2099,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 					"\n  - method `%s` has a required parameter missing in `%s`, got `%s`",
 					types.InspectWithColor(overrideMethod),
 					types.InspectWithColor(baseMethod),
-					param.Name,
+					param.Name.String(),
 				)
 				areCompatible = false
 			}

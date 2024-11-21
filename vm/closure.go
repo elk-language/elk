@@ -45,6 +45,10 @@ func (c *Closure) Inspect() string {
 	return fmt.Sprintf("Function{location: %s}", c.Bytecode.Location.String())
 }
 
+func (c *Closure) Error() string {
+	return c.Inspect()
+}
+
 func (*Closure) InstanceVariables() value.SymbolMap {
 	return nil
 }

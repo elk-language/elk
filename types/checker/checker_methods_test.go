@@ -1437,7 +1437,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 20), P(59, 4, 20)), "type `Std::ArrayTuple[Std::Float]` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(59, 4, 20), P(59, 4, 20)), "type `Std::Tuple[Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"named rest params have record types": {
@@ -1449,7 +1449,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 4, 20), P(60, 4, 20)), "type `Std::HashRecord[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
+				error.NewFailure(L("<main>", P(60, 4, 20), P(60, 4, 20)), "type `Std::Record[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"declare with type parameters": {
