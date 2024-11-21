@@ -1792,6 +1792,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NewGeneric(NameToType("Std::PrimitiveIterable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Iterable::Element", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+				ImplementInterface(namespace, NameToType("Std::Inspectable", env).(*Interface))
 
 				// Define methods
 				namespace.DefineMethod("Checks whether any element of this iterable satisfies the given predicate.\n\nMay never return if the iterable is infinite.", true, false, true, value.ToSymbol("any"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Iterable::Element", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})

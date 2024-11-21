@@ -10,7 +10,8 @@ func TestVMSource_Switch(t *testing.T) {
 	tests := sourceTestTable{
 		"match no value": {
 			source: `
-				switch 20
+				var a: Int = 20
+				switch a
 		    case 0 then :a
 				case 5 then :b
 				case 10 then :c
@@ -21,7 +22,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match with variable": {
 			source: `
-				switch 20
+				var a: Int = 20
+				switch a
 		    case 0 then :a
 				case n then n + 2
 				case 10 then :c
@@ -32,7 +34,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match no value with else": {
 			source: `
-				switch 20
+				var a: any = 20
+				switch a
 		    case 0 then :a
 				case 5 then :b
 				case 10 then :c
@@ -44,7 +47,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match boolean": {
 			source: `
-				switch true
+				var a: any = true
+				switch a
 		    case 0 then :a
 				case false then :b
 				case true then :c
@@ -55,7 +59,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match nil": {
 			source: `
-				switch nil
+				var a: any = nil
+				switch a
 		    case 0 then :a
 				case nil then :b
 				case true then :c
@@ -66,7 +71,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match string": {
 			source: `
-				switch "some string"
+				var a: any = "some string"
+				switch a
 		    case 0 then :a
 				case nil then :b
 				case "some other string" then :b
@@ -78,7 +84,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match interpolated string": {
 			source: `
-				switch "some 7 string"
+				var a: any = "some 7 string"
+				switch a
 		    case 0 then :a
 				case nil then :b
 				case "some other string" then :b
@@ -90,7 +97,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match string with regex": {
 			source: `
-				switch "some string"
+				var a: any = "some string"
+				switch a
 		    case 0 then :a
 				case nil then :b
 				case %/^some other string$/ then :b
@@ -102,7 +110,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match string with interpolated regex": {
 			source: `
-				switch "some 7 string"
+				var a: any = "some 7 string"
+				switch a
 		    case 0 then :a
 				case nil then :b
 				case %/^some other string$/ then :b
@@ -114,7 +123,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match symbol": {
 			source: `
-				switch :foo
+				var a: any = :foo
+				switch a
 		    case 0 then :a
 				case :bar then :b
 				case "foo" then :b
@@ -126,7 +136,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match interpolated symbol": {
 			source: `
-				switch :foo7
+				var a: any = :foo7
+				switch a
 		    case 0 then :a
 				case :bar then :b
 				case "foo7" then :b
@@ -138,7 +149,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match with method call": {
 			source: `
-				switch "10"
+				var a: any = "10"
+				switch a
 		    case > 20 then :a
 				case > 5 && < 8 then :b
 				case > 9 && < 15 then :c
@@ -150,7 +162,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match comparison with and": {
 			source: `
-				switch 10
+				var a: any = 10
+				switch a
 		    case > 20 then :a
 				case > 5 && < 8 then :b
 				case > 9 && < 15 then :c
@@ -162,7 +175,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match or": {
 			source: `
-				switch "foo"
+				var a: any = "foo"
+				switch a
 		    case "bar" || "foo" then :a
 				case > 5 && < 8 then :b
 				case > 9 && < 15 then :c
@@ -174,7 +188,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match non-list with list patterns": {
 			source: `
-				switch :foo
+				var a: any = :foo
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, > 5, 20] then :c
@@ -186,7 +201,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with list patterns": {
 			source: `
-				switch %[1, 6, 9, 20]
+				var a: any = %[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, > 5, 20] then :c
@@ -199,7 +215,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match set": {
 			source: `
-				switch ^[1, 6, 9, 20]
+				var a: any = ^[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case ^[1, 6, 10] then :b
 				case ^[1, 6, 9, 20] then :c
@@ -211,7 +228,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match word set": {
 			source: `
-				switch ^['foo', 'bar']
+				var a: any = ^['foo', 'bar']
+				switch a
 		    case < 9 then :a
 				case ^['foo', 'ba'] then :b
 				case ^w[foo bar] then :c
@@ -223,7 +241,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match symbol set": {
 			source: `
-				switch ^[:foo, :bar]
+				var a: any = ^[:foo, :bar]
+				switch a
 		    case < 9 then :a
 				case ^[:foo, :ba] then :b
 				case ^s[foo bar] then :c
@@ -235,7 +254,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match hex set": {
 			source: `
-				switch ^[0xfe, 0x4]
+				var a: any = ^[0xfe, 0x4]
+				switch a
 		    case < 9 then :a
 				case ^[0xfe, 0x5] then :b
 				case ^x[fe 4] then :c
@@ -247,7 +267,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match bin set": {
 			source: `
-				switch ^[0b11, 0b10]
+				var a: any = ^[0b11, 0b10]
+				switch a
 		    case < 9 then :a
 				case ^[0b11, 0b01] then :b
 				case ^b[11 10] then :c
@@ -259,7 +280,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match empty set": {
 			source: `
-				switch ^[]
+				var a: any = ^[]
+				switch a
 		    case < 9 then :a
 				case ^[1, 6, 10] then :b
 				case ^[] then :c
@@ -271,7 +293,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match set with rest elements": {
 			source: `
-				switch ^[1, 6, 9, 20]
+				var a: any = ^[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case ^[1, 6, 10] then :b
 				case ^[6, 20, 1, *] then :c
@@ -282,7 +305,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match set with skip elements": {
 			source: `
-				switch ^[1, 6, 9, 20]
+				var a: any = ^[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case ^[1, 6, _] then :b
 				case ^[6, 20, 1, _] then :c
@@ -294,7 +318,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match list": {
 			source: `
-				switch [1, 6, 9, 20]
+				var a: any = [1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, > 5, 20] then :c
@@ -306,7 +331,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match word list": {
 			source: `
-				switch ['foo', 'bar']
+				var a: any = ['foo', 'bar']
+				switch a
 		    case < 9 then :a
 				case ['foo', 'ba'] then :b
 				case \w[foo bar] then :c
@@ -318,7 +344,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with word list": {
 			source: `
-				switch %['foo', 'bar']
+				var a: any = %['foo', 'bar']
+				switch a
 		    case < 9 then :a
 				case ['foo', 'ba'] then :b
 				case \w[foo bar] then :c
@@ -330,7 +357,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match symbol list": {
 			source: `
-				switch [:foo, :bar]
+				var a: any = [:foo, :bar]
+				switch a
 		    case < 9 then :a
 				case [:foo, :ba] then :b
 				case \s[foo bar] then :c
@@ -342,7 +370,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with symbol list": {
 			source: `
-				switch %[:foo, :bar]
+				var a: any = %[:foo, :bar]
+				switch a
 		    case < 9 then :a
 				case [:foo, :ba] then :b
 				case \s[foo bar] then :c
@@ -354,7 +383,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match hex list": {
 			source: `
-				switch [0xfe, 0x4]
+				var a: any = [0xfe, 0x4]
+				switch a
 		    case < 9 then :a
 				case [0xfe, 0x5] then :b
 				case \x[fe 4] then :c
@@ -366,7 +396,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with hex list": {
 			source: `
-				switch %[0xfe, 0x4]
+				var a: any = %[0xfe, 0x4]
+				switch a
 		    case < 9 then :a
 				case [0xfe, 0x5] then :b
 				case \x[fe 4] then :c
@@ -378,7 +409,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match bin list": {
 			source: `
-				switch [0b11, 0b10]
+				var a: any = [0b11, 0b10]
+				switch a
 		    case < 9 then :a
 				case [0b11, 0b01] then :b
 				case \b[11 10] then :c
@@ -390,7 +422,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with bin list": {
 			source: `
-				switch %[0b11, 0b10]
+				var a: any = %[0b11, 0b10]
+				switch a
 		    case < 9 then :a
 				case [0b11, 0b01] then :b
 				case \b[11 10] then :c
@@ -402,7 +435,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match empty list": {
 			source: `
-				switch []
+				var a: any = []
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [] then :c
@@ -414,7 +448,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with rest elements": {
 			source: `
-				switch [1, 6, 9, 20]
+				var a: any = [1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, > 5, 2] then :c
@@ -429,7 +464,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with unnamed rest elements": {
 			source: `
-				switch [1, 6, 9, 20]
+				var a: any = [1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, > 5, 2] then :c
@@ -442,7 +478,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match nested lists": {
 			source: `
-				switch [1, 6, [17, 43, [71, 28]], 20]
+				var a: any = [1, 6, [17, 43, [71, 28]], 20]
+				switch a
 		    case < 9 then :a
 				case [1, 6, 10] then :b
 				case [< 2, 6, [17, 43, [42, 28]], 20] then :c
@@ -455,7 +492,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match non-list with tuple patterns": {
 			source: `
-				switch :foo
+				var a: any = :foo
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 20] then :c
@@ -467,7 +505,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with tuple patterns": {
 			source: `
-				switch [1, 6, 9, 20]
+				var a: any = [1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 20] then :c
@@ -479,7 +518,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple": {
 			source: `
-				switch %[1, 6, 9, 20]
+				var a: any = %[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 20] then :c
@@ -491,7 +531,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match word tuple": {
 			source: `
-				switch %['foo', 'bar']
+				var a: any = %['foo', 'bar']
+				switch a
 		    case < 9 then :a
 				case %['foo', 'ba'] then :b
 				case %w[foo bar] then :c
@@ -503,7 +544,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with word tuple": {
 			source: `
-				switch ['foo', 'bar']
+				var a: any = ['foo', 'bar']
+				switch a
 		    case < 9 then :a
 				case %['foo', 'ba'] then :b
 				case %w[foo bar] then :c
@@ -515,7 +557,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match symbol tuple": {
 			source: `
-				switch %[:foo, :bar]
+				var a: any = %[:foo, :bar]
+				switch a
 		    case < 9 then :a
 				case %[:foo, :ba] then :b
 				case %s[foo bar] then :c
@@ -527,7 +570,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with symbol tuple": {
 			source: `
-				switch [:foo, :bar]
+				var a: any = [:foo, :bar]
+				switch a
 		    case < 9 then :a
 				case %[:foo, :ba] then :b
 				case %s[foo bar] then :c
@@ -539,7 +583,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match hex tuple": {
 			source: `
-				switch %[0xfe, 0x4]
+				var a: any = %[0xfe, 0x4]
+				switch a
 		    case < 9 then :a
 				case %[0xfe, 0x5] then :b
 				case %x[fe 4] then :c
@@ -551,7 +596,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with hex tuple": {
 			source: `
-				switch [0xfe, 0x4]
+				var a: any = [0xfe, 0x4]
+				switch a
 		    case < 9 then :a
 				case %[0xfe, 0x5] then :b
 				case %x[fe 4] then :c
@@ -563,7 +609,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match bin tuple": {
 			source: `
-				switch %[0b11, 0b10]
+				var a: any = %[0b11, 0b10]
+				switch a
 		    case < 9 then :a
 				case %[0b11, 0b01] then :b
 				case %b[11 10] then :c
@@ -575,7 +622,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match list with bin tuple": {
 			source: `
-				switch [0b11, 0b10]
+				var a: any = [0b11, 0b10]
+				switch a
 		    case < 9 then :a
 				case %[0b11, 0b01] then :b
 				case %b[11 10] then :c
@@ -587,7 +635,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match empty tuple": {
 			source: `
-				switch %[]
+				var a: any = %[]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[] then :c
@@ -599,7 +648,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with rest elements": {
 			source: `
-				switch %[1, 6, 9, 20]
+				var a: any = %[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 2] then :c
@@ -614,7 +664,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match tuple with unnamed rest elements": {
 			source: `
-				switch %[1, 6, 9, 20]
+				var a: any = %[1, 6, 9, 20]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 2] then :c
@@ -627,7 +678,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match nested tuples": {
 			source: `
-				switch %[1, 6, %[17, 43, %[71, 28]], 20]
+				var a: any = %[1, 6, %[17, 43, %[71, 28]], 20]
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, %[17, 43, %[42, 28]], 20] then :c
@@ -640,7 +692,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match empty map": {
 			source: `
-				switch {}
+				var a: any = {}
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case { 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -652,7 +705,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match map": {
 			source: `
-				switch { 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				var a: any = { 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case { 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -664,7 +718,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match map with record": {
 			source: `
-				switch { 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				var a: any = { 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -676,7 +731,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match nested maps": {
 			source: `
-				switch { 1 => 5.5, foo: ["bar", 5, 4, { elo: "mordo" }], "baz" => 12.5 }
+				var a: any = { 1 => 5.5, foo: ["bar", 5, 4, { elo: "mordo" }], "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case { 1 => > 2.0, foo: ["baz" || "bar", 5, 4, { eli: "mordo" }], "baz" => < 13.0 } then :c
@@ -689,7 +745,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match empty record": {
 			source: `
-				switch %{}
+				var a: any = %{}
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %{ 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -701,7 +758,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match record": {
 			source: `
-				switch %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				var a: any = %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %{ 1 => > 2.0, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -713,7 +771,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match record with map": {
 			source: `
-				switch %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				var a: any = %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case { 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
@@ -725,7 +784,8 @@ func TestVMSource_Switch(t *testing.T) {
 		},
 		"match nested records": {
 			source: `
-				switch %{ 1 => 5.5, foo: ["bar", 5, 4, %{ elo: "mordo" }], "baz" => 12.5 }
+				var a: any = %{ 1 => 5.5, foo: ["bar", 5, 4, %{ elo: "mordo" }], "baz" => 12.5 }
+				switch a
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %{ 1 => > 2.0, foo: ["baz" || "bar", 5, 4, %{ eli: "mordo" }], "baz" => < 13.0 } then :c
@@ -738,7 +798,8 @@ func TestVMSource_Switch(t *testing.T) {
 
 		"match object": {
 			source: `
-				switch "foo bar"
+				var a: any = "foo bar"
+				switch a
 		    case ::Std::Int() then :a
 				case ::Std::String(length: < 4) then :b
 				case ::Std::String(uppercase, length: > 3 as l) then [uppercase, l]

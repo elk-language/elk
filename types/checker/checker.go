@@ -4539,6 +4539,13 @@ func (c *Checker) registerInitialisedInstanceVariable(name value.Symbol) {
 	c.method.InitialisedInstanceVariables.Add(name)
 }
 
+func (c *Checker) addValueReassignedError(name string, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf("local value `%s` cannot be reassigned", name),
+		span,
+	)
+}
+
 func (c *Checker) checkLocalVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	variable, _ := c.resolveLocal(name, node.Left.Span())
 	if variable == nil {
@@ -4549,10 +4556,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 
 	if variable.singleAssignment && variable.initialised {
-		c.addFailure(
-			fmt.Sprintf("local value `%s` cannot be reassigned", name),
-			node.Left.Span(),
-		)
+		c.addValueReassignedError(name, node.Left.Span())
 	}
 
 	node.Right = c.checkExpression(node.Right)
@@ -6879,6 +6883,10 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 	}
 
 	variable.initialised = true
+	if variable.singleAssignment {
+		c.addValueReassignedError(name, span)
+		return variable.typ
+	}
 	c.checkCanAssign(valueType, variable.typ, span)
 	return variable.typ
 }

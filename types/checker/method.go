@@ -509,9 +509,9 @@ func (c *Checker) checkMethod(
 				declaredType = c.typeOf(declaredTypeNode)
 				switch p.Kind {
 				case ast.PositionalRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdTuple(), declaredType)
 				case ast.NamedRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdRecord(), c.Std(symbol.Symbol), declaredType)
 				}
 			}
 			var initNode ast.ExpressionNode
@@ -531,9 +531,9 @@ func (c *Checker) checkMethod(
 				declaredType = c.typeOf(declaredTypeNode)
 				switch p.Kind {
 				case ast.PositionalRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdArrayTuple(), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdTuple(), declaredType)
 				case ast.NamedRestParameterKind:
-					declaredType = types.NewGenericWithTypeArgs(c.StdHashRecord(), c.Std(symbol.Symbol), declaredType)
+					declaredType = types.NewGenericWithTypeArgs(c.StdRecord(), c.Std(symbol.Symbol), declaredType)
 				}
 			}
 			var initNode ast.ExpressionNode

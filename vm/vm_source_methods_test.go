@@ -307,7 +307,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			source: `
 				var a: Int? = nil
 
-				a?.to_string?.to_int
+				try a?.to_string?.to_int
 			`,
 			wantStackTop: value.Nil,
 		},
@@ -427,7 +427,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with a named rest param and a few named args": {
 			source: `
-				def foo(**a: String): HashRecord[Symbol, String]
+				def foo(**a: String): Record[Symbol, String]
 					a
 				end
 
@@ -441,7 +441,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, named rest param and a few named args": {
 			source: `
-				def foo(a: String, **b: String): List[String]
+				def foo(a: String, **b: String): Tuple[any]
 					[a, b]
 				end
 
@@ -511,7 +511,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
-				def foo(a: String, b: String | Int = "b", **c: String): Tuple[Value]
+				def foo(a: String, b: String | Int = "b", **c: String): Tuple[any]
 					[a, b, c]
 				end
 
@@ -550,7 +550,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and named args": {
 			source: `
-				def foo(*a: Int, **b: Int): Tuple[Value]
+				def foo(*a: Int, **b: Int): Tuple[any]
 					[a, b]
 				end
 
@@ -558,7 +558,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
-				&value.ArrayList{},
+				&value.ArrayTuple{},
 				vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
@@ -569,7 +569,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(*a: Int, **b: Int): Tuple[Value]
+				def foo(*a: Int, **b: Int): Tuple[any]
 					[a, b]
 				end
 
@@ -1079,8 +1079,8 @@ func TestVMSource_Setters(t *testing.T) {
 		"setter bitwise xor": {
 			source: `
 				class Foo
-				  attr bar: Int?
-					init(@bar: Int?); end
+				  attr bar: Int
+					init(@bar: Int); end
 				end
 
 				foo := ::Foo(6)
@@ -1159,14 +1159,10 @@ func TestVMSource_Setters(t *testing.T) {
 				foo.bar ??= 5
 			`,
 			wantStackTop: value.SmallInt(2),
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
-				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
-			},
 		},
 		"call subscript set": {
 			source: `
-				list := [5, 8, 20]
+				var list: List[Int | Symbol] = [5, 8, 20]
 				list[0] = :foo
 				list
 			`,
@@ -1315,6 +1311,10 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [1, 8, 7.8]
 				list[0] ||= 5
 			`,
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
+				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
+			},
 			wantStackTop: value.SmallInt(1),
 		},
 		"subscript setter logic and nil": {
@@ -1365,6 +1365,10 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] ??= 5
 			`,
 			wantStackTop: value.SmallInt(1),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
+				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
+			},
 		},
 	}
 
