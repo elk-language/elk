@@ -492,7 +492,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and all args": {
 			source: `
-				def foo(a: String, b: Int = 5, **c: String): List[String | Int]
+				def foo(a: String, b: Int = 5, **c: String): Tuple[any]
 					[a, b, c]
 				end
 
@@ -750,7 +750,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with multiple post arguments": {
 			source: `
-				def foo(*a, b, c): String
+				def foo(*a: Int, b: Int, c: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
@@ -760,7 +760,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with pre and post arguments": {
 			source: `
-				def foo(a, b, *c, d, e): String
+				def foo(a: Int, b: Int, *c: Int, d: Int, e: Int): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}, e: ${e.inspect}"
 				end
 
