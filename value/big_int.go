@@ -744,6 +744,10 @@ func (i *BigInt) Inspect() string {
 	return i.ToGoBigInt().String()
 }
 
+func (i *BigInt) Error() string {
+	return i.Inspect()
+}
+
 func (i *BigInt) Copy() Value {
 	return i
 }

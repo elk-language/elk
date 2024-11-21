@@ -38,6 +38,10 @@ func (t Time) Inspect() string {
 	return fmt.Sprintf("Time('%s')", t.ToString())
 }
 
+func (t Time) Error() string {
+	return t.Inspect()
+}
+
 func (t Time) InstanceVariables() SymbolMap {
 	return nil
 }

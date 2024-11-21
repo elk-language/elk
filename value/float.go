@@ -159,6 +159,10 @@ func (f Float) Inspect() string {
 	return fmt.Sprintf("%g", f)
 }
 
+func (f Float) Error() string {
+	return f.Inspect()
+}
+
 func (f Float) InstanceVariables() SymbolMap {
 	return nil
 }

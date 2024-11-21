@@ -499,11 +499,11 @@ func (m *Method) inspect() string {
 func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 	switch scope := namespace.(type) {
 	case *Class, *Mixin:
-		return fmt.Sprintf("%s.:%s", scope.Name(), methodName)
+		return fmt.Sprintf("%s.:%s", scope.Name(), methodName.String())
 	case *Interface:
-		return fmt.Sprintf("%s.:%s", scope.Name(), methodName)
+		return fmt.Sprintf("%s.:%s", scope.Name(), methodName.String())
 	case *Module:
-		return fmt.Sprintf("%s::%s", scope.Name(), methodName)
+		return fmt.Sprintf("%s::%s", scope.Name(), methodName.String())
 	case *Closure:
 		return "call"
 	case *MixinWithWhere:

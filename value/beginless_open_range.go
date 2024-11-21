@@ -40,6 +40,10 @@ func (r *BeginlessOpenRange) Inspect() string {
 	return buff.String()
 }
 
+func (r *BeginlessOpenRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *BeginlessOpenRange) InstanceVariables() SymbolMap {
 	return nil
 }

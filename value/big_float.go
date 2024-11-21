@@ -355,6 +355,10 @@ func (f *BigFloat) Copy() Value {
 	return f
 }
 
+func (f *BigFloat) Error() string {
+	return f.Inspect()
+}
+
 func (f *BigFloat) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())

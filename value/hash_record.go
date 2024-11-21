@@ -32,6 +32,10 @@ func (h *HashRecord) Copy() Value {
 	return h
 }
 
+func (h *HashRecord) Error() string {
+	return h.Inspect()
+}
+
 func (h *HashRecord) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteString("%{")
@@ -91,6 +95,10 @@ func (*HashRecordIterator) DirectClass() *Class {
 
 func (*HashRecordIterator) SingletonClass() *Class {
 	return nil
+}
+
+func (h *HashRecordIterator) Error() string {
+	return h.Inspect()
 }
 
 func (h *HashRecordIterator) Copy() Value {

@@ -51,6 +51,10 @@ func (t *ArrayTuple) Copy() Value {
 	return t
 }
 
+func (t *ArrayTuple) Error() string {
+	return t.Inspect()
+}
+
 // Add a new element.
 func (t *ArrayTuple) Append(element Value) {
 	*t = append(*t, element)
@@ -237,6 +241,10 @@ func (t *ArrayTupleIterator) Copy() Value {
 
 func (t *ArrayTupleIterator) Inspect() string {
 	return fmt.Sprintf("Std::ArrayTuple::Iterator{arrayTuple: %s, index: %d}", t.ArrayTuple.Inspect(), t.Index)
+}
+
+func (t *ArrayTupleIterator) Error() string {
+	return t.Inspect()
 }
 
 func (*ArrayTupleIterator) InstanceVariables() SymbolMap {

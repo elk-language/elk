@@ -33,6 +33,14 @@ func (s String) Copy() Value {
 	return s
 }
 
+func (s String) Error() string {
+	return s.Inspect()
+}
+
+func (s String) String() string {
+	return string(s)
+}
+
 func (s String) Inspect() string {
 	var buffer strings.Builder
 
@@ -509,6 +517,10 @@ func (s *StringCharIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::CharIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
 
+func (s *StringCharIterator) Error() string {
+	return s.Inspect()
+}
+
 func (*StringCharIterator) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -551,6 +563,10 @@ func (*StringByteIterator) DirectClass() *Class {
 
 func (*StringByteIterator) SingletonClass() *Class {
 	return nil
+}
+
+func (s *StringByteIterator) Error() string {
+	return s.Inspect()
 }
 
 func (s *StringByteIterator) Copy() Value {

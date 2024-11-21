@@ -92,6 +92,10 @@ func (i Int8) Inspect() string {
 	return fmt.Sprintf("%di8", i)
 }
 
+func (i Int8) Error() string {
+	return i.Inspect()
+}
+
 func (i Int8) InstanceVariables() SymbolMap {
 	return nil
 }

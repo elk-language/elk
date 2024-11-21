@@ -57,6 +57,10 @@ func (f Float32) Inspect() string {
 	return fmt.Sprintf("%gf32", f)
 }
 
+func (f Float32) Error() string {
+	return f.Inspect()
+}
+
 func (f Float32) InstanceVariables() SymbolMap {
 	return nil
 }

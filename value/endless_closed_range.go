@@ -33,6 +33,10 @@ func (*EndlessClosedRange) SingletonClass() *Class {
 	return nil
 }
 
+func (r *EndlessClosedRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *EndlessClosedRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString(r.Start.Inspect())
@@ -81,6 +85,10 @@ func (*EndlessClosedRangeIterator) DirectClass() *Class {
 
 func (*EndlessClosedRangeIterator) SingletonClass() *Class {
 	return nil
+}
+
+func (r *EndlessClosedRangeIterator) Error() string {
+	return r.Inspect()
 }
 
 func (r *EndlessClosedRangeIterator) Copy() Value {

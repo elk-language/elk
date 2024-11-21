@@ -35,6 +35,10 @@ func (*LeftOpenRange) SingletonClass() *Class {
 	return nil
 }
 
+func (r *LeftOpenRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *LeftOpenRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString(r.Start.Inspect())
@@ -95,6 +99,10 @@ func (r *LeftOpenRangeIterator) Copy() Value {
 
 func (r *LeftOpenRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::LeftOpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (r *LeftOpenRangeIterator) Error() string {
+	return r.Inspect()
 }
 
 func (*LeftOpenRangeIterator) InstanceVariables() SymbolMap {

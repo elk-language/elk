@@ -84,6 +84,10 @@ func (i *Interface) Inspect() string {
 	return fmt.Sprintf("interface %s", i.PrintableName())
 }
 
+func (i *Interface) Error() string {
+	return i.Inspect()
+}
+
 func (i *Interface) InstanceVariables() SymbolMap {
 	return nil
 }

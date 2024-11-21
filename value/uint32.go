@@ -93,6 +93,10 @@ func (i UInt32) Inspect() string {
 	return fmt.Sprintf("%du32", i)
 }
 
+func (i UInt32) Error() string {
+	return i.Inspect()
+}
+
 func (i UInt32) InstanceVariables() SymbolMap {
 	return nil
 }

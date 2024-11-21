@@ -44,6 +44,10 @@ func (h *HashSet) Copy() Value {
 	}
 }
 
+func (h *HashSet) Error() string {
+	return h.Inspect()
+}
+
 func (h *HashSet) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteString("^[")
@@ -120,6 +124,10 @@ func (h *HashSetIterator) Copy() Value {
 		HashSet: h.HashSet,
 		Index:   h.Index,
 	}
+}
+
+func (h *HashSetIterator) Error() string {
+	return h.Inspect()
 }
 
 func (h *HashSetIterator) Inspect() string {

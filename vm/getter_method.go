@@ -56,6 +56,10 @@ func (g *GetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :getter}", g.AttributeName.Inspect())
 }
 
+func (g *GetterMethod) Error() string {
+	return g.Inspect()
+}
+
 func (*GetterMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }

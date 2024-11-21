@@ -28,7 +28,8 @@ func initKernel() {
 				if err != nil {
 					return nil, err
 				}
-				fmt.Fprint(vm.Stdout, result)
+				r := result.(value.String).String()
+				fmt.Fprint(vm.Stdout, r)
 			}
 
 			return value.Nil, nil
@@ -45,7 +46,8 @@ func initKernel() {
 				if err != nil {
 					return nil, err
 				}
-				fmt.Fprintln(vm.Stdout, result)
+				r := result.(value.String).String()
+				fmt.Fprintln(vm.Stdout, r)
 			}
 
 			return value.Nil, nil

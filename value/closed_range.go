@@ -35,6 +35,10 @@ func (*ClosedRange) SingletonClass() *Class {
 	return nil
 }
 
+func (r *ClosedRange) Error() string {
+	return r.Inspect()
+}
+
 func (r *ClosedRange) Inspect() string {
 	var buff strings.Builder
 	buff.WriteString(r.Start.Inspect())
@@ -91,6 +95,10 @@ func (r *ClosedRangeIterator) Copy() Value {
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
 	}
+}
+
+func (r *ClosedRangeIterator) Error() string {
+	return r.Inspect()
 }
 
 func (r *ClosedRangeIterator) Inspect() string {

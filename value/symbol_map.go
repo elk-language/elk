@@ -33,6 +33,10 @@ func (s SymbolMap) Copy() Value {
 	return newMap
 }
 
+func (s SymbolMap) Error() string {
+	return s.Inspect()
+}
+
 func (s SymbolMap) Inspect() string {
 	if len(s) == 0 {
 		return "{}"

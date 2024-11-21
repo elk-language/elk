@@ -46,6 +46,10 @@ func (p *Pair) Inspect() string {
 	return fmt.Sprintf("Std::Pair{key: %s, value: %s}", p.Key.Inspect(), p.Value.Inspect())
 }
 
+func (p *Pair) Error() string {
+	return p.Inspect()
+}
+
 func (*Pair) InstanceVariables() SymbolMap {
 	return nil
 }
@@ -149,6 +153,10 @@ func (l *PairIterator) Copy() Value {
 
 func (l *PairIterator) Inspect() string {
 	return fmt.Sprintf("Std::Pair::Iterator{pair: %s, index: %d}", l.Pair.Inspect(), l.Index)
+}
+
+func (l *PairIterator) Error() string {
+	return l.Inspect()
 }
 
 func (*PairIterator) InstanceVariables() SymbolMap {

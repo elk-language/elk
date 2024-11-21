@@ -34,6 +34,10 @@ func (c Char) Copy() Value {
 	return c
 }
 
+func (c Char) Error() string {
+	return c.Inspect()
+}
+
 func (c Char) Inspect() string {
 	var buff strings.Builder
 	buff.WriteRune('`')

@@ -118,6 +118,10 @@ func (s Symbol) Inspect() string {
 	return fmt.Sprintf(`:%s`, s.InspectContent())
 }
 
+func (s Symbol) Error() string {
+	return s.Inspect()
+}
+
 func (s Symbol) InstanceVariables() SymbolMap {
 	return nil
 }

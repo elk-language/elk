@@ -99,6 +99,11 @@ sealed primitive class ::Std::String < Value
 	def to_symbol: Symbol; end
 
 	##[
+		Convert the `String` to an `Int`.
+	]##
+	def to_int: Int ! FormatError; end
+
+	##[
 		Returns itself.
 	]##
 	def to_string: String; end

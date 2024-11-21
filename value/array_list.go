@@ -57,6 +57,10 @@ func (l *ArrayList) Copy() Value {
 	return &newList
 }
 
+func (l *ArrayList) Error() string {
+	return l.Inspect()
+}
+
 func (l *ArrayList) Inspect() string {
 	var builder strings.Builder
 
@@ -294,6 +298,10 @@ func (l *ArrayListIterator) Copy() Value {
 
 func (l *ArrayListIterator) Inspect() string {
 	return fmt.Sprintf("Std::ArrayList::Iterator{list: %s, index: %d}", l.ArrayList.Inspect(), l.Index)
+}
+
+func (l *ArrayListIterator) Error() string {
+	return l.Inspect()
 }
 
 func (*ArrayListIterator) InstanceVariables() SymbolMap {

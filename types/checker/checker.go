@@ -3644,7 +3644,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			fmt.Fprintf(
 				detailsBuff,
 				"\n  - incompatible definitions of method `%s`\n      `%s`% *s has: `%s`\n      `%s`% *s has: `%s`\n",
-				override.Name,
+				override.Name.String(),
 				overrideNamespaceName,
 				overrideWidthDiff,
 				"",
@@ -6992,7 +6992,11 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 	container := c.currentConstScope().container
 	if container.IsPrimitive() {
 		c.addFailure(
-			fmt.Sprintf("cannot declare instance variable `%s` in a primitive `%s`", name, types.InspectWithColor(container)),
+			fmt.Sprintf(
+				"cannot declare instance variable `%s` in a primitive `%s`",
+				name.String(),
+				types.InspectWithColor(container),
+			),
 			errSpan,
 		)
 	}

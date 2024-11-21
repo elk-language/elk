@@ -41,6 +41,10 @@ func (i SmallInt) Inspect() string {
 	return strconv.FormatInt(int64(i), 10)
 }
 
+func (i SmallInt) Error() string {
+	return i.Inspect()
+}
+
 func (i SmallInt) InstanceVariables() SymbolMap {
 	return nil
 }

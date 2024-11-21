@@ -327,6 +327,10 @@ func (c *Class) Inspect() string {
 	return result.String()
 }
 
+func (c *Class) Error() string {
+	return c.Inspect()
+}
+
 func (c *Class) InstanceVariables() SymbolMap {
 	return c.instanceVariables
 }

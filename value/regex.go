@@ -96,6 +96,10 @@ func (r *Regex) Inspect() string {
 	return buff.String()
 }
 
+func (r *Regex) Error() string {
+	return r.Inspect()
+}
+
 func (r *Regex) InstanceVariables() SymbolMap {
 	return nil
 }

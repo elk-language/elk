@@ -48,6 +48,10 @@ func (h *HashMap) Copy() Value {
 	return h.Clone()
 }
 
+func (h *HashMap) Error() string {
+	return h.Inspect()
+}
+
 func (h *HashMap) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteRune('{')
@@ -126,6 +130,10 @@ func (h *HashMapIterator) Copy() Value {
 		HashMap: h.HashMap,
 		Index:   h.Index,
 	}
+}
+
+func (h *HashMapIterator) Error() string {
+	return h.Inspect()
 }
 
 func (h *HashMapIterator) Inspect() string {

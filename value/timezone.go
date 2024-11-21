@@ -27,6 +27,10 @@ func (t *Timezone) Copy() Value {
 	return t
 }
 
+func (t *Timezone) Error() string {
+	return t.Inspect()
+}
+
 func (t *Timezone) Inspect() string {
 	return fmt.Sprintf("Timezone('%s')", t.Name())
 }
