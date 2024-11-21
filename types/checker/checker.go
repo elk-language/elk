@@ -79,6 +79,8 @@ const (
 	nilableValuePatternMode
 	nilablePatternMode
 	mutateLocalsInNarrowing // mutate local variables when doing narrowing, instead of creating shadow locals
+	tryMode
+	validTryMode
 )
 
 type phase uint8
@@ -983,6 +985,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		return c.checkThrowExpressionNode(n)
 	case *ast.MustExpressionNode:
 		return c.checkMustExpressionNode(n)
+	case *ast.TryExpressionNode:
+		return c.checkTryExpressionNode(n)
 	case *ast.AsExpressionNode:
 		return c.checkAsExpressionNode(n)
 	default:
@@ -1127,6 +1131,27 @@ func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpre
 	}
 
 	node.SetType(runtimeType)
+	return node
+}
+
+func (c *Checker) checkTryExpressionNode(node *ast.TryExpressionNode) *ast.TryExpressionNode {
+	prevMode := c.mode
+	c.mode = tryMode
+	node.Value = c.checkExpression(node.Value)
+
+	if c.mode != validTryMode {
+		c.addWarning(
+			fmt.Sprintf(
+				"unnecessary `%s`, the expression does not throw a checked error",
+				lexer.Colorize("try"),
+			),
+			node.Span(),
+		)
+	}
+	c.mode = prevMode
+
+	tryType := c.typeOf(node.Value)
+	node.SetType(tryType)
 	return node
 }
 

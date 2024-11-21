@@ -69,6 +69,52 @@ func TestDoCatchExpression(t *testing.T) {
 	}
 }
 
+func TestTryExpression(t *testing.T) {
+	tests := testTable{
+		"try with a value": {
+			input: `
+				a := 6
+				var b: -1 = try a
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(28, 3, 17), P(32, 3, 21)), "unnecessary `try`, the expression does not throw a checked error"),
+				error.NewFailure(L("<main>", P(28, 3, 17), P(32, 3, 21)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+		"try with a function call": {
+			input: `
+				def foo: Int
+					3
+				end
+
+				var b: -1 = try foo()
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(50, 6, 17), P(58, 6, 25)), "unnecessary `try`, the expression does not throw a checked error"),
+				error.NewFailure(L("<main>", P(50, 6, 17), P(58, 6, 25)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+		"try with a function call that throws a checked error": {
+			input: `
+				def foo: Int ! Symbol
+					throw :lol
+				end
+
+				var b: -1 = try foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 6, 17), P(76, 6, 25)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestMustExpression(t *testing.T) {
 	tests := testTable{
 		"must with a non-nilable value": {

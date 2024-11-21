@@ -1967,6 +1967,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
+	case token.TRY:
+		return p.tryExpression()
 	case token.TYPEOF:
 		return p.typeofExpression()
 	case token.REGEX_BEG:
@@ -4471,6 +4473,17 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 
 	return ast.NewMustExpressionNode(
 		mustTok.Span().Join(expr.Span()),
+		expr,
+	)
+}
+
+// tryExpression = "try" [expressionWithoutModifier]
+func (p *Parser) tryExpression() *ast.TryExpressionNode {
+	tryTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewTryExpressionNode(
+		tryTok.Span().Join(expr.Span()),
 		expr,
 	)
 }
