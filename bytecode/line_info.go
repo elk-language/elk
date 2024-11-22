@@ -38,15 +38,23 @@ func (l LineInfoList) First() *LineInfo {
 // bytecode instruction index.
 // Returns -1 when the line number couldn't be found.
 func (l LineInfoList) GetLineNumber(instructionIndex int) int {
+	lineInfo := l.GetLineInfo(instructionIndex)
+	if lineInfo == nil {
+		return -1
+	}
+	return lineInfo.LineNumber
+}
+
+func (l LineInfoList) GetLineInfo(instructionIndex int) *LineInfo {
 	currentBytecodeOffset := 0
 	for _, lineInfo := range l {
 		currentBytecodeOffset += lineInfo.InstructionCount
 		if currentBytecodeOffset-1 >= instructionIndex {
-			return lineInfo.LineNumber
+			return lineInfo
 		}
 	}
 
-	return -1
+	return nil
 }
 
 func (l *LineInfoList) AddBytesToLastLine(bytes int) {
@@ -77,4 +85,10 @@ func (l *LineInfoList) RemoveByte() {
 	}
 
 	lastLineInfo.InstructionCount--
+}
+
+func (l *LineInfoList) RemoveBytes(count int) {
+	for range count {
+		l.RemoveByte()
+	}
 }

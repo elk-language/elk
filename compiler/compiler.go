@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 
 	"github.com/elk-language/elk/bitfield"
@@ -65,13 +66,15 @@ func (c *Compiler) InitGlobalEnv() *Compiler {
 	envCompiler.Parent = c
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
-
-	span := &c.Bytecode.Location.Span
-	c.emitValue(envCompiler.Bytecode, span)
-	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
-
 	return envCompiler
+}
+
+func (c *Compiler) EmitExecInParent() {
+	parent := c.Parent
+	span := &parent.Bytecode.Location.Span
+	parent.emitValue(c.Bytecode, span)
+	parent.emit(span.StartPos.Line, bytecode.EXEC)
+	parent.emit(span.StartPos.Line, bytecode.POP)
 }
 
 // Compiler mode
@@ -362,21 +365,52 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 	c.prepLocals()
 }
 
-func (c *Compiler) InitMethodCompiler(span *position.Span) *Compiler {
+func (c *Compiler) InitMethodCompiler(span *position.Span) (*Compiler, int) {
 	methodCompiler := New("<methodDefinitions>", topLevelMode, c.Bytecode.Location, c.env)
 	methodCompiler.Errors = c.Errors
+	methodCompiler.Parent = c
 
+	offset := c.nextInstructionOffset()
 	c.emitValue(methodCompiler.Bytecode, span)
 	c.emit(span.StartPos.Line, bytecode.EXEC)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
-	return methodCompiler
+	return methodCompiler, offset
 }
 
-func (c *Compiler) CompileMethods(span *position.Span) {
+func (c *Compiler) CompileMethods(span *position.Span, execOffset int) {
 	c.compileMethodsWithinModule(c.env.Root, span)
-	c.emit(span.EndPos.Line, bytecode.NIL)
-	c.emit(span.EndPos.Line, bytecode.RETURN)
+	if len(c.Bytecode.Instructions) > 0 {
+		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(span.EndPos.Line, bytecode.RETURN)
+		return
+	}
+
+	// If no instructions were emitted, remove the EXEC instruction block
+	c.Parent.removeBytes(execOffset, 4)
+	c.Parent.removeMethodDefinitionsBytecodeFunction()
+}
+
+func (c *Compiler) removeBytes(offset int, count int) {
+	c.Bytecode.Instructions = slices.Concat(c.Bytecode.Instructions[:offset], c.Bytecode.Instructions[offset+count:])
+	lineInfo := c.Bytecode.LineInfoList.GetLineInfo(offset)
+	lineInfo.InstructionCount -= count
+}
+
+var methodDefinitionsSymbol = value.ToSymbol("<methodDefinitions>")
+
+func (c *Compiler) removeMethodDefinitionsBytecodeFunction() {
+	for i, value := range c.Bytecode.Values {
+		value, ok := value.(*vm.BytecodeFunction)
+		if !ok {
+			continue
+		}
+
+		if value.Name() == methodDefinitionsSymbol {
+			c.Bytecode.Values[i] = nil
+			break
+		}
+	}
 }
 
 func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *position.Span) {
@@ -2184,7 +2218,7 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 	}
 }
 
-// Return the offset of the Bytecode next instruction.
+// Return the offset of the next instruction.
 func (c *Compiler) nextInstructionOffset() int {
 	return len(c.Bytecode.Instructions)
 }

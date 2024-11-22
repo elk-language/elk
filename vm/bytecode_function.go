@@ -386,7 +386,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.MULTIPLY, bytecode.DIVIDE, bytecode.EXPONENTIATE,
 		bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
 		bytecode.TRUE, bytecode.FALSE, bytecode.NIL, bytecode.POP,
-		bytecode.RBITSHIFT, bytecode.LBITSHIFT,
+		bytecode.RBITSHIFT, bytecode.LBITSHIFT, bytecode.NOOP,
 		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,

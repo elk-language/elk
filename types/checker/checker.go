@@ -227,13 +227,13 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 
 	c.switchToMainCompiler()
-	methodCompiler := c.initMethodCompiler(node.Span())
+	methodCompiler, offset := c.initMethodCompiler(node.Span())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
 	c.checkMethods()
-	c.compileMethods(methodCompiler, node.Span())
+	c.compileMethods(methodCompiler, offset, node.Span())
 	c.checkClassesWithIvars()
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
@@ -247,11 +247,11 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 }
 
 // Create a new compiler that will define all methods
-func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, span *position.Span) {
+func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, span *position.Span) {
 	if methodCompiler == nil {
 		return
 	}
-	methodCompiler.CompileMethods(span)
+	methodCompiler.CompileMethods(span, offset)
 }
 
 func (c *Checker) shouldCompile() bool {
@@ -259,9 +259,9 @@ func (c *Checker) shouldCompile() bool {
 }
 
 // Create a new compiler that will define all methods
-func (c *Checker) initMethodCompiler(span *position.Span) *compiler.Compiler {
+func (c *Checker) initMethodCompiler(span *position.Span) (*compiler.Compiler, int) {
 	if c.IsHeader || c.Errors.IsFailure() {
-		return nil
+		return nil, 0
 	}
 	return c.compiler.InitMethodCompiler(span)
 }
@@ -271,7 +271,10 @@ func (c *Checker) switchToMainCompiler() {
 		return
 	}
 
-	c.compiler.EmitReturnNil()
+	if len(c.compiler.Bytecode.Instructions) > 0 {
+		c.compiler.EmitReturnNil()
+		c.compiler.EmitExecInParent()
+	}
 	c.compiler = c.compiler.Parent
 }
 

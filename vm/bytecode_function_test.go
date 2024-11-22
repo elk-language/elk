@@ -902,6 +902,20 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       2C                LESS_EQUAL
 `,
 		},
+		"correctly format the NOOP opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.NOOP)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				0, 0,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       2D                NOOP
+`,
+		},
 		"correctly format the ROOT opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,

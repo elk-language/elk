@@ -387,6 +387,7 @@ func (vm *VM) run() {
 
 			vm.popN(2)
 			vm.ip = int(jumpOffset)
+		case bytecode.NOOP:
 		case bytecode.DUP:
 			vm.push(vm.peek())
 		case bytecode.SWAP:

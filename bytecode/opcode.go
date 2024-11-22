@@ -87,7 +87,7 @@ const (
 	GREATER_EQUAL                 // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
 	LESS                          // Take two values from the stack, check if the first value is less than the second and push the result
 	LESS_EQUAL                    // Take two values from the stack, check if the first value is less than or equal to the second and push the result
-	_
+	NOOP                          // Does not perform any operation, placeholder.
 	_
 	_
 	ROOT             // Push `Std::Root` onto the stack.
@@ -245,6 +245,7 @@ var opCodeNames = [...]string{
 	GREATER_EQUAL:     "GREATER_EQUAL",
 	LESS:              "LESS",
 	LESS_EQUAL:        "LESS_EQUAL",
+	NOOP:              "NOOP",
 	ROOT:              "ROOT",
 	NOT_EQUAL:         "NOT_EQUAL",
 	STRICT_NOT_EQUAL:  "STRICT_NOT_EQUAL",
