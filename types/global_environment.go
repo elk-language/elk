@@ -61,6 +61,9 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		NamespaceBase: MakeNamespaceBase("", "Std"),
 		defined:       true,
 	}
+	rootModule.DefineConstant(symbol.Root, rootModule)
+	rootModule.DefineSubtype(symbol.Root, rootModule)
+
 	rootModule.DefineConstant(symbol.Std, stdModule)
 	rootModule.DefineSubtype(symbol.Std, stdModule)
 

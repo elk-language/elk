@@ -722,6 +722,21 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	}
 }
 
+// Iterate over every method alias defined directly under the given namespace, sorted by name
+func SortedOwnMethodAliases(namespace Namespace) iter.Seq2[value.Symbol, *MethodAlias] {
+	return func(yield func(name value.Symbol, method *MethodAlias) bool) {
+		methods := namespace.MethodAliases()
+		names := symbol.SortKeys(methods)
+
+		for _, name := range names {
+			method := methods[name]
+			if !yield(name, method) {
+				break
+			}
+		}
+	}
+}
+
 type InstanceVariable struct {
 	Type      Type
 	Namespace Namespace

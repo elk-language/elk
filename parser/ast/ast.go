@@ -1169,7 +1169,7 @@ func NewUnaryExpressionNode(span *position.Span, op *token.Token, right Expressi
 
 // Postfix expression eg. `foo++`, `bar--`
 type PostfixExpressionNode struct {
-	NodeBase
+	TypedNodeBase
 	Op         *token.Token // operator
 	Expression ExpressionNode
 }
@@ -1181,9 +1181,9 @@ func (i *PostfixExpressionNode) IsStatic() bool {
 // Create a new postfix expression node.
 func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
 	return &PostfixExpressionNode{
-		NodeBase:   NodeBase{span: span},
-		Op:         op,
-		Expression: expr,
+		TypedNodeBase: TypedNodeBase{span: span},
+		Op:            op,
+		Expression:    expr,
 	}
 }
 

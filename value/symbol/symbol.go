@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	Root                 = value.ToSymbol("Root")
 	Std                  = value.ToSymbol("Std")
 	Object               = value.ToSymbol("Object")
 	Class                = value.ToSymbol("Class")

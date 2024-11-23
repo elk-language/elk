@@ -1296,7 +1296,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 }
 
 func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, methodName string) ast.ExpressionNode {
-	return c.checkExpression(
+	expr := c.checkExpression(
 		ast.NewAssignmentExpressionNode(
 			node.Span(),
 			token.New(node.Op.Span(), token.EQUAL_OP),
@@ -1311,6 +1311,8 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
+	node.SetType(c.typeOf(expr))
+	return node
 }
 
 func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueType types.Type) {

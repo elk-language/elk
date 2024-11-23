@@ -307,6 +307,9 @@ func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace
 		if !ok {
 			continue
 		}
+		if subtypeNamespace == namespace {
+			continue
+		}
 
 		defineMethodsWithinNamespace(buffer, subtypeNamespace, env, false)
 	}
@@ -368,6 +371,9 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
 	for name, subtype := range types.SortedSubtypes(namespace) {
+		if subtype.Type == namespace {
+			continue
+		}
 		switch s := subtype.Type.(type) {
 		case *types.Class:
 			defineClass(buffer, s, name.String())

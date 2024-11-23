@@ -237,6 +237,9 @@ func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.N
 	}
 
 	for name, subtype := range namespace.Subtypes() {
+		if subtype.Type == namespace {
+			continue
+		}
 		c.compileSubtypeDefinition(namespace, subtype.Type, name, span)
 	}
 }
@@ -418,11 +421,11 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 		c.emitGetConst(value.ToSymbol(module.Name()), span)
 		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
-		for methodName, method := range module.Methods() {
+		for methodName, method := range types.SortedOwnMethods(module) {
 			c.compileMethodDefinition(methodName, method, span)
 		}
 
-		for aliasName, alias := range module.MethodAliases() {
+		for aliasName, alias := range types.SortedOwnMethodAliases(module) {
 			c.compileMethodAliasDefinition(aliasName, alias, span)
 		}
 
@@ -430,6 +433,9 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 	}
 
 	for _, subtype := range module.Subtypes() {
+		if subtype.Type == module {
+			continue
+		}
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
 }
@@ -480,22 +486,22 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
 		c.emitGetConst(value.ToSymbol(namespace.Name()), span)
 
-		for methodName, method := range namespace.Methods() {
+		for methodName, method := range types.SortedOwnMethods(namespace) {
 			c.compileMethodDefinition(methodName, method, span)
 		}
 
-		for aliasName, alias := range namespace.MethodAliases() {
+		for aliasName, alias := range types.SortedOwnMethodAliases(namespace) {
 			c.compileMethodAliasDefinition(aliasName, alias, span)
 		}
 
 		if singletonHasCompiledMethods {
 			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
-			for methodName, method := range singleton.Methods() {
+			for methodName, method := range types.SortedOwnMethods(singleton) {
 				c.compileMethodDefinition(methodName, method, span)
 			}
 
-			for aliasName, alias := range singleton.MethodAliases() {
+			for aliasName, alias := range types.SortedOwnMethodAliases(singleton) {
 				c.compileMethodAliasDefinition(aliasName, alias, span)
 			}
 		}
@@ -504,6 +510,9 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span
 	}
 
 	for _, subtype := range namespace.Subtypes() {
+		if subtype.Type == namespace {
+			continue
+		}
 		c.compileMethodsWithinType(subtype.Type, span)
 	}
 }
@@ -582,28 +591,40 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 }
 
 // Entry point for compiling the body of a namespace eg. Module, Class, Mixin, Struct, Interface.
-func (c *Compiler) compileNamespace(node ast.Node) {
+func (c *Compiler) compileNamespace(node ast.Node) bool {
 	span := node.Span()
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
-		c.compileStatements(n.Body, span)
+		if !c.compileStatementsOk(n.Body) {
+			return false
+		}
 	case *ast.InterfaceDeclarationNode:
-		c.compileStatements(n.Body, span)
+		if !c.compileStatementsOk(n.Body) {
+			return false
+		}
 	case *ast.ModuleDeclarationNode:
-		c.compileStatements(n.Body, span)
+		if !c.compileStatementsOk(n.Body) {
+			return false
+		}
 	case *ast.MixinDeclarationNode:
-		c.compileStatements(n.Body, span)
+		if !c.compileStatementsOk(n.Body) {
+			return false
+		}
 	case *ast.SingletonBlockExpressionNode:
-		c.compileStatements(n.Body, span)
+		if !c.compileStatementsOk(n.Body) {
+			return false
+		}
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect namespace type %#v", n),
 			c.newLocation(span),
 		)
-		return
+		return false
 	}
+
 	c.emitReturn(span, nil)
 	c.prepLocals()
+	return true
 }
 
 // Create a new location struct with the given position.
@@ -722,7 +743,8 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		*ast.MethodSignatureDefinitionNode, *ast.ImplementExpressionNode,
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
-		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode:
+		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
+		*ast.InstanceVariableDeclarationNode:
 		return false
 	case *ast.ProgramNode:
 		c.compileStatements(node.Body, node.Span())
@@ -745,17 +767,17 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.AssignmentExpressionNode:
 		c.compileAssignmentExpressionNode(node)
 	case *ast.InterfaceDeclarationNode:
-		c.compileInterfaceDeclarationNode(node)
+		return c.compileInterfaceDeclarationNode(node)
 	case *ast.ClassDeclarationNode:
-		c.compileClassDeclarationNode(node)
+		return c.compileClassDeclarationNode(node)
 	case *ast.ModuleDeclarationNode:
-		c.compileModuleDeclarationNode(node)
+		return c.compileModuleDeclarationNode(node)
 	case *ast.MixinDeclarationNode:
-		c.compileMixinDeclarationNode(node)
+		return c.compileMixinDeclarationNode(node)
+	case *ast.SingletonBlockExpressionNode:
+		return c.compileSingletonBlockExpressionNode(node)
 	case *ast.ClosureLiteralNode:
 		c.compileClosureLiteralNode(node)
-	case *ast.SingletonBlockExpressionNode:
-		c.compileSingletonBlockExpressionNode(node)
 	case *ast.SwitchExpressionNode:
 		c.compileSwitchExpressionNode(node)
 	case *ast.SubscriptExpressionNode:
@@ -782,8 +804,6 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		c.compilerVariablePatternDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
 		c.compileVariableDeclarationNode(node)
-	case *ast.InstanceVariableDeclarationNode:
-		c.compileInstanceVariableDeclarationNode(node)
 	case *ast.ValuePatternDeclarationNode:
 		c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
@@ -3414,27 +3434,28 @@ func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 	c.emitCall(callInfo, node.Span())
 }
 
-func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) {
-	span := node.Span()
+func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) bool {
 	if len(node.Body) <= 0 {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		return
+		return false
 	}
 
+	span := node.Span()
 	singletonType := node.Type(c.env).(*types.SingletonClass)
 	singletonName := singletonType.Name()
+
+	singletonCompiler := New(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceMode, c.newLocation(span), c.env)
+	singletonCompiler.Errors = c.Errors
+	if !singletonCompiler.compileNamespace(node) {
+		return false
+	}
 
 	c.emit(span.StartPos.Line, bytecode.SELF)
 	c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
-	singletonCompiler := New(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceMode, c.newLocation(span), c.env)
-	singletonCompiler.Errors = c.Errors
-	singletonCompiler.compileNamespace(node)
-
 	result := singletonCompiler.Bytecode
 	c.emitValue(result, span)
-
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return true
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
@@ -3468,88 +3489,92 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	c.emitByte(vm.ClosureTerminatorFlag)
 }
 
-func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) {
-	span := node.Span()
+func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) bool {
 	if len(node.Body) <= 0 {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		return
+		return false
 	}
 
+	span := node.Span()
 	mixinType := node.Type(c.env).(*types.Mixin)
 	mixinName := value.ToSymbol(mixinType.Name())
-	c.emitGetConst(mixinName, node.Constant.Span())
 
 	mixinCompiler := New(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
 	mixinCompiler.Errors = c.Errors
-	mixinCompiler.compileNamespace(node)
-
-	result := mixinCompiler.Bytecode
-	c.emitValue(result, span)
-
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-}
-
-func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) {
-	span := node.Span()
-	if len(node.Body) <= 0 {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		return
+	if !mixinCompiler.compileNamespace(node) {
+		return false
 	}
 
+	c.emitGetConst(mixinName, node.Constant.Span())
+	result := mixinCompiler.Bytecode
+	c.emitValue(result, span)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return true
+}
+
+func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) bool {
+	if len(node.Body) <= 0 {
+		return false
+	}
+
+	span := node.Span()
 	modType := node.Type(c.env).(*types.Module)
 	modName := value.ToSymbol(modType.Name())
-	c.emitGetConst(modName, node.Constant.Span())
 
 	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
 	modCompiler.Errors = c.Errors
-	modCompiler.compileNamespace(node)
-
-	result := modCompiler.Bytecode
-	c.emitValue(result, span)
-
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-}
-
-func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) {
-	span := node.Span()
-	if len(node.Body) <= 0 {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		return
+	if !modCompiler.compileNamespace(node) {
+		return false
 	}
 
+	c.emitGetConst(modName, node.Constant.Span())
+	result := modCompiler.Bytecode
+	c.emitValue(result, span)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return true
+}
+
+func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) bool {
+	if len(node.Body) <= 0 {
+		return false
+	}
+
+	span := node.Span()
 	ifaceType := node.Type(c.env).(*types.Interface)
 	className := value.ToSymbol(ifaceType.Name())
-	c.emitGetConst(className, node.Constant.Span())
 
-	modCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
-	modCompiler.Errors = c.Errors
-	modCompiler.compileNamespace(node)
-
-	result := modCompiler.Bytecode
-	c.emitValue(result, span)
-
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-}
-
-func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) {
-	span := node.Span()
-	if len(node.Body) <= 0 {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		return
+	ifaceCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
+	ifaceCompiler.Errors = c.Errors
+	if !ifaceCompiler.compileNamespace(node) {
+		return false
 	}
 
+	c.emitGetConst(className, node.Constant.Span())
+	result := ifaceCompiler.Bytecode
+	c.emitValue(result, span)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return true
+}
+
+func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) bool {
+	if len(node.Body) <= 0 {
+		return false
+	}
+
+	span := node.Span()
 	classType := node.Type(c.env).(*types.Class)
 	className := value.ToSymbol(classType.Name())
+
+	classCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
+	classCompiler.Errors = c.Errors
+	if !classCompiler.compileNamespace(node) {
+		return false
+	}
+
 	c.emitGetConst(className, node.Constant.Span())
-
-	modCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, c.newLocation(node.Span()), c.env)
-	modCompiler.Errors = c.Errors
-	modCompiler.compileNamespace(node)
-
-	result := modCompiler.Bytecode
+	result := classCompiler.Bytecode
 	c.emitValue(result, span)
-
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return true
 }
 
 func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {
@@ -3617,10 +3642,6 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 	}
 }
 
-func (c *Compiler) compileInstanceVariableDeclarationNode(node *ast.InstanceVariableDeclarationNode) {
-	c.emit(node.Span().StartPos.Line, bytecode.NIL)
-}
-
 // Compile each element of a collection of statements.
 func (c *Compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
 	if !c.compileStatementsOk(collection) {
@@ -3628,7 +3649,7 @@ func (c *Compiler) compileStatements(collection []ast.StatementNode, span *posit
 	}
 }
 
-// Same as [compileStatements] but returns false when no instructions were emitted instead
+// Same as [compileStatements] but returns false when no instructions were emitted instead of
 // emitting a `nil` value.
 func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 	var isPresent bool
@@ -5301,7 +5322,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		} else {
 			c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
 		}
-	case namespaceMode, initMethodMode:
+	case initMethodMode:
 		if value != nil {
 			c.compileNode(value)
 		}
@@ -5311,6 +5332,19 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
 		} else {
 			c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
+		}
+	case namespaceMode:
+		if value != nil {
+			c.compileNode(value)
+		}
+		if c.lastOpCode != bytecode.NIL {
+			c.emit(span.EndPos.Line, bytecode.POP)
+			c.emit(span.EndPos.Line, bytecode.NIL)
+		}
+		if c.isNestedInFinally() {
+			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+		} else {
+			c.emit(span.EndPos.Line, bytecode.RETURN)
 		}
 	default:
 		if value != nil {
