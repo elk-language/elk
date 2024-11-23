@@ -7600,6 +7600,10 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
 		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node
+	case types.Namespace:
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
+		return node
 	default:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node

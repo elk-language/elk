@@ -229,6 +229,20 @@ func TestUsing(t *testing.T) {
 				error.NewFailure(L("<main>", P(79, 8, 12), P(79, 8, 12)), "undefined type `Foo::Bar`"),
 			},
 		},
+		"using with a single constant and as after declaration": {
+			input: `
+				class Foo
+					const Bar = 3
+				end
+				using Foo::Bar as B
+
+				var a: B = 9
+				var c: 3 = B
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(78, 7, 12), P(78, 7, 12)), "undefined type `Foo::Bar`"),
+			},
+		},
 		"using with a single type": {
 			input: `
 				using Foo::Bar
