@@ -1479,12 +1479,12 @@ func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.Expr
 
 func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkMapPairs(node.Elements)
-
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
-	if typ != nil {
-		c.checkCanAssign(keyType, typ.TypeArguments.Get(0).Type, node.Span())
-		c.checkCanAssign(valueType, typ.TypeArguments.Get(1).Type, node.Span())
+
+	if typ != nil &&
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), types.Any{}, types.Any{})
@@ -1570,8 +1570,7 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	valueType := c.newNormalisedUnion(valueTypes...)
 	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
 
-	if typ != nil {
-		c.checkCanAssign(valueType, typ.TypeArguments.Get(0).Type, node.Span())
+	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(valueTypes) == 0 {
 		c.addFailure(
@@ -1604,12 +1603,12 @@ func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) as
 
 func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkRecordPairs(node.Elements)
-
 	keyType := c.newNormalisedUnion(keyTypes...)
 	valueType := c.newNormalisedUnion(valueTypes...)
-	if typ != nil {
-		c.checkCanAssign(keyType, typ.TypeArguments.Get(0).Type, node.Span())
-		c.checkCanAssign(valueType, typ.TypeArguments.Get(1).Type, node.Span())
+
+	if typ != nil &&
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), types.Any{}, types.Any{})
@@ -1757,10 +1756,9 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 
 func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkArrayListElements(node.Elements)
-
 	elementType := c.newNormalisedUnion(elementTypes...)
-	if typ != nil {
-		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), types.Any{}))
@@ -1971,10 +1969,9 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 
 func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkHashSetElements(node.Elements)
-
 	elementType := c.newNormalisedUnion(elementTypes...)
-	if typ != nil {
-		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), types.Any{}))
@@ -2005,10 +2002,9 @@ func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) as
 
 func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkArrayTupleElements(node.Elements)
-
 	elementType := c.newNormalisedUnion(elementTypes...)
-	if typ != nil {
-		c.checkCanAssign(elementType, typ.TypeArguments.Get(0).Type, node.Span())
+
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), types.Any{}))

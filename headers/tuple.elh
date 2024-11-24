@@ -39,4 +39,10 @@ abstract mixin ::Std::Tuple[+Element]
 		by the given closure.
 	]##
 	def map[E](fn: |element: Element|: E): Tuple[E]; end
+
+	##[
+		Create a new `Tuple` containing the elements of `self`
+		and another given `Tuple`.
+	]##
+	sealed def +[E](other: Tuple[E]): Tuple[Element | E]; end
 end

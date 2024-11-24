@@ -22,9 +22,9 @@ sealed primitive class ::Std::ArrayTuple[+Element] < Value
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`
-		and another given `ArrayTuple`.
+		and another given `Tuple`.
 	]##
-	sealed def +[E](other: ArrayTuple[E]): ArrayTuple[Element | E]; end
+	sealed def +[E](other: Tuple[E]): ArrayTuple[Element | E]; end
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`

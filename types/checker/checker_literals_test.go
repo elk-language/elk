@@ -185,7 +185,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var foo: Tuple[Int] = %["", 2.2]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(36, 2, 36)), "type `\"\" | 2.2` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(27, 2, 27), P(36, 2, 36)), "type `Std::ArrayTuple[\"\" | 2.2]` cannot be assigned to type `Std::Tuple[Std::Int]`"),
 			},
 		},
 
@@ -402,7 +402,7 @@ func TestHashSetLiteral(t *testing.T) {
 				var foo: Set[Int] = ^["", 2.2]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 2, 25), P(34, 2, 34)), "type `Std::String | Std::Float` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(25, 2, 25), P(34, 2, 34)), "type `Std::HashSet[Std::String | Std::Float]` cannot be assigned to type `Std::Set[Std::Int]`"),
 			},
 		},
 		"int capacity": {
@@ -747,7 +747,7 @@ func TestArrayListLiteral(t *testing.T) {
 				var foo: List[Int] = ["", 2.2]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(26, 2, 26), P(34, 2, 34)), "type `Std::String | Std::Float` cannot be assigned to type `Std::Int`"),
+				error.NewFailure(L("<main>", P(26, 2, 26), P(34, 2, 34)), "type `Std::ArrayList[Std::String | Std::Float]` cannot be assigned to type `Std::List[Std::Int]`"),
 			},
 		},
 		"int capacity": {
@@ -1009,8 +1009,7 @@ func TestHashMapLiteral(t *testing.T) {
 				var foo: Map[Int, String] = { "" => 2.2 }
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(45, 2, 45)), "type `Std::String` cannot be assigned to type `Std::Int`"),
-				error.NewFailure(L("<main>", P(33, 2, 33), P(45, 2, 45)), "type `Std::Float` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(33, 2, 33), P(45, 2, 45)), "type `Std::HashMap[Std::String, Std::Float]` cannot be assigned to type `Std::Map[Std::Int, Std::String]`"),
 			},
 		},
 		"infer hash map": {
@@ -1160,8 +1159,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var foo: Record[Int, String] = %{ "" => 2.2 }
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `\"\"` cannot be assigned to type `Std::Int`"),
-				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `2.2` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `Std::HashRecord[\"\", 2.2]` cannot be assigned to type `Std::Record[Std::Int, Std::String]`"),
 			},
 		},
 		"infer hash record": {
@@ -1436,7 +1434,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = ...5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::BeginlessClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"beginless closed range - explicitly define incompatible type": {
@@ -1444,7 +1442,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = ...5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::BeginlessClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"beginless closed range - infer type with the same argument": {
@@ -1500,7 +1498,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = ..<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::BeginlessOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"beginless open range - explicitly define incompatible type": {
@@ -1508,7 +1506,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = ..<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::BeginlessOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"beginless open range - infer type with the same argument": {
@@ -1564,7 +1562,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1...5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::ClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"closed range - explicitly define incompatible type": {
@@ -1572,7 +1570,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1...5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::ClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"closed range - infer type with the same argument": {
@@ -1646,7 +1644,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1<.<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::OpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"open range - explicitly define incompatible type": {
@@ -1654,7 +1652,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1<.<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::OpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"open range - infer type with the same argument": {
@@ -1728,7 +1726,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1<..5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::LeftOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"left open range - explicitly define incompatible type": {
@@ -1736,7 +1734,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1<..5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::LeftOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"left open range - infer type with the same argument": {
@@ -1810,7 +1808,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1..<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::RightOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"right open range - explicitly define incompatible type": {
@@ -1818,7 +1816,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 1..<5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(32, 2, 32)), "type `Std::RightOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"right open range - infer type with the same argument": {
@@ -1892,7 +1890,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 5...
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::EndlessClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"endless closed range - explicitly define incompatible type": {
@@ -1900,7 +1898,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 5...
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::EndlessClosedRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"endless closed range - infer type with the same argument": {
@@ -1962,7 +1960,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 5<..
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::EndlessOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"endless open range - explicitly define incompatible type": {
@@ -1970,7 +1968,7 @@ func TestRangeLiteral(t *testing.T) {
 				var a: Range[String] = 5<..
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+				error.NewFailure(L("<main>", P(28, 2, 28), P(31, 2, 31)), "type `Std::EndlessOpenRange[Std::Int]` cannot be assigned to type `Std::Range[Std::String]`"),
 			},
 		},
 		"endless open range - infer type with the same argument": {

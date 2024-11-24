@@ -78,9 +78,9 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 
 	##[
 		Create a new `ArrayList` containing the elements of `self`
-		and another given `ArrayList` or `ArrayTuple`.
+		and another given `Tuple`.
 	]##
-	sealed def +[E](other: ArrayList[E] | ArrayTuple[E]): ArrayList[Element | E]; end
+	sealed def +[E](other: Tuple[E]): ArrayList[Element | E]; end
 
 	##[
 		Create a new `ArrayList` containing the elements of `self`

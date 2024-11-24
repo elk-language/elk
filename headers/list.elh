@@ -17,6 +17,12 @@ abstract mixin ::Std::List[Element]
 	# Base methods
 
 	##[
+		Create a new `List` containing the elements of `self`
+		and another given `Tuple`.
+	]##
+	sealed def +[E](other: Tuple[E]): List[Element | E]; end
+
+	##[
 		Iterates over the elements of this collection,
 		yielding them to the given closure.
 
