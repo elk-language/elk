@@ -1413,6 +1413,16 @@ func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Ty
 
 			p.Value = c.checkExpression(p.Value)
 			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+		case *ast.PublicIdentifierNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			c.checkExpression(p)
+			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p), false))
+		case *ast.PrivateIdentifierNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			c.checkExpression(p)
+			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p), false))
 		case *ast.ModifierNode:
 			keyType, valueType := c.checkModifierInRecord(p)
 			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
@@ -1450,6 +1460,16 @@ func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types
 
 			p.Value = c.checkExpression(p.Value)
 			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
+		case *ast.PublicIdentifierNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			c.checkExpression(p)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p))
+		case *ast.PrivateIdentifierNode:
+			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
+
+			c.checkExpression(p)
+			valueTypes = append(valueTypes, c.typeOfGuardVoid(p))
 		case *ast.ModifierNode:
 			keyType, valueType := c.checkModifierInRecord(p)
 
