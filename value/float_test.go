@@ -13,7 +13,7 @@ func TestFloatAdd(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Object
+		err   value.Value
 	}{
 		"Float + Float => Float": {
 			left:  2.5,
@@ -113,10 +113,10 @@ func TestFloatAdd(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -127,7 +127,7 @@ func TestFloatSubtract(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Object
+		err   value.Value
 	}{
 		"Float - Float => Float": {
 			left:  10.0,
@@ -228,10 +228,10 @@ func TestFloatSubtract(t *testing.T) {
 			got, err := tc.left.Subtract(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -242,7 +242,7 @@ func TestFloatMultiply(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Object
+		err   value.Value
 	}{
 		"Float * Float => Float": {
 			left:  2.55,
@@ -433,10 +433,10 @@ func TestFloatMultiply(t *testing.T) {
 			got, err := tc.left.Multiply(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -447,7 +447,7 @@ func TestFloatDivide(t *testing.T) {
 		left  value.Float
 		right value.Value
 		want  value.Value
-		err   *value.Object
+		err   value.Value
 	}{
 		"Float / Float => Float": {
 			left:  2.68,
@@ -638,10 +638,10 @@ func TestFloatDivide(t *testing.T) {
 			got, err := tc.left.Divide(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -652,7 +652,7 @@ func TestFloat_Exponentiate(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"exponentiate String and return an error": {
 			a:   value.Float(5),
@@ -1034,10 +1034,10 @@ func TestFloat_Exponentiate(t *testing.T) {
 			got, err := tc.a.Exponentiate(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1048,7 +1048,7 @@ func TestFloat_Modulo(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1302,10 +1302,10 @@ func TestFloat_Modulo(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1316,7 +1316,7 @@ func TestFloat_Compare(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1579,7 +1579,7 @@ func TestFloat_GreaterThan(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -1828,10 +1828,10 @@ func TestFloat_GreaterThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1841,7 +1841,7 @@ func TestFloat_GreaterThanEqual(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -2104,7 +2104,7 @@ func TestFloat_LessThan(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -2318,10 +2318,10 @@ func TestFloat_LessThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2331,7 +2331,7 @@ func TestFloat_LessThanEqual(t *testing.T) {
 		a    value.Float
 		b    value.Value
 		want value.Value
-		err  *value.Object
+		err  value.Value
 	}{
 		"String and return an error": {
 			a:   value.Float(5),
@@ -2555,10 +2555,10 @@ func TestFloat_LessThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

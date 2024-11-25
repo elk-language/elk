@@ -162,21 +162,22 @@ type upvalue struct {
 
 // Holds the state of the Compiler.
 type Compiler struct {
-	Name             string
-	Bytecode         *vm.BytecodeFunction
-	Errors           *error.SyncErrorList
-	scopes           scopes
-	loopJumpSets     []*loopJumpSet
-	offsetValueIds   []int // ids of integers in the value pool that represent bytecode offsets
-	lastLocalIndex   int   // index of the last local variable
-	maxLocalIndex    int   // max index of a local variable
-	predefinedLocals int
-	mode             mode
-	lastOpCode       bytecode.OpCode
-	patternNesting   int
-	Parent           *Compiler
-	upvalues         []*upvalue
-	env              *types.GlobalEnvironment
+	Name               string
+	Bytecode           *vm.BytecodeFunction
+	Errors             *error.SyncErrorList
+	scopes             scopes
+	loopJumpSets       []*loopJumpSet
+	offsetValueIds     []int // ids of integers in the value pool that represent bytecode offsets
+	lastLocalIndex     int   // index of the last local variable
+	maxLocalIndex      int   // max index of a local variable
+	predefinedLocals   int
+	mode               mode
+	secondToLastOpCode bytecode.OpCode
+	lastOpCode         bytecode.OpCode
+	patternNesting     int
+	Parent             *Compiler
+	upvalues           []*upvalue
+	env                *types.GlobalEnvironment
 }
 
 // Instantiate a New Compiler instance.
@@ -213,7 +214,9 @@ func (c *Compiler) EmitReturnNil() {
 
 func (c *Compiler) EmitReturn() {
 	span := &c.Bytecode.Location.Span
-	c.emit(span.EndPos.Line, bytecode.RETURN)
+	if c.lastOpCode != bytecode.RETURN {
+		c.emit(span.EndPos.Line, bytecode.RETURN)
+	}
 	c.prepLocals()
 }
 
@@ -1648,7 +1651,9 @@ func (c *Compiler) compileModifierForInNode(label string, node *ast.ModifierForI
 		node.Pattern,
 		node.InExpression,
 		func() {
-			c.compileNode(node.ThenExpression)
+			if !c.compileNode(node.ThenExpression) {
+				c.emit(node.ThenExpression.Span().StartPos.Line, bytecode.NIL)
+			}
 		},
 		node.Span(),
 		false,
@@ -3663,11 +3668,17 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 
 	if isPresent {
 		// remove the last POP instruction
-		c.Bytecode.RemoveByte()
+		c.removeOpcode()
 		return true
 	}
 
 	return false
+}
+
+func (c *Compiler) removeOpcode() {
+	c.lastOpCode = c.secondToLastOpCode
+	c.secondToLastOpCode = bytecode.ZERO_VALUE
+	c.Bytecode.RemoveByte()
 }
 
 func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
@@ -5571,6 +5582,7 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 
 // Emit an opcode with optional bytes.
 func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
+	c.secondToLastOpCode = c.lastOpCode
 	c.lastOpCode = op
 	c.Bytecode.AddInstruction(line, op, bytes...)
 }

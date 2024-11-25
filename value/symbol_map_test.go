@@ -405,8 +405,8 @@ func TestSymbolMapInspect(t *testing.T) {
 				value.ToSymbol("foo"): value.String("baz"),
 				value.ToSymbol("bar"): value.FloatClass,
 			},
-			want:    `{foo: "baz", bar: sealed class Std::Float < Std::Object}`,
-			wantAlt: `{bar: sealed class Std::Float < Std::Object, foo: "baz"}`,
+			want:    `{foo: "baz", bar: class Std::Float < Std::Object}`,
+			wantAlt: `{bar: class Std::Float < Std::Object, foo: "baz"}`,
 		},
 	}
 
@@ -416,10 +416,10 @@ func TestSymbolMapInspect(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				if tc.wantAlt == "" {
-					t.Fatalf(diff)
+					t.Fatal(diff)
 				}
 				if diff := cmp.Diff(tc.wantAlt, got, opts...); diff != "" {
-					t.Fatalf(diff)
+					t.Fatal(diff)
 				}
 			}
 		})

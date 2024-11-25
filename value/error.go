@@ -449,7 +449,7 @@ func Errorf(class *Class, format string, a ...any) *Object {
 func (e *Object) Error() string {
 	switch msg := e.Message().(type) {
 	case String:
-		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg)
+		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg.String())
 	default:
 		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg.Inspect())
 	}

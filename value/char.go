@@ -38,6 +38,10 @@ func (c Char) Error() string {
 	return c.Inspect()
 }
 
+func (c Char) Rune() rune {
+	return rune(c)
+}
+
 func (c Char) Inspect() string {
 	var buff strings.Builder
 	buff.WriteRune('`')
@@ -64,11 +68,11 @@ func (c Char) Inspect() string {
 		if unicode.IsGraphic(rune(c)) {
 			buff.WriteRune(rune(c))
 		} else if c>>8 == 0 {
-			fmt.Fprintf(&buff, `\x%02x`, c)
+			fmt.Fprintf(&buff, `\x%02x`, c.Rune())
 		} else if c>>16 == 0 {
-			fmt.Fprintf(&buff, `\u%04x`, c)
+			fmt.Fprintf(&buff, `\u%04x`, c.Rune())
 		} else {
-			fmt.Fprintf(&buff, `\U%08X`, c)
+			fmt.Fprintf(&buff, `\U%08X`, c.Rune())
 		}
 	}
 

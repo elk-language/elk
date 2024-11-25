@@ -2214,7 +2214,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
-	c.checkExpression(node.ThenExpression)
+	node.ThenExpression = c.checkExpression(node.ThenExpression)
 	c.popLocalEnv()
 
 	c.popLoop()

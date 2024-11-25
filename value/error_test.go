@@ -28,7 +28,7 @@ func TestErrorf(t *testing.T) {
 			got := value.Errorf(tc.class, tc.format, tc.args...)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -49,7 +49,7 @@ func TestErrorError(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.err.Error()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
