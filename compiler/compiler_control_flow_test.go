@@ -6212,88 +6212,146 @@ func TestCatch(t *testing.T) {
 				},
 			),
 		},
-		// "catch and finally": {
-		// 	input: `
-		// 		def bar! :foo
-		// 			println "bar"
-		// 			throw :foo
-		// 		end
+		"catch and finally": {
+			input: `
+				def foo! :foo
+					println "foo"
+					throw :foo
+				end
 
-		// 		do
-		// 			println "foo"
-		// 		catch :foo
-		// 			bar()
-		// 		finally
-		// 			println "baz"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.CALL_SELF8), 0,
-		// 			byte(bytecode.CALL_SELF8), 1,
-		// 			byte(bytecode.POP),
+				do
+					foo()
+				catch :foo
+					println "bar"
+				finally
+					println "baz"
+				end
+			`,
+			want: vm.NewBytecodeFunctionWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.JUMP), 0, 63,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.CALL_METHOD8), 9,
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF), 0, 13,
+					byte(bytecode.JUMP_IF_NIL), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.POP_N_SKIP_ONE), 2,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETHROW),
 
-		// 			byte(bytecode.JUMP), 0, 55,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.CALL_SELF8), 3,
-		// 			byte(bytecode.JUMP), 0, 5,
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.CALL_SELF8), 4,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF), 0, 13,
-		// 			byte(bytecode.JUMP_IF_NIL), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.POP_N_SKIP_ONE), 2,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.RETHROW),
-
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(75, 8, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(7, 2),
-		// 			bytecode.NewLineInfo(2, 4),
-		// 			bytecode.NewLineInfo(4, 8),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 			bytecode.NewLineInfo(8, 13),
-		// 			bytecode.NewLineInfo(7, 2),
-		// 			bytecode.NewLineInfo(8, 27),
-		// 		},
-		// 		0,
-		// 		0,
-		// 		[]value.Value{
-		// 			value.NewCallSiteInfo(value.ToSymbol("foo"), 0),
-		// 			value.NewCallSiteInfo(value.ToSymbol("baz"), 0),
-		// 			value.ToSymbol("foo"),
-		// 			value.NewCallSiteInfo(value.ToSymbol("bar"), 0),
-		// 			value.NewCallSiteInfo(value.ToSymbol("baz"), 0),
-		// 		},
-		// 		[]*vm.CatchEntry{
-		// 			vm.NewCatchEntry(0, 2, 8, false),
-		// 			vm.NewCatchEntry(0, 2, 30, true),
-		// 		},
-		// 	),
-		// },
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(153, 13, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(8, 3),
+					bytecode.NewLineInfo(12, 6),
+					bytecode.NewLineInfo(7, 4),
+					bytecode.NewLineInfo(9, 8),
+					bytecode.NewLineInfo(10, 10),
+					bytecode.NewLineInfo(13, 13),
+					bytecode.NewLineInfo(12, 6),
+					bytecode.NewLineInfo(13, 27),
+				},
+				0,
+				0,
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(153, 13, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(13, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Object"),
+							vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.GET_CONST8), 0,
+									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.CALL_METHOD8), 2,
+									byte(bytecode.POP),
+									byte(bytecode.LOAD_VALUE8), 3,
+									byte(bytecode.THROW),
+									byte(bytecode.RETURN),
+								},
+								L(P(5, 2, 5), P(60, 5, 7)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 7),
+									bytecode.NewLineInfo(4, 3),
+									bytecode.NewLineInfo(5, 1),
+								},
+								[]value.Value{
+									value.ToSymbol("Std::Kernel"),
+									&value.ArrayTuple{value.String("foo")},
+									value.NewCallSiteInfo(value.ToSymbol("println"), 1),
+									value.ToSymbol("foo"),
+								},
+							),
+							value.ToSymbol("foo"),
+						},
+					),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0),
+					value.ToSymbol("Std::Kernel"),
+					&value.ArrayTuple{value.String("baz")},
+					value.NewCallSiteInfo(value.ToSymbol("println"), 1),
+					value.ToSymbol("foo"),
+					&value.ArrayTuple{value.String("bar")},
+					value.NewCallSiteInfo(value.ToSymbol("println"), 1),
+					&value.ArrayTuple{value.String("baz")},
+					value.NewCallSiteInfo(value.ToSymbol("println"), 1),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(4, 7, 17, false),
+					vm.NewCatchEntry(4, 7, 43, true),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

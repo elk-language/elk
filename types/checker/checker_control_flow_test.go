@@ -60,6 +60,28 @@ func TestDoCatchExpression(t *testing.T) {
 				error.NewWarning(L("<main>", P(34, 4, 11), P(56, 4, 33)), "this pattern is impossible to satisfy"),
 			},
 		},
+		"throw with wider catch": {
+			input: `
+				do
+					throw :foo
+				catch Symbol()
+					println "lol"
+				end
+			`,
+		},
+		"method call with wider catch": {
+			input: `
+				def foo! :foo
+					throw :foo
+				end
+
+				do
+					foo()
+				catch Symbol()
+					println "lol"
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
