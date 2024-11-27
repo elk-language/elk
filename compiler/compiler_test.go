@@ -41,14 +41,16 @@ func compilerTest(tc testCase, t *testing.T) {
 	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Log(pp.Sprint(err))
-		t.Fatal(diff)
+		t.Log(diff)
+		t.Fail()
 	}
 	if err.IsFailure() {
 		return
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Log(got.DisassembleString())
-		t.Fatal(diff)
+		t.Log(diff)
+		t.Fail()
 	}
 }
 
