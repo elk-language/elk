@@ -1230,15 +1230,15 @@ func (c *Checker) checkArithmeticBinaryOperator(
 func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.ExpressionNode {
 	switch node.Op.Type {
 	case token.PLUS:
-		right := c.checkExpression(node.Right)
-		rightType := c.typeOf(right)
+		node.Right = c.checkExpression(node.Right)
+		rightType := c.typeOf(node.Right)
 		switch rightType.(type) {
 		case types.NumericLiteral:
 			node.SetType(rightType)
 			return node
 		}
 		receiver, _, typ := c.checkSimpleMethodCall(
-			right,
+			node.Right,
 			token.DOT,
 			symbol.OpUnaryPlus,
 			nil,
@@ -1250,8 +1250,8 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		node.SetType(typ)
 		return node
 	case token.MINUS:
-		right := c.checkExpression(node.Right)
-		rightType := c.typeOf(right)
+		node.Right = c.checkExpression(node.Right)
+		rightType := c.typeOf(node.Right)
 		switch r := rightType.(type) {
 		case types.NumericLiteral:
 			copy := r.CopyNumeric()
@@ -1260,7 +1260,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			return node
 		}
 		receiver, _, typ := c.checkSimpleMethodCall(
-			right,
+			node.Right,
 			token.DOT,
 			symbol.OpNegate,
 			nil,
@@ -6627,22 +6627,24 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 
 	mapOfAny.FixVariance()
 
-	for _, element := range node.Elements {
+	for i, element := range node.Elements {
 		switch e := element.(type) {
 		case *ast.PublicIdentifierNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e, valueType)
+			newE, _ := c.checkPattern(e, valueType)
+			node.Elements[i] = newE
 		case *ast.PrivateIdentifierNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e, valueType)
+			newE, _ := c.checkPattern(e, valueType)
+			node.Elements[i] = newE
 		case *ast.KeyValuePatternNode:
-			c.checkExpression(e.Key)
+			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
 			patternKeyType := c.typeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Span())
-			c.checkPattern(e.Value, valueType)
+			e.Value, _ = c.checkPattern(e.Value, valueType)
 		case *ast.SymbolKeyValuePatternNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e.Value, valueType)
+			e.Value, _ = c.checkPattern(e.Value, valueType)
 		default:
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
 		}
@@ -6669,22 +6671,22 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 
 	recordOfAny.FixVariance()
 
-	for _, element := range node.Elements {
+	for i, element := range node.Elements {
 		switch e := element.(type) {
 		case *ast.PublicIdentifierNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e, valueType)
+			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.PrivateIdentifierNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e, valueType)
+			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.KeyValuePatternNode:
-			c.checkExpression(e.Key)
+			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
 			patternKeyType := c.typeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Span())
-			c.checkPattern(e.Value, valueType)
+			e.Value, _ = c.checkPattern(e.Value, valueType)
 		case *ast.SymbolKeyValuePatternNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Span())
-			c.checkPattern(e.Value, valueType)
+			e.Value, _ = c.checkPattern(e.Value, valueType)
 		default:
 			panic(fmt.Sprintf("invalid record pattern element: %T", element))
 		}
@@ -6756,7 +6758,7 @@ func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ 
 	n := c.checkExpression(node)
 	nodeType := c.typeOf(n)
 	c.checkCanMatch(typ, nodeType, n.Span())
-	return node, nodeType
+	return n.(ast.PatternNode), nodeType
 }
 
 func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.Type, span *position.Span) {
@@ -6803,8 +6805,8 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 		node.SetType(types.Never{})
 	}
 
-	for _, element := range node.Elements {
-		c.checkPattern(element, elementType)
+	for i, element := range node.Elements {
+		node.Elements[i], _ = c.checkPattern(element, elementType)
 	}
 	return node, types.Never{}
 }
@@ -6852,8 +6854,8 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) (*as
 		node.SetType(types.Never{})
 	}
 
-	for _, element := range node.Elements {
-		c.checkPattern(element, elementType)
+	for i, element := range node.Elements {
+		node.Elements[i], _ = c.checkPattern(element, elementType)
 	}
 
 	return node, types.Never{}
@@ -6875,8 +6877,8 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*
 	}
 	listOfAny.FixVariance()
 
-	for _, element := range node.Elements {
-		c.checkPattern(element, elementType)
+	for i, element := range node.Elements {
+		node.Elements[i], _ = c.checkPattern(element, elementType)
 	}
 	return node, types.Never{}
 }
