@@ -18,6 +18,7 @@ var singletonClassSymbol value.Symbol = value.ToSymbol("<singleton_class>")
 var moduleSymbol value.Symbol = value.ToSymbol("<module>")
 var mixinSymbol value.Symbol = value.ToSymbol("<mixin>")
 var namespaceDefinitionsSymbol value.Symbol = value.ToSymbol("<namespaceDefinitions>")
+var methodDefinitionsSymbol value.Symbol = value.ToSymbol("<methodDefinitions>")
 var mainSymbol value.Symbol = value.ToSymbol("<main>")
 var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 
