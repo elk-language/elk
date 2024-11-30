@@ -3,6 +3,7 @@ package compiler_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -1378,2725 +1379,2832 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
-		// "less pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case < 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(55, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 31),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "less than root constant": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case < ::Foo then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.ROOT),
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(59, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 32),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.ToSymbol("Foo"),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "less than negative root constant": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case < -::Foo then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.ROOT),
-		// 			byte(bytecode.NEGATE),
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(60, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 33),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.ToSymbol("Foo"),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "less equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case <= 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS_EQUAL),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 31),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "greater pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case > 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GREATER),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(55, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 31),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "greater equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case >= 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 31),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case == 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "equal regex pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case == %/fo+/ then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(61, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.MustCompileRegex("fo+", bitfield.BitField8{}),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "equal local pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		b := 2
-		// 		switch a
-		// 		case == b then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(67, 6, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 5),
-		// 			bytecode.NewLineInfo(4, 2),
-		// 			bytecode.NewLineInfo(5, 15),
-		// 			bytecode.NewLineInfo(4, 1),
-		// 			bytecode.NewLineInfo(6, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(2),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "not equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case != 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.NOT_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "lax equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		b := 2
-		// 		switch a
-		// 		case =~ b then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.LAX_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(67, 6, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 5),
-		// 			bytecode.NewLineInfo(4, 2),
-		// 			bytecode.NewLineInfo(5, 15),
-		// 			bytecode.NewLineInfo(4, 1),
-		// 			bytecode.NewLineInfo(6, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(2),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "lax not equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case !~ 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.LAX_NOT_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "strict equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case === 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.STRICT_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(57, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "strict not equal pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case !== 5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.STRICT_NOT_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(57, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "strict not equal negative pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case !== -5 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.STRICT_NOT_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(58, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(-5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "regex pattern": {
-		// 	input: `
-		// 	  a := "foo"
-		// 		switch a
-		// 		case %/fo+/ then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(62, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 17),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.String("foo"),
-		// 			value.MustCompileRegex("fo+", bitfield.BitField8{}),
-		// 			value.NewCallSiteInfo(value.ToSymbol("matches"), 1),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "variable pattern": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case n then n + 2
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 13,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.ADD),
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(55, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 23),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(2),
-		// 		},
-		// 	),
-		// },
-		// "range": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case -2...9 then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(58, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 17),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.NewClosedRange(value.SmallInt(-2), value.SmallInt(9)),
-		// 			value.NewCallSiteInfo(value.ToSymbol("#contains"), 1),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "range with constants": {
-		// 	input: `
-		// 	  var a: any = 0
-		// 		switch a
-		// 		case ::Foo...-::Bar then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.ROOT),
-		// 			byte(bytecode.ROOT),
-		// 			byte(bytecode.NEGATE),
-		// 			byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(66, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.SmallInt(0),
-		// 			value.ToSymbol("Foo"),
-		// 			value.ToSymbol("Bar"),
-		// 			value.NewCallSiteInfo(value.ToSymbol("#contains"), 1),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "set pattern": {
-		// 	input: `
-		// 	  a := ^[1, 5, -4]
-		// 		switch a
-		// 		case ^[1, _, -4] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 30,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 20,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD8), 5,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 11,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.CALL_METHOD8), 7,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 48),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(5),
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(-4),
-		// 			),
-		// 			value.SetMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(3),
-		// 			value.SmallInt(1),
-		// 			value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
-		// 			value.SmallInt(-4),
-		// 			value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "set pattern with rest elements": {
-		// 	input: `
-		// 	  a := ^[1, 5, -4]
-		// 		switch a
-		// 		case ^[1, *, -4] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 30,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 20,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD8), 5,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 11,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.CALL_METHOD8), 7,
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 48),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(5),
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(-4),
-		// 			),
-		// 			value.SetMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(2),
-		// 			value.SmallInt(1),
-		// 			value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
-		// 			value.SmallInt(-4),
-		// 			value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "word set pattern": {
-		// 	input: `
-		// 	  a := ^['foo', 'bar']
-		// 		switch a
-		// 		case ^w[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(77, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			),
-		// 			value.SetMixin,
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "symbol set pattern": {
-		// 	input: `
-		// 	  a := ^[:foo, :bar]
-		// 		switch a
-		// 		case ^s[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(75, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			),
-		// 			value.SetMixin,
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "hex set pattern": {
-		// 	input: `
-		// 	  a := ^[0xff, 0x26]
-		// 		switch a
-		// 		case ^x[ff 26] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			),
-		// 			value.SetMixin,
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "bin set pattern": {
-		// 	input: `
-		// 	  a := ^[0b11, 0b10]
-		// 		switch a
-		// 		case ^b[11 10] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			),
-		// 			value.SetMixin,
-		// 			vm.MustNewHashSetWithElements(
-		// 				nil,
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "list pattern": {
-		// 	input: `
-		// 	  a := [1, 5, [8, 3]]
-		// 		switch a
-		// 		case [1, < 8, [a, > 1 && < 5]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 1,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 147,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 137,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 124,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 95,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 9,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 77,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 10,
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 67,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 55,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GREATER),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 21,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 11,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 12,
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(90, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 13),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 171),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 			},
-		// 			&value.ArrayList{
-		// 				value.SmallInt(8),
-		// 				value.SmallInt(3),
-		// 			},
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(3),
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(1),
-		// 			value.SmallInt(8),
-		// 			value.SmallInt(2),
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "word list pattern": {
-		// 	input: `
-		// 	  a := ['foo', 'bar']
-		// 		switch a
-		// 		case \w[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(76, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			},
-		// 			value.ListMixin,
-		// 			&value.ArrayList{
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "symbol list pattern": {
-		// 	input: `
-		// 	  a := [:foo, :bar]
-		// 		switch a
-		// 		case \s[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(74, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			},
-		// 			value.ListMixin,
-		// 			&value.ArrayList{
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "hex list pattern": {
-		// 	input: `
-		// 	  a := [0xff, 0x26]
-		// 		switch a
-		// 		case \x[ff 26] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(72, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			},
-		// 			value.ListMixin,
-		// 			&value.ArrayList{
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "bin list pattern": {
-		// 	input: `
-		// 	  a := [0b11, 0b10]
-		// 		switch a
-		// 		case \b[11 10] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(72, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 8),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 24),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			},
-		// 			value.ListMixin,
-		// 			&value.ArrayList{
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "list pattern with rest elements": {
-		// 	input: `
-		// 	  a := [1, 5, [-2, 8, 3, 6]]
-		// 		switch a
-		// 		case [*b, [< 0, *c]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 7,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 1,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 160,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 148,
-		// 			byte(bytecode.POP),
-
-		// 			// adjust the length variable
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SUBTRACT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-
-		// 			// create the iterator variable
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-
-		// 			// loop header
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 19,
-
-		// 			// loop body
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.POP),
-
-		// 			// i++
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.LOOP), 0, 27,
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 76,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 7,
-		// 			byte(bytecode.SET_LOCAL8), 8,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 64,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 35,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SET_LOCAL8), 9,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.GET_LOCAL8), 8,
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 19,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.GET_LOCAL8), 7,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 9,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 27,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 8,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.LEAVE_SCOPE16), 9, 6,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 9, 6,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(87, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 13),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 191),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 			},
-		// 			&value.ArrayList{
-		// 				value.SmallInt(-2),
-		// 				value.SmallInt(8),
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(6),
-		// 			},
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(1),
-		// 			value.SmallInt(0),
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "list pattern with unnamed rest elements": {
-		// 	input: `
-		// 	  a := [1, 5, [-2, 8, 3, 6]]
-		// 		switch a
-		// 		case [*, [< 0, *]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 5,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 1,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 92,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 80,
-		// 			byte(bytecode.POP),
-
-		// 			// create the iterator variable
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SUBTRACT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 48,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 6,
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 36,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SET_LOCAL8), 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 8,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.LEAVE_SCOPE16), 7, 4,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 7, 4,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(85, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 13),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 116),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayList{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 			},
-		// 			&value.ArrayList{
-		// 				value.SmallInt(-2),
-		// 				value.SmallInt(8),
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(6),
-		// 			},
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(1),
-		// 			value.ListMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(0),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "tuple pattern": {
-		// 	input: `
-		// 	  a := %[1, 5, %[8, 3]]
-		// 		switch a
-		// 		case %[1, < 8, %[a, > 1 && < 5]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 147,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 137,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 124,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 95,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 8,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 77,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 9,
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 67,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 55,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GREATER),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 21,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 10,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 11,
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 4, 1,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(94, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 171),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 				&value.ArrayTuple{
-		// 					value.SmallInt(8),
-		// 					value.SmallInt(3),
-		// 				},
-		// 			},
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(3),
-		// 			value.SmallInt(0),
-		// 			value.SmallInt(1),
-		// 			value.SmallInt(8),
-		// 			value.SmallInt(2),
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(5),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "word tuple pattern": {
-		// 	input: `
-		// 	  a := %['foo', 'bar']
-		// 		switch a
-		// 		case %w[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(77, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 23),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			},
-		// 			value.TupleMixin,
-		// 			&value.ArrayTuple{
-		// 				value.String("foo"),
-		// 				value.String("bar"),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "symbol tuple pattern": {
-		// 	input: `
-		// 	  a := %[:foo, :bar]
-		// 		switch a
-		// 		case %s[foo bar] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(75, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 23),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			},
-		// 			value.TupleMixin,
-		// 			&value.ArrayTuple{
-		// 				value.ToSymbol("foo"),
-		// 				value.ToSymbol("bar"),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "hex tuple pattern": {
-		// 	input: `
-		// 	  a := %[0xff, 0x26]
-		// 		switch a
-		// 		case %x[ff 26] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 23),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			},
-		// 			value.TupleMixin,
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(255),
-		// 				value.SmallInt(38),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "bin tuple pattern": {
-		// 	input: `
-		// 	  a := %[0b11, 0b10]
-		// 		switch a
-		// 		case %b[11 10] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 2,
-		// 			byte(bytecode.LAX_EQUAL),
-
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.JUMP), 0, 3,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 23),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			},
-		// 			value.TupleMixin,
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(3),
-		// 				value.SmallInt(2),
-		// 			},
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "tuple pattern with rest elements": {
-		// 	input: `
-		// 	  a := %[1, 5, %[-2, 8, 3, 6]]
-		// 		switch a
-		// 		case %[*b, %[< 0, *c]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 7,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 160,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 148,
-		// 			byte(bytecode.POP),
-
-		// 			// adjust the length variable
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.SUBTRACT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-
-		// 			// create the iterator variable
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-
-		// 			// loop header
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 19,
-
-		// 			// loop body
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.POP),
-
-		// 			// i++
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.LOOP), 0, 27,
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 76,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 6,
-		// 			byte(bytecode.SET_LOCAL8), 8,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 64,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 35,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.SET_LOCAL8), 9,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.GET_LOCAL8), 8,
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 19,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.GET_LOCAL8), 7,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 9,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 9,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 27,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 8,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.LEAVE_SCOPE16), 9, 6,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 9, 6,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(91, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 191),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 				&value.ArrayTuple{
-		// 					value.SmallInt(-2),
-		// 					value.SmallInt(8),
-		// 					value.SmallInt(3),
-		// 					value.SmallInt(6),
-		// 				},
-		// 			},
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(1),
-		// 			value.SmallInt(0),
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
-		// "tuple pattern with unnamed rest elements": {
-		// 	input: `
-		// 	  a := %[1, 5, %[-2, 8, 3, 6]]
-		// 		switch a
-		// 		case %[*, %[< 0, *]] then "a"
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 5,
-		// 			byte(bytecode.LOAD_VALUE8), 0,
-		// 			byte(bytecode.SET_LOCAL8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 3,
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 92,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.SET_LOCAL8), 4,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 80,
-		// 			byte(bytecode.POP),
-
-		// 			// create the iterator variable
-		// 			byte(bytecode.GET_LOCAL8), 4,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.SUBTRACT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.SUBSCRIPT),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 48,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 5,
-		// 			byte(bytecode.SET_LOCAL8), 6,
-		// 			byte(bytecode.LOAD_VALUE8), 3,
-		// 			byte(bytecode.GREATER_EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 36,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE8), 6,
-		// 			byte(bytecode.DUP_N), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.GET_CLASS),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LESS),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 6,
-		// 			byte(bytecode.SET_LOCAL8), 7,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 8,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL8), 5,
-		// 			byte(bytecode.INCREMENT),
-		// 			byte(bytecode.SET_LOCAL8), 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 10,
-		// 			byte(bytecode.POP_N), 2,
-		// 			byte(bytecode.LOAD_VALUE8), 7,
-		// 			byte(bytecode.LEAVE_SCOPE16), 7, 4,
-		// 			byte(bytecode.JUMP), 0, 6,
-		// 			byte(bytecode.LEAVE_SCOPE16), 7, 4,
-		// 			byte(bytecode.POP),
-
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(89, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(2, 7),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(4, 116),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			&value.ArrayTuple{
-		// 				value.SmallInt(1),
-		// 				value.SmallInt(5),
-		// 				&value.ArrayTuple{
-		// 					value.SmallInt(-2),
-		// 					value.SmallInt(8),
-		// 					value.SmallInt(3),
-		// 					value.SmallInt(6),
-		// 				},
-		// 			},
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(1),
-		// 			value.TupleMixin,
-		// 			value.NewCallSiteInfo(value.ToSymbol("length"), 0),
-		// 			value.SmallInt(0),
-		// 			value.String("a"),
-		// 		},
-		// 	),
-		// },
+		"less pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case < 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 31),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"less than root constant": {
+			input: `
+				const Foo = 5
+			  var a: any = 0
+				switch a
+				case < ::Foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.DEF_CONST),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 31),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					nil,
+					value.ToSymbol("Root"),
+					value.ToSymbol("Foo"),
+					value.SmallInt(5),
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"less than negative root constant": {
+			input: `
+				const Foo = 2
+			  var a: any = 0
+				switch a
+				case < -::Foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.DEF_CONST),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEGATE),
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(86, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 32),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					nil,
+					value.ToSymbol("Root"),
+					value.ToSymbol("Foo"),
+					value.SmallInt(2),
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"less equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case <= 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS_EQUAL),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 31),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"greater pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case > 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 31),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"greater equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case >= 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 31),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case == 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"equal regex pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case == %/fo+/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(69, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.MustCompileRegex("fo+", bitfield.BitField8{}),
+					value.String("a"),
+				},
+			),
+		},
+		"equal local pattern": {
+			input: `
+			  var a: any = 0
+				b := 2
+				switch a
+				case == b then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 15),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(2),
+					value.String("a"),
+				},
+			),
+		},
+		"not equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case != 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.NOT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"lax equal pattern": {
+			input: `
+			  var a: any = 0
+				b := 2
+				switch a
+				case =~ b then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.LAX_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 15),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(2),
+					value.String("a"),
+				},
+			),
+		},
+		"lax not equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case !~ 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LAX_NOT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"strict equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case === 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.STRICT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(65, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"strict not equal pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case !== 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.STRICT_NOT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(65, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"strict not equal negative pattern": {
+			input: `
+			  var a: any = 0
+				switch a
+				case !== -5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.STRICT_NOT_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(66, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(-5),
+					value.String("a"),
+				},
+			),
+		},
+
+		"regex pattern": {
+			input: `
+			  a := "foo"
+				switch a
+				case %/fo+/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(62, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 17),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.String("foo"),
+					value.MustCompileRegex("fo+", bitfield.BitField8{}),
+					value.NewCallSiteInfo(value.ToSymbol("matches"), 1),
+					value.String("a"),
+				},
+			),
+		},
+		"variable pattern": {
+			input: `
+			  a := 0
+				switch a
+				case n then n + 2
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 13,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.ADD),
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 23),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.SmallInt(2),
+				},
+			),
+		},
+		"range": {
+			input: `
+			  var a: any = 0
+				switch a
+				case -2...9 then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(66, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 17),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					value.SmallInt(0),
+					value.NewClosedRange(value.SmallInt(-2), value.SmallInt(9)),
+					value.NewCallSiteInfo(value.ToSymbol("#contains"), 1),
+					value.String("a"),
+				},
+			),
+		},
+		"range with constants": {
+			input: `
+				const Foo = 3
+				const Bar = 10
+			  var a: any = 0
+				switch a
+				case ::Foo...-::Bar then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.DEF_CONST),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.DEF_CONST),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 4,
+					byte(bytecode.NEGATE),
+					byte(bytecode.NEW_RANGE), 0,
+					byte(bytecode.SWAP),
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(111, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(6, 22),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(7, 2),
+				},
+				[]value.Value{
+					nil,
+					value.ToSymbol("Root"),
+					value.ToSymbol("Foo"),
+					value.SmallInt(3),
+					value.ToSymbol("Bar"),
+					value.SmallInt(10),
+					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("#contains"), 1),
+					value.String("a"),
+				},
+			),
+		},
+		"set pattern": {
+			input: `
+			  a := ^[1, 5, -4]
+				switch a
+				case ^[1, _, -4] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 30,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 20,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.CALL_METHOD8), 8,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 48),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(5),
+						value.SmallInt(1),
+						value.SmallInt(-4),
+					),
+					value.SetMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(3),
+					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
+					value.SmallInt(-4),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
+					value.String("a"),
+				},
+			),
+		},
+		"set pattern with rest elements": {
+			input: `
+			  a := ^[1, 5, -4]
+				switch a
+				case ^[1, *, -4] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 30,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 20,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.CALL_METHOD8), 8,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 48),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(5),
+						value.SmallInt(1),
+						value.SmallInt(-4),
+					),
+					value.SetMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(2),
+					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
+					value.SmallInt(-4),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1),
+					value.String("a"),
+				},
+			),
+		},
+
+		"word set pattern": {
+			input: `
+			  a := ^['foo', 'bar']
+				switch a
+				case ^w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(77, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.String("foo"),
+						value.String("bar"),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.String("bar"),
+						value.String("foo"),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"symbol set pattern": {
+			input: `
+			  a := ^[:foo, :bar]
+				switch a
+				case ^s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"hex set pattern": {
+			input: `
+			  a := ^[0xff, 0x26]
+				switch a
+				case ^x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(38),
+						value.SmallInt(255),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(38),
+						value.SmallInt(255),
+					),
+					value.String("a"),
+				},
+			),
+		},
+
+		"bin set pattern": {
+			input: `
+			  a := ^[0b11, 0b10]
+				switch a
+				case ^b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(3),
+						value.SmallInt(2),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(3),
+						value.SmallInt(2),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"list pattern": {
+			input: `
+			  a := [1, 5, [8, 3]]
+				switch a
+				case [1, < 8, [a, > 1 && < 5]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 147,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 137,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.EQUAL),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 124,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 95,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 10,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 77,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 11,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 67,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 55,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 21,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 12,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 13,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(90, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 11),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 171),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(5),
+					},
+					&value.ArrayList{
+						value.SmallInt(8),
+						value.SmallInt(3),
+					},
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(3),
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(8),
+					value.SmallInt(2),
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"word list pattern": {
+			input: `
+			  a := ['foo', 'bar']
+				switch a
+				case \w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(76, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+
+		"symbol list pattern": {
+			input: `
+			  a := [:foo, :bar]
+				switch a
+				case \s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(74, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"hex list pattern": {
+			input: `
+			  a := [0xff, 0x26]
+				switch a
+				case \x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(72, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"bin list pattern": {
+			input: `
+			  a := [0b11, 0b10]
+				switch a
+				case \b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(72, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 24),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.String("a"),
+				},
+			),
+		},
+
+		"list pattern with rest elements": {
+			input: `
+			  a := [1, 5, [-2, 8, 3, 6]]
+				switch a
+				case [*b, [< 0, *c]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 7,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 160,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 148,
+					byte(bytecode.POP),
+
+					// adjust the length variable
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+
+					// create the iterator variable
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					// loop header
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 19,
+
+					// loop body
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+
+					// i++
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOOP), 0, 27,
+
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SUBSCRIPT),
+
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 76,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 8,
+					byte(bytecode.SET_LOCAL8), 6,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 64,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 35,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SET_LOCAL8), 7,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.GET_LOCAL8), 6,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 19,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.GET_LOCAL8), 5,
+					byte(bytecode.SWAP),
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 7,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 27,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.LEAVE_SCOPE16), 7, 6,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 7, 6,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(87, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 11),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 191),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(5),
+					},
+					&value.ArrayList{
+						value.SmallInt(-2),
+						value.SmallInt(8),
+						value.SmallInt(3),
+						value.SmallInt(6),
+					},
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(1),
+					value.SmallInt(0),
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.String("a"),
+				},
+			),
+		},
+		"list pattern with unnamed rest elements": {
+			input: `
+			  a := [1, 5, [-2, 8, 3, 6]]
+				switch a
+				case [*, [< 0, *]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 5,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 92,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 80,
+					byte(bytecode.POP),
+
+					// create the iterator variable
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SUBSCRIPT),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 48,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 36,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.LEAVE_SCOPE16), 5, 4,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 5, 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 11),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 116),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(5),
+					},
+					&value.ArrayList{
+						value.SmallInt(-2),
+						value.SmallInt(8),
+						value.SmallInt(3),
+						value.SmallInt(6),
+					},
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(1),
+					value.ListMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"tuple pattern": {
+			input: `
+			  a := %[1, 5, %[8, 3]]
+				switch a
+				case %[1, < 8, %[a, > 1 && < 5]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 147,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 137,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.EQUAL),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 124,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 95,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 77,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 10,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 67,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 55,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS), 0, 21,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 11,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 12,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(94, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 171),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.SmallInt(1),
+						value.SmallInt(5),
+						&value.ArrayTuple{
+							value.SmallInt(8),
+							value.SmallInt(3),
+						},
+					},
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(3),
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(8),
+					value.SmallInt(2),
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+
+		"word tuple pattern": {
+			input: `
+			  a := %['foo', 'bar']
+				switch a
+				case %w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(77, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 23),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"symbol tuple pattern": {
+			input: `
+			  a := %[:foo, :bar]
+				switch a
+				case %s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 23),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"hex tuple pattern": {
+			input: `
+			  a := %[0xff, 0x26]
+				switch a
+				case %x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 23),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"bin tuple pattern": {
+			input: `
+			  a := %[0b11, 0b10]
+				switch a
+				case %b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 23),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"tuple pattern with rest elements": {
+			input: `
+			  a := %[1, 5, %[-2, 8, 3, 6]]
+				switch a
+				case %[*b, %[< 0, *c]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 7,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 160,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 148,
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 19,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOOP), 0, 27,
+
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SUBSCRIPT),
+
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 76,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.SET_LOCAL8), 6,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 64,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 35,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SET_LOCAL8), 7,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.GET_LOCAL8), 6,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 19,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.GET_LOCAL8), 5,
+					byte(bytecode.SWAP),
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 7,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 7,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 27,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.LEAVE_SCOPE16), 7, 6,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 7, 6,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(91, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 191),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.SmallInt(1),
+						value.SmallInt(5),
+						&value.ArrayTuple{
+							value.SmallInt(-2),
+							value.SmallInt(8),
+							value.SmallInt(3),
+							value.SmallInt(6),
+						},
+					},
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(1),
+					value.SmallInt(0),
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.String("a"),
+				},
+			),
+		},
+		"tuple pattern with unnamed rest elements": {
+			input: `
+			  a := %[1, 5, %[-2, 8, 3, 6]]
+				switch a
+				case %[*, %[< 0, *]] then "a"
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 5,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 92,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SET_LOCAL8), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 80,
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SUBSCRIPT),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 48,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 36,
+					byte(bytecode.POP),
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.DUP_N), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.LEAVE_SCOPE16), 5, 4,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.LEAVE_SCOPE16), 5, 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(89, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 116),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					nil,
+					&value.ArrayTuple{
+						value.SmallInt(1),
+						value.SmallInt(5),
+						&value.ArrayTuple{
+							value.SmallInt(-2),
+							value.SmallInt(8),
+							value.SmallInt(3),
+							value.SmallInt(6),
+						},
+					},
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(1),
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0),
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
 		// "map pattern": {
 		// 	input: `
 		// 	  a := { 1 => 2, foo: :bar, "baz" => { dupa: [8, 3] } }

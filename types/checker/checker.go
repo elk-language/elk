@@ -6201,7 +6201,9 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 		if n.Identifier == nil {
 			return n, types.Any{}
 		}
-		return c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), matchedType))
+
+		_, typ := c.checkPattern(n.Identifier, types.NewGenericWithTypeArgs(c.StdArrayList(), matchedType))
+		return n, typ
 	case *ast.ListPatternNode:
 		return c.checkListPattern(n, matchedType)
 	case *ast.TuplePatternNode:
