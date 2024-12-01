@@ -193,7 +193,7 @@ func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
 		makeLocalConstantScope(newEnv.Root),
 	}
 	c.methodScopes = []methodScope{
-		makeLocalMethodScope(newEnv.StdSubtypeClass(symbol.Object)),
+		makeLocalMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
 		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
 	}
 }

@@ -504,9 +504,9 @@ func (c *Checker) checkMethod(
 			if p.SetInstanceVariable {
 				c.registerInitialisedInstanceVariable(value.ToSymbol(p.Name))
 			}
+			declaredType = c.typeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
-				declaredType = c.typeOf(declaredTypeNode)
 				switch p.Kind {
 				case ast.PositionalRestParameterKind:
 					declaredType = types.NewGenericWithTypeArgs(c.StdTuple(), declaredType)

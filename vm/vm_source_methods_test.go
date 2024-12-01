@@ -208,7 +208,7 @@ func TestVMSource_Alias(t *testing.T) {
 				alias foo blabla
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(11, 2, 11), P(20, 2, 20)), "method `blabla` is not defined on type `Std::Object`"),
+				error.NewFailure(L(P(11, 2, 11), P(20, 2, 20)), "method `blabla` is not defined on type `Std::Kernel`"),
 			},
 		},
 	}
@@ -325,7 +325,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					:bar
 				end
 
-				self.foo
+				foo()
 			`,
 			wantStackTop: value.ToSymbol("bar"),
 		},
@@ -335,7 +335,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a + b
 				end
 
-				self.add(5, 9)
+				add(5, 9)
 			`,
 			wantStackTop: value.SmallInt(14),
 		},
@@ -345,10 +345,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a + b
 				end
 
-				self.add(5)
+				add(5)
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(58, 6, 5), P(68, 6, 15)), "argument `b` is missing in call to `add`"),
+				error.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `add`"),
 			},
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
@@ -361,7 +361,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a + b + c
 				end
 
-				self.add(5)
+				add(5)
 			`,
 			wantStackTop: value.Float(28.5),
 		},
@@ -371,7 +371,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a + b + c
 				end
 
-				self.add(5, 0)
+				add(5, 0)
 			`,
 			wantStackTop: value.Float(25.5),
 		},
@@ -381,7 +381,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a + b + c
 				end
 
-				self.add(3, 2, 3.5)
+				add(3, 2, 3.5)
 			`,
 			wantStackTop: value.Float(8.5),
 		},
@@ -391,7 +391,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
-				self.foo(b: "b", a: "a", c: "c", e: "e")
+				foo(b: "b", a: "a", c: "c", e: "e")
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
 		},
@@ -401,7 +401,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
-				self.foo("a", c: "c", b: "b")
+				foo("a", c: "c", b: "b")
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: default e"),
 		},
@@ -411,7 +411,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
-				self.foo("a", "b", "c", e: "e")
+				foo("a", "b", "c", e: "e")
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
 		},
@@ -421,7 +421,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: #{a}"
 				end
 
-				self.foo()
+				foo()
 			`,
 			wantStackTop: value.String("a: %{}"),
 		},
@@ -431,7 +431,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					a
 				end
 
-				self.foo(d: "foo", a: "bar")
+				foo(d: "foo", a: "bar")
 			`,
 			wantStackTop: vm.MustNewHashRecordWithElements(
 				nil,
@@ -445,7 +445,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b]
 				end
 
-				self.foo("foo", c: "bar", d: "baz")
+				foo("foo", c: "bar", d: "baz")
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
@@ -463,7 +463,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b]
 				end
 
-				self.foo("foo")
+				foo("foo")
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
@@ -477,7 +477,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b, c]
 				end
 
-				self.foo("foo", c: "bar", d: "baz")
+				foo("foo", c: "bar", d: "baz")
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				3,
@@ -496,7 +496,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b, c]
 				end
 
-				self.foo("foo", 9, c: "bar", d: "baz")
+				foo("foo", 9, c: "bar", d: "baz")
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				3,
@@ -515,7 +515,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b, c]
 				end
 
-				self.foo("foo", c: "bar", d: "baz", b: 9)
+				foo("foo", c: "bar", d: "baz", b: 9)
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
@@ -534,7 +534,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: #{a}, b: #{b}"
 				end
 
-				self.foo()
+				foo()
 			`,
 			wantStackTop: value.String(`a: %[], b: %{}`),
 		},
@@ -544,7 +544,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: #{a}, b: #{b}"
 				end
 
-				self.foo(1, 5, 7)
+				foo(1, 5, 7)
 			`,
 			wantStackTop: value.String(`a: %[1, 5, 7], b: %{}`),
 		},
@@ -554,7 +554,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b]
 				end
 
-				self.foo(foo: 5, bar: 2, baz: 8)
+				foo(foo: 5, bar: 2, baz: 8)
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
@@ -573,7 +573,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b]
 				end
 
-				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
+				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				2,
@@ -598,7 +598,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
-				self.foo(5)
+				foo(5)
 			`,
 			wantStackTop: value.String(`a: 5, b: %[], c: %{}`),
 		},
@@ -608,7 +608,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
-				self.foo(1, 5, 7)
+				foo(1, 5, 7)
 			`,
 			wantStackTop: value.String(`a: 1, b: %[5, 7], c: %{}`),
 		},
@@ -618,7 +618,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b, c]
 				end
 
-				self.foo(1, foo: 5, bar: 2, baz: 8)
+				foo(1, foo: 5, bar: 2, baz: 8)
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				3,
@@ -638,7 +638,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					[a, b, c]
 				end
 
-				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
+				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
 			wantStackTop: value.NewArrayListWithElements(
 				3,
@@ -662,7 +662,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					b.inspect
 				end
 
-				self.foo()
+				foo()
 			`,
 			wantStackTop: value.String("%[]"),
 		},
@@ -672,7 +672,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					b.inspect
 				end
 
-				self.foo(1, 2, 3)
+				foo(1, 2, 3)
 			`,
 			wantStackTop: value.String("%[1, 2, 3]"),
 		},
@@ -682,7 +682,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(1)
+				foo(1)
 			`,
 			wantStackTop: value.String("a: 1, b: %[]"),
 		},
@@ -692,7 +692,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(1, 2, 3, 4)
+				foo(1, 2, 3, 4)
 			`,
 			wantStackTop: value.String("a: 1, b: %[2, 3, 4]"),
 		},
@@ -702,10 +702,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(b: 1, a: 2)
+				foo(b: 1, a: 2)
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(99, 6, 5), P(118, 6, 24)), "expected 2... positional arguments in call to `foo`, got 0"),
+				error.NewFailure(L(P(99, 6, 5), P(113, 6, 19)), "expected 2... positional arguments in call to `foo`, got 0"),
 			},
 		},
 		"call a method with rest parameters and no optional arguments": {
@@ -714,7 +714,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo()
+				foo()
 			`,
 			wantStackTop: value.String("a: 3, b: %[]"),
 		},
@@ -724,7 +724,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(1)
+				foo(1)
 			`,
 			wantStackTop: value.String("a: 1, b: %[]"),
 		},
@@ -734,7 +734,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(1, 2, 3)
+				foo(1, 2, 3)
 			`,
 			wantStackTop: value.String("a: 1, b: %[2, 3]"),
 		},
@@ -744,7 +744,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
-				self.foo(1, 2, 3)
+				foo(1, 2, 3)
 			`,
 			wantStackTop: value.String("a: %[1, 2], b: 3"),
 		},
@@ -754,7 +754,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
-				self.foo(1, 2, 3, 4)
+				foo(1, 2, 3, 4)
 			`,
 			wantStackTop: value.String("a: %[1, 2], b: 3, c: 4"),
 		},
@@ -764,7 +764,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}, e: ${e.inspect}"
 				end
 
-				self.foo(1, 2, 3, 4, 5, 6)
+				foo(1, 2, 3, 4, 5, 6)
 			`,
 			wantStackTop: value.String("a: 1, b: 2, c: %[3, 4], d: 5, e: 6"),
 		},
@@ -774,7 +774,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
-				self.foo(1, 2, c: 3, b: 4)
+				foo(1, 2, c: 3, b: 4)
 			`,
 			wantStackTop: value.String("a: %[1, 2], b: 4, c: 3"),
 		},
@@ -784,7 +784,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}"
 				end
 
-				self.foo(1, 2, 3, d: 4, c: 5)
+				foo(1, 2, 3, d: 4, c: 5)
 			`,
 			wantStackTop: value.String("a: 1, b: %[2, 3], c: 5, d: 4"),
 		},
@@ -794,10 +794,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
-				self.foo("a", e: "e")
+				foo("a", e: "e")
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(182, 6, 5), P(202, 6, 25)), "argument `b` is missing in call to `foo`"),
+				error.NewFailure(L(P(182, 6, 5), P(197, 6, 20)), "argument `b` is missing in call to `foo`"),
 			},
 		},
 		"call a method with duplicated arguments": {
@@ -806,10 +806,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}"
 				end
 
-				self.foo("a", b: "b", a: "a2")
+				foo("a", b: "b", a: "a2")
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(102, 6, 27), P(108, 6, 33)), "duplicated argument `a` in call to `foo`"),
+				error.NewFailure(L(P(97, 6, 22), P(103, 6, 28)), "duplicated argument `a` in call to `foo`"),
 			},
 		},
 		"call a method with unknown named arguments": {
@@ -818,11 +818,11 @@ func TestVMSource_CallMethod(t *testing.T) {
 					"a: ${a}, b: ${b}"
 				end
 
-				self.foo("a", unknown: "lala", moo: "meow", b: "b")
+				foo("a", unknown: "lala", moo: "meow", b: "b")
 			`,
 			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(94, 6, 19), P(108, 6, 33)), "nonexistent parameter `unknown` given in call to `foo`"),
-				error.NewFailure(L(P(111, 6, 36), P(121, 6, 46)), "nonexistent parameter `moo` given in call to `foo`"),
+				error.NewFailure(L(P(89, 6, 14), P(103, 6, 28)), "nonexistent parameter `unknown` given in call to `foo`"),
+				error.NewFailure(L(P(106, 6, 31), P(116, 6, 41)), "nonexistent parameter `moo` given in call to `foo`"),
 			},
 		},
 		"call a module method without arguments": {
@@ -890,7 +890,7 @@ func TestVMSource_Setters(t *testing.T) {
 					:bar
 				end
 
-				self.foo = 3
+				Kernel.foo = 3
 			`,
 			wantStackTop: value.SmallInt(3),
 		},

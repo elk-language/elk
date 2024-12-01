@@ -2653,20 +2653,21 @@ func TestCallFunction(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.SELF),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(27, 3, 10)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
 					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.LOAD_VALUE8), 2,
 							byte(bytecode.DEF_METHOD),
@@ -2676,11 +2677,11 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(27, 3, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 9),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Std::Kernel"),
 							vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
@@ -2696,6 +2697,7 @@ func TestCallFunction(t *testing.T) {
 							value.ToSymbol("foo"),
 						},
 					),
+					value.ToSymbol("Std::Kernel"),
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 0),
 				},
 			),
@@ -2711,22 +2713,23 @@ func TestCallFunction(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.SELF),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(54, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.LOAD_VALUE8), 2,
 							byte(bytecode.DEF_METHOD),
@@ -2736,11 +2739,11 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(54, 3, 18)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 9),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Std::Kernel"),
 							vm.NewBytecodeFunction(
 								value.ToSymbol("foo"),
 								[]byte{
@@ -2758,6 +2761,7 @@ func TestCallFunction(t *testing.T) {
 							value.ToSymbol("foo"),
 						},
 					),
+					value.ToSymbol("Std::Kernel"),
 					value.SmallInt(1),
 					value.String("lol"),
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 2),
@@ -2775,22 +2779,23 @@ func TestCallFunction(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.SELF),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(57, 3, 21)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.LOAD_VALUE8), 2,
 							byte(bytecode.DEF_METHOD),
@@ -2800,11 +2805,11 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(57, 3, 21)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 9),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Std::Kernel"),
 							vm.NewBytecodeFunction(
 								value.ToSymbol("foo"),
 								[]byte{
@@ -2822,6 +2827,7 @@ func TestCallFunction(t *testing.T) {
 							value.ToSymbol("foo"),
 						},
 					),
+					value.ToSymbol("Std::Kernel"),
 					value.SmallInt(1),
 					value.String("lol"),
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 2),

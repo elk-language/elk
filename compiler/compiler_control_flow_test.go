@@ -6233,9 +6233,9 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.SELF),
-					byte(bytecode.CALL_METHOD8), 1,
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.POP),
@@ -6245,7 +6245,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 10,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.CALL_METHOD8), 7,
 					byte(bytecode.JUMP), 0, 5,
@@ -6257,7 +6257,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 8,
 					byte(bytecode.CALL_METHOD8), 9,
 					byte(bytecode.SWAP),
@@ -6273,13 +6273,12 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.RETURN_FINALLY),
 					byte(bytecode.POP_N), 2,
 					byte(bytecode.RETHROW),
-
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(153, 13, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(8, 3),
+					bytecode.NewLineInfo(8, 4),
 					bytecode.NewLineInfo(12, 6),
 					bytecode.NewLineInfo(7, 4),
 					bytecode.NewLineInfo(9, 8),
@@ -6292,9 +6291,10 @@ func TestCatch(t *testing.T) {
 				0,
 				[]value.Value{
 					vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
+						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.LOAD_VALUE8), 2,
 							byte(bytecode.DEF_METHOD),
@@ -6304,11 +6304,11 @@ func TestCatch(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(153, 13, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 9),
 							bytecode.NewLineInfo(13, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Std::Kernel"),
 							vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
@@ -6336,8 +6336,8 @@ func TestCatch(t *testing.T) {
 							value.ToSymbol("foo"),
 						},
 					),
-					value.NewCallSiteInfo(value.ToSymbol("foo"), 0),
 					value.ToSymbol("Std::Kernel"),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0),
 					&value.ArrayTuple{value.String("baz")},
 					value.NewCallSiteInfo(value.ToSymbol("println"), 1),
 					value.ToSymbol("foo"),
@@ -6347,8 +6347,8 @@ func TestCatch(t *testing.T) {
 					value.NewCallSiteInfo(value.ToSymbol("println"), 1),
 				},
 				[]*vm.CatchEntry{
-					vm.NewCatchEntry(4, 7, 17, false),
-					vm.NewCatchEntry(4, 7, 43, true),
+					vm.NewCatchEntry(4, 8, 18, false),
+					vm.NewCatchEntry(4, 8, 44, true),
 				},
 			),
 		},

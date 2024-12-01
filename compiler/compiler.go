@@ -239,7 +239,7 @@ func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.N
 		namespace.SetDefined(true)
 	}
 
-	for name, subtype := range namespace.Subtypes() {
+	for name, subtype := range types.SortedSubtypes(namespace) {
 		if subtype.Type == namespace {
 			continue
 		}

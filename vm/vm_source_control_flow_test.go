@@ -623,7 +623,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 					println "5"
 					3
 				end
-				self.foo = 25
+				Kernel.foo = 25
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
 			wantStackTop: value.SmallInt(25),
