@@ -2255,6 +2255,13 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 		switch p := parent.(type) {
 		case *types.Generic:
 			generics = append(generics, p)
+		case *types.NamespacePlaceholder:
+			switch n := p.Namespace.(type) {
+			case *types.Module:
+				parent = n
+			default:
+				parent = n.Singleton()
+			}
 		}
 
 		method := parent.Method(name)
@@ -2558,6 +2565,8 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 	case *types.Generic:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.Class:
+		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+	case *types.NamespacePlaceholder:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)

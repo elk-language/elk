@@ -71,9 +71,9 @@ func (n *NamespacePlaceholder) Copy() *NamespacePlaceholder {
 	}
 }
 
-func (n *NamespacePlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamespacePlaceholder {
+func (n *NamespacePlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) Namespace {
 	if newType, ok := NameToTypeOk(n.name, newEnv); ok {
-		return newType.(*NamespacePlaceholder)
+		return newType.(Namespace)
 	}
 
 	newNamespace := &NamespacePlaceholder{
