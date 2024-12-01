@@ -2527,10 +2527,14 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	}
 }
 
-func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) *types.Method {
+func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) (_ *types.Method, fromLocal bool) {
+	local, _ := c.resolveLocal(name.String(), nil)
+	if local != nil {
+		return c.getMethod(local.typ, symbol.L_call, nil), true
+	}
 	method := c.getMethod(c.selfType, name, nil)
 	if method != nil {
-		return method
+		return method, false
 	}
 
 	for _, methodScope := range c.methodScopes {
@@ -2543,13 +2547,13 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) 
 		namespace := methodScope.container
 		method := c.getMethod(namespace, name, nil)
 		if method != nil {
-			return method
+			return method, false
 		}
 	}
 
 	c.addMissingMethodError(c.selfType, name.String(), span)
 
-	return nil
+	return nil, false
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {

@@ -1731,6 +1731,15 @@ func TestMethodDefinition(t *testing.T) {
 
 func TestMethodCalls(t *testing.T) {
 	tests := testTable{
+		"call a variable": {
+			input: `
+				module Foo
+					def call(a: Int): Int then a
+				end
+				a := Foo
+				a(1)
+			`,
+		},
 		"call has the same return type as the method": {
 			input: `
 				module Foo

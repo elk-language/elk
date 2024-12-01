@@ -319,6 +319,47 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("5"),
 		},
+		"call a variable": {
+			source: `
+				module Foo
+					def call: Symbol
+						:bar
+					end
+				end
+
+				a := Foo
+				a()
+			`,
+			wantStackTop: value.ToSymbol("bar"),
+		},
+		"call method from using": {
+			source: `
+				using Foo::bar
+
+				module Foo
+					def bar: Symbol
+						:bar
+					end
+				end
+
+				bar()
+			`,
+			wantStackTop: value.ToSymbol("bar"),
+		},
+		"call method from using all": {
+			source: `
+				using Foo::*
+
+				module Foo
+					def bar: Symbol
+						:bar
+					end
+				end
+
+				bar()
+			`,
+			wantStackTop: value.ToSymbol("bar"),
+		},
 		"call a global method without arguments": {
 			source: `
 				def foo: Symbol
