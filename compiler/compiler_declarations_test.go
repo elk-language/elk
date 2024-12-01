@@ -2635,563 +2635,720 @@ func TestDefMethod(t *testing.T) {
 	}
 }
 
-// func TestDefInit(t *testing.T) {
-// 	tests := testTable{
-// 		"define init in top level": {
-// 			input: `
-// 				init then :bar
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init cannot be defined in the top level"),
-// 			},
-// 		},
-// 		"define init in a module": {
-// 			input: `
-// 				module Foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "modules cannot have initializers"),
-// 			},
-// 		},
-// 		"define init in a method": {
-// 			input: `
-// 				def foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "methods cannot be nested: #init"),
-// 			},
-// 		},
-// 		"define init in init": {
-// 			input: `
-// 				class Foo
-// 				  init
-// 					  init then :bar
-// 				  end
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "methods cannot be nested: #init"),
-// 			},
-// 		},
-// 		"define with required parameters in a class": {
-// 			input: `
-// 				class Bar
-// 					init(a, b)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.INIT_CLASS), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(76, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 8),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						classSymbol,
-// 						[]byte{
-// 							byte(bytecode.LOAD_VALUE8), 0,
-// 							byte(bytecode.LOAD_VALUE8), 1,
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(75, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 5),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							vm.NewBytecodeFunction(
-// 								value.ToSymbol("#init"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.LOAD_VALUE8), 0,
-// 									byte(bytecode.SET_LOCAL8), 3,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL8), 1,
-// 									byte(bytecode.GET_LOCAL8), 2,
-// 									byte(bytecode.ADD),
-// 									byte(bytecode.GET_LOCAL8), 3,
-// 									byte(bytecode.ADD),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_SELF),
-// 								},
-// 								L(P(20, 3, 6), P(67, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 7),
-// 									bytecode.NewLineInfo(5, 8),
-// 									bytecode.NewLineInfo(6, 2),
-// 								},
-// 								[]value.Symbol{
-// 									value.ToSymbol("a"),
-// 									value.ToSymbol("b"),
-// 								},
-// 								0,
-// 								-1,
-// 								false,
-// 								false,
-// 								[]value.Value{
-// 									value.SmallInt(5),
-// 								},
-// 							),
-// 							value.ToSymbol("#init"),
-// 						},
-// 					),
-// 					value.ToSymbol("Bar"),
-// 				},
-// 			),
-// 		},
-// 		"define with required parameters in a mixin": {
-// 			input: `
-// 				mixin Bar
-// 					init(a, b)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(76, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 6),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						mixinSymbol,
-// 						[]byte{
-// 							byte(bytecode.LOAD_VALUE8), 0,
-// 							byte(bytecode.LOAD_VALUE8), 1,
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(75, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 5),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							vm.NewBytecodeFunction(
-// 								value.ToSymbol("#init"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.LOAD_VALUE8), 0,
-// 									byte(bytecode.SET_LOCAL8), 3,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL8), 1,
-// 									byte(bytecode.GET_LOCAL8), 2,
-// 									byte(bytecode.ADD),
-// 									byte(bytecode.GET_LOCAL8), 3,
-// 									byte(bytecode.ADD),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_SELF),
-// 								},
-// 								L(P(20, 3, 6), P(67, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 7),
-// 									bytecode.NewLineInfo(5, 8),
-// 									bytecode.NewLineInfo(6, 2),
-// 								},
-// 								[]value.Symbol{
-// 									value.ToSymbol("a"),
-// 									value.ToSymbol("b"),
-// 								},
-// 								0,
-// 								-1,
-// 								false,
-// 								false,
-// 								[]value.Value{
-// 									value.SmallInt(5),
-// 								},
-// 							),
-// 							value.ToSymbol("#init"),
-// 						},
-// 					),
-// 					value.ToSymbol("Bar"),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestDefInit(t *testing.T) {
+	tests := testTable{
+		"define init in top level": {
+			input: `
+				init then :bar
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in a module": {
+			input: `
+				module Foo
+					init then :bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in a mixin": {
+			input: `
+				mixin Foo
+					init then :bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(20, 3, 6), P(33, 3, 19)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in an interface": {
+			input: `
+				interface Foo
+					init then :bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
+				error.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
+			},
+		},
+		"define init in a method": {
+			input: `
+				def foo
+					init then :bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "method definitions cannot appear in this context"),
+			},
+		},
+		"define init in init": {
+			input: `
+				class Foo
+				  init
+					  init then :bar
+				  end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "method definitions cannot appear in this context"),
+			},
+		},
+		"define with required parameters in a class": {
+			input: `
+				class Bar
+					init(a: Int, b: Int)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(86, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(7, 2),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(86, 7, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+							value.ToSymbol("Std::Object"),
+						},
+					),
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(86, 7, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Bar"),
+							vm.NewBytecodeFunction(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.ADD),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.ADD),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
+								},
+								L(P(20, 3, 6), P(77, 6, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 7),
+									bytecode.NewLineInfo(5, 8),
+									bytecode.NewLineInfo(6, 2),
+								},
+								2,
+								0,
+								[]value.Value{
+									value.SmallInt(5),
+								},
+							),
+							value.ToSymbol("#init"),
+						},
+					),
+				},
+			),
+		},
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			compilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
 
-// func TestDefMixin(t *testing.T) {
-// 	tests := testTable{
-// 		"mixin with a relative name without a body": {
-// 			input: "mixin Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"mixin with an absolute name without a body": {
-// 			input: "mixin ::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.ROOT),
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(15, 1, 16)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"named mixin inside of a method": {
-// 			input: `
-// 				def foo
-// 					mixin Bar; end
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "cannot define named mixins inside of a method: foo"),
-// 			},
-// 		},
-// 		"mixin with an absolute nested name without a body": {
-// 			input: "mixin ::Std::Int::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.ROOT),
-// 					byte(bytecode.GET_MOD_CONST8), 0,
-// 					byte(bytecode.GET_MOD_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE8), 2,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(25, 1, 26)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std"),
-// 					value.ToSymbol("Int"),
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"mixin with a body": {
-// 			input: `
-// 				mixin Foo
-// 					a := 1
-// 					a + 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(45, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 6),
-// 					bytecode.NewLineInfo(5, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						mixinSymbol,
-// 						[]byte{
-// 							byte(bytecode.PREP_LOCALS8), 1,
-// 							byte(bytecode.LOAD_VALUE8), 0,
-// 							byte(bytecode.SET_LOCAL8), 3,
-// 							byte(bytecode.POP),
-// 							byte(bytecode.GET_LOCAL8), 3,
-// 							byte(bytecode.LOAD_VALUE8), 1,
-// 							byte(bytecode.ADD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(44, 5, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 7),
-// 							bytecode.NewLineInfo(4, 5),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.SmallInt(1),
-// 							value.SmallInt(2),
-// 						},
-// 					),
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"nested mixins": {
-// 			input: `
-// 				mixin Foo
-// 					mixin Bar
-// 						a := 1
-// 						a + 2
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.INIT_MIXIN),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(71, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 6),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						mixinSymbol,
-// 						[]byte{
-// 							byte(bytecode.LOAD_VALUE8), 0,
-// 							byte(bytecode.CONSTANT_CONTAINER),
-// 							byte(bytecode.LOAD_VALUE8), 1,
-// 							byte(bytecode.INIT_MIXIN),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(70, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 6),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							vm.NewBytecodeFunctionNoParams(
-// 								mixinSymbol,
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.LOAD_VALUE8), 0,
-// 									byte(bytecode.SET_LOCAL8), 3,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL8), 3,
-// 									byte(bytecode.LOAD_VALUE8), 1,
-// 									byte(bytecode.ADD),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_SELF),
-// 								},
-// 								L(P(20, 3, 6), P(62, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 7),
-// 									bytecode.NewLineInfo(5, 5),
-// 									bytecode.NewLineInfo(6, 2),
-// 								},
-// 								[]value.Value{
-// 									value.SmallInt(1),
-// 									value.SmallInt(2),
-// 								},
-// 							),
-// 							value.ToSymbol("Bar"),
-// 						},
-// 					),
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestDefMixin(t *testing.T) {
+	tests := testTable{
+		"mixin with a relative name without a body": {
+			input: "mixin Foo; end",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(13, 1, 14)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Foo"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"mixin with an absolute name without a body": {
+			input: "mixin ::Foo; end",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(15, 1, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(15, 1, 16)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Foo"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"named mixin inside of a method": {
+			input: `
+				def foo
+					mixin Bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
+			},
+		},
+		"mixin with an absolute nested name without a body": {
+			input: "mixin ::Std::Int::Foo; end",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(25, 1, 26)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(25, 1, 26)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Int"),
+							value.ToSymbol("Foo"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"mixin with a body": {
+			input: `
+				mixin Foo
+					a := 1
+					a + 2
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.INIT_NAMESPACE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(45, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(45, 5, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Foo"),
+						},
+					),
+					nil,
+					value.ToSymbol("Foo"),
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<mixin: Foo>"),
+						[]byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(44, 5, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 7),
+							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(5, 3),
+						},
+						[]value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+					),
+				},
+			),
+		},
+		"nested mixins": {
+			input: `
+				mixin Foo
+					mixin Bar
+						a := 1
+						a + 2
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.INIT_NAMESPACE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(71, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(71, 7, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 12),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Foo"),
+							value.ToSymbol("Bar"),
+						},
+					),
+					nil,
+					value.ToSymbol("Foo"),
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<mixin: Foo>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.INIT_NAMESPACE),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(70, 7, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 5),
+							bytecode.NewLineInfo(7, 3),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo::Bar"),
+							vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("<mixin: Foo::Bar>"),
+								[]byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 1,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.ADD),
+									byte(bytecode.POP),
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(20, 3, 6), P(62, 6, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 7),
+									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(6, 3),
+								},
+								[]value.Value{
+									value.SmallInt(1),
+									value.SmallInt(2),
+								},
+							),
+						},
+					),
+				},
+			),
+		},
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			compilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
 
-// func TestInclude(t *testing.T) {
-// 	tests := testTable{
-// 		"include a global constant in a class": {
-// 			input: `
-// 				class Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.INIT_CLASS), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(41, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 8),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						classSymbol,
-// 						[]byte{
-// 							byte(bytecode.ROOT),
-// 							byte(bytecode.GET_MOD_CONST8), 0,
-// 							byte(bytecode.SELF),
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(40, 4, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 6),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar"),
-// 						},
-// 					),
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"include two constants in a class": {
-// 			input: `
-// 				class Foo
-// 					include ::Bar, ::Baz
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE8), 0,
-// 					byte(bytecode.CONSTANT_CONTAINER),
-// 					byte(bytecode.LOAD_VALUE8), 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.INIT_CLASS), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(48, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(2, 8),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{
-// 					vm.NewBytecodeFunctionNoParams(
-// 						classSymbol,
-// 						[]byte{
-// 							byte(bytecode.ROOT),
-// 							byte(bytecode.GET_MOD_CONST8), 0,
-// 							byte(bytecode.SELF),
-// 							byte(bytecode.INCLUDE),
+func TestInclude(t *testing.T) {
+	tests := testTable{
+		"include a global constant in a class": {
+			input: `
+				mixin Bar; end
+				class Foo
+					include ::Bar
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(60, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(60, 5, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 22),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+							value.ToSymbol("Foo"),
+							value.ToSymbol("Std::Object"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"include a global constant in a mixin": {
+			input: `
+				mixin Bar; end
+				mixin Foo
+					include ::Bar
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(60, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(60, 5, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 17),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+							value.ToSymbol("Foo"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"include two constants in a class": {
+			input: `
+				mixin Bar; end
+				mixin Baz; end
+				class Foo
+					include ::Bar, ::Baz
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(86, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.GET_CONST8), 4,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(86, 6, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 33),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+							value.ToSymbol("Baz"),
+							value.ToSymbol("Foo"),
+							value.ToSymbol("Std::Object"),
+						},
+					),
+					nil,
+				},
+			),
+		},
+		"include in top level": {
+			input: `
+				mixin Bar; end
+				include ::Bar
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L(P(24, 3, 5), P(36, 3, 17)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in a module": {
+			input: `
+				mixin Bar; end
+				module Foo
+					include ::Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L(P(40, 4, 6), P(52, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in an interface": {
+			input: `
+				mixin Bar; end
+				interface Foo
+					include ::Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L(P(43, 4, 6), P(55, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in a method": {
+			input: `
+				mixin Bar; end
+				def foo
+					include ::Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(
+					L(P(37, 4, 6), P(49, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+	}
 
-// 							byte(bytecode.ROOT),
-// 							byte(bytecode.GET_MOD_CONST8), 1,
-// 							byte(bytecode.SELF),
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.POP),
-
-// 							byte(bytecode.RETURN_SELF),
-// 						},
-// 						L(P(5, 2, 5), P(47, 4, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 11),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar"),
-// 							value.ToSymbol("Baz"),
-// 						},
-// 					),
-// 					value.ToSymbol("Foo"),
-// 				},
-// 			),
-// 		},
-// 		"include in top level": {
-// 			input: `include ::Bar`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(
-// 					L(P(0, 1, 1), P(12, 1, 13)),
-// 					"cannot include mixins in the top level",
-// 				),
-// 			},
-// 		},
-// 		"include in a module": {
-// 			input: `
-// 				module Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(
-// 					L(P(21, 3, 6), P(33, 3, 18)),
-// 					"cannot include mixins in a module",
-// 				),
-// 			},
-// 		},
-// 		"include in a method": {
-// 			input: `
-// 				def foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			err: error.ErrorList{
-// 				error.NewFailure(
-// 					L(P(18, 3, 6), P(30, 3, 18)),
-// 					"cannot include mixins in a method",
-// 				),
-// 			},
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			compilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
