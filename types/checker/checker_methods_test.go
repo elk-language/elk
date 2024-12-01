@@ -1740,6 +1740,26 @@ func TestMethodCalls(t *testing.T) {
 				a(1)
 			`,
 		},
+		"call a variable instead of a method": {
+			input: `
+				def a: Int then 20
+
+				module Foo
+					def call(a: Int): Int then a
+				end
+				a := Foo
+				a(1)
+			`,
+		},
+		"call a variable without call method": {
+			input: `
+				a := 5
+				a(1)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 3, 5), P(19, 3, 8)), "method `call` is not defined on type `Std::Int`"),
+			},
+		},
 		"call has the same return type as the method": {
 			input: `
 				module Foo

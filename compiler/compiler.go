@@ -435,7 +435,7 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *positi
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
 
-	for _, subtype := range module.Subtypes() {
+	for _, subtype := range types.SortedSubtypes(module) {
 		if subtype.Type == module {
 			continue
 		}
@@ -512,7 +512,7 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
 
-	for _, subtype := range namespace.Subtypes() {
+	for _, subtype := range types.SortedSubtypes(namespace) {
 		if subtype.Type == namespace {
 			continue
 		}

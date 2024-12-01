@@ -2530,7 +2530,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) (_ *types.Method, fromLocal bool) {
 	local, _ := c.resolveLocal(name.String(), nil)
 	if local != nil {
-		return c.getMethod(local.typ, symbol.L_call, nil), true
+		return c.getMethod(local.typ, symbol.L_call, span), true
 	}
 	method := c.getMethod(c.selfType, name, nil)
 	if method != nil {

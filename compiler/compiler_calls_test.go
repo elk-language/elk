@@ -2466,6 +2466,207 @@ func TestCallFunction(t *testing.T) {
 				},
 			),
 		},
+		"call a variable": {
+			input: `
+				module Bar
+					def call; end
+				end
+				a := Bar
+				a()
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CALL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(5, 5),
+					bytecode.NewLineInfo(6, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(63, 6, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+						},
+					),
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(63, 6, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Bar"),
+							vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("call"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(33, 3, 18)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								nil,
+							),
+							value.ToSymbol("call"),
+						},
+					),
+					value.ToSymbol("Bar"),
+					value.NewCallSiteInfo(value.ToSymbol("call"), 0),
+				},
+			),
+		},
+		"call a variable instead of a method": {
+			input: `
+				def a; end
+				module Bar
+					def call; end
+				end
+				a := Bar
+				a()
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CALL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(78, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(6, 5),
+					bytecode.NewLineInfo(7, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(78, 7, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root"),
+							value.ToSymbol("Bar"),
+						},
+					),
+					vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE8), 4,
+							byte(bytecode.LOAD_VALUE8), 5,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(78, 7, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 18),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Bar"),
+							vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("call"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(36, 4, 6), P(48, 4, 18)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 2),
+								},
+								nil,
+							),
+							value.ToSymbol("call"),
+							value.ToSymbol("Std::Kernel"),
+							vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("a"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(5, 2, 5), P(14, 2, 14)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(2, 2),
+								},
+								nil,
+							),
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("Bar"),
+					value.NewCallSiteInfo(value.ToSymbol("call"), 0),
+				},
+			),
+		},
 		"call a function from using with a module": {
 			input: `
 				using Bar::foo

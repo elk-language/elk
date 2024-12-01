@@ -360,6 +360,13 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("bar"),
 		},
+		"call variable": {
+			source: `
+				foo := |n: Int| -> n ** 2
+				foo(5)
+			`,
+			wantStackTop: value.SmallInt(25),
+		},
 		"call a global method without arguments": {
 			source: `
 				def foo: Symbol
