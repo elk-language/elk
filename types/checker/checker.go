@@ -7106,9 +7106,10 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
+	definedUnder := c.currentMethodScope().container
 	method, mod := c.declareMethod(
 		nil,
-		c.currentMethodScope().container,
+		definedUnder,
 		node.DocComment(),
 		node.Abstract,
 		node.Sealed,

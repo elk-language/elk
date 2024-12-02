@@ -222,6 +222,9 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	classConstantName := classConstantPath[len(classConstantPath)-1]
 	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newClass)
 
+	newClass.singleton = nil
+	newClass.singleton = DeepCopyEnv(c.singleton, oldEnv, newEnv).(*SingletonClass)
+
 	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
 	newClass.instanceVariables = TypesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
 	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
@@ -231,13 +234,5 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	if c.parent != nil {
 		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
 	}
-	var singletonParent Namespace
-	if c.singleton.parent != nil {
-		singletonParent = DeepCopyEnv(c.singleton.parent, oldEnv, newEnv).(Namespace)
-	}
-	newClass.singleton = NewSingletonClass(
-		newClass,
-		singletonParent,
-	)
 	return newClass
 }

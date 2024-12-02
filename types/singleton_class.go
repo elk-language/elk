@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/elk-language/elk/value"
+)
+
 // Type that represents the singleton class of a mixin, class etc.
 type SingletonClass struct {
 	AttachedObject Namespace
@@ -32,8 +36,15 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	}
 }
 
+func (c *SingletonClass) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, name, typeParams, params, returnType, throwType, c)
+	c.SetMethod(name, method)
+	return method
+}
+
 func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *SingletonClass {
-	if newType, ok := NameToTypeOk(s.name, newEnv); ok {
+	fullConstantName := s.name[1:]
+	if newType, ok := NameToConstantOk(fullConstantName, newEnv); ok {
 		return newType.(*SingletonClass)
 	}
 
@@ -52,6 +63,10 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 		},
 	}
 	newSingleton.AttachedObject = newAttachedObject
+	singletonConstantPath := GetConstantPath(fullConstantName)
+	parentNamespace := DeepCopyNamespacePath(singletonConstantPath[:len(singletonConstantPath)-1], oldEnv, newEnv)
+	singletonConstantName := singletonConstantPath[len(singletonConstantPath)-1]
+	parentNamespace.DefineConstant(value.ToSymbol(singletonConstantName), newSingleton)
 
 	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
 	newSingleton.instanceVariables = TypesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)
