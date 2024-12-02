@@ -42,6 +42,26 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"*",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			other := args[1]
+			return self.Multiply(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			other := args[1]
+			return self.Divide(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Duration)
@@ -58,10 +78,26 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"in_nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InNanoseconds(), nil
+		},
+	)
+	Def(
+		c,
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Duration)
 			return self.Microseconds(), nil
+		},
+	)
+	Def(
+		c,
+		"in_microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InMicroseconds(), nil
 		},
 	)
 	Def(
@@ -74,10 +110,26 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"in_milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InMilliseconds(), nil
+		},
+	)
+	Def(
+		c,
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Duration)
 			return self.Seconds(), nil
+		},
+	)
+	Def(
+		c,
+		"in_seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InSeconds(), nil
 		},
 	)
 	Def(
@@ -90,10 +142,74 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"in_minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InMinutes(), nil
+		},
+	)
+	Def(
+		c,
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Duration)
 			return self.Hours(), nil
+		},
+	)
+	Def(
+		c,
+		"in_hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InHours(), nil
+		},
+	)
+	Def(
+		c,
+		"days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.Days(), nil
+		},
+	)
+	Def(
+		c,
+		"in_days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InDays(), nil
+		},
+	)
+	Def(
+		c,
+		"weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.Weeks(), nil
+		},
+	)
+	Def(
+		c,
+		"in_weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InWeeks(), nil
+		},
+	)
+	Def(
+		c,
+		"years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.Years(), nil
+		},
+	)
+	Def(
+		c,
+		"in_years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Duration)
+			return self.InYears(), nil
 		},
 	)
 }

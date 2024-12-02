@@ -11,6 +11,9 @@ var TimezoneClass *Class // ::Std::Timezone
 // Elk's Timezone value
 type Timezone time.Location
 
+var LocalTimezone = NewTimezone(time.Local)
+var UTCTimezone = NewTimezone(time.UTC)
+
 func (*Timezone) Class() *Class {
 	return TimezoneClass
 }
@@ -32,7 +35,7 @@ func (t *Timezone) Error() string {
 }
 
 func (t *Timezone) Inspect() string {
-	return fmt.Sprintf("Timezone('%s')", t.Name())
+	return fmt.Sprintf("Std::Timezone['%s']", t.Name())
 }
 
 func (t *Timezone) InstanceVariables() SymbolMap {
@@ -86,4 +89,6 @@ func LoadTimezone(name string) (*Timezone, Value) {
 func initTimezone() {
 	TimezoneClass = NewClass()
 	StdModule.AddConstantString("Timezone", TimezoneClass)
+	TimezoneClass.AddConstantString("UTC", UTCTimezone)
+	TimezoneClass.AddConstantString("LOCAL", LocalTimezone)
 }

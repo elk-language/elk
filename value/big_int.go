@@ -17,12 +17,11 @@ func NewBigInt(i int64) *BigInt {
 
 // Convert Go int64 to Elk Int.
 func ToElkInt(i int64) Value {
-	bi := NewBigInt(i)
-	if bi.IsSmallInt() {
-		return bi.ToSmallInt()
+	if i > MaxSmallInt {
+		bi := NewBigInt(i)
+		return bi
 	}
-
-	return bi
+	return SmallInt(i)
 }
 
 // Convert Go big.Int value to Elk BigInt value.
@@ -878,4 +877,56 @@ func ParseBigIntPanic(s string, base int) *BigInt {
 	}
 
 	return result
+}
+
+func (i *BigInt) Nanoseconds() Duration {
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Microseconds() Duration {
+	oBigInt := big.NewInt(int64(Microsecond))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Milliseconds() Duration {
+	oBigInt := big.NewInt(int64(Millisecond))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Seconds() Duration {
+	oBigInt := big.NewInt(int64(Second))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Minutes() Duration {
+	oBigInt := big.NewInt(int64(Minute))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Hours() Duration {
+	oBigInt := big.NewInt(int64(Hour))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Days() Duration {
+	oBigInt := big.NewInt(int64(Day))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Weeks() Duration {
+	oBigInt := big.NewInt(int64(Week))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
+}
+
+func (i *BigInt) Years() Duration {
+	oBigInt := big.NewInt(int64(Year))
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return Duration(i.ToSmallInt())
 }

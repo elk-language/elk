@@ -43,7 +43,7 @@ func (p *Pair) Copy() Value {
 }
 
 func (p *Pair) Inspect() string {
-	return fmt.Sprintf("Std::Pair{key: %s, value: %s}", p.Key.Inspect(), p.Value.Inspect())
+	return fmt.Sprintf("Std::Pair(%s, %s)", p.Key.Inspect(), p.Value.Inspect())
 }
 
 func (p *Pair) Error() string {

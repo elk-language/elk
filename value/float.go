@@ -470,6 +470,42 @@ func (f Float) StrictEqual(other Value) Value {
 	return f.Equal(other)
 }
 
+func (f Float) Nanoseconds() Duration {
+	return Duration(f)
+}
+
+func (f Float) Microseconds() Duration {
+	return Duration(f * Float(Microsecond))
+}
+
+func (f Float) Milliseconds() Duration {
+	return Duration(f * Float(Millisecond))
+}
+
+func (f Float) Seconds() Duration {
+	return Duration(f * Float(Second))
+}
+
+func (f Float) Minutes() Duration {
+	return Duration(f * Float(Minute))
+}
+
+func (f Float) Hours() Duration {
+	return Duration(f * Float(Hour))
+}
+
+func (f Float) Days() Duration {
+	return Duration(f * Float(Day))
+}
+
+func (f Float) Weeks() Duration {
+	return Duration(f * Float(Week))
+}
+
+func (f Float) Years() Duration {
+	return Duration(f * Float(Year))
+}
+
 func initFloat() {
 	FloatClass = NewClass()
 	StdModule.AddConstantString("Float", FloatClass)

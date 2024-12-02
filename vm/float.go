@@ -250,4 +250,94 @@ func initFloat() {
 			return self.ToUInt8(), nil
 		},
 	)
+
+	Def(
+		c,
+		"nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Nanoseconds(), nil
+		},
+	)
+	Alias(c, "nanosecond", "nanoseconds")
+
+	Def(
+		c,
+		"microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Microseconds(), nil
+		},
+	)
+	Alias(c, "microsecond", "microseconds")
+
+	Def(
+		c,
+		"milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Milliseconds(), nil
+		},
+	)
+	Alias(c, "millisecond", "milliseconds")
+
+	Def(
+		c,
+		"seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Seconds(), nil
+		},
+	)
+	Alias(c, "second", "seconds")
+
+	Def(
+		c,
+		"minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Minutes(), nil
+		},
+	)
+	Alias(c, "minute", "minutes")
+
+	Def(
+		c,
+		"hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Hours(), nil
+		},
+	)
+	Alias(c, "hour", "hours")
+
+	Def(
+		c,
+		"days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Days(), nil
+		},
+	)
+	Alias(c, "day", "days")
+
+	Def(
+		c,
+		"weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Weeks(), nil
+		},
+	)
+	Alias(c, "week", "weeks")
+
+	Def(
+		c,
+		"years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return self.Years(), nil
+		},
+	)
+	Alias(c, "year", "years")
 }

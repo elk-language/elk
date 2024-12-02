@@ -605,4 +605,148 @@ func initInt() {
 		},
 		DefWithParameters(1),
 	)
+
+	Def(
+		c,
+		"nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Nanoseconds(), nil
+			case *value.BigInt:
+				return s.Nanoseconds(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "nanosecond", "nanoseconds")
+
+	Def(
+		c,
+		"microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Microseconds(), nil
+			case *value.BigInt:
+				return s.Microseconds(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "microsecond", "microseconds")
+
+	Def(
+		c,
+		"milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Milliseconds(), nil
+			case *value.BigInt:
+				return s.Milliseconds(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "millisecond", "milliseconds")
+
+	Def(
+		c,
+		"seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Seconds(), nil
+			case *value.BigInt:
+				return s.Seconds(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "second", "seconds")
+
+	Def(
+		c,
+		"minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Minutes(), nil
+			case *value.BigInt:
+				return s.Minutes(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "minute", "minutes")
+
+	Def(
+		c,
+		"hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Hours(), nil
+			case *value.BigInt:
+				return s.Hours(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "hour", "hours")
+
+	Def(
+		c,
+		"days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Days(), nil
+			case *value.BigInt:
+				return s.Days(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "day", "days")
+
+	Def(
+		c,
+		"weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Weeks(), nil
+			case *value.BigInt:
+				return s.Weeks(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "week", "weeks")
+
+	Def(
+		c,
+		"years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Years(), nil
+			case *value.BigInt:
+				return s.Years(), nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+	)
+	Alias(c, "year", "years")
 }

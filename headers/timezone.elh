@@ -1,0 +1,28 @@
+##[
+	Represents a timezone from the IANA Timezone database.
+]##
+sealed primitive class ::Std::Timezone
+	const UTC: Timezone
+	const LOCAL: Timezone
+
+	singleton
+		##[
+			Returns the Timezone for the given name.
+
+			If the name is "" or "UTC" the UTC timezone gets returned. If the name is "Local", the local (system) timezone gets returned.
+
+			Otherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `"Europe/Warsaw"`.
+		]##
+		def get(name: String): Timezone; end
+		alias [] get
+	end
+
+	##[
+		Returns the name of the Timezone eg. `"Local"`, `"UTC"`, `"Europe/Warsaw"`
+	]##
+	def name: String; end
+
+	def is_utc: bool; end
+	def is_local: bool; end
+
+end

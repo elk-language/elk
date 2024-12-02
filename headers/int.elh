@@ -207,4 +207,58 @@ sealed primitive class ::Std::Int < Value
 	]##
 	def hash: UInt64; end
 
+	##[
+		Returns the duration equivalent to `self` nanoseconds.
+	]##
+	def nanoseconds: Duration; end
+	alias nanosecond nanoseconds
+
+	##[
+		Returns the duration equivalent to `self` microseconds.
+	]##
+	def microseconds: Duration; end
+	alias microsecond microseconds
+
+	##[
+		Returns the duration equivalent to `self` milliseconds.
+	]##
+	def milliseconds: Duration; end
+	alias millisecond milliseconds
+
+	##[
+		Returns the duration equivalent to `self` seconds.
+	]##
+	def seconds: Duration; end
+	alias second seconds
+
+	##[
+		Returns the duration equivalent to `self` minutes.
+	]##
+	def minutes: Duration; end
+	alias minute minutes
+
+	##[
+		Returns the duration equivalent to `self` hours.
+	]##
+	def hours: Duration; end
+	alias hour hours
+
+	##[
+		Returns the duration equivalent to `self` days.
+	]##
+	def days: Duration; end
+	alias day days
+
+	##[
+		Returns the duration equivalent to `self` weeks.
+	]##
+	def weeks: Duration; end
+	alias week weeks
+
+	##[
+		Returns the duration equivalent to `self` years.
+	]##
+	def years: Duration; end
+	alias year years
+
 end
