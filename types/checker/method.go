@@ -1914,7 +1914,7 @@ func (c *Checker) setInputPositionTypeMode() {
 
 func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
 	if !overrideMethod.IsGeneric() {
-		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan)
+		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true)
 	}
 
 	prevMode := c.mode
@@ -1936,7 +1936,7 @@ func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, o
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span, validateNames bool) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -1982,7 +1982,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+			if oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",

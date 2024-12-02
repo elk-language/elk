@@ -3639,7 +3639,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		var incompatibleMethods []methodOverride
 		for name, includedMethod := range c.methodsInNamespace(includedMixin) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
-			if !c.checkMethodCompatibility(superMethod, includedMethod, nil) {
+			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
 					superMethod: superMethod,
 					override:    includedMethod,

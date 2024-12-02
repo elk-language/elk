@@ -4040,6 +4040,18 @@ func TestClosureLiteral(t *testing.T) {
 				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: 2.5`"),
 			},
 		},
+		"accept closure argument with different param names": {
+			input: `
+				def foo(fn: |a: String|: Float); end
+				foo() |i| ->
+					var b: nil = i
+					2.5
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(77, 4, 19), P(77, 4, 19)), "type `Std::String` cannot be assigned to type `nil`"),
+			},
+		},
 		"call a closure": {
 			input: `
 				a := |a: Int|: Int -> a

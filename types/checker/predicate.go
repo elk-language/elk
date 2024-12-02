@@ -987,7 +987,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	var incorrectMethods []methodOverride
 	for _, abstractMethod := range c.methodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
-		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
+		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
 				superMethod: abstractMethod,
 				override:    method,
@@ -1043,7 +1043,7 @@ func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpa
 	abstractMethod := b.Body
 	method := c.resolveMethodInNamespace(a, symbol.L_call)
 
-	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
+	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false) {
 		methodDetailsBuff := new(strings.Builder)
 		if method == nil {
 			fmt.Fprintf(
