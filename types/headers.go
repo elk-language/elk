@@ -76,6 +76,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, value.ToSymbol("Duration"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, value.ToSymbol("EndlessClosedRange"), objectClass, env)
 			{
@@ -244,6 +245,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
+		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{
@@ -815,6 +817,43 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Duration").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("hours"), nil, nil, NameToType("Std::Float64", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int64", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int64", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Float64", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int64", env), Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Float64", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the duration in the format \"51h15m0.12s\".", false, false, true, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Parses a duration string and creates a Duration value.\n A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", false, false, true, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("EndlessClosedRange").(*Class)
@@ -2744,6 +2783,37 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Time").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Adds the given duration to the time.\nReturns a new time object.", false, false, true, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Time", env), Never{})
+				namespace.DefineMethod("Subtracts the given duration from the time.\nReturns a new time object.", false, false, true, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Time", env), Never{})
+				namespace.DefineMethod("Calculates the difference between two time objects.\nReturns a duration.", false, false, true, value.ToSymbol("diff"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns the current time.", false, false, true, value.ToSymbol("now"), nil, nil, NameToType("Std::Time", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("True").(*Class)

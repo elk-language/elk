@@ -1,0 +1,30 @@
+##[
+	Represents a moment in time with nanosecond precision.
+]##
+sealed primitive class ::Std::Time
+	singleton
+		##[
+			Returns the current time.
+		]##
+		def now: Time; end
+	end
+
+	##[
+		Adds the given duration to the time.
+		Returns a new time object.
+	]##
+	def +(other: Duration): Time; end
+
+	##[
+		Subtracts the given duration from the time.
+		Returns a new time object.
+	]##
+	def -(other: Duration): Time; end
+
+	##[
+		Calculates the difference between two time objects.
+		Returns a duration.
+	]##
+	def diff(other: Time): Duration; end
+
+end

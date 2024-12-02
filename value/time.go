@@ -16,6 +16,10 @@ type Time struct {
 	Go time.Time
 }
 
+func TimeSince(t Time) Duration {
+	return ToElkDuration(time.Since(t.Go))
+}
+
 func (t Time) Copy() Value {
 	return t
 }
@@ -35,7 +39,7 @@ func (Time) SingletonClass() *Class {
 const DefaultTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
 
 func (t Time) Inspect() string {
-	return fmt.Sprintf("Time('%s')", t.ToString())
+	return fmt.Sprintf("Time('%s')", t.ToString().String())
 }
 
 func (t Time) Error() string {
@@ -51,7 +55,11 @@ func ToElkTime(time time.Time) Time {
 }
 
 func (t Time) ToString() String {
-	return String(t.MustFormat(DefaultTimeFormat))
+	return String(t.String())
+}
+
+func (t Time) String() string {
+	return t.MustFormat(DefaultTimeFormat)
 }
 
 // Create a new Time object.
@@ -69,6 +77,24 @@ func NewTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) Time {
 
 func TimeNow() Time {
 	return ToElkTime(time.Now())
+}
+
+// Adds the given duration to the time.
+// Returns a new time structure.
+func (t Time) Add(val Duration) Time {
+	return ToElkTime(t.Go.Add(val.Go))
+}
+
+// Subtracts the given duration from the time.
+// Returns a new time structure.
+func (t Time) Subtract(val Duration) Time {
+	return ToElkTime(t.Go.Add(-val.Go))
+}
+
+// Calculates the difference between two time objects.
+// Returns a duration.
+func (t Time) Diff(val Time) Duration {
+	return ToElkDuration(t.Go.Sub(val.Go))
 }
 
 func (t Time) ToGoTime() time.Time {

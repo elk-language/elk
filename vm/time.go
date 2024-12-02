@@ -45,6 +45,37 @@ func initTime() {
 
 	Def(
 		c,
+		"-",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Time)
+			dur := args[1].(value.Duration)
+			return self.Subtract(dur), nil
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Time)
+			dur := args[1].(value.Duration)
+			return self.Add(dur), nil
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"diff",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Time)
+			other := args[1].(value.Time)
+			return self.Diff(other), nil
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)

@@ -63,10 +63,11 @@ func main() {
 
 func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment) bool {
 	objectClass := env.StdSubtypeClass(symbol.Object)
+	_, isSingleton := namespace.(*types.SingletonClass)
 	return len(namespace.Constants()) > 0 ||
 		len(namespace.Methods()) > 0 ||
 		len(namespace.InstanceVariables()) > 0 ||
-		namespace.Parent() != nil && namespace.Parent() != objectClass
+		!isSingleton && namespace.Parent() != nil && namespace.Parent() != objectClass
 }
 
 func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment, root bool) {
@@ -129,6 +130,41 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 	defineMethods(buffer, namespace)
 	defineConstants(buffer, namespace)
 	defineInstanceVariables(buffer, namespace)
+	singleton := namespace.Singleton()
+	if singleton != nil {
+		defineMethodsWithinSingleton(buffer, singleton, env)
+	}
+	defineMethodsWithinSubtypes(buffer, namespace, env)
+
+	buffer.WriteString("}")
+}
+
+func defineMethodsWithinSingleton(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment) {
+	hasContent := namespaceHasContent(namespace, env)
+
+	if !hasContent {
+		return
+	}
+
+	fmt.Fprint(
+		buffer,
+		`
+				{
+					namespace := namespace.Singleton()
+			`,
+	)
+	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
+
+	setTypeParameters(buffer, namespace)
+
+	includeMixinsAndImplementInterfaces(buffer, namespace, env)
+	defineMethods(buffer, namespace)
+	defineConstants(buffer, namespace)
+	defineInstanceVariables(buffer, namespace)
+	singleton := namespace.Singleton()
+	if singleton != nil {
+		defineMethodsWithinNamespace(buffer, singleton, env, false)
+	}
 	defineMethodsWithinSubtypes(buffer, namespace, env)
 
 	buffer.WriteString("}")

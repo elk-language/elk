@@ -48,6 +48,7 @@ func InitGlobalEnvironment() {
 	initStringCharIterator()
 	initStringByteIterator()
 	initSymbol()
+	initDuration()
 	initTime()
 	initValue()
 }

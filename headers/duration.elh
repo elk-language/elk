@@ -1,0 +1,30 @@
+##[
+	Represents the elapsed time between two Times as an int64 nanosecond count.
+	 The representation limits the largest representable duration to approximately 290 years.
+]##
+sealed primitive class ::Std::Duration
+	singleton
+		##[
+			Parses a duration string and creates a Duration value.
+			 A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+			Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+		]##
+		def parse(s: String); end
+	end
+
+	def +(other: Duration): Duration; end
+	def -(other: Duration): Duration; end
+
+	##[
+		Returns the string representation of the duration in the format "51h15m0.12s".
+	]##
+	def to_string: String; end
+
+	def nanoseconds: Int64; end
+	def microseconds: Int64; end
+	def milliseconds: Int64; end
+	def seconds: Float64; end
+	def minutes: Float64; end
+	def hours: Float64; end
+
+end
