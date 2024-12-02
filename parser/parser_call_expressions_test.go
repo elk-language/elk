@@ -1185,6 +1185,76 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can omit the receiver, arguments and have a trailing closure without pipes": {
+			input: "foo() -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									S(P(6, 1, 7), P(13, 1, 14)),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(9, 1, 10), P(13, 1, 14)),
+											ast.NewBinaryExpressionNode(
+												S(P(9, 1, 10), P(13, 1, 14)),
+												T(S(P(11, 1, 12), P(11, 1, 12)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(9, 1, 10), P(9, 1, 10)), "i"),
+												ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver, arguments and have a trailing closure without arguments": {
+			input: "foo() || -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									S(P(6, 1, 7), P(16, 1, 17)),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(12, 1, 13), P(16, 1, 17)),
+											ast.NewBinaryExpressionNode(
+												S(P(12, 1, 13), P(16, 1, 17)),
+												T(S(P(14, 1, 15), P(14, 1, 15)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "i"),
+												ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can omit the receiver and have a trailing closure": {
 			input: "foo(1, 5) |i| -> i * 2",
 			want: ast.NewProgramNode(
@@ -1351,6 +1421,80 @@ func TestMethodCall(t *testing.T) {
 								ast.NewPublicConstantNode(S(P(21, 3, 6), P(26, 3, 11)), "String"),
 							},
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver and a trailing closure without pipes": {
+			input: "foo.bar() -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
+							"bar",
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									S(P(10, 1, 11), P(17, 1, 18)),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(13, 1, 14), P(17, 1, 18)),
+											ast.NewBinaryExpressionNode(
+												S(P(13, 1, 14), P(17, 1, 18)),
+												T(S(P(15, 1, 16), P(15, 1, 16)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(13, 1, 14)), "i"),
+												ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver and a trailing closure without arguments": {
+			input: "foo.bar() || -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							T(S(P(3, 1, 4), P(3, 1, 4)), token.DOT),
+							"bar",
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									S(P(10, 1, 11), P(20, 1, 21)),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(16, 1, 17), P(20, 1, 21)),
+											ast.NewBinaryExpressionNode(
+												S(P(16, 1, 17), P(20, 1, 21)),
+												T(S(P(18, 1, 19), P(18, 1, 19)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(16, 1, 17), P(16, 1, 17)), "i"),
+												ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "2"),
+											),
+										),
+									},
+								),
+							},
 							nil,
 						),
 					),

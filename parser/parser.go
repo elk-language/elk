@@ -1681,7 +1681,7 @@ methodCallLoop:
 }
 
 func (p *Parser) hasTrailingClosure() bool {
-	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.accept(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
+	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.acceptSecond(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
 }
 
 // beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall
@@ -6264,38 +6264,40 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 
-	if p.accept(token.OR) {
-		firstSpan = p.advance().Span()
-		if !p.accept(token.OR) {
-			p.mode = withoutBitwiseOrMode
-			params = p.formalParameterList(token.OR)
-			p.mode = normalMode
+	if p.accept(token.OR) || p.accept(token.OR_OR) {
+		if p.accept(token.OR) {
+			firstSpan = p.advance().Span()
+			if !p.accept(token.OR) {
+				p.mode = withoutBitwiseOrMode
+				params = p.formalParameterList(token.OR)
+				p.mode = normalMode
+			}
+			if tok, ok := p.consume(token.OR); !ok {
+				return ast.NewInvalidNode(
+					tok.Span(),
+					tok,
+				)
+			}
+		} else {
+			orOr, ok := p.consume(token.OR_OR)
+			firstSpan = orOr.Span()
+			if !ok {
+				return ast.NewInvalidNode(
+					orOr.Span(),
+					orOr,
+				)
+			}
 		}
-		if tok, ok := p.consume(token.OR); !ok {
-			return ast.NewInvalidNode(
-				tok.Span(),
-				tok,
-			)
-		}
-	} else {
-		orOr, ok := p.consume(token.OR_OR)
-		firstSpan = orOr.Span()
-		if !ok {
-			return ast.NewInvalidNode(
-				orOr.Span(),
-				orOr,
-			)
-		}
-	}
 
-	// return type
-	if p.match(token.COLON) {
-		returnType = p.typeAnnotation()
-	}
+		// return type
+		if p.match(token.COLON) {
+			returnType = p.typeAnnotation()
+		}
 
-	// throw type
-	if p.match(token.BANG) {
-		throwType = p.typeAnnotation()
+		// throw type
+		if p.match(token.BANG) {
+			throwType = p.typeAnnotation()
+		}
 	}
 
 	return p.closureAfterArrow(firstSpan, params, returnType, throwType)

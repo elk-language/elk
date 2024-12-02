@@ -4018,11 +4018,17 @@ func TestClosureLiteral(t *testing.T) {
 				error.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
 			},
 		},
-		"take param and return types from closure defined as a formal parameter": {
+		"take param and return types from closure defined as a method parameter": {
 			input: `
 				def foo(fn: |a: String|: Int); end
-				foo() |a| -> 5
+				foo() |a| ->
+					var b: nil = a
+					5
+				end
 			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(75, 4, 19), P(75, 4, 19)), "type `Std::String` cannot be assigned to type `nil`"),
+			},
 		},
 		"invalid closure argument": {
 			input: `

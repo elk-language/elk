@@ -3,6 +3,8 @@ package vm
 import (
 	"fmt"
 
+	"math/big"
+
 	"github.com/elk-language/elk/value"
 )
 
@@ -559,5 +561,48 @@ func initInt() {
 			}
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
+	)
+	Def(
+		c,
+		"times",
+		func(v *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			fn := args[1]
+			switch s := self.(type) {
+			case value.SmallInt:
+				for i := range s {
+					_, err := v.CallCallable(fn, value.SmallInt(i))
+					if err != nil {
+						return nil, err
+					}
+				}
+				return value.Nil, nil
+			case *value.BigInt:
+				if s.IsSmallInt() {
+					for i := range s.ToSmallInt() {
+						_, err := v.CallCallable(fn, value.SmallInt(i))
+						if err != nil {
+							return nil, err
+						}
+					}
+					return value.Nil, nil
+				}
+				for i := range value.MaxSmallInt {
+					_, err := v.CallCallable(fn, value.SmallInt(i))
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				sGo := s.ToGoBigInt()
+				one := big.NewInt(1)
+				bigI := big.NewInt(value.MaxSmallInt)
+				for ; bigI.Cmp(sGo) == -1; bigI.Add(bigI, one) {
+					v.CallCallable(fn, value.ToElkBigInt(bigI))
+				}
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+		DefWithParameters(1),
 	)
 }
