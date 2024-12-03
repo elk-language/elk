@@ -38,11 +38,6 @@ func TestBigInt_Add(t *testing.T) {
 			b:    value.NewBigInt(3),
 			want: value.ParseBigIntPanic("9223372036854775830", 10),
 		},
-		"add BigInt and return SmallInt": {
-			a:    value.ParseBigIntPanic("9223372036854775827", 10),
-			b:    value.NewBigInt(-27),
-			want: value.SmallInt(9223372036854775800),
-		},
 		"add Float and return Float": {
 			a:    value.NewBigInt(3),
 			b:    value.Float(2.5),
@@ -95,10 +90,10 @@ func TestBigInt_Add(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -120,11 +115,6 @@ func TestBigInt_Subtract(t *testing.T) {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
 			b:    value.SmallInt(5),
 			want: value.ParseBigIntPanic("9223372036854775812", 10),
-		},
-		"subtract SmallInt and return SmallInt": {
-			a:    value.ParseBigIntPanic("9223372036854775817", 10),
-			b:    value.SmallInt(11),
-			want: value.SmallInt(9223372036854775806),
 		},
 		"subtract BigInt and return BigInt": {
 			a:    value.ParseBigIntPanic("27670116110564327451", 10),
@@ -185,10 +175,10 @@ func TestBigInt_Subtract(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -210,11 +200,6 @@ func TestBigInt_Multiply(t *testing.T) {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
 			b:    value.SmallInt(10),
 			want: value.ParseBigIntPanic("92233720368547758170", 10),
-		},
-		"multiply by SmallInt and return SmallInt": {
-			a:    value.ParseBigIntPanic("9223372036854775808", 10),
-			b:    value.SmallInt(-1),
-			want: value.SmallInt(-9223372036854775808),
 		},
 		"multiply by BigInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
@@ -290,10 +275,10 @@ func TestBigInt_Multiply(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -310,11 +295,6 @@ func TestBigInt_Divide(t *testing.T) {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
 			b:   value.String("foo"),
 			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
-		},
-		"divide by SmallInt and return SmallInt": {
-			a:    value.ParseBigIntPanic("9223372036854775818", 10),
-			b:    value.SmallInt(2),
-			want: value.SmallInt(4611686018427387909),
 		},
 		"divide by SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("27670116110564327454", 10),
@@ -391,10 +371,10 @@ func TestBigInt_Divide(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -419,7 +399,7 @@ func TestBigInt_IsSmallInt(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.IsSmallInt()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -431,12 +411,12 @@ func TestBigInt_ToSmallInt(t *testing.T) {
 		want value.SmallInt
 	}{
 		"fits in SmallInt": {
-			i:    value.NewBigInt(math.MaxInt64 - 1),
-			want: value.SmallInt(math.MaxInt64 - 1),
+			i:    value.NewBigInt(value.MaxSmallInt - 1),
+			want: value.SmallInt(value.MaxSmallInt - 1),
 		},
 		"overflows SmallInt": {
-			i:    value.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
-			want: math.MinInt64 + 4,
+			i:    value.ToElkBigInt((&big.Int{}).Add(big.NewInt(value.MaxSmallInt), big.NewInt(5))),
+			want: value.MinSmallInt + 4,
 		},
 	}
 
@@ -444,7 +424,7 @@ func TestBigInt_ToSmallInt(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.ToSmallInt()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -759,10 +739,10 @@ func TestBigInt_Exponentiate(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -887,10 +867,10 @@ func TestBigInt_Compare(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1015,10 +995,10 @@ func TestBigInt_GreaterThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1143,10 +1123,10 @@ func TestBigInt_GreaterThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1271,10 +1251,10 @@ func TestBigInt_LessThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1399,10 +1379,10 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1646,7 +1626,7 @@ func TestBigInt_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1890,7 +1870,7 @@ func TestBigInt_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1942,11 +1922,6 @@ func TestBigInt_RightBitshift(t *testing.T) {
 		"shift by SmallInt 80 >> 60": {
 			a:    value.NewBigInt(80),
 			b:    value.SmallInt(60),
-			want: value.SmallInt(0),
-		},
-		"shift by SmallInt 80 >> -9223372036854775808": {
-			a:    value.NewBigInt(80),
-			b:    value.SmallInt(-9223372036854775808),
 			want: value.SmallInt(0),
 		},
 		"shift by SmallInt fall down to SmallInt": {
@@ -2330,10 +2305,10 @@ func TestBigInt_RightBitshift(t *testing.T) {
 			got, err := tc.a.RightBitshift(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2405,10 +2380,10 @@ func TestBigInt_BitwiseAnd(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2480,10 +2455,10 @@ func TestBigInt_BitwiseOr(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2543,11 +2518,6 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 			b:    value.ParseBigIntPanic("9223372036857247042", 10),
 			want: value.ParseBigIntPanic("9223372036857247165", 10),
 		},
-		"9223372036857247042 ^ 10223372099998981329": {
-			a:    value.ParseBigIntPanic("9223372036857247042", 10),
-			b:    value.ParseBigIntPanic("10223372099998981329", 10),
-			want: value.SmallInt(1000000063146142099),
-		},
 	}
 
 	for name, tc := range tests {
@@ -2555,10 +2525,10 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2803,10 +2773,10 @@ func TestBigInt_Modulo(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

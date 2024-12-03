@@ -1,7 +1,6 @@
 package value_test
 
 import (
-	"math"
 	"math/big"
 	"testing"
 
@@ -26,21 +25,6 @@ func TestSmallInt_Add(t *testing.T) {
 			a:    value.SmallInt(3),
 			b:    value.SmallInt(10),
 			want: value.SmallInt(13),
-		},
-		"add SmallInt overflow and return BigInt": {
-			a:    value.SmallInt(math.MaxInt64),
-			b:    value.SmallInt(10),
-			want: value.ParseBigIntPanic("9223372036854775817", 10),
-		},
-		"add BigInt and return BigInt": {
-			a:    value.SmallInt(20),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.ParseBigIntPanic("9223372036854775837", 10),
-		},
-		"add BigInt and return SmallInt": {
-			a:    value.SmallInt(-20),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.SmallInt(9223372036854775797),
 		},
 		"add Float and return Float": {
 			a:    value.SmallInt(-20),
@@ -94,10 +78,10 @@ func TestSmallInt_Add(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -119,21 +103,6 @@ func TestSmallInt_Subtract(t *testing.T) {
 			a:    value.SmallInt(3),
 			b:    value.SmallInt(10),
 			want: value.SmallInt(-7),
-		},
-		"subtract SmallInt underflow and return BigInt": {
-			a:    value.SmallInt(math.MinInt64),
-			b:    value.SmallInt(10),
-			want: value.ParseBigIntPanic("-9223372036854775818", 10),
-		},
-		"subtract BigInt and return BigInt": {
-			a:    value.SmallInt(5),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.ParseBigIntPanic("-9223372036854775812", 10),
-		},
-		"subtract BigInt and return SmallInt": {
-			a:    value.SmallInt(20),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.SmallInt(-9223372036854775797),
 		},
 
 		"subtract Float and return Float": {
@@ -190,10 +159,10 @@ func TestSmallInt_Subtract(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -215,21 +184,6 @@ func TestSmallInt_Multiply(t *testing.T) {
 			a:    value.SmallInt(3),
 			b:    value.SmallInt(10),
 			want: value.SmallInt(30),
-		},
-		"multiply by SmallInt overflow and return BigInt": {
-			a:    value.SmallInt(math.MaxInt64),
-			b:    value.SmallInt(10),
-			want: value.ParseBigIntPanic("92233720368547758070", 10),
-		},
-		"multiply by BigInt and return BigInt": {
-			a:    value.SmallInt(20),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.ParseBigIntPanic("184467440737095516340", 10),
-		},
-		"multiply BigInt and return SmallInt": {
-			a:    value.SmallInt(-1),
-			b:    value.ParseBigIntPanic("9223372036854775808", 10),
-			want: value.SmallInt(math.MinInt64),
 		},
 		"multiply by Float and return Float": {
 			a:    value.SmallInt(-20),
@@ -305,10 +259,10 @@ func TestSmallInt_Multiply(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -330,16 +284,6 @@ func TestSmallInt_Divide(t *testing.T) {
 			a:    value.SmallInt(30),
 			b:    value.SmallInt(10),
 			want: value.SmallInt(3),
-		},
-		"divide by SmallInt overflow and return BigInt": {
-			a:    value.SmallInt(math.MinInt64),
-			b:    value.SmallInt(-1),
-			want: value.ParseBigIntPanic("9223372036854775808", 10),
-		},
-		"divide by BigInt and return SmallInt": {
-			a:    value.SmallInt(20),
-			b:    value.ParseBigIntPanic("9223372036854775817", 10),
-			want: value.SmallInt(0),
 		},
 
 		"Float -20 / 0.5": {
@@ -411,10 +355,10 @@ func TestSmallInt_Divide(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -434,26 +378,26 @@ func TestSmallInt_addOverflow(t *testing.T) {
 		},
 		"overflow": {
 			a:    value.SmallInt(10),
-			b:    value.SmallInt(math.MaxInt64),
-			want: value.SmallInt(math.MinInt64 + 9),
+			b:    value.SmallInt(value.MaxSmallInt),
+			want: value.SmallInt(value.MinSmallInt + 9),
 			ok:   false,
 		},
 		"not underflow": {
-			a:    value.SmallInt(math.MinInt64 + 20),
+			a:    value.SmallInt(value.MinSmallInt + 20),
 			b:    value.SmallInt(-18),
-			want: value.SmallInt(math.MinInt64 + 2),
+			want: value.SmallInt(value.MinSmallInt + 2),
 			ok:   true,
 		},
 		"not underflow positive": {
-			a:    value.SmallInt(math.MinInt64 + 20),
+			a:    value.SmallInt(value.MinSmallInt + 20),
 			b:    value.SmallInt(18),
-			want: value.SmallInt(math.MinInt64 + 38),
+			want: value.SmallInt(value.MinSmallInt + 38),
 			ok:   true,
 		},
 		"underflow": {
-			a:    value.SmallInt(math.MinInt64),
+			a:    value.SmallInt(value.MinSmallInt),
 			b:    value.SmallInt(-20),
-			want: value.SmallInt(math.MaxInt64 - 19),
+			want: value.SmallInt(value.MaxSmallInt - 19),
 			ok:   false,
 		},
 	}
@@ -462,10 +406,10 @@ func TestSmallInt_addOverflow(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, ok := tc.a.AddOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.ok, ok); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -484,9 +428,9 @@ func TestSmallInt_subtractOverflow(t *testing.T) {
 			ok:   true,
 		},
 		"underflow": {
-			a:    value.SmallInt(math.MinInt64),
+			a:    value.SmallInt(value.MinSmallInt),
 			b:    value.SmallInt(3),
-			want: value.SmallInt(math.MaxInt64 - 2),
+			want: value.SmallInt(value.MaxSmallInt - 2),
 			ok:   false,
 		},
 	}
@@ -495,10 +439,10 @@ func TestSmallInt_subtractOverflow(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, ok := tc.a.SubtractOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.ok, ok); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -518,7 +462,7 @@ func TestSmallInt_multiplyOverflow(t *testing.T) {
 		},
 		"overflow": {
 			a:    value.SmallInt(10),
-			b:    value.SmallInt(math.MaxInt64),
+			b:    value.SmallInt(value.MaxSmallInt),
 			want: value.SmallInt(-10),
 			ok:   false,
 		},
@@ -529,7 +473,7 @@ func TestSmallInt_multiplyOverflow(t *testing.T) {
 			ok:   true,
 		},
 		"underflow": {
-			a:    value.SmallInt(math.MinInt64),
+			a:    value.SmallInt(value.MinSmallInt),
 			b:    value.SmallInt(2),
 			want: value.SmallInt(0),
 			ok:   false,
@@ -540,10 +484,10 @@ func TestSmallInt_multiplyOverflow(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, ok := tc.a.MultiplyOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.ok, ok); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -562,9 +506,9 @@ func TestSmallInt_divideOverflow(t *testing.T) {
 			ok:   true,
 		},
 		"overflow": {
-			a:    value.SmallInt(math.MinInt64),
+			a:    value.SmallInt(value.MinSmallInt),
 			b:    value.SmallInt(-1),
-			want: value.SmallInt(math.MinInt64),
+			want: value.SmallInt(value.MinSmallInt),
 			ok:   false,
 		},
 		"not underflow": {
@@ -574,7 +518,7 @@ func TestSmallInt_divideOverflow(t *testing.T) {
 			ok:   true,
 		},
 		"division by zero": {
-			a:    value.SmallInt(math.MinInt64),
+			a:    value.SmallInt(value.MinSmallInt),
 			b:    value.SmallInt(0),
 			want: value.SmallInt(0),
 			ok:   false,
@@ -585,10 +529,10 @@ func TestSmallInt_divideOverflow(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, ok := tc.a.DivideOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.ok, ok); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -883,10 +827,10 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -935,21 +879,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			b:    value.SmallInt(60),
 			want: value.SmallInt(0),
 		},
-		"shift by SmallInt 80 >> -9223372036854775808": {
-			a:    value.SmallInt(80),
-			b:    value.SmallInt(-9223372036854775808),
-			want: value.SmallInt(0),
-		},
-		"shift by SmallInt overflow": {
-			a:    value.SmallInt(10),
-			b:    value.SmallInt(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by SmallInt close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.SmallInt(-59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by BigInt 5 >> 1": {
 			a:    value.SmallInt(5),
@@ -969,21 +898,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 		"shift by BigInt 80 >> 60": {
 			a:    value.SmallInt(80),
 			b:    value.NewBigInt(60),
-			want: value.SmallInt(0),
-		},
-		"shift by BigInt overflow": {
-			a:    value.SmallInt(10),
-			b:    value.NewBigInt(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by BigInt close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.NewBigInt(-59),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by huge BigInt": {
-			a:    value.SmallInt(10),
-			b:    value.ParseBigIntPanic("9223372036854775808", 10),
 			want: value.SmallInt(0),
 		},
 
@@ -1007,16 +921,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			b:    value.Int64(60),
 			want: value.SmallInt(0),
 		},
-		"shift by Int64 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int64(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int64 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int64(-59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by Int32 5 >> 1": {
 			a:    value.SmallInt(5),
@@ -1037,16 +941,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			a:    value.SmallInt(80),
 			b:    value.Int32(60),
 			want: value.SmallInt(0),
-		},
-		"shift by Int32 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int32(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int32 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int32(-59),
-			want: value.SmallInt(5764607523034234880),
 		},
 
 		"shift by Int16 5 >> 1": {
@@ -1069,16 +963,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			b:    value.Int16(60),
 			want: value.SmallInt(0),
 		},
-		"shift by Int16 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int16(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int16 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int16(-59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by Int8 5 >> 1": {
 			a:    value.SmallInt(5),
@@ -1099,16 +983,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			a:    value.SmallInt(80),
 			b:    value.Int8(60),
 			want: value.SmallInt(0),
-		},
-		"shift by Int8 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int8(-60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int8 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int64(-59),
-			want: value.SmallInt(5764607523034234880),
 		},
 
 		"shift by UInt64 5 >> 1": {
@@ -1201,10 +1075,10 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			got, err := tc.a.RightBitshift(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1248,26 +1122,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.SmallInt(0),
 			want: value.SmallInt(75),
 		},
-		"shift by SmallInt 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.SmallInt(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by SmallInt 80 >> -9223372036854775808": {
-			a:    value.SmallInt(80),
-			b:    value.SmallInt(-9223372036854775808),
-			want: value.SmallInt(0),
-		},
-		"shift by SmallInt overflow": {
-			a:    value.SmallInt(10),
-			b:    value.SmallInt(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by SmallInt close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.SmallInt(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by BigInt 5 << 1": {
 			a:    value.SmallInt(5),
@@ -1288,36 +1142,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    value.SmallInt(75),
 			b:    value.NewBigInt(0),
 			want: value.SmallInt(75),
-		},
-		"shift by BigInt 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.NewBigInt(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by BigInt 80 >> -9223372036854775808": {
-			a:    value.SmallInt(80),
-			b:    value.NewBigInt(-9223372036854775808),
-			want: value.SmallInt(0),
-		},
-		"shift by BigInt overflow": {
-			a:    value.SmallInt(10),
-			b:    value.NewBigInt(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by BigInt close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.NewBigInt(59),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by huge BigInt": {
-			a:    value.SmallInt(10),
-			b:    value.ParseBigIntPanic("9223372036854775808", 10),
-			want: value.SmallInt(0),
-		},
-		"shift by huge negative BigInt": {
-			a:    value.SmallInt(10),
-			b:    value.ParseBigIntPanic("-9223372036854775809", 10),
-			want: value.SmallInt(0),
 		},
 
 		"shift by Int64 5 << 1": {
@@ -1340,26 +1164,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.Int64(0),
 			want: value.SmallInt(75),
 		},
-		"shift by Int64 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.Int64(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by Int64 80 >> -9223372036854775808": {
-			a:    value.SmallInt(80),
-			b:    value.Int64(-9223372036854775808),
-			want: value.SmallInt(0),
-		},
-		"shift by Int64 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int64(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int64 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int64(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by Int32 5 << 1": {
 			a:    value.SmallInt(5),
@@ -1380,21 +1184,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    value.SmallInt(75),
 			b:    value.Int32(0),
 			want: value.SmallInt(75),
-		},
-		"shift by Int32 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.Int32(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by Int32 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int32(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int32 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int32(59),
-			want: value.SmallInt(5764607523034234880),
 		},
 
 		"shift by Int16 5 << 1": {
@@ -1417,21 +1206,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.Int16(0),
 			want: value.SmallInt(75),
 		},
-		"shift by Int16 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.Int16(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by Int16 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int16(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int16 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int16(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by Int8 5 << 1": {
 			a:    value.SmallInt(5),
@@ -1453,21 +1227,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.Int8(0),
 			want: value.SmallInt(75),
 		},
-		"shift by Int8 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.Int8(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by Int8 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int8(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int8 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.Int8(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by UInt64 5 << 1": {
 			a:    value.SmallInt(5),
@@ -1478,21 +1237,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    value.SmallInt(75),
 			b:    value.UInt64(0),
 			want: value.SmallInt(75),
-		},
-		"shift by UInt64 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.UInt64(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by UIn64 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt64(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by UInt64 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt64(59),
-			want: value.SmallInt(5764607523034234880),
 		},
 
 		"shift by UInt32 5 << 1": {
@@ -1505,21 +1249,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.UInt32(0),
 			want: value.SmallInt(75),
 		},
-		"shift by UInt32 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.UInt32(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by UIn32 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt32(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by UInt32 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt32(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 
 		"shift by UInt16 5 << 1": {
 			a:    value.SmallInt(5),
@@ -1530,21 +1259,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    value.SmallInt(75),
 			b:    value.UInt16(0),
 			want: value.SmallInt(75),
-		},
-		"shift by UInt16 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.UInt16(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by UIn16 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt16(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by UInt16 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt16(59),
-			want: value.SmallInt(5764607523034234880),
 		},
 
 		"shift by UInt8 5 << 1": {
@@ -1557,21 +1271,6 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    value.UInt8(0),
 			want: value.SmallInt(75),
 		},
-		"shift by UInt8 80 << 56": {
-			a:    value.SmallInt(80),
-			b:    value.UInt8(56),
-			want: value.SmallInt(5764607523034234880),
-		},
-		"shift by UIn8 overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt8(60),
-			want: value.ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by UInt8 close to overflow": {
-			a:    value.SmallInt(10),
-			b:    value.UInt8(59),
-			want: value.SmallInt(5764607523034234880),
-		},
 	}
 
 	for name, tc := range tests {
@@ -1579,10 +1278,10 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			got, err := tc.a.LeftBitshift(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1649,10 +1348,10 @@ func TestSmallInt_BitwiseAnd(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1719,10 +1418,10 @@ func TestSmallInt_BitwiseOr(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1789,10 +1488,10 @@ func TestSmallInt_BitwiseXor(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1871,11 +1570,6 @@ func TestSmallInt_Modulo(t *testing.T) {
 			a:    value.SmallInt(124),
 			b:    value.NewBigInt(9),
 			want: value.SmallInt(7),
-		},
-		"BigInt 9765 % 9223372036854775808": {
-			a:    value.SmallInt(9765),
-			b:    value.ParseBigIntPanic("9223372036854775808", 10),
-			want: value.SmallInt(9765),
 		},
 
 		"Float 25 % 3": {
@@ -2012,10 +1706,10 @@ func TestSmallInt_Modulo(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2135,10 +1829,10 @@ func TestSmallInt_GreaterThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2258,10 +1952,10 @@ func TestSmallInt_GreaterThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2381,10 +2075,10 @@ func TestSmallInt_LessThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2504,10 +2198,10 @@ func TestSmallInt_LessThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2751,7 +2445,7 @@ func TestSmallInt_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2995,7 +2689,7 @@ func TestSmallInt_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

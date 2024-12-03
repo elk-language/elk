@@ -10,16 +10,18 @@ import (
 )
 
 // Elk's SmallInt value
-type SmallInt int64
+type SmallInt int
+
+const PtrSize = 4 << (^uintptr(0) >> 63)
 
 // Number of bits available for a small int.
-const SmallIntBits = 64
+const SmallIntBits = PtrSize * 8
 
 // Max value of SmallInt
-const MaxSmallInt = math.MaxInt64
+const MaxSmallInt = math.MaxInt
 
 // Min value of SmallInt
-const MinSmallInt = math.MinInt64
+const MinSmallInt = math.MinInt
 
 func (SmallInt) Class() *Class {
 	return IntClass
@@ -51,7 +53,7 @@ func (i SmallInt) InstanceVariables() SymbolMap {
 
 // Negate the number and return the result.
 func (i SmallInt) Negate() Value {
-	if i == math.MinInt64 {
+	if i == MinSmallInt {
 		iBigInt := big.NewInt(int64(i))
 		return ToElkBigInt(iBigInt.Neg(iBigInt))
 	}

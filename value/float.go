@@ -11,7 +11,6 @@ import (
 var FloatClass *Class // ::Std::Float
 
 // Elk's Float value
-type Float float64
 
 // Positive infinity
 func FloatInf() Float {
@@ -447,7 +446,7 @@ func (f Float) LaxEqual(other Value) Value {
 	case Float64:
 		return ToElkBool(float64(f) == float64(o))
 	case Float32:
-		return ToElkBool(float64(f) == float64(o))
+		return ToElkBool(Float(f) == Float(o))
 	default:
 		return False
 	}

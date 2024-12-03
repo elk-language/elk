@@ -306,7 +306,7 @@ func (f *BytecodeFunction) AddValue(obj value.Value) (int, IntSize) {
 		return id, bytecode.UINT16_SIZE
 	}
 
-	if id <= math.MaxUint32 {
+	if int64(id) <= math.MaxUint32 {
 		return id, bytecode.UINT32_SIZE
 	}
 
