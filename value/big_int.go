@@ -845,7 +845,7 @@ func ParseBigInt(s string, base int) (*BigInt, Value) {
 	u, err := ParseUBigInt(s, base)
 	un := u.ToGoBigInt()
 
-	if err != nil {
+	if !err.IsNil() {
 		return nil, err
 	}
 

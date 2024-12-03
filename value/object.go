@@ -69,13 +69,13 @@ func NewObject(opts ...ObjectOption) *Object {
 
 // Creates a new value.
 func ObjectConstructor(class *Class) Value {
-	return &Object{
+	return Ref(&Object{
 		class:             class,
 		instanceVariables: make(SymbolMap),
-	}
+	})
 }
 
-func (o *Object) Copy() Value {
+func (o *Object) Copy() Reference {
 	newInstanceVariables := make(SymbolMap, len(o.instanceVariables))
 	maps.Copy(newInstanceVariables, o.instanceVariables)
 

@@ -246,7 +246,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
 		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, value.ToSymbol("Time"), objectClass, env)
-		namespace.TryDefineClass("Represents a timezone.", false, true, true, value.ToSymbol("Timezone"), objectClass, env)
+		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{

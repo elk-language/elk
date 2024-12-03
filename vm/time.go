@@ -22,7 +22,7 @@ func initTime() {
 		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			arg := args[1]
 			switch a := arg.(type) {
 			case value.String:
@@ -47,7 +47,7 @@ func initTime() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			dur := args[1].(value.Duration)
 			return self.Subtract(dur), nil
 		},
@@ -57,7 +57,7 @@ func initTime() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			dur := args[1].(value.Duration)
 			return self.Add(dur), nil
 		},
@@ -67,8 +67,8 @@ func initTime() {
 		c,
 		"diff",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
-			other := args[1].(value.Time)
+			self := args[0].(*value.Time)
+			other := args[1].(*value.Time)
 			return self.Diff(other), nil
 		},
 		DefWithParameters(1),
@@ -78,7 +78,7 @@ func initTime() {
 		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return self.Zone(), nil
 		},
 	)
@@ -88,7 +88,7 @@ func initTime() {
 		c,
 		"zone_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.String(self.ZoneName()), nil
 		},
 	)
@@ -98,7 +98,7 @@ func initTime() {
 		c,
 		"zone_offset_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.ZoneOffsetSeconds()), nil
 		},
 	)
@@ -108,7 +108,7 @@ func initTime() {
 		c,
 		"zone_offset_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.ZoneOffsetHours()), nil
 		},
 	)
@@ -118,7 +118,7 @@ func initTime() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return self.ToString(), nil
 		},
 	)
@@ -127,7 +127,7 @@ func initTime() {
 		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Year()), nil
 		},
 	)
@@ -135,7 +135,7 @@ func initTime() {
 		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.ISOYear()), nil
 		},
 	)
@@ -143,7 +143,7 @@ func initTime() {
 		c,
 		"month",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Month()), nil
 		},
 	)
@@ -151,7 +151,7 @@ func initTime() {
 		c,
 		"week_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.WeekFromMonday()), nil
 		},
 	)
@@ -160,7 +160,7 @@ func initTime() {
 		c,
 		"week_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.WeekFromSunday()), nil
 		},
 	)
@@ -169,7 +169,7 @@ func initTime() {
 		c,
 		"iso_week",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.ISOWeek()), nil
 		},
 	)
@@ -177,7 +177,7 @@ func initTime() {
 		c,
 		"day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Day()), nil
 		},
 	)
@@ -187,7 +187,7 @@ func initTime() {
 		c,
 		"year_day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.YearDay()), nil
 		},
 	)
@@ -195,7 +195,7 @@ func initTime() {
 		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.String(self.WeekdayName()), nil
 		},
 	)
@@ -203,7 +203,7 @@ func initTime() {
 		c,
 		"weekday_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.WeekdayFromMonday()), nil
 		},
 	)
@@ -213,7 +213,7 @@ func initTime() {
 		c,
 		"weekday_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.WeekdayFromSunday()), nil
 		},
 	)
@@ -221,7 +221,7 @@ func initTime() {
 		c,
 		"hour",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Hour()), nil
 		},
 	)
@@ -229,7 +229,7 @@ func initTime() {
 		c,
 		"minute",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Minute()), nil
 		},
 	)
@@ -237,7 +237,7 @@ func initTime() {
 		c,
 		"second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Second()), nil
 		},
 	)
@@ -245,7 +245,7 @@ func initTime() {
 		c,
 		"millisecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Millisecond()), nil
 		},
 	)
@@ -253,7 +253,7 @@ func initTime() {
 		c,
 		"microsecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Microsecond()), nil
 		},
 	)
@@ -261,7 +261,7 @@ func initTime() {
 		c,
 		"nanosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Nanosecond()), nil
 		},
 	)
@@ -269,7 +269,7 @@ func initTime() {
 		c,
 		"picosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkInt(self.Picosecond()), nil
 		},
 	)
@@ -277,7 +277,7 @@ func initTime() {
 		c,
 		"femtosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkInt(self.Femtosecond()), nil
 		},
 	)
@@ -285,7 +285,7 @@ func initTime() {
 		c,
 		"attosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkInt(self.Attosecond()), nil
 		},
 	)
@@ -293,7 +293,7 @@ func initTime() {
 		c,
 		"zeptosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.Zeptosecond()), nil
 		},
 	)
@@ -301,7 +301,7 @@ func initTime() {
 		c,
 		"yoctosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.Yoctosecond()), nil
 		},
 	)
@@ -310,7 +310,7 @@ func initTime() {
 		c,
 		"unix_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkInt(self.UnixSeconds()), nil
 		},
 	)
@@ -319,7 +319,7 @@ func initTime() {
 		c,
 		"unix_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkInt(self.UnixMilliseconds()), nil
 		},
 	)
@@ -327,7 +327,7 @@ func initTime() {
 		c,
 		"unix_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixMicroseconds()), nil
 		},
 	)
@@ -335,7 +335,7 @@ func initTime() {
 		c,
 		"unix_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixNanoseconds()), nil
 		},
 	)
@@ -343,7 +343,7 @@ func initTime() {
 		c,
 		"unix_picoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixPicoseconds()), nil
 		},
 	)
@@ -351,7 +351,7 @@ func initTime() {
 		c,
 		"unix_femtoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixFemtoseconds()), nil
 		},
 	)
@@ -359,7 +359,7 @@ func initTime() {
 		c,
 		"unix_attoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixAttoseconds()), nil
 		},
 	)
@@ -367,7 +367,7 @@ func initTime() {
 		c,
 		"unix_zeptoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixZeptoseconds()), nil
 		},
 	)
@@ -375,7 +375,7 @@ func initTime() {
 		c,
 		"unix_yoctoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBigInt(self.UnixYoctoseconds()), nil
 		},
 	)
@@ -384,7 +384,7 @@ func initTime() {
 		c,
 		"to_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return self.UTC(), nil
 		},
 	)
@@ -394,7 +394,7 @@ func initTime() {
 		c,
 		"to_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return self.Local(), nil
 		},
 	)
@@ -403,7 +403,7 @@ func initTime() {
 		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsUTC()), nil
 		},
 	)
@@ -411,7 +411,7 @@ func initTime() {
 		c,
 		"is_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsLocal()), nil
 		},
 	)
@@ -420,7 +420,7 @@ func initTime() {
 		c,
 		"is_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsMonday()), nil
 		},
 	)
@@ -428,7 +428,7 @@ func initTime() {
 		c,
 		"is_tuesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsTuesday()), nil
 		},
 	)
@@ -436,7 +436,7 @@ func initTime() {
 		c,
 		"is_wednesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsWednesday()), nil
 		},
 	)
@@ -444,7 +444,7 @@ func initTime() {
 		c,
 		"is_thursday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsThursday()), nil
 		},
 	)
@@ -452,7 +452,7 @@ func initTime() {
 		c,
 		"is_friday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsFriday()), nil
 		},
 	)
@@ -460,7 +460,7 @@ func initTime() {
 		c,
 		"is_saturday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsSaturday()), nil
 		},
 	)
@@ -468,7 +468,7 @@ func initTime() {
 		c,
 		"is_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsSunday()), nil
 		},
 	)
@@ -477,7 +477,7 @@ func initTime() {
 		c,
 		"is_am",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsAM()), nil
 		},
 	)
@@ -485,7 +485,7 @@ func initTime() {
 		c,
 		"is_pm",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.ToElkBool(self.IsPM()), nil
 		},
 	)
@@ -493,7 +493,7 @@ func initTime() {
 		c,
 		"meridiem",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.String(self.Meridiem()), nil
 		},
 	)
@@ -502,7 +502,7 @@ func initTime() {
 		c,
 		"hour12",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			return value.SmallInt(self.Hour12()), nil
 		},
 	)
@@ -511,7 +511,7 @@ func initTime() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			other := args[1]
 			return self.GreaterThan(other)
 		},
@@ -521,7 +521,7 @@ func initTime() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			other := args[1]
 			return self.GreaterThanEqual(other)
 		},
@@ -531,7 +531,7 @@ func initTime() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			other := args[1]
 			return self.LessThan(other)
 		},
@@ -541,7 +541,7 @@ func initTime() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			other := args[1]
 			return self.LessThanEqual(other)
 		},
@@ -551,7 +551,7 @@ func initTime() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Time)
+			self := args[0].(*value.Time)
 			other := args[1]
 			return self.Equal(other), nil
 		},

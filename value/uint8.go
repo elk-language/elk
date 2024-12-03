@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"strconv"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -11,6 +12,15 @@ var UInt8Class *Class // ::Std::UInt8
 
 // Elk's UInt8 value
 type UInt8 uint8
+
+func (i UInt8) ToValue() Value {
+	inline := inlineValue{
+		data: unsafe.Pointer(uintptr(UINT8_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+	}
+
+	return *(*Value)(unsafe.Pointer(&inline))
+}
 
 func (UInt8) Class() *Class {
 	return UInt8Class

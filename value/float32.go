@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -26,6 +27,15 @@ func Float32NegInf() Float32 {
 // Not a number
 func Float32NaN() Float32 {
 	return Float32(math.NaN())
+}
+
+func (f Float32) ToValue() Value {
+	inline := inlineValue{
+		data: unsafe.Pointer(uintptr(FLOAT32_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&f)),
+	}
+
+	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (Float32) Class() *Class {

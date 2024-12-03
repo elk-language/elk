@@ -16,153 +16,153 @@ type Time struct {
 	Go time.Time
 }
 
-func (t Time) Copy() Value {
+func (t *Time) Copy() Value {
 	return t
 }
 
-func (Time) Class() *Class {
+func (*Time) Class() *Class {
 	return TimeClass
 }
 
-func (Time) DirectClass() *Class {
+func (*Time) DirectClass() *Class {
 	return TimeClass
 }
 
-func (Time) SingletonClass() *Class {
+func (*Time) SingletonClass() *Class {
 	return nil
 }
 
 const DefaultTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
 
-func (t Time) Inspect() string {
+func (t *Time) Inspect() string {
 	return fmt.Sprintf("Std::Time('%s')", t.ToString().String())
 }
 
-func (t Time) Error() string {
+func (t *Time) Error() string {
 	return t.Inspect()
 }
 
-func (t Time) InstanceVariables() SymbolMap {
+func (t *Time) InstanceVariables() SymbolMap {
 	return nil
 }
 
-func ToElkTime(time time.Time) Time {
-	return Time{Go: time}
+func ToElkTime(time time.Time) *Time {
+	return &Time{Go: time}
 }
 
-func (t Time) ToString() String {
+func (t *Time) ToString() String {
 	return String(t.String())
 }
 
-func (t Time) String() string {
+func (t *Time) String() string {
 	return t.MustFormat(DefaultTimeFormat)
 }
 
 // Create a new Time object.
-func NewTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) Time {
+func NewTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) *Time {
 	var location *time.Location
 	if zone == nil {
 		location = time.UTC
 	} else {
 		location = zone.ToGoLocation()
 	}
-	return Time{
+	return &Time{
 		Go: time.Date(year, time.Month(month), day, hour, min, sec, nsec, location),
 	}
 }
 
-func TimeNow() Time {
+func TimeNow() *Time {
 	return ToElkTime(time.Now())
 }
 
 // Adds the given duration to the time.
 // Returns a new time structure.
-func (t Time) Add(val Duration) Time {
+func (t *Time) Add(val Duration) *Time {
 	return ToElkTime(t.Go.Add(val.Go()))
 }
 
 // Subtracts the given duration from the time.
 // Returns a new time structure.
-func (t Time) Subtract(val Duration) Time {
+func (t *Time) Subtract(val Duration) *Time {
 	return ToElkTime(t.Go.Add(-val.Go()))
 }
 
 // Calculates the difference between two time objects.
 // Returns a duration.
-func (t Time) Diff(val Time) Duration {
+func (t *Time) Diff(val *Time) Duration {
 	return Duration(t.Go.Sub(val.Go))
 }
 
-func (t Time) ToGoTime() time.Time {
+func (t *Time) ToGoTime() time.Time {
 	return t.Go
 }
 
-func (t Time) Zone() *Timezone {
+func (t *Time) Zone() *Timezone {
 	return NewTimezone(t.Go.Location())
 }
 
-func (t Time) ISOYear() int {
+func (t *Time) ISOYear() int {
 	year, _ := t.Go.ISOWeek()
 	return year
 }
 
-func (t Time) ISOYearLastTwo() int {
+func (t *Time) ISOYearLastTwo() int {
 	return t.ISOYear() % 100
 }
 
-func (t Time) YearLastTwo() int {
+func (t *Time) YearLastTwo() int {
 	return t.Go.Year() % 100
 }
 
-func (t Time) Year() int {
+func (t *Time) Year() int {
 	return t.Go.Year()
 }
 
-func (t Time) Century() int {
+func (t *Time) Century() int {
 	return t.Go.Year() / 100
 }
 
-func (t Time) Month() int {
+func (t *Time) Month() int {
 	return int(t.Go.Month())
 }
 
-func (t Time) MonthName() string {
+func (t *Time) MonthName() string {
 	return t.Go.Month().String()
 }
 
-func (t Time) AbbreviatedMonthName() string {
+func (t *Time) AbbreviatedMonthName() string {
 	return t.MonthName()[0:3]
 }
 
-func (t Time) Day() int {
+func (t *Time) Day() int {
 	return t.Go.Day()
 }
 
 // Day of the year.
-func (t Time) YearDay() int {
+func (t *Time) YearDay() int {
 	return t.Go.YearDay()
 }
 
 // Hour in a 24 hour clock.
-func (t Time) Hour() int {
+func (t *Time) Hour() int {
 	return t.Go.Hour()
 }
 
 // Whether the current hour is AM.
-func (t Time) IsAM() bool {
+func (t *Time) IsAM() bool {
 	hour := t.Hour()
 
 	return hour < 12
 }
 
 // Whether the current hour is PM.
-func (t Time) IsPM() bool {
+func (t *Time) IsPM() bool {
 	hour := t.Hour()
 
 	return hour >= 12
 }
 
-func (t Time) Meridiem() string {
+func (t *Time) Meridiem() string {
 	if t.IsAM() {
 		return "AM"
 	}
@@ -170,7 +170,7 @@ func (t Time) Meridiem() string {
 	return "PM"
 }
 
-func (t Time) MeridiemLowercase() string {
+func (t *Time) MeridiemLowercase() string {
 	if t.IsAM() {
 		return "am"
 	}
@@ -179,7 +179,7 @@ func (t Time) MeridiemLowercase() string {
 }
 
 // Hour in a twelve hour clock.
-func (t Time) Hour12() int {
+func (t *Time) Hour12() int {
 	hour := t.Hour()
 	if hour == 0 {
 		return 12
@@ -192,84 +192,84 @@ func (t Time) Hour12() int {
 	return hour - 12
 }
 
-func (t Time) Minute() int {
+func (t *Time) Minute() int {
 	return t.Go.Minute()
 }
 
-func (t Time) Second() int {
+func (t *Time) Second() int {
 	return t.Go.Second()
 }
 
-func (t Time) Millisecond() int {
+func (t *Time) Millisecond() int {
 	return t.Nanosecond() / 1000_000
 }
 
-func (t Time) Microsecond() int {
+func (t *Time) Microsecond() int {
 	return t.Nanosecond() / 1000
 }
 
-func (t Time) Nanosecond() int {
+func (t *Time) Nanosecond() int {
 	return t.Go.Nanosecond()
 }
 
-func (t Time) Picosecond() int64 {
+func (t *Time) Picosecond() int64 {
 	return int64(t.Nanosecond()) * 1000
 }
 
-func (t Time) Femtosecond() int64 {
+func (t *Time) Femtosecond() int64 {
 	return int64(t.Nanosecond()) * 1000_000
 }
 
-func (t Time) Attosecond() int64 {
+func (t *Time) Attosecond() int64 {
 	return int64(t.Nanosecond()) * 1000_000_000
 }
 
-func (t Time) Zeptosecond() *big.Int {
+func (t *Time) Zeptosecond() *big.Int {
 	i := big.NewInt(int64(t.Nanosecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000))
 	return i
 }
 
-func (t Time) Yoctosecond() *big.Int {
+func (t *Time) Yoctosecond() *big.Int {
 	i := big.NewInt(int64(t.Nanosecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000_000))
 	return i
 }
 
-func (t Time) ZoneName() string {
+func (t *Time) ZoneName() string {
 	return t.Go.Location().String()
 }
 
-func (t Time) ZoneAbbreviatedName() string {
+func (t *Time) ZoneAbbreviatedName() string {
 	name, _ := t.Go.Zone()
 	return name
 }
 
-func (t Time) ZoneOffsetSeconds() int {
+func (t *Time) ZoneOffsetSeconds() int {
 	_, offset := t.Go.Zone()
 	return offset
 }
 
-func (t Time) ZoneOffsetHours() int {
+func (t *Time) ZoneOffsetHours() int {
 	_, offset := t.Go.Zone()
 	return offset / 3600
 }
 
-func (t Time) ZoneOffsetHourMinutes() int {
+func (t *Time) ZoneOffsetHourMinutes() int {
 	_, offset := t.Go.Zone()
 	return (offset % 3600) / 60
 }
 
-func (t Time) WeekdayName() string {
+func (t *Time) WeekdayName() string {
 	return t.Go.Weekday().String()
 }
 
-func (t Time) AbbreviatedWeekdayName() string {
+func (t *Time) AbbreviatedWeekdayName() string {
 	return t.WeekdayName()[0:3]
 }
 
 // Specifies the day of the week (Monday = 1, ...).
-func (t Time) WeekdayFromMonday() int {
+func (t *Time) WeekdayFromMonday() int {
 	weekday := int(t.Go.Weekday())
 	if weekday == 0 {
 		return 7
@@ -279,64 +279,64 @@ func (t Time) WeekdayFromMonday() int {
 }
 
 // Specifies the day of the week (Sunday = 0, ...).
-func (t Time) WeekdayFromSunday() int {
+func (t *Time) WeekdayFromSunday() int {
 	return int(t.Go.Weekday())
 }
 
-func (t Time) UnixSeconds() int64 {
+func (t *Time) UnixSeconds() int64 {
 	return t.Go.Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
+func (t *Time) UnixMilliseconds() int64 {
 	return t.Go.UnixMilli()
 }
 
-func (t Time) UnixMicroseconds() *big.Int {
+func (t *Time) UnixMicroseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000))
 	return i.Add(i, big.NewInt(int64(t.Microsecond())))
 }
 
-func (t Time) UnixNanoseconds() *big.Int {
+func (t *Time) UnixNanoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000))
 	return i.Add(i, big.NewInt(int64(t.Nanosecond())))
 }
 
-func (t Time) UnixPicoseconds() *big.Int {
+func (t *Time) UnixPicoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000))
 	return i.Add(i, big.NewInt(t.Picosecond()))
 }
 
-func (t Time) UnixFemtoseconds() *big.Int {
+func (t *Time) UnixFemtoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000_000))
 	return i.Add(i, big.NewInt(t.Femtosecond()))
 }
 
-func (t Time) UnixAttoseconds() *big.Int {
+func (t *Time) UnixAttoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000_000_000))
 	return i.Add(i, big.NewInt(t.Attosecond()))
 }
 
-func (t Time) UnixZeptoseconds() *big.Int {
+func (t *Time) UnixZeptoseconds() *big.Int {
 	i := t.UnixAttoseconds()
 	return i.Mul(i, big.NewInt(1000))
 }
 
-func (t Time) UnixYoctoseconds() *big.Int {
+func (t *Time) UnixYoctoseconds() *big.Int {
 	i := t.UnixAttoseconds()
 	return i.Mul(i, big.NewInt(1000_000))
 }
 
-func (t Time) ISOWeek() int {
+func (t *Time) ISOWeek() int {
 	_, week := t.Go.ISOWeek()
 	return week
 }
 
-func (t Time) weekNumber(firstWeekday int) int {
+func (t *Time) weekNumber(firstWeekday int) int {
 	yday := t.YearDay()
 	wday := t.WeekdayFromSunday()
 
@@ -357,60 +357,60 @@ func (t Time) weekNumber(firstWeekday int) int {
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Monday
 // as the first day of week 01.
-func (t Time) WeekFromMonday() int {
+func (t *Time) WeekFromMonday() int {
 	return t.weekNumber(1)
 }
 
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Sunday
 // as the first day of week 01.
-func (t Time) WeekFromSunday() int {
+func (t *Time) WeekFromSunday() int {
 	return t.weekNumber(0)
 }
 
-func (t Time) IsSunday() bool {
+func (t *Time) IsSunday() bool {
 	return t.WeekdayFromSunday() == 0
 }
 
-func (t Time) IsMonday() bool {
+func (t *Time) IsMonday() bool {
 	return t.WeekdayFromSunday() == 1
 }
 
-func (t Time) IsTuesday() bool {
+func (t *Time) IsTuesday() bool {
 	return t.WeekdayFromSunday() == 2
 }
 
-func (t Time) IsWednesday() bool {
+func (t *Time) IsWednesday() bool {
 	return t.WeekdayFromSunday() == 3
 }
 
-func (t Time) IsThursday() bool {
+func (t *Time) IsThursday() bool {
 	return t.WeekdayFromSunday() == 4
 }
 
-func (t Time) IsFriday() bool {
+func (t *Time) IsFriday() bool {
 	return t.WeekdayFromSunday() == 5
 }
 
-func (t Time) IsSaturday() bool {
+func (t *Time) IsSaturday() bool {
 	return t.WeekdayFromSunday() == 6
 }
 
-func (t Time) IsUTC() bool {
+func (t *Time) IsUTC() bool {
 	return t.Zone().IsUTC()
 }
 
-func (t Time) IsLocal() bool {
+func (t *Time) IsLocal() bool {
 	return t.Zone().IsLocal()
 }
 
 // Convert the time to the UTC zone.
-func (t Time) UTC() Time {
+func (t *Time) UTC() *Time {
 	return ToElkTime(t.Go.UTC())
 }
 
 // Convert the time to the local timezone.
-func (t Time) Local() Time {
+func (t *Time) Local() *Time {
 	return ToElkTime(t.Go.Local())
 }
 
@@ -419,11 +419,11 @@ func (t Time) Local() Time {
 //	  -1 if x <  y
 //		 0 if x == y
 //	  +1 if x >  y
-func (x Time) Cmp(y Time) int {
+func (x *Time) Cmp(y *Time) int {
 	return x.Go.Compare(y.Go)
 }
 
-func (t Time) MustFormat(formatString string) string {
+func (t *Time) MustFormat(formatString string) string {
 	result, err := t.Format(formatString)
 	if err != nil {
 		panic(err)
@@ -433,7 +433,7 @@ func (t Time) MustFormat(formatString string) string {
 }
 
 // Create a string formatted according to the given format string.
-func (t Time) Format(formatString string) (string, Value) {
+func (t *Time) Format(formatString string) (string, Value) {
 	scanner := timescanner.New(formatString)
 	var buffer strings.Builder
 
@@ -741,9 +741,9 @@ tokenLoop:
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
-func (t Time) GreaterThan(other Value) (Value, Value) {
+func (t *Time) GreaterThan(other Value) (Value, Value) {
 	switch o := other.(type) {
-	case Time:
+	case *Time:
 		return ToElkBool(t.Cmp(o) == 1), nil
 	default:
 		return nil, NewCoerceError(t.Class(), other.Class())
@@ -752,9 +752,9 @@ func (t Time) GreaterThan(other Value) (Value, Value) {
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
-func (t Time) GreaterThanEqual(other Value) (Value, Value) {
+func (t *Time) GreaterThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
-	case Time:
+	case *Time:
 		return ToElkBool(t.Cmp(o) >= 0), nil
 	default:
 		return nil, NewCoerceError(t.Class(), other.Class())
@@ -763,9 +763,9 @@ func (t Time) GreaterThanEqual(other Value) (Value, Value) {
 
 // Check whether t is less than other and return an error
 // if something went wrong.
-func (t Time) LessThan(other Value) (Value, Value) {
+func (t *Time) LessThan(other Value) (Value, Value) {
 	switch o := other.(type) {
-	case Time:
+	case *Time:
 		return ToElkBool(t.Cmp(o) == -1), nil
 	default:
 		return nil, NewCoerceError(t.Class(), other.Class())
@@ -774,31 +774,31 @@ func (t Time) LessThan(other Value) (Value, Value) {
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
-func (t Time) LessThanEqual(other Value) (Value, Value) {
+func (t *Time) LessThanEqual(other Value) (Value, Value) {
 	switch o := other.(type) {
-	case Time:
+	case *Time:
 		return ToElkBool(t.Cmp(o) <= 0), nil
 	default:
 		return nil, NewCoerceError(t.Class(), other.Class())
 	}
 }
 
-func (t Time) LaxEqual(other Value) Value {
+func (t *Time) LaxEqual(other Value) Value {
 	return t.Equal(other)
 }
 
 // Check whether t is equal to other and return an error
 // if something went wrong.
-func (t Time) Equal(other Value) Value {
+func (t *Time) Equal(other Value) Value {
 	switch o := other.(type) {
-	case Time:
+	case *Time:
 		return ToElkBool(t.Cmp(o) == 0)
 	default:
 		return False
 	}
 }
 
-func (t Time) StrictEqual(other Value) Value {
+func (t *Time) StrictEqual(other Value) Value {
 	return t.Equal(other)
 }
 

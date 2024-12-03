@@ -1,13 +1,23 @@
 package value
 
-import "github.com/cespare/xxhash/v2"
+import (
+	"unsafe"
+
+	"github.com/cespare/xxhash/v2"
+)
 
 var TrueClass *Class // ::Std::True
 
 type TrueType struct{}
 
 // Elk's true value
-var True = TrueType{}
+var True = TrueType{}.ToValue()
+
+func (TrueType) ToValue() Value {
+	return Value{
+		data: unsafe.Pointer(uintptr(TRUE_FLAG)),
+	}
+}
 
 func (TrueType) Class() *Class {
 	return TrueClass
@@ -27,10 +37,6 @@ func (TrueType) SingletonClass() *Class {
 	return nil
 }
 
-func (t TrueType) Copy() Value {
-	return t
-}
-
 func (TrueType) Inspect() string {
 	return "true"
 }
@@ -47,5 +53,5 @@ func initTrue() {
 	TrueClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 	)
-	StdModule.AddConstantString("True", TrueClass)
+	StdModule.AddConstantString("True", ReferenceToValue(TrueClass))
 }

@@ -133,7 +133,7 @@ func ClassConstructor(metaClass *Class) Value {
 		instanceVariables: make(SymbolMap),
 	}
 
-	return c
+	return Ref(c)
 }
 
 var docSymbol = SymbolTable.Add("doc")
@@ -161,7 +161,7 @@ func (c *Class) Parents() iter.Seq[*Class] {
 }
 
 func (c *Class) SetDoc(doc String) {
-	c.Constants.Set(docSymbol, doc)
+	c.Constants.Set(docSymbol, Ref(doc))
 }
 
 func (c *Class) Doc() Value {
@@ -236,7 +236,7 @@ func (c *Class) SingletonClass() *Class {
 	return singletonClass
 }
 
-func (c *Class) Copy() Value {
+func (c *Class) Copy() Reference {
 	newConstants := make(SymbolMap, len(c.Constants))
 	maps.Copy(newConstants, c.Constants)
 

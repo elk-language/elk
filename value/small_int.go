@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/big"
 	"strconv"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -22,6 +23,13 @@ const MaxSmallInt = math.MaxInt
 
 // Min value of SmallInt
 const MinSmallInt = math.MinInt
+
+func (i SmallInt) ToValue() Value {
+	return Value{
+		data: unsafe.Pointer(uintptr(SMALL_INT_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+	}
+}
 
 func (SmallInt) Class() *Class {
 	return IntClass
@@ -68,7 +76,7 @@ func (i SmallInt) Increment() Value {
 		iBigInt := big.NewInt(int64(i))
 		return ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(1)))
 	}
-	return result
+	return result.ToValue()
 }
 
 // Decrement the number and return the result.
@@ -78,7 +86,7 @@ func (i SmallInt) Decrement() Value {
 		iBigInt := big.NewInt(int64(i))
 		return ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(1)))
 	}
-	return result
+	return result.ToValue()
 }
 
 // Add two small ints and check for overflow/underflow.
@@ -160,16 +168,16 @@ func (i SmallInt) Add(other Value) (Value, Value) {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(int64(o)))), nil
 		}
-		return result, nil
+		return result.ToValue(), nil
 	case *BigInt:
 		iBigInt := big.NewInt(int64(i))
 		iBigInt.Add(iBigInt, o.ToGoBigInt())
 		if iBigInt.IsInt64() {
-			return SmallInt(iBigInt.Int64()), nil
+			return SmallInt(iBigInt.Int64()).ToValue(), nil
 		}
 		return ToElkBigInt(iBigInt), nil
 	case Float:
-		return Float(i) + o, nil
+		return (Float(i) + o).ToValue(), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
@@ -199,7 +207,7 @@ func (i SmallInt) Subtract(other Value) (Value, Value) {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(int64(o)))), nil
 		}
-		return result, nil
+		return result.ToValue(), nil
 	case *BigInt:
 		iBigInt := big.NewInt(int64(i))
 		iBigInt.Sub(iBigInt, o.ToGoBigInt())
@@ -208,7 +216,7 @@ func (i SmallInt) Subtract(other Value) (Value, Value) {
 		}
 		return ToElkBigInt(iBigInt), nil
 	case Float:
-		return Float(i) - o, nil
+		return (Float(i) - o).ToValue(), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
@@ -243,7 +251,7 @@ func (i SmallInt) Multiply(other Value) (Value, Value) {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Mul(iBigInt, big.NewInt(int64(o)))), nil
 		}
-		return result, nil
+		return result.ToValue(), nil
 	case *BigInt:
 		iBigInt := big.NewInt(int64(i))
 		iBigInt.Mul(iBigInt, o.ToGoBigInt())
@@ -252,7 +260,7 @@ func (i SmallInt) Multiply(other Value) (Value, Value) {
 		}
 		return ToElkBigInt(iBigInt), nil
 	case Float:
-		return Float(i) * o, nil
+		return (Float(i) * o).ToValue(), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
@@ -284,7 +292,7 @@ func (i SmallInt) Divide(other Value) (Value, Value) {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(o)))), nil
 		}
-		return result, nil
+		return result.ToValue(), nil
 	case *BigInt:
 		if o.IsZero() {
 			return nil, NewZeroDivisionError()
@@ -292,11 +300,11 @@ func (i SmallInt) Divide(other Value) (Value, Value) {
 		iBigInt := big.NewInt(int64(i))
 		iBigInt.Div(iBigInt, o.ToGoBigInt())
 		if iBigInt.IsInt64() {
-			return SmallInt(iBigInt.Int64()), nil
+			return SmallInt(iBigInt.Int64()).ToValue(), nil
 		}
 		return ToElkBigInt(iBigInt), nil
 	case Float:
-		return Float(i) / o, nil
+		return (Float(i) / o).ToValue(), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)

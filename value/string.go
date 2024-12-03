@@ -29,7 +29,7 @@ func (String) SingletonClass() *Class {
 	return nil
 }
 
-func (s String) Copy() Value {
+func (s String) Copy() Reference {
 	return s
 }
 
@@ -192,16 +192,24 @@ func (s String) ReverseGraphemes() String {
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
 func (s String) Concat(other Value) (String, Value) {
-	switch o := other.(type) {
-	case Char:
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return s + o, Nil
+		default:
+			return "", Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		ch := other.AsChar()
 		var buff strings.Builder
 		buff.WriteString(string(s))
-		buff.WriteRune(rune(o))
-		return String(buff.String()), nil
-	case String:
-		return s + o, nil
+		buff.WriteRune(rune(ch))
+		return String(buff.String()), Nil
 	default:
-		return "", Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect())
+		return "", Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 	}
 }
 
@@ -211,21 +219,21 @@ func (s String) Repeat(other Value) (String, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
-			return "", Errorf(
+			return "", Ref(Errorf(
 				OutOfRangeErrorClass,
 				"repeat count cannot be negative: %s",
 				o.Inspect(),
-			)
+			))
 		}
-		return String(strings.Repeat(string(s), int(o))), nil
+		return String(strings.Repeat(string(s), int(o))), Nil
 	case *BigInt:
-		return "", Errorf(
+		return "", Ref(Errorf(
 			OutOfRangeErrorClass,
 			"repeat count is too large %s",
 			o.Inspect(),
-		)
+		))
 	default:
-		return "", Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect())
+		return "", Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
 	}
 }
 
@@ -235,14 +243,14 @@ func (s String) RemoveSuffix(other Value) (String, Value) {
 	case Char:
 		r, rLen := utf8.DecodeLastRuneInString(string(s))
 		if len(s) > 0 && r == rune(o) {
-			return s[0 : len(s)-rLen], nil
+			return s[0 : len(s)-rLen], Nil
 		}
-		return s, nil
+		return s, Nil
 	case String:
 		result, _ := strings.CutSuffix(string(s), string(o))
-		return String(result), nil
+		return String(result), Nil
 	default:
-		return "", NewCoerceError(s.Class(), other.Class())
+		return "", Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 

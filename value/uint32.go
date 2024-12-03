@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -12,6 +13,15 @@ var UInt32Class *Class // ::Std::UInt32
 
 // Elk's UInt32 value
 type UInt32 uint32
+
+func (i UInt32) ToValue() Value {
+	inline := inlineValue{
+		data: unsafe.Pointer(uintptr(UINT32_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+	}
+
+	return *(*Value)(unsafe.Pointer(&inline))
+}
 
 func (UInt32) Class() *Class {
 	return UInt32Class

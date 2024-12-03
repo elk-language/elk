@@ -47,7 +47,7 @@ func (*ArrayList) SingletonClass() *Class {
 	return nil
 }
 
-func (l *ArrayList) Copy() Value {
+func (l *ArrayList) Copy() Reference {
 	if l == nil {
 		return l
 	}
@@ -116,21 +116,21 @@ func (l *ArrayList) Grow(newSlots int) {
 func GetFromSlice(collection *[]Value, index int) (Value, Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
+		return Nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
 	}
 
 	if index < 0 {
 		index = l + index
 	}
 
-	return (*collection)[index], nil
+	return (*collection)[index], Nil
 }
 
 // Set an element under the given index.
 func SetInSlice(collection *[]Value, index int, val Value) Value {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
+		return Ref(fmt.Sprint(index), len(*collection))
 	}
 
 	if index < 0 {
@@ -138,7 +138,7 @@ func SetInSlice(collection *[]Value, index int, val Value) Value {
 	}
 
 	(*collection)[index] = val
-	return nil
+	return Nil
 }
 
 // Get an element under the given index.

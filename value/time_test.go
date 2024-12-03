@@ -9,7 +9,7 @@ import (
 
 func TestTimeFormat(t *testing.T) {
 	tests := map[string]struct {
-		time   value.Time
+		time   *value.Time
 		format string
 		want   string
 		err    value.Value

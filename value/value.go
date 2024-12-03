@@ -1,26 +1,502 @@
 package value
 
 import (
+	"fmt"
 	"math"
 	"strings"
+	"unsafe"
 )
 
 var ValueClass *Class // ::Std::Value
 
+type Value struct {
+	tab  uintptr
+	data unsafe.Pointer
+}
+
+const (
+	NIL_FLAG = iota
+	TRUE_FLAG
+	FALSE_FLAG
+	SMALL_INT_FLAG
+	FLOAT_FLAG
+	FLOAT32_FLAG
+	INT8_FLAG
+	UINT8_FLAG
+	INT16_FLAG
+	UINT16_FLAG
+	INT32_FLAG
+	UINT32_FLAG
+	CHAR_FLAG
+
+	// only 64 bit systems
+	INT64_FLAG
+	UINT64_FLAG
+	FLOAT64_FLAG
+	DURATION_FLAG
+	INLINE_VALUE_FLAG
+)
+
+// Convert a Reference to a Value
+func Ref(ref Reference) Value {
+	return *(*Value)(unsafe.Pointer(&ref))
+}
+
+func (v Value) Inspect() string {
+	if v.IsReference() {
+		return v.AsReference().Inspect()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().Inspect()
+	case FALSE_FLAG:
+		return v.AsFalse().Inspect()
+	case NIL_FLAG:
+		return v.AsNil().Inspect()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().Inspect()
+	case FLOAT_FLAG:
+		return v.AsFloat().Inspect()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().Inspect()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().Inspect()
+	case INT8_FLAG:
+		return v.AsInt8().Inspect()
+	case INT16_FLAG:
+		return v.AsInt16().Inspect()
+	case INT32_FLAG:
+		return v.AsInt32().Inspect()
+	case INT64_FLAG:
+		return v.AsInt64().Inspect()
+	case UINT8_FLAG:
+		return v.AsUInt8().Inspect()
+	case UINT16_FLAG:
+		return v.AsUInt16().Inspect()
+	case UINT32_FLAG:
+		return v.AsUInt32().Inspect()
+	case UINT64_FLAG:
+		return v.AsUInt64().Inspect()
+	case CHAR_FLAG:
+		return v.AsChar().Inspect()
+	case DURATION_FLAG:
+		return v.AsDuration().Inspect()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) Copy() Value {
+	if v.IsReference() {
+		return Ref(v.AsReference().Copy())
+	}
+
+	return v
+}
+
+func (v Value) Class() *Class {
+	if v.IsReference() {
+		return v.AsReference().Class()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().Class()
+	case FALSE_FLAG:
+		return v.AsFalse().Class()
+	case NIL_FLAG:
+		return v.AsNil().Class()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().Class()
+	case FLOAT_FLAG:
+		return v.AsFloat().Class()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().Class()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().Class()
+	case INT8_FLAG:
+		return v.AsInt8().Class()
+	case INT16_FLAG:
+		return v.AsInt16().Class()
+	case INT32_FLAG:
+		return v.AsInt32().Class()
+	case INT64_FLAG:
+		return v.AsInt64().Class()
+	case UINT8_FLAG:
+		return v.AsUInt8().Class()
+	case UINT16_FLAG:
+		return v.AsUInt16().Class()
+	case UINT32_FLAG:
+		return v.AsUInt32().Class()
+	case UINT64_FLAG:
+		return v.AsUInt64().Class()
+	case CHAR_FLAG:
+		return v.AsChar().Class()
+	case DURATION_FLAG:
+		return v.AsDuration().Class()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) DirectClass() *Class {
+	if v.IsReference() {
+		return v.AsReference().DirectClass()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().DirectClass()
+	case FALSE_FLAG:
+		return v.AsFalse().DirectClass()
+	case NIL_FLAG:
+		return v.AsNil().DirectClass()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().DirectClass()
+	case FLOAT_FLAG:
+		return v.AsFloat().DirectClass()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().DirectClass()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().DirectClass()
+	case INT8_FLAG:
+		return v.AsInt8().DirectClass()
+	case INT16_FLAG:
+		return v.AsInt16().DirectClass()
+	case INT32_FLAG:
+		return v.AsInt32().DirectClass()
+	case INT64_FLAG:
+		return v.AsInt64().DirectClass()
+	case UINT8_FLAG:
+		return v.AsUInt8().DirectClass()
+	case UINT16_FLAG:
+		return v.AsUInt16().DirectClass()
+	case UINT32_FLAG:
+		return v.AsUInt32().DirectClass()
+	case UINT64_FLAG:
+		return v.AsUInt64().DirectClass()
+	case CHAR_FLAG:
+		return v.AsChar().DirectClass()
+	case DURATION_FLAG:
+		return v.AsDuration().DirectClass()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) SingletonClass() *Class {
+	if v.IsReference() {
+		return v.AsReference().SingletonClass()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().SingletonClass()
+	case FALSE_FLAG:
+		return v.AsFalse().SingletonClass()
+	case NIL_FLAG:
+		return v.AsNil().SingletonClass()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().SingletonClass()
+	case FLOAT_FLAG:
+		return v.AsFloat().SingletonClass()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().SingletonClass()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().SingletonClass()
+	case INT8_FLAG:
+		return v.AsInt8().SingletonClass()
+	case INT16_FLAG:
+		return v.AsInt16().SingletonClass()
+	case INT32_FLAG:
+		return v.AsInt32().SingletonClass()
+	case INT64_FLAG:
+		return v.AsInt64().SingletonClass()
+	case UINT8_FLAG:
+		return v.AsUInt8().SingletonClass()
+	case UINT16_FLAG:
+		return v.AsUInt16().SingletonClass()
+	case UINT32_FLAG:
+		return v.AsUInt32().SingletonClass()
+	case UINT64_FLAG:
+		return v.AsUInt64().SingletonClass()
+	case CHAR_FLAG:
+		return v.AsChar().SingletonClass()
+	case DURATION_FLAG:
+		return v.AsDuration().SingletonClass()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) InstanceVariables() SymbolMap {
+	if v.IsReference() {
+		return v.AsReference().InstanceVariables()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().InstanceVariables()
+	case FALSE_FLAG:
+		return v.AsFalse().InstanceVariables()
+	case NIL_FLAG:
+		return v.AsNil().InstanceVariables()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().InstanceVariables()
+	case FLOAT_FLAG:
+		return v.AsFloat().InstanceVariables()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().InstanceVariables()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().InstanceVariables()
+	case INT8_FLAG:
+		return v.AsInt8().InstanceVariables()
+	case INT16_FLAG:
+		return v.AsInt16().InstanceVariables()
+	case INT32_FLAG:
+		return v.AsInt32().InstanceVariables()
+	case INT64_FLAG:
+		return v.AsInt64().InstanceVariables()
+	case UINT8_FLAG:
+		return v.AsUInt8().InstanceVariables()
+	case UINT16_FLAG:
+		return v.AsUInt16().InstanceVariables()
+	case UINT32_FLAG:
+		return v.AsUInt32().InstanceVariables()
+	case UINT64_FLAG:
+		return v.AsUInt64().InstanceVariables()
+	case CHAR_FLAG:
+		return v.AsChar().InstanceVariables()
+	case DURATION_FLAG:
+		return v.AsDuration().InstanceVariables()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) Error() string {
+	if v.IsReference() {
+		return v.AsReference().Error()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue().Error()
+	case FALSE_FLAG:
+		return v.AsFalse().Error()
+	case NIL_FLAG:
+		return v.AsNil().Error()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt().Error()
+	case FLOAT_FLAG:
+		return v.AsFloat().Error()
+	case FLOAT64_FLAG:
+		return v.AsFloat64().Error()
+	case FLOAT32_FLAG:
+		return v.AsFloat32().Error()
+	case INT8_FLAG:
+		return v.AsInt8().Error()
+	case INT16_FLAG:
+		return v.AsInt16().Error()
+	case INT32_FLAG:
+		return v.AsInt32().Error()
+	case INT64_FLAG:
+		return v.AsInt64().Error()
+	case UINT8_FLAG:
+		return v.AsUInt8().Error()
+	case UINT16_FLAG:
+		return v.AsUInt16().Error()
+	case UINT32_FLAG:
+		return v.AsUInt32().Error()
+	case UINT64_FLAG:
+		return v.AsUInt64().Error()
+	case CHAR_FLAG:
+		return v.AsChar().Error()
+	case DURATION_FLAG:
+		return v.AsDuration().Error()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+	}
+}
+
+func (v Value) ValueFlag() uint64 {
+	return uint64(uintptr(v.data))
+}
+
+func (v Value) IsReference() bool {
+	return uintptr(v.data) > INLINE_VALUE_FLAG
+}
+
+// Returns `nil` when the value is not a reference
+func (v Value) SafeAsReference() Reference {
+	if !v.IsReference() {
+		return nil
+	}
+	return v.AsReference()
+}
+
+func (v Value) AsReference() Reference {
+	return *(*Reference)(unsafe.Pointer(&v))
+}
+
+func (v Value) IsInlineValue() bool {
+	return uintptr(v.data) < INLINE_VALUE_FLAG
+}
+
+func (v Value) IsSmallInt() bool {
+	return uintptr(v.data) == SMALL_INT_FLAG
+}
+
+func (v Value) AsSmallInt() SmallInt {
+	return *(*SmallInt)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsChar() bool {
+	return uintptr(v.data) == CHAR_FLAG
+}
+
+func (v Value) AsChar() Char {
+	return *(*Char)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsFloat() bool {
+	return uintptr(v.data) == FLOAT_FLAG
+}
+
+func (v Value) AsFloat() Float {
+	return *(*Float)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsFloat32() bool {
+	return uintptr(v.data) == FLOAT32_FLAG
+}
+
+func (v Value) AsFloat32() Float32 {
+	return *(*Float32)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsFloat64() bool {
+	return uintptr(v.data) == FLOAT64_FLAG
+}
+
+func (v Value) AsFloat64() Float64 {
+	return *(*Float64)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsInt8() bool {
+	return uintptr(v.data) == INT8_FLAG
+}
+
+func (v Value) AsInt8() Int8 {
+	return *(*Int8)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsUInt8() bool {
+	return uintptr(v.data) == UINT8_FLAG
+}
+
+func (v Value) AsUInt8() UInt8 {
+	return *(*UInt8)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsInt16() bool {
+	return uintptr(v.data) == INT16_FLAG
+}
+
+func (v Value) AsInt16() Int16 {
+	return *(*Int16)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsUInt16() bool {
+	return uintptr(v.data) == UINT16_FLAG
+}
+
+func (v Value) AsUInt16() UInt16 {
+	return *(*UInt16)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsInt32() bool {
+	return uintptr(v.data) == INT32_FLAG
+}
+
+func (v Value) AsInt32() Int32 {
+	return *(*Int32)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsUInt32() bool {
+	return uintptr(v.data) == UINT32_FLAG
+}
+
+func (v Value) AsUInt32() UInt32 {
+	return *(*UInt32)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsInt64() bool {
+	return uintptr(v.data) == INT64_FLAG
+}
+
+func (v Value) AsInt64() Int64 {
+	return *(*Int64)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsUInt64() bool {
+	return uintptr(v.data) == UINT64_FLAG
+}
+
+func (v Value) AsUInt64() UInt64 {
+	return *(*UInt64)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsDuration() bool {
+	return uintptr(v.data) == DURATION_FLAG
+}
+
+func (v Value) AsDuration() Duration {
+	return *(*Duration)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsTrue() bool {
+	return uintptr(v.data) == TRUE_FLAG
+}
+
+func (v Value) AsTrue() TrueType {
+	return *(*TrueType)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsFalse() bool {
+	return uintptr(v.data) == FALSE_FLAG
+}
+
+func (v Value) AsFalse() FalseType {
+	return *(*FalseType)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsNil() bool {
+	return uintptr(v.data) == NIL_FLAG
+}
+
+func (v Value) AsNil() NilType {
+	return *(*NilType)(unsafe.Pointer(&v.tab))
+}
+
 // BENCHMARK: self-implemented tagged union
 // Elk Value
-type Value interface {
+type Reference interface {
 	Class() *Class                // Return the class of the value
 	DirectClass() *Class          // Return the direct class of this value that will be searched for methods first
 	SingletonClass() *Class       // Return the singleton class of this value that holds methods unique to this object
 	Inspect() string              // Returns the string representation of the value
 	InstanceVariables() SymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
-	Copy() Value                  // Creates a shallow copy of the value. If the value is immutable, no copying should be done, the same value should be returned.
+	Copy() Reference              // Creates a shallow copy of the reference. If the value is immutable, no copying should be done, the same value should be returned.
 	Error() string                // Implements the error interface
 }
 
 func IsMutableCollection(val Value) bool {
-	switch v := val.(type) {
+	if val.IsInlineValue() {
+		return false
+	}
+	switch v := val.AsReference().(type) {
 	case *ArrayList, *HashMap:
 		return true
 	case *ArrayTuple:
@@ -42,7 +518,7 @@ func IsMutableCollection(val Value) bool {
 
 // Return the string representation of a slice
 // of values.
-func InspectSlice[T Value](slice []T) string {
+func InspectSlice[T Reference](slice []T) string {
 	var builder strings.Builder
 
 	builder.WriteString("[")
