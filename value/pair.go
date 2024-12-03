@@ -16,7 +16,7 @@ type Pair struct {
 
 // Creates a new Pair.
 func PairConstructor(class *Class) Value {
-	return &Pair{}
+	return Ref(&Pair{})
 }
 
 func NewPair(key, val Value) *Pair {
@@ -38,7 +38,7 @@ func (*Pair) SingletonClass() *Class {
 	return nil
 }
 
-func (p *Pair) Copy() Value {
+func (p *Pair) Copy() Reference {
 	return p
 }
 
@@ -67,9 +67,9 @@ func (p *Pair) Subscript(key Value) (Value, Value) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return nil, NewIndexOutOfRangeError(key.Inspect(), pairLength)
+			return Nil, Ref(NewIndexOutOfRangeError(key.Inspect(), pairLength))
 		}
-		return nil, NewCoerceError(IntClass, key.Class())
+		return Nil, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return p.Get(i)
@@ -79,11 +79,11 @@ func (p *Pair) Subscript(key Value) (Value, Value) {
 func (p *Pair) Get(index int) (Value, Value) {
 	switch index {
 	case 0, -2:
-		return p.Key, nil
+		return p.Key, Nil
 	case 1, -1:
-		return p.Value, nil
+		return p.Value, Nil
 	default:
-		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), pairLength)
+		return Nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), pairLength))
 	}
 }
 
@@ -92,9 +92,9 @@ func (p *Pair) SubscriptSet(key, val Value) Value {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return NewIndexOutOfRangeError(key.Inspect(), pairLength)
+			return Ref(NewIndexOutOfRangeError(key.Inspect(), pairLength))
 		}
-		return NewCoerceError(IntClass, key.Class())
+		return Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return p.Set(i, val)
@@ -105,12 +105,12 @@ func (p *Pair) Set(index int, val Value) Value {
 	switch index {
 	case 0, -2:
 		p.Key = val
-		return nil
+		return Nil
 	case 1, -1:
 		p.Value = val
-		return nil
+		return Nil
 	default:
-		return NewIndexOutOfRangeError(fmt.Sprint(index), pairLength)
+		return Ref(NewIndexOutOfRangeError(fmt.Sprint(index), pairLength))
 	}
 }
 
@@ -144,7 +144,7 @@ func (*PairIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *PairIterator) Copy() Value {
+func (l *PairIterator) Copy() Reference {
 	return &PairIterator{
 		Pair:  l.Pair,
 		Index: l.Index,
@@ -165,16 +165,16 @@ func (*PairIterator) InstanceVariables() SymbolMap {
 
 func (l *PairIterator) Next() (Value, Value) {
 	if l.Index >= pairLength {
-		return nil, stopIterationSymbol
+		return Nil, stopIterationSymbol.ToValue()
 	}
 
 	next, err := l.Pair.Get(l.Index)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return Nil, err
 	}
 
 	l.Index++
-	return next, nil
+	return next, Nil
 }
 
 func initPair() {
@@ -182,8 +182,8 @@ func initPair() {
 		ClassWithConstructor(PairConstructor),
 	)
 	PairClass.IncludeMixin(TupleMixin)
-	StdModule.AddConstantString("Pair", PairClass)
+	StdModule.AddConstantString("Pair", Ref(PairClass))
 
 	PairIteratorClass = NewClass()
-	PairClass.AddConstantString("Iterator", PairIteratorClass)
+	PairClass.AddConstantString("Iterator", Ref(PairIteratorClass))
 }

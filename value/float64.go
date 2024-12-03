@@ -40,7 +40,7 @@ func (Float64) SingletonClass() *Class {
 	return nil
 }
 
-func (f Float64) Copy() Value {
+func (f Float64) Copy() Reference {
 	return f
 }
 

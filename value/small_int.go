@@ -43,10 +43,6 @@ func (SmallInt) SingletonClass() *Class {
 	return nil
 }
 
-func (i SmallInt) Copy() Value {
-	return i
-}
-
 func (i SmallInt) Inspect() string {
 	return strconv.FormatInt(int64(i), 10)
 }

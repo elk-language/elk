@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -15,16 +16,19 @@ type Symbol int
 
 var SymbolClass *Class // ::Std::Symbol
 
+func (s Symbol) ToValue() Value {
+	return Value{
+		data: unsafe.Pointer(uintptr(SYMBOL_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&s)),
+	}
+}
+
 func (Symbol) Class() *Class {
 	return SymbolClass
 }
 
 func (Symbol) DirectClass() *Class {
 	return SymbolClass
-}
-
-func (s Symbol) Copy() Value {
-	return s
 }
 
 func (Symbol) SingletonClass() *Class {
@@ -128,12 +132,11 @@ func (s Symbol) InstanceVariables() SymbolMap {
 
 // Check whether s is equal to other
 func (s Symbol) Equal(other Value) Value {
-	switch o := other.(type) {
-	case Symbol:
-		return ToElkBool(s == o)
-	default:
-		return False
+	if other.IsSymbol() {
+		return ToElkBool(s == other.AsSymbol())
 	}
+
+	return False
 }
 
 // Check whether s is equal to other
@@ -156,5 +159,5 @@ func (s Symbol) Hash() UInt64 {
 
 func initSymbol() {
 	SymbolClass = NewClass()
-	StdModule.AddConstantString("Symbol", SymbolClass)
+	StdModule.AddConstantString("Symbol", Ref(SymbolClass))
 }

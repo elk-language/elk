@@ -28,6 +28,7 @@ const (
 	INT32_FLAG
 	UINT32_FLAG
 	CHAR_FLAG
+	SYMBOL_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
@@ -58,6 +59,8 @@ func (v Value) Inspect() string {
 		return v.AsSmallInt().Inspect()
 	case FLOAT_FLAG:
 		return v.AsFloat().Inspect()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().Inspect()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().Inspect()
 	case FLOAT32_FLAG:
@@ -111,6 +114,8 @@ func (v Value) Class() *Class {
 		return v.AsSmallInt().Class()
 	case FLOAT_FLAG:
 		return v.AsFloat().Class()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().Class()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().Class()
 	case FLOAT32_FLAG:
@@ -156,6 +161,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsSmallInt().DirectClass()
 	case FLOAT_FLAG:
 		return v.AsFloat().DirectClass()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().DirectClass()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().DirectClass()
 	case FLOAT32_FLAG:
@@ -201,6 +208,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsSmallInt().SingletonClass()
 	case FLOAT_FLAG:
 		return v.AsFloat().SingletonClass()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().SingletonClass()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().SingletonClass()
 	case FLOAT32_FLAG:
@@ -246,6 +255,8 @@ func (v Value) InstanceVariables() SymbolMap {
 		return v.AsSmallInt().InstanceVariables()
 	case FLOAT_FLAG:
 		return v.AsFloat().InstanceVariables()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().InstanceVariables()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().InstanceVariables()
 	case FLOAT32_FLAG:
@@ -291,6 +302,8 @@ func (v Value) Error() string {
 		return v.AsSmallInt().Error()
 	case FLOAT_FLAG:
 		return v.AsFloat().Error()
+	case SYMBOL_FLAG:
+		return v.AsSymbol().Error()
 	case FLOAT64_FLAG:
 		return v.AsFloat64().Error()
 	case FLOAT32_FLAG:
@@ -462,6 +475,14 @@ func (v Value) IsTrue() bool {
 
 func (v Value) AsTrue() TrueType {
 	return *(*TrueType)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) IsSymbol() bool {
+	return uintptr(v.data) == SYMBOL_FLAG
+}
+
+func (v Value) AsSymbol() Symbol {
+	return *(*Symbol)(unsafe.Pointer(&v.tab))
 }
 
 func (v Value) IsFalse() bool {

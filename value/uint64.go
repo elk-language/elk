@@ -17,7 +17,7 @@ func (UInt64) Class() *Class {
 	return UInt64Class
 }
 
-func (i UInt64) Copy() Value {
+func (i UInt64) Copy() Reference {
 	return i
 }
 

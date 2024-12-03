@@ -85,7 +85,7 @@ func (i Int64) ToUInt8() UInt8 {
 	return UInt8(i)
 }
 
-func (i Int64) Copy() Value {
+func (i Int64) Copy() Reference {
 	return i
 }
 

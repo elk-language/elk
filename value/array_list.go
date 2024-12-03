@@ -215,33 +215,33 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
-			return nil, Errorf(
+			return nil, Ref(Errorf(
 				OutOfRangeErrorClass,
 				"list repeat count cannot be negative: %s",
 				o.Inspect(),
-			)
+			))
 		}
 		newLen, ok := o.MultiplyOverflow(SmallInt(len(*l)))
 		if !ok {
-			return nil, Errorf(
+			return nil, Ref(Errorf(
 				OutOfRangeErrorClass,
 				"list repeat count is too large %s",
 				o.Inspect(),
-			)
+			))
 		}
 		newList := make(ArrayList, 0, newLen)
 		for i := 0; i < int(o); i++ {
 			newList = append(newList, *l...)
 		}
-		return &newList, nil
+		return &newList, Nil
 	case *BigInt:
-		return nil, Errorf(
+		return nil, Ref(Errorf(
 			OutOfRangeErrorClass,
 			"list repeat count is too large %s",
 			o.Inspect(),
-		)
+		))
 	default:
-		return nil, Errorf(TypeErrorClass, "cannot repeat a list using %s", other.Inspect())
+		return nil, Ref(Errorf(TypeErrorClass, "cannot repeat a list using %s", other.Inspect()))
 	}
 }
 
@@ -289,7 +289,7 @@ func (*ArrayListIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *ArrayListIterator) Copy() Value {
+func (l *ArrayListIterator) Copy() Reference {
 	return &ArrayListIterator{
 		ArrayList: l.ArrayList,
 		Index:     l.Index,
@@ -312,19 +312,19 @@ var stopIterationSymbol = ToSymbol("stop_iteration")
 
 func (l *ArrayListIterator) Next() (Value, Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return nil, stopIterationSymbol
+		return Nil, stopIterationSymbol.ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]
 	l.Index++
-	return next, nil
+	return next, Nil
 }
 
 func initArrayList() {
 	ArrayListClass = NewClass()
 	ArrayListClass.IncludeMixin(ListMixin)
-	StdModule.AddConstantString("ArrayList", ArrayListClass)
+	StdModule.AddConstantString("ArrayList", Ref(ArrayListClass))
 
 	ArrayListIteratorClass = NewClass()
-	ArrayListClass.AddConstantString("Iterator", ArrayListIteratorClass)
+	ArrayListClass.AddConstantString("Iterator", Ref(ArrayListIteratorClass))
 }
