@@ -28,7 +28,7 @@ func (*HashRecord) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashRecord) Copy() Value {
+func (h *HashRecord) Copy() Reference {
 	return h
 }
 
@@ -42,7 +42,7 @@ func (h *HashRecord) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry.Key == nil {
+		if entry.Key.IsNil() {
 			continue
 		}
 		if first {
@@ -101,7 +101,7 @@ func (h *HashRecordIterator) Error() string {
 	return h.Inspect()
 }
 
-func (h *HashRecordIterator) Copy() Value {
+func (h *HashRecordIterator) Copy() Reference {
 	return &HashRecordIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,
@@ -119,13 +119,13 @@ func (*HashRecordIterator) InstanceVariables() SymbolMap {
 func (h *HashRecordIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= len(h.HashRecord.Table) {
-			return nil, stopIterationSymbol
+			return Nil, stopIterationSymbol.ToValue()
 		}
 
 		pair := h.HashRecord.Table[h.Index]
 		h.Index++
-		if pair.Key != nil {
-			return &h.HashRecord.Table[h.Index-1], nil
+		if !pair.Key.IsNil() {
+			return Ref(&h.HashRecord.Table[h.Index-1]), Nil
 		}
 	}
 }
@@ -133,8 +133,8 @@ func (h *HashRecordIterator) Next() (Value, Value) {
 func initHashRecord() {
 	HashRecordClass = NewClass()
 	HashRecordClass.IncludeMixin(RecordMixin)
-	StdModule.AddConstantString("HashRecord", HashRecordClass)
+	StdModule.AddConstantString("HashRecord", Ref(HashRecordClass))
 
 	HashRecordIteratorClass = NewClass()
-	HashRecordClass.AddConstantString("Iterator", HashRecordIteratorClass)
+	HashRecordClass.AddConstantString("Iterator", Ref(HashRecordIteratorClass))
 }

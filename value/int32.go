@@ -15,12 +15,10 @@ var Int32Class *Class // ::Std::Int32
 type Int32 int32
 
 func (i Int32) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(INT32_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&i)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (i Int32) Class() *Class {
@@ -95,10 +93,6 @@ func (i Int32) ToUInt8() UInt8 {
 	return UInt8(i)
 }
 
-func (i Int32) Copy() Value {
-	return i
-}
-
 func (i Int32) Inspect() string {
 	return fmt.Sprintf("%di32", i)
 }
@@ -121,5 +115,5 @@ func (i Int32) Hash() UInt64 {
 
 func initInt32() {
 	Int32Class = NewClass()
-	StdModule.AddConstantString("Int32", Int32Class)
+	StdModule.AddConstantString("Int32", Ref(Int32Class))
 }

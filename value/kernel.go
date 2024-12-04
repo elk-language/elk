@@ -4,5 +4,5 @@ var KernelModule *Module // ::Std::Kernel
 
 func initKernel() {
 	KernelModule = NewModule()
-	StdModule.AddConstantString("Kernel", KernelModule)
+	StdModule.AddConstantString("Kernel", Ref(KernelModule))
 }

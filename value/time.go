@@ -16,7 +16,7 @@ type Time struct {
 	Go time.Time
 }
 
-func (t *Time) Copy() Value {
+func (t *Time) Copy() Reference {
 	return t
 }
 
@@ -425,7 +425,7 @@ func (x *Time) Cmp(y *Time) int {
 
 func (t *Time) MustFormat(formatString string) string {
 	result, err := t.Format(formatString)
-	if err != nil {
+	if !err.IsNil() {
 		panic(err)
 	}
 
@@ -444,11 +444,11 @@ tokenLoop:
 		case timescanner.END_OF_FILE:
 			break tokenLoop
 		case timescanner.INVALID_FORMAT_DIRECTIVE:
-			return "", Errorf(
+			return "", Ref(Errorf(
 				FormatErrorClass,
 				"invalid format directive: %s",
 				value,
-			)
+			))
 		case timescanner.PERCENT:
 			buffer.WriteByte('%')
 		case timescanner.NEWLINE:
@@ -727,59 +727,71 @@ tokenLoop:
 				t.Year(),
 			)
 		default:
-			return "", Errorf(
+			return "", Ref(Errorf(
 				FormatErrorClass,
 				"unsupported format directive: %s",
 				token.String(),
-			)
+			))
 		}
 
 	}
 
-	return buffer.String(), nil
+	return buffer.String(), Nil
 }
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
 func (t *Time) GreaterThan(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) == 1), nil
+		return ToElkBool(t.Cmp(o) == 1), Nil
 	default:
-		return nil, NewCoerceError(t.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
 func (t *Time) GreaterThanEqual(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) >= 0), nil
+		return ToElkBool(t.Cmp(o) >= 0), Nil
 	default:
-		return nil, NewCoerceError(t.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is less than other and return an error
 // if something went wrong.
 func (t *Time) LessThan(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) == -1), nil
+		return ToElkBool(t.Cmp(o) == -1), Nil
 	default:
-		return nil, NewCoerceError(t.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
 func (t *Time) LessThanEqual(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) <= 0), nil
+		return ToElkBool(t.Cmp(o) <= 0), Nil
 	default:
-		return nil, NewCoerceError(t.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
@@ -790,7 +802,10 @@ func (t *Time) LaxEqual(other Value) Value {
 // Check whether t is equal to other and return an error
 // if something went wrong.
 func (t *Time) Equal(other Value) Value {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return False
+	}
+	switch o := other.AsReference().(type) {
 	case *Time:
 		return ToElkBool(t.Cmp(o) == 0)
 	default:
@@ -804,6 +819,6 @@ func (t *Time) StrictEqual(other Value) Value {
 
 func initTime() {
 	TimeClass = NewClass()
-	StdModule.AddConstantString("Time", TimeClass)
-	TimeClass.AddConstantString("DEFAULT_FORMAT", String(DefaultTimeFormat))
+	StdModule.AddConstantString("Time", Ref(TimeClass))
+	TimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultTimeFormat)))
 }

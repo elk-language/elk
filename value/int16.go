@@ -15,12 +15,10 @@ var Int16Class *Class // ::Std::Int16
 type Int16 int16
 
 func (i Int16) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(INT16_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&i)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (i Int16) Class() *Class {
@@ -95,10 +93,6 @@ func (i Int16) ToUInt8() UInt8 {
 	return UInt8(i)
 }
 
-func (i Int16) Copy() Value {
-	return i
-}
-
 func (i Int16) Inspect() string {
 	return fmt.Sprintf("%di16", i)
 }
@@ -121,5 +115,5 @@ func (i Int16) Hash() UInt64 {
 
 func initInt16() {
 	Int16Class = NewClass()
-	StdModule.AddConstantString("Int16", Int16Class)
+	StdModule.AddConstantString("Int16", Ref(Int16Class))
 }

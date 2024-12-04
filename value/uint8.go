@@ -14,20 +14,14 @@ var UInt8Class *Class // ::Std::UInt8
 type UInt8 uint8
 
 func (i UInt8) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(UINT8_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&i)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (UInt8) Class() *Class {
 	return UInt8Class
-}
-
-func (i UInt8) Copy() Value {
-	return i
 }
 
 func (UInt8) DirectClass() *Class {
@@ -118,5 +112,5 @@ func (i UInt8) Hash() UInt64 {
 
 func initUInt8() {
 	UInt8Class = NewClass()
-	StdModule.AddConstantString("UInt8", UInt8Class)
+	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
 }

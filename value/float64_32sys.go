@@ -3,5 +3,5 @@
 package value
 
 func (f Float64) ToValue() Value {
-	return f
+	return Ref(f)
 }

@@ -77,7 +77,7 @@ func MixinConstructor(class *Class) Value {
 	}
 	m.SetMixin()
 
-	return m
+	return Ref(m)
 }
 
 // Create a proxy class that has a pointer to the
@@ -100,5 +100,5 @@ var MixinClass *Class // ::Std::Mixin
 
 func initMixin() {
 	MixinClass = NewClass()
-	StdModule.AddConstantString("Mixin", MixinClass)
+	StdModule.AddConstantString("Mixin", Ref(MixinClass))
 }

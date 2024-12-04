@@ -15,20 +15,14 @@ var UInt32Class *Class // ::Std::UInt32
 type UInt32 uint32
 
 func (i UInt32) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(UINT32_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&i)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (UInt32) Class() *Class {
 	return UInt32Class
-}
-
-func (i UInt32) Copy() Value {
-	return i
 }
 
 func (UInt32) DirectClass() *Class {
@@ -121,5 +115,5 @@ func (i UInt32) Hash() UInt64 {
 
 func initUInt32() {
 	UInt32Class = NewClass()
-	StdModule.AddConstantString("UInt32", UInt32Class)
+	StdModule.AddConstantString("UInt32", Ref(UInt32Class))
 }

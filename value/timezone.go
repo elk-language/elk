@@ -26,7 +26,7 @@ func (*Timezone) SingletonClass() *Class {
 	return nil
 }
 
-func (t *Timezone) Copy() Value {
+func (t *Timezone) Copy() Reference {
 	return t
 }
 
@@ -65,7 +65,7 @@ func NewTimezone(loc *time.Location) *Timezone {
 
 func MustLoadTimezone(name string) *Timezone {
 	tz, err := LoadTimezone(name)
-	if err != nil {
+	if !err.IsNil() {
 		panic(err)
 	}
 
@@ -76,19 +76,19 @@ func MustLoadTimezone(name string) *Timezone {
 func LoadTimezone(name string) (*Timezone, Value) {
 	loc, err := time.LoadLocation(name)
 	if err != nil {
-		return nil, Errorf(
+		return nil, Ref(Errorf(
 			InvalidTimezoneErrorClass,
 			"invalid timezone: %s",
 			name,
-		)
+		))
 	}
 
-	return NewTimezone(loc), nil
+	return NewTimezone(loc), Nil
 }
 
 func initTimezone() {
 	TimezoneClass = NewClass()
-	StdModule.AddConstantString("Timezone", TimezoneClass)
-	TimezoneClass.AddConstantString("UTC", UTCTimezone)
-	TimezoneClass.AddConstantString("LOCAL", LocalTimezone)
+	StdModule.AddConstantString("Timezone", Ref(TimezoneClass))
+	TimezoneClass.AddConstantString("UTC", Ref(UTCTimezone))
+	TimezoneClass.AddConstantString("LOCAL", Ref(LocalTimezone))
 }

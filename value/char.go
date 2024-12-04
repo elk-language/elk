@@ -5,6 +5,7 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -17,6 +18,13 @@ var CharClass *Class
 
 // Elk's Char value
 type Char rune
+
+func (c Char) ToValue() Value {
+	return Value{
+		data: unsafe.Pointer(uintptr(CHAR_FLAG)),
+		tab:  *(*uintptr)(unsafe.Pointer(&c)),
+	}
+}
 
 func (Char) Class() *Class {
 	return CharClass

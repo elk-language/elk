@@ -35,7 +35,7 @@ func (*HashSet) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashSet) Copy() Value {
+func (h *HashSet) Copy() Reference {
 	newTable := slices.Clone(h.Table)
 	return &HashSet{
 		Table:         newTable,
@@ -54,7 +54,7 @@ func (h *HashSet) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry == nil {
+		if entry.IsNil() {
 			continue
 		}
 		if first {
@@ -119,7 +119,7 @@ func (*HashSetIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashSetIterator) Copy() Value {
+func (h *HashSetIterator) Copy() Reference {
 	return &HashSetIterator{
 		HashSet: h.HashSet,
 		Index:   h.Index,
@@ -141,13 +141,13 @@ func (*HashSetIterator) InstanceVariables() SymbolMap {
 func (h *HashSetIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= h.HashSet.Capacity() {
-			return nil, stopIterationSymbol
+			return Nil, stopIterationSymbol.ToValue()
 		}
 
 		element := h.HashSet.Table[h.Index]
 		h.Index++
-		if element != nil {
-			return element, nil
+		if !element.IsNil() {
+			return element, Nil
 		}
 	}
 }
@@ -155,8 +155,8 @@ func (h *HashSetIterator) Next() (Value, Value) {
 func initHashSet() {
 	HashSetClass = NewClass()
 	HashSetClass.IncludeMixin(SetMixin)
-	StdModule.AddConstantString("HashSet", HashSetClass)
+	StdModule.AddConstantString("HashSet", Ref(HashSetClass))
 
 	HashSetIteratorClass = NewClass()
-	HashSetClass.AddConstantString("Iterator", HashSetIteratorClass)
+	HashSetClass.AddConstantString("Iterator", Ref(HashSetIteratorClass))
 }

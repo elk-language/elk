@@ -23,7 +23,7 @@ func (GlobalObjectType) SingletonClass() *Class {
 	return GlobalObjectSingletonClass
 }
 
-func (g GlobalObjectType) Copy() Value {
+func (g GlobalObjectType) Copy() Reference {
 	return g
 }
 

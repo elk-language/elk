@@ -44,7 +44,7 @@ func (h *HashMap) Clone() *HashMap {
 	}
 }
 
-func (h *HashMap) Copy() Value {
+func (h *HashMap) Copy() Reference {
 	return h.Clone()
 }
 
@@ -58,7 +58,7 @@ func (h *HashMap) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry.Key == nil {
+		if entry.Key.IsNil() {
 			continue
 		}
 		if first {
@@ -125,7 +125,7 @@ func (*HashMapIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashMapIterator) Copy() Value {
+func (h *HashMapIterator) Copy() Reference {
 	return &HashMapIterator{
 		HashMap: h.HashMap,
 		Index:   h.Index,
@@ -147,13 +147,13 @@ func (*HashMapIterator) InstanceVariables() SymbolMap {
 func (h *HashMapIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= h.HashMap.Capacity() {
-			return nil, stopIterationSymbol
+			return Nil, stopIterationSymbol.ToValue()
 		}
 
 		pair := h.HashMap.Table[h.Index]
 		h.Index++
-		if pair.Key != nil {
-			return &h.HashMap.Table[h.Index-1], nil
+		if !pair.Key.IsNil() {
+			return Ref(&h.HashMap.Table[h.Index-1]), Nil
 		}
 	}
 }
@@ -161,8 +161,8 @@ func (h *HashMapIterator) Next() (Value, Value) {
 func initHashMap() {
 	HashMapClass = NewClass()
 	HashMapClass.IncludeMixin(MapMixin)
-	StdModule.AddConstantString("HashMap", HashMapClass)
+	StdModule.AddConstantString("HashMap", Ref(HashMapClass))
 
 	HashMapIteratorClass = NewClass()
-	HashMapClass.AddConstantString("Iterator", HashMapIteratorClass)
+	HashMapClass.AddConstantString("Iterator", Ref(HashMapIteratorClass))
 }

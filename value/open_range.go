@@ -19,7 +19,7 @@ func NewOpenRange(start, end Value) *OpenRange {
 	}
 }
 
-func (r *OpenRange) Copy() Value {
+func (r *OpenRange) Copy() Reference {
 	return r
 }
 
@@ -90,7 +90,7 @@ func (*OpenRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *OpenRangeIterator) Copy() Value {
+func (r *OpenRangeIterator) Copy() Reference {
 	return &OpenRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
@@ -112,8 +112,8 @@ func (*OpenRangeIterator) InstanceVariables() SymbolMap {
 func initOpenRange() {
 	OpenRangeClass = NewClass()
 	OpenRangeClass.IncludeMixin(RangeMixin)
-	StdModule.AddConstantString("OpenRange", OpenRangeClass)
+	StdModule.AddConstantString("OpenRange", Ref(OpenRangeClass))
 
 	OpenRangeIteratorClass = NewClass()
-	OpenRangeClass.AddConstantString("Iterator", OpenRangeIteratorClass)
+	OpenRangeClass.AddConstantString("Iterator", Ref(OpenRangeIteratorClass))
 }

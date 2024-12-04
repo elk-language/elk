@@ -19,7 +19,7 @@ func NewLeftOpenRange(start, end Value) *LeftOpenRange {
 	}
 }
 
-func (r *LeftOpenRange) Copy() Value {
+func (r *LeftOpenRange) Copy() Reference {
 	return r
 }
 
@@ -90,7 +90,7 @@ func (*LeftOpenRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *LeftOpenRangeIterator) Copy() Value {
+func (r *LeftOpenRangeIterator) Copy() Reference {
 	return &LeftOpenRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
@@ -112,8 +112,8 @@ func (*LeftOpenRangeIterator) InstanceVariables() SymbolMap {
 func initLeftOpenRange() {
 	LeftOpenRangeClass = NewClass()
 	LeftOpenRangeClass.IncludeMixin(RangeMixin)
-	StdModule.AddConstantString("LeftOpenRange", LeftOpenRangeClass)
+	StdModule.AddConstantString("LeftOpenRange", Ref(LeftOpenRangeClass))
 
 	LeftOpenRangeIteratorClass = NewClass()
-	LeftOpenRangeClass.AddConstantString("Iterator", LeftOpenRangeIteratorClass)
+	LeftOpenRangeClass.AddConstantString("Iterator", Ref(LeftOpenRangeIteratorClass))
 }

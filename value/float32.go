@@ -30,12 +30,10 @@ func Float32NaN() Float32 {
 }
 
 func (f Float32) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(FLOAT32_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&f)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }
 
 func (Float32) Class() *Class {
@@ -48,10 +46,6 @@ func (Float32) DirectClass() *Class {
 
 func (Float32) SingletonClass() *Class {
 	return nil
-}
-
-func (f Float32) Copy() Value {
-	return f
 }
 
 func (f Float32) Inspect() string {
@@ -102,8 +96,8 @@ func (f Float32) IsInf(sign int) bool {
 
 func initFloat32() {
 	Float32Class = NewClass()
-	StdModule.AddConstantString("Float32", Float32Class)
-	Float32Class.AddConstantString("NAN", Float32NaN())
-	Float32Class.AddConstantString("INF", Float32Inf())
-	Float32Class.AddConstantString("NEG_INF", Float32NegInf())
+	StdModule.AddConstantString("Float32", Ref(Float32Class))
+	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
+	Float32Class.AddConstantString("INF", Float32Inf().ToValue())
+	Float32Class.AddConstantString("NEG_INF", Float32NegInf().ToValue())
 }

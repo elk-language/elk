@@ -4,5 +4,5 @@ var RecordMixin *Mixin // ::Std::Record
 
 func initRecord() {
 	RecordMixin = NewMixin()
-	StdModule.AddConstantString("Record", RecordMixin)
+	StdModule.AddConstantString("Record", Ref(RecordMixin))
 }

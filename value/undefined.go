@@ -14,10 +14,6 @@ func initUndefined() {
 	)
 }
 
-func (u UndefinedType) Copy() Value {
-	return u
-}
-
 func (UndefinedType) Class() *Class {
 	return UndefinedClass
 }

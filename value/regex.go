@@ -61,7 +61,7 @@ func (*Regex) DirectClass() *Class {
 	return RegexClass
 }
 
-func (r *Regex) Copy() Value {
+func (r *Regex) Copy() Reference {
 	return r
 }
 
@@ -106,7 +106,11 @@ func (r *Regex) InstanceVariables() SymbolMap {
 
 // Check whether r is equal to other
 func (r *Regex) Equal(other Value) Value {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return False
+	}
+
+	switch o := other.AsReference().(type) {
 	case *Regex:
 		return ToElkBool(r.Flags == o.Flags && r.Source == o.Source)
 	default:
@@ -136,49 +140,60 @@ func (r *Regex) WriteSourceTo(w io.StringWriter) {
 
 // Create a new regex concatenating r with other
 func (r *Regex) Concat(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+	}
+
+	switch o := other.AsReference().(type) {
 	case *Regex:
 		var buff strings.Builder
 		r.WriteSourceTo(&buff)
 		o.WriteSourceTo(&buff)
 		re, err := CompileRegex(buff.String(), bitfield.BitField8{})
 		if err != nil {
-			return nil, NewError(RegexCompileErrorClass, err.Error())
+			return Nil, Ref(NewError(RegexCompileErrorClass, err.Error()))
 		}
-		return re, nil
+		return Ref(re), Nil
 	default:
-		return nil, NewCoerceError(r.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 
 // Repeat the content of this Regex n times and return a new Regex.
 func (r *Regex) Repeat(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case SmallInt:
+	if other.IsReference() {
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
 		var buff strings.Builder
 		buff.WriteString("(?:")
 		buff.WriteString(r.Source)
 		buff.WriteRune(')')
 		buff.WriteRune('{')
-		buff.WriteString(strconv.Itoa(int(o)))
+		buff.WriteString(strconv.Itoa(int(other.AsSmallInt())))
 		buff.WriteRune('}')
 		re, err := CompileRegex(buff.String(), r.Flags)
 		if err != nil {
-			return nil, NewError(RegexCompileErrorClass, err.Error())
+			return Nil, Ref(NewError(RegexCompileErrorClass, err.Error()))
 		}
-		return re, nil
+		return Ref(re), Nil
 	default:
-		return nil, NewCoerceError(r.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 
 // Check whether the regex matches the given string
 func (r *Regex) Matches(other Value) (Value, Value) {
-	switch o := other.(type) {
+	if !other.IsReference() {
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
 	case String:
-		return ToElkBool(r.Re.MatchString(string(o))), nil
+		return ToElkBool(r.Re.MatchString(string(o))), Nil
 	default:
-		return nil, NewCoerceError(StringClass, other.Class())
+		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 
@@ -194,5 +209,5 @@ func NewRegexComparer(opts *cmp.Options) cmp.Option {
 
 func initRegex() {
 	RegexClass = NewClass()
-	StdModule.AddConstantString("Regex", RegexClass)
+	StdModule.AddConstantString("Regex", Ref(RegexClass))
 }

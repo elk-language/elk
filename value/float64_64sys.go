@@ -7,10 +7,8 @@ import (
 )
 
 func (f Float64) ToValue() Value {
-	inline := inlineValue{
+	return Value{
 		data: unsafe.Pointer(uintptr(FLOAT64_FLAG)),
 		tab:  *(*uintptr)(unsafe.Pointer(&f)),
 	}
-
-	return *(*Value)(unsafe.Pointer(&inline))
 }

@@ -39,13 +39,13 @@ func initBootstrap() {
 	RootModule = NewModuleWithOptions(ModuleWithName("Root"))
 	StdModule = NewModule()
 
-	RootModule.AddConstantString("Root", RootModule)
-	RootModule.AddConstantString("Std", StdModule)
+	RootModule.AddConstantString("Root", Ref(RootModule))
+	RootModule.AddConstantString("Std", Ref(StdModule))
 
-	StdModule.AddConstantString("Class", ClassClass)
-	StdModule.AddConstantString("Object", ObjectClass)
-	StdModule.AddConstantString("Value", ValueClass)
-	StdModule.AddConstantString("Module", ModuleClass)
+	StdModule.AddConstantString("Class", Ref(ClassClass))
+	StdModule.AddConstantString("Object", Ref(ObjectClass))
+	StdModule.AddConstantString("Value", Ref(ValueClass))
+	StdModule.AddConstantString("Module", Ref(ModuleClass))
 }
 
 // Initialize all built-ins

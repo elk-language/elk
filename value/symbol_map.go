@@ -27,7 +27,7 @@ func (s SymbolMap) InstanceVariables() SymbolMap {
 	return nil
 }
 
-func (s SymbolMap) Copy() Value {
+func (s SymbolMap) Copy() Reference {
 	newMap := make(SymbolMap, len(s))
 	maps.Copy(newMap, s)
 	return newMap
@@ -82,7 +82,7 @@ func (s SymbolMap) Set(key Symbol, val Value) {
 func (s SymbolMap) GetString(key string) Value {
 	symbol, ok := SymbolTable.Get(key)
 	if !ok {
-		return nil
+		return Nil
 	}
 
 	return s[symbol]
@@ -90,7 +90,7 @@ func (s SymbolMap) GetString(key string) Value {
 
 // Check if the given key exists.
 func (s SymbolMap) HasString(key string) bool {
-	if s.GetString(key) == nil {
+	if s.GetString(key).IsNil() {
 		return false
 	}
 
@@ -113,5 +113,5 @@ func (s SymbolMap) SetString(key string, val Value) {
 
 func initSymbolMap() {
 	SymbolMapClass = NewClass()
-	StdModule.AddConstantString("SymbolMap", SymbolMapClass)
+	StdModule.AddConstantString("SymbolMap", Ref(SymbolMapClass))
 }

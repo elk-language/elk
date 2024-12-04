@@ -4,5 +4,5 @@ var TupleMixin *Mixin // ::Std::Tuple
 
 func initTuple() {
 	TupleMixin = NewMixin()
-	StdModule.AddConstantString("Tuple", TupleMixin)
+	StdModule.AddConstantString("Tuple", Ref(TupleMixin))
 }

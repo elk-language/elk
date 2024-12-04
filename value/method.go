@@ -2,7 +2,7 @@ package value
 
 // Elk Method object
 type Method interface {
-	Value
+	Reference
 	Function
 	// Name of the method
 	Name() Symbol
@@ -14,5 +14,5 @@ func initMethod() {
 	MethodClass = NewClassWithOptions(
 		ClassWithParent(FunctionClass),
 	)
-	StdModule.AddConstantString("Method", MethodClass)
+	StdModule.AddConstantString("Method", Ref(MethodClass))
 }

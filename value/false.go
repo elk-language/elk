@@ -53,5 +53,5 @@ func initFalse() {
 	FalseClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 	)
-	StdModule.AddConstantString("False", ReferenceToValue(FalseClass))
+	StdModule.AddConstantString("False", Ref(FalseClass))
 }

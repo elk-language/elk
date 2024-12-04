@@ -111,5 +111,5 @@ func (i UInt64) Hash() UInt64 {
 
 func initUInt64() {
 	UInt64Class = NewClass()
-	StdModule.AddConstantString("UInt64", UInt64Class)
+	StdModule.AddConstantString("UInt64", Ref(UInt64Class))
 }

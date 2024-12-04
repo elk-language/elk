@@ -3,5 +3,5 @@
 package value
 
 func (i UInt64) ToValue() Value {
-	return i
+	return Ref(i)
 }

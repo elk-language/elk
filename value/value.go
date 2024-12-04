@@ -18,6 +18,7 @@ const (
 	NIL_FLAG = iota
 	TRUE_FLAG
 	FALSE_FLAG
+	UNDEFINED_FLAG
 	SMALL_INT_FLAG
 	FLOAT_FLAG
 	FLOAT32_FLAG
@@ -55,6 +56,8 @@ func (v Value) Inspect() string {
 		return v.AsFalse().Inspect()
 	case NIL_FLAG:
 		return v.AsNil().Inspect()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().Inspect()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().Inspect()
 	case FLOAT_FLAG:
@@ -110,6 +113,8 @@ func (v Value) Class() *Class {
 		return v.AsFalse().Class()
 	case NIL_FLAG:
 		return v.AsNil().Class()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().Class()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().Class()
 	case FLOAT_FLAG:
@@ -157,6 +162,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsFalse().DirectClass()
 	case NIL_FLAG:
 		return v.AsNil().DirectClass()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().DirectClass()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().DirectClass()
 	case FLOAT_FLAG:
@@ -204,6 +211,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsFalse().SingletonClass()
 	case NIL_FLAG:
 		return v.AsNil().SingletonClass()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().SingletonClass()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().SingletonClass()
 	case FLOAT_FLAG:
@@ -251,6 +260,8 @@ func (v Value) InstanceVariables() SymbolMap {
 		return v.AsFalse().InstanceVariables()
 	case NIL_FLAG:
 		return v.AsNil().InstanceVariables()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().InstanceVariables()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().InstanceVariables()
 	case FLOAT_FLAG:
@@ -298,6 +309,8 @@ func (v Value) Error() string {
 		return v.AsFalse().Error()
 	case NIL_FLAG:
 		return v.AsNil().Error()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined().Error()
 	case SMALL_INT_FLAG:
 		return v.AsSmallInt().Error()
 	case FLOAT_FLAG:
@@ -501,6 +514,14 @@ func (v Value) AsNil() NilType {
 	return *(*NilType)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) IsUndefined() bool {
+	return uintptr(v.data) == UNDEFINED_FLAG
+}
+
+func (v Value) AsUndefined() UndefinedType {
+	return *(*UndefinedType)(unsafe.Pointer(&v.tab))
+}
+
 // BENCHMARK: self-implemented tagged union
 // Elk Value
 type Reference interface {
@@ -537,9 +558,13 @@ func IsMutableCollection(val Value) bool {
 	return false
 }
 
+type Inspectable interface {
+	Inspect() string
+}
+
 // Return the string representation of a slice
 // of values.
-func InspectSlice[T Reference](slice []T) string {
+func InspectSlice[T Inspectable](slice []T) string {
 	var builder strings.Builder
 
 	builder.WriteString("[")
@@ -557,7 +582,7 @@ func InspectSlice[T Reference](slice []T) string {
 }
 
 // Convert a Go bool value to Elk.
-func ToElkBool(val bool) Bool {
+func ToElkBool(val bool) Value {
 	if val {
 		return True
 	}
@@ -566,9 +591,13 @@ func ToElkBool(val bool) Bool {
 }
 
 // Converts an Elk Value to an Elk Bool.
-func ToBool(val Value) Bool {
-	switch val.(type) {
-	case FalseType, NilType:
+func ToBool(val Value) Value {
+	if val.IsReference() {
+		return True
+	}
+
+	switch val.ValueFlag() {
+	case FALSE_FLAG, NIL_FLAG:
 		return False
 	default:
 		return True
@@ -577,9 +606,13 @@ func ToBool(val Value) Bool {
 
 // Converts an Elk Value to an Elk Bool
 // and negates it.
-func ToNotBool(val Value) Bool {
-	switch val.(type) {
-	case FalseType, NilType:
+func ToNotBool(val Value) Value {
+	if val.IsReference() {
+		return False
+	}
+
+	switch val.ValueFlag() {
+	case FALSE_FLAG, NIL_FLAG:
 		return True
 	default:
 		return False
@@ -590,14 +623,20 @@ func ToNotBool(val Value) Bool {
 // Returns (0, false) when the value is incompatible.
 // Returns (-1, false) when the value is a BigInt too large to be converted to int.
 func IntToGoInt(val Value) (int, bool) {
-	switch v := val.(type) {
-	case SmallInt:
-		return int(v), true
-	case *BigInt:
-		if !v.IsSmallInt() {
-			return -1, false
+	if val.IsReference() {
+		switch v := val.AsReference().(type) {
+		case *BigInt:
+			if !v.IsSmallInt() {
+				return -1, false
+			}
+			return int(v.ToSmallInt()), true
 		}
-		return int(v.ToSmallInt()), true
+		return 0, false
+	}
+
+	switch val.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return int(val.AsSmallInt()), true
 	}
 
 	return 0, false
@@ -607,72 +646,103 @@ func IntToGoInt(val Value) (int, bool) {
 // Returns (0, false) when the value is incompatible.
 // Returns (-1, false) when the value is a BigInt too large to be converted to int.
 func ToGoInt(val Value) (int, bool) {
-	switch v := val.(type) {
-	case SmallInt:
-		return int(v), true
-	case *BigInt:
-		if !v.IsSmallInt() {
-			return -1, false
+	if val.IsReference() {
+		switch v := val.AsReference().(type) {
+		case *BigInt:
+			if !v.IsSmallInt() {
+				return -1, false
+			}
+			return int(v.ToSmallInt()), true
+		case UInt64:
+			return int(v), true
 		}
-		return int(v.ToSmallInt()), true
-	case Int8:
-		return int(v), true
-	case Int16:
-		return int(v), true
-	case Int32:
-		return int(v), true
-	case Int64:
-		return int(v), true
-	case UInt8:
-		return int(v), true
-	case UInt16:
-		return int(v), true
-	case UInt32:
-		return int(v), true
-	case UInt64:
-		return int(v), true
+		return 0, false
 	}
 
+	switch val.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return int(val.AsSmallInt()), true
+	case INT8_FLAG:
+		return int(val.AsInt8()), true
+	case INT16_FLAG:
+		return int(val.AsInt16()), true
+	case INT32_FLAG:
+		return int(val.AsInt32()), true
+	case INT64_FLAG:
+		return int(val.AsInt64()), true
+	case UINT8_FLAG:
+		return int(val.AsUInt8()), true
+	case UINT16_FLAG:
+		return int(val.AsUInt16()), true
+	case UINT32_FLAG:
+		return int(val.AsUInt32()), true
+	case UINT64_FLAG:
+		return int(val.AsUInt64()), true
+	}
 	return 0, false
 }
 
 // Converts an Elk value to Go uint.
 // Returns (0, false) when the value is incompatible, too large or negative.
 func ToGoUInt(val Value) (uint, bool) {
-	switch v := val.(type) {
-	case SmallInt:
+	if val.IsReference() {
+		switch v := val.AsReference().(type) {
+		case *BigInt:
+			if !v.IsSmallInt() {
+				return 0, false
+			}
+			i := v.ToSmallInt()
+			if i < 0 {
+				return 0, false
+			}
+			if uint64(i) > math.MaxUint {
+				return 0, false
+			}
+			return uint(i), true
+		case Int64:
+			if v < 0 {
+				return 0, false
+			}
+			if uint64(v) > math.MaxUint {
+				return 0, false
+			}
+			return uint(v), true
+		case UInt64:
+			if uint64(v) > math.MaxUint {
+				return 0, false
+			}
+			return uint(v), true
+		}
+		return 0, false
+	}
+
+	switch val.ValueFlag() {
+	case SMALL_INT_FLAG:
+		v := val.AsSmallInt()
 		if v < 0 {
 			return 0, false
 		}
 		return uint(v), true
-	case *BigInt:
-		if !v.IsSmallInt() {
-			return 0, false
-		}
-		i := v.ToSmallInt()
-		if i < 0 {
-			return 0, false
-		}
-		if uint64(i) > math.MaxUint {
-			return 0, false
-		}
-		return uint(i), true
-	case Int8:
+	case INT8_FLAG:
+		v := val.AsInt8()
 		if v < 0 {
 			return 0, false
 		}
 		return uint(v), true
-	case Int16:
+	case INT16_FLAG:
+		v := val.AsInt16()
 		if v < 0 {
 			return 0, false
 		}
 		return uint(v), true
-	case Int32:
+	case INT32_FLAG:
+		v := val.AsInt32()
 		if v < 0 {
 			return 0, false
 		}
 		return uint(v), true
-	case Int64:
+	case INT64_FLAG:
+		v := val.AsInt64()
 		if v < 0 {
 			return 0, false
 		}
@@ -680,13 +750,17 @@ func ToGoUInt(val Value) (uint, bool) {
 			return 0, false
 		}
 		return uint(v), true
-	case UInt8:
+	case UINT8_FLAG:
+		v := val.AsUInt8()
 		return uint(v), true
-	case UInt16:
+	case UINT16_FLAG:
+		v := val.AsUInt16()
 		return uint(v), true
-	case UInt32:
+	case UINT32_FLAG:
+		v := val.AsUInt32()
 		return uint(v), true
-	case UInt64:
+	case UINT64_FLAG:
+		v := val.AsUInt64()
 		if uint64(v) > math.MaxUint {
 			return 0, false
 		}
@@ -699,19 +773,17 @@ func ToGoUInt(val Value) (uint, bool) {
 // Returns true when the Elk value is nil
 // otherwise returns false.
 func IsNil(val Value) bool {
-	switch val.(type) {
-	case NilType:
-		return true
-	default:
-		return false
-	}
+	return val.IsNil()
 }
 
 // Returns true when the Elk value is truthy (works like true in boolean logic)
 // otherwise returns false.
 func Truthy(val Value) bool {
-	switch val.(type) {
-	case FalseType, NilType, UndefinedType:
+	if val.IsReference() {
+		return true
+	}
+	switch val.ValueFlag() {
+	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
 		return false
 	default:
 		return true
@@ -721,8 +793,11 @@ func Truthy(val Value) bool {
 // Returns true when the Elk value is falsy (works like false in boolean logic)
 // otherwise returns false.
 func Falsy(val Value) bool {
-	switch val.(type) {
-	case FalseType, NilType, UndefinedType:
+	if val.IsReference() {
+		return false
+	}
+	switch val.ValueFlag() {
+	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
 		return true
 	default:
 		return false
@@ -774,19 +849,23 @@ func mixinIsA(val Value, mixin *Mixin) bool {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Subscript(collection, key Value) (result, err Value) {
-	switch l := collection.(type) {
+	if !collection.IsReference() {
+		return Nil, Nil
+	}
+
+	switch l := collection.AsReference().(type) {
 	case *ArrayTuple:
 		result, err = l.Subscript(key)
 	case *ArrayList:
 		result, err = l.Subscript(key)
 	default:
-		return nil, nil
+		return Nil, Nil
 	}
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return Nil, err
 	}
-	return result, nil
+	return result, Nil
 }
 
 // Set an element under the given key.
@@ -794,17 +873,21 @@ func Subscript(collection, key Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func SubscriptSet(collection, key, val Value) (result, err Value) {
-	switch l := collection.(type) {
+	if !collection.IsReference() {
+		return Nil, Nil
+	}
+
+	switch l := collection.AsReference().(type) {
 	case *ArrayList:
 		err = l.SubscriptSet(key, val)
 	default:
-		return nil, nil
+		return Nil, Nil
 	}
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return Nil, err
 	}
-	return val, nil
+	return val, Nil
 }
 
 // Calculate the hash of the value.
@@ -813,53 +896,82 @@ func SubscriptSet(collection, key, val Value) (result, err Value) {
 // When there are no builtin addition functions for the given type returns (0, NotBuiltinError).
 func Hash(key Value) (UInt64, Value) {
 	var result UInt64
-
-	switch k := key.(type) {
-	case String:
-		result = k.Hash()
-	case Char:
-		result = k.Hash()
-	case Symbol:
-		result = k.Hash()
-	case SmallInt:
-		result = k.Hash()
-	case *BigInt:
-		result = k.Hash()
-	case Float:
-		result = k.Hash()
-	case *BigFloat:
-		result = k.Hash()
-	case NilType:
-		result = k.Hash()
-	case TrueType:
-		result = k.Hash()
-	case FalseType:
-		result = k.Hash()
-	case Float64:
-		result = k.Hash()
-	case Float32:
-		result = k.Hash()
-	case Int64:
-		result = k.Hash()
-	case Int32:
-		result = k.Hash()
-	case Int16:
-		result = k.Hash()
-	case Int8:
-		result = k.Hash()
-	case UInt64:
-		result = k.Hash()
-	case UInt32:
-		result = k.Hash()
-	case UInt16:
-		result = k.Hash()
-	case UInt8:
-		result = k.Hash()
-	default:
-		return 0, NotBuiltinError
+	if key.IsReference() {
+		switch k := key.AsReference().(type) {
+		case String:
+			result = k.Hash()
+		case *BigInt:
+			result = k.Hash()
+		case *BigFloat:
+			result = k.Hash()
+		case Float64:
+			result = k.Hash()
+		case Int64:
+			result = k.Hash()
+		case UInt64:
+			result = k.Hash()
+		default:
+			return 0, Ref(NotBuiltinError)
+		}
+		return result, Nil
 	}
 
-	return result, nil
+	switch key.ValueFlag() {
+	case CHAR_FLAG:
+		k := key.AsChar()
+		result = k.Hash()
+	case SYMBOL_FLAG:
+		k := key.AsSymbol()
+		result = k.Hash()
+	case SMALL_INT_FLAG:
+		k := key.AsSmallInt()
+		result = k.Hash()
+	case FLOAT_FLAG:
+		k := key.AsFloat()
+		result = k.Hash()
+	case NIL_FLAG:
+		k := key.AsNil()
+		result = k.Hash()
+	case TRUE_FLAG:
+		k := key.AsTrue()
+		result = k.Hash()
+	case FALSE_FLAG:
+		k := key.AsFalse()
+		result = k.Hash()
+	case FLOAT64_FLAG:
+		k := key.AsFloat64()
+		result = k.Hash()
+	case FLOAT32_FLAG:
+		k := key.AsFloat32()
+		result = k.Hash()
+	case INT64_FLAG:
+		k := key.AsInt64()
+		result = k.Hash()
+	case INT32_FLAG:
+		k := key.AsInt32()
+		result = k.Hash()
+	case INT16_FLAG:
+		k := key.AsInt16()
+		result = k.Hash()
+	case INT8_FLAG:
+		k := key.AsInt8()
+		result = k.Hash()
+	case UINT64_FLAG:
+		k := key.AsUInt64()
+		result = k.Hash()
+	case UINT32_FLAG:
+		k := key.AsUInt32()
+		result = k.Hash()
+	case UINT16_FLAG:
+		k := key.AsUInt16()
+		result = k.Hash()
+	case UINT8_FLAG:
+		k := key.AsUInt8()
+		result = k.Hash()
+	default:
+		return 0, Ref(NotBuiltinError)
+	}
+	return result, Nil
 }
 
 // Add two values.

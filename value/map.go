@@ -5,5 +5,5 @@ var MapMixin *Mixin // ::Std::Map
 func initMap() {
 	MapMixin = NewMixin()
 	MapMixin.IncludeMixin(RecordMixin)
-	StdModule.AddConstantString("Map", MapMixin)
+	StdModule.AddConstantString("Map", Ref(MapMixin))
 }

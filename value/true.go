@@ -53,5 +53,5 @@ func initTrue() {
 	TrueClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 	)
-	StdModule.AddConstantString("True", ReferenceToValue(TrueClass))
+	StdModule.AddConstantString("True", Ref(TrueClass))
 }
