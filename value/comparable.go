@@ -4,5 +4,5 @@ var ComparableMixin *Mixin // ::Std::Comparable
 
 func initComparable() {
 	ComparableMixin = NewMixin()
-	StdModule.AddConstantString("Comparable", ComparableMixin)
+	StdModule.AddConstantString("Comparable", Ref(ComparableMixin))
 }

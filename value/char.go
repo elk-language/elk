@@ -30,10 +30,6 @@ func (Char) SingletonClass() *Class {
 	return nil
 }
 
-func (c Char) Copy() Value {
-	return c
-}
-
 func (c Char) Error() string {
 	return c.Inspect()
 }
@@ -123,47 +119,59 @@ func (x Char) Cmp(y Char) int {
 // Concatenate another value with this character, creating a new string, and return the result.
 // If the operation is illegal an error will be returned.
 func (c Char) Concat(other Value) (String, Value) {
-	switch o := other.(type) {
-	case Char:
+	if other.IsChar() {
 		var buff strings.Builder
 		buff.WriteRune(rune(c))
-		buff.WriteRune(rune(o))
-		return String(buff.String()), nil
-	case String:
-		var buff strings.Builder
-		buff.WriteRune(rune(c))
-		buff.WriteString(string(o))
-		return String(buff.String()), nil
-	default:
-		return "", Errorf(TypeErrorClass, "cannot concat %s with char %s", other.Inspect(), c.Inspect())
+		buff.WriteRune(rune(other.AsChar()))
+		return String(buff.String()), Nil
 	}
+
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			var buff strings.Builder
+			buff.WriteRune(rune(c))
+			buff.WriteString(string(o))
+			return String(buff.String()), Nil
+		}
+	}
+
+	return "", Ref(Errorf(TypeErrorClass, "cannot concat %s with char %s", other.Inspect(), c.Inspect()))
 }
 
 // Repeat this character n times and return a new string containing the result.
 // If the operation is illegal an error will be returned.
 func (c Char) Repeat(other Value) (String, Value) {
-	switch o := other.(type) {
-	case SmallInt:
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return "", Ref(Errorf(
+				OutOfRangeErrorClass,
+				"repeat count is too large %s",
+				o.Inspect(),
+			))
+		default:
+			return "", Ref(Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := other.AsSmallInt()
 		if o < 0 {
-			return "", Errorf(
+			return "", Ref(Errorf(
 				OutOfRangeErrorClass,
 				"repeat count cannot be negative: %s",
 				o.Inspect(),
-			)
+			))
 		}
 		var builder strings.Builder
 		for i := 0; i < int(o); i++ {
 			builder.WriteRune(rune(c))
 		}
-		return String(builder.String()), nil
-	case *BigInt:
-		return "", Errorf(
-			OutOfRangeErrorClass,
-			"repeat count is too large %s",
-			o.Inspect(),
-		)
+		return String(builder.String()), Nil
 	default:
-		return "", Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect())
+		return "", Ref(Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect()))
 	}
 }
 
@@ -172,80 +180,121 @@ func (c Char) Repeat(other Value) (String, Value) {
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
 func (c Char) Compare(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case Char:
-		return SmallInt(c.Cmp(o)), nil
-	case String:
-		return SmallInt(String(c).Cmp(o)), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return SmallInt(String(c).Cmp(o)).ToValue(), Nil
+		default:
+			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		}
+	}
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return SmallInt(c.Cmp(other.AsChar())).ToValue(), Nil
 	default:
-		return nil, NewCoerceError(c.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is greater than other and return an error
 // if something went wrong.
 func (c Char) GreaterThan(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c > o), nil
-	case String:
-		return ToElkBool(String(c).Cmp(o) == 1), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return ToElkBool(String(c).Cmp(o) == 1), Nil
+		default:
+			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return ToElkBool(c > other.AsChar()), Nil
 	default:
-		return nil, NewCoerceError(c.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is greater than or equal to other and return an error
 // if something went wrong.
 func (c Char) GreaterThanEqual(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c >= o), nil
-	case String:
-		return ToElkBool(String(c).Cmp(o) >= 0), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return ToElkBool(String(c).Cmp(o) >= 0), Nil
+		default:
+			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return ToElkBool(c >= other.AsChar()), Nil
 	default:
-		return nil, NewCoerceError(c.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is less than other and return an error
 // if something went wrong.
 func (c Char) LessThan(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c < o), nil
-	case String:
-		return ToElkBool(String(c).Cmp(o) == -1), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return ToElkBool(String(c).Cmp(o) == -1), Nil
+		default:
+			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return ToElkBool(c < other.AsChar()), Nil
 	default:
-		return nil, NewCoerceError(c.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is less than or equal to other and return an error
 // if something went wrong.
 func (c Char) LessThanEqual(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c <= o), nil
-	case String:
-		return ToElkBool(String(c).Cmp(o) <= 0), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return ToElkBool(String(c).Cmp(o) <= 0), Nil
+		default:
+			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return ToElkBool(c <= other.AsChar()), Nil
 	default:
-		return nil, NewCoerceError(c.Class(), other.Class())
+		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is equal to other
 func (c Char) LaxEqual(other Value) Value {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c == o)
-	case String:
-		ch, ok := o.ToChar()
-		if !ok {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			ch, ok := o.ToChar()
+			if !ok {
+				return False
+			}
+
+			return ToElkBool(c == ch)
+		default:
 			return False
 		}
+	}
 
-		return ToElkBool(c == ch)
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return ToElkBool(c == other.AsChar())
 	default:
 		return False
 	}
@@ -253,12 +302,11 @@ func (c Char) LaxEqual(other Value) Value {
 
 // Check whether s is equal to other
 func (c Char) Equal(other Value) Value {
-	switch o := other.(type) {
-	case Char:
-		return ToElkBool(c == o)
-	default:
-		return False
+	if other.IsChar() {
+		return ToElkBool(c == other.AsChar())
 	}
+
+	return False
 }
 
 // Convert to uppercase
@@ -278,5 +326,5 @@ func (c Char) StrictEqual(other Value) Value {
 
 func initChar() {
 	CharClass = NewClass()
-	StdModule.AddConstantString("Char", CharClass)
+	StdModule.AddConstantString("Char", Ref(CharClass))
 }

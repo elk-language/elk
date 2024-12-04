@@ -113,7 +113,7 @@ func NewError(class *Class, message string) *Object {
 	return &Object{
 		class: class,
 		instanceVariables: SymbolMap{
-			SymbolTable.Add("message"): String(message),
+			SymbolTable.Add("message"): Ref(String(message)),
 		},
 	}
 }

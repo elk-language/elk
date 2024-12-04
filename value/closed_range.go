@@ -19,7 +19,7 @@ func NewClosedRange(start, end Value) *ClosedRange {
 	}
 }
 
-func (r *ClosedRange) Copy() Value {
+func (r *ClosedRange) Copy() Reference {
 	return r
 }
 
@@ -90,7 +90,7 @@ func (*ClosedRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *ClosedRangeIterator) Copy() Value {
+func (r *ClosedRangeIterator) Copy() Reference {
 	return &ClosedRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
@@ -112,8 +112,8 @@ func (*ClosedRangeIterator) InstanceVariables() SymbolMap {
 func initClosedRange() {
 	ClosedRangeClass = NewClass()
 	ClosedRangeClass.IncludeMixin(RangeMixin)
-	StdModule.AddConstantString("ClosedRange", ClosedRangeClass)
+	StdModule.AddConstantString("ClosedRange", Ref(ClosedRangeClass))
 
 	ClosedRangeIteratorClass = NewClass()
-	ClosedRangeClass.AddConstantString("Iterator", ClosedRangeIteratorClass)
+	ClosedRangeClass.AddConstantString("Iterator", Ref(ClosedRangeIteratorClass))
 }

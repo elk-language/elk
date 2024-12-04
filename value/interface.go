@@ -45,10 +45,10 @@ func NewInterfaceWithOptions(opts ...InterfaceOption) *Interface {
 
 // Used by the VM, create a new interface value.
 func InterfaceConstructor(class *Class) Value {
-	return NewInterface()
+	return Ref(NewInterface())
 }
 
-func (i *Interface) Copy() Value {
+func (i *Interface) Copy() Reference {
 	newConstants := make(SymbolMap, len(i.Constants))
 	maps.Copy(newConstants, i.Constants)
 
@@ -107,5 +107,5 @@ var InterfaceClass *Class // ::Std::Interface
 
 func initInterface() {
 	InterfaceClass = NewClassWithOptions()
-	StdModule.AddConstantString("Interface", InterfaceClass)
+	StdModule.AddConstantString("Interface", Ref(InterfaceClass))
 }

@@ -22,18 +22,20 @@ func (m *ConstantContainer) PrintableName() string {
 // to the given value.
 func (m *ConstantContainer) AddConstantString(name string, val Value) {
 	fullName := m.fullConstantName(name)
-	switch v := val.(type) {
-	case *Module:
-		if v.Name == "" {
-			v.Name = fullName
-		}
-	case *Class:
-		if v.Name == "" {
-			v.Name = fullName
-		}
-	case *Interface:
-		if v.Name == "" {
-			v.Name = fullName
+	if val.IsReference() {
+		switch v := val.AsReference().(type) {
+		case *Module:
+			if v.Name == "" {
+				v.Name = fullName
+			}
+		case *Class:
+			if v.Name == "" {
+				v.Name = fullName
+			}
+		case *Interface:
+			if v.Name == "" {
+				v.Name = fullName
+			}
 		}
 	}
 
@@ -45,18 +47,20 @@ func (m *ConstantContainer) AddConstantString(name string, val Value) {
 // to the given value.
 func (m *ConstantContainer) AddConstant(name Symbol, val Value) {
 	fullName := m.fullConstantName(name.String())
-	switch v := val.(type) {
-	case *Module:
-		if v.Name == "" {
-			v.Name = fullName
-		}
-	case *Class:
-		if v.Name == "" {
-			v.Name = fullName
-		}
-	case *Interface:
-		if v.Name == "" {
-			v.Name = fullName
+	if val.IsReference() {
+		switch v := val.AsReference().(type) {
+		case *Module:
+			if v.Name == "" {
+				v.Name = fullName
+			}
+		case *Class:
+			if v.Name == "" {
+				v.Name = fullName
+			}
+		case *Interface:
+			if v.Name == "" {
+				v.Name = fullName
+			}
 		}
 	}
 

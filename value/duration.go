@@ -31,10 +31,10 @@ var DurationClass *Class // ::Std::Duration
 func ParseDuration(s String) (result Duration, err Value) {
 	dur, er := time.ParseDuration(s.String())
 	if er != nil {
-		return result, NewError(FormatErrorClass, er.Error())
+		return result, Ref(NewError(FormatErrorClass, er.Error()))
 	}
 
-	return Duration(dur), nil
+	return Duration(dur), Nil
 }
 
 func DurationSince(t Time) Duration {
@@ -49,7 +49,7 @@ func (d Duration) Go() time.Duration {
 	return time.Duration(d)
 }
 
-func (d Duration) Copy() Value {
+func (d Duration) Copy() Reference {
 	return d
 }
 
@@ -94,54 +94,70 @@ func (d Duration) Subtract(other Duration) Duration {
 }
 
 func (d Duration) Multiply(other Value) (Duration, Value) {
-	switch o := other.(type) {
-	case SmallInt:
-		return d * Duration(o), nil
-	case *BigInt:
-		newBig := big.NewInt(int64(d))
-		result := ToElkBigInt(newBig.Mul(newBig, o.ToGoBigInt()))
-		return Duration(result.ToSmallInt()), nil
-	case Float:
-		return Duration(Float(d) * o), nil
-	case *BigFloat:
-		prec := max(o.Precision(), 64)
-		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
-		iBigFloat.MulBigFloat(iBigFloat, o)
-		return Duration(iBigFloat.ToInt64()), nil
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			newBig := big.NewInt(int64(d))
+			result := ToElkBigInt(newBig.Mul(newBig, o.ToGoBigInt()))
+			return Duration(result.ToSmallInt()), Nil
+		case *BigFloat:
+			prec := max(o.Precision(), 64)
+			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
+			iBigFloat.MulBigFloat(iBigFloat, o)
+			return Duration(iBigFloat.ToInt64()), Nil
+		default:
+			return 0, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return d * Duration(other.AsSmallInt()), Nil
+	case FLOAT_FLAG:
+		return Duration(Float(d) * other.AsFloat()), Nil
 	default:
-		return 0, NewCoerceError(d.Class(), other.Class())
+		return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 	}
 }
 
 func (d Duration) Divide(other Value) (Duration, Value) {
-	switch o := other.(type) {
-	case SmallInt:
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			if o.IsZero() {
+				return 0, Ref(NewZeroDivisionError())
+			}
+			newBig := big.NewInt(int64(d))
+			result := ToElkBigInt(newBig.Div(newBig, o.ToGoBigInt()))
+			return Duration(result.ToSmallInt()), Nil
+		case *BigFloat:
+			if o.IsZero() {
+				return 0, Ref(NewZeroDivisionError())
+			}
+			prec := max(o.Precision(), 64)
+			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
+			iBigFloat.DivBigFloat(iBigFloat, o)
+			return Duration(iBigFloat.ToInt64()), Nil
+		default:
+			return 0, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := other.AsSmallInt()
 		if o == 0 {
-			return 0, NewZeroDivisionError()
+			return 0, Ref(NewZeroDivisionError())
 		}
-		return d / Duration(o), nil
-	case *BigInt:
-		if o.IsZero() {
-			return 0, NewZeroDivisionError()
-		}
-		newBig := big.NewInt(int64(d))
-		result := ToElkBigInt(newBig.Div(newBig, o.ToGoBigInt()))
-		return Duration(result.ToSmallInt()), nil
-	case Float:
+		return d / Duration(o), Nil
+	case FLOAT_FLAG:
+		o := other.AsFloat()
 		if o == 0 {
-			return 0, NewZeroDivisionError()
+			return 0, Ref(NewZeroDivisionError())
 		}
-		return Duration(Float(d) / o), nil
-	case *BigFloat:
-		if o.IsZero() {
-			return 0, NewZeroDivisionError()
-		}
-		prec := max(o.Precision(), 64)
-		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
-		iBigFloat.DivBigFloat(iBigFloat, o)
-		return Duration(iBigFloat.ToInt64()), nil
+		return Duration(Float(d) / o), Nil
 	default:
-		return 0, NewCoerceError(d.Class(), other.Class())
+		return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 	}
 }
 
@@ -225,5 +241,5 @@ func (d Duration) InYears() Float {
 
 func initDuration() {
 	DurationClass = NewClass()
-	StdModule.AddConstantString("Duration", DurationClass)
+	StdModule.AddConstantString("Duration", Ref(DurationClass))
 }

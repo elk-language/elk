@@ -47,7 +47,7 @@ func (*ArrayTuple) SingletonClass() *Class {
 	return nil
 }
 
-func (t *ArrayTuple) Copy() Value {
+func (t *ArrayTuple) Copy() Reference {
 	return t
 }
 
@@ -98,9 +98,9 @@ func (t *ArrayTuple) Subscript(key Value) (Value, Value) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return nil, NewIndexOutOfRangeError(key.Inspect(), len(*t))
+			return Nil, Ref(NewIndexOutOfRangeError(key.Inspect(), len(*t)))
 		}
-		return nil, NewCoerceError(IntClass, key.Class())
+		return Nil, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return t.Get(i)
@@ -122,9 +122,9 @@ func (t *ArrayTuple) SubscriptSet(key, val Value) Value {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return NewIndexOutOfRangeError(key.Inspect(), length)
+			return Ref(NewIndexOutOfRangeError(key.Inspect(), length))
 		}
-		return NewCoerceError(IntClass, key.Class())
+		return Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return t.Set(i, val)
@@ -133,55 +133,65 @@ func (t *ArrayTuple) SubscriptSet(key, val Value) Value {
 // Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
 func (t *ArrayTuple) Concat(other Value) (Value, Value) {
-	switch o := other.(type) {
-	case *ArrayList:
-		newList := make(ArrayList, len(*t), len(*t)+len(*o))
-		copy(newList, *t)
-		newList = append(newList, *o...)
-		return &newList, nil
-	case *ArrayTuple:
-		newArrayTuple := make(ArrayTuple, len(*t), len(*t)+len(*o))
-		copy(newArrayTuple, *t)
-		newArrayTuple = append(newArrayTuple, *o...)
-		return &newArrayTuple, nil
-	default:
-		return nil, Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect())
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *ArrayList:
+			newList := make(ArrayList, len(*t), len(*t)+len(*o))
+			copy(newList, *t)
+			newList = append(newList, *o...)
+			return Ref(&newList), Nil
+		case *ArrayTuple:
+			newArrayTuple := make(ArrayTuple, len(*t), len(*t)+len(*o))
+			copy(newArrayTuple, *t)
+			newArrayTuple = append(newArrayTuple, *o...)
+			return Ref(&newArrayTuple), Nil
+		}
 	}
+
+	return Nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
 }
 
 // Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.
 // If the operation is illegal an error will be returned.
 func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, Value) {
-	switch o := other.(type) {
-	case SmallInt:
-		if o < 0 {
-			return nil, Errorf(
-				OutOfRangeErrorClass,
-				"arrayTuple repeat count cannot be negative: %s",
-				o.Inspect(),
-			)
-		}
-		newLen, ok := o.MultiplyOverflow(SmallInt(len(*t)))
-		if !ok {
-			return nil, Errorf(
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return nil, Ref(Errorf(
 				OutOfRangeErrorClass,
 				"arrayTuple repeat count is too large %s",
 				o.Inspect(),
-			)
+			))
+		default:
+			return nil, Ref(Errorf(TypeErrorClass, "cannot repeat a arrayTuple using %s", other.Inspect()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := other.AsSmallInt()
+		if o < 0 {
+			return nil, Ref(Errorf(
+				OutOfRangeErrorClass,
+				"arrayTuple repeat count cannot be negative: %s",
+				o.Inspect(),
+			))
+		}
+		newLen, ok := o.MultiplyOverflow(SmallInt(len(*t)))
+		if !ok {
+			return nil, Ref(Errorf(
+				OutOfRangeErrorClass,
+				"arrayTuple repeat count is too large %s",
+				o.Inspect(),
+			))
 		}
 		newArrayTuple := make(ArrayTuple, 0, newLen)
 		for i := 0; i < int(o); i++ {
 			newArrayTuple = append(newArrayTuple, *t...)
 		}
-		return &newArrayTuple, nil
-	case *BigInt:
-		return nil, Errorf(
-			OutOfRangeErrorClass,
-			"arrayTuple repeat count is too large %s",
-			o.Inspect(),
-		)
+		return &newArrayTuple, Nil
 	default:
-		return nil, Errorf(TypeErrorClass, "cannot repeat a arrayTuple using %s", other.Inspect())
+		return nil, Ref(Errorf(TypeErrorClass, "cannot repeat a arrayTuple using %s", other.Inspect()))
 	}
 }
 
@@ -232,7 +242,7 @@ func (*ArrayTupleIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (t *ArrayTupleIterator) Copy() Value {
+func (t *ArrayTupleIterator) Copy() Reference {
 	return &ArrayTupleIterator{
 		ArrayTuple: t.ArrayTuple,
 		Index:      t.Index,
@@ -253,19 +263,19 @@ func (*ArrayTupleIterator) InstanceVariables() SymbolMap {
 
 func (t *ArrayTupleIterator) Next() (Value, Value) {
 	if t.Index >= t.ArrayTuple.Length() {
-		return nil, stopIterationSymbol
+		return Nil, stopIterationSymbol.ToValue()
 	}
 
 	next := (*t.ArrayTuple)[t.Index]
 	t.Index++
-	return next, nil
+	return next, Nil
 }
 
 func initArrayTuple() {
 	ArrayTupleClass = NewClass()
 	ArrayTupleClass.IncludeMixin(TupleMixin)
-	StdModule.AddConstantString("ArrayTuple", ArrayTupleClass)
+	StdModule.AddConstantString("ArrayTuple", Ref(ArrayTupleClass))
 
 	ArrayTupleIteratorClass = NewClass()
-	ArrayTupleClass.AddConstantString("Iterator", ArrayTupleIteratorClass)
+	ArrayTupleClass.AddConstantString("Iterator", Ref(ArrayTupleIteratorClass))
 }

@@ -35,7 +35,7 @@ func (*CallSiteInfo) InstanceVariables() SymbolMap {
 	return nil
 }
 
-func (c *CallSiteInfo) Copy() Value {
+func (c *CallSiteInfo) Copy() Reference {
 	return c
 }
 

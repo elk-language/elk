@@ -17,7 +17,7 @@ func NewEndlessOpenRange(start Value) *EndlessOpenRange {
 	}
 }
 
-func (r *EndlessOpenRange) Copy() Value {
+func (r *EndlessOpenRange) Copy() Reference {
 	return r
 }
 
@@ -87,7 +87,7 @@ func (*EndlessOpenRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *EndlessOpenRangeIterator) Copy() Value {
+func (r *EndlessOpenRangeIterator) Copy() Reference {
 	return &EndlessOpenRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
@@ -109,8 +109,8 @@ func (*EndlessOpenRangeIterator) InstanceVariables() SymbolMap {
 func initEndlessOpenRange() {
 	EndlessOpenRangeClass = NewClass()
 	EndlessOpenRangeClass.IncludeMixin(RangeMixin)
-	StdModule.AddConstantString("EndlessOpenRange", EndlessOpenRangeClass)
+	StdModule.AddConstantString("EndlessOpenRange", Ref(EndlessOpenRangeClass))
 
 	EndlessOpenRangeIteratorClass = NewClass()
-	EndlessOpenRangeClass.AddConstantString("Iterator", EndlessOpenRangeIteratorClass)
+	EndlessOpenRangeClass.AddConstantString("Iterator", Ref(EndlessOpenRangeIteratorClass))
 }

@@ -17,7 +17,7 @@ func NewEndlessClosedRange(start Value) *EndlessClosedRange {
 	}
 }
 
-func (r *EndlessClosedRange) Copy() Value {
+func (r *EndlessClosedRange) Copy() Reference {
 	return r
 }
 
@@ -91,7 +91,7 @@ func (r *EndlessClosedRangeIterator) Error() string {
 	return r.Inspect()
 }
 
-func (r *EndlessClosedRangeIterator) Copy() Value {
+func (r *EndlessClosedRangeIterator) Copy() Reference {
 	return &EndlessClosedRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
@@ -109,8 +109,8 @@ func (*EndlessClosedRangeIterator) InstanceVariables() SymbolMap {
 func initEndlessClosedRange() {
 	EndlessClosedRangeClass = NewClass()
 	EndlessClosedRangeClass.IncludeMixin(RangeMixin)
-	StdModule.AddConstantString("EndlessClosedRange", EndlessClosedRangeClass)
+	StdModule.AddConstantString("EndlessClosedRange", Ref(EndlessClosedRangeClass))
 
 	EndlessClosedRangeIteratorClass = NewClass()
-	EndlessClosedRangeClass.AddConstantString("Iterator", EndlessClosedRangeIteratorClass)
+	EndlessClosedRangeClass.AddConstantString("Iterator", Ref(EndlessClosedRangeIteratorClass))
 }

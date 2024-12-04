@@ -65,16 +65,16 @@ func NewModuleWithOptions(opts ...ModuleOption) *Module {
 
 // Used by the VM, create a new module value.
 func ModuleConstructor(class *Class) Value {
-	return &Module{
+	return Ref(&Module{
 		class: class,
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		instanceVariables: make(SymbolMap),
-	}
+	})
 }
 
-func (m *Module) Copy() Value {
+func (m *Module) Copy() Reference {
 	newConstants := make(SymbolMap, len(m.Constants))
 	maps.Copy(newConstants, m.Constants)
 

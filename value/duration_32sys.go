@@ -3,5 +3,5 @@
 package value
 
 func (d Duration) ToValue() Value {
-	return d
+	return Ref(d)
 }
