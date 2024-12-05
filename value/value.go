@@ -1096,45 +1096,102 @@ func Add(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Subtract(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.Subtract(right)
-	case *BigInt:
-		result, err = l.Subtract(right)
-	case Float:
-		result, err = l.Subtract(right)
-	case *BigFloat:
-		result, err = l.Subtract(right)
-	case String:
-		result, err = l.RemoveSuffix(right)
-	case Float64:
-		result, err = StrictNumericSubtract(l, right)
-	case Float32:
-		result, err = StrictNumericSubtract(l, right)
-	case Int64:
-		result, err = StrictNumericSubtract(l, right)
-	case Int32:
-		result, err = StrictNumericSubtract(l, right)
-	case Int16:
-		result, err = StrictNumericSubtract(l, right)
-	case Int8:
-		result, err = StrictNumericSubtract(l, right)
-	case UInt64:
-		result, err = StrictNumericSubtract(l, right)
-	case UInt32:
-		result, err = StrictNumericSubtract(l, right)
-	case UInt16:
-		result, err = StrictNumericSubtract(l, right)
-	case UInt8:
-		result, err = StrictNumericSubtract(l, right)
-	default:
-		return nil, nil
+	if right.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			result, err = l.Subtract(right)
+		case *BigFloat:
+			result, err = l.Subtract(right)
+		case String:
+			var r String
+			r, err = l.RemoveSuffix(right)
+			result = Ref(r)
+		case Float64:
+			var r Float64
+			r, err = l.Subtract(right)
+			result = r.ToValue()
+		case Int64:
+			var r Int64
+			r, err = l.Subtract(right)
+			result = r.ToValue()
+		case UInt64:
+			var r UInt64
+			r, err = l.Subtract(right)
+			result = r.ToValue()
+		default:
+			return Nil, Nil
+		}
+		if !err.IsNil() {
+			return Nil, err
+		}
+		return result, Nil
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		result, err = l.Subtract(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		result, err = l.Subtract(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		var r Float64
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		var r Float32
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case INT64_FLAG:
+		l := left.AsInt64()
+		var r Int64
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case INT32_FLAG:
+		l := left.AsInt32()
+		var r Int32
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case INT16_FLAG:
+		l := left.AsInt16()
+		var r Int16
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case INT8_FLAG:
+		l := left.AsInt8()
+		var r Int8
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		var r UInt64
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		var r UInt32
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		var r UInt16
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		var r UInt8
+		r, err = l.Subtract(right)
+		result = r.ToValue()
+	default:
+		return Nil, Nil
 	}
-	return result, nil
+
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return result, Nil
 }
 
 // Multiply two values
@@ -1142,54 +1199,113 @@ func Subtract(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Multiply(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.Multiply(right)
-	case *BigInt:
-		result, err = l.Multiply(right)
-	case Float:
-		result, err = l.Multiply(right)
-	case *BigFloat:
-		result, err = l.Multiply(right)
-	case Float64:
-		var r Float64
-		r, err = l.Multiply(right)
-	case Float32:
-		result, err = StrictNumericMultiply(l, right)
-	case Int64:
-		result, err = StrictNumericMultiply(l, right)
-	case Int32:
-		result, err = StrictNumericMultiply(l, right)
-	case Int16:
-		result, err = StrictNumericMultiply(l, right)
-	case Int8:
-		result, err = StrictNumericMultiply(l, right)
-	case UInt64:
-		result, err = StrictNumericMultiply(l, right)
-	case UInt32:
-		result, err = StrictNumericMultiply(l, right)
-	case UInt16:
-		result, err = StrictNumericMultiply(l, right)
-	case UInt8:
-		result, err = StrictNumericMultiply(l, right)
-	case String:
-		result, err = l.Repeat(right)
-	case *Regex:
-		result, err = l.Repeat(right)
-	case Char:
-		result, err = l.Repeat(right)
-	case *ArrayList:
-		result, err = l.Repeat(right)
-	case *ArrayTuple:
-		result, err = l.Repeat(right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			result, err = l.Multiply(right)
+		case *BigFloat:
+			result, err = l.Multiply(right)
+		case Float64:
+			var r Float64
+			r, err = l.Multiply(right)
+			result = r.ToValue()
+		case Int64:
+			var r Int64
+			r, err = l.Multiply(right)
+			result = r.ToValue()
+		case UInt64:
+			var r UInt64
+			r, err = l.Multiply(right)
+			result = r.ToValue()
+		case String:
+			var r String
+			r, err = l.Repeat(right)
+			result = Ref(r)
+		case *Regex:
+			result, err = l.Repeat(right)
+		case *ArrayList:
+			var r *ArrayList
+			r, err = l.Repeat(right)
+			result = Ref(r)
+		case *ArrayTuple:
+			var r *ArrayTuple
+			r, err = l.Repeat(right)
+			result = Ref(r)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		result, err = l.Multiply(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		result, err = l.Multiply(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		var r Float64
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		var r Float32
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case INT64_FLAG:
+		l := left.AsInt64()
+		var r Int64
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case INT32_FLAG:
+		l := left.AsInt32()
+		var r Int32
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case INT16_FLAG:
+		l := left.AsInt16()
+		var r Int16
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case INT8_FLAG:
+		l := left.AsInt8()
+		var r Int8
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		var r UInt64
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		var r UInt32
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		var r UInt16
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		var r UInt8
+		r, err = l.Multiply(right)
+		result = r.ToValue()
+	case CHAR_FLAG:
+		l := left.AsChar()
+		var r String
+		r, err = l.Repeat(right)
+		result = Ref(r)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
+
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return result, Nil
 }
 
 // Divide two values
@@ -1291,37 +1407,62 @@ func Divide(left, right Value) (result, err Value) {
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
 func Negate(operand Value) Value {
-	switch o := operand.(type) {
-	case SmallInt:
+	if operand.IsReference() {
+		switch o := operand.AsReference().(type) {
+		case *BigInt:
+			return Ref(o.Negate())
+		case *BigFloat:
+			return Ref(o.Negate())
+		case Float64:
+			return (-o).ToValue()
+		case Int64:
+			return (-o).ToValue()
+		case UInt64:
+			return (-o).ToValue()
+		default:
+			return Nil
+		}
+	}
+
+	switch operand.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := operand.AsSmallInt()
 		return o.Negate()
-	case *BigInt:
-		return o.Negate()
-	case Float:
-		return -o
-	case *BigFloat:
-		return o.Negate()
-	case Float64:
-		return -o
-	case Float32:
-		return -o
-	case Int64:
-		return -o
-	case Int32:
-		return -o
-	case Int16:
-		return -o
-	case Int8:
-		return -o
-	case UInt64:
-		return -o
-	case UInt32:
-		return -o
-	case UInt16:
-		return -o
-	case UInt8:
-		return -o
+	case FLOAT_FLAG:
+		o := operand.AsFloat()
+		return (-o).ToValue()
+	case FLOAT64_FLAG:
+		o := operand.AsFloat64()
+		return (-o).ToValue()
+	case FLOAT32_FLAG:
+		o := operand.AsFloat32()
+		return (-o).ToValue()
+	case INT64_FLAG:
+		o := operand.AsInt64()
+		return (-o).ToValue()
+	case INT32_FLAG:
+		o := operand.AsInt32()
+		return (-o).ToValue()
+	case INT16_FLAG:
+		o := operand.AsInt16()
+		return (-o).ToValue()
+	case INT8_FLAG:
+		o := operand.AsInt8()
+		return (-o).ToValue()
+	case UINT64_FLAG:
+		o := operand.AsUInt64()
+		return (-o).ToValue()
+	case UINT32_FLAG:
+		o := operand.AsUInt32()
+		return (-o).ToValue()
+	case UINT16_FLAG:
+		o := operand.AsUInt16()
+		return (-o).ToValue()
+	case UINT8_FLAG:
+		o := operand.AsUInt8()
+		return (-o).ToValue()
 	default:
-		return nil
+		return Nil
 	}
 }
 
