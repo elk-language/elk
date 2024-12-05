@@ -14,14 +14,14 @@ func TestEndlessOpenRangeIterator_Inspect(t *testing.T) {
 	}{
 		"initial": {
 			i: value.NewEndlessOpenRangeIterator(
-				value.NewEndlessOpenRange(value.SmallInt(3)),
+				value.NewEndlessOpenRange(value.SmallInt(3).ToValue()),
 			),
 			want: "Std::EndlessOpenRange::Iterator{range: 3<.., current_element: 3}",
 		},
 		"current element": {
 			i: value.NewEndlessOpenRangeIteratorWithCurrentElement(
-				value.NewEndlessOpenRange(value.SmallInt(3)),
-				value.SmallInt(7),
+				value.NewEndlessOpenRange(value.SmallInt(3).ToValue()),
+				value.SmallInt(7).ToValue(),
 			),
 			want: "Std::EndlessOpenRange::Iterator{range: 3<.., current_element: 7}",
 		},

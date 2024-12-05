@@ -14,14 +14,14 @@ func TestClosedRangeIterator_Inspect(t *testing.T) {
 	}{
 		"initial": {
 			i: value.NewClosedRangeIterator(
-				value.NewClosedRange(value.SmallInt(3), value.SmallInt(10)),
+				value.NewClosedRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
 			),
 			want: "Std::ClosedRange::Iterator{range: 3...10, current_element: 3}",
 		},
 		"current element": {
 			i: value.NewClosedRangeIteratorWithCurrentElement(
-				value.NewClosedRange(value.SmallInt(3), value.SmallInt(10)),
-				value.SmallInt(7),
+				value.NewClosedRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
+				value.SmallInt(7).ToValue(),
 			),
 			want: "Std::ClosedRange::Iterator{range: 3...10, current_element: 7}",
 		},

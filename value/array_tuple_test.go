@@ -16,19 +16,19 @@ func TestArrayTuple_Concat(t *testing.T) {
 		err   value.Value
 	}{
 		"ArrayTuple + ArrayTuple => ArrayTuple": {
-			left:  &value.ArrayTuple{value.SmallInt(2)},
-			right: &value.ArrayTuple{value.SmallInt(3), value.String("foo")},
-			want:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue()},
+			right: value.Ref(&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  value.Ref(&value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
 		},
 		"ArrayTuple + ArrayList => ArrayList": {
-			left:  &value.ArrayTuple{value.SmallInt(2)},
-			right: &value.ArrayList{value.SmallInt(3), value.String("foo")},
-			want:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue()},
+			right: value.Ref(&value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  value.Ref(&value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
 		},
 		"ArrayTuple + Int => TypeError": {
-			left:  &value.ArrayTuple{value.SmallInt(2)},
-			right: value.Int8(5),
-			err:   value.NewError(value.TypeErrorClass, `cannot concat 5i8 with arrayTuple %[2]`),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue()},
+			right: value.Int8(5).ToValue(),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot concat 5i8 with arrayTuple %[2]`)),
 		},
 	}
 
@@ -54,34 +54,34 @@ func TestArrayTuple_Repeat(t *testing.T) {
 		err   value.Value
 	}{
 		"ArrayTuple * SmallInt => ArrayTuple": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(3),
-			want:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3), value.SmallInt(2), value.SmallInt(3), value.SmallInt(2), value.SmallInt(3)},
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(3).ToValue(),
+			want:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
 		},
 		"ArrayTuple * -SmallInt => OutOfRangeError": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(-3),
-			err:   value.NewError(value.OutOfRangeErrorClass, `arrayTuple repeat count cannot be negative: -3`),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(-3).ToValue(),
+			err:   value.Ref(value.NewError(value.OutOfRangeErrorClass, `arrayTuple repeat count cannot be negative: -3`)),
 		},
 		"ArrayTuple * 0 => ArrayTuple": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(0),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(0).ToValue(),
 			want:  &value.ArrayTuple{},
 		},
 		"ArrayTuple * BigInt => OutOfRangeError": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.NewBigInt(3),
-			err:   value.NewError(value.OutOfRangeErrorClass, `arrayTuple repeat count is too large 3`),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Ref(value.NewBigInt(3)),
+			err:   value.Ref(value.NewError(value.OutOfRangeErrorClass, `arrayTuple repeat count is too large 3`)),
 		},
 		"ArrayTuple * Int8 => TypeError": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.Int8(3),
-			err:   value.NewError(value.TypeErrorClass, `cannot repeat a arrayTuple using 3i8`),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Int8(3).ToValue(),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot repeat a arrayTuple using 3i8`)),
 		},
 		"ArrayTuple * String => TypeError": {
-			left:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3)},
-			right: value.String("bar"),
-			err:   value.NewError(value.TypeErrorClass, `cannot repeat a arrayTuple using "bar"`),
+			left:  &value.ArrayTuple{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Ref(value.String("bar")),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot repeat a arrayTuple using "bar"`)),
 		},
 	}
 
@@ -109,11 +109,11 @@ func TestArrayTuple_Inspect(t *testing.T) {
 			want: "%[]",
 		},
 		"with one element": {
-			t:    &value.ArrayTuple{value.SmallInt(3)},
+			t:    &value.ArrayTuple{value.SmallInt(3).ToValue()},
 			want: `%[3]`,
 		},
 		"with elements": {
-			t:    &value.ArrayTuple{value.SmallInt(3), value.String("foo")},
+			t:    &value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 			want: `%[3, "foo"]`,
 		},
 	}
@@ -145,14 +145,14 @@ func TestArrayTuple_Expand(t *testing.T) {
 			want: &value.ArrayTuple{},
 		},
 		"add 2 to a filled list": {
-			t:    &value.ArrayTuple{value.SmallInt(-3), value.Float(10.5)},
+			t:    &value.ArrayTuple{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 			new:  2,
-			want: &value.ArrayTuple{value.SmallInt(-3), value.Float(10.5), value.Nil, value.Nil},
+			want: &value.ArrayTuple{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue(), value.Nil, value.Nil},
 		},
 		"add 0 to a filled list": {
-			t:    &value.ArrayTuple{value.SmallInt(-3), value.Float(10.5)},
+			t:    &value.ArrayTuple{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 			new:  0,
-			want: &value.ArrayTuple{value.SmallInt(-3), value.Float(10.5)},
+			want: &value.ArrayTuple{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 		},
 	}
 
@@ -174,13 +174,13 @@ func TestArrayTuple_Append(t *testing.T) {
 	}{
 		"append to an empty list": {
 			t:    &value.ArrayTuple{},
-			val:  value.SmallInt(3),
-			want: &value.ArrayTuple{value.SmallInt(3)},
+			val:  value.SmallInt(3).ToValue(),
+			want: &value.ArrayTuple{value.SmallInt(3).ToValue()},
 		},
 		"append to a filled list": {
-			t:    &value.ArrayTuple{value.SmallInt(3)},
-			val:  value.String("foo"),
-			want: &value.ArrayTuple{value.SmallInt(3), value.String("foo")},
+			t:    &value.ArrayTuple{value.SmallInt(3).ToValue()},
+			val:  value.Ref(value.String("foo")),
+			want: &value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 		},
 	}
 
@@ -204,63 +204,63 @@ func TestArrayTuple_SubscriptSet(t *testing.T) {
 	}{
 		"set index 0 in an empty arrayTuple": {
 			l:    &value.ArrayTuple{},
-			key:  value.SmallInt(0),
-			val:  value.SmallInt(25),
+			key:  value.SmallInt(0).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
 			want: &value.ArrayTuple{},
-			err: value.NewError(
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 0 out of range: 0...0",
-			),
+			)),
 		},
 		"set index 0 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo")},
-			key:  value.SmallInt(0),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.SmallInt(25), value.String("foo")},
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(0).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.SmallInt(25).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"set index -1 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.Float(89.2), value.String("foo")},
-			key:  value.SmallInt(-1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Nil, value.Float(89.2), value.SmallInt(25)},
+			l:    &value.ArrayTuple{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Nil, value.Float(89.2).ToValue(), value.SmallInt(25).ToValue()},
 		},
 		"set index -2 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Float(89.2), value.Nil, value.String("foo")},
-			key:  value.SmallInt(-2),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Float(89.2), value.SmallInt(25), value.String("foo")},
+			l:    &value.ArrayTuple{value.Float(89.2).ToValue(), value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-2).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Float(89.2).ToValue(), value.SmallInt(25).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"set index in the middle of a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.SmallInt(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Nil, value.SmallInt(25), value.Float(21.37)},
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.SmallInt(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Nil, value.SmallInt(25).ToValue(), value.Float(21.37).ToValue()},
 		},
 		"set uint8 index": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.UInt8(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Nil, value.SmallInt(25), value.Float(21.37)},
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.UInt8(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Nil, value.SmallInt(25).ToValue(), value.Float(21.37).ToValue()},
 		},
 		"set string index": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.String("lol"),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			err: value.NewError(
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.Ref(value.String("lol")),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 		"set float index": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.Float(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			err: value.NewError(
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.Float(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 	}
 
@@ -286,68 +286,68 @@ func TestArrayTuple_Subscript(t *testing.T) {
 	}{
 		"get index 0 in an empty arrayTuple": {
 			l:   &value.ArrayTuple{},
-			key: value.SmallInt(0),
-			err: value.NewError(
+			key: value.SmallInt(0).ToValue(),
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 0 out of range: 0...0",
-			),
+			)),
 		},
 		"get index 0 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo")},
-			key:  value.SmallInt(0),
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(0).ToValue(),
 			want: value.Nil,
 		},
 		"get index out of range": {
-			l:   &value.ArrayTuple{value.Nil, value.Float(89.2), value.String("foo")},
-			key: value.SmallInt(31),
-			err: value.NewError(
+			l:   &value.ArrayTuple{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key: value.SmallInt(31).ToValue(),
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 31 out of range: -3...3",
-			),
+			)),
 		},
 		"get negative index out of range": {
-			l:   &value.ArrayTuple{value.Nil, value.Float(89.2), value.String("foo")},
-			key: value.SmallInt(-31),
-			err: value.NewError(
+			l:   &value.ArrayTuple{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key: value.SmallInt(-31).ToValue(),
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index -31 out of range: -3...3",
-			),
+			)),
 		},
 		"get index -1 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.Float(89.2), value.String("foo")},
-			key:  value.SmallInt(-1),
-			want: value.String("foo"),
+			l:    &value.ArrayTuple{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get index -2 in a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Float(89.2), value.Nil, value.String("foo")},
-			key:  value.SmallInt(-2),
+			l:    &value.ArrayTuple{value.Float(89.2).ToValue(), value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-2).ToValue(),
 			want: value.Nil,
 		},
 		"get index in the middle of a populated arrayTuple": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.SmallInt(1),
-			want: value.String("foo"),
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.SmallInt(1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get uint8 index": {
-			l:    &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.UInt8(1),
-			want: value.String("foo"),
+			l:    &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.UInt8(1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get string index": {
-			l:   &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key: value.String("lol"),
-			err: value.NewError(
+			l:   &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key: value.Ref(value.String("lol")),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 		"get float index": {
-			l:   &value.ArrayTuple{value.Nil, value.String("foo"), value.Float(21.37)},
-			key: value.Float(1),
-			err: value.NewError(
+			l:   &value.ArrayTuple{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key: value.Float(1).ToValue(),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 	}
 
@@ -357,7 +357,7 @@ func TestArrayTuple_Subscript(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !tc.err.IsNil() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
@@ -381,14 +381,14 @@ func TestArrayTupleIterator_Inspect(t *testing.T) {
 		},
 		"with one element": {
 			l: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue()},
 				0,
 			),
 			want: `Std::ArrayTuple::Iterator{arrayTuple: %[3], index: 0}`,
 		},
 		"with elements": {
 			l: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.String("foo")},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 				1,
 			),
 			want: `Std::ArrayTuple::Iterator{arrayTuple: %[3, "foo"], index: 1}`,
@@ -421,36 +421,36 @@ func TestArrayTupleIterator_Next(t *testing.T) {
 				&value.ArrayTuple{},
 				0,
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 		"with two elements index 0": {
 			l: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				0,
 			),
 			after: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
-			want: value.SmallInt(3),
+			want: value.SmallInt(3).ToValue(),
 		},
 		"with two elements index 1": {
 			l: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
 			after: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
-			want: value.Float(7.2),
+			want: value.Float(7.2).ToValue(),
 		},
 		"with two elements index 2": {
 			l: value.NewArrayTupleIteratorWithIndex(
-				&value.ArrayTuple{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 	}
 
@@ -460,7 +460,7 @@ func TestArrayTupleIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !tc.err.IsNil() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {

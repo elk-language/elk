@@ -19,23 +19,23 @@ func TestBigInt_Add_64sys(t *testing.T) {
 	}{
 		"add SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775815", 10),
-			b:    value.SmallInt(10),
-			want: value.ParseBigIntPanic("9223372036854775825", 10),
+			b:    value.SmallInt(10).ToValue(),
+			want: value.Ref(value.ParseBigIntPanic("9223372036854775825", 10)),
 		},
 		"add SmallInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775837", 10),
-			b:    value.SmallInt(-10),
-			want: value.ParseBigIntPanic("9223372036854775827", 10),
+			b:    value.SmallInt(-10).ToValue(),
+			want: value.Ref(value.ParseBigIntPanic("9223372036854775827", 10)),
 		},
 		"add BigInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775827", 10),
-			b:    value.NewBigInt(3),
-			want: value.ParseBigIntPanic("9223372036854775830", 10),
+			b:    value.Ref(value.NewBigInt(3)),
+			want: value.Ref(value.ParseBigIntPanic("9223372036854775830", 10)),
 		},
 		"add BigInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775827", 10),
-			b:    value.NewBigInt(-27),
-			want: value.SmallInt(9223372036854775800),
+			b:    value.Ref(value.NewBigInt(-27)),
+			want: value.SmallInt(9223372036854775800).ToValue(),
 		},
 	}
 
@@ -62,13 +62,13 @@ func TestBigInt_Subtract_64sys(t *testing.T) {
 	}{
 		"subtract SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
-			b:    value.SmallInt(5),
-			want: value.ParseBigIntPanic("9223372036854775812", 10),
+			b:    value.SmallInt(5).ToValue(),
+			want: value.Ref(value.ParseBigIntPanic("9223372036854775812", 10)),
 		},
 		"subtract SmallInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
-			b:    value.SmallInt(11),
-			want: value.SmallInt(9223372036854775806),
+			b:    value.SmallInt(11).ToValue(),
+			want: value.SmallInt(9223372036854775806).ToValue(),
 		},
 	}
 
@@ -95,8 +95,8 @@ func TestBigInt_Multiply_64sys(t *testing.T) {
 	}{
 		"multiply by SmallInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775808", 10),
-			b:    value.SmallInt(-1),
-			want: value.SmallInt(-9223372036854775808),
+			b:    value.SmallInt(-1).ToValue(),
+			want: value.SmallInt(-9223372036854775808).ToValue(),
 		},
 	}
 
@@ -123,8 +123,8 @@ func TestBigInt_Divide_64sys(t *testing.T) {
 	}{
 		"divide by SmallInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775818", 10),
-			b:    value.SmallInt(2),
-			want: value.SmallInt(4611686018427387909),
+			b:    value.SmallInt(2).ToValue(),
+			want: value.SmallInt(4611686018427387909).ToValue(),
 		},
 	}
 
@@ -152,18 +152,18 @@ func TestBigInt_RightBitshift_64sys(t *testing.T) {
 	}{
 		"shift by SmallInt 80 >> -9223372036854775808": {
 			a:    value.NewBigInt(80),
-			b:    value.SmallInt(-9223372036854775808),
-			want: value.SmallInt(0),
+			b:    value.SmallInt(-9223372036854775808).ToValue(),
+			want: value.SmallInt(0).ToValue(),
 		},
 		"shift by BigInt 80 >> -9223372036854775808": {
 			a:    value.NewBigInt(80),
-			b:    value.NewBigInt(-9223372036854775808),
-			want: value.SmallInt(0),
+			b:    value.Ref(value.NewBigInt(-9223372036854775808)),
+			want: value.SmallInt(0).ToValue(),
 		},
 		"shift by Int64 80 >> -9223372036854775808": {
 			a:    value.NewBigInt(80),
-			b:    value.Int64(-9223372036854775808),
-			want: value.SmallInt(0),
+			b:    value.Int64(-9223372036854775808).ToValue(),
+			want: value.SmallInt(0).ToValue(),
 		},
 	}
 
@@ -190,8 +190,8 @@ func TestBigInt_BitwiseXor_64sys(t *testing.T) {
 	}{
 		"9223372036857247042 ^ 10223372099998981329": {
 			a:    value.ParseBigIntPanic("9223372036857247042", 10),
-			b:    value.ParseBigIntPanic("10223372099998981329", 10),
-			want: value.SmallInt(1000000063146142099),
+			b:    value.Ref(value.ParseBigIntPanic("10223372099998981329", 10)),
+			want: value.SmallInt(1000000063146142099).ToValue(),
 		},
 	}
 

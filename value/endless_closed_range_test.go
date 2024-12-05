@@ -14,14 +14,14 @@ func TestEndlessClosedRangeIterator_Inspect(t *testing.T) {
 	}{
 		"initial": {
 			i: value.NewEndlessClosedRangeIterator(
-				value.NewEndlessClosedRange(value.SmallInt(3)),
+				value.NewEndlessClosedRange(value.SmallInt(3).ToValue()),
 			),
 			want: "Std::EndlessClosedRange::Iterator{range: 3..., current_element: 3}",
 		},
 		"current element": {
 			i: value.NewEndlessClosedRangeIteratorWithCurrentElement(
-				value.NewEndlessClosedRange(value.SmallInt(3)),
-				value.SmallInt(7),
+				value.NewEndlessClosedRange(value.SmallInt(3).ToValue()),
+				value.SmallInt(7).ToValue(),
 			),
 			want: "Std::EndlessClosedRange::Iterator{range: 3..., current_element: 7}",
 		},
