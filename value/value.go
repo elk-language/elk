@@ -1470,31 +1470,52 @@ func Negate(operand Value) Value {
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
 func Increment(operand Value) Value {
-	switch o := operand.(type) {
-	case SmallInt:
+	if operand.IsReference() {
+		switch o := operand.AsReference().(type) {
+		case *BigInt:
+			return Ref(o.Increment())
+		case Int64:
+			return (o + 1).ToValue()
+		case UInt64:
+			return (o + 1).ToValue()
+		default:
+			return Nil
+		}
+	}
+
+	switch operand.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := operand.AsSmallInt()
 		return o.Increment()
-	case *BigInt:
-		return o.Increment()
-	case Char:
-		return o + 1
-	case Int64:
-		return o + 1
-	case Int32:
-		return o + 1
-	case Int16:
-		return o + 1
-	case Int8:
-		return o + 1
-	case UInt64:
-		return o + 1
-	case UInt32:
-		return o + 1
-	case UInt16:
-		return o + 1
-	case UInt8:
-		return o + 1
+	case CHAR_FLAG:
+		o := operand.AsChar()
+		return (o + 1).ToValue()
+	case INT64_FLAG:
+		o := operand.AsInt64()
+		return (o + 1).ToValue()
+	case INT32_FLAG:
+		o := operand.AsInt32()
+		return (o + 1).ToValue()
+	case INT16_FLAG:
+		o := operand.AsInt16()
+		return (o + 1).ToValue()
+	case INT8_FLAG:
+		o := operand.AsInt8()
+		return (o + 1).ToValue()
+	case UINT64_FLAG:
+		o := operand.AsUInt64()
+		return (o + 1).ToValue()
+	case UINT32_FLAG:
+		o := operand.AsUInt32()
+		return (o + 1).ToValue()
+	case UINT16_FLAG:
+		o := operand.AsUInt16()
+		return (o + 1).ToValue()
+	case UINT8_FLAG:
+		o := operand.AsUInt8()
+		return (o + 1).ToValue()
 	default:
-		return nil
+		return Nil
 	}
 }
 
@@ -1502,31 +1523,52 @@ func Increment(operand Value) Value {
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
 func Decrement(operand Value) Value {
-	switch o := operand.(type) {
-	case SmallInt:
+	if operand.IsReference() {
+		switch o := operand.AsReference().(type) {
+		case *BigInt:
+			return o.Decrement()
+		case Int64:
+			return (o - 1).ToValue()
+		case UInt64:
+			return (o - 1).ToValue()
+		default:
+			return Nil
+		}
+	}
+
+	switch operand.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := operand.AsSmallInt()
 		return o.Decrement()
-	case *BigInt:
-		return o.Decrement()
-	case Char:
-		return o - 1
-	case Int64:
-		return o - 1
-	case Int32:
-		return o - 1
-	case Int16:
-		return o - 1
-	case Int8:
-		return o - 1
-	case UInt64:
-		return o - 1
-	case UInt32:
-		return o - 1
-	case UInt16:
-		return o - 1
-	case UInt8:
-		return o - 1
+	case CHAR_FLAG:
+		o := operand.AsChar()
+		return (o - 1).ToValue()
+	case INT64_FLAG:
+		o := operand.AsInt64()
+		return (o - 1).ToValue()
+	case INT32_FLAG:
+		o := operand.AsInt32()
+		return (o - 1).ToValue()
+	case INT16_FLAG:
+		o := operand.AsInt16()
+		return (o - 1).ToValue()
+	case INT8_FLAG:
+		o := operand.AsInt8()
+		return (o - 1).ToValue()
+	case UINT64_FLAG:
+		o := operand.AsUInt64()
+		return (o - 1).ToValue()
+	case UINT32_FLAG:
+		o := operand.AsUInt32()
+		return (o - 1).ToValue()
+	case UINT16_FLAG:
+		o := operand.AsUInt16()
+		return (o - 1).ToValue()
+	case UINT8_FLAG:
+		o := operand.AsUInt8()
+		return (o - 1).ToValue()
 	default:
-		return nil
+		return Nil
 	}
 }
 
@@ -1534,13 +1576,24 @@ func Decrement(operand Value) Value {
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
 func UnaryPlus(operand Value) Value {
-	switch o := operand.(type) {
-	case SmallInt, *BigInt, Float, *BigFloat,
-		Float64, Float32, Int64, Int32, Int16, Int8,
-		UInt64, UInt32, UInt16, UInt8:
-		return o
+	if operand.IsReference() {
+		switch operand.AsReference().(type) {
+		case *BigInt, *BigFloat,
+			Float64, Int64,
+			UInt64:
+			return operand
+		default:
+			return Nil
+		}
+	}
+
+	switch operand.ValueFlag() {
+	case SMALL_INT_FLAG, FLOAT_FLAG,
+		FLOAT64_FLAG, FLOAT32_FLAG, INT64_FLAG, INT32_FLAG, INT16_FLAG, INT8_FLAG,
+		UINT64_FLAG, UINT32_FLAG, UINT16_FLAG, UINT8_FLAG:
+		return operand
 	default:
-		return nil
+		return Nil
 	}
 }
 
@@ -1548,29 +1601,49 @@ func UnaryPlus(operand Value) Value {
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
 func BitwiseNot(operand Value) Value {
-	switch o := operand.(type) {
-	case SmallInt:
-		return ^o
-	case *BigInt:
-		return o.BitwiseNot()
-	case Int64:
-		return ^o
-	case Int32:
-		return ^o
-	case Int16:
-		return ^o
-	case Int8:
-		return ^o
-	case UInt64:
-		return ^o
-	case UInt32:
-		return ^o
-	case UInt16:
-		return ^o
-	case UInt8:
-		return ^o
+	if operand.IsReference() {
+		switch o := operand.AsReference().(type) {
+		case *BigInt:
+			return Ref(o.BitwiseNot())
+		case Int64:
+			return (^o).ToValue()
+		case UInt64:
+			return (^o).ToValue()
+		default:
+			return Nil
+		}
+	}
+
+	switch operand.ValueFlag() {
+	case SMALL_INT_FLAG:
+		o := operand.AsSmallInt()
+		return (^o).ToValue()
+	case INT64_FLAG:
+		o := operand.AsInt64()
+		return (^o).ToValue()
+	case INT32_FLAG:
+		o := operand.AsInt32()
+		return (^o).ToValue()
+	case INT16_FLAG:
+		o := operand.AsInt16()
+		return (^o).ToValue()
+	case INT8_FLAG:
+		o := operand.AsInt8()
+		return (^o).ToValue()
+	case UINT64_FLAG:
+		o := operand.AsUInt64()
+		return (^o).ToValue()
+	case UINT32_FLAG:
+		o := operand.AsUInt32()
+		return (^o).ToValue()
+	case UINT16_FLAG:
+		o := operand.AsUInt16()
+		return (^o).ToValue()
+	case UINT8_FLAG:
+		o := operand.AsUInt8()
+		return (^o).ToValue()
 	default:
-		return nil
+		return Nil
 	}
 }
 
@@ -1579,43 +1652,97 @@ func BitwiseNot(operand Value) Value {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Exponentiate(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.Exponentiate(right)
-	case *BigInt:
-		result, err = l.Exponentiate(right)
-	case Float:
-		result, err = l.Exponentiate(right)
-	case *BigFloat:
-		result, err = l.Exponentiate(right)
-	case Float64:
-		result, err = StrictFloatExponentiate(l, right)
-	case Float32:
-		result, err = StrictFloatExponentiate(l, right)
-	case Int64:
-		result, err = StrictIntExponentiate(l, right)
-	case Int32:
-		result, err = StrictIntExponentiate(l, right)
-	case Int16:
-		result, err = StrictIntExponentiate(l, right)
-	case Int8:
-		result, err = StrictIntExponentiate(l, right)
-	case UInt64:
-		result, err = StrictIntExponentiate(l, right)
-	case UInt32:
-		result, err = StrictIntExponentiate(l, right)
-	case UInt16:
-		result, err = StrictIntExponentiate(l, right)
-	case UInt8:
-		result, err = StrictIntExponentiate(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			result, err = l.Exponentiate(right)
+		case *BigFloat:
+			result, err = l.Exponentiate(right)
+		case Float64:
+			var r Float64
+			r, err = l.Exponentiate(right)
+			result = r.ToValue()
+		case Int64:
+			var r Int64
+			r, err = l.Exponentiate(right)
+			result = r.ToValue()
+		case UInt64:
+			var r UInt64
+			r, err = l.Exponentiate(right)
+			result = r.ToValue()
+		default:
+			return Nil, Nil
+		}
+		if !err.IsNil() {
+			return Nil, err
+		}
+		return result, Nil
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		result, err = l.Exponentiate(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		result, err = l.Exponentiate(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		var r Float64
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		var r Float32
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case INT64_FLAG:
+		l := left.AsInt64()
+		var r Int64
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case INT32_FLAG:
+		l := left.AsInt32()
+		var r Int32
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case INT16_FLAG:
+		l := left.AsInt16()
+		var r Int16
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case INT8_FLAG:
+		l := left.AsInt8()
+		var r Int8
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		var r UInt64
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		var r UInt32
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		var r UInt16
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		var r UInt8
+		r, err = l.Exponentiate(right)
+		result = r.ToValue()
+	default:
+		return Nil, Nil
 	}
-	return result, nil
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return result, Nil
 }
 
 // Perform modulo on two values
@@ -1623,43 +1750,97 @@ func Exponentiate(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Modulo(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.Modulo(right)
-	case *BigInt:
-		result, err = l.Modulo(right)
-	case Float:
-		result, err = l.Modulo(right)
-	case *BigFloat:
-		result, err = l.Modulo(right)
-	case Float64:
-		result, err = StrictFloatModulo(l, right)
-	case Float32:
-		result, err = StrictFloatModulo(l, right)
-	case Int64:
-		result, err = StrictIntModulo(l, right)
-	case Int32:
-		result, err = StrictIntModulo(l, right)
-	case Int16:
-		result, err = StrictIntModulo(l, right)
-	case Int8:
-		result, err = StrictIntModulo(l, right)
-	case UInt64:
-		result, err = StrictIntModulo(l, right)
-	case UInt32:
-		result, err = StrictIntModulo(l, right)
-	case UInt16:
-		result, err = StrictIntModulo(l, right)
-	case UInt8:
-		result, err = StrictIntModulo(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			result, err = l.Modulo(right)
+		case *BigFloat:
+			result, err = l.Modulo(right)
+		case Float64:
+			var r Float64
+			r, err = l.Modulo(right)
+			result = r.ToValue()
+		case Int64:
+			var r Int64
+			r, err = l.Modulo(right)
+			result = r.ToValue()
+		case UInt64:
+			var r UInt64
+			r, err = l.Modulo(right)
+			result = r.ToValue()
+		default:
+			return Nil, Nil
+		}
+		if !err.IsNil() {
+			return Nil, err
+		}
+		return result, Nil
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		result, err = l.Modulo(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		result, err = l.Modulo(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		var r Float64
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		var r Float32
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case INT64_FLAG:
+		l := left.AsInt64()
+		var r Int64
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case INT32_FLAG:
+		l := left.AsInt32()
+		var r Int32
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case INT16_FLAG:
+		l := left.AsInt16()
+		var r Int16
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case INT8_FLAG:
+		l := left.AsInt8()
+		var r Int8
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		var r UInt64
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		var r UInt32
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		var r UInt16
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		var r UInt8
+		r, err = l.Modulo(right)
+		result = r.ToValue()
+	default:
+		return Nil, Nil
 	}
-	return result, nil
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return result, Nil
 }
 
 // Compare two values.
@@ -1671,47 +1852,68 @@ func Modulo(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func Compare(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.Compare(right)
-	case *BigInt:
-		result, err = l.Compare(right)
-	case Float:
-		result, err = l.Compare(right)
-	case *BigFloat:
-		result, err = l.Compare(right)
-	case String:
-		result, err = l.Compare(right)
-	case Char:
-		result, err = l.Compare(right)
-	case Float64:
-		result, err = StrictFloatCompare(l, right)
-	case Float32:
-		result, err = StrictFloatCompare(l, right)
-	case Int64:
-		result, err = StrictIntCompare(l, right)
-	case Int32:
-		result, err = StrictIntCompare(l, right)
-	case Int16:
-		result, err = StrictIntCompare(l, right)
-	case Int8:
-		result, err = StrictIntCompare(l, right)
-	case UInt64:
-		result, err = StrictIntCompare(l, right)
-	case UInt32:
-		result, err = StrictIntCompare(l, right)
-	case UInt16:
-		result, err = StrictIntCompare(l, right)
-	case UInt8:
-		result, err = StrictIntCompare(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.Compare(right)
+		case *BigFloat:
+			return l.Compare(right)
+		case String:
+			return l.Compare(right)
+		case Float64:
+			return l.Compare(right)
+		case Int64:
+			return l.Compare(right)
+		case UInt64:
+			return l.Compare(right)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.Compare(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.Compare(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.Compare(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.Compare(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.Compare(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.Compare(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.Compare(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.Compare(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.Compare(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.Compare(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.Compare(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.Compare(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.Compare(right)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Check whether left is greater than right.
@@ -1719,47 +1921,68 @@ func Compare(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func GreaterThan(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.GreaterThan(right)
-	case *BigInt:
-		result, err = l.GreaterThan(right)
-	case Float:
-		result, err = l.GreaterThan(right)
-	case *BigFloat:
-		result, err = l.GreaterThan(right)
-	case String:
-		result, err = l.GreaterThan(right)
-	case Char:
-		result, err = l.GreaterThan(right)
-	case Float64:
-		result, err = StrictNumericGreaterThan(l, right)
-	case Float32:
-		result, err = StrictNumericGreaterThan(l, right)
-	case Int64:
-		result, err = StrictNumericGreaterThan(l, right)
-	case Int32:
-		result, err = StrictNumericGreaterThan(l, right)
-	case Int16:
-		result, err = StrictNumericGreaterThan(l, right)
-	case Int8:
-		result, err = StrictNumericGreaterThan(l, right)
-	case UInt64:
-		result, err = StrictNumericGreaterThan(l, right)
-	case UInt32:
-		result, err = StrictNumericGreaterThan(l, right)
-	case UInt16:
-		result, err = StrictNumericGreaterThan(l, right)
-	case UInt8:
-		result, err = StrictNumericGreaterThan(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.GreaterThan(right)
+		case *BigFloat:
+			return l.GreaterThan(right)
+		case String:
+			return l.GreaterThan(right)
+		case Float64:
+			return l.GreaterThan(right)
+		case Int64:
+			return l.GreaterThan(right)
+		case UInt64:
+			return l.GreaterThan(right)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.GreaterThan(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.GreaterThan(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.GreaterThan(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.GreaterThan(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.GreaterThan(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.GreaterThan(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.GreaterThan(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.GreaterThan(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.GreaterThan(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.GreaterThan(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.GreaterThan(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.GreaterThan(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.GreaterThan(right)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Check whether left is greater than or equal to right.
@@ -1767,47 +1990,68 @@ func GreaterThan(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func GreaterThanEqual(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.GreaterThanEqual(right)
-	case *BigInt:
-		result, err = l.GreaterThanEqual(right)
-	case Float:
-		result, err = l.GreaterThanEqual(right)
-	case *BigFloat:
-		result, err = l.GreaterThanEqual(right)
-	case String:
-		result, err = l.GreaterThanEqual(right)
-	case Char:
-		result, err = l.GreaterThanEqual(right)
-	case Float64:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case Float32:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case Int64:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case Int32:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case Int16:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case Int8:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case UInt64:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case UInt32:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case UInt16:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	case UInt8:
-		result, err = StrictNumericGreaterThanEqual(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.GreaterThanEqual(right)
+		case *BigFloat:
+			return l.GreaterThanEqual(right)
+		case String:
+			return l.GreaterThanEqual(right)
+		case Float64:
+			return l.GreaterThanEqual(right)
+		case Int64:
+			return l.GreaterThanEqual(right)
+		case UInt64:
+			return l.GreaterThanEqual(right)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.GreaterThanEqual(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.GreaterThanEqual(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.GreaterThanEqual(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.GreaterThanEqual(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.GreaterThanEqual(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.GreaterThanEqual(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.GreaterThanEqual(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.GreaterThanEqual(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.GreaterThanEqual(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.GreaterThanEqual(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.GreaterThanEqual(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.GreaterThanEqual(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.GreaterThanEqual(right)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Check whether left is less than right.
@@ -1815,47 +2059,68 @@ func GreaterThanEqual(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func LessThan(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.LessThan(right)
-	case *BigInt:
-		result, err = l.LessThan(right)
-	case Float:
-		result, err = l.LessThan(right)
-	case *BigFloat:
-		result, err = l.LessThan(right)
-	case String:
-		result, err = l.LessThan(right)
-	case Char:
-		result, err = l.LessThan(right)
-	case Float64:
-		result, err = StrictNumericLessThan(l, right)
-	case Float32:
-		result, err = StrictNumericLessThan(l, right)
-	case Int64:
-		result, err = StrictNumericLessThan(l, right)
-	case Int32:
-		result, err = StrictNumericLessThan(l, right)
-	case Int16:
-		result, err = StrictNumericLessThan(l, right)
-	case Int8:
-		result, err = StrictNumericLessThan(l, right)
-	case UInt64:
-		result, err = StrictNumericLessThan(l, right)
-	case UInt32:
-		result, err = StrictNumericLessThan(l, right)
-	case UInt16:
-		result, err = StrictNumericLessThan(l, right)
-	case UInt8:
-		result, err = StrictNumericLessThan(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LessThan(right)
+		case *BigFloat:
+			return l.LessThan(right)
+		case String:
+			return l.LessThan(right)
+		case Float64:
+			return l.LessThan(right)
+		case Int64:
+			return l.LessThan(right)
+		case UInt64:
+			return l.LessThan(right)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LessThan(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LessThan(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LessThan(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.LessThan(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.LessThan(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.LessThan(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.LessThan(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.LessThan(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.LessThan(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.LessThan(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.LessThan(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.LessThan(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.LessThan(right)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Check whether left is less than or equal to right.
@@ -1863,97 +2128,141 @@ func LessThan(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func LessThanEqual(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.LessThanEqual(right)
-	case *BigInt:
-		result, err = l.LessThanEqual(right)
-	case Float:
-		result, err = l.LessThanEqual(right)
-	case *BigFloat:
-		result, err = l.LessThanEqual(right)
-	case String:
-		result, err = l.LessThanEqual(right)
-	case Char:
-		result, err = l.LessThanEqual(right)
-	case Float64:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case Float32:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case Int64:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case Int32:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case Int16:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case Int8:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case UInt64:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case UInt32:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case UInt16:
-		result, err = StrictNumericLessThanEqual(l, right)
-	case UInt8:
-		result, err = StrictNumericLessThanEqual(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LessThanEqual(right)
+		case *BigFloat:
+			return l.LessThanEqual(right)
+		case String:
+			return l.LessThanEqual(right)
+		case Float64:
+			return l.LessThanEqual(right)
+		case Int64:
+			return l.LessThanEqual(right)
+		case UInt64:
+			return l.LessThanEqual(right)
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LessThanEqual(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LessThanEqual(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LessThanEqual(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.LessThanEqual(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.LessThanEqual(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.LessThanEqual(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.LessThanEqual(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.LessThanEqual(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.LessThanEqual(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.LessThanEqual(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.LessThanEqual(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.LessThanEqual(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.LessThanEqual(right)
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Check whether left is equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
 func LaxEqual(left, right Value) Value {
-	var result Value
-
-	switch l := left.(type) {
-	case SmallInt:
-		result = l.LaxEqual(right)
-	case *BigInt:
-		result = l.LaxEqual(right)
-	case Float:
-		result = l.LaxEqual(right)
-	case *BigFloat:
-		result = l.LaxEqual(right)
-	case String:
-		result = l.LaxEqual(right)
-	case *Regex:
-		result = l.LaxEqual(right)
-	case Char:
-		result = l.LaxEqual(right)
-	case Symbol:
-		result = l.LaxEqual(right)
-	case Float64:
-		result = StrictFloatLaxEqual(l, right)
-	case Float32:
-		result = StrictFloatLaxEqual(l, right)
-	case Int64:
-		result = StrictSignedIntLaxEqual(l, right)
-	case Int32:
-		result = StrictSignedIntLaxEqual(l, right)
-	case Int16:
-		result = StrictSignedIntLaxEqual(l, right)
-	case Int8:
-		result = StrictSignedIntLaxEqual(l, right)
-	case UInt64:
-		result = StrictUnsignedIntLaxEqual(l, right)
-	case UInt32:
-		result = StrictUnsignedIntLaxEqual(l, right)
-	case UInt16:
-		result = StrictUnsignedIntLaxEqual(l, right)
-	case UInt8:
-		result = StrictUnsignedIntLaxEqual(l, right)
-	default:
-		return nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LaxEqual(right)
+		case *BigFloat:
+			return l.LaxEqual(right)
+		case String:
+			return l.LaxEqual(right)
+		case *Regex:
+			return l.LaxEqual(right)
+		case Float64:
+			return StrictFloatLaxEqual(l, right)
+		case Int64:
+			return StrictSignedIntLaxEqual(l, right)
+		case UInt64:
+			return StrictUnsignedIntLaxEqual(l, right)
+		default:
+			return Nil
+		}
 	}
 
-	return result
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LaxEqual(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LaxEqual(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LaxEqual(right)
+	case SYMBOL_FLAG:
+		l := left.AsSymbol()
+		return l.LaxEqual(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return StrictFloatLaxEqual(l, right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return StrictFloatLaxEqual(l, right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return StrictSignedIntLaxEqual(l, right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return StrictUnsignedIntLaxEqual(l, right)
+	default:
+		return Nil
+	}
 }
 
 // Check whether left is not equal to right.
@@ -1961,8 +2270,8 @@ func LaxEqual(left, right Value) Value {
 // When there are no builtin addition functions for the given type returns (nil).
 func LaxNotEqual(left, right Value) Value {
 	val := LaxEqual(left, right)
-	if val == nil {
-		return nil
+	if val.IsNil() {
+		return Nil
 	}
 
 	return ToNotBool(val)
@@ -1972,54 +2281,71 @@ func LaxNotEqual(left, right Value) Value {
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
 func Equal(left, right Value) Value {
-	class := left.Class()
-	if !IsA(right, class) {
-		return False
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.Equal(right)
+		case *BigFloat:
+			return l.Equal(right)
+		case String:
+			return l.Equal(right)
+		case Float64:
+			return l.Equal(right)
+		case Int64:
+			return l.Equal(right)
+		case UInt64:
+			return l.Equal(right)
+		default:
+			return ToElkBool(left == right)
+		}
 	}
 
-	var result Value
-	switch l := left.(type) {
-	case SmallInt:
-		result = l.Equal(right)
-	case *BigInt:
-		result = l.Equal(right)
-	case Float:
-		result = l.Equal(right)
-	case *BigFloat:
-		result = l.Equal(right)
-	case String:
-		result = l.Equal(right)
-	case *Regex:
-		result = l.Equal(right)
-	case Symbol:
-		result = l.Equal(right)
-	case Char:
-		result = l.Equal(right)
-	case Float64:
-		result = StrictNumericEqual(l, right)
-	case Float32:
-		result = StrictNumericEqual(l, right)
-	case Int64:
-		result = StrictNumericEqual(l, right)
-	case Int32:
-		result = StrictNumericEqual(l, right)
-	case Int16:
-		result = StrictNumericEqual(l, right)
-	case Int8:
-		result = StrictNumericEqual(l, right)
-	case UInt64:
-		result = StrictNumericEqual(l, right)
-	case UInt32:
-		result = StrictNumericEqual(l, right)
-	case UInt16:
-		result = StrictNumericEqual(l, right)
-	case UInt8:
-		result = StrictNumericEqual(l, right)
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.Equal(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.Equal(right)
+	case SYMBOL_FLAG:
+		l := left.AsSymbol()
+		return l.Equal(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.Equal(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.Equal(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.Equal(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.Equal(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.Equal(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.Equal(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.Equal(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.Equal(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.Equal(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.Equal(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.Equal(right)
 	default:
-		return nil
+		return ToElkBool(left == right)
 	}
-
-	return result
 }
 
 // Check whether left is not equal to right.
@@ -2027,8 +2353,8 @@ func Equal(left, right Value) Value {
 // When there are no builtin addition functions for the given type returns (nil).
 func NotEqual(left, right Value) Value {
 	val := Equal(left, right)
-	if val == nil {
-		return nil
+	if val.IsNil() {
+		return Nil
 	}
 
 	return ToNotBool(val)
@@ -2038,48 +2364,71 @@ func NotEqual(left, right Value) Value {
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
 func StrictEqual(left, right Value) Value {
-	var result Value
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.StrictEqual(right)
+		case *BigFloat:
+			return l.StrictEqual(right)
+		case String:
+			return l.StrictEqual(right)
+		case Float64:
+			return l.StrictEqual(right)
+		case Int64:
+			return l.StrictEqual(right)
+		case UInt64:
+			return l.StrictEqual(right)
+		default:
+			return ToElkBool(left == right)
+		}
+	}
 
-	switch l := left.(type) {
-	case SmallInt:
-		result = l.StrictEqual(right)
-	case *BigInt:
-		result = l.StrictEqual(right)
-	case Float:
-		result = l.StrictEqual(right)
-	case *BigFloat:
-		result = l.StrictEqual(right)
-	case String:
-		result = l.StrictEqual(right)
-	case Symbol:
-		result = l.StrictEqual(right)
-	case Char:
-		result = l.StrictEqual(right)
-	case Float64:
-		result = StrictNumericStrictEqual(l, right)
-	case Float32:
-		result = StrictNumericStrictEqual(l, right)
-	case Int64:
-		result = StrictNumericStrictEqual(l, right)
-	case Int32:
-		result = StrictNumericStrictEqual(l, right)
-	case Int16:
-		result = StrictNumericStrictEqual(l, right)
-	case Int8:
-		result = StrictNumericStrictEqual(l, right)
-	case UInt64:
-		result = StrictNumericStrictEqual(l, right)
-	case UInt32:
-		result = StrictNumericStrictEqual(l, right)
-	case UInt16:
-		result = StrictNumericStrictEqual(l, right)
-	case UInt8:
-		result = StrictNumericStrictEqual(l, right)
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.StrictEqual(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.StrictEqual(right)
+	case SYMBOL_FLAG:
+		l := left.AsSymbol()
+		return l.StrictEqual(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.StrictEqual(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.StrictEqual(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.StrictEqual(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.StrictEqual(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.StrictEqual(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.StrictEqual(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.StrictEqual(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.StrictEqual(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.StrictEqual(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.StrictEqual(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.StrictEqual(right)
 	default:
 		return ToElkBool(left == right)
 	}
-
-	return result
 }
 
 // Check whether left is strictly not equal to right.
@@ -2096,35 +2445,60 @@ func StrictNotEqual(left, right Value) Value {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func RightBitshift(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.RightBitshift(right)
-	case *BigInt:
-		result, err = l.RightBitshift(right)
-	case Int64:
-		result, err = StrictIntRightBitshift(l, right)
-	case Int32:
-		result, err = StrictIntRightBitshift(l, right)
-	case Int16:
-		result, err = StrictIntRightBitshift(l, right)
-	case Int8:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt64:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt32:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt16:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt8:
-		result, err = StrictIntRightBitshift(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.RightBitshift(right)
+		case Int64:
+			r, err := StrictIntRightBitshift(l, right)
+			return r.ToValue(), err
+		case UInt64:
+			r, err := StrictIntRightBitshift(l, right)
+			return r.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.RightBitshift(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a logical right bit shift >>>.
@@ -2132,31 +2506,55 @@ func RightBitshift(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func LogicalRightBitshift(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case Int64:
-		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift64)
-	case Int32:
-		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift32)
-	case Int16:
-		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift16)
-	case Int8:
-		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift8)
-	case UInt64:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt32:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt16:
-		result, err = StrictIntRightBitshift(l, right)
-	case UInt8:
-		result, err = StrictIntRightBitshift(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case Int64:
+			r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift64)
+			return r.ToValue(), err
+		case UInt64:
+			r, err := StrictIntRightBitshift(l, right)
+			return r.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case INT64_FLAG:
+		l := left.AsInt64()
+		r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift64)
+		return r.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift32)
+		return r.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift16)
+		return r.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift8)
+		return r.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		r, err := StrictIntRightBitshift(l, right)
+		return r.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		r, err := StrictIntRightBitshift(l, right)
+		return r.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		r, err := StrictIntRightBitshift(l, right)
+		return r.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		r, err := StrictIntRightBitshift(l, right)
+		return r.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a left bit shift <<.
@@ -2164,38 +2562,63 @@ func LogicalRightBitshift(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func LeftBitshift(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.LeftBitshift(right)
-	case *BigInt:
-		result, err = l.LeftBitshift(right)
-	case Int64:
-		result, err = StrictIntLeftBitshift(l, right)
-	case Int32:
-		result, err = StrictIntLeftBitshift(l, right)
-	case Int16:
-		result, err = StrictIntLeftBitshift(l, right)
-	case Int8:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt64:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt32:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt16:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt8:
-		result, err = StrictIntLeftBitshift(l, right)
-	case *ArrayList:
-		l.Append(right)
-		result = l
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LeftBitshift(right)
+		case Int64:
+			r, err := StrictIntLeftBitshift(l, right)
+			return r.ToValue(), err
+		case UInt64:
+			r, err := StrictIntLeftBitshift(l, right)
+			return r.ToValue(), err
+		case *ArrayList:
+			l.Append(right)
+			return Ref(l), Nil
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LeftBitshift(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a logical left bit shift <<<.
@@ -2203,31 +2626,55 @@ func LeftBitshift(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func LogicalLeftBitshift(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case Int64:
-		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift64)
-	case Int32:
-		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift32)
-	case Int16:
-		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift16)
-	case Int8:
-		result, err = StrictIntLogicalLeftBitshift(l, right, LogicalRightShift8)
-	case UInt64:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt32:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt16:
-		result, err = StrictIntLeftBitshift(l, right)
-	case UInt8:
-		result, err = StrictIntLeftBitshift(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case Int64:
+			r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift64)
+			return r.ToValue(), err
+		case UInt64:
+			r, err := StrictIntLeftBitshift(l, right)
+			return r.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case INT64_FLAG:
+		l := left.AsInt64()
+		r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift64)
+		return r.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift32)
+		return r.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift16)
+		return r.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift8)
+		return r.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		r, err := StrictIntLeftBitshift(l, right)
+		return r.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		r, err := StrictIntLeftBitshift(l, right)
+		return r.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		r, err := StrictIntLeftBitshift(l, right)
+		return r.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		r, err := StrictIntLeftBitshift(l, right)
+		return r.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a bitwise AND &.
@@ -2235,35 +2682,60 @@ func LogicalLeftBitshift(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func BitwiseAnd(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.BitwiseAnd(right)
-	case *BigInt:
-		result, err = l.BitwiseAnd(right)
-	case Int64:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case Int32:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case Int16:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case Int8:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case UInt64:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case UInt32:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case UInt16:
-		result, err = StrictIntBitwiseAnd(l, right)
-	case UInt8:
-		result, err = StrictIntBitwiseAnd(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.BitwiseAnd(right)
+		case Int64:
+			result, err := l.BitwiseAnd(right)
+			return result.ToValue(), err
+		case UInt64:
+			result, err := l.BitwiseAnd(right)
+			return result.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.BitwiseAnd(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a bitwise AND NOT &^.
@@ -2271,35 +2743,60 @@ func BitwiseAnd(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func BitwiseAndNot(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.BitwiseAndNot(right)
-	case *BigInt:
-		result, err = l.BitwiseAndNot(right)
-	case Int64:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case Int32:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case Int16:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case Int8:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case UInt64:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case UInt32:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case UInt16:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	case UInt8:
-		result, err = StrictIntBitwiseAndNot(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.BitwiseAndNot(right)
+		case Int64:
+			result, err := l.BitwiseAndNot(right)
+			return result.ToValue(), err
+		case UInt64:
+			result, err := l.BitwiseAndNot(right)
+			return result.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.BitwiseAndNot(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a bitwise OR |.
@@ -2307,35 +2804,60 @@ func BitwiseAndNot(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func BitwiseOr(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.BitwiseOr(right)
-	case *BigInt:
-		result, err = l.BitwiseOr(right)
-	case Int64:
-		result, err = StrictIntBitwiseOr(l, right)
-	case Int32:
-		result, err = StrictIntBitwiseOr(l, right)
-	case Int16:
-		result, err = StrictIntBitwiseOr(l, right)
-	case Int8:
-		result, err = StrictIntBitwiseOr(l, right)
-	case UInt64:
-		result, err = StrictIntBitwiseOr(l, right)
-	case UInt32:
-		result, err = StrictIntBitwiseOr(l, right)
-	case UInt16:
-		result, err = StrictIntBitwiseOr(l, right)
-	case UInt8:
-		result, err = StrictIntBitwiseOr(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.BitwiseOr(right)
+		case Int64:
+			result, err := l.BitwiseOr(right)
+			return result.ToValue(), err
+		case UInt64:
+			result, err := l.BitwiseOr(right)
+			return result.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.BitwiseOr(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }
 
 // Execute a bitwise XOR ^.
@@ -2343,33 +2865,58 @@ func BitwiseOr(left, right Value) (result, err Value) {
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
 func BitwiseXor(left, right Value) (result, err Value) {
-	switch l := left.(type) {
-	case SmallInt:
-		result, err = l.BitwiseXor(right)
-	case *BigInt:
-		result, err = l.BitwiseXor(right)
-	case Int64:
-		result, err = StrictIntBitwiseXor(l, right)
-	case Int32:
-		result, err = StrictIntBitwiseXor(l, right)
-	case Int16:
-		result, err = StrictIntBitwiseXor(l, right)
-	case Int8:
-		result, err = StrictIntBitwiseXor(l, right)
-	case UInt64:
-		result, err = StrictIntBitwiseXor(l, right)
-	case UInt32:
-		result, err = StrictIntBitwiseXor(l, right)
-	case UInt16:
-		result, err = StrictIntBitwiseXor(l, right)
-	case UInt8:
-		result, err = StrictIntBitwiseXor(l, right)
-	default:
-		return nil, nil
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.BitwiseXor(right)
+		case Int64:
+			result, err := l.BitwiseXor(right)
+			return result.ToValue(), err
+		case UInt64:
+			result, err := l.BitwiseXor(right)
+			return result.ToValue(), err
+		default:
+			return Nil, Nil
+		}
 	}
 
-	if err != nil {
-		return nil, err
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.BitwiseXor(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case INT32_FLAG:
+		l := left.AsInt32()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case INT16_FLAG:
+		l := left.AsInt16()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case INT8_FLAG:
+		l := left.AsInt8()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	default:
+		return Nil, Nil
 	}
-	return result, nil
 }

@@ -213,6 +213,10 @@ func (f Float32) Equal(other Value) Value {
 	return ToElkBool(f == o)
 }
 
+func (f Float32) StrictEqual(other Value) Value {
+	return f.Equal(other)
+}
+
 func initFloat32() {
 	Float32Class = NewClass()
 	StdModule.AddConstantString("Float32", Ref(Float32Class))

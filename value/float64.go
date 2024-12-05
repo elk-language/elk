@@ -209,6 +209,10 @@ func (f Float64) Equal(other Value) Value {
 	return ToElkBool(f == o)
 }
 
+func (f Float64) StrictEqual(other Value) Value {
+	return f.Equal(other)
+}
+
 func initFloat64() {
 	Float64Class = NewClass()
 	StdModule.AddConstantString("Float64", Ref(Float64Class))

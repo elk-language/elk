@@ -14,14 +14,14 @@ func TestRightOpenRangeIterator_Inspect(t *testing.T) {
 	}{
 		"initial": {
 			i: value.NewRightOpenRangeIterator(
-				value.NewRightOpenRange(value.SmallInt(3), value.SmallInt(10)),
+				value.NewRightOpenRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
 			),
 			want: "Std::RightOpenRange::Iterator{range: 3..<10, current_element: 3}",
 		},
 		"current element": {
 			i: value.NewRightOpenRangeIteratorWithCurrentElement(
-				value.NewRightOpenRange(value.SmallInt(3), value.SmallInt(10)),
-				value.SmallInt(7),
+				value.NewRightOpenRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
+				value.SmallInt(7).ToValue(),
 			),
 			want: "Std::RightOpenRange::Iterator{range: 3..<10, current_element: 7}",
 		},

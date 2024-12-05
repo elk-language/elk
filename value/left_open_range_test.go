@@ -14,14 +14,14 @@ func TestLeftOpenRangeIterator_Inspect(t *testing.T) {
 	}{
 		"initial": {
 			i: value.NewLeftOpenRangeIterator(
-				value.NewLeftOpenRange(value.SmallInt(3), value.SmallInt(10)),
+				value.NewLeftOpenRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
 			),
 			want: "Std::LeftOpenRange::Iterator{range: 3<..10, current_element: 3}",
 		},
 		"current element": {
 			i: value.NewLeftOpenRangeIteratorWithCurrentElement(
-				value.NewLeftOpenRange(value.SmallInt(3), value.SmallInt(10)),
-				value.SmallInt(7),
+				value.NewLeftOpenRange(value.SmallInt(3).ToValue(), value.SmallInt(10).ToValue()),
+				value.SmallInt(7).ToValue(),
 			),
 			want: "Std::LeftOpenRange::Iterator{range: 3<..10, current_element: 7}",
 		},

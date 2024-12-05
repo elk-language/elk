@@ -25,7 +25,7 @@ func TestObjectInspect(t *testing.T) {
 				value.ObjectWithClass(value.ErrorClass),
 				value.ObjectWithInstanceVariables(
 					value.SymbolMap{
-						value.ToSymbol("message"): value.String("foo bar!"),
+						value.ToSymbol("message"): value.Ref(value.String("foo bar!")),
 					},
 				),
 			),
@@ -36,7 +36,7 @@ func TestObjectInspect(t *testing.T) {
 				value.ObjectWithClass(value.NewClass()),
 				value.ObjectWithInstanceVariables(
 					value.SymbolMap{
-						value.ToSymbol("message"): value.String("foo bar!"),
+						value.ToSymbol("message"): value.Ref(value.String("foo bar!")),
 					},
 				),
 			),

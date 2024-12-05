@@ -447,7 +447,12 @@ func Errorf(class *Class, format string, a ...any) *Object {
 
 // Implement the error interface.
 func (e *Object) Error() string {
-	switch msg := e.Message().(type) {
+	msg := e.Message()
+	if !msg.IsReference() {
+		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg.Inspect())
+	}
+
+	switch msg := msg.AsReference().(type) {
 	case String:
 		return fmt.Sprintf("%s: %s", e.class.PrintableName(), msg.String())
 	default:
@@ -457,7 +462,7 @@ func (e *Object) Error() string {
 
 // Set the error message.
 func (e *Object) SetMessage(message string) {
-	e.instanceVariables.SetString("message", String(message))
+	e.instanceVariables.SetString("message", Ref(String(message)))
 }
 
 // Get the error message.
@@ -467,57 +472,57 @@ func (e *Object) Message() Value {
 
 func initException() {
 	ErrorClass = NewClass()
-	StdModule.AddConstantString("Error", ErrorClass)
+	StdModule.AddConstantString("Error", Ref(ErrorClass))
 
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("UnexpectedNilError", UnexpectedNilErrorClass)
+	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
 
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("TypeError", TypeErrorClass)
+	StdModule.AddConstantString("TypeError", Ref(TypeErrorClass))
 
 	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("ModifierMismatchError", ModifierMismatchErrorClass)
+	StdModule.AddConstantString("ModifierMismatchError", Ref(ModifierMismatchErrorClass))
 
 	NoConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("NoConstantError", NoConstantErrorClass)
+	StdModule.AddConstantString("NoConstantError", Ref(NoConstantErrorClass))
 
 	RedefinedConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("RedefinedConstantError", RedefinedConstantErrorClass)
+	StdModule.AddConstantString("RedefinedConstantError", Ref(RedefinedConstantErrorClass))
 
 	FormatErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("FormatError", FormatErrorClass)
+	StdModule.AddConstantString("FormatError", Ref(FormatErrorClass))
 
 	RegexCompileErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("RegexCompileError", RegexCompileErrorClass)
+	StdModule.AddConstantString("RegexCompileError", Ref(RegexCompileErrorClass))
 
 	NoMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("NoMethodError", NoMethodErrorClass)
+	StdModule.AddConstantString("NoMethodError", Ref(NoMethodErrorClass))
 
 	ZeroDivisionErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("ZeroDivisionError", ZeroDivisionErrorClass)
+	StdModule.AddConstantString("ZeroDivisionError", Ref(ZeroDivisionErrorClass))
 
 	OutOfRangeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("OutOfRangeError", OutOfRangeErrorClass)
+	StdModule.AddConstantString("OutOfRangeError", Ref(OutOfRangeErrorClass))
 
 	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
+	StdModule.AddConstantString("ArgumentError", Ref(ArgumentErrorClass))
 
 	SealedClassErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("SealedClassError", SealedClassErrorClass)
+	StdModule.AddConstantString("SealedClassError", Ref(SealedClassErrorClass))
 
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)
+	StdModule.AddConstantString("InvalidTimezoneError", Ref(InvalidTimezoneErrorClass))
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("PrimitiveValueError", PrimitiveValueErrorClass)
+	StdModule.AddConstantString("PrimitiveValueError", Ref(PrimitiveValueErrorClass))
 
 	PatternNotMatchedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("PatternNotMatchedError", PatternNotMatchedErrorClass)
+	StdModule.AddConstantString("PatternNotMatchedError", Ref(PatternNotMatchedErrorClass))
 
 	IndexErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("IndexError", IndexErrorClass)
+	StdModule.AddConstantString("IndexError", Ref(IndexErrorClass))
 
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("NotBuiltinError", NotBuiltinErrorClass)
+	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))
 	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
 }

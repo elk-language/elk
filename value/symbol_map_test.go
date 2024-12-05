@@ -18,21 +18,21 @@ func TestSymbolMapGet(t *testing.T) {
 		"return nil when the map is empty": {
 			symbolMap: make(value.SymbolMap),
 			get:       1,
-			want:      nil,
+			want:      value.Nil,
 		},
 		"return nil when no such symbol": {
 			symbolMap: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 			get:  20,
-			want: nil,
+			want: value.Nil,
 		},
 		"return the value when the key is present": {
 			symbolMap: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 			get:  1,
-			want: value.SmallInt(5),
+			want: value.SmallInt(5).ToValue(),
 		},
 	}
 
@@ -59,7 +59,7 @@ func TestSymbolMapGetString(t *testing.T) {
 			symbolTable:      value.NewSymbolTable(),
 			symbolMap:        make(value.SymbolMap),
 			get:              "foo",
-			want:             nil,
+			want:             value.Nil,
 			symbolTableAfter: value.NewSymbolTable(),
 		},
 		"return nil when no such symbol": {
@@ -76,10 +76,10 @@ func TestSymbolMapGetString(t *testing.T) {
 				),
 			),
 			symbolMap: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 			get:  "foo",
-			want: nil,
+			want: value.Nil,
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
 					map[string]value.Symbol{
@@ -107,10 +107,10 @@ func TestSymbolMapGetString(t *testing.T) {
 				),
 			),
 			symbolMap: value.SymbolMap{
-				0: value.SmallInt(5),
+				0: value.SmallInt(5).ToValue(),
 			},
 			get:  "foo",
-			want: value.SmallInt(5),
+			want: value.SmallInt(5).ToValue(),
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
 					map[string]value.Symbol{
@@ -157,32 +157,32 @@ func TestSymbolMapSet(t *testing.T) {
 		"add to an empty map": {
 			symbolMap: value.SymbolMap{},
 			key:       1,
-			value:     value.SmallInt(5),
+			value:     value.SmallInt(5).ToValue(),
 			want: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 		},
 		"add to a populated map": {
 			symbolMap: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 			key:   20,
-			value: value.RootModule,
+			value: value.Ref(value.RootModule),
 			want: value.SymbolMap{
-				1:  value.SmallInt(5),
-				20: value.RootModule,
+				1:  value.SmallInt(5).ToValue(),
+				20: value.Ref(value.RootModule),
 			},
 		},
 		"overwrite an already existing value": {
 			symbolMap: value.SymbolMap{
-				1:  value.SmallInt(5),
-				20: value.RootModule,
+				1:  value.SmallInt(5).ToValue(),
+				20: value.Ref(value.RootModule),
 			},
 			key:   20,
-			value: value.SmallInt(-2),
+			value: value.SmallInt(-2).ToValue(),
 			want: value.SymbolMap{
-				1:  value.SmallInt(5),
-				20: value.SmallInt(-2),
+				1:  value.SmallInt(5).ToValue(),
+				20: value.SmallInt(-2).ToValue(),
 			},
 		},
 	}
@@ -225,9 +225,9 @@ func TestSymbolMapSetString(t *testing.T) {
 			),
 			symbolMap: value.SymbolMap{},
 			key:       "foo",
-			value:     value.SmallInt(5),
+			value:     value.SmallInt(5).ToValue(),
 			want: value.SymbolMap{
-				1: value.SmallInt(5),
+				1: value.SmallInt(5).ToValue(),
 			},
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
@@ -260,13 +260,13 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 			),
 			symbolMap: value.SymbolMap{
-				0: value.SmallInt(5),
+				0: value.SmallInt(5).ToValue(),
 			},
 			key:   "foo",
-			value: value.RootModule,
+			value: value.Ref(value.RootModule),
 			want: value.SymbolMap{
-				0: value.SmallInt(5),
-				1: value.RootModule,
+				0: value.SmallInt(5).ToValue(),
+				1: value.Ref(value.RootModule),
 			},
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
@@ -297,13 +297,13 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 			),
 			symbolMap: value.SymbolMap{
-				0: value.SmallInt(5),
+				0: value.SmallInt(5).ToValue(),
 			},
 			key:   "bar",
-			value: value.RootModule,
+			value: value.Ref(value.RootModule),
 			want: value.SymbolMap{
-				0: value.SmallInt(5),
-				1: value.RootModule,
+				0: value.SmallInt(5).ToValue(),
+				1: value.Ref(value.RootModule),
 			},
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
@@ -336,14 +336,14 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 			),
 			symbolMap: value.SymbolMap{
-				0: value.SmallInt(5),
-				1: value.RootModule,
+				0: value.SmallInt(5).ToValue(),
+				1: value.Ref(value.RootModule),
 			},
 			key:   "bar",
-			value: value.SmallInt(-2),
+			value: value.SmallInt(-2).ToValue(),
 			want: value.SymbolMap{
-				0: value.SmallInt(5),
-				1: value.SmallInt(-2),
+				0: value.SmallInt(5).ToValue(),
+				1: value.SmallInt(-2).ToValue(),
 			},
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
@@ -396,14 +396,14 @@ func TestSymbolMapInspect(t *testing.T) {
 		},
 		"single entry": {
 			symbolMap: value.SymbolMap{
-				value.ToSymbol("foo"): value.Int64(5),
+				value.ToSymbol("foo"): value.Int64(5).ToValue(),
 			},
 			want: "{foo: 5i64}",
 		},
 		"multiple entries": {
 			symbolMap: value.SymbolMap{
-				value.ToSymbol("foo"): value.String("baz"),
-				value.ToSymbol("bar"): value.FloatClass,
+				value.ToSymbol("foo"): value.Ref(value.String("baz")),
+				value.ToSymbol("bar"): value.Ref(value.FloatClass),
 			},
 			want:    `{foo: "baz", bar: class Std::Float < Std::Object}`,
 			wantAlt: `{bar: class Std::Float < Std::Object, foo: "baz"}`,

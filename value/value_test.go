@@ -10,26 +10,26 @@ import (
 func TestValueToBool(t *testing.T) {
 	tests := map[string]struct {
 		val  value.Value
-		want value.Bool
+		want value.Value
 	}{
 		"positive number to true": {
-			val:  value.Float(5),
+			val:  value.Float(5).ToValue(),
 			want: value.True,
 		},
 		"negative number to true": {
-			val:  value.Float(-5),
+			val:  value.Float(-5).ToValue(),
 			want: value.True,
 		},
 		"zero to true": {
-			val:  value.SmallInt(0),
+			val:  value.SmallInt(0).ToValue(),
 			want: value.True,
 		},
 		"string to true": {
-			val:  value.String("foo"),
+			val:  value.Ref(value.String("foo")),
 			want: value.True,
 		},
 		"empty string to true": {
-			val:  value.String(""),
+			val:  value.Ref(value.String("")),
 			want: value.True,
 		},
 		"true to true": {
@@ -71,11 +71,11 @@ func TestValue_InspectSlice(t *testing.T) {
 		},
 		"with values": {
 			val: []value.Value{
-				value.SmallInt(5),
-				value.Float(10.5),
-				value.String("foo"),
-				value.Char('a'),
-				value.ToSymbol("bar"),
+				value.SmallInt(5).ToValue(),
+				value.Float(10.5).ToValue(),
+				value.Ref(value.String("foo")),
+				value.Char('a').ToValue(),
+				value.ToSymbol("bar").ToValue(),
 			},
 			want: "[5, 10.5, \"foo\", `a`, :bar]",
 		},
@@ -94,26 +94,26 @@ func TestValue_InspectSlice(t *testing.T) {
 func TestValueToNotBool(t *testing.T) {
 	tests := map[string]struct {
 		val  value.Value
-		want value.Bool
+		want value.Value
 	}{
 		"positive number to false": {
-			val:  value.Float(5),
+			val:  value.Float(5).ToValue(),
 			want: value.False,
 		},
 		"negative number to false": {
-			val:  value.Float(-5),
+			val:  value.Float(-5).ToValue(),
 			want: value.False,
 		},
 		"zero to false": {
-			val:  value.SmallInt(0),
+			val:  value.SmallInt(0).ToValue(),
 			want: value.False,
 		},
 		"string to false": {
-			val:  value.String("foo"),
+			val:  value.Ref(value.String("foo")),
 			want: value.False,
 		},
 		"empty string to false": {
-			val:  value.String(""),
+			val:  value.Ref(value.String("")),
 			want: value.False,
 		},
 		"true to false": {
@@ -146,23 +146,23 @@ func TestValueTruthy(t *testing.T) {
 		want bool
 	}{
 		"positive number to true": {
-			val:  value.Float(5),
+			val:  value.Float(5).ToValue(),
 			want: true,
 		},
 		"negative number to true": {
-			val:  value.Float(-5),
+			val:  value.Float(-5).ToValue(),
 			want: true,
 		},
 		"zero to true": {
-			val:  value.SmallInt(0),
+			val:  value.SmallInt(0).ToValue(),
 			want: true,
 		},
 		"string to true": {
-			val:  value.String("foo"),
+			val:  value.Ref(value.String("foo")),
 			want: true,
 		},
 		"empty string to true": {
-			val:  value.String(""),
+			val:  value.Ref(value.String("")),
 			want: true,
 		},
 		"true to true": {
@@ -195,23 +195,23 @@ func TestValueFalsy(t *testing.T) {
 		want bool
 	}{
 		"positive number to false": {
-			val:  value.Float(5),
+			val:  value.Float(5).ToValue(),
 			want: false,
 		},
 		"negative number to false": {
-			val:  value.Float(-5),
+			val:  value.Float(-5).ToValue(),
 			want: false,
 		},
 		"zero to false": {
-			val:  value.SmallInt(0),
+			val:  value.SmallInt(0).ToValue(),
 			want: false,
 		},
 		"string to false": {
-			val:  value.String("foo"),
+			val:  value.Ref(value.String("foo")),
 			want: false,
 		},
 		"empty string to false": {
-			val:  value.String(""),
+			val:  value.Ref(value.String("")),
 			want: false,
 		},
 		"true to false": {
@@ -245,17 +245,17 @@ func TestValue_InstanceOf(t *testing.T) {
 		want  bool
 	}{
 		"true for direct instance": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.FloatClass,
 			want:  true,
 		},
 		"false for another class's instance": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.IntClass,
 			want:  false,
 		},
 		"false for superclass": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.ObjectClass,
 			want:  false,
 		},
@@ -278,17 +278,17 @@ func TestValue_ClassIsA(t *testing.T) {
 		want  bool
 	}{
 		"true for direct instance": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.FloatClass,
 			want:  true,
 		},
 		"false for another class's instance": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.IntClass,
 			want:  false,
 		},
 		"true for superclass": {
-			val:   value.Float(5),
+			val:   value.Float(5).ToValue(),
 			class: value.ObjectClass,
 			want:  true,
 		},
@@ -311,17 +311,17 @@ func TestValue_MixinIsA(t *testing.T) {
 		want  bool
 	}{
 		"true for direct mixin": {
-			val:   &value.HashMap{},
+			val:   value.Ref(&value.HashMap{}),
 			mixin: value.MapMixin,
 			want:  true,
 		},
 		"true for indirect mixin": {
-			val:   &value.HashMap{},
+			val:   value.Ref(&value.HashMap{}),
 			mixin: value.RecordMixin,
 			want:  true,
 		},
 		"false for invalid mixin": {
-			val:   &value.HashMap{},
+			val:   value.Ref(&value.HashMap{}),
 			mixin: value.ListMixin,
 			want:  false,
 		},
