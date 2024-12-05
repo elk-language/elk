@@ -113,6 +113,174 @@ func (i UInt16) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
+func (i UInt16) Add(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i + o, Nil
+}
+
+// Perform a bitwise AND.
+func (i UInt16) BitwiseAnd(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i & o, Nil
+}
+
+// Perform a bitwise AND NOT.
+func (i UInt16) BitwiseAndNot(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i &^ o, Nil
+}
+
+// Perform a bitwise OR.
+func (i UInt16) BitwiseOr(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i | o, Nil
+}
+
+// Perform a bitwise XOR.
+func (i UInt16) BitwiseXor(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i ^ o, Nil
+}
+
+func (i UInt16) Exponentiate(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	if o <= 0 {
+		return 1, Nil
+	}
+	result := i
+	var j UInt16
+	for j = 2; j <= o; j++ {
+		result *= i
+	}
+	return result, Nil
+}
+
+func (i UInt16) Subtract(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i - o, Nil
+}
+
+func (i UInt16) Multiply(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i * o, Nil
+}
+
+func (i UInt16) Modulo(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return i % o, Nil
+}
+
+func (i UInt16) Divide(other Value) (UInt16, Value) {
+	if !other.IsUInt16() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt16()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i / o, Nil
+}
+
+func (i UInt16) Compare(other Value) (Value, Value) {
+	if !other.IsUInt16() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt16()
+
+	if i > o {
+		return SmallInt(1).ToValue(), Nil
+	}
+	if i < o {
+		return SmallInt(-1).ToValue(), Nil
+	}
+	return SmallInt(0).ToValue(), Nil
+}
+
+func (i UInt16) GreaterThan(other Value) (Value, Value) {
+	if !other.IsUInt16() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return ToElkBool(i > o), Nil
+}
+
+func (i UInt16) GreaterThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt16() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return ToElkBool(i >= o), Nil
+}
+
+func (i UInt16) LessThan(other Value) (Value, Value) {
+	if !other.IsUInt16() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return ToElkBool(i < o), Nil
+}
+
+func (i UInt16) LessThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt16() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt16()
+	return ToElkBool(i <= o), Nil
+}
+
+func (i UInt16) Equal(other Value) Value {
+	if !other.IsUInt16() {
+		return False
+	}
+
+	o := other.AsUInt16()
+	return ToElkBool(i == o)
+}
+
+func (i UInt16) StrictEqual(other Value) Value {
+	return i.Equal(other)
+}
+
 func initUInt16() {
 	UInt16Class = NewClass()
 	StdModule.AddConstantString("UInt16", Ref(UInt16Class))

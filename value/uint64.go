@@ -109,6 +109,174 @@ func (i UInt64) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
+func (i UInt64) Add(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i + o, Nil
+}
+
+// Perform a bitwise AND.
+func (i UInt64) BitwiseAnd(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i & o, Nil
+}
+
+// Perform a bitwise AND NOT.
+func (i UInt64) BitwiseAndNot(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i &^ o, Nil
+}
+
+// Perform a bitwise OR.
+func (i UInt64) BitwiseOr(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i | o, Nil
+}
+
+// Perform a bitwise XOR.
+func (i UInt64) BitwiseXor(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i ^ o, Nil
+}
+
+func (i UInt64) Exponentiate(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	if o <= 0 {
+		return 1, Nil
+	}
+	result := i
+	var j UInt64
+	for j = 2; j <= o; j++ {
+		result *= i
+	}
+	return result, Nil
+}
+
+func (i UInt64) Subtract(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i - o, Nil
+}
+
+func (i UInt64) Multiply(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i * o, Nil
+}
+
+func (i UInt64) Modulo(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return i % o, Nil
+}
+
+func (i UInt64) Divide(other Value) (UInt64, Value) {
+	if !other.IsUInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt64()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i / o, Nil
+}
+
+func (i UInt64) Compare(other Value) (Value, Value) {
+	if !other.IsUInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt64()
+
+	if i > o {
+		return SmallInt(1).ToValue(), Nil
+	}
+	if i < o {
+		return SmallInt(-1).ToValue(), Nil
+	}
+	return SmallInt(0).ToValue(), Nil
+}
+
+func (i UInt64) GreaterThan(other Value) (Value, Value) {
+	if !other.IsUInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return ToElkBool(i > o), Nil
+}
+
+func (i UInt64) GreaterThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return ToElkBool(i >= o), Nil
+}
+
+func (i UInt64) LessThan(other Value) (Value, Value) {
+	if !other.IsUInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return ToElkBool(i < o), Nil
+}
+
+func (i UInt64) LessThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt64()
+	return ToElkBool(i <= o), Nil
+}
+
+func (i UInt64) Equal(other Value) Value {
+	if !other.IsUInt64() {
+		return False
+	}
+
+	o := other.AsUInt64()
+	return ToElkBool(i == o)
+}
+
+func (i UInt64) StrictEqual(other Value) Value {
+	return i.Equal(other)
+}
+
 func initUInt64() {
 	UInt64Class = NewClass()
 	StdModule.AddConstantString("UInt64", Ref(UInt64Class))

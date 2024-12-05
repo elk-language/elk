@@ -10,35 +10,30 @@ import (
 // to other types.
 type StrictNumeric interface {
 	Float64 | Float32 | Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
-	Value
 }
 
 // Strict integers are sized and cannot be automatically coerced
 // to other types.
 type StrictInt interface {
 	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
-	Value
 }
 
 // Strict unsigned integers are sized and cannot be automatically coerced
 // to other types.
 type StrictUnsignedInt interface {
 	UInt64 | UInt32 | UInt16 | UInt8
-	Value
 }
 
 // Strict signed integers are sized and cannot be automatically coerced
 // to other types.
 type StrictSignedInt interface {
 	Int64 | Int32 | Int16 | Int8
-	Value
 }
 
 // Strict floats are sized and cannot be automatically coerced
 // to other types.
 type StrictFloat interface {
 	Float64 | Float32
-	Value
 }
 
 func LogicalRightShift64[L SimpleInt](left L, right uint64) L {
@@ -61,525 +56,431 @@ type logicalShiftFunc[L SimpleInt] func(left L, right uint64) L
 
 // Bitshift a strict int to the left.
 func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, Value) {
-	switch r := right.(type) {
-	case SmallInt:
-		if r < 0 {
-			return shiftFunc(left, uint64(-r)), nil
-		}
-		return left << r, nil
-	case Int64:
-		if r < 0 {
-			return shiftFunc(left, uint64(-r)), nil
-		}
-		return left << r, nil
-	case Int32:
-		if r < 0 {
-			return shiftFunc(left, uint64(-r)), nil
-		}
-		return left << r, nil
-	case Int16:
-		if r < 0 {
-			return shiftFunc(left, uint64(-r)), nil
-		}
-		return left << r, nil
-	case Int8:
-		if r < 0 {
-			return shiftFunc(left, uint64(-r)), nil
-		}
-		return left << r, nil
-	case UInt64:
-		return left << r, nil
-	case UInt32:
-		return left << r, nil
-	case UInt16:
-		return left << r, nil
-	case UInt8:
-		return left << r, nil
-	case *BigInt:
-		if r.IsSmallInt() {
-			rSmall := r.ToSmallInt()
-			if rSmall < 0 {
-				return left >> -rSmall, nil
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case Int64:
+			if r < 0 {
+				return shiftFunc(left, uint64(-r)), Nil
 			}
-			return left << rSmall, nil
-		}
+			return left << r, Nil
+		case UInt64:
+			return left << r, Nil
+		case *BigInt:
+			if r.IsSmallInt() {
+				rSmall := r.ToSmallInt()
+				if rSmall < 0 {
+					return left >> -rSmall, Nil
+				}
+				return left << rSmall, Nil
+			}
 
-		return 0, nil
+			return 0, Nil
+		default:
+			return 0, Ref(NewBitshiftOperandError(right))
+		}
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), Nil
+		}
+		return left << r, Nil
+	case INT64_FLAG:
+		r := right.AsInt64()
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), Nil
+		}
+		return left << r, Nil
+	case INT32_FLAG:
+		r := right.AsInt32()
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), Nil
+		}
+		return left << r, Nil
+	case INT16_FLAG:
+		r := right.AsInt16()
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), Nil
+		}
+		return left << r, Nil
+	case INT8_FLAG:
+		r := right.AsInt8()
+		if r < 0 {
+			return shiftFunc(left, uint64(-r)), Nil
+		}
+		return left << r, Nil
+	case UINT64_FLAG:
+		r := right.AsUInt64()
+		return left << r, Nil
+	case UINT32_FLAG:
+		r := right.AsUInt32()
+		return left << r, Nil
+	case UINT16_FLAG:
+		r := right.AsUInt16()
+		return left << r, Nil
+	case UINT8_FLAG:
+		r := right.AsUInt8()
+		return left << r, Nil
 	default:
-		return 0, NewBitshiftOperandError(right)
+		return 0, Ref(NewBitshiftOperandError(right))
 	}
 }
 
 // Logically bitshift a strict int to the right.
 func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, Value) {
-	switch r := right.(type) {
-	case SmallInt:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return shiftFunc(left, uint64(r)), nil
-	case Int64:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return shiftFunc(left, uint64(r)), nil
-	case Int32:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return shiftFunc(left, uint64(r)), nil
-	case Int16:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return shiftFunc(left, uint64(r)), nil
-	case Int8:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return shiftFunc(left, uint64(r)), nil
-	case UInt64:
-		return shiftFunc(left, uint64(r)), nil
-	case UInt32:
-		return shiftFunc(left, uint64(r)), nil
-	case UInt16:
-		return shiftFunc(left, uint64(r)), nil
-	case UInt8:
-		return shiftFunc(left, uint64(r)), nil
-	case *BigInt:
-		if r.IsSmallInt() {
-			rSmall := r.ToSmallInt()
-			if rSmall < 0 {
-				return left << -rSmall, nil
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case Int64:
+			if r < 0 {
+				return left << -r, Nil
 			}
-			return shiftFunc(left, uint64(rSmall)), nil
-		}
+			return shiftFunc(left, uint64(r)), Nil
+		case UInt64:
+			return shiftFunc(left, uint64(r)), Nil
+		case *BigInt:
+			if r.IsSmallInt() {
+				rSmall := r.ToSmallInt()
+				if rSmall < 0 {
+					return left << -rSmall, Nil
+				}
+				return shiftFunc(left, uint64(rSmall)), Nil
+			}
 
-		return 0, nil
+			return 0, Nil
+		default:
+			return 0, Ref(NewBitshiftOperandError(right))
+		}
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return shiftFunc(left, uint64(r)), Nil
+	case INT64_FLAG:
+		r := right.AsInt64()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return shiftFunc(left, uint64(r)), Nil
+	case INT32_FLAG:
+		r := right.AsInt32()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return shiftFunc(left, uint64(r)), Nil
+	case INT16_FLAG:
+		r := right.AsInt16()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return shiftFunc(left, uint64(r)), Nil
+	case INT8_FLAG:
+		r := right.AsInt8()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return shiftFunc(left, uint64(r)), Nil
+	case UINT64_FLAG:
+		r := right.AsUInt64()
+		return shiftFunc(left, uint64(r)), Nil
+	case UINT32_FLAG:
+		r := right.AsUInt32()
+		return shiftFunc(left, uint64(r)), Nil
+	case UINT16_FLAG:
+		r := right.AsUInt16()
+		return shiftFunc(left, uint64(r)), Nil
+	case UINT8_FLAG:
+		r := right.AsUInt8()
+		return shiftFunc(left, uint64(r)), Nil
 	default:
-		return 0, NewBitshiftOperandError(right)
+		return 0, Ref(NewBitshiftOperandError(right))
 	}
 }
 
 // Bitshift a strict int to the right.
 func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
-	switch r := right.(type) {
-	case SmallInt:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return left >> r, nil
-	case Int64:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return left >> r, nil
-	case Int32:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return left >> r, nil
-	case Int16:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return left >> r, nil
-	case Int8:
-		if r < 0 {
-			return left << -r, nil
-		}
-		return left >> r, nil
-	case UInt64:
-		return left >> r, nil
-	case UInt32:
-		return left >> r, nil
-	case UInt16:
-		return left >> r, nil
-	case UInt8:
-		return left >> r, nil
-	case *BigInt:
-		if r.IsSmallInt() {
-			rSmall := r.ToSmallInt()
-			if rSmall < 0 {
-				return left << -rSmall, nil
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case Int64:
+			if r < 0 {
+				return left << -r, Nil
 			}
-			return left >> rSmall, nil
-		}
+			return left >> r, Nil
+		case UInt64:
+			return left >> r, Nil
+		case *BigInt:
+			if r.IsSmallInt() {
+				rSmall := r.ToSmallInt()
+				if rSmall < 0 {
+					return left << -rSmall, Nil
+				}
+				return left >> rSmall, Nil
+			}
 
-		return 0, nil
+			return 0, Nil
+		default:
+			return 0, Ref(NewBitshiftOperandError(right))
+		}
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return left >> r, Nil
+	case INT64_FLAG:
+		r := right.AsInt64()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return left >> r, Nil
+	case INT32_FLAG:
+		r := right.AsInt32()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return left >> r, Nil
+	case INT16_FLAG:
+		r := right.AsInt16()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return left >> r, Nil
+	case INT8_FLAG:
+		r := right.AsInt8()
+		if r < 0 {
+			return left << -r, Nil
+		}
+		return left >> r, Nil
+	case UINT64_FLAG:
+		r := right.AsUInt64()
+		return left >> r, Nil
+	case UINT32_FLAG:
+		r := right.AsUInt32()
+		return left >> r, Nil
+	case UINT16_FLAG:
+		r := right.AsUInt16()
+		return left >> r, Nil
+	case UINT8_FLAG:
+		r := right.AsUInt8()
+		return left >> r, Nil
 	default:
-		return 0, NewBitshiftOperandError(right)
+		return 0, Ref(NewBitshiftOperandError(right))
 	}
 }
 
 // Bitshift a strict int to the left.
 func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
-	switch r := right.(type) {
-	case SmallInt:
-		if r < 0 {
-			return left >> -r, nil
-		}
-		return left << r, nil
-	case Int64:
-		if r < 0 {
-			return left >> -r, nil
-		}
-		return left << r, nil
-	case Int32:
-		if r < 0 {
-			return left >> -r, nil
-		}
-		return left << r, nil
-	case Int16:
-		if r < 0 {
-			return left >> -r, nil
-		}
-		return left << r, nil
-	case Int8:
-		if r < 0 {
-			return left >> -r, nil
-		}
-		return left << r, nil
-	case UInt64:
-		return left << r, nil
-	case UInt32:
-		return left << r, nil
-	case UInt16:
-		return left << r, nil
-	case UInt8:
-		return left << r, nil
-	case *BigInt:
-		if r.IsSmallInt() {
-			rSmall := r.ToSmallInt()
-			if rSmall < 0 {
-				return left >> -rSmall, nil
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case Int64:
+			if r < 0 {
+				return left >> -r, Nil
 			}
-			return left << rSmall, nil
+			return left << r, Nil
+		case UInt64:
+			return left << r, Nil
+		case *BigInt:
+			if r.IsSmallInt() {
+				rSmall := r.ToSmallInt()
+				if rSmall < 0 {
+					return left >> -rSmall, Nil
+				}
+				return left << rSmall, Nil
+			}
+
+			return 0, Nil
+		default:
+			return 0, Ref(NewBitshiftOperandError(right))
 		}
+	}
 
-		return 0, nil
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
+		if r < 0 {
+			return left >> -r, Nil
+		}
+		return left << r, Nil
+	case INT64_FLAG:
+		r := right.AsInt64()
+		if r < 0 {
+			return left >> -r, Nil
+		}
+		return left << r, Nil
+	case INT32_FLAG:
+		r := right.AsInt32()
+		if r < 0 {
+			return left >> -r, Nil
+		}
+		return left << r, Nil
+	case INT16_FLAG:
+		r := right.AsInt16()
+		if r < 0 {
+			return left >> -r, Nil
+		}
+		return left << r, Nil
+	case INT8_FLAG:
+		r := right.AsInt8()
+		if r < 0 {
+			return left >> -r, Nil
+		}
+		return left << r, Nil
+	case UINT64_FLAG:
+		r := right.AsUInt64()
+		return left << r, Nil
+	case UINT32_FLAG:
+		r := right.AsUInt32()
+		return left << r, Nil
+	case UINT16_FLAG:
+		r := right.AsUInt16()
+		return left << r, Nil
+	case UINT8_FLAG:
+		r := right.AsUInt8()
+		return left << r, Nil
 	default:
-		return 0, NewBitshiftOperandError(right)
+		return 0, Ref(NewBitshiftOperandError(right))
 	}
-}
-
-// Perform a bitwise AND.
-func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left & r, nil
-}
-
-// Perform a bitwise AND NOT.
-func StrictIntBitwiseAndNot[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left &^ r, nil
-}
-
-// Perform a bitwise OR.
-func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left | r, nil
-}
-
-// Perform a bitwise XOR.
-func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left ^ r, nil
-}
-
-// Exponentiate a strict int by the right value.
-func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return T(math.Pow(float64(left), float64(r))), nil
-}
-
-// Exponentiate a strict int by the right value.
-func StrictIntExponentiate[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	if r <= 0 {
-		return 1, nil
-	}
-	result := left
-	var i T
-	for i = 2; i <= r; i++ {
-		result *= left
-	}
-	return result, nil
-}
-
-// Add a strict numeric to another value and return the result.
-// If the operation is illegal an error will be returned.
-func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left + r, nil
-}
-
-// Subtract a strict numeric from another value and return the result.
-// If the operation is illegal an error will be returned.
-func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left - r, nil
-}
-
-// Multiply a strict numeric by another value and return the result.
-// If the operation is illegal an error will be returned.
-func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left * r, nil
-}
-
-// Perform modulo on a strict integer and return the result.
-// If the operation is illegal an error will be returned.
-func StrictIntModulo[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-	if r == 0 {
-		return 0, NewZeroDivisionError()
-	}
-
-	return left % r, nil
-}
-
-// Perform modulo on a strict integer and return the result.
-// If the operation is illegal an error will be returned.
-func StrictFloatModulo[T StrictFloat](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return T(math.Mod(float64(left), float64(r))), nil
-}
-
-// Divide a strict float by another value and return the result.
-// If the operation is illegal an error will be returned.
-func StrictFloatDivide[T StrictFloat](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return left / r, nil
-}
-
-// Divide a strict int by another value and return the result.
-// If the operation is illegal an error will be returned.
-func StrictIntDivide[T StrictInt](left T, right Value) (T, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return 0, NewCoerceError(left.Class(), right.Class())
-	}
-	if r == 0 {
-		return 0, NewZeroDivisionError()
-	}
-
-	return left / r, nil
-}
-
-// Returns 1 if i is greater than other
-// Returns 0 if both are equal.
-// Returns -1 if i is less than other.
-// Returns nil if the comparison was impossible (NaN)
-func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	if math.IsNaN(float64(left)) || math.IsNaN(float64(r)) {
-		return Nil, nil
-	}
-
-	if left > r {
-		return SmallInt(1), nil
-	}
-	if left < r {
-		return SmallInt(-1), nil
-	}
-	return SmallInt(0), nil
-}
-
-// Check whether left is greater than right.
-// If the operation is illegal an error will be returned.
-func StrictIntCompare[T StrictInt](left T, right Value) (Value, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	if left > r {
-		return SmallInt(1), nil
-	}
-	if left < r {
-		return SmallInt(-1), nil
-	}
-	return SmallInt(0), nil
-}
-
-// Check whether left is greater than right.
-// If the operation is illegal an error will be returned.
-func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return ToElkBool(left > r), nil
-}
-
-// Check whether left is greater than or equal to right.
-// If the operation is illegal an error will be returned.
-func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return ToElkBool(left >= r), nil
-}
-
-// Check whether left is less than right.
-// If the operation is illegal an error will be returned.
-func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return ToElkBool(left < r), nil
-}
-
-// Check whether left is less than or equal to right.
-// If the operation is illegal an error will be returned.
-func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, Value) {
-	r, ok := right.(T)
-	if !ok {
-		return nil, NewCoerceError(left.Class(), right.Class())
-	}
-
-	return ToElkBool(left <= r), nil
 }
 
 // Check whether the left float is equal to right.
-func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Bool {
-	switch r := right.(type) {
-	case T:
-		return ToElkBool(left == r)
-	case SmallInt:
-		return ToElkBool(float64(left) == float64(r))
-	case *BigInt:
-		return ToElkBool(float64(left) == float64(r.ToFloat()))
-	case Float:
-		return ToElkBool(float64(left) == float64(r))
-	case *BigFloat:
-		if r.IsNaN() {
+func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case *BigInt:
+			return ToElkBool(T(left) == T(r.ToFloat()))
+		case *BigFloat:
+			if r.IsNaN() {
+				return False
+			}
+			iBigFloat := (&big.Float{}).SetFloat64(float64(left))
+			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+		case Int64:
+			return ToElkBool(T(left) == T(r))
+		case UInt64:
+			return ToElkBool(T(left) == T(r))
+		case Float64:
+			return ToElkBool(float64(left) == float64(r))
+		default:
 			return False
 		}
-		iBigFloat := (&big.Float{}).SetFloat64(float64(left))
-		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
-	case Int64:
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
+		return ToElkBool(T(left) == T(r))
+	case FLOAT_FLAG:
+		r := right.AsFloat()
 		return ToElkBool(float64(left) == float64(r))
-	case Int32:
+	case INT64_FLAG:
+		r := right.AsInt64()
+		return ToElkBool(T(left) == T(r))
+	case INT32_FLAG:
+		r := right.AsInt32()
+		return ToElkBool(T(left) == T(r))
+	case INT16_FLAG:
+		r := right.AsInt16()
+		return ToElkBool(T(left) == T(r))
+	case INT8_FLAG:
+		r := right.AsInt8()
+		return ToElkBool(T(left) == T(r))
+	case UINT64_FLAG:
+		r := right.AsUInt64()
+		return ToElkBool(T(left) == T(r))
+	case UINT32_FLAG:
+		r := right.AsUInt32()
+		return ToElkBool(T(left) == T(r))
+	case UINT16_FLAG:
+		r := right.AsUInt16()
+		return ToElkBool(T(left) == T(r))
+	case UINT8_FLAG:
+		r := right.AsUInt8()
+		return ToElkBool(T(left) == T(r))
+	case FLOAT64_FLAG:
+		r := right.AsFloat64()
 		return ToElkBool(float64(left) == float64(r))
-	case Int16:
-		return ToElkBool(float64(left) == float64(r))
-	case Int8:
-		return ToElkBool(float64(left) == float64(r))
-	case UInt64:
-		return ToElkBool(float64(left) == float64(r))
-	case UInt32:
-		return ToElkBool(float64(left) == float64(r))
-	case UInt16:
-		return ToElkBool(float64(left) == float64(r))
-	case UInt8:
-		return ToElkBool(float64(left) == float64(r))
-	case Float64:
-		return ToElkBool(float64(left) == float64(r))
-	case Float32:
-		return ToElkBool(float64(left) == float64(r))
+	case FLOAT32_FLAG:
+		r := right.AsFloat32()
+		return ToElkBool(T(left) == T(r))
 	default:
 		return False
 	}
 }
 
 // Check whether the left signed integer is equal to right.
-func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Bool {
-	switch r := right.(type) {
-	case T:
-		return ToElkBool(left == r)
-	case SmallInt:
-		return ToElkBool(int64(left) == int64(r))
-	case *BigInt:
-		iBigInt := big.NewInt(int64(left))
-		return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
-	case Float:
-		return ToElkBool(float64(left) == float64(r))
-	case *BigFloat:
-		if r.IsNaN() {
+func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case *BigInt:
+			iBigInt := big.NewInt(int64(left))
+			return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+		case *BigFloat:
+			if r.IsNaN() {
+				return False
+			}
+			iBigFloat := (&big.Float{}).SetInt64(int64(left))
+			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+		case Int64:
+			return ToElkBool(int64(left) == int64(r))
+		case UInt64:
+			if r > math.MaxInt64 {
+				return False
+			}
+			return ToElkBool(int64(left) == int64(r))
+		case Float64:
+			return ToElkBool(float64(left) == float64(r))
+		default:
 			return False
 		}
-		iBigFloat := (&big.Float{}).SetInt64(int64(left))
-		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
-	case Int64:
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
 		return ToElkBool(int64(left) == int64(r))
-	case Int32:
+	case FLOAT_FLAG:
+		r := right.AsFloat()
+		return ToElkBool(float64(left) == float64(r))
+	case INT64_FLAG:
+		r := right.AsInt64()
 		return ToElkBool(int64(left) == int64(r))
-	case Int16:
+	case INT32_FLAG:
+		r := right.AsInt32()
 		return ToElkBool(int64(left) == int64(r))
-	case Int8:
+	case INT16_FLAG:
+		r := right.AsInt16()
+		return ToElkBool(int64(left) == int64(r))
+	case INT8_FLAG:
+		r := right.AsInt8()
 		return ToElkBool(left == T(r))
-	case UInt64:
+	case UINT64_FLAG:
+		r := right.AsUInt64()
 		if r > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case UInt32:
+	case UINT32_FLAG:
+		r := right.AsUInt32()
 		return ToElkBool(int64(left) == int64(r))
-	case UInt16:
+	case UINT16_FLAG:
+		r := right.AsUInt16()
 		return ToElkBool(int64(left) == int64(r))
-	case UInt8:
+	case UINT8_FLAG:
+		r := right.AsUInt8()
 		return ToElkBool(int64(left) == int64(r))
-	case Float64:
+	case FLOAT64_FLAG:
+		r := right.AsFloat64()
 		return ToElkBool(float64(left) == float64(r))
-	case Float32:
+	case FLOAT32_FLAG:
+		r := right.AsFloat32()
 		return ToElkBool(float64(left) == float64(r))
 	default:
 		return False
@@ -587,82 +488,93 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Bool {
 }
 
 // Check whether the left unsigned integer is equal to right.
-func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Bool {
-	switch r := right.(type) {
-	case T:
-		return ToElkBool(left == r)
-	case SmallInt:
+func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
+	if right.IsReference() {
+		switch r := right.AsReference().(type) {
+		case *BigInt:
+			iBigInt := (&big.Int{}).SetUint64(uint64(left))
+			return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+		case *BigFloat:
+			if r.IsNaN() {
+				return False
+			}
+			iBigFloat := (&big.Float{}).SetUint64(uint64(left))
+			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+		case Int64:
+			if uint64(left) > math.MaxInt64 {
+				return False
+			}
+			return ToElkBool(int64(left) == int64(r))
+		case UInt64:
+			return ToElkBool(uint64(left) == uint64(r))
+		case Float64:
+			return ToElkBool(float64(left) == float64(r))
+		default:
+			return False
+		}
+	}
+
+	switch right.ValueFlag() {
+	case SMALL_INT_FLAG:
+		r := right.AsSmallInt()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case *BigInt:
-		iBigInt := (&big.Int{}).SetUint64(uint64(left))
-		return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
-	case Float:
+	case FLOAT_FLAG:
+		r := right.AsFloat()
 		return ToElkBool(float64(left) == float64(r))
-	case *BigFloat:
-		if r.IsNaN() {
-			return False
-		}
-		iBigFloat := (&big.Float{}).SetUint64(uint64(left))
-		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
-	case Int64:
+	case INT64_FLAG:
+		r := right.AsInt64()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case Int32:
+	case INT32_FLAG:
+		r := right.AsInt32()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case Int16:
+	case INT16_FLAG:
+		r := right.AsInt16()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case Int8:
+	case INT8_FLAG:
+		r := right.AsInt8()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
-	case UInt64:
+	case UINT64_FLAG:
+		r := right.AsUInt64()
 		return ToElkBool(uint64(left) == uint64(r))
-	case UInt32:
+	case UINT32_FLAG:
+		r := right.AsUInt32()
 		return ToElkBool(uint64(left) == uint64(r))
-	case UInt16:
+	case UINT16_FLAG:
+		r := right.AsUInt16()
 		return ToElkBool(uint64(left) == uint64(r))
-	case UInt8:
+	case UINT8_FLAG:
+		r := right.AsUInt8()
 		return ToElkBool(left == T(r))
-	case Float64:
+	case FLOAT64_FLAG:
+		r := right.AsFloat64()
 		return ToElkBool(float64(left) == float64(r))
-	case Float32:
+	case FLOAT32_FLAG:
+		r := right.AsFloat32()
 		return ToElkBool(float64(left) == float64(r))
 	default:
 		return False
 	}
 }
 
-// Check whether left is equal to right.
-func StrictNumericEqual[T StrictNumeric](left T, right Value) Bool {
-	r, ok := right.(T)
-	if !ok {
-		return False
-	}
-
-	return ToElkBool(left == r)
-}
-
-// Check whether left is strictly equal to right.
-func StrictNumericStrictEqual[T StrictNumeric](left T, right Value) Bool {
-	return StrictNumericEqual(left, right)
-}
-
 // Parses an unsigned strict integer from a string using Elk syntax.
 func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 	if s == "" {
-		return 0, Errorf(FormatErrorClass, "invalid integer format")
+		return 0, Ref(Errorf(FormatErrorClass, "invalid integer format"))
 	}
 
 	switch {
@@ -695,13 +607,13 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 			}
 		}
 	default:
-		return 0, Errorf(FormatErrorClass, "invalid integer base %d", base)
+		return 0, Ref(Errorf(FormatErrorClass, "invalid integer base %d", base))
 	}
 
 	if bitSize == 0 {
 		bitSize = strconv.IntSize
 	} else if bitSize < 0 || bitSize > 64 {
-		return 0, Errorf(FormatErrorClass, "invalid integer bit size %d", bitSize)
+		return 0, Ref(Errorf(FormatErrorClass, "invalid integer bit size %d", bitSize))
 	}
 
 	// Cutoff is the smallest number such that cutoff*base > math.MaxUint64.
@@ -733,34 +645,34 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 		case 'a' <= letterToLower(c) && letterToLower(c) <= 'z':
 			d = letterToLower(c) - 'a' + 10
 		default:
-			return 0, Errorf(FormatErrorClass, "illegal characters in integer: %c", c)
+			return 0, Ref(Errorf(FormatErrorClass, "illegal characters in integer: %c", c))
 		}
 
 		if d >= byte(base) {
-			return 0, Errorf(FormatErrorClass, "illegal characters in integer (base %d): %c", base, c)
+			return 0, Ref(Errorf(FormatErrorClass, "illegal characters in integer (base %d): %c", base, c))
 		}
 
 		if n >= cutoff {
 			// n*base overflows
-			return maxVal, Errorf(FormatErrorClass, "value overflows")
+			return maxVal, Ref(Errorf(FormatErrorClass, "value overflows"))
 		}
 		n *= uint64(base)
 
 		n1 := n + uint64(d)
 		if n1 < n || n1 > maxVal {
 			// n+d overflows
-			return maxVal, Errorf(FormatErrorClass, "value overflows")
+			return maxVal, Ref(Errorf(FormatErrorClass, "value overflows"))
 		}
 		n = n1
 	}
 
-	return n, nil
+	return n, Nil
 }
 
 // Parses a signed strict integer from a string using Elk syntax.
 func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	if s == "" {
-		return 0, Errorf(FormatErrorClass, "invalid integer format")
+		return 0, Ref(Errorf(FormatErrorClass, "invalid integer format"))
 	}
 
 	// Pick off leading sign.
@@ -775,7 +687,7 @@ func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	// Convert unsigned and check range.
 	var un uint64
 	un, err := StrictParseUint(s, base, bitSize)
-	if err != nil {
+	if !err.IsNil() {
 		return 0, err
 	}
 
@@ -785,16 +697,16 @@ func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 
 	cutoff := uint64(1 << uint(bitSize-1))
 	if !neg && un >= cutoff {
-		return int64(cutoff - 1), Errorf(FormatErrorClass, "value overflows")
+		return int64(cutoff - 1), Ref(Errorf(FormatErrorClass, "value overflows"))
 	}
 	if neg && un > cutoff {
-		return -int64(cutoff), Errorf(FormatErrorClass, "value overflows")
+		return -int64(cutoff), Ref(Errorf(FormatErrorClass, "value overflows"))
 	}
 	n := int64(un)
 	if neg {
 		n = -n
 	}
-	return n, nil
+	return n, Nil
 }
 
 // Converts letters to lowercase.

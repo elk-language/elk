@@ -90,6 +90,125 @@ func (f Float64) IsInf(sign int) bool {
 	return math.IsInf(float64(f), sign)
 }
 
+func (f Float64) Add(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return f + o, Nil
+}
+
+// Exponentiate by the right value.
+func (f Float64) Exponentiate(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return Float64(math.Pow(float64(f), float64(o))), Nil
+}
+
+func (f Float64) Subtract(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return f - o, Nil
+}
+
+func (f Float64) Multiply(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return f * o, Nil
+}
+
+func (f Float64) Modulo(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return Float64(math.Mod(float64(f), float64(o))), Nil
+}
+
+func (f Float64) Divide(other Value) (Float64, Value) {
+	if !other.IsFloat64() {
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return f / o, Nil
+}
+
+func (f Float64) Compare(other Value) (Value, Value) {
+	if !other.IsFloat64() {
+		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
+		return Nil, Nil
+	}
+
+	if f > o {
+		return SmallInt(1).ToValue(), Nil
+	}
+	if f < o {
+		return SmallInt(-1).ToValue(), Nil
+	}
+	return SmallInt(0).ToValue(), Nil
+}
+
+func (f Float64) GreaterThan(other Value) (Value, Value) {
+	if !other.IsFloat64() {
+		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return ToElkBool(f > o), Nil
+}
+
+func (f Float64) GreaterThanEqual(other Value) (Value, Value) {
+	if !other.IsFloat64() {
+		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return ToElkBool(f >= o), Nil
+}
+
+func (f Float64) LessThan(other Value) (Value, Value) {
+	if !other.IsFloat64() {
+		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return ToElkBool(f < o), Nil
+}
+
+func (f Float64) LessThanEqual(other Value) (Value, Value) {
+	if !other.IsFloat64() {
+		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+
+	o := other.AsFloat64()
+	return ToElkBool(f <= o), Nil
+}
+
+func (f Float64) Equal(other Value) Value {
+	if !other.IsFloat64() {
+		return False
+	}
+
+	o := other.AsFloat64()
+	return ToElkBool(f == o)
+}
+
 func initFloat64() {
 	Float64Class = NewClass()
 	StdModule.AddConstantString("Float64", Ref(Float64Class))

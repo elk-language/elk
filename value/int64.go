@@ -109,6 +109,174 @@ func (i Int64) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
+func (i Int64) Add(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i + o, Nil
+}
+
+// Perform a bitwise AND.
+func (i Int64) BitwiseAnd(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i & o, Nil
+}
+
+// Perform a bitwise AND NOT.
+func (i Int64) BitwiseAndNot(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i &^ o, Nil
+}
+
+// Perform a bitwise OR.
+func (i Int64) BitwiseOr(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i | o, Nil
+}
+
+// Perform a bitwise XOR.
+func (i Int64) BitwiseXor(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i ^ o, Nil
+}
+
+func (i Int64) Exponentiate(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	if o <= 0 {
+		return 1, Nil
+	}
+	result := i
+	var j Int64
+	for j = 2; j <= o; j++ {
+		result *= i
+	}
+	return result, Nil
+}
+
+func (i Int64) Subtract(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i - o, Nil
+}
+
+func (i Int64) Multiply(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i * o, Nil
+}
+
+func (i Int64) Modulo(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return i % o, Nil
+}
+
+func (i Int64) Divide(other Value) (Int64, Value) {
+	if !other.IsInt64() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsInt64()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i / o, Nil
+}
+
+func (i Int64) Compare(other Value) (Value, Value) {
+	if !other.IsInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsInt64()
+
+	if i > o {
+		return SmallInt(1).ToValue(), Nil
+	}
+	if i < o {
+		return SmallInt(-1).ToValue(), Nil
+	}
+	return SmallInt(0).ToValue(), Nil
+}
+
+func (i Int64) GreaterThan(other Value) (Value, Value) {
+	if !other.IsInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return ToElkBool(i > o), Nil
+}
+
+func (i Int64) GreaterThanEqual(other Value) (Value, Value) {
+	if !other.IsInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return ToElkBool(i >= o), Nil
+}
+
+func (i Int64) LessThan(other Value) (Value, Value) {
+	if !other.IsInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return ToElkBool(i < o), Nil
+}
+
+func (i Int64) LessThanEqual(other Value) (Value, Value) {
+	if !other.IsInt64() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsInt64()
+	return ToElkBool(i <= o), Nil
+}
+
+func (i Int64) Equal(other Value) Value {
+	if !other.IsInt64() {
+		return False
+	}
+
+	o := other.AsInt64()
+	return ToElkBool(i == o)
+}
+
+func (i Int64) StrictEqual(other Value) Value {
+	return i.Equal(other)
+}
+
 func initInt64() {
 	Int64Class = NewClass()
 	StdModule.AddConstantString("Int64", Ref(Int64Class))

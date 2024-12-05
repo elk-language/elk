@@ -110,6 +110,174 @@ func (i UInt8) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
+func (i UInt8) Add(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i + o, Nil
+}
+
+// Perform a bitwise AND.
+func (i UInt8) BitwiseAnd(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i & o, Nil
+}
+
+// Perform a bitwise AND NOT.
+func (i UInt8) BitwiseAndNot(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i &^ o, Nil
+}
+
+// Perform a bitwise OR.
+func (i UInt8) BitwiseOr(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i | o, Nil
+}
+
+// Perform a bitwise XOR.
+func (i UInt8) BitwiseXor(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i ^ o, Nil
+}
+
+func (i UInt8) Exponentiate(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	if o <= 0 {
+		return 1, Nil
+	}
+	result := i
+	var j UInt8
+	for j = 2; j <= o; j++ {
+		result *= i
+	}
+	return result, Nil
+}
+
+func (i UInt8) Subtract(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i - o, Nil
+}
+
+func (i UInt8) Multiply(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i * o, Nil
+}
+
+func (i UInt8) Modulo(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return i % o, Nil
+}
+
+func (i UInt8) Divide(other Value) (UInt8, Value) {
+	if !other.IsUInt8() {
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt8()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i / o, Nil
+}
+
+func (i UInt8) Compare(other Value) (Value, Value) {
+	if !other.IsUInt8() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+	o := other.AsUInt8()
+
+	if i > o {
+		return SmallInt(1).ToValue(), Nil
+	}
+	if i < o {
+		return SmallInt(-1).ToValue(), Nil
+	}
+	return SmallInt(0).ToValue(), Nil
+}
+
+func (i UInt8) GreaterThan(other Value) (Value, Value) {
+	if !other.IsUInt8() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return ToElkBool(i > o), Nil
+}
+
+func (i UInt8) GreaterThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt8() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return ToElkBool(i >= o), Nil
+}
+
+func (i UInt8) LessThan(other Value) (Value, Value) {
+	if !other.IsUInt8() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return ToElkBool(i < o), Nil
+}
+
+func (i UInt8) LessThanEqual(other Value) (Value, Value) {
+	if !other.IsUInt8() {
+		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+	}
+
+	o := other.AsUInt8()
+	return ToElkBool(i <= o), Nil
+}
+
+func (i UInt8) Equal(other Value) Value {
+	if !other.IsUInt8() {
+		return False
+	}
+
+	o := other.AsUInt8()
+	return ToElkBool(i == o)
+}
+
+func (i UInt8) StrictEqual(other Value) Value {
+	return i.Equal(other)
+}
+
 func initUInt8() {
 	UInt8Class = NewClass()
 	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
