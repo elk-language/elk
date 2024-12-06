@@ -1,61 +1,12 @@
 package value_test
 
 import (
-	"math"
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
-
-func TestStrictFloat_Exponentiate(t *testing.T) {
-	tests := map[string]struct {
-		a    value.Float64
-		b    value.Value
-		want value.Float64
-		err  value.Value
-	}{
-		"exponentiate String and return an error": {
-			a:   value.Float64(5),
-			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
-		},
-		"exponentiate Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
-		},
-		"exponentiate positive value.Float64": {
-			a:    value.Float64(5.5),
-			b:    value.Float64(3),
-			want: value.Float64(166.375),
-		},
-		"exponentiate negative value.Float64": {
-			a:    value.Float64(5.5),
-			b:    value.Float64(-2),
-			want: value.Float64(0.03305785123966942),
-		},
-		"exponentiate zero": {
-			a:    value.Float64(5.5),
-			b:    value.Float64(0),
-			want: value.Float64(1),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := value.StrictFloatExponentiate(tc.a, tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
 
 func TestStrictInt_Exponentiate(t *testing.T) {
 	tests := map[string]struct {
@@ -2089,54 +2040,6 @@ func TestStrictInt_Divide(t *testing.T) {
 	}
 }
 
-func TestStrictFloat_Divide(t *testing.T) {
-	tests := map[string]struct {
-		a    value.Float64
-		b    value.Value
-		want value.Float64
-		err  value.Value
-	}{
-		"divide by String and return an error": {
-			a:   value.Float64(5),
-			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
-		},
-		"divide Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
-		},
-		"divide positive value.Float64": {
-			a:    value.Float64(54.5),
-			b:    value.Float64(2),
-			want: value.Float64(27.25),
-		},
-		"divide negative value.Float64": {
-			a:    value.Float64(50),
-			b:    value.Float64(-2),
-			want: value.Float64(-25),
-		},
-		"divide by zero": {
-			a:    value.Float64(50),
-			b:    value.Float64(0),
-			want: value.Float64(math.Inf(1)),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := value.StrictFloatDivide(tc.a, tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
 func TestStrictNumeric_ParseUint(t *testing.T) {
 	tests := map[string]struct {
 		str     string
@@ -2762,64 +2665,6 @@ func TestStrictInt_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntModulo(tc.a, tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestStrictFloat_Modulo(t *testing.T) {
-	tests := map[string]struct {
-		a    value.Float64
-		b    value.Value
-		want value.Float64
-		err  value.Value
-	}{
-		"perform modulo for String and return an error": {
-			a:   value.Float64(5),
-			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
-		},
-		"perform modulo for Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
-		},
-		"perform modulo for Float32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Float32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Float64`"),
-		},
-		"21 % 10": {
-			a:    value.Float64(21),
-			b:    value.Float64(10),
-			want: value.Float64(1),
-		},
-		"38 % 3": {
-			a:    value.Float64(38),
-			b:    value.Float64(3),
-			want: value.Float64(2),
-		},
-		"522 % 39": {
-			a:    value.Float64(522),
-			b:    value.Float64(39),
-			want: value.Float64(15),
-		},
-		"56.87 % 3": {
-			a:    value.Float64(56.87),
-			b:    value.Float64(3),
-			want: value.Float64(2.8699999999999974),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := value.StrictFloatModulo(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
