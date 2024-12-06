@@ -674,3 +674,215 @@ func TestUInt64_Equal(t *testing.T) {
 		})
 	}
 }
+
+func TestUInt64_BitwiseAnd(t *testing.T) {
+	tests := map[string]struct {
+		a    value.UInt64
+		b    value.Value
+		want value.UInt64
+		err  value.Value
+	}{
+		"perform AND for String and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+		},
+		"perform AND for Int32 and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Int32(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+		},
+		"11 & 7": {
+			a:    value.UInt64(0b1011),
+			b:    value.UInt64(0b0111).ToValue(),
+			want: value.UInt64(0b0011),
+		},
+		"124 & 23": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(23).ToValue(),
+			want: value.UInt64(20),
+		},
+		"258 & 0": {
+			a:    value.UInt64(258),
+			b:    value.UInt64(0).ToValue(),
+			want: value.UInt64(0),
+		},
+		"124 & 255": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(255).ToValue(),
+			want: value.UInt64(124),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseAnd(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestUInt64_BitwiseOr(t *testing.T) {
+	tests := map[string]struct {
+		a    value.UInt64
+		b    value.Value
+		want value.UInt64
+		err  value.Value
+	}{
+		"perform OR for String and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+		},
+		"perform OR for Int32 and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Int32(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+		},
+		"21 | 13": {
+			a:    value.UInt64(0b10101),
+			b:    value.UInt64(0b01101).ToValue(),
+			want: value.UInt64(0b11101),
+		},
+		"124 | 23": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(23).ToValue(),
+			want: value.UInt64(127),
+		},
+		"258 | 0": {
+			a:    value.UInt64(258),
+			b:    value.UInt64(0).ToValue(),
+			want: value.UInt64(258),
+		},
+		"124 | 255": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(255).ToValue(),
+			want: value.UInt64(255),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseOr(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestUInt64_BitwiseXor(t *testing.T) {
+	tests := map[string]struct {
+		a    value.UInt64
+		b    value.Value
+		want value.UInt64
+		err  value.Value
+	}{
+		"perform XOR for String and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+		},
+		"perform XOR for Int32 and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Int32(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+		},
+		"21 ^ 13": {
+			a:    value.UInt64(0b10101),
+			b:    value.UInt64(0b01101).ToValue(),
+			want: value.UInt64(0b11000),
+		},
+		"124 ^ 23": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(23).ToValue(),
+			want: value.UInt64(107),
+		},
+		"258 ^ 0": {
+			a:    value.UInt64(258),
+			b:    value.UInt64(0).ToValue(),
+			want: value.UInt64(258),
+		},
+		"124 ^ 255": {
+			a:    value.UInt64(124),
+			b:    value.UInt64(255).ToValue(),
+			want: value.UInt64(131),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseXor(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestUInt64_Modulo(t *testing.T) {
+	tests := map[string]struct {
+		a    value.UInt64
+		b    value.Value
+		want value.UInt64
+		err  value.Value
+	}{
+		"perform modulo for String and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+		},
+		"perform modulo for Int32 and return an error": {
+			a:   value.UInt64(5),
+			b:   value.Int32(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+		},
+		"21 % 10": {
+			a:    value.UInt64(21),
+			b:    value.UInt64(10).ToValue(),
+			want: value.UInt64(1),
+		},
+		"38 % 3": {
+			a:    value.UInt64(38),
+			b:    value.UInt64(3).ToValue(),
+			want: value.UInt64(2),
+		},
+		"522 % 39": {
+			a:    value.UInt64(522),
+			b:    value.UInt64(39).ToValue(),
+			want: value.UInt64(15),
+		},
+		"38 % 0": {
+			a:   value.UInt64(38),
+			b:   value.UInt64(0).ToValue(),
+			err: value.Ref(value.NewError(value.ZeroDivisionErrorClass, "cannot divide by zero")),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Modulo(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

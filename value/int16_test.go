@@ -680,3 +680,215 @@ func TestInt16_Equal(t *testing.T) {
 		})
 	}
 }
+
+func TestInt16_BitwiseAnd(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Int16
+		b    value.Value
+		want value.Int16
+		err  value.Value
+	}{
+		"perform AND for String and return an error": {
+			a:   value.Int16(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+		},
+		"perform AND for Int64 and return an error": {
+			a:   value.Int16(5),
+			b:   value.Int64(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+		},
+		"11 & 7": {
+			a:    value.Int16(0b1011),
+			b:    value.Int16(0b0111).ToValue(),
+			want: value.Int16(0b0011),
+		},
+		"-14 & 23": {
+			a:    value.Int16(-14),
+			b:    value.Int16(23).ToValue(),
+			want: value.Int16(18),
+		},
+		"258 & 0": {
+			a:    value.Int16(258),
+			b:    value.Int16(0).ToValue(),
+			want: value.Int16(0),
+		},
+		"124 & 255": {
+			a:    value.Int16(124),
+			b:    value.Int16(255).ToValue(),
+			want: value.Int16(124),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseAnd(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestInt16_BitwiseOr(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Int16
+		b    value.Value
+		want value.Int16
+		err  value.Value
+	}{
+		"perform OR for String and return an error": {
+			a:   value.Int16(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+		},
+		"perform OR for Int64 and return an error": {
+			a:   value.Int16(5),
+			b:   value.Int64(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+		},
+		"21 | 13": {
+			a:    value.Int16(0b10101),
+			b:    value.Int16(0b01101).ToValue(),
+			want: value.Int16(0b11101),
+		},
+		"-14 | 23": {
+			a:    value.Int16(-14),
+			b:    value.Int16(23).ToValue(),
+			want: value.Int16(-9),
+		},
+		"258 | 0": {
+			a:    value.Int16(258),
+			b:    value.Int16(0).ToValue(),
+			want: value.Int16(258),
+		},
+		"124 | 255": {
+			a:    value.Int16(124),
+			b:    value.Int16(255).ToValue(),
+			want: value.Int16(255),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseOr(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestInt16_BitwiseXor(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Int16
+		b    value.Value
+		want value.Int16
+		err  value.Value
+	}{
+		"perform XOR for String and return an error": {
+			a:   value.Int16(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+		},
+		"perform XOR for Int64 and return an error": {
+			a:   value.Int16(5),
+			b:   value.Int64(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+		},
+		"21 ^ 13": {
+			a:    value.Int16(0b10101),
+			b:    value.Int16(0b01101).ToValue(),
+			want: value.Int16(0b11000),
+		},
+		"-14 ^ 23": {
+			a:    value.Int16(-14),
+			b:    value.Int16(23).ToValue(),
+			want: value.Int16(-27),
+		},
+		"258 ^ 0": {
+			a:    value.Int16(258),
+			b:    value.Int16(0).ToValue(),
+			want: value.Int16(258),
+		},
+		"124 ^ 255": {
+			a:    value.Int16(124),
+			b:    value.Int16(255).ToValue(),
+			want: value.Int16(131),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseXor(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestInt16_Modulo(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Int16
+		b    value.Value
+		want value.Int16
+		err  value.Value
+	}{
+		"perform modulo for String and return an error": {
+			a:   value.Int16(5),
+			b:   value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+		},
+		"perform modulo for Int64 and return an error": {
+			a:   value.Int16(5),
+			b:   value.Int64(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+		},
+		"21 % 10": {
+			a:    value.Int16(21),
+			b:    value.Int16(10).ToValue(),
+			want: value.Int16(1),
+		},
+		"38 % 3": {
+			a:    value.Int16(38),
+			b:    value.Int16(3).ToValue(),
+			want: value.Int16(2),
+		},
+		"522 % 39": {
+			a:    value.Int16(522),
+			b:    value.Int16(39).ToValue(),
+			want: value.Int16(15),
+		},
+		"38 % 0": {
+			a:   value.Int16(38),
+			b:   value.Int16(0).ToValue(),
+			err: value.Ref(value.NewError(value.ZeroDivisionErrorClass, "cannot divide by zero")),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Modulo(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
