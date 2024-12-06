@@ -28,9 +28,9 @@ func TestArrayList_Grow(t *testing.T) {
 			capAfter: 5,
 		},
 		"grow a list with elements": {
-			l:        &value.ArrayList{value.SmallInt(2)},
+			l:        &value.ArrayList{value.SmallInt(2).ToValue()},
 			n:        5,
-			after:    &value.ArrayList{value.SmallInt(2)},
+			after:    &value.ArrayList{value.SmallInt(2).ToValue()},
 			capAfter: 6,
 		},
 	}
@@ -54,19 +54,19 @@ func TestArrayList_Concat(t *testing.T) {
 		err   value.Value
 	}{
 		"ArrayList + ArrayList => ArrayList": {
-			left:  &value.ArrayList{value.SmallInt(2)},
-			right: &value.ArrayList{value.SmallInt(3), value.String("foo")},
-			want:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
+			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
+			right: value.Ref(&value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  value.Ref(&value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
 		},
 		"ArrayList + ArrayTuple => ArrayList": {
-			left:  &value.ArrayList{value.SmallInt(2)},
-			right: &value.ArrayTuple{value.SmallInt(3), value.String("foo")},
-			want:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
+			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
+			right: value.Ref(&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  value.Ref(&value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
 		},
 		"ArrayList + Int => TypeError": {
-			left:  &value.ArrayList{value.SmallInt(2)},
-			right: value.Int8(5),
-			err:   value.NewError(value.TypeErrorClass, `cannot concat 5i8 with list [2]`),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
+			right: value.Int8(5).ToValue(),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot concat 5i8 with list [2]`)),
 		},
 	}
 
@@ -77,7 +77,7 @@ func TestArrayList_Concat(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsNil() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -95,34 +95,34 @@ func TestArrayList_Repeat(t *testing.T) {
 		err   value.Value
 	}{
 		"ArrayList * SmallInt => ArrayList": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(3),
-			want:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3), value.SmallInt(2), value.SmallInt(3), value.SmallInt(2), value.SmallInt(3)},
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(3).ToValue(),
+			want:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
 		},
 		"ArrayList * -SmallInt => OutOfRangeError": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(-3),
-			err:   value.NewError(value.OutOfRangeErrorClass, `list repeat count cannot be negative: -3`),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(-3).ToValue(),
+			err:   value.Ref(value.NewError(value.OutOfRangeErrorClass, `list repeat count cannot be negative: -3`)),
 		},
 		"ArrayList * 0 => ArrayList": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.SmallInt(0),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.SmallInt(0).ToValue(),
 			want:  &value.ArrayList{},
 		},
 		"ArrayList * BigInt => OutOfRangeError": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.NewBigInt(3),
-			err:   value.NewError(value.OutOfRangeErrorClass, `list repeat count is too large 3`),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Ref(value.NewBigInt(3)),
+			err:   value.Ref(value.NewError(value.OutOfRangeErrorClass, `list repeat count is too large 3`)),
 		},
 		"ArrayList * Int8 => TypeError": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.Int8(3),
-			err:   value.NewError(value.TypeErrorClass, `cannot repeat a list using 3i8`),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Int8(3).ToValue(),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot repeat a list using 3i8`)),
 		},
 		"ArrayList * String => TypeError": {
-			left:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3)},
-			right: value.String("bar"),
-			err:   value.NewError(value.TypeErrorClass, `cannot repeat a list using "bar"`),
+			left:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue()},
+			right: value.Ref(value.String("bar")),
+			err:   value.Ref(value.NewError(value.TypeErrorClass, `cannot repeat a list using "bar"`)),
 		},
 	}
 
@@ -150,11 +150,11 @@ func TestArrayList_Inspect(t *testing.T) {
 			want: "[]",
 		},
 		"with one element": {
-			l:    &value.ArrayList{value.SmallInt(3)},
+			l:    &value.ArrayList{value.SmallInt(3).ToValue()},
 			want: `[3]`,
 		},
 		"with elements": {
-			l:    &value.ArrayList{value.SmallInt(3), value.String("foo")},
+			l:    &value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 			want: `[3, "foo"]`,
 		},
 	}
@@ -186,14 +186,14 @@ func TestArrayList_Expand(t *testing.T) {
 			want: &value.ArrayList{},
 		},
 		"add 2 to a filled list": {
-			l:    &value.ArrayList{value.SmallInt(-3), value.Float(10.5)},
+			l:    &value.ArrayList{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 			new:  2,
-			want: &value.ArrayList{value.SmallInt(-3), value.Float(10.5), value.Nil, value.Nil},
+			want: &value.ArrayList{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue(), value.Nil, value.Nil},
 		},
 		"add 0 to a filled list": {
-			l:    &value.ArrayList{value.SmallInt(-3), value.Float(10.5)},
+			l:    &value.ArrayList{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 			new:  0,
-			want: &value.ArrayList{value.SmallInt(-3), value.Float(10.5)},
+			want: &value.ArrayList{value.SmallInt(-3).ToValue(), value.Float(10.5).ToValue()},
 		},
 	}
 
@@ -215,13 +215,13 @@ func TestArrayList_Append(t *testing.T) {
 	}{
 		"append to an empty list": {
 			l:    &value.ArrayList{},
-			val:  value.SmallInt(3),
-			want: &value.ArrayList{value.SmallInt(3)},
+			val:  value.SmallInt(3).ToValue(),
+			want: &value.ArrayList{value.SmallInt(3).ToValue()},
 		},
 		"append to a filled list": {
-			l:    &value.ArrayList{value.SmallInt(3)},
-			val:  value.String("foo"),
-			want: &value.ArrayList{value.SmallInt(3), value.String("foo")},
+			l:    &value.ArrayList{value.SmallInt(3).ToValue()},
+			val:  value.Ref(value.String("foo")),
+			want: &value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 		},
 	}
 
@@ -245,63 +245,63 @@ func TestArrayList_SubscriptSet(t *testing.T) {
 	}{
 		"set index 0 in an empty list": {
 			l:    &value.ArrayList{},
-			key:  value.SmallInt(0),
-			val:  value.SmallInt(25),
+			key:  value.SmallInt(0).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
 			want: &value.ArrayList{},
-			err: value.NewError(
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 0 out of range: 0...0",
-			),
+			)),
 		},
 		"set index 0 in a populated list": {
-			l:    &value.ArrayList{value.Nil, value.String("foo")},
-			key:  value.SmallInt(0),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.SmallInt(25), value.String("foo")},
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(0).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.SmallInt(25).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"set index -1 in a populated list": {
-			l:    &value.ArrayList{value.Nil, value.Float(89.2), value.String("foo")},
-			key:  value.SmallInt(-1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Nil, value.Float(89.2), value.SmallInt(25)},
+			l:    &value.ArrayList{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Nil, value.Float(89.2).ToValue(), value.SmallInt(25).ToValue()},
 		},
 		"set index -2 in a populated list": {
-			l:    &value.ArrayList{value.Float(89.2), value.Nil, value.String("foo")},
-			key:  value.SmallInt(-2),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Float(89.2), value.SmallInt(25), value.String("foo")},
+			l:    &value.ArrayList{value.Float(89.2).ToValue(), value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-2).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Float(89.2).ToValue(), value.SmallInt(25).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"set index in the middle of a populated list": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.SmallInt(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Nil, value.SmallInt(25), value.Float(21.37)},
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.SmallInt(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Nil, value.SmallInt(25).ToValue(), value.Float(21.37).ToValue()},
 		},
 		"set uint8 index": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.UInt8(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Nil, value.SmallInt(25), value.Float(21.37)},
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.UInt8(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Nil, value.SmallInt(25).ToValue(), value.Float(21.37).ToValue()},
 		},
 		"set string index": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.String("lol"),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			err: value.NewError(
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.Ref(value.String("lol")),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 		"set float index": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.Float(1),
-			val:  value.SmallInt(25),
-			want: &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			err: value.NewError(
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.Float(1).ToValue(),
+			val:  value.SmallInt(25).ToValue(),
+			want: &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 	}
 
@@ -327,52 +327,52 @@ func TestArrayList_Subscript(t *testing.T) {
 	}{
 		"get index 0 in an empty list": {
 			l:   &value.ArrayList{},
-			key: value.SmallInt(0),
-			err: value.NewError(
+			key: value.SmallInt(0).ToValue(),
+			err: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 0 out of range: 0...0",
-			),
+			)),
 		},
 		"get index 0 in a populated list": {
-			l:    &value.ArrayList{value.Nil, value.String("foo")},
-			key:  value.SmallInt(0),
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(0).ToValue(),
 			want: value.Nil,
 		},
 		"get index -1 in a populated list": {
-			l:    &value.ArrayList{value.Nil, value.Float(89.2), value.String("foo")},
-			key:  value.SmallInt(-1),
-			want: value.String("foo"),
+			l:    &value.ArrayList{value.Nil, value.Float(89.2).ToValue(), value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get index -2 in a populated list": {
-			l:    &value.ArrayList{value.Float(89.2), value.Nil, value.String("foo")},
-			key:  value.SmallInt(-2),
+			l:    &value.ArrayList{value.Float(89.2).ToValue(), value.Nil, value.Ref(value.String("foo"))},
+			key:  value.SmallInt(-2).ToValue(),
 			want: value.Nil,
 		},
 		"get index in the middle of a populated list": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.SmallInt(1),
-			want: value.String("foo"),
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.SmallInt(1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get uint8 index": {
-			l:    &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key:  value.UInt8(1),
-			want: value.String("foo"),
+			l:    &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key:  value.UInt8(1).ToValue(),
+			want: value.Ref(value.String("foo")),
 		},
 		"get string index": {
-			l:   &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key: value.String("lol"),
-			err: value.NewError(
+			l:   &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key: value.Ref(value.String("lol")),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::String` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 		"get float index": {
-			l:   &value.ArrayList{value.Nil, value.String("foo"), value.Float(21.37)},
-			key: value.Float(1),
-			err: value.NewError(
+			l:   &value.ArrayList{value.Nil, value.Ref(value.String("foo")), value.Float(21.37).ToValue()},
+			key: value.Float(1).ToValue(),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Int`",
-			),
+			)),
 		},
 	}
 
@@ -382,7 +382,7 @@ func TestArrayList_Subscript(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !tc.err.IsNil() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
@@ -402,16 +402,16 @@ func TestArrayList_Length(t *testing.T) {
 			want: 0,
 		},
 		"one element": {
-			l:    &value.ArrayList{value.SmallInt(3)},
+			l:    &value.ArrayList{value.SmallInt(3).ToValue()},
 			want: 1,
 		},
 		"5 elements": {
 			l: &value.ArrayList{
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 				value.Nil,
-				value.Float(4.5),
-				value.String("bar"),
-				value.String("foo"),
+				value.Float(4.5).ToValue(),
+				value.Ref(value.String("bar")),
+				value.Ref(value.String("foo")),
 			},
 			want: 5,
 		},
@@ -441,14 +441,14 @@ func TestArrayListIterator_Inspect(t *testing.T) {
 		},
 		"with one element": {
 			l: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3)},
+				&value.ArrayList{value.SmallInt(3).ToValue()},
 				0,
 			),
 			want: `Std::ArrayList::Iterator{list: [3], index: 0}`,
 		},
 		"with elements": {
 			l: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.String("foo")},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 				1,
 			),
 			want: `Std::ArrayList::Iterator{list: [3, "foo"], index: 1}`,
@@ -481,36 +481,36 @@ func TestArrayListIterator_Next(t *testing.T) {
 				&value.ArrayList{},
 				0,
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 		"with two elements index 0": {
 			l: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				0,
 			),
 			after: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
-			want: value.SmallInt(3),
+			want: value.SmallInt(3).ToValue(),
 		},
 		"with two elements index 1": {
 			l: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
 			after: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
-			want: value.Float(7.2),
+			want: value.Float(7.2).ToValue(),
 		},
 		"with two elements index 2": {
 			l: value.NewArrayListIteratorWithIndex(
-				&value.ArrayList{value.SmallInt(3), value.Float(7.2)},
+				&value.ArrayList{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 	}
 
@@ -520,7 +520,7 @@ func TestArrayListIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !tc.err.IsNil() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {
