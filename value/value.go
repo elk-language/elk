@@ -366,6 +366,31 @@ func (v Value) AsReference() Reference {
 	return *(*Reference)(unsafe.Pointer(&v))
 }
 
+func (v Value) MustReference() Reference {
+	if !v.IsReference() {
+		panic(fmt.Sprintf("value `%s` is not a reference", v.Inspect()))
+	}
+	return v.AsReference()
+}
+
+func RefErr(ref Reference, err Value) (Value, Value) {
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return Ref(ref), Nil
+}
+
+type ToValuer interface {
+	ToValue() Value
+}
+
+func ToValueErr[T ToValuer](t T, err Value) (Value, Value) {
+	if !err.IsNil() {
+		return Nil, err
+	}
+	return t.ToValue(), Nil
+}
+
 func (v Value) IsInlineValue() bool {
 	return uintptr(v.data) < INLINE_VALUE_FLAG
 }
@@ -378,12 +403,26 @@ func (v Value) AsSmallInt() SmallInt {
 	return *(*SmallInt)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustSmallInt() SmallInt {
+	if !v.IsSmallInt() {
+		panic(fmt.Sprintf("value `%s` is not a SmallInt", v.Inspect()))
+	}
+	return v.AsSmallInt()
+}
+
 func (v Value) IsChar() bool {
 	return uintptr(v.data) == CHAR_FLAG
 }
 
 func (v Value) AsChar() Char {
 	return *(*Char)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustChar() Char {
+	if !v.IsChar() {
+		panic(fmt.Sprintf("value `%s` is not a Char", v.Inspect()))
+	}
+	return v.AsChar()
 }
 
 func (v Value) IsFloat() bool {
@@ -394,12 +433,26 @@ func (v Value) AsFloat() Float {
 	return *(*Float)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustFloat() Float {
+	if !v.IsFloat() {
+		panic(fmt.Sprintf("value `%s` is not a Float", v.Inspect()))
+	}
+	return v.AsFloat()
+}
+
 func (v Value) IsFloat32() bool {
 	return uintptr(v.data) == FLOAT32_FLAG
 }
 
 func (v Value) AsFloat32() Float32 {
 	return *(*Float32)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustFloat32() Float32 {
+	if !v.IsFloat32() {
+		panic(fmt.Sprintf("value `%s` is not a Float32", v.Inspect()))
+	}
+	return v.AsFloat32()
 }
 
 func (v Value) IsFloat64() bool {
@@ -410,12 +463,26 @@ func (v Value) AsFloat64() Float64 {
 	return *(*Float64)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustFloat64() Float64 {
+	if !v.IsFloat64() {
+		panic(fmt.Sprintf("value `%s` is not a Float64", v.Inspect()))
+	}
+	return v.AsFloat64()
+}
+
 func (v Value) IsInt8() bool {
 	return uintptr(v.data) == INT8_FLAG
 }
 
 func (v Value) AsInt8() Int8 {
 	return *(*Int8)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustInt8() Int8 {
+	if !v.IsInt8() {
+		panic(fmt.Sprintf("value `%s` is not an Int8", v.Inspect()))
+	}
+	return v.AsInt8()
 }
 
 func (v Value) IsUInt8() bool {
@@ -426,12 +493,26 @@ func (v Value) AsUInt8() UInt8 {
 	return *(*UInt8)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustUInt8() UInt8 {
+	if !v.IsUInt8() {
+		panic(fmt.Sprintf("value `%s` is not a UInt8", v.Inspect()))
+	}
+	return v.AsUInt8()
+}
+
 func (v Value) IsInt16() bool {
 	return uintptr(v.data) == INT16_FLAG
 }
 
 func (v Value) AsInt16() Int16 {
 	return *(*Int16)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustInt16() Int16 {
+	if !v.IsInt16() {
+		panic(fmt.Sprintf("value `%s` is not an Int16", v.Inspect()))
+	}
+	return v.AsInt16()
 }
 
 func (v Value) IsUInt16() bool {
@@ -442,12 +523,26 @@ func (v Value) AsUInt16() UInt16 {
 	return *(*UInt16)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustUInt16() UInt16 {
+	if !v.IsUInt16() {
+		panic(fmt.Sprintf("value `%s` is not a UInt16", v.Inspect()))
+	}
+	return v.AsUInt16()
+}
+
 func (v Value) IsInt32() bool {
 	return uintptr(v.data) == INT32_FLAG
 }
 
 func (v Value) AsInt32() Int32 {
 	return *(*Int32)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustInt32() Int32 {
+	if !v.IsInt32() {
+		panic(fmt.Sprintf("value `%s` is not an Int32", v.Inspect()))
+	}
+	return v.AsInt32()
 }
 
 func (v Value) IsUInt32() bool {
@@ -458,12 +553,26 @@ func (v Value) AsUInt32() UInt32 {
 	return *(*UInt32)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustUInt32() UInt32 {
+	if !v.IsUInt32() {
+		panic(fmt.Sprintf("value `%s` is not a UInt32", v.Inspect()))
+	}
+	return v.AsUInt32()
+}
+
 func (v Value) IsInt64() bool {
 	return uintptr(v.data) == INT64_FLAG
 }
 
 func (v Value) AsInt64() Int64 {
 	return *(*Int64)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustInt64() Int64 {
+	if !v.IsInt64() {
+		panic(fmt.Sprintf("value `%s` is not an Int64", v.Inspect()))
+	}
+	return v.AsInt64()
 }
 
 func (v Value) IsUInt64() bool {
@@ -474,12 +583,26 @@ func (v Value) AsUInt64() UInt64 {
 	return *(*UInt64)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustUInt64() UInt64 {
+	if !v.IsUInt64() {
+		panic(fmt.Sprintf("value `%s` is not a UInt64", v.Inspect()))
+	}
+	return v.AsUInt64()
+}
+
 func (v Value) IsDuration() bool {
 	return uintptr(v.data) == DURATION_FLAG
 }
 
 func (v Value) AsDuration() Duration {
 	return *(*Duration)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustDuration() Duration {
+	if !v.IsDuration() {
+		panic(fmt.Sprintf("value `%s` is not a Duration", v.Inspect()))
+	}
+	return v.AsDuration()
 }
 
 func (v Value) IsTrue() bool {
@@ -490,12 +613,26 @@ func (v Value) AsTrue() TrueType {
 	return *(*TrueType)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustTrue() TrueType {
+	if !v.IsTrue() {
+		panic(fmt.Sprintf("value `%s` is not True", v.Inspect()))
+	}
+	return v.AsTrue()
+}
+
 func (v Value) IsSymbol() bool {
 	return uintptr(v.data) == SYMBOL_FLAG
 }
 
 func (v Value) AsSymbol() Symbol {
 	return *(*Symbol)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustSymbol() Symbol {
+	if !v.IsSymbol() {
+		panic(fmt.Sprintf("value `%s` is not a Symbol", v.Inspect()))
+	}
+	return v.AsSymbol()
 }
 
 func (v Value) IsFalse() bool {
@@ -506,6 +643,13 @@ func (v Value) AsFalse() FalseType {
 	return *(*FalseType)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustFalse() FalseType {
+	if !v.IsFalse() {
+		panic(fmt.Sprintf("value `%s` is not False", v.Inspect()))
+	}
+	return v.AsFalse()
+}
+
 func (v Value) IsNil() bool {
 	return uintptr(v.data) == NIL_FLAG
 }
@@ -514,12 +658,26 @@ func (v Value) AsNil() NilType {
 	return *(*NilType)(unsafe.Pointer(&v.tab))
 }
 
+func (v Value) MustNil() NilType {
+	if !v.IsNil() {
+		panic(fmt.Sprintf("value `%s` is not Nil", v.Inspect()))
+	}
+	return v.AsNil()
+}
+
 func (v Value) IsUndefined() bool {
 	return uintptr(v.data) == UNDEFINED_FLAG
 }
 
 func (v Value) AsUndefined() UndefinedType {
 	return *(*UndefinedType)(unsafe.Pointer(&v.tab))
+}
+
+func (v Value) MustUndefined() UndefinedType {
+	if !v.IsUndefined() {
+		panic(fmt.Sprintf("value `%s` is not Undefined", v.Inspect()))
+	}
+	return v.AsUndefined()
 }
 
 // BENCHMARK: self-implemented tagged union

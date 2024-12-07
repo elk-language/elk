@@ -37,7 +37,7 @@ func (*Closure) SingletonClass() *value.Class {
 	return nil
 }
 
-func (c *Closure) Copy() value.Value {
+func (c *Closure) Copy() value.Reference {
 	return c
 }
 

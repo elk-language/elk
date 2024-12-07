@@ -11,25 +11,25 @@ func initChar() {
 		c,
 		"++",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return self + 1, nil
+			self := args[0].MustChar()
+			return (self + 1).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"--",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return self - 1, nil
+			self := args[0].MustChar()
+			return (self - 1).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
-			return self.Concat(other)
+			return value.RefErr(self.Concat(other))
 		},
 		DefWithParameters(1),
 	)
@@ -39,9 +39,9 @@ func initChar() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
-			return self.Repeat(other)
+			return value.RefErr(self.Repeat(other))
 		},
 		DefWithParameters(1),
 	)
@@ -51,7 +51,7 @@ func initChar() {
 		c,
 		"<=>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
 			return self.Compare(other)
 		},
@@ -61,7 +61,7 @@ func initChar() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
 			return self.LessThanEqual(other)
 		},
@@ -71,7 +71,7 @@ func initChar() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
 			return self.LessThan(other)
 		},
@@ -81,7 +81,7 @@ func initChar() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
 			return self.GreaterThan(other)
 		},
@@ -91,7 +91,7 @@ func initChar() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
 			return self.GreaterThanEqual(other)
 		},
@@ -101,9 +101,9 @@ func initChar() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
+			self := args[0].MustChar()
 			other := args[1]
-			return self.Equal(other), nil
+			return self.Equal(other), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -112,16 +112,16 @@ func initChar() {
 		c,
 		"uppercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return self.Uppercase(), nil
+			self := args[0].MustChar()
+			return self.Uppercase().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"lowercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return self.Lowercase(), nil
+			self := args[0].MustChar()
+			return self.Lowercase().ToValue(), value.Nil
 		},
 	)
 
@@ -129,8 +129,8 @@ func initChar() {
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.SmallInt(self.CharCount()), nil
+			self := args[0].MustChar()
+			return value.SmallInt(self.CharCount()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "char_count", "length")
@@ -139,47 +139,47 @@ func initChar() {
 		c,
 		"byte_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.SmallInt(self.ByteCount()), nil
+			self := args[0].MustChar()
+			return value.SmallInt(self.ByteCount()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"grapheme_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.SmallInt(self.GraphemeCount()), nil
+			self := args[0].MustChar()
+			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.String(string(self)), nil
+			self := args[0].MustChar()
+			return value.Ref(value.String(string(self))), value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.ToSymbol(string(self)), nil
+			self := args[0].MustChar()
+			return value.ToSymbol(string(self)).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Char)
-			return value.String(self.Inspect()), nil
+			self := args[0].MustChar()
+			return value.Ref(value.String(self.Inspect())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_empty",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, nil
+			return value.False, value.Nil
 		},
 	)
 

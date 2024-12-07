@@ -13,20 +13,20 @@ func initClass() {
 		c,
 		"superclass",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Class)
+			self := args[0].MustReference().(*value.Class)
 			superclass := self.Superclass()
 			if superclass == nil {
-				return value.Nil, nil
+				return value.Nil, value.Nil
 			}
-			return self.Superclass(), nil
+			return value.Ref(superclass), value.Nil
 		},
 	)
 	Def(
 		c,
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Class)
-			return value.String(self.Name), nil
+			self := args[0].MustReference().(*value.Class)
+			return value.Ref(value.String(self.Name)), value.Nil
 		},
 	)
 }

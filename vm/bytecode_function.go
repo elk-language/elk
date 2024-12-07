@@ -279,23 +279,40 @@ func (f *BytecodeFunction) AppendUint32(n uint32) {
 // Size of an integer.
 type IntSize uint8
 
-// Add a constant to the constant pool.
+// Add a value to the value pool.
 // Returns the index of the constant.
 func (f *BytecodeFunction) AddValue(obj value.Value) (int, IntSize) {
 	var id int
-	switch obj.(type) {
-	case value.String, value.Symbol, value.SmallInt, value.Int64, value.Int32, value.Int16,
-		value.Int8, value.UInt64, value.UInt32, value.UInt16, value.UInt8,
-		value.Float, value.Float32, value.Float64:
-		if i := slices.Index(f.Values, obj); i != -1 {
-			id = i
-			break
+	if obj.IsReference() {
+		switch obj.AsReference().(type) {
+		case value.String, value.Int64,
+			value.UInt64, value.Float64:
+			if i := slices.Index(f.Values, obj); i != -1 {
+				id = i
+				break
+			}
+			id = len(f.Values)
+			f.Values = append(f.Values, obj)
+		default:
+			id = len(f.Values)
+			f.Values = append(f.Values, obj)
 		}
-		id = len(f.Values)
-		f.Values = append(f.Values, obj)
-	default:
-		id = len(f.Values)
-		f.Values = append(f.Values, obj)
+	} else {
+		switch obj.ValueFlag() {
+		case value.SYMBOL_FLAG, value.SMALL_INT_FLAG,
+			value.INT64_FLAG, value.INT32_FLAG, value.INT16_FLAG, value.INT8_FLAG,
+			value.UINT64_FLAG, value.UINT32_FLAG, value.UINT16_FLAG, value.UINT8_FLAG,
+			value.FLOAT_FLAG, value.FLOAT32_FLAG, value.FLOAT64_FLAG:
+			if i := slices.Index(f.Values, obj); i != -1 {
+				id = i
+				break
+			}
+			id = len(f.Values)
+			f.Values = append(f.Values, obj)
+		default:
+			id = len(f.Values)
+			f.Values = append(f.Values, obj)
+		}
 	}
 
 	if id <= math.MaxUint8 {
@@ -366,7 +383,7 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 	}
 
 	for _, constant := range f.Values {
-		fn, ok := constant.(*BytecodeFunction)
+		fn, ok := constant.SafeAsReference().(*BytecodeFunction)
 		if !ok {
 			continue
 		}

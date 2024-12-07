@@ -12,8 +12,8 @@ func initDuration() {
 		c,
 		"parse",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			str := args[1].(value.String)
-			return value.ParseDuration(str)
+			str := args[1].AsReference().(value.String)
+			return value.ToValueErr(value.ParseDuration(str))
 		},
 		DefWithParameters(1),
 	)
@@ -24,9 +24,9 @@ func initDuration() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			dur := args[1].(value.Duration)
-			return self.Add(dur), nil
+			self := args[0].MustDuration()
+			dur := args[1].MustDuration()
+			return self.Add(dur).ToValue(), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -34,9 +34,9 @@ func initDuration() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			dur := args[1].(value.Duration)
-			return self.Subtract(dur), nil
+			self := args[0].MustDuration()
+			dur := args[1].MustDuration()
+			return self.Subtract(dur).ToValue(), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -44,9 +44,9 @@ func initDuration() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
+			self := args[0].MustDuration()
 			other := args[1]
-			return self.Multiply(other)
+			return value.ToValueErr(self.Multiply(other))
 		},
 		DefWithParameters(1),
 	)
@@ -54,9 +54,9 @@ func initDuration() {
 		c,
 		"/",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
+			self := args[0].MustDuration()
 			other := args[1]
-			return self.Divide(other)
+			return value.ToValueErr(self.Divide(other))
 		},
 		DefWithParameters(1),
 	)
@@ -64,152 +64,152 @@ func initDuration() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.ToString(), nil
+			self := args[0].MustDuration()
+			return value.Ref(self.ToString()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Nanoseconds(), nil
+			self := args[0].MustDuration()
+			return self.Nanoseconds(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InNanoseconds(), nil
+			self := args[0].MustDuration()
+			return self.InNanoseconds().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Microseconds(), nil
+			self := args[0].MustDuration()
+			return self.Microseconds(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InMicroseconds(), nil
+			self := args[0].MustDuration()
+			return self.InMicroseconds().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Milliseconds(), nil
+			self := args[0].MustDuration()
+			return self.Milliseconds(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InMilliseconds(), nil
+			self := args[0].MustDuration()
+			return self.InMilliseconds().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Seconds(), nil
+			self := args[0].MustDuration()
+			return self.Seconds(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InSeconds(), nil
+			self := args[0].MustDuration()
+			return self.InSeconds().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Minutes(), nil
+			self := args[0].MustDuration()
+			return self.Minutes(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InMinutes(), nil
+			self := args[0].MustDuration()
+			return self.InMinutes().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Hours(), nil
+			self := args[0].MustDuration()
+			return self.Hours(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InHours(), nil
+			self := args[0].MustDuration()
+			return self.InHours().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Days(), nil
+			self := args[0].MustDuration()
+			return self.Days(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InDays(), nil
+			self := args[0].MustDuration()
+			return self.InDays().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Weeks(), nil
+			self := args[0].MustDuration()
+			return self.Weeks(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InWeeks(), nil
+			self := args[0].MustDuration()
+			return self.InWeeks().ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.Years(), nil
+			self := args[0].MustDuration()
+			return self.Years(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"in_years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Duration)
-			return self.InYears(), nil
+			self := args[0].MustDuration()
+			return self.InYears().ToValue(), value.Nil
 		},
 	)
 }

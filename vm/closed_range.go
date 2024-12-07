@@ -12,25 +12,25 @@ func initClosedRange() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
+			self := args[0].MustReference().(*value.ClosedRange)
 			iterator := value.NewClosedRangeIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Nil
 		},
 	)
 	Def(
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
-			other, ok := args[1].(*value.ClosedRange)
+			self := args[0].MustReference().(*value.ClosedRange)
+			other, ok := args[1].MustReference().(*value.ClosedRange)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			equal, err := ClosedRangeEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -41,16 +41,16 @@ func initClosedRange() {
 		c,
 		"#contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
+			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) && !value.IsA(other, self.End.Class()) {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			contains, err := ClosedRangeContains(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -58,13 +58,13 @@ func initClosedRange() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
+			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			contains, err := ClosedRangeContains(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -72,44 +72,44 @@ func initClosedRange() {
 		c,
 		"is_left_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, nil
+			return value.True, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, nil
+			return value.False, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, nil
+			return value.True, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, nil
+			return value.False, value.Nil
 		},
 	)
 	Def(
 		c,
 		"start",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
-			return self.Start, nil
+			self := args[0].MustReference().(*value.ClosedRange)
+			return self.Start, value.Nil
 		},
 	)
 	Def(
 		c,
 		"end",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRange)
-			return self.End, nil
+			self := args[0].MustReference().(*value.ClosedRange)
+			return self.End, value.Nil
 		},
 	)
 }
@@ -122,7 +122,7 @@ func initClosedRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ClosedRangeIterator)
+			self := args[0].MustReference().(*value.ClosedRangeIterator)
 			return ClosedRangeIteratorNext(vm, self)
 		},
 	)
@@ -130,7 +130,7 @@ func initClosedRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 
@@ -139,60 +139,60 @@ func initClosedRangeIterator() {
 // Checks whether a value is contained in the closed range
 func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThanEqual(vm, val, r.Start)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
 	if value.Falsy(eqVal) {
-		return false, nil
+		return false, value.Nil
 	}
 
 	eqVal, err = LessThanEqual(vm, val, r.End)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), nil
+	return value.Truthy(eqVal), value.Nil
 }
 
 // Checks whether two closed ranges are equal
 func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
 	if value.Falsy(eqVal) {
-		return false, nil
+		return false, value.Nil
 	}
 
 	eqVal, err = Equal(vm, x.End, y.End)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), nil
+	return value.Truthy(eqVal), value.Nil
 }
 
 // Get the next element of the range
 func ClosedRangeIteratorNext(vm *VM, i *value.ClosedRangeIterator) (value.Value, value.Value) {
 	greater, err := GreaterThan(vm, i.CurrentElement, i.Range.End)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
 
 	if value.Truthy(greater) {
-		return nil, stopIterationSymbol
+		return value.Nil, value.ToSymbol("stop_iteration").ToValue()
 	}
 
 	current := i.CurrentElement
 
 	// i.CurrentElement++
 	next, err := Increment(vm, i.CurrentElement)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
 	i.CurrentElement = next
 
-	return current, nil
+	return current, value.Nil
 }
