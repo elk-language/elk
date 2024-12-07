@@ -77,7 +77,7 @@ func TestArrayList_Concat(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -382,7 +382,7 @@ func TestArrayList_Subscript(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
@@ -520,7 +520,7 @@ func TestArrayListIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {

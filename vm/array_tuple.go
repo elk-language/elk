@@ -14,7 +14,7 @@ func initArrayTuple() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			iterator := value.NewArrayTupleIterator(self)
-			return value.Ref(iterator), value.Nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 	Def(
@@ -22,7 +22,7 @@ func initArrayTuple() {
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
-			return value.SmallInt(self.Length()).ToValue(), value.Nil
+			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -61,10 +61,10 @@ func initArrayTuple() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			contains, err := ArrayTupleContains(vm, self, args[1])
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -76,18 +76,18 @@ func initArrayTuple() {
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
 				equal, err := ArrayTupleEqual(vm, self, (*value.ArrayTuple)(other))
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Nil
+				return value.ToElkBool(equal), value.Undefined
 			case *value.ArrayTuple:
 				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Nil
+				return value.ToElkBool(equal), value.Undefined
 			default:
-				return value.False, value.Nil
+				return value.False, value.Undefined
 			}
 		},
 		DefWithParameters(1),
@@ -100,12 +100,12 @@ func initArrayTuple() {
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayTuple:
 				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Nil
+				return value.ToElkBool(equal), value.Undefined
 			default:
-				return value.False, value.Nil
+				return value.False, value.Undefined
 			}
 		},
 		DefWithParameters(1),
@@ -124,24 +124,24 @@ func initArrayTuple() {
 				for i := range self.Length() {
 					element := self.At(i)
 					result, err := vm.CallClosure(function, element)
-					if !err.IsNil() {
-						return value.Nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 					newTuple.SetAt(i, result)
 				}
-				return value.Ref(newTuple), value.Nil
+				return value.Ref(newTuple), value.Undefined
 			}
 
 			// callable is another value
 			for i := range self.Length() {
 				element := self.At(i)
 				result, err := vm.CallMethodByName(callSymbol, callable, element)
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 				newTuple.SetAt(i, result)
 			}
-			return value.Ref(newTuple), value.Nil
+			return value.Ref(newTuple), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -164,7 +164,7 @@ func initArrayTupleIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 

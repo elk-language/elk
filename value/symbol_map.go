@@ -79,10 +79,10 @@ func (s SymbolMap) Set(key Symbol, val Value) {
 }
 
 // Get a value stored using the given key.
-func (s SymbolMap) GetString(key string) Value {
+func (s SymbolMap) GetString(key string) (val Value) {
 	symbol, ok := SymbolTable.Get(key)
 	if !ok {
-		return Nil
+		return val
 	}
 
 	return s[symbol]
@@ -90,11 +90,7 @@ func (s SymbolMap) GetString(key string) Value {
 
 // Check if the given key exists.
 func (s SymbolMap) HasString(key string) bool {
-	if s.GetString(key).IsNil() {
-		return false
-	}
-
-	return true
+	return !s.GetString(key).IsUndefined()
 }
 
 func (s SymbolMap) DeleteString(key string) {

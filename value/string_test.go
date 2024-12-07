@@ -124,7 +124,7 @@ func TestString_GraphemeAt(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -235,7 +235,7 @@ func TestString_Subscript(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -336,7 +336,7 @@ func TestString_ByteAt(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -2118,7 +2118,7 @@ func TestStringCharIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {
@@ -2232,7 +2232,7 @@ func TestStringByteIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {

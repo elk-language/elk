@@ -99,7 +99,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.Equal(other), value.Nil
+			return self.Equal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -139,7 +139,7 @@ func initString() {
 		"uppercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.Ref(value.String(self.Uppercase())), value.Nil
+			return value.Ref(value.String(self.Uppercase())), value.Undefined
 		},
 	)
 	Def(
@@ -147,7 +147,7 @@ func initString() {
 		"lowercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.Ref(value.String(self.Lowercase())), value.Nil
+			return value.Ref(value.String(self.Lowercase())), value.Undefined
 		},
 	)
 
@@ -156,7 +156,7 @@ func initString() {
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.SmallInt(self.CharCount()).ToValue(), value.Nil
+			return value.SmallInt(self.CharCount()).ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "char_count", "length")
@@ -165,7 +165,7 @@ func initString() {
 		"byte_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.SmallInt(self.ByteCount()).ToValue(), value.Nil
+			return value.SmallInt(self.ByteCount()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -173,7 +173,7 @@ func initString() {
 		"grapheme_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Nil
+			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -181,14 +181,14 @@ func initString() {
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.ToSymbol(self).ToValue(), value.Nil
+			return value.ToSymbol(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 	Def(
@@ -204,7 +204,7 @@ func initString() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.Ref(value.String(self.Inspect())), value.Nil
+			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
 	Def(
@@ -212,7 +212,7 @@ func initString() {
 		"is_empty",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.ToElkBool(self.IsEmpty()), value.Nil
+			return value.ToElkBool(self.IsEmpty()), value.Undefined
 		},
 	)
 	Def(
@@ -221,7 +221,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
 			iterator := value.NewStringCharIterator(self)
-			return value.Ref(iterator), value.Nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 	Alias(c, "char_iter", "iter")
@@ -231,7 +231,7 @@ func initString() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
 			iterator := value.NewStringByteIterator(self)
-			return value.Ref(iterator), value.Nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 
@@ -253,7 +253,7 @@ func initStringCharIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 
@@ -275,7 +275,7 @@ func initStringByteIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 

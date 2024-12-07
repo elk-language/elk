@@ -141,7 +141,7 @@ func (r *Regex) WriteSourceTo(w io.StringWriter) {
 // Create a new regex concatenating r with other
 func (r *Regex) Concat(other Value) (Value, Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 
 	switch o := other.AsReference().(type) {
@@ -151,18 +151,18 @@ func (r *Regex) Concat(other Value) (Value, Value) {
 		o.WriteSourceTo(&buff)
 		re, err := CompileRegex(buff.String(), bitfield.BitField8{})
 		if err != nil {
-			return Nil, Ref(NewError(RegexCompileErrorClass, err.Error()))
+			return Undefined, Ref(NewError(RegexCompileErrorClass, err.Error()))
 		}
-		return Ref(re), Nil
+		return Ref(re), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 
 // Repeat the content of this Regex n times and return a new Regex.
 func (r *Regex) Repeat(other Value) (Value, Value) {
 	if other.IsReference() {
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 
 	switch other.ValueFlag() {
@@ -176,24 +176,24 @@ func (r *Regex) Repeat(other Value) (Value, Value) {
 		buff.WriteRune('}')
 		re, err := CompileRegex(buff.String(), r.Flags)
 		if err != nil {
-			return Nil, Ref(NewError(RegexCompileErrorClass, err.Error()))
+			return Undefined, Ref(NewError(RegexCompileErrorClass, err.Error()))
 		}
-		return Ref(re), Nil
+		return Ref(re), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 
 // Check whether the regex matches the given string
 func (r *Regex) Matches(other Value) (Value, Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case String:
-		return ToElkBool(r.Re.MatchString(string(o))), Nil
+		return ToElkBool(r.Re.MatchString(string(o))), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(r.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
 }
 

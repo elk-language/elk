@@ -11,7 +11,7 @@ func initFloat() {
 		c,
 		"+@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 	Def(
@@ -19,7 +19,7 @@ func initFloat() {
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return (-self).ToValue(), value.Nil
+			return (-self).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -128,7 +128,7 @@ func initFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
 			other := args[1]
-			return self.Equal(other), value.Nil
+			return self.Equal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -148,7 +148,7 @@ func initFloat() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return value.Ref(value.String(self.Inspect())), value.Nil
+			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
 	Alias(c, "to_string", "inspect")
@@ -158,7 +158,7 @@ func initFloat() {
 		"to_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return self, value.Nil
+			return self, value.Undefined
 		},
 	)
 	Def(
@@ -166,7 +166,7 @@ func initFloat() {
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToInt(), value.Nil
+			return self.ToInt(), value.Undefined
 		},
 	)
 	Def(
@@ -174,7 +174,7 @@ func initFloat() {
 		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToFloat64().ToValue(), value.Nil
+			return self.ToFloat64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -182,7 +182,7 @@ func initFloat() {
 		"to_float32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToFloat32().ToValue(), value.Nil
+			return self.ToFloat32().ToValue(), value.Undefined
 		},
 	)
 
@@ -191,7 +191,7 @@ func initFloat() {
 		"to_int64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToInt64().ToValue(), value.Nil
+			return self.ToInt64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -199,7 +199,7 @@ func initFloat() {
 		"to_int32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToInt32().ToValue(), value.Nil
+			return self.ToInt32().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -207,7 +207,7 @@ func initFloat() {
 		"to_int16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToInt16().ToValue(), value.Nil
+			return self.ToInt16().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -215,7 +215,7 @@ func initFloat() {
 		"to_int8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToInt8().ToValue(), value.Nil
+			return self.ToInt8().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -223,7 +223,7 @@ func initFloat() {
 		"to_uint64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToUInt64().ToValue(), value.Nil
+			return self.ToUInt64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -231,7 +231,7 @@ func initFloat() {
 		"to_uint32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToUInt32().ToValue(), value.Nil
+			return self.ToUInt32().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -239,7 +239,7 @@ func initFloat() {
 		"to_uint16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToUInt16().ToValue(), value.Nil
+			return self.ToUInt16().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -247,7 +247,7 @@ func initFloat() {
 		"to_uint8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.ToUInt8().ToValue(), value.Nil
+			return self.ToUInt8().ToValue(), value.Undefined
 		},
 	)
 
@@ -256,7 +256,7 @@ func initFloat() {
 		"nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Nanoseconds().ToValue(), value.Nil
+			return self.Nanoseconds().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "nanosecond", "nanoseconds")
@@ -266,7 +266,7 @@ func initFloat() {
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Microseconds().ToValue(), value.Nil
+			return self.Microseconds().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "microsecond", "microseconds")
@@ -276,7 +276,7 @@ func initFloat() {
 		"milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Milliseconds().ToValue(), value.Nil
+			return self.Milliseconds().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "millisecond", "milliseconds")
@@ -286,7 +286,7 @@ func initFloat() {
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Seconds().ToValue(), value.Nil
+			return self.Seconds().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "second", "seconds")
@@ -296,7 +296,7 @@ func initFloat() {
 		"minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Minutes().ToValue(), value.Nil
+			return self.Minutes().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "minute", "minutes")
@@ -306,7 +306,7 @@ func initFloat() {
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Hours().ToValue(), value.Nil
+			return self.Hours().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "hour", "hours")
@@ -316,7 +316,7 @@ func initFloat() {
 		"days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Days().ToValue(), value.Nil
+			return self.Days().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "day", "days")
@@ -326,7 +326,7 @@ func initFloat() {
 		"weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Weeks().ToValue(), value.Nil
+			return self.Weeks().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "week", "weeks")
@@ -336,7 +336,7 @@ func initFloat() {
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Years().ToValue(), value.Nil
+			return self.Years().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "year", "years")

@@ -100,7 +100,7 @@ func (f Float32) Add(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return f + o, Nil
+	return f + o, Undefined
 }
 
 // Exponentiate by the right value.
@@ -110,7 +110,7 @@ func (f Float32) Exponentiate(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Pow(float64(f), float64(o))), Nil
+	return Float32(math.Pow(float64(f), float64(o))), Undefined
 }
 
 func (f Float32) Subtract(other Value) (Float32, Value) {
@@ -119,7 +119,7 @@ func (f Float32) Subtract(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return f - o, Nil
+	return f - o, Undefined
 }
 
 func (f Float32) Multiply(other Value) (Float32, Value) {
@@ -128,7 +128,7 @@ func (f Float32) Multiply(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return f * o, Nil
+	return f * o, Undefined
 }
 
 func (f Float32) Modulo(other Value) (Float32, Value) {
@@ -137,7 +137,7 @@ func (f Float32) Modulo(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Mod(float64(f), float64(o))), Nil
+	return Float32(math.Mod(float64(f), float64(o))), Undefined
 }
 
 func (f Float32) Divide(other Value) (Float32, Value) {
@@ -146,62 +146,62 @@ func (f Float32) Divide(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return f / o, Nil
+	return f / o, Undefined
 }
 
 func (f Float32) Compare(other Value) (Value, Value) {
 	if !other.IsFloat32() {
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
 	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
-		return Nil, Nil
+		return Nil, Undefined
 	}
 
 	if f > o {
-		return SmallInt(1).ToValue(), Nil
+		return SmallInt(1).ToValue(), Undefined
 	}
 	if f < o {
-		return SmallInt(-1).ToValue(), Nil
+		return SmallInt(-1).ToValue(), Undefined
 	}
-	return SmallInt(0).ToValue(), Nil
+	return SmallInt(0).ToValue(), Undefined
 }
 
 func (f Float32) GreaterThan(other Value) (Value, Value) {
 	if !other.IsFloat32() {
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f > o), Nil
+	return ToElkBool(f > o), Undefined
 }
 
 func (f Float32) GreaterThanEqual(other Value) (Value, Value) {
 	if !other.IsFloat32() {
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f >= o), Nil
+	return ToElkBool(f >= o), Undefined
 }
 
 func (f Float32) LessThan(other Value) (Value, Value) {
 	if !other.IsFloat32() {
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f < o), Nil
+	return ToElkBool(f < o), Undefined
 }
 
 func (f Float32) LessThanEqual(other Value) (Value, Value) {
 	if !other.IsFloat32() {
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f <= o), Nil
+	return ToElkBool(f <= o), Undefined
 }
 
 func (f Float32) Equal(other Value) Value {

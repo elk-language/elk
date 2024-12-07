@@ -16,16 +16,16 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r > 0), value.Nil
+				return value.ToElkBool(r > 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -36,16 +36,16 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r >= 0), value.Nil
+				return value.ToElkBool(r >= 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -56,16 +56,16 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r < 0), value.Nil
+				return value.ToElkBool(r < 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -76,16 +76,16 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r <= 0), value.Nil
+				return value.ToElkBool(r <= 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -96,16 +96,16 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r == 0), value.Nil
+				return value.ToElkBool(r == 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -116,19 +116,19 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			if self.Class() != other.Class() {
-				return value.False, value.Nil
+				return value.False, value.Undefined
 			}
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r == 0), value.Nil
+				return value.ToElkBool(r == 0), value.Undefined
 			}
 
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 		DefWithParameters(1),
 	)

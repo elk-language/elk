@@ -9,16 +9,17 @@ import (
 
 var ValueClass *Class // ::Std::Value
 
+// `undefined` is the zero value of `Value`, it maps directly to Go `nil`
 type Value struct {
 	tab  uintptr
 	data unsafe.Pointer
 }
 
 const (
-	NIL_FLAG = iota
+	UNDEFINED_FLAG = iota
 	TRUE_FLAG
 	FALSE_FLAG
-	UNDEFINED_FLAG
+	NIL_FLAG
 	SMALL_INT_FLAG
 	FLOAT_FLAG
 	FLOAT32_FLAG
@@ -374,10 +375,10 @@ func (v Value) MustReference() Reference {
 }
 
 func RefErr(ref Reference, err Value) (Value, Value) {
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
-	return Ref(ref), Nil
+	return Ref(ref), Undefined
 }
 
 type ToValuer interface {
@@ -385,10 +386,10 @@ type ToValuer interface {
 }
 
 func ToValueErr[T ToValuer](t T, err Value) (Value, Value) {
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
-	return t.ToValue(), Nil
+	return t.ToValue(), Undefined
 }
 
 func (v Value) IsInlineValue() bool {
@@ -1003,12 +1004,12 @@ func mixinIsA(val Value, mixin *Mixin) bool {
 }
 
 // Get an element by key.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Subscript(collection, key Value) (result, err Value) {
 	if !collection.IsReference() {
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 
 	switch l := collection.AsReference().(type) {
@@ -1017,548 +1018,396 @@ func Subscript(collection, key Value) (result, err Value) {
 	case *ArrayList:
 		result, err = l.Subscript(key)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
-	return result, Nil
+	return result, Undefined
 }
 
 // Set an element under the given key.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func SubscriptSet(collection, key, val Value) (result, err Value) {
 	if !collection.IsReference() {
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 
 	switch l := collection.AsReference().(type) {
 	case *ArrayList:
 		err = l.SubscriptSet(key, val)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
-	return val, Nil
+	return val, Undefined
 }
 
 // Calculate the hash of the value.
-// When successful returns (result, nil).
+// When successful returns (result, undefined).
 // When an error occurred returns (0, error).
 // When there are no builtin addition functions for the given type returns (0, NotBuiltinError).
-func Hash(key Value) (UInt64, Value) {
-	var result UInt64
+func Hash(key Value) (result UInt64, err Value) {
 	if key.IsReference() {
 		switch k := key.AsReference().(type) {
 		case String:
-			result = k.Hash()
+			return k.Hash(), err
 		case *BigInt:
-			result = k.Hash()
+			return k.Hash(), err
 		case *BigFloat:
-			result = k.Hash()
+			return k.Hash(), err
 		case Float64:
-			result = k.Hash()
+			return k.Hash(), err
 		case Int64:
-			result = k.Hash()
+			return k.Hash(), err
 		case UInt64:
-			result = k.Hash()
+			return k.Hash(), err
 		default:
 			return 0, Ref(NotBuiltinError)
 		}
-		return result, Nil
 	}
 
 	switch key.ValueFlag() {
 	case CHAR_FLAG:
 		k := key.AsChar()
-		result = k.Hash()
+		return k.Hash(), err
 	case SYMBOL_FLAG:
 		k := key.AsSymbol()
-		result = k.Hash()
+		return k.Hash(), err
 	case SMALL_INT_FLAG:
 		k := key.AsSmallInt()
-		result = k.Hash()
+		return k.Hash(), err
 	case FLOAT_FLAG:
 		k := key.AsFloat()
-		result = k.Hash()
+		return k.Hash(), err
 	case NIL_FLAG:
 		k := key.AsNil()
-		result = k.Hash()
+		return k.Hash(), err
 	case TRUE_FLAG:
 		k := key.AsTrue()
-		result = k.Hash()
+		return k.Hash(), err
 	case FALSE_FLAG:
 		k := key.AsFalse()
-		result = k.Hash()
+		return k.Hash(), err
 	case FLOAT64_FLAG:
 		k := key.AsFloat64()
-		result = k.Hash()
+		return k.Hash(), err
 	case FLOAT32_FLAG:
 		k := key.AsFloat32()
-		result = k.Hash()
+		return k.Hash(), err
 	case INT64_FLAG:
 		k := key.AsInt64()
-		result = k.Hash()
+		return k.Hash(), err
 	case INT32_FLAG:
 		k := key.AsInt32()
-		result = k.Hash()
+		return k.Hash(), err
 	case INT16_FLAG:
 		k := key.AsInt16()
-		result = k.Hash()
+		return k.Hash(), err
 	case INT8_FLAG:
 		k := key.AsInt8()
-		result = k.Hash()
+		return k.Hash(), err
 	case UINT64_FLAG:
 		k := key.AsUInt64()
-		result = k.Hash()
+		return k.Hash(), err
 	case UINT32_FLAG:
 		k := key.AsUInt32()
-		result = k.Hash()
+		return k.Hash(), err
 	case UINT16_FLAG:
 		k := key.AsUInt16()
-		result = k.Hash()
+		return k.Hash(), err
 	case UINT8_FLAG:
 		k := key.AsUInt8()
-		result = k.Hash()
+		return k.Hash(), err
 	default:
 		return 0, Ref(NotBuiltinError)
 	}
-	return result, Nil
 }
 
 // Add two values.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Add(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Add(right)
+			return l.Add(right)
 		case *BigFloat:
-			result, err = l.Add(right)
+			return l.Add(right)
 		case Float64:
-			var r Float64
-			r, err = l.Add(right)
-			result = Ref(r)
+			return ToValueErr(l.Add(right))
 		case Int64:
-			var r Int64
-			r, err = l.Add(right)
-			result = Ref(r)
+			return ToValueErr(l.Add(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Add(right)
-			result = Ref(r)
+			return ToValueErr(l.Add(right))
 		case String:
-			var r String
-			r, err = l.Concat(right)
-			result = Ref(r)
+			return RefErr(l.Concat(right))
 		case *Regex:
-			result, err = l.Concat(right)
+			return l.Concat(right)
 		case *ArrayList:
-			var r *ArrayList
-			r, err = l.Concat(right)
-			result = Ref(r)
+			return RefErr(l.Concat(right))
 		case *ArrayTuple:
-			result, err = l.Concat(right)
+			return l.Concat(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
-
-		if !err.IsNil() {
-			return Nil, err
-		}
-		return result, Nil
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Add(right)
+		return l.Add(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Add(right)
+		return l.Add(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Add(right)
-		result = r.ToValue()
+		return ToValueErr(l.Add(right))
 	case CHAR_FLAG:
 		l := left.AsChar()
-		var r String
-		r, err = l.Concat(right)
-		result = Ref(r)
+		return RefErr(l.Concat(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Subtract two values
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Subtract(left, right Value) (result, err Value) {
-	if right.IsReference() {
+	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Subtract(right)
+			return l.Subtract(right)
 		case *BigFloat:
-			result, err = l.Subtract(right)
+			return l.Subtract(right)
 		case String:
-			var r String
-			r, err = l.RemoveSuffix(right)
-			result = Ref(r)
+			return RefErr(l.RemoveSuffix(right))
 		case Float64:
-			var r Float64
-			r, err = l.Subtract(right)
-			result = r.ToValue()
+			return ToValueErr(l.Subtract(right))
 		case Int64:
-			var r Int64
-			r, err = l.Subtract(right)
-			result = r.ToValue()
+			return ToValueErr(l.Subtract(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Subtract(right)
-			result = r.ToValue()
+			return ToValueErr(l.Subtract(right))
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
-		if !err.IsNil() {
-			return Nil, err
-		}
-		return result, Nil
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Subtract(right)
+		return l.Subtract(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Subtract(right)
+		return l.Subtract(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Subtract(right)
-		result = r.ToValue()
+		return ToValueErr(l.Subtract(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Multiply two values
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Multiply(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Multiply(right)
+			return l.Multiply(right)
 		case *BigFloat:
-			result, err = l.Multiply(right)
+			return l.Multiply(right)
 		case Float64:
-			var r Float64
-			r, err = l.Multiply(right)
-			result = r.ToValue()
+			return ToValueErr(l.Multiply(right))
 		case Int64:
-			var r Int64
-			r, err = l.Multiply(right)
-			result = r.ToValue()
+			return ToValueErr(l.Multiply(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Multiply(right)
-			result = r.ToValue()
+			return ToValueErr(l.Multiply(right))
 		case String:
-			var r String
-			r, err = l.Repeat(right)
-			result = Ref(r)
+			return RefErr(l.Repeat(right))
 		case *Regex:
-			result, err = l.Repeat(right)
+			return l.Repeat(right)
 		case *ArrayList:
-			var r *ArrayList
-			r, err = l.Repeat(right)
-			result = Ref(r)
+			return RefErr(l.Repeat(right))
 		case *ArrayTuple:
-			var r *ArrayTuple
-			r, err = l.Repeat(right)
-			result = Ref(r)
+			return RefErr(l.Repeat(right))
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Multiply(right)
+		return l.Multiply(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Multiply(right)
+		return l.Multiply(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Multiply(right)
-		result = r.ToValue()
+		return ToValueErr(l.Multiply(right))
 	case CHAR_FLAG:
 		l := left.AsChar()
-		var r String
-		r, err = l.Repeat(right)
-		result = Ref(r)
+		return RefErr(l.Repeat(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Divide two values
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Divide(left, right Value) (result, err Value) {
-	if right.IsReference() {
+	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Divide(right)
+			return l.Divide(right)
 		case *BigFloat:
-			result, err = l.Divide(right)
+			return l.Divide(right)
 		case Float64:
-			var r Float64
-			r, err = l.Divide(right)
-			result = r.ToValue()
+			return ToValueErr(l.Divide(right))
 		case Int64:
-			var r Int64
-			r, err = l.Divide(right)
-			result = r.ToValue()
+			return ToValueErr(l.Divide(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Divide(right)
-			result = r.ToValue()
+			return ToValueErr(l.Divide(right))
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Divide(right)
+		return l.Divide(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Divide(right)
+		return l.Divide(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Divide(right)
-		result = r.ToValue()
+		return ToValueErr(l.Divide(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Negate a value
@@ -1578,7 +1427,7 @@ func Negate(operand Value) Value {
 		case UInt64:
 			return (-o).ToValue()
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -1620,7 +1469,7 @@ func Negate(operand Value) Value {
 		o := operand.AsUInt8()
 		return (-o).ToValue()
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
@@ -1637,7 +1486,7 @@ func Increment(operand Value) Value {
 		case UInt64:
 			return (o + 1).ToValue()
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -1673,7 +1522,7 @@ func Increment(operand Value) Value {
 		o := operand.AsUInt8()
 		return (o + 1).ToValue()
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
@@ -1690,7 +1539,7 @@ func Decrement(operand Value) Value {
 		case UInt64:
 			return (o - 1).ToValue()
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -1726,7 +1575,7 @@ func Decrement(operand Value) Value {
 		o := operand.AsUInt8()
 		return (o - 1).ToValue()
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
@@ -1741,7 +1590,7 @@ func UnaryPlus(operand Value) Value {
 			UInt64:
 			return operand
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -1751,7 +1600,7 @@ func UnaryPlus(operand Value) Value {
 		UINT64_FLAG, UINT32_FLAG, UINT16_FLAG, UINT8_FLAG:
 		return operand
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
@@ -1768,7 +1617,7 @@ func BitwiseNot(operand Value) Value {
 		case UInt64:
 			return (^o).ToValue()
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -1801,204 +1650,136 @@ func BitwiseNot(operand Value) Value {
 		o := operand.AsUInt8()
 		return (^o).ToValue()
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
 // Exponentiate two values
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Exponentiate(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Exponentiate(right)
+			return l.Exponentiate(right)
 		case *BigFloat:
-			result, err = l.Exponentiate(right)
+			return l.Exponentiate(right)
 		case Float64:
-			var r Float64
-			r, err = l.Exponentiate(right)
-			result = r.ToValue()
+			return ToValueErr(l.Exponentiate(right))
 		case Int64:
-			var r Int64
-			r, err = l.Exponentiate(right)
-			result = r.ToValue()
+			return ToValueErr(l.Exponentiate(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Exponentiate(right)
-			result = r.ToValue()
+			return ToValueErr(l.Exponentiate(right))
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
-		if !err.IsNil() {
-			return Nil, err
-		}
-		return result, Nil
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Exponentiate(right)
+		return l.Exponentiate(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Exponentiate(right)
+		return l.Exponentiate(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Exponentiate(right)
-		result = r.ToValue()
+		return ToValueErr(l.Exponentiate(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Perform modulo on two values
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Modulo(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
-			result, err = l.Modulo(right)
+			return l.Modulo(right)
 		case *BigFloat:
-			result, err = l.Modulo(right)
+			return l.Modulo(right)
 		case Float64:
-			var r Float64
-			r, err = l.Modulo(right)
-			result = r.ToValue()
+			return ToValueErr(l.Modulo(right))
 		case Int64:
-			var r Int64
-			r, err = l.Modulo(right)
-			result = r.ToValue()
+			return ToValueErr(l.Modulo(right))
 		case UInt64:
-			var r UInt64
-			r, err = l.Modulo(right)
-			result = r.ToValue()
+			return ToValueErr(l.Modulo(right))
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
-		if !err.IsNil() {
-			return Nil, err
-		}
-		return result, Nil
 	}
 
 	switch left.ValueFlag() {
 	case SMALL_INT_FLAG:
 		l := left.AsSmallInt()
-		result, err = l.Modulo(right)
+		return l.Modulo(right)
 	case FLOAT_FLAG:
 		l := left.AsFloat()
-		result, err = l.Modulo(right)
+		return l.Modulo(right)
 	case FLOAT64_FLAG:
 		l := left.AsFloat64()
-		var r Float64
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		var r Float32
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case INT64_FLAG:
 		l := left.AsInt64()
-		var r Int64
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case INT32_FLAG:
 		l := left.AsInt32()
-		var r Int32
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case INT16_FLAG:
 		l := left.AsInt16()
-		var r Int16
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
-		var r Int8
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case UINT64_FLAG:
 		l := left.AsUInt64()
-		var r UInt64
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		var r UInt32
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		var r UInt16
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		var r UInt8
-		r, err = l.Modulo(right)
-		result = r.ToValue()
+		return ToValueErr(l.Modulo(right))
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
-	if !err.IsNil() {
-		return Nil, err
-	}
-	return result, Nil
 }
 
 // Compare two values.
@@ -2006,9 +1787,9 @@ func Modulo(left, right Value) (result, err Value) {
 // Returns 0 if both are equal.
 // Returns -1 if left is less than right.
 //
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func Compare(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2025,7 +1806,7 @@ func Compare(left, right Value) (result, err Value) {
 		case UInt64:
 			return l.Compare(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2070,14 +1851,14 @@ func Compare(left, right Value) (result, err Value) {
 		l := left.AsUInt8()
 		return l.Compare(right)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Check whether left is greater than right.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func GreaterThan(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2094,7 +1875,7 @@ func GreaterThan(left, right Value) (result, err Value) {
 		case UInt64:
 			return l.GreaterThan(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2139,14 +1920,14 @@ func GreaterThan(left, right Value) (result, err Value) {
 		l := left.AsUInt8()
 		return l.GreaterThan(right)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Check whether left is greater than or equal to right.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func GreaterThanEqual(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2163,7 +1944,7 @@ func GreaterThanEqual(left, right Value) (result, err Value) {
 		case UInt64:
 			return l.GreaterThanEqual(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2208,14 +1989,14 @@ func GreaterThanEqual(left, right Value) (result, err Value) {
 		l := left.AsUInt8()
 		return l.GreaterThanEqual(right)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Check whether left is less than right.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func LessThan(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2232,7 +2013,7 @@ func LessThan(left, right Value) (result, err Value) {
 		case UInt64:
 			return l.LessThan(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2277,14 +2058,14 @@ func LessThan(left, right Value) (result, err Value) {
 		l := left.AsUInt8()
 		return l.LessThan(right)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Check whether left is less than or equal to right.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func LessThanEqual(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2301,7 +2082,7 @@ func LessThanEqual(left, right Value) (result, err Value) {
 		case UInt64:
 			return l.LessThanEqual(right)
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2346,7 +2127,7 @@ func LessThanEqual(left, right Value) (result, err Value) {
 		l := left.AsUInt8()
 		return l.LessThanEqual(right)
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
@@ -2371,7 +2152,7 @@ func LaxEqual(left, right Value) Value {
 		case UInt64:
 			return StrictUnsignedIntLaxEqual(l, right)
 		default:
-			return Nil
+			return Undefined
 		}
 	}
 
@@ -2419,7 +2200,7 @@ func LaxEqual(left, right Value) Value {
 		l := left.AsUInt8()
 		return StrictUnsignedIntLaxEqual(l, right)
 	default:
-		return Nil
+		return Undefined
 	}
 }
 
@@ -2428,8 +2209,8 @@ func LaxEqual(left, right Value) Value {
 // When there are no builtin addition functions for the given type returns (nil).
 func LaxNotEqual(left, right Value) Value {
 	val := LaxEqual(left, right)
-	if val.IsNil() {
-		return Nil
+	if val.IsUndefined() {
+		return Undefined
 	}
 
 	return ToNotBool(val)
@@ -2511,8 +2292,8 @@ func Equal(left, right Value) Value {
 // When there are no builtin addition functions for the given type returns (nil).
 func NotEqual(left, right Value) Value {
 	val := Equal(left, right)
-	if val.IsNil() {
-		return Nil
+	if val.IsUndefined() {
+		return Undefined
 	}
 
 	return ToNotBool(val)
@@ -2599,9 +2380,9 @@ func StrictNotEqual(left, right Value) Value {
 }
 
 // Execute a right bit shift >>.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func RightBitshift(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2614,7 +2395,7 @@ func RightBitshift(left, right Value) (result, err Value) {
 			r, err := StrictIntRightBitshift(l, right)
 			return r.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2655,14 +2436,14 @@ func RightBitshift(left, right Value) (result, err Value) {
 		result, err := StrictIntRightBitshift(l, right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a logical right bit shift >>>.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func LogicalRightBitshift(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2673,7 +2454,7 @@ func LogicalRightBitshift(left, right Value) (result, err Value) {
 			r, err := StrictIntRightBitshift(l, right)
 			return r.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2711,14 +2492,14 @@ func LogicalRightBitshift(left, right Value) (result, err Value) {
 		r, err := StrictIntRightBitshift(l, right)
 		return r.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a left bit shift <<.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func LeftBitshift(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2732,9 +2513,9 @@ func LeftBitshift(left, right Value) (result, err Value) {
 			return r.ToValue(), err
 		case *ArrayList:
 			l.Append(right)
-			return Ref(l), Nil
+			return Ref(l), Undefined
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2775,14 +2556,14 @@ func LeftBitshift(left, right Value) (result, err Value) {
 		result, err := StrictIntLeftBitshift(l, right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a logical left bit shift <<<.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func LogicalLeftBitshift(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2793,7 +2574,7 @@ func LogicalLeftBitshift(left, right Value) (result, err Value) {
 			r, err := StrictIntLeftBitshift(l, right)
 			return r.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2831,14 +2612,14 @@ func LogicalLeftBitshift(left, right Value) (result, err Value) {
 		r, err := StrictIntLeftBitshift(l, right)
 		return r.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a bitwise AND &.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func BitwiseAnd(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2851,7 +2632,7 @@ func BitwiseAnd(left, right Value) (result, err Value) {
 			result, err := l.BitwiseAnd(right)
 			return result.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2892,14 +2673,14 @@ func BitwiseAnd(left, right Value) (result, err Value) {
 		result, err := l.BitwiseAnd(right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a bitwise AND NOT &^.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func BitwiseAndNot(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2912,7 +2693,7 @@ func BitwiseAndNot(left, right Value) (result, err Value) {
 			result, err := l.BitwiseAndNot(right)
 			return result.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -2953,14 +2734,14 @@ func BitwiseAndNot(left, right Value) (result, err Value) {
 		result, err := l.BitwiseAndNot(right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a bitwise OR |.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func BitwiseOr(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2973,7 +2754,7 @@ func BitwiseOr(left, right Value) (result, err Value) {
 			result, err := l.BitwiseOr(right)
 			return result.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -3014,14 +2795,14 @@ func BitwiseOr(left, right Value) (result, err Value) {
 		result, err := l.BitwiseOr(right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }
 
 // Execute a bitwise XOR ^.
-// When successful returns (result, nil).
-// When an error occurred returns (nil, error).
-// When there are no builtin addition functions for the given type returns (nil, nil).
+// When successful returns (result, undefined).
+// When an error occurred returns (undefined, error).
+// When there are no builtin addition functions for the given type returns (undefined, undefined).
 func BitwiseXor(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -3034,7 +2815,7 @@ func BitwiseXor(left, right Value) (result, err Value) {
 			result, err := l.BitwiseXor(right)
 			return result.ToValue(), err
 		default:
-			return Nil, Nil
+			return Undefined, Undefined
 		}
 	}
 
@@ -3075,6 +2856,6 @@ func BitwiseXor(left, right Value) (result, err Value) {
 		result, err := l.BitwiseXor(right)
 		return result.ToValue(), err
 	default:
-		return Nil, Nil
+		return Undefined, Undefined
 	}
 }

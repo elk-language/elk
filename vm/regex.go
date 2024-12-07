@@ -44,9 +44,9 @@ func initRegex() {
 			self := args[0].MustReference().(*value.Regex)
 			withFlags := args[1]
 			if !withFlags.IsUndefined() && value.Truthy(withFlags) {
-				return value.Ref(self.ToStringWithFlags()), value.Nil
+				return value.Ref(self.ToStringWithFlags()), value.Undefined
 			}
-			return value.Ref(self.ToString()), value.Nil
+			return value.Ref(self.ToString()), value.Undefined
 		},
 		DefWithParameters(1),
 		DefWithOptionalParameters(1),

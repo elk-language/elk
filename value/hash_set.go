@@ -54,7 +54,7 @@ func (h *HashSet) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry.IsNil() {
+		if entry.IsUndefined() {
 			continue
 		}
 		if first {
@@ -141,13 +141,13 @@ func (*HashSetIterator) InstanceVariables() SymbolMap {
 func (h *HashSetIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= h.HashSet.Capacity() {
-			return Nil, stopIterationSymbol.ToValue()
+			return Undefined, stopIterationSymbol.ToValue()
 		}
 
 		element := h.HashSet.Table[h.Index]
 		h.Index++
-		if !element.IsNil() {
-			return element, Nil
+		if !element.IsUndefined() {
+			return element, Undefined
 		}
 	}
 }

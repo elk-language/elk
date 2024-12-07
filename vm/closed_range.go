@@ -14,7 +14,7 @@ func initClosedRange() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			iterator := value.NewClosedRangeIterator(self)
-			return value.Ref(iterator), value.Nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 	Def(
@@ -24,13 +24,13 @@ func initClosedRange() {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other, ok := args[1].MustReference().(*value.ClosedRange)
 			if !ok {
-				return value.False, value.Nil
+				return value.False, value.Undefined
 			}
 			equal, err := ClosedRangeEqual(vm, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Nil
+			return value.ToElkBool(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -44,13 +44,13 @@ func initClosedRange() {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) && !value.IsA(other, self.End.Class()) {
-				return value.False, value.Nil
+				return value.False, value.Undefined
 			}
 			contains, err := ClosedRangeContains(vm, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -61,10 +61,10 @@ func initClosedRange() {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			contains, err := ClosedRangeContains(vm, self, other)
-			if !err.IsNil() {
-				return value.Nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -72,28 +72,28 @@ func initClosedRange() {
 		c,
 		"is_left_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Nil
+			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Nil
+			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 	)
 	Def(
@@ -101,7 +101,7 @@ func initClosedRange() {
 		"start",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
-			return self.Start, value.Nil
+			return self.Start, value.Undefined
 		},
 	)
 	Def(
@@ -109,7 +109,7 @@ func initClosedRange() {
 		"end",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
-			return self.End, value.Nil
+			return self.End, value.Undefined
 		},
 	)
 }
@@ -130,7 +130,7 @@ func initClosedRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 
@@ -139,60 +139,60 @@ func initClosedRangeIterator() {
 // Checks whether a value is contained in the closed range
 func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThanEqual(vm, val, r.Start)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return false, err
 	}
 
 	if value.Falsy(eqVal) {
-		return false, value.Nil
+		return false, value.Undefined
 	}
 
 	eqVal, err = LessThanEqual(vm, val, r.End)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), value.Nil
+	return value.Truthy(eqVal), value.Undefined
 }
 
 // Checks whether two closed ranges are equal
 func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return false, err
 	}
 
 	if value.Falsy(eqVal) {
-		return false, value.Nil
+		return false, value.Undefined
 	}
 
 	eqVal, err = Equal(vm, x.End, y.End)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), value.Nil
+	return value.Truthy(eqVal), value.Undefined
 }
 
 // Get the next element of the range
 func ClosedRangeIteratorNext(vm *VM, i *value.ClosedRangeIterator) (value.Value, value.Value) {
 	greater, err := GreaterThan(vm, i.CurrentElement, i.Range.End)
-	if !err.IsNil() {
-		return value.Nil, err
+	if !err.IsUndefined() {
+		return value.Undefined, err
 	}
 
 	if value.Truthy(greater) {
-		return value.Nil, value.ToSymbol("stop_iteration").ToValue()
+		return value.Undefined, value.ToSymbol("stop_iteration").ToValue()
 	}
 
 	current := i.CurrentElement
 
 	// i.CurrentElement++
 	next, err := Increment(vm, i.CurrentElement)
-	if !err.IsNil() {
-		return value.Nil, err
+	if !err.IsUndefined() {
+		return value.Undefined, err
 	}
 	i.CurrentElement = next
 
-	return current, value.Nil
+	return current, value.Undefined
 }

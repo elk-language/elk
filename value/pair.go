@@ -67,9 +67,9 @@ func (p *Pair) Subscript(key Value) (Value, Value) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return Nil, Ref(NewIndexOutOfRangeError(key.Inspect(), pairLength))
+			return Undefined, Ref(NewIndexOutOfRangeError(key.Inspect(), pairLength))
 		}
-		return Nil, Ref(NewCoerceError(IntClass, key.Class()))
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return p.Get(i)
@@ -79,11 +79,11 @@ func (p *Pair) Subscript(key Value) (Value, Value) {
 func (p *Pair) Get(index int) (Value, Value) {
 	switch index {
 	case 0, -2:
-		return p.Key, Nil
+		return p.Key, Undefined
 	case 1, -1:
-		return p.Value, Nil
+		return p.Value, Undefined
 	default:
-		return Nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), pairLength))
+		return Undefined, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), pairLength))
 	}
 }
 
@@ -105,10 +105,10 @@ func (p *Pair) Set(index int, val Value) Value {
 	switch index {
 	case 0, -2:
 		p.Key = val
-		return Nil
+		return Undefined
 	case 1, -1:
 		p.Value = val
-		return Nil
+		return Undefined
 	default:
 		return Ref(NewIndexOutOfRangeError(fmt.Sprint(index), pairLength))
 	}
@@ -165,16 +165,16 @@ func (*PairIterator) InstanceVariables() SymbolMap {
 
 func (l *PairIterator) Next() (Value, Value) {
 	if l.Index >= pairLength {
-		return Nil, stopIterationSymbol.ToValue()
+		return Undefined, stopIterationSymbol.ToValue()
 	}
 
 	next, err := l.Pair.Get(l.Index)
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
 
 	l.Index++
-	return next, Nil
+	return next, Undefined
 }
 
 func initPair() {

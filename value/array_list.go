@@ -116,14 +116,14 @@ func (l *ArrayList) Grow(newSlots int) {
 func GetFromSlice(collection *[]Value, index int) (Value, Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return Nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
+		return Undefined, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
 	}
 
 	if index < 0 {
 		index = l + index
 	}
 
-	return (*collection)[index], Nil
+	return (*collection)[index], Undefined
 }
 
 // Set an element under the given index.
@@ -138,7 +138,7 @@ func SetInSlice(collection *[]Value, index int, val Value) Value {
 	}
 
 	(*collection)[index] = val
-	return Nil
+	return Undefined
 }
 
 // Get an element under the given index.
@@ -158,9 +158,9 @@ func (l *ArrayList) Subscript(key Value) (Value, Value) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return Nil, Ref(NewIndexOutOfRangeError(key.Inspect(), len(*l)))
+			return Undefined, Ref(NewIndexOutOfRangeError(key.Inspect(), len(*l)))
 		}
-		return Nil, Ref(NewCoerceError(IntClass, key.Class()))
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return l.Get(i)
@@ -199,12 +199,12 @@ func (l *ArrayList) Concat(other Value) (*ArrayList, Value) {
 			newList := make(ArrayList, len(*l), len(*l)+len(*o))
 			copy(newList, *l)
 			newList = append(newList, *o...)
-			return &newList, Nil
+			return &newList, Undefined
 		case *ArrayTuple:
 			newList := make(ArrayList, len(*l), len(*l)+len(*o))
 			copy(newList, *l)
 			newList = append(newList, *o...)
-			return &newList, Nil
+			return &newList, Undefined
 		}
 	}
 
@@ -249,7 +249,7 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 		for i := 0; i < int(o); i++ {
 			newList = append(newList, *l...)
 		}
-		return &newList, Nil
+		return &newList, Undefined
 	default:
 		return nil, Ref(Errorf(TypeErrorClass, "cannot repeat a list using %s", other.Inspect()))
 	}
@@ -322,12 +322,12 @@ var stopIterationSymbol = ToSymbol("stop_iteration")
 
 func (l *ArrayListIterator) Next() (Value, Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return Nil, stopIterationSymbol.ToValue()
+		return Undefined, stopIterationSymbol.ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]
 	l.Index++
-	return next, Nil
+	return next, Undefined
 }
 
 func initArrayList() {

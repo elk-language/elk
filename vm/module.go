@@ -15,7 +15,7 @@ func initModule() {
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Module)
-			return value.Ref(value.String(self.Name)), value.Nil
+			return value.Ref(value.String(self.Name)), value.Undefined
 		},
 	)
 }

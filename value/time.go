@@ -425,7 +425,7 @@ func (x *Time) Cmp(y *Time) int {
 
 func (t *Time) MustFormat(formatString string) string {
 	result, err := t.Format(formatString)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -433,7 +433,7 @@ func (t *Time) MustFormat(formatString string) string {
 }
 
 // Create a string formatted according to the given format string.
-func (t *Time) Format(formatString string) (string, Value) {
+func (t *Time) Format(formatString string) (_ string, err Value) {
 	scanner := timescanner.New(formatString)
 	var buffer strings.Builder
 
@@ -736,62 +736,62 @@ tokenLoop:
 
 	}
 
-	return buffer.String(), Nil
+	return buffer.String(), err
 }
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
-func (t *Time) GreaterThan(other Value) (Value, Value) {
+func (t *Time) GreaterThan(other Value) (result Value, err Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) == 1), Nil
+		return ToElkBool(t.Cmp(o) == 1), err
 	default:
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
-func (t *Time) GreaterThanEqual(other Value) (Value, Value) {
+func (t *Time) GreaterThanEqual(other Value) (result Value, err Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) >= 0), Nil
+		return ToElkBool(t.Cmp(o) >= 0), err
 	default:
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is less than other and return an error
 // if something went wrong.
-func (t *Time) LessThan(other Value) (Value, Value) {
+func (t *Time) LessThan(other Value) (result Value, err Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) == -1), Nil
+		return ToElkBool(t.Cmp(o) == -1), err
 	default:
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
-func (t *Time) LessThanEqual(other Value) (Value, Value) {
+func (t *Time) LessThanEqual(other Value) (result Value, err Value) {
 	if !other.IsReference() {
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *Time:
-		return ToElkBool(t.Cmp(o) <= 0), Nil
+		return ToElkBool(t.Cmp(o) <= 0), err
 	default:
-		return Nil, Ref(NewCoerceError(t.Class(), other.Class()))
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 

@@ -12,7 +12,7 @@ func initChar() {
 		"++",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return (self + 1).ToValue(), value.Nil
+			return (self + 1).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -20,7 +20,7 @@ func initChar() {
 		"--",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return (self - 1).ToValue(), value.Nil
+			return (self - 1).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -103,7 +103,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.Equal(other), value.Nil
+			return self.Equal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -113,7 +113,7 @@ func initChar() {
 		"uppercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return self.Uppercase().ToValue(), value.Nil
+			return self.Uppercase().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -121,7 +121,7 @@ func initChar() {
 		"lowercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return self.Lowercase().ToValue(), value.Nil
+			return self.Lowercase().ToValue(), value.Undefined
 		},
 	)
 
@@ -130,7 +130,7 @@ func initChar() {
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.SmallInt(self.CharCount()).ToValue(), value.Nil
+			return value.SmallInt(self.CharCount()).ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "char_count", "length")
@@ -140,7 +140,7 @@ func initChar() {
 		"byte_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.SmallInt(self.ByteCount()).ToValue(), value.Nil
+			return value.SmallInt(self.ByteCount()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -148,7 +148,7 @@ func initChar() {
 		"grapheme_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Nil
+			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -156,7 +156,7 @@ func initChar() {
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.Ref(value.String(string(self))), value.Nil
+			return value.Ref(value.String(string(self))), value.Undefined
 		},
 	)
 	Def(
@@ -164,7 +164,7 @@ func initChar() {
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.ToSymbol(string(self)).ToValue(), value.Nil
+			return value.ToSymbol(string(self)).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -172,14 +172,14 @@ func initChar() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
-			return value.Ref(value.String(self.Inspect())), value.Nil
+			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_empty",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Nil
+			return value.False, value.Undefined
 		},
 	)
 

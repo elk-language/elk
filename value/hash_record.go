@@ -42,7 +42,7 @@ func (h *HashRecord) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry.Key.IsNil() {
+		if entry.Key.IsUndefined() {
 			continue
 		}
 		if first {
@@ -119,13 +119,13 @@ func (*HashRecordIterator) InstanceVariables() SymbolMap {
 func (h *HashRecordIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= len(h.HashRecord.Table) {
-			return Nil, stopIterationSymbol.ToValue()
+			return Undefined, stopIterationSymbol.ToValue()
 		}
 
 		pair := h.HashRecord.Table[h.Index]
 		h.Index++
-		if !pair.Key.IsNil() {
-			return Ref(&h.HashRecord.Table[h.Index-1]), Nil
+		if !pair.Key.IsUndefined() {
+			return Ref(&h.HashRecord.Table[h.Index-1]), Undefined
 		}
 	}
 }

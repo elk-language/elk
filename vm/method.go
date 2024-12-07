@@ -22,13 +22,13 @@ func initMethod() {
 
 			switch self.SafeAsReference().(type) {
 			case *NativeMethod:
-				return nativeSymbol.ToValue(), value.Nil
+				return nativeSymbol.ToValue(), value.Undefined
 			case *BytecodeFunction:
-				return bytecodeSymbol.ToValue(), value.Nil
+				return bytecodeSymbol.ToValue(), value.Undefined
 			case *GetterMethod:
-				return getterSymbol.ToValue(), value.Nil
+				return getterSymbol.ToValue(), value.Undefined
 			case *SetterMethod:
-				return setterSymbol.ToValue(), value.Nil
+				return setterSymbol.ToValue(), value.Undefined
 			default:
 				panic(fmt.Sprintf("invalid method type: %#v", self))
 			}

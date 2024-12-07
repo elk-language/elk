@@ -567,7 +567,7 @@ func TestTimeFormat(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err); diff != "" {
 				t.Fatalf(diff)
 			}
-			if !tc.err.IsNil() {
+			if !tc.err.IsUndefined() {
 				return
 			}
 

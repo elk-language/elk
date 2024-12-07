@@ -58,7 +58,7 @@ func (h *HashMap) Inspect() string {
 
 	first := true
 	for _, entry := range h.Table {
-		if entry.Key.IsNil() {
+		if entry.Key.IsUndefined() {
 			continue
 		}
 		if first {
@@ -147,13 +147,13 @@ func (*HashMapIterator) InstanceVariables() SymbolMap {
 func (h *HashMapIterator) Next() (Value, Value) {
 	for {
 		if h.Index >= h.HashMap.Capacity() {
-			return Nil, stopIterationSymbol.ToValue()
+			return Undefined, stopIterationSymbol.ToValue()
 		}
 
 		pair := h.HashMap.Table[h.Index]
 		h.Index++
-		if !pair.Key.IsNil() {
-			return Ref(&h.HashMap.Table[h.Index-1]), Nil
+		if !pair.Key.IsUndefined() {
+			return Ref(&h.HashMap.Table[h.Index-1]), Undefined
 		}
 	}
 }

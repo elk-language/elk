@@ -98,9 +98,9 @@ func (t *ArrayTuple) Subscript(key Value) (Value, Value) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return Nil, Ref(NewIndexOutOfRangeError(key.Inspect(), len(*t)))
+			return Undefined, Ref(NewIndexOutOfRangeError(key.Inspect(), len(*t)))
 		}
-		return Nil, Ref(NewCoerceError(IntClass, key.Class()))
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
 	return t.Get(i)
@@ -139,16 +139,16 @@ func (t *ArrayTuple) Concat(other Value) (Value, Value) {
 			newList := make(ArrayList, len(*t), len(*t)+len(*o))
 			copy(newList, *t)
 			newList = append(newList, *o...)
-			return Ref(&newList), Nil
+			return Ref(&newList), Undefined
 		case *ArrayTuple:
 			newArrayTuple := make(ArrayTuple, len(*t), len(*t)+len(*o))
 			copy(newArrayTuple, *t)
 			newArrayTuple = append(newArrayTuple, *o...)
-			return Ref(&newArrayTuple), Nil
+			return Ref(&newArrayTuple), Undefined
 		}
 	}
 
-	return Nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
+	return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
 }
 
 // Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.
@@ -189,7 +189,7 @@ func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, Value) {
 		for i := 0; i < int(o); i++ {
 			newArrayTuple = append(newArrayTuple, *t...)
 		}
-		return &newArrayTuple, Nil
+		return &newArrayTuple, Undefined
 	default:
 		return nil, Ref(Errorf(TypeErrorClass, "cannot repeat a arrayTuple using %s", other.Inspect()))
 	}
@@ -263,12 +263,12 @@ func (*ArrayTupleIterator) InstanceVariables() SymbolMap {
 
 func (t *ArrayTupleIterator) Next() (Value, Value) {
 	if t.Index >= t.ArrayTuple.Length() {
-		return Nil, stopIterationSymbol.ToValue()
+		return Undefined, stopIterationSymbol.ToValue()
 	}
 
 	next := (*t.ArrayTuple)[t.Index]
 	t.Index++
-	return next, Nil
+	return next, Undefined
 }
 
 func initArrayTuple() {

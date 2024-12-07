@@ -191,13 +191,13 @@ func (s String) ReverseGraphemes() String {
 
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
-func (s String) Concat(other Value) (String, Value) {
+func (s String) Concat(other Value) (result String, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s + o, Nil
+			return s + o, err
 		default:
-			return "", Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
+			return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 		}
 	}
 
@@ -207,15 +207,15 @@ func (s String) Concat(other Value) (String, Value) {
 		var buff strings.Builder
 		buff.WriteString(string(s))
 		buff.WriteRune(rune(ch))
-		return String(buff.String()), Nil
+		return String(buff.String()), err
 	default:
-		return "", Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
+		return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 	}
 }
 
 // Repeat the content of this string n times and return a new string containing the result.
 // If the operation is illegal an error will be returned.
-func (s String) Repeat(other Value) (String, Value) {
+func (s String) Repeat(other Value) (result String, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -225,22 +225,22 @@ func (s String) Repeat(other Value) (String, Value) {
 				o.Inspect(),
 			))
 		default:
-			return "", Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
+			return result, Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
 		if o < 0 {
-			return "", Ref(Errorf(
+			return result, Ref(Errorf(
 				OutOfRangeErrorClass,
 				"repeat count cannot be negative: %s",
 				o.Inspect(),
 			))
 		}
-		return String(strings.Repeat(string(s), int(o))), Nil
+		return String(strings.Repeat(string(s), int(o))), err
 	default:
-		return "", Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
+		return result, Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
 	}
 }
 
@@ -250,7 +250,7 @@ func (s String) RemoveSuffix(other Value) (String, Value) {
 		switch o := other.AsReference().(type) {
 		case String:
 			result, _ := strings.CutSuffix(string(s), string(o))
-			return String(result), Nil
+			return String(result), Undefined
 		default:
 			return "", Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -261,9 +261,9 @@ func (s String) RemoveSuffix(other Value) (String, Value) {
 		o := other.AsChar()
 		r, rLen := utf8.DecodeLastRuneInString(string(s))
 		if len(s) > 0 && r == rune(o) {
-			return s[0 : len(s)-rLen], Nil
+			return s[0 : len(s)-rLen], Undefined
 		}
-		return s, Nil
+		return s, Undefined
 	default:
 		return "", Ref(NewCoerceError(s.Class(), other.Class()))
 	}
@@ -277,17 +277,17 @@ func (s String) Compare(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return SmallInt(s.Cmp(o)).ToValue(), Nil
+			return SmallInt(s.Cmp(o)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return SmallInt(s.Cmp(String(other.AsChar()))).ToValue(), Nil
+		return SmallInt(s.Cmp(String(other.AsChar()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
@@ -297,17 +297,17 @@ func (s String) GreaterThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(s > o), Nil
+			return ToElkBool(s > o), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(s > String(other.AsChar())), Nil
+		return ToElkBool(s > String(other.AsChar())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
@@ -317,17 +317,17 @@ func (s String) GreaterThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(s >= o), Nil
+			return ToElkBool(s >= o), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(s >= String(other.AsChar())), Nil
+		return ToElkBool(s >= String(other.AsChar())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
@@ -337,17 +337,17 @@ func (s String) LessThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(s < o), Nil
+			return ToElkBool(s < o), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(s < String(other.AsChar())), Nil
+		return ToElkBool(s < String(other.AsChar())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
@@ -357,17 +357,17 @@ func (s String) LessThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(s <= o), Nil
+			return ToElkBool(s <= o), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(s <= String(other.AsChar())), Nil
+		return ToElkBool(s <= String(other.AsChar())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(s.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
@@ -440,7 +440,7 @@ func (s String) Get(index int) (Char, Value) {
 		}
 		if j == i {
 			// found the character
-			return Char(result), Nil
+			return Char(result), Undefined
 		}
 		leftStr = leftStr[size:]
 		j++
@@ -471,7 +471,7 @@ func (s String) ByteAtInt(index int) (UInt8, Value) {
 	if index < 0 {
 		index = l + index
 	}
-	return UInt8(s[index]), Nil
+	return UInt8(s[index]), Undefined
 }
 
 // Get the byte under the given index.
@@ -510,7 +510,7 @@ func (s String) GraphemeAtInt(index int) (String, Value) {
 		cluster, str, _, state = uniseg.FirstGraphemeClusterInString(str, state)
 		if j == i {
 			// found the grapheme
-			return String(cluster), Nil
+			return String(cluster), Undefined
 		}
 		j++
 	}
@@ -595,12 +595,12 @@ func (*StringCharIterator) InstanceVariables() SymbolMap {
 
 func (s *StringCharIterator) Next() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
-		return Nil, stopIterationSymbol.ToValue()
+		return Undefined, stopIterationSymbol.ToValue()
 	}
 	run, size := utf8.DecodeRuneInString(string(s.String[s.ByteOffset:]))
 
 	s.ByteOffset += size
-	return Char(run).ToValue(), Nil
+	return Char(run).ToValue(), Undefined
 }
 
 type StringByteIterator struct {
@@ -654,11 +654,11 @@ func (*StringByteIterator) InstanceVariables() SymbolMap {
 
 func (s *StringByteIterator) Next() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
-		return Nil, stopIterationSymbol.ToValue()
+		return Undefined, stopIterationSymbol.ToValue()
 	}
 	result := UInt8(s.String[s.ByteOffset])
 	s.ByteOffset += 1
-	return result.ToValue(), Nil
+	return result.ToValue(), Undefined
 }
 
 func initString() {

@@ -189,22 +189,22 @@ func (f Float) Add(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.AddBigFloat(fBigFloat, o)), Nil
+			return Ref(fBigFloat.AddBigFloat(fBigFloat, o)), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f + Float(oFloat)).ToValue(), Nil
+			return (f + Float(oFloat)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f + other.AsFloat()).ToValue(), Nil
+		return (f + other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f + Float(other.AsSmallInt())).ToValue(), Nil
+		return (f + Float(other.AsSmallInt())).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -215,22 +215,22 @@ func (f Float) Subtract(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.SubBigFloat(fBigFloat, o)), Nil
+			return Ref(fBigFloat.SubBigFloat(fBigFloat, o)), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f - Float(oFloat)).ToValue(), Nil
+			return (f - Float(oFloat)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f - other.AsFloat()).ToValue(), Nil
+		return (f - other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f - Float(other.AsSmallInt())).ToValue(), Nil
+		return (f - Float(other.AsSmallInt())).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -241,22 +241,22 @@ func (f Float) Multiply(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.MulBigFloat(fBigFloat, o)), Nil
+			return Ref(fBigFloat.MulBigFloat(fBigFloat, o)), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f * Float(oFloat)).ToValue(), Nil
+			return (f * Float(oFloat)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f * other.AsFloat()).ToValue(), Nil
+		return (f * other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f * Float(other.AsSmallInt())).ToValue(), Nil
+		return (f * Float(other.AsSmallInt())).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -267,22 +267,22 @@ func (f Float) Divide(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.DivBigFloat(fBigFloat, o)), Nil
+			return Ref(fBigFloat.DivBigFloat(fBigFloat, o)), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f / Float(oFloat)).ToValue(), Nil
+			return (f / Float(oFloat)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f / other.AsFloat()).ToValue(), Nil
+		return (f / other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f / Float(other.AsSmallInt())).ToValue(), Nil
+		return (f / Float(other.AsSmallInt())).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -295,22 +295,22 @@ func (f Float) Exponentiate(other Value) (result, err Value) {
 			prec := max(o.Precision(), 53)
 			fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
 			fBigFloat.ExpBigFloat(fBigFloat, o)
-			return Ref(fBigFloat), Nil
+			return Ref(fBigFloat), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return Float(math.Pow(float64(f), oFloat)).ToValue(), Nil
+			return Float(math.Pow(float64(f), oFloat)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return Float(math.Pow(float64(f), float64(other.AsFloat()))).ToValue(), Nil
+		return Float(math.Pow(float64(f), float64(other.AsFloat()))).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return Float(math.Pow(float64(f), float64(other.AsSmallInt()))).ToValue(), Nil
+		return Float(math.Pow(float64(f), float64(other.AsSmallInt()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -326,22 +326,22 @@ func (f Float) Modulo(other Value) (result, err Value) {
 		case *BigFloat:
 			prec := max(o.Precision(), 53)
 			fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
-			return Ref(fBigFloat.Mod(fBigFloat, o)), Nil
+			return Ref(fBigFloat.Mod(fBigFloat, o)), Undefined
 		case *BigInt:
 			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f.Mod(Float(oFloat))).ToValue(), Nil
+			return (f.Mod(Float(oFloat))).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f.Mod(other.AsFloat())).ToValue(), Nil
+		return (f.Mod(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f.Mod(Float(other.AsSmallInt()))).ToValue(), Nil
+		return (f.Mod(Float(other.AsSmallInt()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -354,33 +354,33 @@ func (f Float) Compare(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return Nil, Nil
+				return Nil, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetFloat(f)
-			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Nil
+			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Undefined
 		case *BigInt:
 			if f.IsNaN() {
-				return Nil, Nil
+				return Nil, Undefined
 			}
-			return SmallInt(f.Cmp(o.ToFloat())).ToValue(), Nil
+			return SmallInt(f.Cmp(o.ToFloat())).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
 		if f.IsNaN() || other.AsFloat().IsNaN() {
-			return Nil, Nil
+			return Nil, Undefined
 		}
-		return SmallInt(f.Cmp(other.AsFloat())).ToValue(), Nil
+		return SmallInt(f.Cmp(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
-			return Nil, Nil
+			return Nil, Undefined
 		}
-		return SmallInt(f.Cmp(Float(other.AsSmallInt()))).ToValue(), Nil
+		return SmallInt(f.Cmp(Float(other.AsSmallInt()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -391,15 +391,15 @@ func (f Float) GreaterThan(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) == 1), Nil
+			return ToElkBool(fBigFloat.Cmp(o) == 1), Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f > oFloat), Nil
+			return ToElkBool(f > oFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -407,13 +407,13 @@ func (f Float) GreaterThan(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Nil
+			return False, Undefined
 		}
-		return ToElkBool(f > o), Nil
+		return ToElkBool(f > o), Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f > Float(other.AsSmallInt())), Nil
+		return ToElkBool(f > Float(other.AsSmallInt())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -424,15 +424,15 @@ func (f Float) GreaterThanEqual(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) >= 0), Nil
+			return ToElkBool(fBigFloat.Cmp(o) >= 0), Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f >= oFloat), Nil
+			return ToElkBool(f >= oFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -440,13 +440,13 @@ func (f Float) GreaterThanEqual(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Nil
+			return False, Undefined
 		}
-		return ToElkBool(f >= o), Nil
+		return ToElkBool(f >= o), Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f >= Float(other.AsSmallInt())), Nil
+		return ToElkBool(f >= Float(other.AsSmallInt())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -457,15 +457,15 @@ func (f Float) LessThan(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) == -1), Nil
+			return ToElkBool(fBigFloat.Cmp(o) == -1), Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f < oFloat), Nil
+			return ToElkBool(f < oFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -473,13 +473,13 @@ func (f Float) LessThan(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Nil
+			return False, Undefined
 		}
-		return ToElkBool(f < o), Nil
+		return ToElkBool(f < o), Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f < Float(other.AsSmallInt())), Nil
+		return ToElkBool(f < Float(other.AsSmallInt())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -490,15 +490,15 @@ func (f Float) LessThanEqual(other Value) (result, err Value) {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) <= 0), Nil
+			return ToElkBool(fBigFloat.Cmp(o) <= 0), Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f <= oFloat), Nil
+			return ToElkBool(f <= oFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -506,13 +506,13 @@ func (f Float) LessThanEqual(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Nil
+			return False, Undefined
 		}
-		return ToElkBool(f <= o), Nil
+		return ToElkBool(f <= o), Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f <= Float(other.AsSmallInt())), Nil
+		return ToElkBool(f <= Float(other.AsSmallInt())), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(f.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 

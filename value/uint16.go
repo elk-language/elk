@@ -119,7 +119,7 @@ func (i UInt16) Add(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i + o, Nil
+	return i + o, Undefined
 }
 
 // Perform a bitwise AND.
@@ -129,7 +129,7 @@ func (i UInt16) BitwiseAnd(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i & o, Nil
+	return i & o, Undefined
 }
 
 // Perform a bitwise AND NOT.
@@ -139,7 +139,7 @@ func (i UInt16) BitwiseAndNot(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i &^ o, Nil
+	return i &^ o, Undefined
 }
 
 // Perform a bitwise OR.
@@ -149,7 +149,7 @@ func (i UInt16) BitwiseOr(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i | o, Nil
+	return i | o, Undefined
 }
 
 // Perform a bitwise XOR.
@@ -159,7 +159,7 @@ func (i UInt16) BitwiseXor(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i ^ o, Nil
+	return i ^ o, Undefined
 }
 
 func (i UInt16) Exponentiate(other Value) (UInt16, Value) {
@@ -169,14 +169,14 @@ func (i UInt16) Exponentiate(other Value) (UInt16, Value) {
 
 	o := other.AsUInt16()
 	if o <= 0 {
-		return 1, Nil
+		return 1, Undefined
 	}
 	result := i
 	var j UInt16
 	for j = 2; j <= o; j++ {
 		result *= i
 	}
-	return result, Nil
+	return result, Undefined
 }
 
 func (i UInt16) Subtract(other Value) (UInt16, Value) {
@@ -185,7 +185,7 @@ func (i UInt16) Subtract(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i - o, Nil
+	return i - o, Undefined
 }
 
 func (i UInt16) Multiply(other Value) (UInt16, Value) {
@@ -194,7 +194,7 @@ func (i UInt16) Multiply(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i * o, Nil
+	return i * o, Undefined
 }
 
 func (i UInt16) Modulo(other Value) (UInt16, Value) {
@@ -203,7 +203,7 @@ func (i UInt16) Modulo(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	return i % o, Nil
+	return i % o, Undefined
 }
 
 func (i UInt16) Divide(other Value) (UInt16, Value) {
@@ -214,58 +214,58 @@ func (i UInt16) Divide(other Value) (UInt16, Value) {
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Nil
+	return i / o, Undefined
 }
 
 func (i UInt16) Compare(other Value) (Value, Value) {
 	if !other.IsUInt16() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsUInt16()
 
 	if i > o {
-		return SmallInt(1).ToValue(), Nil
+		return SmallInt(1).ToValue(), Undefined
 	}
 	if i < o {
-		return SmallInt(-1).ToValue(), Nil
+		return SmallInt(-1).ToValue(), Undefined
 	}
-	return SmallInt(0).ToValue(), Nil
+	return SmallInt(0).ToValue(), Undefined
 }
 
 func (i UInt16) GreaterThan(other Value) (Value, Value) {
 	if !other.IsUInt16() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i > o), Nil
+	return ToElkBool(i > o), Undefined
 }
 
 func (i UInt16) GreaterThanEqual(other Value) (Value, Value) {
 	if !other.IsUInt16() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i >= o), Nil
+	return ToElkBool(i >= o), Undefined
 }
 
 func (i UInt16) LessThan(other Value) (Value, Value) {
 	if !other.IsUInt16() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i < o), Nil
+	return ToElkBool(i < o), Undefined
 }
 
 func (i UInt16) LessThanEqual(other Value) (Value, Value) {
 	if !other.IsUInt16() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i <= o), Nil
+	return ToElkBool(i <= o), Undefined
 }
 
 func (i UInt16) Equal(other Value) Value {

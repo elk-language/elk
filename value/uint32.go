@@ -119,7 +119,7 @@ func (i UInt32) Add(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i + o, Nil
+	return i + o, Undefined
 }
 
 // Perform a bitwise AND.
@@ -129,7 +129,7 @@ func (i UInt32) BitwiseAnd(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i & o, Nil
+	return i & o, Undefined
 }
 
 // Perform a bitwise AND NOT.
@@ -139,7 +139,7 @@ func (i UInt32) BitwiseAndNot(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i &^ o, Nil
+	return i &^ o, Undefined
 }
 
 // Perform a bitwise OR.
@@ -149,7 +149,7 @@ func (i UInt32) BitwiseOr(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i | o, Nil
+	return i | o, Undefined
 }
 
 // Perform a bitwise XOR.
@@ -159,7 +159,7 @@ func (i UInt32) BitwiseXor(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i ^ o, Nil
+	return i ^ o, Undefined
 }
 
 func (i UInt32) Exponentiate(other Value) (UInt32, Value) {
@@ -169,14 +169,14 @@ func (i UInt32) Exponentiate(other Value) (UInt32, Value) {
 
 	o := other.AsUInt32()
 	if o <= 0 {
-		return 1, Nil
+		return 1, Undefined
 	}
 	result := i
 	var j UInt32
 	for j = 2; j <= o; j++ {
 		result *= i
 	}
-	return result, Nil
+	return result, Undefined
 }
 
 func (i UInt32) Subtract(other Value) (UInt32, Value) {
@@ -185,7 +185,7 @@ func (i UInt32) Subtract(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i - o, Nil
+	return i - o, Undefined
 }
 
 func (i UInt32) Multiply(other Value) (UInt32, Value) {
@@ -194,7 +194,7 @@ func (i UInt32) Multiply(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i * o, Nil
+	return i * o, Undefined
 }
 
 func (i UInt32) Modulo(other Value) (UInt32, Value) {
@@ -203,7 +203,7 @@ func (i UInt32) Modulo(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	return i % o, Nil
+	return i % o, Undefined
 }
 
 func (i UInt32) Divide(other Value) (UInt32, Value) {
@@ -214,58 +214,58 @@ func (i UInt32) Divide(other Value) (UInt32, Value) {
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Nil
+	return i / o, Undefined
 }
 
 func (i UInt32) Compare(other Value) (Value, Value) {
 	if !other.IsUInt32() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsUInt32()
 
 	if i > o {
-		return SmallInt(1).ToValue(), Nil
+		return SmallInt(1).ToValue(), Undefined
 	}
 	if i < o {
-		return SmallInt(-1).ToValue(), Nil
+		return SmallInt(-1).ToValue(), Undefined
 	}
-	return SmallInt(0).ToValue(), Nil
+	return SmallInt(0).ToValue(), Undefined
 }
 
 func (i UInt32) GreaterThan(other Value) (Value, Value) {
 	if !other.IsUInt32() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i > o), Nil
+	return ToElkBool(i > o), Undefined
 }
 
 func (i UInt32) GreaterThanEqual(other Value) (Value, Value) {
 	if !other.IsUInt32() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i >= o), Nil
+	return ToElkBool(i >= o), Undefined
 }
 
 func (i UInt32) LessThan(other Value) (Value, Value) {
 	if !other.IsUInt32() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i < o), Nil
+	return ToElkBool(i < o), Undefined
 }
 
 func (i UInt32) LessThanEqual(other Value) (Value, Value) {
 	if !other.IsUInt32() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i <= o), Nil
+	return ToElkBool(i <= o), Undefined
 }
 
 func (i UInt32) Equal(other Value) Value {

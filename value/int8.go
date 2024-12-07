@@ -116,7 +116,7 @@ func (i Int8) Add(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i + o, Nil
+	return i + o, Undefined
 }
 
 // Perform a bitwise AND.
@@ -126,7 +126,7 @@ func (i Int8) BitwiseAnd(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i & o, Nil
+	return i & o, Undefined
 }
 
 // Perform a bitwise AND NOT.
@@ -136,7 +136,7 @@ func (i Int8) BitwiseAndNot(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i &^ o, Nil
+	return i &^ o, Undefined
 }
 
 // Perform a bitwise OR.
@@ -146,7 +146,7 @@ func (i Int8) BitwiseOr(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i | o, Nil
+	return i | o, Undefined
 }
 
 // Perform a bitwise XOR.
@@ -156,7 +156,7 @@ func (i Int8) BitwiseXor(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i ^ o, Nil
+	return i ^ o, Undefined
 }
 
 func (i Int8) Exponentiate(other Value) (Int8, Value) {
@@ -166,14 +166,14 @@ func (i Int8) Exponentiate(other Value) (Int8, Value) {
 
 	o := other.AsInt8()
 	if o <= 0 {
-		return 1, Nil
+		return 1, Undefined
 	}
 	result := i
 	var j Int8
 	for j = 2; j <= o; j++ {
 		result *= i
 	}
-	return result, Nil
+	return result, Undefined
 }
 
 func (i Int8) Subtract(other Value) (Int8, Value) {
@@ -182,7 +182,7 @@ func (i Int8) Subtract(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i - o, Nil
+	return i - o, Undefined
 }
 
 func (i Int8) Multiply(other Value) (Int8, Value) {
@@ -191,7 +191,7 @@ func (i Int8) Multiply(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i * o, Nil
+	return i * o, Undefined
 }
 
 func (i Int8) Modulo(other Value) (Int8, Value) {
@@ -200,7 +200,7 @@ func (i Int8) Modulo(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	return i % o, Nil
+	return i % o, Undefined
 }
 
 func (i Int8) Divide(other Value) (Int8, Value) {
@@ -211,58 +211,58 @@ func (i Int8) Divide(other Value) (Int8, Value) {
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Nil
+	return i / o, Undefined
 }
 
 func (i Int8) Compare(other Value) (Value, Value) {
 	if !other.IsInt8() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt8()
 
 	if i > o {
-		return SmallInt(1).ToValue(), Nil
+		return SmallInt(1).ToValue(), Undefined
 	}
 	if i < o {
-		return SmallInt(-1).ToValue(), Nil
+		return SmallInt(-1).ToValue(), Undefined
 	}
-	return SmallInt(0).ToValue(), Nil
+	return SmallInt(0).ToValue(), Undefined
 }
 
 func (i Int8) GreaterThan(other Value) (Value, Value) {
 	if !other.IsInt8() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt8()
-	return ToElkBool(i > o), Nil
+	return ToElkBool(i > o), Undefined
 }
 
 func (i Int8) GreaterThanEqual(other Value) (Value, Value) {
 	if !other.IsInt8() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt8()
-	return ToElkBool(i >= o), Nil
+	return ToElkBool(i >= o), Undefined
 }
 
 func (i Int8) LessThan(other Value) (Value, Value) {
 	if !other.IsInt8() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt8()
-	return ToElkBool(i < o), Nil
+	return ToElkBool(i < o), Undefined
 }
 
 func (i Int8) LessThanEqual(other Value) (Value, Value) {
 	if !other.IsInt8() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt8()
-	return ToElkBool(i <= o), Nil
+	return ToElkBool(i <= o), Undefined
 }
 
 func (i Int8) Equal(other Value) Value {

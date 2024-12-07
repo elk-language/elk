@@ -15,7 +15,7 @@ func initKernel() {
 		"inspect_stack",
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
 			v.InspectStack()
-			return value.Nil, value.Nil
+			return value.Nil, value.Undefined
 		},
 	)
 	Def(
@@ -25,14 +25,14 @@ func initKernel() {
 			values := args[1].MustReference().(*value.ArrayTuple)
 			for _, val := range *values {
 				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 				r := result.MustReference().(value.String).String()
 				fmt.Fprint(vm.Stdout, r)
 			}
 
-			return value.Nil, value.Nil
+			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -43,14 +43,14 @@ func initKernel() {
 			values := args[1].MustReference().(*value.ArrayTuple)
 			for _, val := range *values {
 				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if !err.IsNil() {
-					return value.Nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 				r := result.MustReference().(value.String).String()
 				fmt.Fprintln(vm.Stdout, r)
 			}
 
-			return value.Nil, value.Nil
+			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
 	)

@@ -131,7 +131,7 @@ func (c Char) Concat(other Value) (String, Value) {
 		var buff strings.Builder
 		buff.WriteRune(rune(c))
 		buff.WriteRune(rune(other.AsChar()))
-		return String(buff.String()), Nil
+		return String(buff.String()), Undefined
 	}
 
 	if other.IsReference() {
@@ -140,7 +140,7 @@ func (c Char) Concat(other Value) (String, Value) {
 			var buff strings.Builder
 			buff.WriteRune(rune(c))
 			buff.WriteString(string(o))
-			return String(buff.String()), Nil
+			return String(buff.String()), Undefined
 		}
 	}
 
@@ -177,7 +177,7 @@ func (c Char) Repeat(other Value) (String, Value) {
 		for i := 0; i < int(o); i++ {
 			builder.WriteRune(rune(c))
 		}
-		return String(builder.String()), Nil
+		return String(builder.String()), Undefined
 	default:
 		return "", Ref(Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect()))
 	}
@@ -191,16 +191,16 @@ func (c Char) Compare(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return SmallInt(String(c).Cmp(o)).ToValue(), Nil
+			return SmallInt(String(c).Cmp(o)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return SmallInt(c.Cmp(other.AsChar())).ToValue(), Nil
+		return SmallInt(c.Cmp(other.AsChar())).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
@@ -210,17 +210,17 @@ func (c Char) GreaterThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) == 1), Nil
+			return ToElkBool(String(c).Cmp(o) == 1), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c > other.AsChar()), Nil
+		return ToElkBool(c > other.AsChar()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
@@ -230,17 +230,17 @@ func (c Char) GreaterThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) >= 0), Nil
+			return ToElkBool(String(c).Cmp(o) >= 0), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c >= other.AsChar()), Nil
+		return ToElkBool(c >= other.AsChar()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
@@ -250,17 +250,17 @@ func (c Char) LessThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) == -1), Nil
+			return ToElkBool(String(c).Cmp(o) == -1), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c < other.AsChar()), Nil
+		return ToElkBool(c < other.AsChar()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
@@ -270,17 +270,17 @@ func (c Char) LessThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) <= 0), Nil
+			return ToElkBool(String(c).Cmp(o) <= 0), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c <= other.AsChar()), Nil
+		return ToElkBool(c <= other.AsChar()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(c.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 

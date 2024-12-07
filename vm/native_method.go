@@ -98,7 +98,7 @@ func DefineNativeMethod(
 		function,
 	)
 	container.Methods[name] = nativeMethod
-	return value.Nil
+	return value.Undefined
 }
 
 type DefOption func(*NativeMethod)

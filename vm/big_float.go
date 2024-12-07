@@ -15,9 +15,9 @@ func initBigFloat() {
 			arg := args[1]
 			p, ok := value.ToGoUInt(arg)
 			if !ok {
-				return value.Nil, value.Ref(value.NewBigFloatPrecisionError(arg.Inspect()))
+				return value.Undefined, value.Ref(value.NewBigFloatPrecisionError(arg.Inspect()))
 			}
-			return value.Ref(self.SetPrecision(p)), value.Nil
+			return value.Ref(self.SetPrecision(p)), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -27,7 +27,7 @@ func initBigFloat() {
 		"precision",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return value.UInt64(self.Precision()).ToValue(), value.Nil
+			return value.UInt64(self.Precision()).ToValue(), value.Undefined
 		},
 	)
 
@@ -35,7 +35,7 @@ func initBigFloat() {
 		c,
 		"+@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Nil
+			return args[0], value.Undefined
 		},
 	)
 	Def(
@@ -43,7 +43,7 @@ func initBigFloat() {
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return value.Ref(self.Negate()), value.Nil
+			return value.Ref(self.Negate()), value.Undefined
 		},
 	)
 	Def(
@@ -152,7 +152,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Equal(other), value.Nil
+			return self.Equal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -172,7 +172,7 @@ func initBigFloat() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return value.Ref(value.String(self.Inspect())), value.Nil
+			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
 	Alias(c, "to_string", "inspect")
@@ -182,7 +182,7 @@ func initBigFloat() {
 		"to_big_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return self, value.Nil
+			return self, value.Undefined
 		},
 	)
 	Def(
@@ -190,7 +190,7 @@ func initBigFloat() {
 		"to_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToFloat().ToValue(), value.Nil
+			return self.ToFloat().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -198,7 +198,7 @@ func initBigFloat() {
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToInt(), value.Nil
+			return self.ToInt(), value.Undefined
 		},
 	)
 	Def(
@@ -206,7 +206,7 @@ func initBigFloat() {
 		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToFloat64().ToValue(), value.Nil
+			return self.ToFloat64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -214,7 +214,7 @@ func initBigFloat() {
 		"to_float32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToFloat32().ToValue(), value.Nil
+			return self.ToFloat32().ToValue(), value.Undefined
 		},
 	)
 
@@ -223,7 +223,7 @@ func initBigFloat() {
 		"to_int64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToInt64().ToValue(), value.Nil
+			return self.ToInt64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -231,7 +231,7 @@ func initBigFloat() {
 		"to_int32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToInt32().ToValue(), value.Nil
+			return self.ToInt32().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -239,7 +239,7 @@ func initBigFloat() {
 		"to_int16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToInt16().ToValue(), value.Nil
+			return self.ToInt16().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -247,7 +247,7 @@ func initBigFloat() {
 		"to_int8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToInt8().ToValue(), value.Nil
+			return self.ToInt8().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -255,7 +255,7 @@ func initBigFloat() {
 		"to_uint64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToUInt64().ToValue(), value.Nil
+			return self.ToUInt64().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -263,7 +263,7 @@ func initBigFloat() {
 		"to_uint32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToUInt32().ToValue(), value.Nil
+			return self.ToUInt32().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -271,7 +271,7 @@ func initBigFloat() {
 		"to_uint16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToUInt16().ToValue(), value.Nil
+			return self.ToUInt16().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -279,7 +279,7 @@ func initBigFloat() {
 		"to_uint8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
-			return self.ToUInt8().ToValue(), value.Nil
+			return self.ToUInt8().ToValue(), value.Undefined
 		},
 	)
 }

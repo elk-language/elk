@@ -115,7 +115,7 @@ func (i Int64) Add(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i + o, Nil
+	return i + o, Undefined
 }
 
 // Perform a bitwise AND.
@@ -125,7 +125,7 @@ func (i Int64) BitwiseAnd(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i & o, Nil
+	return i & o, Undefined
 }
 
 // Perform a bitwise AND NOT.
@@ -135,7 +135,7 @@ func (i Int64) BitwiseAndNot(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i &^ o, Nil
+	return i &^ o, Undefined
 }
 
 // Perform a bitwise OR.
@@ -145,7 +145,7 @@ func (i Int64) BitwiseOr(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i | o, Nil
+	return i | o, Undefined
 }
 
 // Perform a bitwise XOR.
@@ -155,7 +155,7 @@ func (i Int64) BitwiseXor(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i ^ o, Nil
+	return i ^ o, Undefined
 }
 
 func (i Int64) Exponentiate(other Value) (Int64, Value) {
@@ -165,14 +165,14 @@ func (i Int64) Exponentiate(other Value) (Int64, Value) {
 
 	o := other.AsInt64()
 	if o <= 0 {
-		return 1, Nil
+		return 1, Undefined
 	}
 	result := i
 	var j Int64
 	for j = 2; j <= o; j++ {
 		result *= i
 	}
-	return result, Nil
+	return result, Undefined
 }
 
 func (i Int64) Subtract(other Value) (Int64, Value) {
@@ -181,7 +181,7 @@ func (i Int64) Subtract(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i - o, Nil
+	return i - o, Undefined
 }
 
 func (i Int64) Multiply(other Value) (Int64, Value) {
@@ -190,7 +190,7 @@ func (i Int64) Multiply(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i * o, Nil
+	return i * o, Undefined
 }
 
 func (i Int64) Modulo(other Value) (Int64, Value) {
@@ -199,7 +199,7 @@ func (i Int64) Modulo(other Value) (Int64, Value) {
 	}
 
 	o := other.AsInt64()
-	return i % o, Nil
+	return i % o, Undefined
 }
 
 func (i Int64) Divide(other Value) (Int64, Value) {
@@ -210,58 +210,58 @@ func (i Int64) Divide(other Value) (Int64, Value) {
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Nil
+	return i / o, Undefined
 }
 
 func (i Int64) Compare(other Value) (Value, Value) {
 	if !other.IsInt64() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt64()
 
 	if i > o {
-		return SmallInt(1).ToValue(), Nil
+		return SmallInt(1).ToValue(), Undefined
 	}
 	if i < o {
-		return SmallInt(-1).ToValue(), Nil
+		return SmallInt(-1).ToValue(), Undefined
 	}
-	return SmallInt(0).ToValue(), Nil
+	return SmallInt(0).ToValue(), Undefined
 }
 
 func (i Int64) GreaterThan(other Value) (Value, Value) {
 	if !other.IsInt64() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt64()
-	return ToElkBool(i > o), Nil
+	return ToElkBool(i > o), Undefined
 }
 
 func (i Int64) GreaterThanEqual(other Value) (Value, Value) {
 	if !other.IsInt64() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt64()
-	return ToElkBool(i >= o), Nil
+	return ToElkBool(i >= o), Undefined
 }
 
 func (i Int64) LessThan(other Value) (Value, Value) {
 	if !other.IsInt64() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt64()
-	return ToElkBool(i < o), Nil
+	return ToElkBool(i < o), Undefined
 }
 
 func (i Int64) LessThanEqual(other Value) (Value, Value) {
 	if !other.IsInt64() {
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt64()
-	return ToElkBool(i <= o), Nil
+	return ToElkBool(i <= o), Undefined
 }
 
 func (i Int64) Equal(other Value) Value {

@@ -60,21 +60,21 @@ func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc lo
 		switch r := right.AsReference().(type) {
 		case Int64:
 			if r < 0 {
-				return shiftFunc(left, uint64(-r)), Nil
+				return shiftFunc(left, uint64(-r)), Undefined
 			}
-			return left << r, Nil
+			return left << r, Undefined
 		case UInt64:
-			return left << r, Nil
+			return left << r, Undefined
 		case *BigInt:
 			if r.IsSmallInt() {
 				rSmall := r.ToSmallInt()
 				if rSmall < 0 {
-					return left >> -rSmall, Nil
+					return left >> -rSmall, Undefined
 				}
-				return left << rSmall, Nil
+				return left << rSmall, Undefined
 			}
 
-			return 0, Nil
+			return 0, Undefined
 		default:
 			return 0, Ref(NewBitshiftOperandError(right))
 		}
@@ -84,45 +84,45 @@ func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc lo
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if r < 0 {
-			return shiftFunc(left, uint64(-r)), Nil
+			return shiftFunc(left, uint64(-r)), Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT64_FLAG:
 		r := right.AsInt64()
 		if r < 0 {
-			return shiftFunc(left, uint64(-r)), Nil
+			return shiftFunc(left, uint64(-r)), Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if r < 0 {
-			return shiftFunc(left, uint64(-r)), Nil
+			return shiftFunc(left, uint64(-r)), Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if r < 0 {
-			return shiftFunc(left, uint64(-r)), Nil
+			return shiftFunc(left, uint64(-r)), Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if r < 0 {
-			return shiftFunc(left, uint64(-r)), Nil
+			return shiftFunc(left, uint64(-r)), Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT64_FLAG:
 		r := right.AsUInt64()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return left << r, Nil
+		return left << r, Undefined
 	default:
 		return 0, Ref(NewBitshiftOperandError(right))
 	}
@@ -134,21 +134,21 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 		switch r := right.AsReference().(type) {
 		case Int64:
 			if r < 0 {
-				return left << -r, Nil
+				return left << -r, Undefined
 			}
-			return shiftFunc(left, uint64(r)), Nil
+			return shiftFunc(left, uint64(r)), Undefined
 		case UInt64:
-			return shiftFunc(left, uint64(r)), Nil
+			return shiftFunc(left, uint64(r)), Undefined
 		case *BigInt:
 			if r.IsSmallInt() {
 				rSmall := r.ToSmallInt()
 				if rSmall < 0 {
-					return left << -rSmall, Nil
+					return left << -rSmall, Undefined
 				}
-				return shiftFunc(left, uint64(rSmall)), Nil
+				return shiftFunc(left, uint64(rSmall)), Undefined
 			}
 
-			return 0, Nil
+			return 0, Undefined
 		default:
 			return 0, Ref(NewBitshiftOperandError(right))
 		}
@@ -158,45 +158,45 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case INT64_FLAG:
 		r := right.AsInt64()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case UINT64_FLAG:
 		r := right.AsUInt64()
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return shiftFunc(left, uint64(r)), Nil
+		return shiftFunc(left, uint64(r)), Undefined
 	default:
 		return 0, Ref(NewBitshiftOperandError(right))
 	}
@@ -208,21 +208,21 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 		switch r := right.AsReference().(type) {
 		case Int64:
 			if r < 0 {
-				return left << -r, Nil
+				return left << -r, Undefined
 			}
-			return left >> r, Nil
+			return left >> r, Undefined
 		case UInt64:
-			return left >> r, Nil
+			return left >> r, Undefined
 		case *BigInt:
 			if r.IsSmallInt() {
 				rSmall := r.ToSmallInt()
 				if rSmall < 0 {
-					return left << -rSmall, Nil
+					return left << -rSmall, Undefined
 				}
-				return left >> rSmall, Nil
+				return left >> rSmall, Undefined
 			}
 
-			return 0, Nil
+			return 0, Undefined
 		default:
 			return 0, Ref(NewBitshiftOperandError(right))
 		}
@@ -232,45 +232,45 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return left >> r, Nil
+		return left >> r, Undefined
 	case INT64_FLAG:
 		r := right.AsInt64()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return left >> r, Nil
+		return left >> r, Undefined
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return left >> r, Nil
+		return left >> r, Undefined
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return left >> r, Nil
+		return left >> r, Undefined
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if r < 0 {
-			return left << -r, Nil
+			return left << -r, Undefined
 		}
-		return left >> r, Nil
+		return left >> r, Undefined
 	case UINT64_FLAG:
 		r := right.AsUInt64()
-		return left >> r, Nil
+		return left >> r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return left >> r, Nil
+		return left >> r, Undefined
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return left >> r, Nil
+		return left >> r, Undefined
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return left >> r, Nil
+		return left >> r, Undefined
 	default:
 		return 0, Ref(NewBitshiftOperandError(right))
 	}
@@ -282,21 +282,21 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 		switch r := right.AsReference().(type) {
 		case Int64:
 			if r < 0 {
-				return left >> -r, Nil
+				return left >> -r, Undefined
 			}
-			return left << r, Nil
+			return left << r, Undefined
 		case UInt64:
-			return left << r, Nil
+			return left << r, Undefined
 		case *BigInt:
 			if r.IsSmallInt() {
 				rSmall := r.ToSmallInt()
 				if rSmall < 0 {
-					return left >> -rSmall, Nil
+					return left >> -rSmall, Undefined
 				}
-				return left << rSmall, Nil
+				return left << rSmall, Undefined
 			}
 
-			return 0, Nil
+			return 0, Undefined
 		default:
 			return 0, Ref(NewBitshiftOperandError(right))
 		}
@@ -306,45 +306,45 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if r < 0 {
-			return left >> -r, Nil
+			return left >> -r, Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT64_FLAG:
 		r := right.AsInt64()
 		if r < 0 {
-			return left >> -r, Nil
+			return left >> -r, Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if r < 0 {
-			return left >> -r, Nil
+			return left >> -r, Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if r < 0 {
-			return left >> -r, Nil
+			return left >> -r, Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if r < 0 {
-			return left >> -r, Nil
+			return left >> -r, Undefined
 		}
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT64_FLAG:
 		r := right.AsUInt64()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return left << r, Nil
+		return left << r, Undefined
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return left << r, Nil
+		return left << r, Undefined
 	default:
 		return 0, Ref(NewBitshiftOperandError(right))
 	}
@@ -666,7 +666,7 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 		n = n1
 	}
 
-	return n, Nil
+	return n, Undefined
 }
 
 // Parses a signed strict integer from a string using Elk syntax.
@@ -687,7 +687,7 @@ func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	// Convert unsigned and check range.
 	var un uint64
 	un, err := StrictParseUint(s, base, bitSize)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return 0, err
 	}
 
@@ -706,7 +706,7 @@ func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	if neg {
 		n = -n
 	}
-	return n, Nil
+	return n, Undefined
 }
 
 // Converts letters to lowercase.

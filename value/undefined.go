@@ -2,12 +2,14 @@ package value
 
 import "unsafe"
 
-type UndefinedType struct{}
-
-// Elk's internal undefined value
+// Elk's internal undefined value.
 // Serves as a sentinel value that indicates
 // that no "real" value is present.
-var Undefined = UndefinedType{}
+//
+// It is the zero value of `Value` and maps to Go's `nil`
+type UndefinedType struct{}
+
+var Undefined = UndefinedType{}.ToValue()
 var UndefinedClass *Class
 
 func initUndefined() {

@@ -26,7 +26,7 @@ func initDuration() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
 			dur := args[1].MustDuration()
-			return self.Add(dur).ToValue(), value.Nil
+			return self.Add(dur).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -36,7 +36,7 @@ func initDuration() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
 			dur := args[1].MustDuration()
-			return self.Subtract(dur).ToValue(), value.Nil
+			return self.Subtract(dur).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -65,7 +65,7 @@ func initDuration() {
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return value.Ref(self.ToString()), value.Nil
+			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
 	Def(
@@ -73,7 +73,7 @@ func initDuration() {
 		"nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Nanoseconds(), value.Nil
+			return self.Nanoseconds(), value.Undefined
 		},
 	)
 	Def(
@@ -81,7 +81,7 @@ func initDuration() {
 		"in_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InNanoseconds().ToValue(), value.Nil
+			return self.InNanoseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -89,7 +89,7 @@ func initDuration() {
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Microseconds(), value.Nil
+			return self.Microseconds(), value.Undefined
 		},
 	)
 	Def(
@@ -97,7 +97,7 @@ func initDuration() {
 		"in_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InMicroseconds().ToValue(), value.Nil
+			return self.InMicroseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -105,7 +105,7 @@ func initDuration() {
 		"milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Milliseconds(), value.Nil
+			return self.Milliseconds(), value.Undefined
 		},
 	)
 	Def(
@@ -113,7 +113,7 @@ func initDuration() {
 		"in_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InMilliseconds().ToValue(), value.Nil
+			return self.InMilliseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -121,7 +121,7 @@ func initDuration() {
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Seconds(), value.Nil
+			return self.Seconds(), value.Undefined
 		},
 	)
 	Def(
@@ -129,7 +129,7 @@ func initDuration() {
 		"in_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InSeconds().ToValue(), value.Nil
+			return self.InSeconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -137,7 +137,7 @@ func initDuration() {
 		"minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Minutes(), value.Nil
+			return self.Minutes(), value.Undefined
 		},
 	)
 	Def(
@@ -145,7 +145,7 @@ func initDuration() {
 		"in_minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InMinutes().ToValue(), value.Nil
+			return self.InMinutes().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -153,7 +153,7 @@ func initDuration() {
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Hours(), value.Nil
+			return self.Hours(), value.Undefined
 		},
 	)
 	Def(
@@ -161,7 +161,7 @@ func initDuration() {
 		"in_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InHours().ToValue(), value.Nil
+			return self.InHours().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -169,7 +169,7 @@ func initDuration() {
 		"days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Days(), value.Nil
+			return self.Days(), value.Undefined
 		},
 	)
 	Def(
@@ -177,7 +177,7 @@ func initDuration() {
 		"in_days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InDays().ToValue(), value.Nil
+			return self.InDays().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -185,7 +185,7 @@ func initDuration() {
 		"weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Weeks(), value.Nil
+			return self.Weeks(), value.Undefined
 		},
 	)
 	Def(
@@ -193,7 +193,7 @@ func initDuration() {
 		"in_weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InWeeks().ToValue(), value.Nil
+			return self.InWeeks().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -201,7 +201,7 @@ func initDuration() {
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.Years(), value.Nil
+			return self.Years(), value.Undefined
 		},
 	)
 	Def(
@@ -209,7 +209,7 @@ func initDuration() {
 		"in_years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.InYears().ToValue(), value.Nil
+			return self.InYears().ToValue(), value.Undefined
 		},
 	)
 }

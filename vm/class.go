@@ -16,9 +16,9 @@ func initClass() {
 			self := args[0].MustReference().(*value.Class)
 			superclass := self.Superclass()
 			if superclass == nil {
-				return value.Nil, value.Nil
+				return value.Nil, value.Undefined
 			}
-			return value.Ref(superclass), value.Nil
+			return value.Ref(superclass), value.Undefined
 		},
 	)
 	Def(
@@ -26,7 +26,7 @@ func initClass() {
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Class)
-			return value.Ref(value.String(self.Name)), value.Nil
+			return value.Ref(value.String(self.Name)), value.Undefined
 		},
 	)
 }

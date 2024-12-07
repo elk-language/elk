@@ -34,7 +34,7 @@ func ParseDuration(s String) (result Duration, err Value) {
 		return result, Ref(NewError(FormatErrorClass, er.Error()))
 	}
 
-	return Duration(dur), Nil
+	return Duration(dur), Undefined
 }
 
 func DurationSince(t Time) Duration {
@@ -99,12 +99,12 @@ func (d Duration) Multiply(other Value) (Duration, Value) {
 		case *BigInt:
 			newBig := big.NewInt(int64(d))
 			result := ToElkBigInt(newBig.Mul(newBig, o.ToGoBigInt()))
-			return Duration(result.ToSmallInt()), Nil
+			return Duration(result.ToSmallInt()), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
 			iBigFloat.MulBigFloat(iBigFloat, o)
-			return Duration(iBigFloat.ToInt64()), Nil
+			return Duration(iBigFloat.ToInt64()), Undefined
 		default:
 			return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 		}
@@ -112,9 +112,9 @@ func (d Duration) Multiply(other Value) (Duration, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return d * Duration(other.AsSmallInt()), Nil
+		return d * Duration(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return Duration(Float(d) * other.AsFloat()), Nil
+		return Duration(Float(d) * other.AsFloat()), Undefined
 	default:
 		return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 	}
@@ -129,7 +129,7 @@ func (d Duration) Divide(other Value) (Duration, Value) {
 			}
 			newBig := big.NewInt(int64(d))
 			result := ToElkBigInt(newBig.Div(newBig, o.ToGoBigInt()))
-			return Duration(result.ToSmallInt()), Nil
+			return Duration(result.ToSmallInt()), Undefined
 		case *BigFloat:
 			if o.IsZero() {
 				return 0, Ref(NewZeroDivisionError())
@@ -137,7 +137,7 @@ func (d Duration) Divide(other Value) (Duration, Value) {
 			prec := max(o.Precision(), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(d))
 			iBigFloat.DivBigFloat(iBigFloat, o)
-			return Duration(iBigFloat.ToInt64()), Nil
+			return Duration(iBigFloat.ToInt64()), Undefined
 		default:
 			return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 		}
@@ -149,13 +149,13 @@ func (d Duration) Divide(other Value) (Duration, Value) {
 		if o == 0 {
 			return 0, Ref(NewZeroDivisionError())
 		}
-		return d / Duration(o), Nil
+		return d / Duration(o), Undefined
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if o == 0 {
 			return 0, Ref(NewZeroDivisionError())
 		}
-		return Duration(Float(d) / o), Nil
+		return Duration(Float(d) / o), Undefined
 	default:
 		return 0, Ref(NewCoerceError(d.Class(), other.Class()))
 	}

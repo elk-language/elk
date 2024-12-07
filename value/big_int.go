@@ -161,30 +161,30 @@ func (i *BigInt) Compare(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return SmallInt(i.Cmp(o)).ToValue(), Nil
+			return SmallInt(i.Cmp(o)).ToValue(), Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return Nil, Nil
+				return Nil, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Nil
+			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return SmallInt(i.Cmp(oBigInt)).ToValue(), Nil
+		return SmallInt(i.Cmp(oBigInt)).ToValue(), Undefined
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if o.IsNaN() {
-			return Nil, Nil
+			return Nil, Undefined
 		}
-		return SmallInt(i.ToFloat().Cmp(o)).ToValue(), Nil
+		return SmallInt(i.ToFloat().Cmp(o)).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -196,16 +196,16 @@ func (i *BigInt) Add(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Add(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 			iBigFloat.AddBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Nil
+			return Ref(iBigFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
@@ -214,13 +214,13 @@ func (i *BigInt) Add(other Value) (Value, Value) {
 		oBigInt.Add(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(ToElkBigInt(oBigInt)), Nil
+		return Ref(ToElkBigInt(oBigInt)), Undefined
 	case FLOAT_FLAG:
-		return (i.ToFloat() + other.AsFloat()).ToValue(), Nil
+		return (i.ToFloat() + other.AsFloat()).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -232,16 +232,16 @@ func (i *BigInt) Subtract(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Sub(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 			iBigFloat.SubBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Nil
+			return Ref(iBigFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
@@ -251,13 +251,13 @@ func (i *BigInt) Subtract(other Value) (Value, Value) {
 		oBigInt.Sub(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(ToElkBigInt(oBigInt)), Nil
+		return Ref(ToElkBigInt(oBigInt)), Undefined
 	case FLOAT_FLAG:
-		return (i.ToFloat() - other.AsFloat()).ToValue(), Nil
+		return (i.ToFloat() - other.AsFloat()).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -269,15 +269,15 @@ func (i *BigInt) Multiply(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Mul(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-			return Ref(iBigFloat.MulBigFloat(iBigFloat, o)), Nil
+			return Ref(iBigFloat.MulBigFloat(iBigFloat, o)), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
@@ -287,13 +287,13 @@ func (i *BigInt) Multiply(other Value) (Value, Value) {
 		oBigInt.Mul(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	case FLOAT_FLAG:
-		return (i.ToFloat() * other.AsFloat()).ToValue(), Nil
+		return (i.ToFloat() * other.AsFloat()).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -304,19 +304,19 @@ func (i *BigInt) Divide(other Value) (Value, Value) {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			if o.IsZero() {
-				return Nil, Ref(NewZeroDivisionError())
+				return Undefined, Ref(NewZeroDivisionError())
 			}
 			result := ToElkBigInt((&big.Int{}).Div(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-			return Ref(iBigFloat.DivBigFloat(iBigFloat, o)), Nil
+			return Ref(iBigFloat.DivBigFloat(iBigFloat, o)), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
@@ -324,19 +324,19 @@ func (i *BigInt) Divide(other Value) (Value, Value) {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
 		if o == 0 {
-			return Nil, Ref(NewZeroDivisionError())
+			return Undefined, Ref(NewZeroDivisionError())
 		}
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Div(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(ToElkBigInt(oBigInt)), Nil
+		return Ref(ToElkBigInt(oBigInt)), Undefined
 	case FLOAT_FLAG:
-		return (i.ToFloat() / other.AsFloat()).ToValue(), Nil
+		return (i.ToFloat() / other.AsFloat()).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -348,16 +348,16 @@ func (i *BigInt) Exponentiate(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Exp(i.ToGoBigInt(), o.ToGoBigInt(), nil))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 			iBigFloat.ExpBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Nil
+			return Ref(iBigFloat), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
@@ -367,14 +367,14 @@ func (i *BigInt) Exponentiate(other Value) (Value, Value) {
 		oBigInt.Exp(i.ToGoBigInt(), oBigInt, nil)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(ToElkBigInt(oBigInt)), Nil
+		return Ref(ToElkBigInt(oBigInt)), Undefined
 	case FLOAT_FLAG:
 		iFloat, _ := i.ToGoBigInt().Float64()
-		return Float(math.Pow(iFloat, float64(other.AsFloat()))).ToValue(), Nil
+		return Float(math.Pow(iFloat, float64(other.AsFloat()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -385,7 +385,7 @@ func (i *BigInt) Modulo(other Value) (Value, Value) {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			if o.IsZero() {
-				return Nil, Ref(NewZeroDivisionError())
+				return Undefined, Ref(NewZeroDivisionError())
 			}
 			iGo := i.ToGoBigInt()
 			oGo := o.ToGoBigInt()
@@ -393,15 +393,15 @@ func (i *BigInt) Modulo(other Value) (Value, Value) {
 			(&big.Int{}).QuoRem(iGo, oGo, mod)
 			result := ToElkBigInt(mod)
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		case *BigFloat:
 			prec := max(o.Precision(), uint(i.BitSize()), 64)
 			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-			return Ref(iBigFloat.Mod(iBigFloat, o)), Nil
+			return Ref(iBigFloat.Mod(iBigFloat, o)), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
@@ -409,21 +409,21 @@ func (i *BigInt) Modulo(other Value) (Value, Value) {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
 		if o == 0 {
-			return Nil, Ref(NewZeroDivisionError())
+			return Undefined, Ref(NewZeroDivisionError())
 		}
 		iGo := i.ToGoBigInt()
 		oBigInt := big.NewInt(int64(o))
 		(&big.Int{}).QuoRem(iGo, oBigInt, oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	case FLOAT_FLAG:
 		iFloat, _ := i.ToGoBigInt().Float64()
-		return Float(math.Mod(iFloat, float64(other.AsFloat()))).ToValue(), Nil
+		return Float(math.Mod(iFloat, float64(other.AsFloat()))).ToValue(), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -433,25 +433,25 @@ func (i *BigInt) GreaterThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(i.Cmp(o) == 1), Nil
+			return ToElkBool(i.Cmp(o) == 1), Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == 1), Nil
+			return ToElkBool(iBigFloat.Cmp(o) == 1), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return ToElkBool(i.Cmp(oBigInt) == 1), Nil
+		return ToElkBool(i.Cmp(oBigInt) == 1), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(i.ToFloat() > other.AsFloat()), Nil
+		return ToElkBool(i.ToFloat() > other.AsFloat()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -461,26 +461,26 @@ func (i *BigInt) GreaterThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(i.Cmp(o) >= 0), Nil
+			return ToElkBool(i.Cmp(o) >= 0), Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) >= 0), Nil
+			return ToElkBool(iBigFloat.Cmp(o) >= 0), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return ToElkBool(i.Cmp(oBigInt) >= 0), Nil
+		return ToElkBool(i.Cmp(oBigInt) >= 0), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(i.ToFloat() >= other.AsFloat()), Nil
+		return ToElkBool(i.ToFloat() >= other.AsFloat()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -490,26 +490,26 @@ func (i *BigInt) LessThan(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(i.Cmp(o) == -1), Nil
+			return ToElkBool(i.Cmp(o) == -1), Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == -1), Nil
+			return ToElkBool(iBigFloat.Cmp(o) == -1), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return ToElkBool(i.Cmp(oBigInt) == -1), Nil
+		return ToElkBool(i.Cmp(oBigInt) == -1), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(i.ToFloat() < other.AsFloat()), Nil
+		return ToElkBool(i.ToFloat() < other.AsFloat()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -519,26 +519,26 @@ func (i *BigInt) LessThanEqual(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(i.Cmp(o) <= 0), Nil
+			return ToElkBool(i.Cmp(o) <= 0), Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Nil
+				return False, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) <= 0), Nil
+			return ToElkBool(iBigFloat.Cmp(o) <= 0), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return ToElkBool(i.Cmp(oBigInt) <= 0), Nil
+		return ToElkBool(i.Cmp(oBigInt) <= 0), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(i.ToFloat() <= other.AsFloat()), Nil
+		return ToElkBool(i.ToFloat() <= other.AsFloat()), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -648,22 +648,22 @@ func (i *BigInt) RightBitshift(other Value) (Value, Value) {
 		switch o := other.AsReference().(type) {
 		case Int64:
 			if o < 0 {
-				return leftBitshiftBigInt(i, -o), Nil
+				return leftBitshiftBigInt(i, -o), Undefined
 			}
-			return rightBitshiftBigInt(i, o), Nil
+			return rightBitshiftBigInt(i, o), Undefined
 		case UInt64:
-			return rightBitshiftBigInt(i, o), Nil
+			return rightBitshiftBigInt(i, o), Undefined
 		case *BigInt:
 			if o.IsSmallInt() {
 				oSmall := o.ToSmallInt()
 				if oSmall < 0 {
-					return leftBitshiftBigInt(i, -oSmall), Nil
+					return leftBitshiftBigInt(i, -oSmall), Undefined
 				}
-				return rightBitshiftBigInt(i, oSmall), Nil
+				return rightBitshiftBigInt(i, oSmall), Undefined
 			}
-			return SmallInt(0).ToValue(), Nil
+			return SmallInt(0).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewBitshiftOperandError(other))
+			return Undefined, Ref(NewBitshiftOperandError(other))
 		}
 	}
 
@@ -671,47 +671,47 @@ func (i *BigInt) RightBitshift(other Value) (Value, Value) {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
 		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Nil
+			return leftBitshiftBigInt(i, -o), Undefined
 		}
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case INT64_FLAG:
 		o := other.AsInt64()
 		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Nil
+			return leftBitshiftBigInt(i, -o), Undefined
 		}
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case INT32_FLAG:
 		o := other.AsInt32()
 		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Nil
+			return leftBitshiftBigInt(i, -o), Undefined
 		}
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case INT16_FLAG:
 		o := other.AsInt16()
 		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Nil
+			return leftBitshiftBigInt(i, -o), Undefined
 		}
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case INT8_FLAG:
 		o := other.AsInt8()
 		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Nil
+			return leftBitshiftBigInt(i, -o), Undefined
 		}
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case UINT64_FLAG:
 		o := other.AsUInt64()
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case UINT16_FLAG:
 		o := other.AsUInt16()
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	case UINT8_FLAG:
 		o := other.AsUInt8()
-		return rightBitshiftBigInt(i, o), Nil
+		return rightBitshiftBigInt(i, o), Undefined
 	default:
-		return Nil, Ref(NewBitshiftOperandError(other))
+		return Undefined, Ref(NewBitshiftOperandError(other))
 	}
 }
 
@@ -729,49 +729,49 @@ func (i *BigInt) LeftBitshift(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
-			return leftBitshiftBigInt(i, o), Nil
+			return leftBitshiftBigInt(i, o), Undefined
 		case UInt64:
-			return leftBitshiftBigInt(i, o), Nil
+			return leftBitshiftBigInt(i, o), Undefined
 		case *BigInt:
 			if o.IsSmallInt() {
 				oSmall := o.ToSmallInt()
-				return leftBitshiftBigInt(i, oSmall), Nil
+				return leftBitshiftBigInt(i, oSmall), Undefined
 			}
-			return SmallInt(0).ToValue(), Nil
+			return SmallInt(0).ToValue(), Undefined
 		default:
-			return Nil, Ref(NewBitshiftOperandError(other))
+			return Undefined, Ref(NewBitshiftOperandError(other))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case INT64_FLAG:
 		o := other.AsInt64()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case INT32_FLAG:
 		o := other.AsInt32()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case INT16_FLAG:
 		o := other.AsInt16()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case INT8_FLAG:
 		o := other.AsInt8()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case UINT64_FLAG:
 		o := other.AsUInt64()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case UINT16_FLAG:
 		o := other.AsUInt16()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	case UINT8_FLAG:
 		o := other.AsUInt8()
-		return leftBitshiftBigInt(i, o), Nil
+		return leftBitshiftBigInt(i, o), Undefined
 	default:
-		return Nil, Ref(NewBitshiftOperandError(other))
+		return Undefined, Ref(NewBitshiftOperandError(other))
 	}
 }
 
@@ -783,11 +783,11 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
@@ -796,11 +796,11 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, Value) {
 		oBigInt.And(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -812,11 +812,11 @@ func (i *BigInt) BitwiseAndNot(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).AndNot(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
@@ -825,11 +825,11 @@ func (i *BigInt) BitwiseAndNot(other Value) (Value, Value) {
 		oBigInt.AndNot(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -841,11 +841,11 @@ func (i *BigInt) BitwiseOr(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
@@ -854,11 +854,11 @@ func (i *BigInt) BitwiseOr(other Value) (Value, Value) {
 		oBigInt.Or(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -870,11 +870,11 @@ func (i *BigInt) BitwiseXor(other Value) (Value, Value) {
 		case *BigInt:
 			result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), o.ToGoBigInt()))
 			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Nil
+				return result.ToSmallInt().ToValue(), Undefined
 			}
-			return Ref(result), Nil
+			return Ref(result), Undefined
 		default:
-			return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
@@ -883,11 +883,11 @@ func (i *BigInt) BitwiseXor(other Value) (Value, Value) {
 		oBigInt.Xor(i.ToGoBigInt(), oBigInt)
 		result := ToElkBigInt(oBigInt)
 		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Nil
+			return result.ToSmallInt().ToValue(), Undefined
 		}
-		return Ref(result), Nil
+		return Ref(result), Undefined
 	default:
-		return Nil, Ref(NewCoerceError(i.Class(), other.Class()))
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -987,7 +987,7 @@ func ParseUBigInt(s string, base int) (*BigInt, Value) {
 		n.Add(n, big.NewInt(int64(d)))
 	}
 
-	return ToElkBigInt(n), Nil
+	return ToElkBigInt(n), Undefined
 }
 
 // Parses a signed big.Int from a string using Elk syntax.
@@ -1009,7 +1009,7 @@ func ParseBigInt(s string, base int) (*BigInt, Value) {
 	u, err := ParseUBigInt(s, base)
 	un := u.ToGoBigInt()
 
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return nil, err
 	}
 
@@ -1017,26 +1017,26 @@ func ParseBigInt(s string, base int) (*BigInt, Value) {
 		un.Neg(un)
 	}
 
-	return ToElkBigInt(un), Nil
+	return ToElkBigInt(un), Undefined
 }
 
 func ParseInt(s string, base int) (Value, Value) {
 	val, err := ParseBigInt(s, base)
-	if !err.IsNil() {
-		return Nil, err
+	if !err.IsUndefined() {
+		return Undefined, err
 	}
 
 	if val.IsSmallInt() {
-		return val.ToSmallInt().ToValue(), Nil
+		return val.ToSmallInt().ToValue(), Undefined
 	}
 
-	return Ref(val), Nil
+	return Ref(val), Undefined
 }
 
 // Same as [ParseBigInt] but panics on error.
 func ParseBigIntPanic(s string, base int) *BigInt {
 	result, err := ParseBigInt(s, base)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 

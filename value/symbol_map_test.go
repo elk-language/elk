@@ -18,14 +18,14 @@ func TestSymbolMapGet(t *testing.T) {
 		"return nil when the map is empty": {
 			symbolMap: make(value.SymbolMap),
 			get:       1,
-			want:      value.Nil,
+			want:      value.Undefined,
 		},
 		"return nil when no such symbol": {
 			symbolMap: value.SymbolMap{
 				1: value.SmallInt(5).ToValue(),
 			},
 			get:  20,
-			want: value.Nil,
+			want: value.Undefined,
 		},
 		"return the value when the key is present": {
 			symbolMap: value.SymbolMap{
@@ -59,7 +59,7 @@ func TestSymbolMapGetString(t *testing.T) {
 			symbolTable:      value.NewSymbolTable(),
 			symbolMap:        make(value.SymbolMap),
 			get:              "foo",
-			want:             value.Nil,
+			want:             value.Undefined,
 			symbolTableAfter: value.NewSymbolTable(),
 		},
 		"return nil when no such symbol": {
@@ -79,7 +79,7 @@ func TestSymbolMapGetString(t *testing.T) {
 				1: value.SmallInt(5).ToValue(),
 			},
 			get:  "foo",
-			want: value.Nil,
+			want: value.Undefined,
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
 					map[string]value.Symbol{

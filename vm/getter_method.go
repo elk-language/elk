@@ -67,13 +67,13 @@ func (*GetterMethod) InstanceVariables() value.SymbolMap {
 func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 	iv := self.InstanceVariables()
 	if iv == nil {
-		return value.Nil, value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
+		return value.Undefined, value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
 	result := iv.Get(g.AttributeName)
-	if result.IsNil() {
-		return value.Nil, value.Nil
+	if result.IsUndefined() {
+		return value.Nil, value.Undefined
 	}
-	return result, value.Nil
+	return result, value.Undefined
 }
 
 // Create a new getter method.
