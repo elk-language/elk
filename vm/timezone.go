@@ -12,8 +12,8 @@ func initTimezone() {
 		c,
 		"get",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			name := args[1].(value.String)
-			return value.LoadTimezone(string(name))
+			name := args[1].MustReference().(value.String)
+			return value.RefErr(value.LoadTimezone(string(name)))
 		},
 		DefWithParameters(1),
 	)
@@ -25,8 +25,8 @@ func initTimezone() {
 		c,
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Timezone)
-			return value.String(self.Name()), nil
+			self := args[0].MustReference().(*value.Timezone)
+			return value.Ref(value.String(self.Name())), value.Nil
 		},
 	)
 	Alias(c, "to_string", "name")
@@ -35,16 +35,16 @@ func initTimezone() {
 		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Timezone)
-			return value.ToElkBool(self.IsUTC()), nil
+			self := args[0].MustReference().(*value.Timezone)
+			return value.ToElkBool(self.IsUTC()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Timezone)
-			return value.ToElkBool(self.IsLocal()), nil
+			self := args[0].MustReference().(*value.Timezone)
+			return value.ToElkBool(self.IsLocal()), value.Nil
 		},
 	)
 

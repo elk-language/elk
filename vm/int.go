@@ -17,14 +17,16 @@ func initInt() {
 		"++",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Increment(), nil
-			case *value.BigInt:
-				return s.Increment(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Increment(), value.Nil
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.Ref(s.Increment()), value.Nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -32,14 +34,16 @@ func initInt() {
 		"--",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Decrement(), nil
-			case *value.BigInt:
-				return s.Decrement(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Decrement(), value.Nil
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.Decrement(), value.Nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -48,14 +52,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Add(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Add(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Add(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -65,14 +71,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Subtract(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Subtract(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Subtract(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -82,14 +90,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Multiply(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Multiply(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Multiply(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -99,14 +109,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Divide(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Divide(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Divide(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -116,14 +128,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Exponentiate(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Exponentiate(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Exponentiate(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -133,14 +147,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Compare(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Compare(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Compare(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -150,14 +166,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.GreaterThan(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().GreaterThan(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.GreaterThan(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -167,14 +185,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.GreaterThanEqual(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().GreaterThanEqual(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.GreaterThanEqual(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -184,14 +204,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.LessThan(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().LessThan(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.LessThan(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -201,14 +223,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.LessThanEqual(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().LessThanEqual(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.LessThanEqual(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -218,14 +242,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Equal(other), nil
-			case *value.BigInt:
-				return s.Equal(other), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Equal(other), value.Nil
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.Equal(other), value.Nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -235,14 +261,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.LeftBitshift(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().LeftBitshift(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.LeftBitshift(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -252,14 +280,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.RightBitshift(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().RightBitshift(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.RightBitshift(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -269,14 +299,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.BitwiseAnd(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().BitwiseAnd(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.BitwiseAnd(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -285,14 +317,16 @@ func initInt() {
 		"~",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.BitwiseNot(), nil
-			case *value.BigInt:
-				return s.BitwiseNot(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().BitwiseNot().ToValue(), value.Nil
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.Ref(s.BitwiseNot()), value.Nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -301,14 +335,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.BitwiseAndNot(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().BitwiseAndNot(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.BitwiseAndNot(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -318,14 +354,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.BitwiseOr(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().BitwiseOr(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.BitwiseOr(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -335,14 +373,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.BitwiseXor(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().BitwiseXor(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.BitwiseXor(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -352,14 +392,16 @@ func initInt() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Modulo(other)
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Modulo(other)
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.Modulo(other)
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -367,7 +409,7 @@ func initInt() {
 		c,
 		"+@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 	Def(
@@ -375,14 +417,16 @@ func initInt() {
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Negate(), nil
-			case *value.BigInt:
-				return s.Negate(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Negate(), value.Nil
 			}
 
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.Ref(s.Negate()), value.Nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -390,13 +434,15 @@ func initInt() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return value.String(s.Inspect()), nil
-			case *value.BigInt:
-				return value.String(s.Inspect()), nil
+			if self.IsSmallInt() {
+				return value.Ref(value.String(self.AsSmallInt().Inspect())), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.Ref(value.String(s.Inspect())), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "to_string", "inspect")
@@ -405,7 +451,7 @@ func initInt() {
 		c,
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 	Def(
@@ -413,13 +459,15 @@ func initInt() {
 		"to_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToFloat(), nil
-			case *value.BigInt:
-				return s.ToFloat(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToFloat().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToFloat().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -427,13 +475,15 @@ func initInt() {
 		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToFloat64(), nil
-			case *value.BigInt:
-				return s.ToFloat64(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToFloat64().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToFloat64().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -441,13 +491,15 @@ func initInt() {
 		"to_float32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToFloat32(), nil
-			case *value.BigInt:
-				return s.ToFloat32(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToFloat32().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToFloat32().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -455,13 +507,15 @@ func initInt() {
 		"to_int64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToInt64(), nil
-			case *value.BigInt:
-				return s.ToInt64(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToInt64().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToInt64().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -469,13 +523,15 @@ func initInt() {
 		"to_int32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToInt32(), nil
-			case *value.BigInt:
-				return s.ToInt32(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToInt32().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToInt32().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -483,13 +539,15 @@ func initInt() {
 		"to_int16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToInt16(), nil
-			case *value.BigInt:
-				return s.ToInt16(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToInt16().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToInt16().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -497,13 +555,15 @@ func initInt() {
 		"to_int8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToInt8(), nil
-			case *value.BigInt:
-				return s.ToInt8(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToInt8().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToInt8().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -511,13 +571,15 @@ func initInt() {
 		"to_uint64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToUInt64(), nil
-			case *value.BigInt:
-				return s.ToUInt64(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToUInt64().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToUInt64().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -525,13 +587,15 @@ func initInt() {
 		"to_uint32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToUInt32(), nil
-			case *value.BigInt:
-				return s.ToUInt32(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToUInt32().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToUInt32().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -539,13 +603,15 @@ func initInt() {
 		"to_uint16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToUInt16(), nil
-			case *value.BigInt:
-				return s.ToUInt16(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToUInt16().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToUInt16().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -553,13 +619,15 @@ func initInt() {
 		"to_uint8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.ToUInt8(), nil
-			case *value.BigInt:
-				return s.ToUInt8(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().ToUInt8().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.ToUInt8().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Def(
@@ -568,29 +636,32 @@ func initInt() {
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			fn := args[1]
-			switch s := self.(type) {
-			case value.SmallInt:
-				for i := range s {
-					_, err := v.CallCallable(fn, value.SmallInt(i))
-					if err != nil {
-						return nil, err
+
+			if self.IsSmallInt() {
+				for i := range self.AsSmallInt() {
+					_, err := v.CallCallable(fn, value.SmallInt(i).ToValue())
+					if !err.IsNil() {
+						return value.Nil, err
 					}
 				}
-				return value.Nil, nil
+				return value.Nil, value.Nil
+			}
+
+			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				if s.IsSmallInt() {
 					for i := range s.ToSmallInt() {
-						_, err := v.CallCallable(fn, value.SmallInt(i))
-						if err != nil {
-							return nil, err
+						_, err := v.CallCallable(fn, value.SmallInt(i).ToValue())
+						if !err.IsNil() {
+							return value.Nil, err
 						}
 					}
-					return value.Nil, nil
+					return value.Nil, value.Nil
 				}
 				for i := range value.MaxSmallInt {
-					_, err := v.CallCallable(fn, value.SmallInt(i))
-					if err != nil {
-						return nil, err
+					_, err := v.CallCallable(fn, value.SmallInt(i).ToValue())
+					if !err.IsNil() {
+						return value.Nil, err
 					}
 				}
 
@@ -598,10 +669,10 @@ func initInt() {
 				one := big.NewInt(1)
 				bigI := big.NewInt(value.MaxSmallInt)
 				for ; bigI.Cmp(sGo) == -1; bigI.Add(bigI, one) {
-					v.CallCallable(fn, value.ToElkBigInt(bigI))
+					v.CallCallable(fn, value.Ref(value.ToElkBigInt(bigI)))
 				}
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 		DefWithParameters(1),
 	)
@@ -611,13 +682,14 @@ func initInt() {
 		"nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Nanoseconds(), nil
-			case *value.BigInt:
-				return s.Nanoseconds(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Nanoseconds().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Nanoseconds().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "nanosecond", "nanoseconds")
@@ -627,13 +699,14 @@ func initInt() {
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Microseconds(), nil
-			case *value.BigInt:
-				return s.Microseconds(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Microseconds().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Microseconds().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "microsecond", "microseconds")
@@ -643,13 +716,14 @@ func initInt() {
 		"milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Milliseconds(), nil
-			case *value.BigInt:
-				return s.Milliseconds(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Milliseconds().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Milliseconds().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "millisecond", "milliseconds")
@@ -659,13 +733,14 @@ func initInt() {
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Seconds(), nil
-			case *value.BigInt:
-				return s.Seconds(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Seconds().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Seconds().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "second", "seconds")
@@ -675,13 +750,14 @@ func initInt() {
 		"minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Minutes(), nil
-			case *value.BigInt:
-				return s.Minutes(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Minutes().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Minutes().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "minute", "minutes")
@@ -691,13 +767,14 @@ func initInt() {
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Hours(), nil
-			case *value.BigInt:
-				return s.Hours(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Hours().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Hours().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "hour", "hours")
@@ -707,13 +784,14 @@ func initInt() {
 		"days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Days(), nil
-			case *value.BigInt:
-				return s.Days(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Days().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Days().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "day", "days")
@@ -723,29 +801,30 @@ func initInt() {
 		"weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Weeks(), nil
-			case *value.BigInt:
-				return s.Weeks(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Weeks().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Weeks().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "week", "weeks")
-
 	Def(
 		c,
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			switch s := self.(type) {
-			case value.SmallInt:
-				return s.Years(), nil
-			case *value.BigInt:
-				return s.Years(), nil
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Years().ToValue(), value.Nil
 			}
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Years().ToValue(), value.Nil
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "year", "years")

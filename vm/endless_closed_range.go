@@ -12,25 +12,25 @@ func initEndlessClosedRange() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRange)
+			self := args[0].MustReference().(*value.EndlessClosedRange)
 			iterator := value.NewEndlessClosedRangeIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Nil
 		},
 	)
 	Def(
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRange)
-			other, ok := args[1].(*value.EndlessClosedRange)
+			self := args[0].MustReference().(*value.EndlessClosedRange)
+			other, ok := args[1].SafeAsReference().(*value.EndlessClosedRange)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			equal, err := EndlessClosedRangeEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -41,16 +41,16 @@ func initEndlessClosedRange() {
 		c,
 		"#contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRange)
+			self := args[0].MustReference().(*value.EndlessClosedRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			contains, err := EndlessClosedRangeContains(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -58,13 +58,13 @@ func initEndlessClosedRange() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRange)
+			self := args[0].MustReference().(*value.EndlessClosedRange)
 			other := args[1]
 			contains, err := EndlessClosedRangeContains(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -72,43 +72,43 @@ func initEndlessClosedRange() {
 		c,
 		"is_left_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, nil
+			return value.True, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, nil
+			return value.False, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.False, nil
+			return value.False, value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.True, nil
+			return value.True, value.Nil
 		},
 	)
 	Def(
 		c,
 		"start",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRange)
-			return self.Start, nil
+			self := args[0].MustReference().(*value.EndlessClosedRange)
+			return self.Start, value.Nil
 		},
 	)
 	Def(
 		c,
 		"end",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			return value.Nil, nil
+			return value.Nil, value.Nil
 		},
 	)
 }
@@ -121,7 +121,7 @@ func initEndlessClosedRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.EndlessClosedRangeIterator)
+			self := args[0].MustReference().(*value.EndlessClosedRangeIterator)
 			return EndlessClosedRangeIteratorNext(vm, self)
 		},
 	)
@@ -129,7 +129,7 @@ func initEndlessClosedRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 
@@ -138,21 +138,21 @@ func initEndlessClosedRangeIterator() {
 // Checks whether a value is contained in the closed range
 func EndlessClosedRangeContains(vm *VM, r *value.EndlessClosedRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThanEqual(vm, val, r.Start)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), nil
+	return value.Truthy(eqVal), value.Nil
 }
 
 // Checks whether two closed ranges are equal
 func EndlessClosedRangeEqual(vm *VM, x *value.EndlessClosedRange, y *value.EndlessClosedRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), nil
+	return value.Truthy(eqVal), value.Nil
 }
 
 // Get the next element of the range
@@ -161,10 +161,10 @@ func EndlessClosedRangeIteratorNext(vm *VM, i *value.EndlessClosedRangeIterator)
 
 	// i.CurrentElement++
 	next, err := Increment(vm, i.CurrentElement)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
 	i.CurrentElement = next
 
-	return current, nil
+	return current, value.Nil
 }

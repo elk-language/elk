@@ -12,7 +12,7 @@ func initTime() {
 		c,
 		"now",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return value.TimeNow(), nil
+			return value.Ref(value.TimeNow()), value.Nil
 		},
 	)
 
@@ -22,21 +22,21 @@ func initTime() {
 		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			arg := args[1]
-			switch a := arg.(type) {
+			switch a := arg.SafeAsReference().(type) {
 			case value.String:
 				result, err := self.Format(string(a))
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				return value.String(result), nil
+				return value.Ref(value.String(result)), value.Nil
 			default:
-				return nil, value.Errorf(
+				return value.Nil, value.Ref(value.Errorf(
 					value.ArgumentErrorClass,
 					"expected a format string, got: %s",
 					arg.Inspect(),
-				)
+				))
 			}
 		},
 		DefWithParameters(1),
@@ -47,9 +47,9 @@ func initTime() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			dur := args[1].(value.Duration)
-			return self.Subtract(dur), nil
+			self := args[0].MustReference().(*value.Time)
+			dur := args[1].MustDuration()
+			return value.Ref(self.Subtract(dur)), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -57,9 +57,9 @@ func initTime() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			dur := args[1].(value.Duration)
-			return self.Add(dur), nil
+			self := args[0].MustReference().(*value.Time)
+			dur := args[1].MustDuration()
+			return value.Ref(self.Add(dur)), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -67,9 +67,9 @@ func initTime() {
 		c,
 		"diff",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			other := args[1].(*value.Time)
-			return self.Diff(other), nil
+			self := args[0].MustReference().(*value.Time)
+			other := args[1].MustReference().(*value.Time)
+			return self.Diff(other).ToValue(), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -78,8 +78,8 @@ func initTime() {
 		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return self.Zone(), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(self.Zone()), value.Nil
 		},
 	)
 	Alias(c, "timezone", "zone")
@@ -88,8 +88,8 @@ func initTime() {
 		c,
 		"zone_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.String(self.ZoneName()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.String(self.ZoneName())), value.Nil
 		},
 	)
 	Alias(c, "timezone_name", "zone_name")
@@ -98,8 +98,8 @@ func initTime() {
 		c,
 		"zone_offset_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.ZoneOffsetSeconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.ZoneOffsetSeconds()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "timezone_offset_seconds", "zone_offset_seconds")
@@ -108,8 +108,8 @@ func initTime() {
 		c,
 		"zone_offset_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.ZoneOffsetHours()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.ZoneOffsetHours()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "timezone_offset_hours", "zone_offset_hours")
@@ -118,8 +118,8 @@ func initTime() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return self.ToString(), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(self.ToString()), value.Nil
 		},
 	)
 
@@ -127,32 +127,32 @@ func initTime() {
 		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Year()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Year()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.ISOYear()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.ISOYear()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"month",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Month()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Month()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"week_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.WeekFromMonday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.WeekFromMonday()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "week", "week_from_monday")
@@ -160,25 +160,24 @@ func initTime() {
 		c,
 		"week_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.WeekFromSunday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.WeekFromSunday()).ToValue(), value.Nil
 		},
 	)
-
 	Def(
 		c,
 		"iso_week",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.ISOWeek()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.ISOWeek()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Day()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Day()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "month_day", "day")
@@ -187,24 +186,24 @@ func initTime() {
 		c,
 		"year_day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.YearDay()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.YearDay()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.String(self.WeekdayName()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.String(self.WeekdayName())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"weekday_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.WeekdayFromMonday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.WeekdayFromMonday()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "weekday", "weekday_from_monday")
@@ -213,105 +212,104 @@ func initTime() {
 		c,
 		"weekday_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.WeekdayFromSunday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.WeekdayFromSunday()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"hour",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Hour()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Hour()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"minute",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Minute()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Minute()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Second()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Second()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"millisecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Millisecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Millisecond()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"microsecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Microsecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Microsecond()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"nanosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Nanosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Nanosecond()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"picosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkInt(self.Picosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkInt(self.Picosecond()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"femtosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkInt(self.Femtosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkInt(self.Femtosecond()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"attosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkInt(self.Attosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkInt(self.Attosecond()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"zeptosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.Zeptosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.Zeptosecond())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"yoctosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.Yoctosecond()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.Yoctosecond())), value.Nil
 		},
 	)
-
 	Def(
 		c,
 		"unix_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkInt(self.UnixSeconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkInt(self.UnixSeconds()), value.Nil
 		},
 	)
 	Alias(c, "unix", "unix_seconds")
@@ -319,64 +317,64 @@ func initTime() {
 		c,
 		"unix_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkInt(self.UnixMilliseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkInt(self.UnixMilliseconds()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixMicroseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixMicroseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixNanoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixNanoseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_picoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixPicoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixPicoseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_femtoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixFemtoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixFemtoseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_attoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixAttoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixAttoseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_zeptoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixZeptoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixZeptoseconds())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"unix_yoctoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBigInt(self.UnixYoctoseconds()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.ToElkBigInt(self.UnixYoctoseconds())), value.Nil
 		},
 	)
 
@@ -384,8 +382,8 @@ func initTime() {
 		c,
 		"to_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return self.UTC(), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(self.UTC()), value.Nil
 		},
 	)
 	Alias(c, "utc", "to_utc")
@@ -394,8 +392,8 @@ func initTime() {
 		c,
 		"to_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return self.Local(), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(self.Local()), value.Nil
 		},
 	)
 	Alias(c, "local", "to_local")
@@ -403,16 +401,16 @@ func initTime() {
 		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsUTC()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsUTC()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsLocal()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsLocal()), value.Nil
 		},
 	)
 
@@ -420,56 +418,56 @@ func initTime() {
 		c,
 		"is_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsMonday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsMonday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_tuesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsTuesday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsTuesday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_wednesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsWednesday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsWednesday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_thursday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsThursday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsThursday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_friday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsFriday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsFriday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_saturday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsSaturday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsSaturday()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsSunday()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsSunday()), value.Nil
 		},
 	)
 
@@ -477,24 +475,24 @@ func initTime() {
 		c,
 		"is_am",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsAM()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsAM()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_pm",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.ToElkBool(self.IsPM()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.ToElkBool(self.IsPM()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"meridiem",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.String(self.Meridiem()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.Ref(value.String(self.Meridiem())), value.Nil
 		},
 	)
 
@@ -502,8 +500,8 @@ func initTime() {
 		c,
 		"hour12",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
-			return value.SmallInt(self.Hour12()), nil
+			self := args[0].MustReference().(*value.Time)
+			return value.SmallInt(self.Hour12()).ToValue(), value.Nil
 		},
 	)
 
@@ -511,7 +509,7 @@ func initTime() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			other := args[1]
 			return self.GreaterThan(other)
 		},
@@ -521,7 +519,7 @@ func initTime() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			other := args[1]
 			return self.GreaterThanEqual(other)
 		},
@@ -531,7 +529,7 @@ func initTime() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			other := args[1]
 			return self.LessThan(other)
 		},
@@ -541,7 +539,7 @@ func initTime() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			other := args[1]
 			return self.LessThanEqual(other)
 		},
@@ -551,9 +549,9 @@ func initTime() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Time)
+			self := args[0].MustReference().(*value.Time)
 			other := args[1]
-			return self.Equal(other), nil
+			return self.Equal(other), value.Nil
 		},
 		DefWithParameters(1),
 	)

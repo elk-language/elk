@@ -12,10 +12,10 @@ func initPair() {
 		c,
 		"#init",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
+			self := args[0].MustReference().(*value.Pair)
 			self.Key = args[1]
 			self.Value = args[2]
-			return self, nil
+			return value.Ref(self), value.Nil
 		},
 		DefWithParameters(2),
 	)
@@ -23,30 +23,30 @@ func initPair() {
 		c,
 		"key",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
-			return self.Key, nil
+			self := args[0].MustReference().(*value.Pair)
+			return self.Key, value.Nil
 		},
 	)
 	Def(
 		c,
 		"value",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
-			return self.Value, nil
+			self := args[0].MustReference().(*value.Pair)
+			return self.Value, value.Nil
 		},
 	)
 	Def(
 		c,
 		"length",
 		func(_ *VM, _ []value.Value) (value.Value, value.Value) {
-			return value.SmallInt(2), nil
+			return value.SmallInt(2).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
+			self := args[0].MustReference().(*value.Pair)
 			other := args[1]
 			return self.Subscript(other)
 		},
@@ -56,14 +56,14 @@ func initPair() {
 		c,
 		"[]=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
+			self := args[0].MustReference().(*value.Pair)
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return val, nil
+			return val, value.Nil
 		},
 		DefWithParameters(2),
 	)
@@ -71,16 +71,16 @@ func initPair() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Pair)
-			other, ok := args[1].(*value.Pair)
+			self := args[0].MustReference().(*value.Pair)
+			other, ok := args[1].SafeAsReference().(*value.Pair)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			equal, err := PairEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -89,18 +89,18 @@ func initPair() {
 // Checks whether two pairs are equal
 func PairEqual(vm *VM, x *value.Pair, y *value.Pair) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Key, y.Key)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
 	if value.Falsy(eqVal) {
-		return false, nil
+		return false, value.Nil
 	}
 
 	eqVal, err = Equal(vm, x.Value, y.Value)
-	if err != nil {
+	if !err.IsNil() {
 		return false, err
 	}
 
-	return value.Truthy(eqVal), nil
+	return value.Truthy(eqVal), value.Nil
 }

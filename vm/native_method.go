@@ -51,7 +51,7 @@ func (*NativeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (n *NativeMethod) Copy() value.Value {
+func (n *NativeMethod) Copy() value.Reference {
 	return n
 }
 
@@ -98,7 +98,7 @@ func DefineNativeMethod(
 		function,
 	)
 	container.Methods[name] = nativeMethod
-	return nil
+	return value.Nil
 }
 
 type DefOption func(*NativeMethod)

@@ -13,9 +13,9 @@ func initSymbol() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Symbol)
+			self := args[0].MustSymbol()
 			other := args[1]
-			return self.Equal(other), nil
+			return self.Equal(other), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -23,15 +23,15 @@ func initSymbol() {
 		c,
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Symbol)
-			return self.ToString(), nil
+			self := args[0].MustSymbol()
+			return value.Ref(self.ToString()), value.Nil
 		},
 	)
 	Alias(c, "name", "to_string")
@@ -40,8 +40,8 @@ func initSymbol() {
 		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.Symbol)
-			return value.String(self.Inspect()), nil
+			self := args[0].MustSymbol()
+			return value.Ref(value.String(self.Inspect())), value.Nil
 		},
 	)
 

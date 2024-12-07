@@ -103,14 +103,14 @@ func New(opts ...Option) *VM {
 func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ip = 0
-	vm.push(value.GlobalObject)
+	vm.push(value.Ref(value.GlobalObject))
 	vm.localCount = 1
 	vm.run()
 	err := vm.Err()
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return vm.peek(), nil
+	return vm.peek(), value.Nil
 }
 
 // Execute the given bytecode chunk.
@@ -119,7 +119,7 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.ip = 0
 	if vm.sp == 0 {
 		// populate the predeclared local variables
-		vm.push(value.GlobalObject) // populate self
+		vm.push(value.Ref(value.GlobalObject)) // populate self
 		vm.localCount = 1
 	} else {
 		// pop the return value of the last run
@@ -128,10 +128,10 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.run()
 
 	err := vm.Err()
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return vm.peek(), nil
+	return vm.peek(), value.Nil
 }
 
 func (vm *VM) PrintError() {
@@ -149,7 +149,7 @@ func (vm *VM) Err() value.Value {
 		return vm.peek()
 	}
 
-	return nil
+	return value.Nil
 }
 
 // Get the stored error stack trace.
@@ -173,16 +173,12 @@ func (vm *VM) Stack() []value.Value {
 func (vm *VM) InspectStack() {
 	fmt.Println("stack:")
 	for i, value := range vm.Stack() {
-		if value == nil {
-			fmt.Printf("%d => <Go nil!>\n", i)
-			continue
-		}
 		fmt.Printf("%d => %s\n", i, value.Inspect())
 	}
 }
 
 func (vm *VM) throwIfErr(err value.Value) {
-	if err != nil {
+	if !err.IsNil() {
 		vm.throw(err)
 	}
 }
@@ -192,7 +188,7 @@ var callSymbol = value.ToSymbol("call")
 // Call a callable value from Go code, preserving the state of the VM.
 func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	function := args[0]
-	switch f := function.(type) {
+	switch f := function.SafeAsReference().(type) {
 	case *Closure:
 		return vm.CallClosure(f, args[1:]...)
 	default:
@@ -203,11 +199,11 @@ func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	if closure.Bytecode.ParameterCount() != len(args) {
-		return nil, value.NewWrongArgumentCountError(
+		return value.Nil, value.Ref(value.NewWrongArgumentCountError(
 			closure.Bytecode.Name().String(),
 			len(args),
 			closure.Bytecode.ParameterCount(),
-		)
+		))
 	}
 
 	vm.createCurrentCallFrame()
@@ -224,14 +220,14 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	}
 	vm.run()
 	err := vm.Err()
-	if err != nil {
+	if !err.IsNil() {
 		vm.mode = normalMode
 		vm.restoreLastFrame()
 
-		return nil, err
+		return value.Nil, err
 	}
 	vm.mode = normalMode
-	return vm.pop(), nil
+	return vm.pop(), value.Nil
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
@@ -240,7 +236,7 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
-		return nil, value.NewNoMethodError(string(name.ToString()), self)
+		return value.Nil, value.Ref(value.NewNoMethodError(string(name.ToString()), self))
 	}
 	return vm.CallMethod(method, args...)
 }
@@ -248,11 +244,11 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	if method.ParameterCount() != len(args)-1 {
-		return nil, value.NewWrongArgumentCountError(
+		return value.Nil, value.Ref(value.NewWrongArgumentCountError(
 			method.Name().String(),
 			len(args)-1,
 			method.ParameterCount(),
-		)
+		))
 	}
 
 	switch m := method.(type) {
@@ -268,14 +264,14 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 		}
 		vm.run()
 		err := vm.Err()
-		if err != nil {
+		if !err.IsNil() {
 			vm.mode = normalMode
 			vm.restoreLastFrame()
 
-			return nil, err
+			return value.Nil, err
 		}
 		vm.mode = normalMode
-		return vm.pop(), nil
+		return vm.pop(), value.Nil
 	case *NativeMethod:
 		return m.Function(vm, args)
 	case *GetterMethod:
@@ -299,7 +295,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 		vm.ip = 0
 	case *NativeMethod:
 		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
-		if err != nil {
+		if !err.IsNil() {
 			return err
 		}
 		vm.popN(args + 1)
@@ -308,7 +304,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 		panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 	}
 
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
@@ -316,7 +312,7 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
-		return value.NewNoMethodError(string(name.ToString()), self)
+		return value.Ref(value.NewNoMethodError(string(name.ToString()), self))
 	}
 
 	return vm.callMethodOnStack(method, args)
@@ -374,11 +370,11 @@ func (vm *VM) run() {
 		case bytecode.CLOSURE:
 			vm.closure()
 		case bytecode.JUMP_TO_FINALLY:
-			leftFinallyCount := vm.peek().(value.SmallInt)
-			jumpOffset := vm.peekAt(1).(value.SmallInt)
+			leftFinallyCount := vm.peek().MustSmallInt()
+			jumpOffset := vm.peekAt(1).MustSmallInt()
 
 			if leftFinallyCount > 0 {
-				vm.replace(leftFinallyCount - 1)
+				vm.replace((leftFinallyCount - 1).ToValue())
 				if !vm.jumpToFinallyForBreakOrContinue() {
 					panic("could not find a finally block to jump to in JUMP_TO_FINALLY")
 				}
@@ -419,8 +415,6 @@ func (vm *VM) run() {
 			vm.opDefMethodAlias()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.opInclude())
-		case bytecode.DOC_COMMENT:
-			vm.throwIfErr(vm.docComment())
 		case bytecode.APPEND:
 			vm.opAppend()
 		case bytecode.MAP_SET:
@@ -506,9 +500,9 @@ func (vm *VM) run() {
 		case bytecode.IS_A:
 			vm.throwIfErr(vm.opIsA())
 		case bytecode.ROOT:
-			vm.push(value.RootModule)
+			vm.push(value.Ref(value.RootModule))
 		case bytecode.UNDEFINED:
-			vm.push(value.Undefined)
+			vm.push(value.Undefined.ToValue())
 		case bytecode.LOAD_VALUE8:
 			vm.push(vm.readValue8())
 		case bytecode.LOAD_VALUE16:
@@ -676,7 +670,7 @@ func (vm *VM) run() {
 			jump := vm.readUint16()
 			vm.ip += int(jump)
 		case bytecode.JUMP_UNLESS_UNDEF:
-			if vm.peek() != value.Undefined {
+			if !vm.peek().IsUndefined() {
 				jump := vm.readUint16()
 				vm.ip += int(jump)
 				break
@@ -693,7 +687,7 @@ func (vm *VM) run() {
 			vm.mustAs()
 		case bytecode.RETHROW:
 			err := vm.pop()
-			stackTrace := vm.pop().(value.String)
+			stackTrace := vm.pop().MustReference().(value.String)
 			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.opLeftBitshift())
@@ -749,9 +743,9 @@ func (vm *VM) run() {
 }
 
 func (vm *VM) closure() {
-	function := vm.peek().(*BytecodeFunction)
+	function := vm.peek().MustReference().(*BytecodeFunction)
 	closure := NewClosure(function, vm.selfValue())
-	vm.replace(closure)
+	vm.replace(value.Ref(closure))
 
 	for i := range len(closure.Upvalues) {
 		flags := bitfield.BitField8FromInt(vm.readByte())
@@ -921,11 +915,11 @@ func (vm *VM) self() {
 
 func (vm *VM) opDefNamespace() {
 	typ := vm.readByte()
-	name := vm.pop().(value.Symbol)
+	name := vm.pop().MustSymbol()
 	parentNamespace := vm.pop()
 
 	var parentConstantContainer value.ConstantContainer
-	switch n := parentNamespace.(type) {
+	switch n := parentNamespace.SafeAsReference().(type) {
 	case *value.Class:
 		parentConstantContainer = n.ConstantContainer
 	case *value.Module:
@@ -949,13 +943,13 @@ func (vm *VM) opDefNamespace() {
 	var newNamespace value.Value
 	switch typ {
 	case bytecode.DEF_MODULE_FLAG:
-		newNamespace = value.NewModule()
+		newNamespace = value.Ref(value.NewModule())
 	case bytecode.DEF_CLASS_FLAG:
-		newNamespace = value.NewClassWithOptions(value.ClassWithParent(nil))
+		newNamespace = value.Ref(value.NewClassWithOptions(value.ClassWithParent(nil)))
 	case bytecode.DEF_MIXIN_FLAG:
-		newNamespace = value.NewMixin()
+		newNamespace = value.Ref(value.NewMixin())
 	case bytecode.DEF_INTERFACE_FLAG:
-		newNamespace = value.NewInterface()
+		newNamespace = value.Ref(value.NewInterface())
 	}
 
 	parentConstantContainer.AddConstant(name, newNamespace)
@@ -965,21 +959,21 @@ func (vm *VM) opGetSingleton() (err value.Value) {
 	val := vm.pop()
 	singleton := val.SingletonClass()
 	if singleton == nil {
-		return value.Errorf(
+		return value.Ref(value.Errorf(
 			value.TypeErrorClass,
 			"value `%s` cannot have a singleton class",
 			val.Inspect(),
-		)
+		))
 	}
 
-	vm.push(singleton)
-	return nil
+	vm.push(value.Ref(singleton))
+	return value.Nil
 }
 
 func (vm *VM) getClass() {
 	val := vm.pop()
 	class := val.Class()
-	vm.push(class)
+	vm.push(value.Ref(class))
 }
 
 func (vm *VM) selfValue() value.Value {
@@ -988,14 +982,14 @@ func (vm *VM) selfValue() value.Value {
 
 // Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
 	self := vm.selfValue()
 	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
+		return value.Ref(value.NewNoMethodError(string(callInfo.Name.ToString()), self))
 	}
 
 	// shift all arguments one slot forward to make room for self
@@ -1017,37 +1011,37 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 
 // Set the value of an instance variable
 func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+	name := vm.bytecode.Values[nameIndex].MustSymbol()
 	val := vm.peek()
 
 	self := vm.selfValue()
 	ivars := self.InstanceVariables()
 	if ivars == nil {
-		return value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect())
+		return value.Ref(value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
 
 	ivars.Set(name, val)
-	return nil
+	return value.Nil
 }
 
 // Get the value of an instance variable
 func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+	name := vm.bytecode.Values[nameIndex].MustSymbol()
 
 	self := vm.selfValue()
 	ivars := self.InstanceVariables()
 	if ivars == nil {
-		return value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+		return value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
 
 	val := ivars.Get(name)
-	if val == nil {
+	if val.IsNil() {
 		vm.push(value.Nil)
 	} else {
 		vm.push(val)
 	}
 
-	return nil
+	return value.Nil
 }
 
 // Pop the value on top of the stack and push its opCopy.
@@ -1062,15 +1056,13 @@ func (vm *VM) opMapSet() {
 	key := vm.pop()
 	collection := vm.peek()
 
-	switch c := collection.(type) {
+	switch c := collection.SafeAsReference().(type) {
 	case *value.HashMap:
 		HashMapSet(vm, c, key, val)
 	case *value.HashRecord:
 		HashRecordSet(vm, c, key, val)
-	case value.UndefinedType:
-		panic("undefined hash map base")
 	default:
-		panic(fmt.Sprintf("invalid map to set a value in: %#v", collection))
+		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
 	}
 }
 
@@ -1079,17 +1071,19 @@ func (vm *VM) opAppend() {
 	element := vm.pop()
 	collection := vm.peek()
 
-	switch c := collection.(type) {
+	if collection.IsUndefined() {
+		vm.replace(value.Ref(&value.ArrayTuple{element}))
+		return
+	}
+	switch c := collection.MustReference().(type) {
 	case *value.ArrayTuple:
 		c.Append(element)
 	case *value.ArrayList:
 		c.Append(element)
 	case *value.HashSet:
 		HashSetAppend(vm, c, element)
-	case value.UndefinedType:
-		vm.replace(&value.ArrayTuple{element})
 	default:
-		panic(fmt.Sprintf("invalid collection to append to: %#v", collection))
+		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
 	}
 }
 
@@ -1099,11 +1093,11 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 	classIndex := vm.sp - callInfo.ArgumentCount - 1
 	classVal := vm.stack[classIndex]
 	var class *value.Class
-	switch c := classVal.(type) {
+	switch c := classVal.SafeAsReference().(type) {
 	case *value.Class:
 		class = c
 	default:
-		class = c.Class()
+		class = classVal.Class()
 	}
 
 	instance := class.CreateInstance()
@@ -1121,14 +1115,14 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 			// no initialiser defined
 			// no arguments given
 			// just replace the class with the instance
-			return nil
+			return value.Nil
 		}
 
-		return value.NewWrongArgumentCountError(
+		return value.Ref(value.NewWrongArgumentCountError(
 			callInfo.Name.String(),
 			callInfo.ArgumentCount,
 			0,
-		)
+		))
 	default:
 		panic(fmt.Sprintf("tried to call an invalid initialiser method: %#v", method))
 	}
@@ -1138,7 +1132,7 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 // Return false if the receiver does not have the method
 // or it throws TypeError.
 func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
 	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
 	class := self.DirectClass()
@@ -1147,7 +1141,7 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 	if method == nil {
 		vm.popN(callInfo.ArgumentCount + 1)
 		vm.push(value.False)
-		return nil
+		return value.Nil
 	}
 	switch m := method.(type) {
 	case *BytecodeFunction:
@@ -1156,53 +1150,53 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		err = vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
 		if callInfo.ArgumentCount != 0 {
-			return value.NewWrongArgumentCountError(
+			return value.Ref(value.NewWrongArgumentCountError(
 				method.Name().String(),
 				callInfo.ArgumentCount,
 				0,
-			)
+			))
 		}
 		vm.pop() // pop self
 		var result value.Value
 		result, err = m.Call(self)
-		if err == nil {
+		if err.IsNil() {
 			vm.push(result)
 		}
 	case *SetterMethod:
 		if callInfo.ArgumentCount != 1 {
-			return value.NewWrongArgumentCountError(
+			return value.Ref(value.NewWrongArgumentCountError(
 				method.Name().String(),
 				callInfo.ArgumentCount,
 				1,
-			)
+			))
 		}
 		other := vm.pop()
 		vm.pop() // pop self
 		var result value.Value
 		result, err = m.Call(self, other)
-		if err == nil {
+		if err.IsNil() {
 			vm.push(result)
 		}
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
 	}
 
-	if err != nil {
+	if !err.IsNil() {
 		if err.Class() == value.TypeErrorClass {
 			vm.push(value.False)
-			return nil
+			return value.Nil
 		}
 		return err
 	}
 
-	return nil
+	return value.Nil
 }
 
 // Call the `opCall` method with an explicit receiver
 func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
-	self, isClosure := vm.stack[vm.sp-callInfo.ArgumentCount-1].(*Closure)
+	self, isClosure := vm.stack[vm.sp-callInfo.ArgumentCount-1].MustReference().(*Closure)
 	if !isClosure {
 		return vm.opCallMethod(callInfoIndex)
 	}
@@ -1213,7 +1207,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	function := closure.Bytecode
-	if err := vm.prepareArguments(function, callInfo); err != nil {
+	if err := vm.prepareArguments(function, callInfo); !err.IsNil() {
 		return err
 	}
 
@@ -1225,12 +1219,12 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	vm.ip = 0
 	vm.upvalues = closure.Upvalues
 
-	return nil
+	return value.Nil
 }
 
 // Call a method with an explicit receiver
 func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
 	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
 	class := self.DirectClass()
@@ -1238,7 +1232,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
 		vm.popN(callInfo.ArgumentCount + 1)
-		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
+		return value.Ref(value.NewNoMethodError(string(callInfo.Name.ToString()), self))
 	}
 	switch m := method.(type) {
 	case *BytecodeFunction:
@@ -1247,35 +1241,35 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
 		if callInfo.ArgumentCount != 0 {
-			return value.NewWrongArgumentCountError(
+			return value.Ref(value.NewWrongArgumentCountError(
 				method.Name().String(),
 				callInfo.ArgumentCount,
 				0,
-			)
+			))
 		}
 		vm.pop() // pop self
 		result, err := m.Call(self)
-		if err != nil {
+		if !err.IsNil() {
 			return err
 		}
 		vm.push(result)
-		return nil
+		return value.Nil
 	case *SetterMethod:
 		if callInfo.ArgumentCount != 1 {
-			return value.NewWrongArgumentCountError(
+			return value.Ref(value.NewWrongArgumentCountError(
 				method.Name().String(),
 				callInfo.ArgumentCount,
 				1,
-			)
+			))
 		}
 		other := vm.pop()
 		vm.pop() // pop self
 		result, err := m.Call(self, other)
-		if err != nil {
+		if !err.IsNil() {
 			return err
 		}
 		vm.push(result)
-		return nil
+		return value.Nil
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
 	}
@@ -1283,22 +1277,22 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	if err := vm.prepareArguments(method, callInfo); err != nil {
-		return err
+	if prepErr := vm.prepareArguments(method, callInfo); !prepErr.IsNil() {
+		return prepErr
 	}
 
-	returnVal, err := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
+	returnVal, nativeErr := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
 	vm.popN(method.ParameterCount() + 1)
-	if err != nil {
-		return err
+	if !nativeErr.IsNil() {
+		return nativeErr
 	}
 	vm.push(returnVal)
-	return nil
+	return value.Nil
 }
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
-	if err := vm.prepareArguments(method, callInfo); err != nil {
+	if err := vm.prepareArguments(method, callInfo); !err.IsNil() {
 		return err
 	}
 
@@ -1309,7 +1303,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	vm.fp = vm.sp - method.ParameterCount() - 1
 	vm.ip = 0
 
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
@@ -1318,29 +1312,29 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 	reqParamCount := paramCount - optParamCount
 
 	if callInfo.ArgumentCount < reqParamCount {
-		return value.NewWrongArgumentCountRangeError(
+		return value.Ref(value.NewWrongArgumentCountRangeError(
 			method.Name().String(),
 			callInfo.ArgumentCount,
 			reqParamCount,
 			paramCount,
-		)
+		))
 	}
 
 	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
 		missingArgCount := paramCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
-			vm.push(value.Undefined)
+			vm.push(value.Undefined.ToValue())
 		}
 	} else if paramCount != callInfo.ArgumentCount {
-		return value.NewWrongArgumentCountError(
+		return value.Ref(value.NewWrongArgumentCountError(
 			method.Name().String(),
 			callInfo.ArgumentCount,
 			paramCount,
-		)
+		))
 	}
 
-	return nil
+	return value.Nil
 }
 
 // Include a mixin in a class/mixin.
@@ -1348,57 +1342,33 @@ func (vm *VM) opInclude() (err value.Value) {
 	mixinVal := vm.pop()
 	targetValue := vm.pop()
 
-	mixin, ok := mixinVal.(*value.Mixin)
+	mixin, ok := mixinVal.MustReference().(*value.Mixin)
 	if !ok || !mixin.IsMixin() {
-		return value.NewIsNotMixinError(mixinVal.Inspect())
+		return value.Ref(value.NewIsNotMixinError(mixinVal.Inspect()))
 	}
 
-	switch target := targetValue.(type) {
+	switch target := targetValue.SafeAsReference().(type) {
 	case *value.Class:
 		target.IncludeMixin(mixin)
 	default:
-		return value.Errorf(
+		return value.Ref(value.Errorf(
 			value.TypeErrorClass,
 			"cannot include into an instance of %s: `%s`",
 			targetValue.Class().PrintableName(),
-			target.Inspect(),
-		)
+			targetValue.Inspect(),
+		))
 	}
 
-	return nil
-}
-
-// Attach a doc comment to an object.
-func (vm *VM) docComment() (err value.Value) {
-	// targetValue := vm.pop()
-	// docStringVal := vm.pop()
-
-	// docString := docStringVal.(*value.String)
-
-	// switch target := targetValue.(type) {
-	// case *value.Class:
-	// 	target.D
-	// case *value.Mixin:
-	// 	target.IncludeMixin(mixin)
-	// default:
-	// 	return value.Errorf(
-	// 		value.TypeErrorClass,
-	// 		"cannot include into an instance of %s: `%s`",
-	// 		targetValue.Class().PrintableName(),
-	// 		target.Inspect(),
-	// 	)
-	// }
-
-	return nil
+	return value.Nil
 }
 
 // Define a new method alias
 func (vm *VM) opDefMethodAlias() {
-	newName := vm.pop().(value.Symbol)
-	oldName := vm.pop().(value.Symbol)
+	newName := vm.pop().MustSymbol()
+	oldName := vm.pop().MustSymbol()
 	methodContainer := vm.peek()
 
-	switch m := methodContainer.(type) {
+	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
 		m.Methods[newName] = m.Methods[oldName]
 	default:
@@ -1408,11 +1378,11 @@ func (vm *VM) opDefMethodAlias() {
 
 // Define a new method
 func (vm *VM) opDefMethod() {
-	name := vm.pop().(value.Symbol)
-	body := vm.pop().(*BytecodeFunction)
+	name := vm.pop().MustSymbol()
+	body := vm.pop().MustReference().(*BytecodeFunction)
 	methodContainer := vm.peek()
 
-	switch m := methodContainer.(type) {
+	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
 		m.Methods[name] = body
 	default:
@@ -1422,40 +1392,40 @@ func (vm *VM) opDefMethod() {
 
 // Initialise a namespace
 func (vm *VM) opInitNamespace() {
-	body := vm.pop().(*BytecodeFunction)
+	body := vm.pop().MustReference().(*BytecodeFunction)
 	namespace := vm.pop()
 	vm.executeNamespaceBody(namespace, body)
 }
 
 // Execute a chunk of bytecode
 func (vm *VM) opExec() {
-	bytecodeFunc := vm.pop().(*BytecodeFunction)
+	bytecodeFunc := vm.pop().MustReference().(*BytecodeFunction)
 	vm.executeFunc(bytecodeFunc)
 }
 
 // Define a getter method
 func (vm *VM) opDefGetter() {
-	name := vm.pop().(value.Symbol)
+	name := vm.pop().MustSymbol()
 	methodContainer := vm.peek()
 
-	switch m := methodContainer.(type) {
+	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
 		DefineGetter(&m.MethodContainer, name)
 	default:
-		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %T", methodContainer))
+		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %s", methodContainer.Inspect()))
 	}
 }
 
 // Define a setter method
 func (vm *VM) opDefSetter() {
-	name := vm.pop().(value.Symbol)
+	name := vm.pop().MustSymbol()
 	methodContainer := vm.peek()
 
-	switch m := methodContainer.(type) {
+	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
 		DefineSetter(&m.MethodContainer, name)
 	default:
-		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %T", methodContainer))
+		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %s", methodContainer.Inspect()))
 	}
 }
 
@@ -1499,7 +1469,7 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 	vm.fp = vm.sp
 	vm.ip = 0
 	vm.localCount = 1
-	vm.push(value.GlobalObject)
+	vm.push(value.Ref(value.GlobalObject))
 }
 
 // Set a local variable or value.
@@ -1519,11 +1489,7 @@ func (vm *VM) opGetLocal(index int) {
 
 // Read a local variable or value.
 func (vm *VM) getLocalValue(index int) value.Value {
-	val := vm.stack[vm.fp+index]
-	if val == nil {
-		return value.Nil
-	}
-	return val
+	return vm.stack[vm.fp+index]
 }
 
 // Set an upvalue.
@@ -1568,8 +1534,8 @@ func (vm *VM) opCloseUpvalues(lastToClose *value.Value) {
 
 // Set the superclass/parent of a class
 func (vm *VM) opSetSuperclass() {
-	newSuperclass := vm.pop().(*value.Class)
-	class := vm.pop().(*value.Class)
+	newSuperclass := vm.pop().MustReference().(*value.Class)
+	class := vm.pop().MustReference().(*value.Class)
 
 	if class.Parent != nil {
 		return
@@ -1580,27 +1546,27 @@ func (vm *VM) opSetSuperclass() {
 
 // Look for a constant with the given name.
 func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
+	symbol := vm.bytecode.Values[nameIndex].MustSymbol()
 
 	val := value.RootModule.Constants.Get(symbol)
-	if val == nil {
-		return value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String())
+	if val.IsNil() {
+		return value.Ref(value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String()))
 	}
 
 	vm.push(val)
-	return nil
+	return value.Nil
 }
 
 // Get the iterator of the value on top of the stack.
 func (vm *VM) opGetIterator() value.Value {
 	val := vm.peek()
 	result, err := vm.CallMethodByName(iteratorSymbol, val)
-	if err != nil {
+	if !err.IsNil() {
 		return err
 	}
 
 	vm.replace(result)
-	return nil
+	return value.Nil
 }
 
 var nextSymbol = value.ToSymbol("next")
@@ -1611,21 +1577,17 @@ var iteratorSymbol = value.ToSymbol("iter")
 func (vm *VM) opForIn() value.Value {
 	iterator := vm.pop()
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
-	switch e := err.(type) {
-	case value.Symbol:
-		if e == stopIterationSymbol {
-			vm.ip += int(vm.readUint16())
-			return nil
-		}
-		return e
-	case nil:
-	default:
-		return e
+	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
+		vm.ip += int(vm.readUint16())
+		return value.Nil
+	}
+	if !err.IsNil() {
+		return err
 	}
 
 	vm.push(result)
 	vm.ip += 2
-	return nil
+	return value.Nil
 }
 
 var toStringSymbol = value.ToSymbol("to_string")
@@ -1636,60 +1598,96 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = nil
+		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
 
-		switch element := elementVal.(type) {
-		case value.String:
-			buffer.WriteString(string(element))
-		case value.Char:
+		if elementVal.IsReference() {
+			switch element := elementVal.AsReference().(type) {
+			case value.String:
+				buffer.WriteString(string(element))
+			case value.Float64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.BigInt:
+				buffer.WriteString(string(element.ToString()))
+			case value.Int64:
+				buffer.WriteString(string(element.ToString()))
+			case value.UInt64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.Regex:
+				buffer.WriteString(string(element.ToString()))
+			default:
+				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
+				if !err.IsNil() {
+					return err
+				}
+				str, ok := strVal.MustReference().(value.String)
+				if !ok {
+					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
+				}
+				buffer.WriteString(string(str))
+			}
+			continue
+		}
+
+		switch elementVal.ValueFlag() {
+		case value.CHAR_FLAG:
+			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
-		case value.Float64:
+		case value.FLOAT64_FLAG:
+			element := elementVal.AsFloat64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float32:
+		case value.FLOAT32_FLAG:
+			element := elementVal.AsFloat32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float:
+		case value.FLOAT_FLAG:
+			element := elementVal.AsFloat()
 			buffer.WriteString(string(element.ToString()))
-		case value.SmallInt:
+		case value.SMALL_INT_FLAG:
+			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
-		case *value.BigInt:
+		case value.INT64_FLAG:
+			element := elementVal.AsInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int64:
+		case value.INT32_FLAG:
+			element := elementVal.AsInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int32:
+		case value.INT16_FLAG:
+			element := elementVal.AsInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int16:
+		case value.INT8_FLAG:
+			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int8:
+		case value.UINT64_FLAG:
+			element := elementVal.AsUInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt64:
+		case value.UINT32_FLAG:
+			element := elementVal.AsInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt32:
+		case value.UINT16_FLAG:
+			element := elementVal.AsInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt16:
+		case value.UINT8_FLAG:
+			element := elementVal.AsUInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt8:
-			buffer.WriteString(string(element.ToString()))
-		case value.NilType:
-		case value.Symbol:
-			buffer.WriteString(string(element.ToString()))
-		case *value.Regex:
+		case value.NIL_FLAG:
+		case value.SYMBOL_FLAG:
+			element := elementVal.AsSymbol()
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if err != nil {
+			if !err.IsNil() {
 				return err
 			}
-			str, ok := strVal.(value.String)
+			str, ok := strVal.SafeAsReference().(value.String)
 			if !ok {
-				return value.NewCoerceError(value.StringClass, strVal.Class())
+				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 			}
 			buffer.WriteString(string(str))
 		}
 	}
 	vm.sp -= dynamicElements
-	vm.push(value.String(buffer.String()))
+	vm.push(value.Ref(value.String(buffer.String())))
 
-	return nil
+	return value.Nil
 }
 
 // Create a new symbol.
@@ -1698,60 +1696,96 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = nil
+		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
 
-		switch element := elementVal.(type) {
-		case value.String:
-			buffer.WriteString(string(element))
-		case value.Char:
+		if elementVal.IsReference() {
+			switch element := elementVal.AsReference().(type) {
+			case value.String:
+				buffer.WriteString(string(element))
+			case value.Float64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.BigInt:
+				buffer.WriteString(string(element.ToString()))
+			case value.Int64:
+				buffer.WriteString(string(element.ToString()))
+			case value.UInt64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.Regex:
+				buffer.WriteString(string(element.ToString()))
+			default:
+				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
+				if !err.IsNil() {
+					return err
+				}
+				str, ok := strVal.SafeAsReference().(value.String)
+				if !ok {
+					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
+				}
+				buffer.WriteString(string(str))
+			}
+			continue
+		}
+
+		switch elementVal.ValueFlag() {
+		case value.CHAR_FLAG:
+			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
-		case value.Float64:
+		case value.FLOAT64_FLAG:
+			element := elementVal.AsFloat64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float32:
+		case value.FLOAT32_FLAG:
+			element := elementVal.AsFloat32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float:
+		case value.FLOAT_FLAG:
+			element := elementVal.AsFloat()
 			buffer.WriteString(string(element.ToString()))
-		case value.SmallInt:
+		case value.SMALL_INT_FLAG:
+			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
-		case *value.BigInt:
+		case value.INT64_FLAG:
+			element := elementVal.AsInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int64:
+		case value.INT32_FLAG:
+			element := elementVal.AsInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int32:
+		case value.INT16_FLAG:
+			element := elementVal.AsInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int16:
+		case value.INT8_FLAG:
+			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int8:
+		case value.UINT64_FLAG:
+			element := elementVal.AsUInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt64:
+		case value.UINT32_FLAG:
+			element := elementVal.AsUInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt32:
+		case value.UINT16_FLAG:
+			element := elementVal.AsUInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt16:
+		case value.UINT8_FLAG:
+			element := elementVal.AsUInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt8:
-			buffer.WriteString(string(element.ToString()))
-		case value.NilType:
-		case value.Symbol:
-			buffer.WriteString(string(element.ToString()))
-		case *value.Regex:
+		case value.NIL_FLAG:
+		case value.SYMBOL_FLAG:
+			element := elementVal.AsSymbol()
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if err != nil {
+			if !err.IsNil() {
 				return err
 			}
-			str, ok := strVal.(value.String)
+			str, ok := strVal.SafeAsReference().(value.String)
 			if !ok {
-				return value.NewCoerceError(value.StringClass, strVal.Class())
+				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 			}
 			buffer.WriteString(string(str))
 		}
 	}
 	vm.sp -= dynamicElements
-	vm.push(value.ToSymbol(buffer.String()))
+	vm.push(value.ToSymbol(buffer.String()).ToValue())
 
-	return nil
+	return value.Nil
 }
 
 // Create a new regex.
@@ -1761,52 +1795,88 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = nil
+		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
 
-		switch element := elementVal.(type) {
-		case value.String:
-			buffer.WriteString(string(element))
-		case value.Char:
+		if elementVal.IsReference() {
+			switch element := elementVal.AsReference().(type) {
+			case value.String:
+				buffer.WriteString(string(element))
+			case value.Float64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.BigInt:
+				buffer.WriteString(string(element.ToString()))
+			case value.Int64:
+				buffer.WriteString(string(element.ToString()))
+			case value.UInt64:
+				buffer.WriteString(string(element.ToString()))
+			case *value.Regex:
+				buffer.WriteString(string(element.ToStringWithFlags()))
+			default:
+				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
+				if !err.IsNil() {
+					return err
+				}
+				str, ok := strVal.SafeAsReference().(value.String)
+				if !ok {
+					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
+				}
+				buffer.WriteString(string(str))
+			}
+			continue
+		}
+
+		switch elementVal.ValueFlag() {
+		case value.CHAR_FLAG:
+			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
-		case value.Float64:
+		case value.FLOAT64_FLAG:
+			element := elementVal.AsFloat64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float32:
+		case value.FLOAT32_FLAG:
+			element := elementVal.AsFloat32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Float:
+		case value.FLOAT_FLAG:
+			element := elementVal.AsFloat()
 			buffer.WriteString(string(element.ToString()))
-		case value.SmallInt:
+		case value.SMALL_INT_FLAG:
+			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
-		case *value.BigInt:
+		case value.INT64_FLAG:
+			element := elementVal.AsInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int64:
+		case value.INT32_FLAG:
+			element := elementVal.AsInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int32:
+		case value.INT16_FLAG:
+			element := elementVal.AsInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int16:
+		case value.INT8_FLAG:
+			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.Int8:
+		case value.UINT64_FLAG:
+			element := elementVal.AsUInt64()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt64:
+		case value.UINT32_FLAG:
+			element := elementVal.AsUInt32()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt32:
+		case value.UINT16_FLAG:
+			element := elementVal.AsUInt16()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt16:
+		case value.UINT8_FLAG:
+			element := elementVal.AsUInt8()
 			buffer.WriteString(string(element.ToString()))
-		case value.UInt8:
+		case value.NIL_FLAG:
+		case value.SYMBOL_FLAG:
+			element := elementVal.AsSymbol()
 			buffer.WriteString(string(element.ToString()))
-		case value.NilType:
-		case value.Symbol:
-			buffer.WriteString(string(element.ToString()))
-		case *value.Regex:
-			buffer.WriteString(string(element.ToStringWithFlags()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if err != nil {
+			if !err.IsNil() {
 				return err
 			}
-			str, ok := strVal.(value.String)
+			str, ok := strVal.SafeAsReference().(value.String)
 			if !ok {
-				return value.NewCoerceError(value.StringClass, strVal.Class())
+				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 			}
 			buffer.WriteString(string(str))
 		}
@@ -1814,11 +1884,11 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	vm.sp -= dynamicElements
 	re, err := value.CompileRegex(buffer.String(), flags)
 	if err != nil {
-		return value.NewError(value.RegexCompileErrorClass, err.Error())
+		return value.Ref(value.NewError(value.RegexCompileErrorClass, err.Error()))
 	}
 
-	vm.push(re)
-	return nil
+	vm.push(value.Ref(re))
+	return value.Nil
 }
 
 // Create a new hashset.
@@ -1830,44 +1900,46 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 
 	var additionalCapacity int
 
-	switch capacity.(type) {
-	case value.UndefinedType:
-	default:
+	if !capacity.IsUndefined() {
 		c, ok := value.ToGoInt(capacity)
 		if c == -1 && !ok {
-			return value.NewTooLargeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewTooLargeCapacityError(capacity.Inspect()))
 		}
 		if c < 0 {
-			return value.NewNegativeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewNegativeCapacityError(capacity.Inspect()))
 		}
 		if !ok {
-			return value.NewCapacityTypeError(capacity.Inspect())
+			return value.Ref(value.NewCapacityTypeError(capacity.Inspect()))
 		}
 		additionalCapacity = c
 	}
 
-	switch m := baseSet.(type) {
-	case value.UndefinedType:
+	if baseSet.IsUndefined() {
 		newSet = value.NewHashSet(dynamicElements + additionalCapacity)
-	case *value.HashSet:
-		newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
-		err := HashSetCopy(vm, newSet, m)
-		if err != nil {
-			return err
+	} else {
+		switch m := baseSet.SafeAsReference().(type) {
+		case *value.HashSet:
+			newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
+			err := HashSetCopy(vm, newSet, m)
+			if !err.IsNil() {
+				return err
+			}
+		default:
+			panic(fmt.Sprintf("invalid hash set base: %s", baseSet.Inspect()))
 		}
 	}
 
 	for i := firstElementIndex; i < vm.sp; i++ {
 		val := vm.stack[i]
 		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
-		if err != nil {
+		if !err.IsNil() {
 			return err
 		}
 	}
 	vm.popN(dynamicElements + 2)
 
-	vm.push(newSet)
-	return nil
+	vm.push(value.Ref(newSet))
+	return value.Nil
 }
 
 // Create a new hashmap.
@@ -1879,30 +1951,32 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 
 	var additionalCapacity int
 
-	switch capacity.(type) {
-	case value.UndefinedType:
-	default:
+	if !capacity.IsUndefined() {
 		c, ok := value.ToGoInt(capacity)
 		if c == -1 && !ok {
-			return value.NewTooLargeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewTooLargeCapacityError(capacity.Inspect()))
 		}
 		if c < 0 {
-			return value.NewNegativeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewNegativeCapacityError(capacity.Inspect()))
 		}
 		if !ok {
-			return value.NewCapacityTypeError(capacity.Inspect())
+			return value.Ref(value.NewCapacityTypeError(capacity.Inspect()))
 		}
 		additionalCapacity = c
 	}
 
-	switch m := baseMap.(type) {
-	case value.UndefinedType:
+	if baseMap.IsUndefined() {
 		newMap = value.NewHashMap(dynamicElements + additionalCapacity)
-	case *value.HashMap:
-		newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
-		err := HashMapCopy(vm, newMap, m)
-		if err != nil {
-			return err
+	} else {
+		switch m := baseMap.SafeAsReference().(type) {
+		case *value.HashMap:
+			newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
+			err := HashMapCopy(vm, newMap, m)
+			if !err.IsNil() {
+				return err
+			}
+		default:
+			panic(fmt.Sprintf("invalid hash map base: %s", baseMap.Inspect()))
 		}
 	}
 
@@ -1910,14 +1984,14 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 		key := vm.stack[i]
 		val := vm.stack[i+1]
 		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
-		if err != nil {
+		if !err.IsNil() {
 			return err
 		}
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
-	vm.push(newMap)
-	return nil
+	vm.push(value.Ref(newMap))
+	return value.Nil
 }
 
 // Create a new hash record.
@@ -1926,12 +2000,19 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 	baseMap := vm.stack[firstElementIndex-1]
 	var newRecord *value.HashRecord
 
-	switch m := baseMap.(type) {
-	case value.UndefinedType:
+	if baseMap.IsUndefined() {
 		newRecord = value.NewHashRecord(dynamicElements)
-	case *value.HashRecord:
-		newRecord = value.NewHashRecord(m.Length())
-		HashRecordCopy(vm, newRecord, m)
+	} else {
+		switch m := baseMap.SafeAsReference().(type) {
+		case *value.HashRecord:
+			newRecord = value.NewHashRecord(m.Length())
+			err := HashRecordCopy(vm, newRecord, m)
+			if !err.IsNil() {
+				return err
+			}
+		default:
+			panic(fmt.Sprintf("invalid hash record base: %s", baseMap.Inspect()))
+		}
 	}
 
 	for i := firstElementIndex; i < vm.sp; i += 2 {
@@ -1941,8 +2022,8 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 	}
 	vm.popN((dynamicElements * 2) + 1)
 
-	vm.push(newRecord)
-	return nil
+	vm.push(value.Ref(newRecord))
+	return value.Nil
 }
 
 // Create a new array list.
@@ -1954,35 +2035,37 @@ func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
 
 	var additionalCapacity int
 
-	switch capacity.(type) {
-	case value.UndefinedType:
-	default:
+	if !capacity.IsUndefined() {
 		c, ok := value.ToGoInt(capacity)
 		if c == -1 && !ok {
-			return value.NewTooLargeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewTooLargeCapacityError(capacity.Inspect()))
 		}
 		if c < 0 {
-			return value.NewNegativeCapacityError(capacity.Inspect())
+			return value.Ref(value.NewNegativeCapacityError(capacity.Inspect()))
 		}
 		if !ok {
-			return value.NewCapacityTypeError(capacity.Inspect())
+			return value.Ref(value.NewCapacityTypeError(capacity.Inspect()))
 		}
 		additionalCapacity = c
 	}
 
-	switch l := baseList.(type) {
-	case value.UndefinedType:
+	if baseList.IsUndefined() {
 		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
-	case *value.ArrayList:
-		newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
-		newArrayList = append(newArrayList, *l...)
+	} else {
+		switch l := baseList.SafeAsReference().(type) {
+		case *value.ArrayList:
+			newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
+			newArrayList = append(newArrayList, *l...)
+		default:
+			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
+		}
 	}
 
 	newArrayList = append(newArrayList, vm.stack[firstElementIndex:vm.sp]...)
 	vm.popN(dynamicElements + 2)
 
-	vm.push(&newArrayList)
-	return nil
+	vm.push(value.Ref(&newArrayList))
+	return value.Nil
 }
 
 // Create a new range.
@@ -1994,27 +2077,27 @@ func (vm *VM) opNewRange() {
 	case bytecode.CLOSED_RANGE_FLAG:
 		to := vm.pop()
 		from := vm.pop()
-		newRange = value.NewClosedRange(from, to)
+		newRange = value.Ref(value.NewClosedRange(from, to))
 	case bytecode.OPEN_RANGE_FLAG:
 		to := vm.pop()
 		from := vm.pop()
-		newRange = value.NewOpenRange(from, to)
+		newRange = value.Ref(value.NewOpenRange(from, to))
 	case bytecode.LEFT_OPEN_RANGE_FLAG:
 		to := vm.pop()
 		from := vm.pop()
-		newRange = value.NewLeftOpenRange(from, to)
+		newRange = value.Ref(value.NewLeftOpenRange(from, to))
 	case bytecode.RIGHT_OPEN_RANGE_FLAG:
 		to := vm.pop()
 		from := vm.pop()
-		newRange = value.NewRightOpenRange(from, to)
+		newRange = value.Ref(value.NewRightOpenRange(from, to))
 	case bytecode.BEGINLESS_CLOSED_RANGE_FLAG:
-		newRange = value.NewBeginlessClosedRange(vm.pop())
+		newRange = value.Ref(value.NewBeginlessClosedRange(vm.pop()))
 	case bytecode.BEGINLESS_OPEN_RANGE_FLAG:
-		newRange = value.NewBeginlessOpenRange(vm.pop())
+		newRange = value.Ref(value.NewBeginlessOpenRange(vm.pop()))
 	case bytecode.ENDLESS_CLOSED_RANGE_FLAG:
-		newRange = value.NewEndlessClosedRange(vm.pop())
+		newRange = value.Ref(value.NewEndlessClosedRange(vm.pop()))
 	case bytecode.ENDLESS_OPEN_RANGE_FLAG:
-		newRange = value.NewEndlessOpenRange(vm.pop())
+		newRange = value.Ref(value.NewEndlessOpenRange(vm.pop()))
 	default:
 		panic(fmt.Sprintf("invalid range flag: %#v", flag))
 	}
@@ -2028,28 +2111,32 @@ func (vm *VM) opNewArrayTuple(dynamicElements int) {
 	baseArrayTuple := vm.stack[firstElementIndex-1]
 	var newArrayTuple value.ArrayTuple
 
-	switch t := baseArrayTuple.(type) {
-	case value.UndefinedType:
+	if baseArrayTuple.IsUndefined() {
 		newArrayTuple = make(value.ArrayTuple, 0, dynamicElements)
-	case *value.ArrayTuple:
-		newArrayTuple = make(value.ArrayTuple, 0, len(*t)+dynamicElements)
-		newArrayTuple = append(newArrayTuple, *t...)
+	} else {
+		switch t := baseArrayTuple.SafeAsReference().(type) {
+		case *value.ArrayTuple:
+			newArrayTuple = make(value.ArrayTuple, 0, len(*t)+dynamicElements)
+			newArrayTuple = append(newArrayTuple, *t...)
+		default:
+			panic(fmt.Sprintf("invalid array tuple base: %s", baseArrayTuple.Inspect()))
+		}
 	}
 
 	newArrayTuple = append(newArrayTuple, vm.stack[firstElementIndex:vm.sp]...)
 	vm.popN(dynamicElements + 1)
 
-	vm.push(&newArrayTuple)
+	vm.push(value.Ref(&newArrayTuple))
 }
 
 // Define a new constant
 func (vm *VM) opDefConst() {
 	constVal := vm.pop()
-	constName := vm.pop().(value.Symbol)
+	constName := vm.pop().MustSymbol()
 	namespace := vm.pop()
 	var constants value.ConstantContainer
 
-	switch n := namespace.(type) {
+	switch n := namespace.MustReference().(type) {
 	case *value.Class:
 		constants = n.ConstantContainer
 	case *value.Module:
@@ -2072,7 +2159,7 @@ func (vm *VM) opDefConst() {
 func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 	firstLocalIndex := lastLocalIndex - varsToPop
 	for i := lastLocalIndex; i > firstLocalIndex; i-- {
-		vm.stack[i] = nil
+		vm.stack[i] = value.Undefined.ToValue()
 	}
 }
 
@@ -2103,7 +2190,7 @@ func (vm *VM) pop() value.Value {
 
 	vm.sp--
 	val := vm.stack[vm.sp]
-	vm.stack[vm.sp] = nil
+	vm.stack[vm.sp] = value.Undefined.ToValue()
 	return val
 }
 
@@ -2119,7 +2206,7 @@ func (vm *VM) popN(n int) {
 	}
 
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
-		vm.stack[i] = nil
+		vm.stack[i] = value.Undefined.ToValue()
 	}
 	vm.sp -= n
 }
@@ -2142,7 +2229,7 @@ func (vm *VM) popNSkipOne(n int) {
 
 	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
-		vm.stack[i] = nil
+		vm.stack[i] = value.Undefined.ToValue()
 	}
 	vm.sp -= n
 }
@@ -2177,16 +2264,16 @@ type unaryOperationFunc func(val value.Value) value.Value
 func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) value.Value {
 	operand := vm.peek()
 	result := fn(operand)
-	if result != nil {
+	if !result.IsNil() {
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 0)
-	if er != nil {
+	if !er.IsNil() {
 		return er
 	}
-	return nil
+	return value.Nil
 }
 
 // Increment the element on top of the stack
@@ -2221,18 +2308,18 @@ func (vm *VM) opAppendAt() value.Value {
 
 	i, ok := value.ToGoInt(key)
 
-	switch c := collection.(type) {
+	switch c := collection.SafeAsReference().(type) {
 	case *value.ArrayTuple:
 		l := len(*c)
 		if !ok {
 			if i == -1 {
-				return value.NewIndexOutOfRangeError(key.Inspect(), l)
+				return value.Ref(value.NewIndexOutOfRangeError(key.Inspect(), l))
 			}
-			return value.NewCoerceError(value.IntClass, key.Class())
+			return value.Ref(value.NewCoerceError(value.IntClass, key.Class()))
 		}
 
 		if i < 0 {
-			return value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i))
+			return value.Ref(value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i)))
 		}
 
 		if i >= l {
@@ -2245,13 +2332,13 @@ func (vm *VM) opAppendAt() value.Value {
 		l := len(*c)
 		if !ok {
 			if i == -1 {
-				return value.NewIndexOutOfRangeError(key.Inspect(), l)
+				return value.Ref(value.NewIndexOutOfRangeError(key.Inspect(), l))
 			}
-			return value.NewCoerceError(value.IntClass, key.Class())
+			return value.Ref(value.NewCoerceError(value.IntClass, key.Class()))
 		}
 
 		if i < 0 {
-			return value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i))
+			return value.Ref(value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i)))
 		}
 
 		if i >= l {
@@ -2261,10 +2348,10 @@ func (vm *VM) opAppendAt() value.Value {
 
 		(*c)[i] = val
 	default:
-		panic(fmt.Sprintf("cannot APPEND_AT to: %#v", collection))
+		panic(fmt.Sprintf("cannot APPEND_AT to: %s", collection.Inspect()))
 	}
 
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) opSubscriptSet() value.Value {
@@ -2273,49 +2360,49 @@ func (vm *VM) opSubscriptSet() value.Value {
 	collection := vm.peekAt(2)
 
 	result, err := value.SubscriptSet(collection, key, val)
-	if err != nil {
+	if !err.IsNil() {
 		return err
 	}
-	if result != nil {
+	if !result.IsNil() {
 		vm.popN(2)
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	er := vm.callMethodOnStackByName(symbol.OpSubscriptSet, 2)
-	if er != nil {
+	if !er.IsNil() {
 		return er
 	}
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) opIsA() (err value.Value) {
 	classVal := vm.pop()
 	val := vm.peek()
 
-	switch class := classVal.(type) {
+	switch class := classVal.SafeAsReference().(type) {
 	case *value.Class:
 		vm.replace(value.ToElkBool(value.IsA(val, class)))
 	default:
 		vm.pop()
-		return value.NewIsNotClassOrMixinError(class.Inspect())
+		return value.Ref(value.NewIsNotClassOrMixinError(class.Inspect()))
 	}
 
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) opInstanceOf() (err value.Value) {
 	classVal := vm.pop()
 	val := vm.peek()
 
-	class, ok := classVal.(*value.Class)
+	class, ok := classVal.SafeAsReference().(*value.Class)
 	if !ok || class.IsMixin() || class.IsMixinProxy() {
 		vm.pop()
-		return value.NewIsNotClassError(classVal.Inspect())
+		return value.Ref(value.NewIsNotClassError(classVal.Inspect()))
 	}
 
 	vm.replace(value.ToElkBool(value.InstanceOf(val, class)))
-	return nil
+	return value.Nil
 }
 
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) value.Value
@@ -2325,18 +2412,18 @@ func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, method
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if result != nil {
+	if !result.IsNil() {
 		vm.pop()
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if er != nil {
+	if !er.IsNil() {
 		return er
 	}
 
-	return nil
+	return value.Nil
 }
 
 func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
@@ -2344,19 +2431,19 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if result != nil {
+	if !result.IsNil() {
 		vm.pop()
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if er != nil {
+	if !er.IsNil() {
 		return er
 	}
 	vm.replace(value.ToNotBool(vm.peek()))
 
-	return nil
+	return value.Nil
 }
 
 type binaryOperationFunc func(left value.Value, right value.Value) (result value.Value, err value.Value)
@@ -2366,20 +2453,20 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 	left := vm.peekAt(1)
 
 	result, err := fn(left, right)
-	if err != nil {
+	if !err.IsNil() {
 		return err
 	}
-	if result != nil {
+	if !result.IsNil() {
 		vm.pop()
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if er != nil {
+	if !er.IsNil() {
 		return er
 	}
-	return nil
+	return value.Nil
 }
 
 // Perform a bitwise AND and push the result to the stack.
@@ -2427,10 +2514,10 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if result != nil {
+	if !result.IsNil() {
 		vm.pop()
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	self := vm.stack[vm.sp-2]
@@ -2438,7 +2525,7 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 	method := class.LookupMethod(methodName)
 	if method == nil {
 		vm.push(value.ToElkBool(left == right))
-		return nil
+		return value.Nil
 	}
 
 	return vm.callMethodOnStack(method, 1)
@@ -2449,10 +2536,10 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if result != nil {
+	if !result.IsNil() {
 		vm.pop()
 		vm.replace(result)
-		return nil
+		return value.Nil
 	}
 
 	self := vm.stack[vm.sp-2]
@@ -2460,16 +2547,16 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 	method := class.LookupMethod(methodName)
 	if method == nil {
 		vm.push(value.ToElkBool(left != right))
-		return nil
+		return value.Nil
 	}
 
 	err = vm.callMethodOnStack(method, 1)
-	if err != nil {
+	if !err.IsNil() {
 		return err
 	}
 
 	vm.replace(value.ToNotBool(vm.peek()))
-	return nil
+	return value.Nil
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
@@ -2566,22 +2653,22 @@ func (vm *VM) opExponentiate() (err value.Value) {
 func (vm *VM) opMust() {
 	val := vm.peek()
 	if value.IsNil(val) {
-		vm.throw(value.NewUnexpectedNilError())
+		vm.throw(value.Ref(value.NewUnexpectedNilError()))
 	}
 }
 
 // Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
 func (vm *VM) mustAs() {
-	class := vm.pop().(*value.Class)
+	class := vm.pop().MustReference().(*value.Class)
 	val := vm.peek()
 	if !value.IsA(val, class) {
 		vm.throw(
-			value.Errorf(
+			value.Ref(value.Errorf(
 				value.TypeErrorClass,
 				"failed type cast, `%s` is not an instance of `%s`",
 				val.Inspect(),
 				class.Name,
-			),
+			)),
 		)
 	}
 }
@@ -2605,7 +2692,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 
 		if foundCatch != nil {
 			vm.ip = foundCatch.JumpAddress
-			vm.push(stackTrace)
+			vm.push(value.Ref(stackTrace))
 			vm.push(err)
 			return
 		}

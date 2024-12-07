@@ -12,9 +12,9 @@ func initString() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.Concat(other)
+			return value.RefErr(self.Concat(other))
 		},
 		DefWithParameters(1),
 	)
@@ -24,9 +24,9 @@ func initString() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.RemoveSuffix(other)
+			return value.RefErr(self.RemoveSuffix(other))
 		},
 		DefWithParameters(1),
 	)
@@ -36,19 +36,18 @@ func initString() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.Repeat(other)
+			return value.RefErr(self.Repeat(other))
 		},
 		DefWithParameters(1),
 	)
 	Alias(c, "repeat", "*")
-
 	Def(
 		c,
 		"<=>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
 			return self.Compare(other)
 		},
@@ -58,7 +57,7 @@ func initString() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
 			return self.LessThanEqual(other)
 		},
@@ -68,7 +67,7 @@ func initString() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
 			return self.LessThan(other)
 		},
@@ -78,7 +77,7 @@ func initString() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
 			return self.GreaterThan(other)
 		},
@@ -88,7 +87,7 @@ func initString() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
 			return self.GreaterThanEqual(other)
 		},
@@ -98,9 +97,9 @@ func initString() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.Equal(other), nil
+			return self.Equal(other), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -108,9 +107,9 @@ func initString() {
 		c,
 		"char_at",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.Subscript(other)
+			return value.ToValueErr(self.Subscript(other))
 		},
 		DefWithParameters(1),
 	)
@@ -119,9 +118,9 @@ func initString() {
 		c,
 		"byte_at",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.ByteAt(other)
+			return value.ToValueErr(self.ByteAt(other))
 		},
 		DefWithParameters(1),
 	)
@@ -129,27 +128,26 @@ func initString() {
 		c,
 		"grapheme_at",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			other := args[1]
-			return self.GraphemeAt(other)
+			return value.RefErr(self.GraphemeAt(other))
 		},
 		DefWithParameters(1),
 	)
-
 	Def(
 		c,
 		"uppercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return self.Uppercase(), nil
+			self := args[0].MustReference().(value.String)
+			return value.Ref(value.String(self.Uppercase())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"lowercase",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return self.Lowercase(), nil
+			self := args[0].MustReference().(value.String)
+			return value.Ref(value.String(self.Lowercase())), value.Nil
 		},
 	)
 
@@ -157,48 +155,47 @@ func initString() {
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.SmallInt(self.CharCount()), nil
+			self := args[0].MustReference().(value.String)
+			return value.SmallInt(self.CharCount()).ToValue(), value.Nil
 		},
 	)
 	Alias(c, "char_count", "length")
-
 	Def(
 		c,
 		"byte_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.SmallInt(self.ByteCount()), nil
+			self := args[0].MustReference().(value.String)
+			return value.SmallInt(self.ByteCount()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"grapheme_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.SmallInt(self.GraphemeCount()), nil
+			self := args[0].MustReference().(value.String)
+			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_symbol",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.ToSymbol(self), nil
+			self := args[0].MustReference().(value.String)
+			return value.ToSymbol(self).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 	Def(
 		c,
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			return self.ToInt()
 		},
 	)
@@ -206,25 +203,25 @@ func initString() {
 		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.String(self.Inspect()), nil
+			self := args[0].MustReference().(value.String)
+			return value.Ref(value.String(self.Inspect())), value.Nil
 		},
 	)
 	Def(
 		c,
 		"is_empty",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
-			return value.ToElkBool(self.IsEmpty()), nil
+			self := args[0].MustReference().(value.String)
+			return value.ToElkBool(self.IsEmpty()), value.Nil
 		},
 	)
 	Def(
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			iterator := value.NewStringCharIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Nil
 		},
 	)
 	Alias(c, "char_iter", "iter")
@@ -232,9 +229,9 @@ func initString() {
 		c,
 		"byte_iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(value.String)
+			self := args[0].MustReference().(value.String)
 			iterator := value.NewStringByteIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Nil
 		},
 	)
 
@@ -248,7 +245,7 @@ func initStringCharIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.StringCharIterator)
+			self := args[0].MustReference().(*value.StringCharIterator)
 			return self.Next()
 		},
 	)
@@ -256,7 +253,7 @@ func initStringCharIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 
@@ -270,7 +267,7 @@ func initStringByteIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.StringByteIterator)
+			self := args[0].MustReference().(*value.StringByteIterator)
 			return self.Next()
 		},
 	)
@@ -278,7 +275,7 @@ func initStringByteIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Nil
 		},
 	)
 

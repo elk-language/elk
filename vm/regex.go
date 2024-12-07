@@ -12,7 +12,7 @@ func initRegex() {
 		c,
 		"matches",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Regex)
+			self := args[0].MustReference().(*value.Regex)
 			return self.Matches(args[1])
 		},
 		DefWithParameters(1),
@@ -21,7 +21,7 @@ func initRegex() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Regex)
+			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
 			return self.Concat(other)
 		},
@@ -31,7 +31,7 @@ func initRegex() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Regex)
+			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
 			return self.Repeat(other)
 		},
@@ -41,12 +41,12 @@ func initRegex() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Regex)
+			self := args[0].MustReference().(*value.Regex)
 			withFlags := args[1]
-			if withFlags != value.Undefined && value.Truthy(withFlags) {
-				return self.ToStringWithFlags(), nil
+			if !withFlags.IsUndefined() && value.Truthy(withFlags) {
+				return value.Ref(self.ToStringWithFlags()), value.Nil
 			}
-			return self.ToString(), nil
+			return value.Ref(self.ToString()), value.Nil
 		},
 		DefWithParameters(1),
 		DefWithOptionalParameters(1),

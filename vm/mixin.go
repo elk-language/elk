@@ -14,8 +14,8 @@ func initMixin() {
 		c,
 		"name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Mixin)
-			return value.String(self.Name), nil
+			self := args[0].MustReference().(*value.Mixin)
+			return value.Ref(value.String(self.Name)), value.Nil
 		},
 	)
 }

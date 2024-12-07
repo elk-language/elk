@@ -1,5 +1,7 @@
 package value
 
+import "unsafe"
+
 type UndefinedType struct{}
 
 // Elk's internal undefined value
@@ -12,6 +14,12 @@ func initUndefined() {
 	UndefinedClass = NewClassWithOptions(
 		ClassWithName("Undefined"),
 	)
+}
+
+func (u UndefinedType) ToValue() Value {
+	return Value{
+		data: unsafe.Pointer(uintptr(UNDEFINED_FLAG)),
+	}
 }
 
 func (UndefinedType) Class() *Class {

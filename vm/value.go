@@ -18,7 +18,7 @@ func initValue() {
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return value.String(self.Inspect()), nil
+			return value.Ref(value.String(self.Inspect())), value.Nil
 		},
 	)
 	Def(
@@ -26,7 +26,7 @@ func initValue() {
 		"class",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return self.Class(), nil
+			return value.Ref(self.Class()), value.Nil
 		},
 	)
 	Def(
@@ -35,7 +35,7 @@ func initValue() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			return value.ToElkBool(self == other), nil
+			return value.ToElkBool(self == other), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -45,7 +45,7 @@ func initValue() {
 		"copy",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
-			return self.Copy(), nil
+			return self.Copy(), value.Nil
 		},
 	)
 	Def(
@@ -54,13 +54,13 @@ func initValue() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			result, err := value.Hash(self)
-			if err == value.NotBuiltinError {
-				return ObjectHash(self), nil
+			if err == value.Ref(value.NotBuiltinError) {
+				return ObjectHash(self).ToValue(), value.Nil
 			}
-			if err == nil {
-				return result, nil
+			if err.IsNil() {
+				return value.Ref(result), value.Nil
 			}
-			return nil, err
+			return value.Nil, err
 		},
 	)
 
@@ -87,186 +87,185 @@ func ObjectHash(val value.Value) value.UInt64 {
 func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 	result, err := value.Hash(key)
 
-	if err == value.NotBuiltinError {
+	if err == value.Ref(value.NotBuiltinError) {
 		if vm == nil {
 			return 0, value.Nil
 		}
 		class := key.DirectClass()
 		method := class.LookupMethod(symbol.L_hash)
 		if method == nil {
-			return ObjectHash(key), nil
+			return ObjectHash(key), value.Nil
 		}
 		dynamicResult, dynamicErr := vm.CallMethod(method, key)
-		if dynamicErr != nil {
+		if !dynamicErr.IsNil() {
 			return 0, dynamicErr
 		}
-		uintResult, ok := dynamicResult.(value.UInt64)
-		if !ok {
-			return 0, value.NewCoerceError(
-				value.UInt64Class,
-				dynamicResult.Class(),
-			)
+		if dynamicResult.IsUInt64() {
+			return dynamicResult.AsUInt64(), value.Nil
 		}
-		return uintResult, nil
-	} else if err != nil {
+		return 0, value.Ref(value.NewCoerceError(
+			value.UInt64Class,
+			dynamicResult.Class(),
+		))
+	} else if !err.IsNil() {
 		return 0, err
 	}
 
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether two values are equal
 func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result := value.Equal(left, right)
 
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err := vm.CallMethodByName(symbol.OpEqual, left, right)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether two values are equal (lax)
 func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result := value.LaxEqual(left, right)
 
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err := vm.CallMethodByName(symbol.OpLaxEqual, left, right)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether the left value is greater than the right
 func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.GreaterThan(left, right)
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err2 := vm.CallMethodByName(symbol.OpGreaterThan, left, right)
-	if err2 != nil {
-		return nil, err2
+	if !err2.IsNil() {
+		return value.Nil, err2
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether the left value is greater than or equal to the right
 func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.GreaterThanEqual(left, right)
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err2 := vm.CallMethodByName(symbol.OpGreaterThanEqual, left, right)
-	if err2 != nil {
-		return nil, err2
+	if !err2.IsNil() {
+		return value.Nil, err2
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether the left value is less than the right
 func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.LessThan(left, right)
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err2 := vm.CallMethodByName(symbol.OpLessThan, left, right)
-	if err2 != nil {
-		return nil, err2
+	if !err2.IsNil() {
+		return value.Nil, err2
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Check whether the left value is less than or equal to the right
 func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.LessThanEqual(left, right)
 
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err2 := vm.CallMethodByName(symbol.OpLessThanEqual, left, right)
-	if err2 != nil {
-		return nil, err2
+	if !err2.IsNil() {
+		return value.Nil, err2
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Increment the given value
 func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
 	result := value.Increment(val)
 
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err := vm.CallMethodByName(symbol.OpIncrement, val)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return result, nil
+	return result, value.Nil
 }
 
 // Decrement the given value
 func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
 	result := value.Decrement(val)
 
-	if result != nil {
-		return result, nil
+	if !result.IsNil() {
+		return result, value.Nil
 	}
 	if vm == nil {
-		return nil, value.Nil
+		return value.Nil, value.Nil
 	}
 
 	result, err := vm.CallMethodByName(symbol.OpDecrement, val)
-	if err != nil {
-		return nil, err
+	if !err.IsNil() {
+		return value.Nil, err
 	}
-	return result, nil
+	return result, value.Nil
 }

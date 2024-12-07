@@ -15,24 +15,24 @@ func initKernel() {
 		"inspect_stack",
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
 			v.InspectStack()
-			return value.Nil, nil
+			return value.Nil, value.Nil
 		},
 	)
 	Def(
 		c,
 		"print",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(*value.ArrayTuple)
+			values := args[1].MustReference().(*value.ArrayTuple)
 			for _, val := range *values {
 				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				r := result.(value.String).String()
+				r := result.MustReference().(value.String).String()
 				fmt.Fprint(vm.Stdout, r)
 			}
 
-			return value.Nil, nil
+			return value.Nil, value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -40,17 +40,17 @@ func initKernel() {
 		c,
 		"println",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(*value.ArrayTuple)
+			values := args[1].MustReference().(*value.ArrayTuple)
 			for _, val := range *values {
 				result, err := vm.CallMethodByName(toStringSymbol, val)
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				r := result.(value.String).String()
+				r := result.MustReference().(value.String).String()
 				fmt.Fprintln(vm.Stdout, r)
 			}
 
-			return value.Nil, nil
+			return value.Nil, value.Nil
 		},
 		DefWithParameters(1),
 	)

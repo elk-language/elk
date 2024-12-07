@@ -55,6 +55,6 @@ func (*Upvalue) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
-func (v *Upvalue) Copy() value.Value {
+func (v *Upvalue) Copy() value.Reference {
 	return v
 }

@@ -15,49 +15,49 @@ func initHashMap() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			iterator := value.NewHashMapIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Nil
 		},
 	)
 	Def(
 		c,
 		"capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
-			return value.SmallInt(self.Capacity()), nil
+			self := args[0].MustReference().(*value.HashMap)
+			return value.SmallInt(self.Capacity()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
-			return value.SmallInt(self.Length()), nil
+			self := args[0].MustReference().(*value.HashMap)
+			return value.SmallInt(self.Length()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"left_capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
-			return value.SmallInt(self.LeftCapacity()), nil
+			self := args[0].MustReference().(*value.HashMap)
+			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Nil
 		},
 	)
 	Def(
 		c,
 		"[]",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			key := args[1]
 			result, err := HashMapGet(vm, self, key)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			if result == nil {
-				return value.Nil, nil
+			if result.IsNil() {
+				return value.Nil, value.Nil
 			}
-			return result, nil
+			return result, value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -65,14 +65,14 @@ func initHashMap() {
 		c,
 		"[]=",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			key := args[1]
 			val := args[2]
 			err := HashMapSet(vm, self, key, val)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return val, nil
+			return val, value.Nil
 		},
 		DefWithParameters(2),
 	)
@@ -80,24 +80,24 @@ func initHashMap() {
 		c,
 		"+",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			other := args[1]
 
-			switch o := other.(type) {
+			switch o := other.SafeAsReference().(type) {
 			case *value.HashMap:
 				result, err := HashMapConcat(vm, self, o)
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				return result, nil
+				return value.Ref(result), value.Nil
 			case *value.HashRecord:
 				result, err := HashMapConcat(vm, self, (*value.HashMap)(o))
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				return result, nil
+				return value.Ref(result), value.Nil
 			default:
-				return nil, value.NewCoerceError(value.HashMapClass, other.Class())
+				return value.Nil, value.Ref(value.NewCoerceError(value.HashMapClass, other.Class()))
 			}
 		},
 		DefWithParameters(1),
@@ -106,20 +106,20 @@ func initHashMap() {
 		c,
 		"grow",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
 			if !ok && n == -1 {
-				return nil, value.NewTooLargeCapacityError(nValue.Inspect())
+				return value.Nil, value.Ref(value.NewTooLargeCapacityError(nValue.Inspect()))
 			}
 			if n < 0 {
-				return nil, value.NewNegativeCapacityError(nValue.Inspect())
+				return value.Nil, value.Ref(value.NewNegativeCapacityError(nValue.Inspect()))
 			}
 			if !ok {
-				return nil, value.NewCapacityTypeError(nValue.Inspect())
+				return value.Nil, value.Ref(value.NewCapacityTypeError(nValue.Inspect()))
 			}
 			HashMapGrow(vm, self, n)
-			return self, nil
+			return value.Ref(self), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -127,18 +127,18 @@ func initHashMap() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			otherVal := args[1]
-			switch other := otherVal.(type) {
+			switch other := otherVal.SafeAsReference().(type) {
 			case *value.Pair:
 				contains, err := HashMapContains(vm, self, other)
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
 
-				return value.ToElkBool(contains), nil
+				return value.ToElkBool(contains), value.Nil
 			default:
-				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
+				return value.Nil, value.Ref(value.NewCoerceError(value.PairClass, otherVal.Class()))
 			}
 		},
 		DefWithParameters(1),
@@ -147,13 +147,13 @@ func initHashMap() {
 		c,
 		"contains_key",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			contains, err := HashMapContainsKey(vm, self, args[1])
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
 
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -161,13 +161,13 @@ func initHashMap() {
 		c,
 		"contains_value",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
 			contains, err := HashMapContainsValue(vm, self, args[1])
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
 
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -175,16 +175,16 @@ func initHashMap() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
-			other, ok := args[1].(*value.HashMap)
+			self := args[0].MustReference().(*value.HashMap)
+			other, ok := args[1].SafeAsReference().(*value.HashMap)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Nil
 			}
 			equal, err := HashMapEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsNil() {
+				return value.Nil, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Nil
 		},
 		DefWithParameters(1),
 	)
@@ -192,22 +192,22 @@ func initHashMap() {
 		c,
 		"=~",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashMap)
-			switch other := args[1].(type) {
+			self := args[0].MustReference().(*value.HashMap)
+			switch other := args[1].SafeAsReference().(type) {
 			case *value.HashMap:
 				equal, err := HashMapLaxEqual(vm, self, other)
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				return value.ToElkBool(equal), nil
+				return value.ToElkBool(equal), value.Nil
 			case *value.HashRecord:
 				equal, err := HashMapLaxEqual(vm, self, (*value.HashMap)(other))
-				if err != nil {
-					return nil, err
+				if !err.IsNil() {
+					return value.Nil, err
 				}
-				return value.ToElkBool(equal), nil
+				return value.ToElkBool(equal), value.Nil
 			default:
-				return value.False, nil
+				return value.False, value.Nil
 			}
 		},
 		DefWithParameters(1),

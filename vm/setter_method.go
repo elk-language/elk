@@ -51,7 +51,7 @@ func (*SetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (s *SetterMethod) Copy() value.Value {
+func (s *SetterMethod) Copy() value.Reference {
 	return s
 }
 
@@ -70,10 +70,10 @@ func (*SetterMethod) InstanceVariables() value.SymbolMap {
 func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, value.Value) {
 	iv := self.InstanceVariables()
 	if iv == nil {
-		return nil, value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+		return value.Nil, value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
 	iv.Set(s.AttributeName, val)
-	return val, nil
+	return val, value.Nil
 }
 
 // Create a new getter method.
