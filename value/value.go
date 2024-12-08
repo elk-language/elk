@@ -5,6 +5,8 @@ import (
 	"math"
 	"strings"
 	"unsafe"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 var ValueClass *Class // ::Std::Value
@@ -2858,4 +2860,46 @@ func BitwiseXor(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func NewValueComparer(opts *cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y Value) bool {
+		if x.IsReference() != y.IsReference() {
+			return false
+		}
+
+		if x.IsReference() {
+			return cmp.Equal(x.AsReference(), y.AsReference(), *opts...)
+		}
+
+		if x.ValueFlag() != y.ValueFlag() {
+			return false
+		}
+
+		switch x.ValueFlag() {
+		case FLOAT32_FLAG:
+			x := x.AsFloat32()
+			y := y.AsFloat32()
+			if x.IsNaN() || y.IsNaN() {
+				return x.IsNaN() && y.IsNaN()
+			}
+			return x == y
+		case FLOAT64_FLAG:
+			x := x.AsFloat64()
+			y := y.AsFloat64()
+			if x.IsNaN() || y.IsNaN() {
+				return x.IsNaN() && y.IsNaN()
+			}
+			return x == y
+		case FLOAT_FLAG:
+			x := x.AsFloat()
+			y := y.AsFloat()
+			if x.IsNaN() || y.IsNaN() {
+				return x.IsNaN() && y.IsNaN()
+			}
+			return x == y
+		default:
+			return x.tab == y.tab
+		}
+	})
 }

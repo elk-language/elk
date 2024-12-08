@@ -107,10 +107,10 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 	vm.localCount = 1
 	vm.run()
 	err := vm.Err()
-	if !err.IsNil() {
-		return value.Nil, err
+	if !err.IsUndefined() {
+		return value.Undefined, err
 	}
-	return vm.peek(), value.Nil
+	return vm.peek(), value.Undefined
 }
 
 // Execute the given bytecode chunk.
@@ -128,10 +128,10 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.run()
 
 	err := vm.Err()
-	if !err.IsNil() {
-		return value.Nil, err
+	if !err.IsUndefined() {
+		return value.Undefined, err
 	}
-	return vm.peek(), value.Nil
+	return vm.peek(), value.Undefined
 }
 
 func (vm *VM) PrintError() {
@@ -149,7 +149,7 @@ func (vm *VM) Err() value.Value {
 		return vm.peek()
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Get the stored error stack trace.
@@ -178,7 +178,7 @@ func (vm *VM) InspectStack() {
 }
 
 func (vm *VM) throwIfErr(err value.Value) {
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		vm.throw(err)
 	}
 }
@@ -199,7 +199,7 @@ func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	if closure.Bytecode.ParameterCount() != len(args) {
-		return value.Nil, value.Ref(value.NewWrongArgumentCountError(
+		return value.Undefined, value.Ref(value.NewWrongArgumentCountError(
 			closure.Bytecode.Name().String(),
 			len(args),
 			closure.Bytecode.ParameterCount(),
@@ -220,14 +220,14 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	}
 	vm.run()
 	err := vm.Err()
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		vm.mode = normalMode
 		vm.restoreLastFrame()
 
-		return value.Nil, err
+		return value.Undefined, err
 	}
 	vm.mode = normalMode
-	return vm.pop(), value.Nil
+	return vm.pop(), value.Undefined
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
@@ -236,7 +236,7 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
-		return value.Nil, value.Ref(value.NewNoMethodError(string(name.ToString()), self))
+		return value.Undefined, value.Ref(value.NewNoMethodError(string(name.ToString()), self))
 	}
 	return vm.CallMethod(method, args...)
 }
@@ -244,7 +244,7 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	if method.ParameterCount() != len(args)-1 {
-		return value.Nil, value.Ref(value.NewWrongArgumentCountError(
+		return value.Undefined, value.Ref(value.NewWrongArgumentCountError(
 			method.Name().String(),
 			len(args)-1,
 			method.ParameterCount(),
@@ -264,14 +264,14 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 		}
 		vm.run()
 		err := vm.Err()
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			vm.mode = normalMode
 			vm.restoreLastFrame()
 
-			return value.Nil, err
+			return value.Undefined, err
 		}
 		vm.mode = normalMode
-		return vm.pop(), value.Nil
+		return vm.pop(), value.Undefined
 	case *NativeMethod:
 		return m.Function(vm, args)
 	case *GetterMethod:
@@ -295,7 +295,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 		vm.ip = 0
 	case *NativeMethod:
 		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			return err
 		}
 		vm.popN(args + 1)
@@ -304,7 +304,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 		panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
@@ -967,7 +967,7 @@ func (vm *VM) opGetSingleton() (err value.Value) {
 	}
 
 	vm.push(value.Ref(singleton))
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) getClass() {
@@ -1021,7 +1021,7 @@ func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 	}
 
 	ivars.Set(name, val)
-	return value.Nil
+	return value.Undefined
 }
 
 // Get the value of an instance variable
@@ -1035,13 +1035,13 @@ func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	}
 
 	val := ivars.Get(name)
-	if val.IsNil() {
+	if val.IsUndefined() {
 		vm.push(value.Nil)
 	} else {
 		vm.push(val)
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Pop the value on top of the stack and push its opCopy.
@@ -1115,7 +1115,7 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 			// no initialiser defined
 			// no arguments given
 			// just replace the class with the instance
-			return value.Nil
+			return value.Undefined
 		}
 
 		return value.Ref(value.NewWrongArgumentCountError(
@@ -1141,7 +1141,7 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 	if method == nil {
 		vm.popN(callInfo.ArgumentCount + 1)
 		vm.push(value.False)
-		return value.Nil
+		return value.Undefined
 	}
 	switch m := method.(type) {
 	case *BytecodeFunction:
@@ -1159,7 +1159,7 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		vm.pop() // pop self
 		var result value.Value
 		result, err = m.Call(self)
-		if err.IsNil() {
+		if err.IsUndefined() {
 			vm.push(result)
 		}
 	case *SetterMethod:
@@ -1174,22 +1174,22 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		vm.pop() // pop self
 		var result value.Value
 		result, err = m.Call(self, other)
-		if err.IsNil() {
+		if err.IsUndefined() {
 			vm.push(result)
 		}
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
 	}
 
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		if err.Class() == value.TypeErrorClass {
 			vm.push(value.False)
-			return value.Nil
+			return value.Undefined
 		}
 		return err
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Call the `opCall` method with an explicit receiver
@@ -1207,7 +1207,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	function := closure.Bytecode
-	if err := vm.prepareArguments(function, callInfo); !err.IsNil() {
+	if err := vm.prepareArguments(function, callInfo); !err.IsUndefined() {
 		return err
 	}
 
@@ -1219,7 +1219,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	vm.ip = 0
 	vm.upvalues = closure.Upvalues
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Call a method with an explicit receiver
@@ -1249,11 +1249,11 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 		}
 		vm.pop() // pop self
 		result, err := m.Call(self)
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			return err
 		}
 		vm.push(result)
-		return value.Nil
+		return value.Undefined
 	case *SetterMethod:
 		if callInfo.ArgumentCount != 1 {
 			return value.Ref(value.NewWrongArgumentCountError(
@@ -1265,11 +1265,11 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 		other := vm.pop()
 		vm.pop() // pop self
 		result, err := m.Call(self, other)
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			return err
 		}
 		vm.push(result)
-		return value.Nil
+		return value.Undefined
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
 	}
@@ -1277,22 +1277,22 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	if prepErr := vm.prepareArguments(method, callInfo); !prepErr.IsNil() {
+	if prepErr := vm.prepareArguments(method, callInfo); !prepErr.IsUndefined() {
 		return prepErr
 	}
 
 	returnVal, nativeErr := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
 	vm.popN(method.ParameterCount() + 1)
-	if !nativeErr.IsNil() {
+	if !nativeErr.IsUndefined() {
 		return nativeErr
 	}
 	vm.push(returnVal)
-	return value.Nil
+	return value.Undefined
 }
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
-	if err := vm.prepareArguments(method, callInfo); !err.IsNil() {
+	if err := vm.prepareArguments(method, callInfo); !err.IsUndefined() {
 		return err
 	}
 
@@ -1303,7 +1303,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	vm.fp = vm.sp - method.ParameterCount() - 1
 	vm.ip = 0
 
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
@@ -1334,7 +1334,7 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 		))
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Include a mixin in a class/mixin.
@@ -1359,7 +1359,7 @@ func (vm *VM) opInclude() (err value.Value) {
 		))
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Define a new method alias
@@ -1549,24 +1549,24 @@ func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].MustSymbol()
 
 	val := value.RootModule.Constants.Get(symbol)
-	if val.IsNil() {
+	if val.IsUndefined() {
 		return value.Ref(value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String()))
 	}
 
 	vm.push(val)
-	return value.Nil
+	return value.Undefined
 }
 
 // Get the iterator of the value on top of the stack.
 func (vm *VM) opGetIterator() value.Value {
 	val := vm.peek()
 	result, err := vm.CallMethodByName(iteratorSymbol, val)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return err
 	}
 
 	vm.replace(result)
-	return value.Nil
+	return value.Undefined
 }
 
 var nextSymbol = value.ToSymbol("next")
@@ -1579,15 +1579,15 @@ func (vm *VM) opForIn() value.Value {
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
 		vm.ip += int(vm.readUint16())
-		return value.Nil
+		return value.Undefined
 	}
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return err
 	}
 
 	vm.push(result)
 	vm.ip += 2
-	return value.Nil
+	return value.Undefined
 }
 
 var toStringSymbol = value.ToSymbol("to_string")
@@ -1616,7 +1616,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 				buffer.WriteString(string(element.ToString()))
 			default:
 				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsNil() {
+				if !err.IsUndefined() {
 					return err
 				}
 				str, ok := strVal.MustReference().(value.String)
@@ -1674,7 +1674,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 			str, ok := strVal.SafeAsReference().(value.String)
@@ -1687,7 +1687,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 	vm.sp -= dynamicElements
 	vm.push(value.Ref(value.String(buffer.String())))
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new symbol.
@@ -1714,7 +1714,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 				buffer.WriteString(string(element.ToString()))
 			default:
 				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsNil() {
+				if !err.IsUndefined() {
 					return err
 				}
 				str, ok := strVal.SafeAsReference().(value.String)
@@ -1772,7 +1772,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 			str, ok := strVal.SafeAsReference().(value.String)
@@ -1785,7 +1785,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 	vm.sp -= dynamicElements
 	vm.push(value.ToSymbol(buffer.String()).ToValue())
 
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new regex.
@@ -1813,7 +1813,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 				buffer.WriteString(string(element.ToStringWithFlags()))
 			default:
 				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsNil() {
+				if !err.IsUndefined() {
 					return err
 				}
 				str, ok := strVal.SafeAsReference().(value.String)
@@ -1871,7 +1871,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 			str, ok := strVal.SafeAsReference().(value.String)
@@ -1888,7 +1888,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	}
 
 	vm.push(value.Ref(re))
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new hashset.
@@ -1921,7 +1921,7 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 		case *value.HashSet:
 			newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
 			err := HashSetCopy(vm, newSet, m)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 		default:
@@ -1932,14 +1932,14 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 	for i := firstElementIndex; i < vm.sp; i++ {
 		val := vm.stack[i]
 		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN(dynamicElements + 2)
 
 	vm.push(value.Ref(newSet))
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new hashmap.
@@ -1972,7 +1972,7 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 		case *value.HashMap:
 			newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
 			err := HashMapCopy(vm, newMap, m)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 		default:
@@ -1984,14 +1984,14 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 		key := vm.stack[i]
 		val := vm.stack[i+1]
 		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
-		if !err.IsNil() {
+		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
 	vm.push(value.Ref(newMap))
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new hash record.
@@ -2007,7 +2007,7 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 		case *value.HashRecord:
 			newRecord = value.NewHashRecord(m.Length())
 			err := HashRecordCopy(vm, newRecord, m)
-			if !err.IsNil() {
+			if !err.IsUndefined() {
 				return err
 			}
 		default:
@@ -2023,7 +2023,7 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 	vm.popN((dynamicElements * 2) + 1)
 
 	vm.push(value.Ref(newRecord))
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new array list.
@@ -2065,7 +2065,7 @@ func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
 	vm.popN(dynamicElements + 2)
 
 	vm.push(value.Ref(&newArrayList))
-	return value.Nil
+	return value.Undefined
 }
 
 // Create a new range.
@@ -2264,16 +2264,16 @@ type unaryOperationFunc func(val value.Value) value.Value
 func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) value.Value {
 	operand := vm.peek()
 	result := fn(operand)
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 0)
-	if !er.IsNil() {
+	if !er.IsUndefined() {
 		return er
 	}
-	return value.Nil
+	return value.Undefined
 }
 
 // Increment the element on top of the stack
@@ -2351,7 +2351,7 @@ func (vm *VM) opAppendAt() value.Value {
 		panic(fmt.Sprintf("cannot APPEND_AT to: %s", collection.Inspect()))
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) opSubscriptSet() value.Value {
@@ -2360,20 +2360,20 @@ func (vm *VM) opSubscriptSet() value.Value {
 	collection := vm.peekAt(2)
 
 	result, err := value.SubscriptSet(collection, key, val)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return err
 	}
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.popN(2)
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	er := vm.callMethodOnStackByName(symbol.OpSubscriptSet, 2)
-	if !er.IsNil() {
+	if !er.IsUndefined() {
 		return er
 	}
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) opIsA() (err value.Value) {
@@ -2388,7 +2388,7 @@ func (vm *VM) opIsA() (err value.Value) {
 		return value.Ref(value.NewIsNotClassOrMixinError(class.Inspect()))
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) opInstanceOf() (err value.Value) {
@@ -2402,7 +2402,7 @@ func (vm *VM) opInstanceOf() (err value.Value) {
 	}
 
 	vm.replace(value.ToElkBool(value.InstanceOf(val, class)))
-	return value.Nil
+	return value.Undefined
 }
 
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) value.Value
@@ -2412,18 +2412,18 @@ func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, method
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.pop()
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if !er.IsNil() {
+	if !er.IsUndefined() {
 		return er
 	}
 
-	return value.Nil
+	return value.Undefined
 }
 
 func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
@@ -2431,19 +2431,19 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.pop()
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if !er.IsNil() {
+	if !er.IsUndefined() {
 		return er
 	}
 	vm.replace(value.ToNotBool(vm.peek()))
 
-	return value.Nil
+	return value.Undefined
 }
 
 type binaryOperationFunc func(left value.Value, right value.Value) (result value.Value, err value.Value)
@@ -2453,20 +2453,20 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 	left := vm.peekAt(1)
 
 	result, err := fn(left, right)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return err
 	}
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.pop()
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	er := vm.callMethodOnStackByName(methodName, 1)
-	if !er.IsNil() {
+	if !er.IsUndefined() {
 		return er
 	}
-	return value.Nil
+	return value.Undefined
 }
 
 // Perform a bitwise AND and push the result to the stack.
@@ -2514,10 +2514,10 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.pop()
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	self := vm.stack[vm.sp-2]
@@ -2525,7 +2525,7 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 	method := class.LookupMethod(methodName)
 	if method == nil {
 		vm.push(value.ToElkBool(left == right))
-		return value.Nil
+		return value.Undefined
 	}
 
 	return vm.callMethodOnStack(method, 1)
@@ -2536,10 +2536,10 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 	left := vm.peekAt(1)
 
 	result := fn(left, right)
-	if !result.IsNil() {
+	if !result.IsUndefined() {
 		vm.pop()
 		vm.replace(result)
-		return value.Nil
+		return value.Undefined
 	}
 
 	self := vm.stack[vm.sp-2]
@@ -2547,16 +2547,16 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 	method := class.LookupMethod(methodName)
 	if method == nil {
 		vm.push(value.ToElkBool(left != right))
-		return value.Nil
+		return value.Undefined
 	}
 
 	err = vm.callMethodOnStack(method, 1)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		return err
 	}
 
 	vm.replace(value.ToNotBool(vm.peek()))
-	return value.Nil
+	return value.Undefined
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
