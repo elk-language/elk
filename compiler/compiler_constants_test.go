@@ -23,8 +23,8 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.ToSymbol("Std"),
+					value.Undefined,
+					value.ToSymbol("Std").ToValue(),
 				},
 			),
 		},
@@ -41,8 +41,8 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.ToSymbol("Std::Float::INF"),
+					value.Undefined,
+					value.ToSymbol("Std::Float::INF").ToValue(),
 				},
 			),
 		},
@@ -63,8 +63,8 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				[]value.Value{
-					nil,
-					value.ToSymbol("Std::Float::INF"),
+					value.Undefined,
+					value.ToSymbol("Std::Float::INF").ToValue(),
 				},
 			),
 		},
@@ -100,7 +100,7 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -118,16 +118,16 @@ func TestGetConstant(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Baz"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Baz").ToValue(),
 						},
-					),
-					nil,
-					value.ToSymbol("Foo"),
-					value.ToSymbol("BAR"),
-					value.SmallInt(3),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Undefined,
+					value.ToSymbol("Foo").ToValue(),
+					value.ToSymbol("BAR").ToValue(),
+					value.SmallInt(3).ToValue(),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -143,8 +143,8 @@ func TestGetConstant(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo::Baz"),
-							vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("Foo::Baz").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("<module: Foo::Baz>"),
 								[]byte{
 									byte(bytecode.GET_CONST8), 0,
@@ -162,13 +162,13 @@ func TestGetConstant(t *testing.T) {
 									bytecode.NewLineInfo(6, 3),
 								},
 								[]value.Value{
-									value.ToSymbol("Std::Kernel"),
-									value.ToSymbol("Foo::BAR"),
-									value.NewCallSiteInfo(value.ToSymbol("println"), 1),
+									value.ToSymbol("Std::Kernel").ToValue(),
+									value.ToSymbol("Foo::BAR").ToValue(),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
 								},
-							),
+							)),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -200,10 +200,10 @@ func TestDefConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
-					nil,
-					value.ToSymbol("Root"),
-					value.ToSymbol("Foo"),
-					value.SmallInt(3),
+					value.Undefined,
+					value.ToSymbol("Root").ToValue(),
+					value.ToSymbol("Foo").ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},

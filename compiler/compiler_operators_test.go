@@ -26,9 +26,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(3),
-					value.ToSymbol("Std::Int"),
+					value.Undefined,
+					value.SmallInt(3).ToValue(),
+					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
 			err: error.ErrorList{
@@ -50,9 +50,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(3),
-					value.ToSymbol("Std::Int"),
+					value.Undefined,
+					value.SmallInt(3).ToValue(),
+					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
 			err: error.ErrorList{
@@ -72,8 +72,8 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.Int8(6),
+					value.Undefined,
+					value.Int8(6).ToValue(),
 				},
 			),
 		},
@@ -96,9 +96,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.Int8(1),
-					value.Int8(5),
+					value.Undefined,
+					value.Int8(1).ToValue(),
+					value.Int8(5).ToValue(),
 				},
 			),
 		},
@@ -115,8 +115,8 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.Int32(121),
+					value.Undefined,
+					value.Int32(121).ToValue(),
 				},
 			),
 		},
@@ -141,10 +141,10 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.Int32(151),
-					value.Int32(25),
-					value.Int32(5),
+					value.Undefined,
+					value.Int32(151).ToValue(),
+					value.Int32(25).ToValue(),
+					value.Int32(5).ToValue(),
 				},
 			),
 		},
@@ -161,8 +161,8 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.Float(113.75),
+					value.Undefined,
+					value.Float(113.75).ToValue(),
 				},
 			),
 		},
@@ -185,9 +185,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.Float(45.5),
-					value.Float(2.5),
+					value.Undefined,
+					value.Float(45.5).ToValue(),
+					value.Float(2.5).ToValue(),
 				},
 			),
 		},
@@ -204,8 +204,8 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.Float(91),
+					value.Undefined,
+					value.Float(91).ToValue(),
 				},
 			),
 		},
@@ -228,9 +228,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.Float(45.5),
-					value.Float(0.5),
+					value.Undefined,
+					value.Float(45.5).ToValue(),
+					value.Float(0.5).ToValue(),
 				},
 			),
 		},
@@ -247,8 +247,8 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(-4),
+					value.Undefined,
+					value.SmallInt(-4).ToValue(),
 				},
 			),
 		},
@@ -271,9 +271,9 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(-2),
-					value.SmallInt(2),
+					value.Undefined,
+					value.SmallInt(-2).ToValue(),
+					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
@@ -301,8 +301,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(-5),
+					value.Undefined,
+					value.SmallInt(-5).ToValue(),
 				},
 			),
 		},
@@ -319,8 +319,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(5),
+					value.Undefined,
+					value.SmallInt(5).ToValue(),
 				},
 			),
 		},
@@ -342,8 +342,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(5),
+					value.Undefined,
+					value.SmallInt(5).ToValue(),
 				},
 			),
 		},
@@ -360,8 +360,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(-11),
+					value.Undefined,
+					value.SmallInt(-11).ToValue(),
 				},
 			),
 		},
@@ -378,7 +378,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					nil,
+					value.Undefined,
 				},
 			),
 		},
@@ -400,8 +400,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(10),
+					value.Undefined,
+					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
@@ -423,8 +423,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(10),
+					value.Undefined,
+					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
@@ -446,8 +446,8 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(10),
+					value.Undefined,
+					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
@@ -481,8 +481,8 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -505,8 +505,8 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -530,9 +530,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -556,9 +556,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -582,9 +582,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -608,9 +608,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -634,9 +634,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -660,9 +660,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -686,9 +686,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -712,9 +712,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -738,9 +738,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -764,9 +764,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -790,9 +790,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.UInt64(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.UInt64(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -816,9 +816,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -842,9 +842,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
-					nil,
-					value.UInt64(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.UInt64(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -869,9 +869,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 18),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -896,9 +896,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 18),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -924,9 +924,9 @@ func TestComplexAssignmentLocals(t *testing.T) {
 					bytecode.NewLineInfo(1, 21),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -968,7 +968,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -986,12 +986,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1011,8 +1011,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1029,11 +1029,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1046,12 +1046,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 6),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1082,7 +1082,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1100,12 +1100,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1125,8 +1125,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1143,11 +1143,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1160,12 +1160,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 6),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1196,7 +1196,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1214,12 +1214,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1239,8 +1239,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1257,11 +1257,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1275,13 +1275,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1312,7 +1312,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1330,12 +1330,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1355,8 +1355,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1373,11 +1373,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1391,13 +1391,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1428,7 +1428,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1446,12 +1446,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1471,8 +1471,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1489,11 +1489,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1507,13 +1507,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1544,7 +1544,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1562,12 +1562,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1587,8 +1587,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1605,11 +1605,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1623,13 +1623,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1660,7 +1660,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1678,12 +1678,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1703,8 +1703,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1721,11 +1721,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1739,13 +1739,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1776,7 +1776,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1794,12 +1794,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1819,8 +1819,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1837,11 +1837,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1855,13 +1855,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -1892,7 +1892,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1910,12 +1910,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1935,8 +1935,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -1953,11 +1953,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -1971,13 +1971,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2008,7 +2008,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2026,12 +2026,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2051,8 +2051,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2069,11 +2069,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2087,13 +2087,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2124,7 +2124,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2142,12 +2142,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2167,8 +2167,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2185,11 +2185,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2203,13 +2203,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2240,7 +2240,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2258,12 +2258,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2283,8 +2283,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2301,11 +2301,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2319,13 +2319,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2356,7 +2356,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2374,12 +2374,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2399,8 +2399,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2417,11 +2417,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2435,13 +2435,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2472,7 +2472,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2490,12 +2490,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2515,8 +2515,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2533,11 +2533,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2551,13 +2551,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2588,7 +2588,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2606,12 +2606,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2631,8 +2631,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunction(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL8), 1,
@@ -2649,11 +2649,11 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("a"),
+									value.ToSymbol("a").ToValue(),
 								},
-							),
-							value.ToSymbol("#init"),
-							vm.NewBytecodeFunctionNoParams(
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2667,13 +2667,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(6, 8),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2703,7 +2703,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2721,12 +2721,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2743,8 +2743,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2759,13 +2759,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(5, 11),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2795,7 +2795,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2813,12 +2813,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2835,8 +2835,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2852,13 +2852,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(5, 14),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2888,7 +2888,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2906,12 +2906,12 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Root"),
-							value.ToSymbol("Foo"),
-							value.ToSymbol("Std::Object"),
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
 						},
-					),
-					vm.NewBytecodeFunctionNoParams(
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2928,8 +2928,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							value.ToSymbol("Foo"),
-							vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
@@ -2944,13 +2944,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(5, 11),
 								},
 								[]value.Value{
-									value.ToSymbol("a"),
-									value.SmallInt(3),
+									value.ToSymbol("a").ToValue(),
+									value.SmallInt(3).ToValue(),
 								},
-							),
-							value.ToSymbol("foo"),
+							)),
+							value.ToSymbol("foo").ToValue(),
 						},
-					),
+					)),
 				},
 			),
 		},
@@ -2978,8 +2978,8 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(2),
+					value.Undefined,
+					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
@@ -2996,8 +2996,8 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(6),
+					value.Undefined,
+					value.SmallInt(6).ToValue(),
 				},
 			),
 		},
@@ -3022,10 +3022,10 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(23),
-					value.SmallInt(15),
-					value.SmallInt(46),
+					value.Undefined,
+					value.SmallInt(23).ToValue(),
+					value.SmallInt(15).ToValue(),
+					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3053,8 +3053,8 @@ func TestBitwiseAndNot(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(21),
+					value.Undefined,
+					value.SmallInt(21).ToValue(),
 				},
 			),
 		},
@@ -3071,8 +3071,8 @@ func TestBitwiseAndNot(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(16),
+					value.Undefined,
+					value.SmallInt(16).ToValue(),
 				},
 			),
 		},
@@ -3097,10 +3097,10 @@ func TestBitwiseAndNot(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(23),
-					value.SmallInt(15),
-					value.SmallInt(46),
+					value.Undefined,
+					value.SmallInt(23).ToValue(),
+					value.SmallInt(15).ToValue(),
+					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3128,8 +3128,8 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(31),
+					value.Undefined,
+					value.SmallInt(31).ToValue(),
 				},
 			),
 		},
@@ -3146,8 +3146,8 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(63),
+					value.Undefined,
+					value.SmallInt(63).ToValue(),
 				},
 			),
 		},
@@ -3172,10 +3172,10 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(23),
-					value.SmallInt(15),
-					value.SmallInt(46),
+					value.Undefined,
+					value.SmallInt(23).ToValue(),
+					value.SmallInt(15).ToValue(),
+					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3203,8 +3203,8 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(29),
+					value.Undefined,
+					value.SmallInt(29).ToValue(),
 				},
 			),
 		},
@@ -3221,8 +3221,8 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(54),
+					value.Undefined,
+					value.SmallInt(54).ToValue(),
 				},
 			),
 		},
@@ -3247,10 +3247,10 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(23),
-					value.SmallInt(15),
-					value.SmallInt(46),
+					value.Undefined,
+					value.SmallInt(23).ToValue(),
+					value.SmallInt(15).ToValue(),
+					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3278,8 +3278,8 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(3),
+					value.Undefined,
+					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -3296,8 +3296,8 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(1),
+					value.Undefined,
+					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -3322,10 +3322,10 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(24),
-					value.SmallInt(15),
-					value.SmallInt(46),
+					value.Undefined,
+					value.SmallInt(24).ToValue(),
+					value.SmallInt(15).ToValue(),
+					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
