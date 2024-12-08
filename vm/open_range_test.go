@@ -18,62 +18,62 @@ func TestOpenRangeContains(t *testing.T) {
 	}{
 		"include int in the middle": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(5),
+			val:      value.SmallInt(5).ToValue(),
 			contains: true,
 		},
 		"not include int equal to start": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(3),
+			val:      value.SmallInt(3).ToValue(),
 			contains: false,
 		},
 		"not include int equal to end": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(10),
+			val:      value.SmallInt(10).ToValue(),
 			contains: false,
 		},
 		"not include int lesser than start": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(2),
+			val:      value.SmallInt(2).ToValue(),
 			contains: false,
 		},
 		"not include int greater than end": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(11),
+			val:      value.SmallInt(11).ToValue(),
 			contains: false,
 		},
 		"include float": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.Float(5.7),
+			val:      value.Float(5.7).ToValue(),
 			contains: true,
 		},
 		"throw when incomparable value": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
-			val: value.String("foo"),
-			err: value.NewError(
+			val: value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int` cannot be coerced into `Std::String`",
-			),
+			)),
 		},
 	}
 
@@ -84,7 +84,7 @@ func TestOpenRangeContains(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
@@ -103,56 +103,56 @@ func TestOpenRangeEqual(t *testing.T) {
 	}{
 		"two identical ranges": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			equal: true,
 		},
 		"different end": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(11),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(11).ToValue(),
 			),
 			other: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			equal: false,
 		},
 		"different start": {
 			r: value.NewOpenRange(
-				value.SmallInt(4),
-				value.SmallInt(10),
+				value.SmallInt(4).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			equal: false,
 		},
 		"different start and end": {
 			r: value.NewOpenRange(
-				value.SmallInt(4),
-				value.SmallInt(10),
+				value.SmallInt(4).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(15),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(15).ToValue(),
 			),
 			equal: false,
 		},
 		"Two ranges with the same values of different types": {
 			r: value.NewOpenRange(
-				value.SmallInt(3),
-				value.SmallInt(10),
+				value.SmallInt(3).ToValue(),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewOpenRange(
-				value.Float(3),
-				value.Float(10),
+				value.Float(3).ToValue(),
+				value.Float(10).ToValue(),
 			),
 			equal: false,
 		},
@@ -165,7 +165,7 @@ func TestOpenRangeEqual(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
@@ -185,54 +185,54 @@ func TestOpenRangeIteratorNext(t *testing.T) {
 		"empty": {
 			i: value.NewOpenRangeIterator(
 				value.NewOpenRange(
-					value.SmallInt(3),
-					value.SmallInt(3),
+					value.SmallInt(3).ToValue(),
+					value.SmallInt(3).ToValue(),
 				),
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 		"with two elements, first iteration": {
 			i: value.NewOpenRangeIterator(
 				value.NewOpenRange(
-					value.SmallInt(1),
-					value.SmallInt(4),
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(4).ToValue(),
 				),
 			),
 			after: value.NewOpenRangeIteratorWithCurrentElement(
 				value.NewOpenRange(
-					value.SmallInt(1),
-					value.SmallInt(4),
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(4).ToValue(),
 				),
-				value.SmallInt(2),
+				value.SmallInt(2).ToValue(),
 			),
-			want: value.SmallInt(2),
+			want: value.SmallInt(2).ToValue(),
 		},
 		"with two elements, second iteration": {
 			i: value.NewOpenRangeIteratorWithCurrentElement(
 				value.NewOpenRange(
-					value.SmallInt(1),
-					value.SmallInt(4),
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(4).ToValue(),
 				),
-				value.SmallInt(2),
+				value.SmallInt(2).ToValue(),
 			),
 			after: value.NewOpenRangeIteratorWithCurrentElement(
 				value.NewOpenRange(
-					value.SmallInt(1),
-					value.SmallInt(4),
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(4).ToValue(),
 				),
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			want: value.SmallInt(3),
+			want: value.SmallInt(3).ToValue(),
 		},
 		"with two elements, third iteration": {
 			i: value.NewOpenRangeIteratorWithCurrentElement(
 				value.NewOpenRange(
-					value.SmallInt(1),
-					value.SmallInt(4),
+					value.SmallInt(1).ToValue(),
+					value.SmallInt(4).ToValue(),
 				),
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			err: value.ToSymbol("stop_iteration"),
+			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 	}
 
@@ -244,7 +244,7 @@ func TestOpenRangeIteratorNext(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

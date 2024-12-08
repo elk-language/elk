@@ -66,7 +66,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 		t.Log(pp.Sprint(gotRuntimeErr))
 		t.Fatal(diff)
 	}
-	if tc.wantRuntimeErr != nil {
+	if !tc.wantRuntimeErr.IsUndefined() {
 		return
 	}
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
@@ -74,7 +74,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)
-		if gotStackTop != nil && tc.wantStackTop != nil {
+		if !gotStackTop.IsUndefined() && !tc.wantStackTop.IsUndefined() {
 			t.Logf("got: %#v, want: %#v", gotStackTop, tc.wantStackTop)
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
 		}
@@ -100,7 +100,7 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	var stdout strings.Builder
 	vm := vm.New(vm.WithStdout(&stdout))
 	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
-	if gotRuntimeErr != nil {
+	if !gotRuntimeErr.IsUndefined() {
 		t.Fatalf("Runtime Error: %s", gotRuntimeErr.Inspect())
 	}
 	if diff := cmp.Diff(want, got, opts...); diff != "" {

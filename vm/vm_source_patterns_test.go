@@ -30,7 +30,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.SmallInt(22),
+			wantStackTop: value.SmallInt(22).ToValue(),
 		},
 		"match no value with else": {
 			source: `
@@ -43,7 +43,7 @@ func TestVMSource_Switch(t *testing.T) {
 				else :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("e"),
+			wantStackTop: value.ToSymbol("e").ToValue(),
 		},
 		"match boolean": {
 			source: `
@@ -55,7 +55,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match nil": {
 			source: `
@@ -67,7 +67,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("b"),
+			wantStackTop: value.ToSymbol("b").ToValue(),
 		},
 		"match string": {
 			source: `
@@ -80,7 +80,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match interpolated string": {
 			source: `
@@ -93,7 +93,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match string with regex": {
 			source: `
@@ -106,7 +106,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match string with interpolated regex": {
 			source: `
@@ -119,7 +119,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match symbol": {
 			source: `
@@ -132,7 +132,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match interpolated symbol": {
 			source: `
@@ -145,7 +145,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :d
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match with method call": {
 			source: `
@@ -158,7 +158,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match comparison with and": {
 			source: `
@@ -171,7 +171,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match or": {
 			source: `
@@ -184,7 +184,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("a"),
+			wantStackTop: value.ToSymbol("a").ToValue(),
 		},
 		"match non-list with list patterns": {
 			source: `
@@ -224,7 +224,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match word set": {
 			source: `
@@ -237,7 +237,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match symbol set": {
 			source: `
@@ -250,7 +250,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match hex set": {
 			source: `
@@ -263,7 +263,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match bin set": {
 			source: `
@@ -276,7 +276,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match empty set": {
 			source: `
@@ -289,7 +289,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match set with rest elements": {
 			source: `
@@ -301,7 +301,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match set with skip elements": {
 			source: `
@@ -313,7 +313,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 
 		"match list": {
@@ -327,7 +327,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match word list": {
 			source: `
@@ -340,7 +340,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple with word list": {
 			source: `
@@ -366,7 +366,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple with symbol list": {
 			source: `
@@ -392,7 +392,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple with hex list": {
 			source: `
@@ -418,7 +418,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple with bin list": {
 			source: `
@@ -444,7 +444,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match list with rest elements": {
 			source: `
@@ -457,10 +457,10 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: &value.ArrayList{
-				value.SmallInt(6),
-				value.SmallInt(9),
-			},
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(9).ToValue(),
+			}),
 		},
 		"match list with unnamed rest elements": {
 			source: `
@@ -474,7 +474,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :f
 				end
 			`,
-			wantStackTop: value.ToSymbol("e"),
+			wantStackTop: value.ToSymbol("e").ToValue(),
 		},
 		"match nested lists": {
 			source: `
@@ -487,7 +487,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 
 		"match non-list with tuple patterns": {
@@ -514,7 +514,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple": {
 			source: `
@@ -527,7 +527,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match word tuple": {
 			source: `
@@ -540,7 +540,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match list with word tuple": {
 			source: `
@@ -553,7 +553,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match symbol tuple": {
 			source: `
@@ -566,7 +566,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match list with symbol tuple": {
 			source: `
@@ -579,7 +579,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match hex tuple": {
 			source: `
@@ -592,7 +592,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match list with hex tuple": {
 			source: `
@@ -605,7 +605,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match bin tuple": {
 			source: `
@@ -618,7 +618,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match list with bin tuple": {
 			source: `
@@ -631,7 +631,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match empty tuple": {
 			source: `
@@ -644,7 +644,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("c"),
+			wantStackTop: value.ToSymbol("c").ToValue(),
 		},
 		"match tuple with rest elements": {
 			source: `
@@ -657,10 +657,10 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: &value.ArrayList{
-				value.SmallInt(6),
-				value.SmallInt(9),
-			},
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(9).ToValue(),
+			}),
 		},
 		"match tuple with unnamed rest elements": {
 			source: `
@@ -674,7 +674,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :f
 				end
 			`,
-			wantStackTop: value.ToSymbol("e"),
+			wantStackTop: value.ToSymbol("e").ToValue(),
 		},
 		"match nested tuples": {
 			source: `
@@ -687,7 +687,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 
 		"match empty map": {
@@ -701,7 +701,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match map": {
 			source: `
@@ -714,7 +714,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match map with record": {
 			source: `
@@ -727,7 +727,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match nested maps": {
 			source: `
@@ -740,7 +740,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 
 		"match empty record": {
@@ -754,7 +754,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match record": {
 			source: `
@@ -767,7 +767,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 		"match record with map": {
 			source: `
@@ -793,7 +793,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.ToSymbol("d"),
+			wantStackTop: value.ToSymbol("d").ToValue(),
 		},
 
 		"match object": {
@@ -807,10 +807,10 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: &value.ArrayList{
-				value.String("FOO BAR"),
-				value.SmallInt(7),
-			},
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.Ref(value.String("FOO BAR")),
+				value.SmallInt(7).ToValue(),
+			}),
 		},
 	}
 

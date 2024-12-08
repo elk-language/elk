@@ -15,34 +15,34 @@ func TestVMSource_Subscript(t *testing.T) {
 				list := ["foo", 2, 7.8]
 				list[0]
 			`,
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 		},
 		"get index -1 of a list": {
 			source: `
 				list := ["foo", 2, 7.8]
 				list[-1]
 			`,
-			wantStackTop: value.Float(7.8),
+			wantStackTop: value.Float(7.8).ToValue(),
 		},
 		"get too big index": {
 			source: `
 				list := ["foo", 2, 7.8]
 				list[50]
 			`,
-			wantRuntimeErr: value.NewError(
+			wantRuntimeErr: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 50 out of range: -3...3",
-			),
+			)),
 		},
 		"get too small index": {
 			source: `
 				list := ["foo", 2, 7.8]
 				list[-10]
 			`,
-			wantRuntimeErr: value.NewError(
+			wantRuntimeErr: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index -10 out of range: -3...3",
-			),
+			)),
 		},
 		"get from nil": {
 			source: `
@@ -61,7 +61,6 @@ func TestVMSource_Subscript(t *testing.T) {
 		})
 	}
 }
-
 func TestVMSource_NilSafeSubscript(t *testing.T) {
 	tests := sourceTestTable{
 		"get index 0 of a list": {
@@ -69,34 +68,34 @@ func TestVMSource_NilSafeSubscript(t *testing.T) {
 				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[0]
 			`,
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 		},
 		"get index -1 of a list": {
 			source: `
 				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[-1]
 			`,
-			wantStackTop: value.Float(7.8),
+			wantStackTop: value.Float(7.8).ToValue(),
 		},
 		"get too big index": {
 			source: `
 				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[50]
 			`,
-			wantRuntimeErr: value.NewError(
+			wantRuntimeErr: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index 50 out of range: -3...3",
-			),
+			)),
 		},
 		"get too small index": {
 			source: `
 				var list: List[String | Int | Float]? = ["foo", 2, 7.8]
 				list?[-10]
 			`,
-			wantRuntimeErr: value.NewError(
+			wantRuntimeErr: value.Ref(value.NewError(
 				value.IndexErrorClass,
 				"index -10 out of range: -3...3",
-			),
+			)),
 		},
 		"get from nil": {
 			source: `
@@ -122,13 +121,13 @@ func TestVMSource_Instantiate(t *testing.T) {
 
 				::Foo()
 			`,
-			wantStackTop: value.NewObject(
+			wantStackTop: value.Ref(value.NewObject(
 				value.ObjectWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithName("Foo"),
 					),
 				),
-			),
+			)),
 		},
 		"instantiate a class without an initialiser with arguments": {
 			source: `
@@ -180,7 +179,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 				f.a
 			`,
 			wantStdout:   "a: bar\n",
-			wantStackTop: value.String("bar"),
+			wantStackTop: value.Ref(value.String("bar")),
 		},
 	}
 
@@ -201,7 +200,7 @@ func TestVMSource_Alias(t *testing.T) {
 
 				3.add(4)
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 		},
 		"add an alias to a nonexistent method": {
 			source: `
@@ -227,7 +226,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				def foo: Symbol then :bar
 				foo()
 			`,
-			wantStackTop: value.ToSymbol("bar"),
+			wantStackTop: value.ToSymbol("bar").ToValue(),
 		},
 		"define a method with positional arguments in top level": {
 			source: `
@@ -237,7 +236,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				end
 				foo(1, 2)
 			`,
-			wantStackTop: value.SmallInt(8),
+			wantStackTop: value.SmallInt(8).ToValue(),
 		},
 		"define a method with positional arguments in a class": {
 			source: `
@@ -250,7 +249,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 
 				Bar().foo(1, 2)
 			`,
-			wantStackTop: value.SmallInt(8),
+			wantStackTop: value.SmallInt(8).ToValue(),
 		},
 		"define a method with positional arguments in a module": {
 			source: `
@@ -263,7 +262,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 
 				Bar.foo(1, 2)
 			`,
-			wantStackTop: value.SmallInt(8),
+			wantStackTop: value.SmallInt(8).ToValue(),
 		},
 	}
 
@@ -281,7 +280,7 @@ func TestVMSource_CallClosure(t *testing.T) {
 				pow2 := |a: Int| -> a ** 2
 				pow2.call(5)
 			`,
-			wantStackTop: value.SmallInt(25),
+			wantStackTop: value.SmallInt(25).ToValue(),
 		},
 		"invalid args": {
 			source: `
@@ -317,7 +316,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				a?.inspect
 			`,
-			wantStackTop: value.String("5"),
+			wantStackTop: value.Ref(value.String("5")),
 		},
 		"call a variable": {
 			source: `
@@ -330,7 +329,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				a := Foo
 				a()
 			`,
-			wantStackTop: value.ToSymbol("bar"),
+			wantStackTop: value.ToSymbol("bar").ToValue(),
 		},
 		"call method from using": {
 			source: `
@@ -344,7 +343,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				bar()
 			`,
-			wantStackTop: value.ToSymbol("bar"),
+			wantStackTop: value.ToSymbol("bar").ToValue(),
 		},
 		"call method from using all": {
 			source: `
@@ -358,14 +357,14 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				bar()
 			`,
-			wantStackTop: value.ToSymbol("bar"),
+			wantStackTop: value.ToSymbol("bar").ToValue(),
 		},
 		"call variable": {
 			source: `
 				foo := |n: Int| -> n ** 2
 				foo(5)
 			`,
-			wantStackTop: value.SmallInt(25),
+			wantStackTop: value.SmallInt(25).ToValue(),
 		},
 		"call a global method without arguments": {
 			source: `
@@ -375,7 +374,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo()
 			`,
-			wantStackTop: value.ToSymbol("bar"),
+			wantStackTop: value.ToSymbol("bar").ToValue(),
 		},
 		"call a global method with positional arguments": {
 			source: `
@@ -385,7 +384,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				add(5, 9)
 			`,
-			wantStackTop: value.SmallInt(14),
+			wantStackTop: value.SmallInt(14).ToValue(),
 		},
 		"call a method with missing required arguments": {
 			source: `
@@ -398,10 +397,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantCompileErr: error.ErrorList{
 				error.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `add`"),
 			},
-			wantRuntimeErr: value.NewError(
+			wantRuntimeErr: value.Ref(value.NewError(
 				value.ArgumentErrorClass,
 				"`add` wrong number of arguments, given: 1, expected: 2..2",
-			),
+			)),
 		},
 		"call a method without optional arguments": {
 			source: `
@@ -411,7 +410,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				add(5)
 			`,
-			wantStackTop: value.Float(28.5),
+			wantStackTop: value.Float(28.5).ToValue(),
 		},
 		"call a method with some optional arguments": {
 			source: `
@@ -421,7 +420,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				add(5, 0)
 			`,
-			wantStackTop: value.Float(25.5),
+			wantStackTop: value.Float(25.5).ToValue(),
 		},
 		"call a method with all optional arguments": {
 			source: `
@@ -431,7 +430,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				add(3, 2, 3.5)
 			`,
-			wantStackTop: value.Float(8.5),
+			wantStackTop: value.Float(8.5).ToValue(),
 		},
 		"call a method with only named arguments": {
 			source: `
@@ -441,7 +440,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(b: "b", a: "a", c: "c", e: "e")
 			`,
-			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
+			wantStackTop: value.Ref(value.String("a: a, b: b, c: c, d: default d, e: e")),
 		},
 		"call a method with all required arguments and named arguments": {
 			source: `
@@ -451,7 +450,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("a", c: "c", b: "b")
 			`,
-			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: default e"),
+			wantStackTop: value.Ref(value.String("a: a, b: b, c: c, d: default d, e: default e")),
 		},
 		"call a method with optional arguments and named arguments": {
 			source: `
@@ -461,7 +460,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("a", "b", "c", e: "e")
 			`,
-			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
+			wantStackTop: value.Ref(value.String("a: a, b: b, c: c, d: default d, e: e")),
 		},
 		"call a method with a named rest param and no args": {
 			source: `
@@ -471,7 +470,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo()
 			`,
-			wantStackTop: value.String("a: %{}"),
+			wantStackTop: value.Ref(value.String("a: %{}")),
 		},
 		"call a method with a named rest param and a few named args": {
 			source: `
@@ -481,11 +480,11 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(d: "foo", a: "bar")
 			`,
-			wantStackTop: vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("a"), Value: value.String("bar")},
-				value.Pair{Key: value.ToSymbol("d"), Value: value.String("foo")},
-			),
+				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.Ref(value.String("bar"))},
+				value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("foo"))},
+			)),
 		},
 		"call a method with regular params, named rest param and a few named args": {
 			source: `
@@ -495,15 +494,15 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				2,
-				value.String("foo"),
-				vm.MustNewHashRecordWithElements(
+				value.Ref(value.String("foo")),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
-					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+				)),
+			)),
 		},
 		"call a method with regular params, named rest param and only required args": {
 			source: `
@@ -513,11 +512,11 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo")
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				2,
-				value.String("foo"),
-				value.NewHashRecord(0),
-			),
+				value.Ref(value.String("foo")),
+				value.Ref(value.NewHashRecord(0)),
+			)),
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
 			source: `
@@ -527,16 +526,16 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				3,
-				value.String("foo"),
-				value.SmallInt(5),
-				vm.MustNewHashRecordWithElements(
+				value.Ref(value.String("foo")),
+				value.SmallInt(5).ToValue(),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
-					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+				)),
+			)),
 		},
 		"call a method with regular params, optional params, named rest param and all args": {
 			source: `
@@ -546,16 +545,16 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", 9, c: "bar", d: "baz")
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				3,
-				value.String("foo"),
-				value.SmallInt(9),
-				vm.MustNewHashRecordWithElements(
+				value.Ref(value.String("foo")),
+				value.SmallInt(9).ToValue(),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
-					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+				)),
+			)),
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
@@ -565,16 +564,16 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz", b: 9)
 			`,
-			wantStackTop: value.NewArrayListWithElements(
-				2,
-				value.String("foo"),
-				value.SmallInt(9),
-				vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
+				3,
+				value.Ref(value.String("foo")),
+				value.SmallInt(9).ToValue(),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
-					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+				)),
+			)),
 		},
 		"call a method with positional rest params and named rest params and no args": {
 			source: `
@@ -584,7 +583,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo()
 			`,
-			wantStackTop: value.String(`a: %[], b: %{}`),
+			wantStackTop: value.Ref(value.String(`a: %[], b: %{}`)),
 		},
 		"call a method with positional rest params and named rest params and positional args": {
 			source: `
@@ -594,7 +593,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 5, 7)
 			`,
-			wantStackTop: value.String(`a: %[1, 5, 7], b: %{}`),
+			wantStackTop: value.Ref(value.String(`a: %[1, 5, 7], b: %{}`)),
 		},
 		"call a method with positional rest params and named rest params and named args": {
 			source: `
@@ -604,16 +603,16 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				2,
-				&value.ArrayTuple{},
-				vm.MustNewHashRecordWithElements(
+				value.Ref(&value.ArrayTuple{}),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
-					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
-					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
+					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+				)),
+			)),
 		},
 		"call a method with positional rest params and named rest params and both types of args": {
 			source: `
@@ -623,21 +622,21 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				2,
-				value.NewArrayTupleWithElements(
+				value.Ref(value.NewArrayTupleWithElements(
 					3,
-					value.SmallInt(10),
-					value.SmallInt(20),
-					value.SmallInt(30),
-				),
-				vm.MustNewHashRecordWithElements(
+					value.SmallInt(10).ToValue(),
+					value.SmallInt(20).ToValue(),
+					value.SmallInt(30).ToValue(),
+				)),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
-					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
-					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
+					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+				)),
+			)),
 		},
 
 		"call a method with regular, positional rest params and named rest params and no args": {
@@ -648,7 +647,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(5)
 			`,
-			wantStackTop: value.String(`a: 5, b: %[], c: %{}`),
+			wantStackTop: value.Ref(value.String(`a: 5, b: %[], c: %{}`)),
 		},
 		"call a method with regular, positional rest params and named rest params and positional args": {
 			source: `
@@ -658,7 +657,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 5, 7)
 			`,
-			wantStackTop: value.String(`a: 1, b: %[5, 7], c: %{}`),
+			wantStackTop: value.Ref(value.String(`a: 1, b: %[5, 7], c: %{}`)),
 		},
 		"call a method with regular, positional rest params and named rest params and named args": {
 			source: `
@@ -668,17 +667,17 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				3,
-				value.SmallInt(1),
-				&value.ArrayTuple{},
-				vm.MustNewHashRecordWithElements(
+				value.SmallInt(1).ToValue(),
+				value.Ref(&value.ArrayTuple{}),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
-					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
-					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
+					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+				)),
+			)),
 		},
 		"call a method with regular, positional rest params and named rest params and both types of args": {
 			source: `
@@ -688,21 +687,21 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListWithElements(
 				3,
-				value.SmallInt(10),
-				value.NewArrayTupleWithElements(
+				value.SmallInt(10).ToValue(),
+				value.Ref(value.NewArrayTupleWithElements(
 					2,
-					value.SmallInt(20),
-					value.SmallInt(30),
-				),
-				vm.MustNewHashRecordWithElements(
+					value.SmallInt(20).ToValue(),
+					value.SmallInt(30).ToValue(),
+				)),
+				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
-					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
-					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
-				),
-			),
+					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
+					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+				)),
+			)),
 		},
 		"call a method with rest parameters and no arguments": {
 			source: `
@@ -712,7 +711,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo()
 			`,
-			wantStackTop: value.String("%[]"),
+			wantStackTop: value.Ref(value.String("%[]")),
 		},
 		"call a method with rest parameters and arguments": {
 			source: `
@@ -722,7 +721,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("%[1, 2, 3]"),
+			wantStackTop: value.Ref(value.String("%[1, 2, 3]")),
 		},
 		"call a method with rest parameters and required arguments": {
 			source: `
@@ -732,7 +731,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1)
 			`,
-			wantStackTop: value.String("a: 1, b: %[]"),
+			wantStackTop: value.Ref(value.String("a: 1, b: %[]")),
 		},
 		"call a method with rest parameters and all arguments": {
 			source: `
@@ -742,7 +741,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3, 4)
 			`,
-			wantStackTop: value.String("a: 1, b: %[2, 3, 4]"),
+			wantStackTop: value.Ref(value.String("a: 1, b: %[2, 3, 4]")),
 		},
 		"call a method with rest parameters and named args": {
 			source: `
@@ -764,7 +763,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo()
 			`,
-			wantStackTop: value.String("a: 3, b: %[]"),
+			wantStackTop: value.Ref(value.String("a: 3, b: %[]")),
 		},
 		"call a method with rest parameters and optional arguments": {
 			source: `
@@ -774,7 +773,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1)
 			`,
-			wantStackTop: value.String("a: 1, b: %[]"),
+			wantStackTop: value.Ref(value.String("a: 1, b: %[]")),
 		},
 		"call a method with rest parameters and all optional arguments": {
 			source: `
@@ -784,7 +783,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("a: 1, b: %[2, 3]"),
+			wantStackTop: value.Ref(value.String("a: 1, b: %[2, 3]")),
 		},
 		"call a method with post parameters": {
 			source: `
@@ -794,7 +793,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3)
 			`,
-			wantStackTop: value.String("a: %[1, 2], b: 3"),
+			wantStackTop: value.Ref(value.String("a: %[1, 2], b: 3")),
 		},
 		"call a method with multiple post arguments": {
 			source: `
@@ -804,7 +803,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3, 4)
 			`,
-			wantStackTop: value.String("a: %[1, 2], b: 3, c: 4"),
+			wantStackTop: value.Ref(value.String("a: %[1, 2], b: 3, c: 4")),
 		},
 		"call a method with pre and post arguments": {
 			source: `
@@ -814,7 +813,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3, 4, 5, 6)
 			`,
-			wantStackTop: value.String("a: 1, b: 2, c: %[3, 4], d: 5, e: 6"),
+			wantStackTop: value.Ref(value.String("a: 1, b: 2, c: %[3, 4], d: 5, e: 6")),
 		},
 		"call a method with named post arguments": {
 			source: `
@@ -824,7 +823,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, c: 3, b: 4)
 			`,
-			wantStackTop: value.String("a: %[1, 2], b: 4, c: 3"),
+			wantStackTop: value.Ref(value.String("a: %[1, 2], b: 4, c: 3")),
 		},
 		"call a method with pre and named post arguments": {
 			source: `
@@ -834,7 +833,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, 2, 3, d: 4, c: 5)
 			`,
-			wantStackTop: value.String("a: 1, b: %[2, 3], c: 5, d: 4"),
+			wantStackTop: value.Ref(value.String("a: 1, b: %[2, 3], c: 5, d: 4")),
 		},
 		"call a method with named arguments and missing required arguments": {
 			source: `
@@ -883,7 +882,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				::Foo.bar
 			`,
-			wantStackTop: value.ToSymbol("baz"),
+			wantStackTop: value.ToSymbol("baz").ToValue(),
 		},
 		"call a module method with positional arguments": {
 			source: `
@@ -895,7 +894,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				::Foo.add 4, 12
 			`,
-			wantStackTop: value.SmallInt(16),
+			wantStackTop: value.SmallInt(16).ToValue(),
 		},
 		"call an instance method without arguments": {
 			source: `
@@ -907,7 +906,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.bar
 			`,
-			wantStackTop: value.ToSymbol("baz"),
+			wantStackTop: value.ToSymbol("baz").ToValue(),
 		},
 		"call an instance method with positional arguments": {
 			source: `
@@ -919,7 +918,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.add 1, 8
 			`,
-			wantStackTop: value.SmallInt(9),
+			wantStackTop: value.SmallInt(9).ToValue(),
 		},
 	}
 
@@ -940,7 +939,7 @@ func TestVMSource_Setters(t *testing.T) {
 
 				Kernel.foo = 3
 			`,
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 		},
 		"setter increment type error": {
 			source: `
@@ -966,7 +965,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar++
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"setter decrement": {
 			source: `
@@ -978,7 +977,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar--
 			`,
-			wantStackTop: value.SmallInt(0),
+			wantStackTop: value.SmallInt(0).ToValue(),
 		},
 		"setter add": {
 			source: `
@@ -990,7 +989,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar += 2
 			`,
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 		},
 		"setter subtract": {
 			source: `
@@ -1002,7 +1001,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar -= 2
 			`,
-			wantStackTop: value.SmallInt(-1),
+			wantStackTop: value.SmallInt(-1).ToValue(),
 		},
 		"setter multiply": {
 			source: `
@@ -1014,7 +1013,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(3)
 				foo.bar *= 2
 			`,
-			wantStackTop: value.SmallInt(6),
+			wantStackTop: value.SmallInt(6).ToValue(),
 		},
 		"setter divide": {
 			source: `
@@ -1026,7 +1025,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(12)
 				foo.bar /= 4
 			`,
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 		},
 		"setter exponentiate": {
 			source: `
@@ -1038,7 +1037,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(12)
 				foo.bar **= 2
 			`,
-			wantStackTop: value.SmallInt(144),
+			wantStackTop: value.SmallInt(144).ToValue(),
 		},
 		"setter modulo": {
 			source: `
@@ -1050,7 +1049,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(12)
 				foo.bar %= 5
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"setter left bitshift": {
 			source: `
@@ -1062,7 +1061,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(5)
 				foo.bar <<= 2
 			`,
-			wantStackTop: value.SmallInt(20),
+			wantStackTop: value.SmallInt(20).ToValue(),
 		},
 		"setter logic left bitshift": {
 			source: `
@@ -1074,7 +1073,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(5i8)
 				foo.bar <<<= 2i8
 			`,
-			wantStackTop: value.Int8(20),
+			wantStackTop: value.Int8(20).ToValue(),
 		},
 		"setter right bitshift": {
 			source: `
@@ -1086,7 +1085,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(10)
 				foo.bar >>= 2
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"setter logic right bitshift": {
 			source: `
@@ -1098,7 +1097,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(10i8)
 				foo.bar >>>= 2i8
 			`,
-			wantStackTop: value.Int8(2),
+			wantStackTop: value.Int8(2).ToValue(),
 		},
 		"setter bitwise and": {
 			source: `
@@ -1110,7 +1109,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(6)
 				foo.bar &= 5
 			`,
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 		},
 		"setter bitwise or": {
 			source: `
@@ -1122,7 +1121,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(6)
 				foo.bar |= 5
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 		},
 		"setter bitwise xor": {
 			source: `
@@ -1134,7 +1133,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(6)
 				foo.bar ^= 5
 			`,
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 		},
 		"setter logic or falsy": {
 			source: `
@@ -1146,7 +1145,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(nil)
 				foo.bar ||= 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"setter logic or truthy": {
 			source: `
@@ -1158,7 +1157,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(2)
 				foo.bar ||= 5
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"setter logic and nil": {
 			source: `
@@ -1182,7 +1181,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(2)
 				foo.bar &&= 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"setter nil coalesce falsy": {
 			source: `
@@ -1194,7 +1193,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(nil)
 				foo.bar ??= 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"setter nil coalesce truthy": {
 			source: `
@@ -1206,7 +1205,7 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(2)
 				foo.bar ??= 5
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"call subscript set": {
 			source: `
@@ -1214,14 +1213,18 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = :foo
 				list
 			`,
-			wantStackTop: &value.ArrayList{value.ToSymbol("foo"), value.SmallInt(8), value.SmallInt(20)},
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.ToSymbol("foo").ToValue(),
+				value.SmallInt(8).ToValue(),
+				value.SmallInt(20).ToValue(),
+			}),
 		},
 		"subscript return value": {
 			source: `
 				list := ["foo", 2, 7.8]
 				list[0] = 8
 			`,
-			wantStackTop: value.SmallInt(8),
+			wantStackTop: value.SmallInt(8).ToValue(),
 		},
 		"set index 0 of a list": {
 			source: `
@@ -1229,130 +1232,130 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = 8
 				list
 			`,
-			wantStackTop: &value.ArrayList{
-				value.SmallInt(8),
-				value.SmallInt(2),
-				value.Float(7.8),
-			},
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(8).ToValue(),
+				value.SmallInt(2).ToValue(),
+				value.Float(7.8).ToValue(),
+			}),
 		},
 		"subscript setter increment": {
 			source: `
 				list := [5, 2, 7]
 				list[0]++
 			`,
-			wantStackTop: value.SmallInt(6),
+			wantStackTop: value.SmallInt(6).ToValue(),
 		},
 		"subscript setter decrement": {
 			source: `
 				list := [5, 2, 7]
 				list[0]--
 			`,
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 		},
 		"subscript setter add": {
 			source: `
 				list := [5, 2, 7]
 				list[0] += 8
 			`,
-			wantStackTop: value.SmallInt(13),
+			wantStackTop: value.SmallInt(13).ToValue(),
 		},
 		"subscript setter subtract": {
 			source: `
 				list := [5, 2, 7]
 				list[0] -= 8
 			`,
-			wantStackTop: value.SmallInt(-3),
+			wantStackTop: value.SmallInt(-3).ToValue(),
 		},
 		"subscript setter multiply": {
 			source: `
 				list := [5, 2, 7]
 				list[1] *= 3
 			`,
-			wantStackTop: value.SmallInt(6),
+			wantStackTop: value.SmallInt(6).ToValue(),
 		},
 		"subscript setter divide": {
 			source: `
 				list := [5, 8, 7]
 				list[1] /= 2
 			`,
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 		},
 		"subscript setter exponentiate": {
 			source: `
 				list := [5, 8, 7]
 				list[1] **= 2
 			`,
-			wantStackTop: value.SmallInt(64),
+			wantStackTop: value.SmallInt(64).ToValue(),
 		},
 		"subscript setter modulo type error": {
 			source: `
 				list := [5, 8, 7]
 				list[0] %= 2
 			`,
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 		},
 		"subscript setter modulo": {
 			source: `
 				list := [5, 8, 7]
 				list[0] %= 2
 			`,
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 		},
 		"subscript setter left bitshift": {
 			source: `
 				list := [5, 8, 7]
 				list[0] <<= 2
 			`,
-			wantStackTop: value.SmallInt(20),
+			wantStackTop: value.SmallInt(20).ToValue(),
 		},
 		"subscript setter logic left bitshift": {
 			source: `
 				list := [5i8, 8i8, 7i8]
 				list[0] <<<= 2
 			`,
-			wantStackTop: value.Int8(20),
+			wantStackTop: value.Int8(20).ToValue(),
 		},
 		"subscript setter right bitshift": {
 			source: `
 				list := [10, 8, 7]
 				list[0] >>= 2
 			`,
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 		},
 		"subscript setter logic right bitshift": {
 			source: `
 				list := [10i8, 8i8, 7i8]
 				list[0] >>>= 2
 			`,
-			wantStackTop: value.Int8(2),
+			wantStackTop: value.Int8(2).ToValue(),
 		},
 		"subscript setter bitwise and": {
 			source: `
 				list := [6, 8, 7]
 				list[0] &= 5
 			`,
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 		},
 		"subscript setter bitwise or": {
 			source: `
 				list := [6, 8, 7]
 				list[0] |= 5
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 		},
 		"subscript setter bitwise xor": {
 			source: `
 				list := [6, 8, 7]
 				list[0] ^= 5
 			`,
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 		},
 		"subscript setter logic or falsy": {
 			source: `
 				list := [nil, 8, 7.8]
 				list[0] ||= 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"subscript setter logic or truthy": {
 			source: `
@@ -1363,7 +1366,7 @@ func TestVMSource_Setters(t *testing.T) {
 				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
 				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
 			},
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 		},
 		"subscript setter logic and nil": {
 			source: `
@@ -1387,14 +1390,14 @@ func TestVMSource_Setters(t *testing.T) {
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
 			},
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"subscript setter nil coalesce nil": {
 			source: `
 				list := [nil, 8, 7.8]
 				list[0] ??= 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"subscript setter nil coalesce false": {
 			source: `
@@ -1412,7 +1415,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [1, 8, 7.8]
 				list[0] ??= 5
 			`,
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
 				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),

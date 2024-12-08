@@ -16,7 +16,7 @@ func TestVMSource_Must(t *testing.T) {
 				println a
 			`,
 			wantStdout:   "1\n5\n",
-			wantStackTop: value.NilType{},
+			wantStackTop: value.Nil,
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(26, 3, 10), P(31, 3, 15)), "unnecessary `must`, type `5` is not nilable"),
 			},
@@ -29,7 +29,7 @@ func TestVMSource_Must(t *testing.T) {
 				println b
 			`,
 			wantStdout:     "1\n",
-			wantRuntimeErr: value.NewUnexpectedNilError(),
+			wantRuntimeErr: value.Ref(value.NewUnexpectedNilError()),
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestVMSource_As(t *testing.T) {
 				println b
 			`,
 			wantStdout:   "1\n5\n",
-			wantStackTop: value.NilType{},
+			wantStackTop: value.Nil,
 		},
 		"valid upcast": {
 			source: `
@@ -60,7 +60,7 @@ func TestVMSource_As(t *testing.T) {
 				println b.inspect
 			`,
 			wantStdout:   "1\n5\n",
-			wantStackTop: value.NilType{},
+			wantStackTop: value.Nil,
 		},
 		"invalid cast": {
 			source: `
@@ -70,7 +70,7 @@ func TestVMSource_As(t *testing.T) {
 				println b.inspect
 			`,
 			wantStdout:     "1\n",
-			wantRuntimeErr: value.NewError(value.TypeErrorClass, "failed type cast, `5` is not an instance of `Std::Float`"),
+			wantRuntimeErr: value.Ref(value.NewError(value.TypeErrorClass, "failed type cast, `5` is not an instance of `Std::Float`")),
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				println "2"
 			`,
 			wantStdout:     "1\n",
-			wantRuntimeErr: value.ToSymbol("foo"),
+			wantRuntimeErr: value.ToSymbol("foo").ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(46, 4, 5), P(56, 4, 15)), "unreachable code"),
 			},
@@ -111,7 +111,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n5\n",
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
 			},
@@ -135,7 +135,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n5\n6\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
 			},
@@ -161,7 +161,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n4, str: foo\n6\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(52, 5, 6), P(62, 5, 16)), "unreachable code"),
 			},
@@ -185,8 +185,8 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:     "1\n2\n",
-			wantStackTop:   value.SmallInt(3),
-			wantRuntimeErr: value.ToSymbol("foo"),
+			wantStackTop:   value.SmallInt(3).ToValue(),
+			wantRuntimeErr: value.ToSymbol("foo").ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(77, 6, 6), P(87, 6, 16)), "unreachable code"),
 			},
@@ -236,7 +236,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n6\n7\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(79, 7, 7), P(89, 7, 17)), "unreachable code"),
 			},
@@ -267,7 +267,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n3\n7\n8\n",
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(143, 11, 8), P(153, 11, 18)), "unreachable code"),
 				error.NewWarning(L(P(62, 6, 7), P(72, 6, 17)), "unreachable code"),
@@ -286,7 +286,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n3\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 		},
 		"throw, catch and execute finally": {
 			source: `
@@ -306,7 +306,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n3\n4\n5\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(51, 5, 6), P(61, 5, 16)), "unreachable code"),
 			},
@@ -326,7 +326,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:     "1\n3\n",
-			wantRuntimeErr: value.ToSymbol("foo"),
+			wantRuntimeErr: value.ToSymbol("foo").ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(61, 5, 6), P(71, 5, 16)), "unreachable code"),
 				error.NewWarning(L(P(128, 11, 5), P(138, 11, 15)), "unreachable code"),
@@ -354,7 +354,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:     "1\n3\n5\n",
-			wantRuntimeErr: value.ToSymbol("foo"),
+			wantRuntimeErr: value.ToSymbol("foo").ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(141, 11, 7), P(151, 11, 17)), "unreachable code"),
 				error.NewWarning(L(P(61, 5, 6), P(71, 5, 16)), "unreachable code"),
@@ -381,7 +381,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n5\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(98, 9, 7), P(108, 9, 17)), "unreachable code"),
 			},
@@ -409,7 +409,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n6\n7\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(163, 12, 7), P(173, 12, 17)), "unreachable code"),
 				error.NewWarning(L(P(89, 7, 7), P(99, 7, 17)), "unreachable code"),
@@ -436,7 +436,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n3\n5\n6\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(118, 10, 7), P(128, 10, 17)), "unreachable code"),
 			},
@@ -462,7 +462,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n5\n6\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(79, 7, 7), P(89, 7, 17)), "unreachable code"),
 			},
@@ -488,7 +488,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n4\n5\n",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(57, 5, 6), P(67, 5, 16)), "unreachable code"),
 			},
@@ -525,7 +525,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n6\n7\n",
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(57, 5, 6), P(67, 5, 16)), "unreachable code"),
 			},
@@ -544,7 +544,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				end
 			`,
 			wantStdout:   "0\n1\n2\n3\n4\n5\n",
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 		},
 		"execute finally before return": {
 			source: `
@@ -567,7 +567,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				foo()
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(119, 10, 14), P(123, 10, 18)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(178, 15, 6), P(188, 15, 16)), "unreachable code"),
@@ -599,7 +599,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				foo()
 			`,
 			wantStdout:   "1\n2\n3\n4\n5\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(130, 11, 15), P(134, 11, 19)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(241, 20, 6), P(251, 20, 16)), "unreachable code"),
@@ -626,7 +626,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				Kernel.foo = 25
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
-			wantStackTop: value.SmallInt(25),
+			wantStackTop: value.SmallInt(25).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(132, 10, 14), P(136, 10, 18)), "values returned in void context will be ignored"),
 				error.NewWarning(L(P(191, 15, 6), P(201, 15, 16)), "unreachable code"),
@@ -683,7 +683,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n6\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(115, 10, 7), P(125, 10, 17)), "unreachable code"),
 				error.NewWarning(L(P(188, 16, 6), P(198, 16, 16)), "unreachable code"),
@@ -725,7 +725,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n5\n7\n8\n9\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(154, 13, 9), P(164, 13, 19)), "unreachable code"),
 				error.NewWarning(L(P(290, 23, 7), P(300, 23, 17)), "unreachable code"),
@@ -754,7 +754,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n6\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(223, 18, 15), P(227, 18, 19)), "this condition will always have the same result since type `false` is falsy"),
 				error.NewWarning(L(P(117, 10, 7), P(127, 10, 17)), "unreachable code"),
@@ -797,7 +797,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				a
 			`,
 			wantStdout:   "1\n2\n4\n5\n7\n8\n9\n",
-			wantStackTop: value.SmallInt(1),
+			wantStackTop: value.SmallInt(1).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(328, 25, 16), P(332, 25, 20)), "this condition will always have the same result since type `false` is falsy"),
 				error.NewWarning(L(P(157, 13, 9), P(167, 13, 19)), "unreachable code"),
@@ -910,7 +910,7 @@ func TestVMSource_ForIn(t *testing.T) {
 					print(i.inspect, " ")
 				end
 			`,
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 			wantStdout:   `1 2 3 `,
 		},
 		"nested": {
@@ -957,7 +957,7 @@ func TestVMSource_ForIn(t *testing.T) {
 					end
 				end
 			`,
-			wantStackTop: value.SmallInt(10),
+			wantStackTop: value.SmallInt(10).ToValue(),
 			wantStdout:   `1:8 1:9 `,
 		},
 	}
@@ -979,7 +979,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 		},
 		"create a repeated string": {
 			source: `
@@ -989,7 +989,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.String("----------"),
+			wantStackTop: value.Ref(value.String("----------")),
 		},
 		"calculate the factorial of 10": {
 			source: `
@@ -999,7 +999,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return the value of the last iteration": {
 			source: `
@@ -1008,7 +1008,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 					a *= i
 				end
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return nil when no iterations": {
 			source: `
@@ -1037,7 +1037,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 					break a if a > 200
 				end
 			`,
-			wantStackTop: value.SmallInt(720),
+			wantStackTop: value.SmallInt(720).ToValue(),
 		},
 		"nested with continue": {
 			source: `
@@ -1113,7 +1113,7 @@ func TestVMSource_While(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 		},
 		"return nil with break": {
 			source: `
@@ -1141,7 +1141,7 @@ func TestVMSource_While(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(33, 4, 11), P(36, 4, 14)), "this condition will always have the same result since type `true` is truthy"),
 			},
@@ -1251,7 +1251,7 @@ func TestVMSource_While(t *testing.T) {
 					break a if i >= 6
 				end
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(33, 4, 11), P(36, 4, 14)), "this condition will always have the same result since type `true` is truthy"),
 			},
@@ -1266,7 +1266,7 @@ func TestVMSource_While(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.String("----------"),
+			wantStackTop: value.Ref(value.String("----------")),
 		},
 		"calculate the factorial of 10": {
 			source: `
@@ -1278,7 +1278,7 @@ func TestVMSource_While(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return the value of the last iteration": {
 			source: `
@@ -1290,7 +1290,7 @@ func TestVMSource_While(t *testing.T) {
 					a
 				end
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return nil when no iterations": {
 			source: `
@@ -1324,7 +1324,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 				end while i < 6
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 		},
 		"return nil with break": {
 			source: `
@@ -1352,7 +1352,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 				end while true
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(89, 8, 15), P(92, 8, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
@@ -1462,7 +1462,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 					break a if i >= 6
 				end while true
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(91, 8, 15), P(94, 8, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
@@ -1477,7 +1477,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 				end while i > 0
 				a
 			`,
-			wantStackTop: value.String("----------"),
+			wantStackTop: value.Ref(value.String("----------")),
 		},
 		"calculate the factorial of 10": {
 			source: `
@@ -1489,7 +1489,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 				end while i <= 10
 				a
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return the value of the last iteration": {
 			source: `
@@ -1501,7 +1501,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 					a
 				end while i <= 10
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"always does at least one iteration": {
 			source: `
@@ -1512,7 +1512,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 					i += 1
 				end while i <= 10
 			`,
-			wantStackTop: value.SmallInt(21),
+			wantStackTop: value.SmallInt(21).ToValue(),
 		},
 	}
 
@@ -1535,7 +1535,7 @@ func TestVMSource_Until(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 		},
 		"return nil with break": {
 			source: `
@@ -1563,7 +1563,7 @@ func TestVMSource_Until(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(33, 4, 11), P(37, 4, 15)), "this condition will always have the same result since type `false` is falsy"),
 			},
@@ -1673,7 +1673,7 @@ func TestVMSource_Until(t *testing.T) {
 					break a if i >= 6
 				end
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(33, 4, 11), P(37, 4, 15)), "this condition will always have the same result since type `false` is falsy"),
 			},
@@ -1688,7 +1688,7 @@ func TestVMSource_Until(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.String("----------"),
+			wantStackTop: value.Ref(value.String("----------")),
 		},
 		"calculate the factorial of 10": {
 			source: `
@@ -1700,7 +1700,7 @@ func TestVMSource_Until(t *testing.T) {
 				end
 				a
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return the value of the last iteration": {
 			source: `
@@ -1712,7 +1712,7 @@ func TestVMSource_Until(t *testing.T) {
 					a
 				end
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return nil when no iterations": {
 			source: `
@@ -1746,7 +1746,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 				end until i >= 6
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 		},
 		"return nil with break": {
 			source: `
@@ -1774,7 +1774,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 				end until false
 				a
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(89, 8, 15), P(93, 8, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
@@ -1884,7 +1884,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 					break a if i >= 6
 				end until false
 			`,
-			wantStackTop: value.SmallInt(15),
+			wantStackTop: value.SmallInt(15).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(91, 8, 15), P(95, 8, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
@@ -1899,7 +1899,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 				end until i <= 0
 				a
 			`,
-			wantStackTop: value.String("----------"),
+			wantStackTop: value.Ref(value.String("----------")),
 		},
 		"calculate the factorial of 10": {
 			source: `
@@ -1911,7 +1911,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 				end until i > 10
 				a
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"return the value of the last iteration": {
 			source: `
@@ -1923,7 +1923,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 					a
 				end until i > 10
 			`,
-			wantStackTop: value.SmallInt(3628800),
+			wantStackTop: value.SmallInt(3628800).ToValue(),
 		},
 		"always does at least one iteration": {
 			source: `
@@ -1934,7 +1934,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 					i += 1
 				end until i > 10
 			`,
-			wantStackTop: value.SmallInt(21),
+			wantStackTop: value.SmallInt(21).ToValue(),
 		},
 	}
 
@@ -1968,7 +1968,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 					a = a + 2
 				end
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(19, 3, 8), P(19, 3, 8)), "this condition will always have the same result since type `Std::Int` is truthy"),
 			},
@@ -1995,7 +1995,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 					a = 30
 				end
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(19, 3, 8), P(19, 3, 8)), "this condition will always have the same result since type `Std::Int` is truthy"),
 				error.NewWarning(L(P(50, 6, 6), P(56, 6, 12)), "unreachable code"),
@@ -2010,7 +2010,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 					a = 30
 				end
 			`,
-			wantStackTop: value.SmallInt(30),
+			wantStackTop: value.SmallInt(30).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(19, 3, 8), P(21, 3, 10)), "this condition will always have the same result since type `nil` is falsy"),
 				error.NewWarning(L(P(28, 4, 6), P(37, 4, 15)), "unreachable code"),
@@ -2026,7 +2026,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				end
 				b
 			`,
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(24, 3, 13), P(24, 3, 13)), "this condition will always have the same result since type `Std::Int` is truthy"),
 				error.NewWarning(L(P(51, 6, 6), P(52, 6, 7)), "unreachable code"),
@@ -2049,7 +2049,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				a := 5
 				"foo" if a else 5
 			`,
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(25, 3, 14), P(25, 3, 14)), "this condition will always have the same result since type `Std::Int` is truthy"),
 				error.NewWarning(L(P(32, 3, 21), P(32, 3, 21)), "unreachable code"),
@@ -2060,7 +2060,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				a := nil
 				"foo" if a else 5
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(27, 3, 14), P(27, 3, 14)), "this condition will always have the same result since type `nil` is falsy"),
 				error.NewWarning(L(P(18, 3, 5), P(22, 3, 9)), "unreachable code"),
@@ -2081,7 +2081,7 @@ func TestVMSource_IfExpressions(t *testing.T) {
 			source: `
 				a + " bar" if a := "foo"
 			`,
-			wantStackTop: value.String("foo bar"),
+			wantStackTop: value.Ref(value.String("foo bar")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(19, 2, 19), P(28, 2, 28)), "this condition will always have the same result since type `Std::String` is truthy"),
 			},
@@ -2118,7 +2118,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 					a = 7
 				end
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 		},
 		"execute the empty else branch": {
 			source: `
@@ -2142,7 +2142,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 					a = a + 2
 				end
 			`,
-			wantStackTop: value.SmallInt(10),
+			wantStackTop: value.SmallInt(10).ToValue(),
 		},
 		"execute the else branch instead of then": {
 			source: `
@@ -2153,7 +2153,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 					a = a + 2
 				end
 			`,
-			wantStackTop: value.SmallInt(7),
+			wantStackTop: value.SmallInt(7).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(23, 3, 12), P(23, 3, 12)), "this condition will always have the same result since type `Std::Int` is truthy"),
 				error.NewWarning(L(P(30, 4, 6), P(36, 4, 12)), "unreachable code"),
@@ -2169,7 +2169,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 				end
 				b
 			`,
-			wantStackTop: value.SmallInt(5),
+			wantStackTop: value.SmallInt(5).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(28, 3, 17), P(28, 3, 17)), "this condition will always have the same result since type `Std::Int` is truthy"),
 				error.NewWarning(L(P(35, 4, 6), P(40, 4, 11)), "unreachable code"),
@@ -2192,7 +2192,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 				a := nil
 				"foo" unless a
 			`,
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(31, 3, 18), P(31, 3, 18)), "this condition will always have the same result since type `nil` is falsy"),
 			},
@@ -2227,7 +2227,7 @@ func TestVMSource_LogicalOrOperator(t *testing.T) {
 	tests := sourceTestTable{
 		"return right operand if left is nil": {
 			source:       "nil || 4",
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result since type `nil` is falsy"),
 			},
@@ -2248,14 +2248,14 @@ func TestVMSource_LogicalOrOperator(t *testing.T) {
 		},
 		"return right operand if left is false": {
 			source:       "false || 'foo'",
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(4, 1, 5)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"return left operand if it's truthy": {
 			source:       "3 || 'foo'",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this condition will always have the same result since type `3` is truthy"),
 				error.NewWarning(L(P(5, 1, 6), P(9, 1, 10)), "unreachable code"),
@@ -2263,7 +2263,7 @@ func TestVMSource_LogicalOrOperator(t *testing.T) {
 		},
 		"return right nested operand if left are falsy": {
 			source:       "false || nil || 4",
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(4, 1, 5)), "this condition will always have the same result since type `false` is falsy"),
 				error.NewWarning(L(P(0, 1, 1), P(11, 1, 12)), "this condition will always have the same result since type `nil` is falsy"),
@@ -2271,7 +2271,7 @@ func TestVMSource_LogicalOrOperator(t *testing.T) {
 		},
 		"return middle nested operand if left is falsy": {
 			source:       "false || 2 || 5",
-			wantStackTop: value.SmallInt(2),
+			wantStackTop: value.SmallInt(2).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(4, 1, 5)), "this condition will always have the same result since type `false` is falsy"),
 				error.NewWarning(L(P(0, 1, 1), P(9, 1, 10)), "this condition will always have the same result since type `2` is truthy"),
@@ -2307,7 +2307,7 @@ func TestVMSource_LogicalAndOperator(t *testing.T) {
 		},
 		"return right operand if left is truthy": {
 			source:       "3 && 'foo'",
-			wantStackTop: value.String("foo"),
+			wantStackTop: value.Ref(value.String("foo")),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this condition will always have the same result since type `3` is truthy"),
 			},
@@ -2321,7 +2321,7 @@ func TestVMSource_LogicalAndOperator(t *testing.T) {
 		},
 		"return right nested operand if left are truthy": {
 			source:       "4 && 'bar' && 16",
-			wantStackTop: value.SmallInt(16),
+			wantStackTop: value.SmallInt(16).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this condition will always have the same result since type `4` is truthy"),
 				error.NewWarning(L(P(0, 1, 1), P(9, 1, 10)), "this condition will always have the same result since type `\"bar\"` is truthy"),
@@ -2349,7 +2349,7 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 	tests := sourceTestTable{
 		"return right operand if left is nil": {
 			source:       "nil ?? 4",
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result"),
 			},
@@ -2378,7 +2378,7 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 		},
 		"return left operand if it's not nil": {
 			source:       "3 ?? 'foo'",
-			wantStackTop: value.SmallInt(3),
+			wantStackTop: value.SmallInt(3).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this condition will always have the same result since type `3` can never be nil"),
 				error.NewWarning(L(P(5, 1, 6), P(9, 1, 10)), "unreachable code"),
@@ -2386,7 +2386,7 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 		},
 		"return right nested operand if left are nil": {
 			source:       "nil ?? nil ?? 4",
-			wantStackTop: value.SmallInt(4),
+			wantStackTop: value.SmallInt(4).ToValue(),
 			wantCompileErr: error.ErrorList{
 				error.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result"),
 				error.NewWarning(L(P(0, 1, 1), P(9, 1, 10)), "this condition will always have the same result"),

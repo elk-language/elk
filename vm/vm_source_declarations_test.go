@@ -19,7 +19,7 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 
 				::Foo.bar
 			`,
-			wantStackTop: value.ToSymbol("boo"),
+			wantStackTop: value.ToSymbol("boo").ToValue(),
 		},
 		"define singleton methods on a mixin": {
 			source: `
@@ -31,7 +31,7 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 
 				::Foo.bar
 			`,
-			wantStackTop: value.ToSymbol("boo"),
+			wantStackTop: value.ToSymbol("boo").ToValue(),
 		},
 		"define singleton methods on a module": {
 			source: `
@@ -56,7 +56,7 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 
 				::Foo.bar
 			`,
-			wantStackTop: value.ToSymbol("boo"),
+			wantStackTop: value.ToSymbol("boo").ToValue(),
 		},
 	}
 
@@ -245,7 +245,7 @@ func TestVMSource_Include(t *testing.T) {
 
 				self.foo
 			`,
-			wantStackTop: value.String("hey, it's foo"),
+			wantStackTop: value.Ref(value.String("hey, it's foo")),
 		},
 		"include two mixins to a class": {
 			source: `
@@ -267,7 +267,7 @@ func TestVMSource_Include(t *testing.T) {
 
 				self.foo + "; " + self.bar
 			`,
-			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
+			wantStackTop: value.Ref(value.String("hey, it's foo; hey, it's bar")),
 		},
 		"include a complex mixin in a class": {
 			source: `
@@ -291,7 +291,7 @@ func TestVMSource_Include(t *testing.T) {
 
 				1.foo + "; " + 1.bar
 			`,
-			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
+			wantStackTop: value.Ref(value.String("hey, it's foo; hey, it's bar")),
 		},
 	}
 
@@ -491,7 +491,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 
 func TestVMSource_GetModuleConstant(t *testing.T) {
 	tests := simpleSourceTestTable{
-		"::Std::Float::INF": value.FloatInf(),
+		"::Std::Float::INF": value.FloatInf().ToValue(),
 	}
 
 	for source, want := range tests {
@@ -508,7 +508,7 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 				const Foo = 3i64
 				Foo
 			`,
-			wantStackTop: value.Int64(3),
+			wantStackTop: value.Int64(3).ToValue(),
 		},
 		"Set constant under nested modules": {
 			source: `
@@ -520,7 +520,7 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 
 				Int::Foo
 			`,
-			wantStackTop: value.Int64(3),
+			wantStackTop: value.Int64(3).ToValue(),
 		},
 	}
 
