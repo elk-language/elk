@@ -12,10 +12,10 @@ import (
 )
 
 // Create Elk runtime values from static AST nodes.
-// Returns nil when no value could be created.
+// Returns undefined when no value could be created.
 func resolve(node ast.Node) value.Value {
 	if !node.IsStatic() {
-		return nil
+		return value.Undefined
 	}
 
 	switch n := node.(type) {
@@ -70,15 +70,15 @@ func resolve(node ast.Node) value.Value {
 	case *ast.NilSafeSubscriptExpressionNode:
 		return resolveNilSafeSubscript(n)
 	case *ast.SimpleSymbolLiteralNode:
-		return value.ToSymbol(n.Content)
+		return value.ToSymbol(n.Content).ToValue()
 	case *ast.RawStringLiteralNode:
-		return value.String(n.Value)
+		return value.Ref(value.String(n.Value))
 	case *ast.DoubleQuotedStringLiteralNode:
-		return value.String(n.Value)
+		return value.Ref(value.String(n.Value))
 	case *ast.RawCharLiteralNode:
-		return value.Char(n.Value)
+		return value.Char(n.Value).ToValue()
 	case *ast.CharLiteralNode:
-		return value.Char(n.Value)
+		return value.Char(n.Value).ToValue()
 	case *ast.NilLiteralNode:
 		return value.Nil
 	case *ast.TrueLiteralNode:
@@ -113,21 +113,21 @@ func resolve(node ast.Node) value.Value {
 		return resolveFloat(n)
 	}
 
-	return nil
+	return value.Undefined
 }
 
 func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
 	goRegexString, errList := regex.Transpile(node.Content, node.Flags)
 	if errList != nil {
-		return nil
+		return value.Undefined
 	}
 
 	re, err := regexp.Compile(goRegexString)
 	if err != nil {
-		return nil
+		return value.Undefined
 	}
 
-	return value.NewRegex(*re, node.Content, node.Flags)
+	return value.Ref(value.NewRegex(*re, node.Content, node.Flags))
 }
 
 func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
@@ -135,18 +135,18 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
 			to := resolve(node.End)
-			if to == nil {
-				return nil
+			if to.IsUndefined() {
+				return value.Undefined
 			}
-			return value.NewBeginlessClosedRange(to)
+			return value.Ref(value.NewBeginlessClosedRange(to))
 		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
 			to := resolve(node.End)
-			if to == nil {
-				return nil
+			if to.IsUndefined() {
+				return value.Undefined
 			}
-			return value.NewBeginlessOpenRange(to)
+			return value.Ref(value.NewBeginlessOpenRange(to))
 		default:
-			return nil
+			return value.Undefined
 		}
 	}
 
@@ -154,48 +154,48 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
 			from := resolve(node.Start)
-			if from == nil {
-				return nil
+			if from.IsUndefined() {
+				return value.Undefined
 			}
-			return value.NewEndlessClosedRange(from)
+			return value.Ref(value.NewEndlessClosedRange(from))
 		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
 			from := resolve(node.Start)
-			if from == nil {
-				return nil
+			if from.IsUndefined() {
+				return value.Undefined
 			}
-			return value.NewEndlessOpenRange(from)
+			return value.Ref(value.NewEndlessOpenRange(from))
 		default:
-			return nil
+			return value.Undefined
 		}
 	}
 
 	from := resolve(node.Start)
-	if from == nil {
-		return nil
+	if from.IsUndefined() {
+		return value.Undefined
 	}
 	to := resolve(node.End)
-	if to == nil {
-		return nil
+	if to.IsUndefined() {
+		return value.Undefined
 	}
 
 	switch node.Op.Type {
 	case token.CLOSED_RANGE_OP:
-		return value.NewClosedRange(from, to)
+		return value.Ref(value.NewClosedRange(from, to))
 	case token.OPEN_RANGE_OP:
-		return value.NewOpenRange(from, to)
+		return value.Ref(value.NewOpenRange(from, to))
 	case token.LEFT_OPEN_RANGE_OP:
-		return value.NewLeftOpenRange(from, to)
+		return value.Ref(value.NewLeftOpenRange(from, to))
 	case token.RIGHT_OPEN_RANGE_OP:
-		return value.NewRightOpenRange(from, to)
+		return value.Ref(value.NewRightOpenRange(from, to))
 	default:
-		return nil
+		return value.Undefined
 	}
 
 }
 
 func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
-		return nil
+		return value.Undefined
 	}
 
 	newTable := make([]value.Value, len(node.Elements))
@@ -204,21 +204,21 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 	}
 	for _, elementNode := range node.Elements {
 		val := resolve(elementNode)
-		if val == nil {
-			return nil
+		if val.IsUndefined() {
+			return value.Undefined
 		}
 		err := vm.HashSetAppend(nil, newSet, val)
-		if err != nil {
-			return nil
+		if err.IsUndefined() {
+			return value.Undefined
 		}
 	}
 
-	return newSet
+	return value.Ref(newSet)
 }
 
 func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
-		return nil
+		return value.Undefined
 	}
 
 	newTable := make([]value.Pair, len(node.Elements))
@@ -228,41 +228,41 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key)
+			key := value.ToSymbol(element.Key).ToValue()
 			val := resolve(element.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			err := vm.HashMapSet(nil, newMap, key, val)
-			if err != nil {
-				return nil
+			if !err.IsUndefined() {
+				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
 			key := resolve(element.Key)
-			if key == nil {
-				return nil
+			if key.IsUndefined() {
+				return value.Undefined
 			}
 			val := resolve(element.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			err := vm.HashMapSet(nil, newMap, key, val)
-			if err != nil {
-				return nil
+			if !err.IsUndefined() {
+				return value.Undefined
 			}
 		default:
-			return nil
+			return value.Undefined
 		}
 	}
 
-	return newMap
+	return value.Ref(newMap)
 }
 
 func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	if !node.IsStatic() {
-		return nil
+		return value.Undefined
 	}
 
 	newTable := make([]value.Pair, len(node.Elements))
@@ -272,61 +272,60 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key)
+			key := value.ToSymbol(element.Key).ToValue()
 			val := resolve(element.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			err := vm.HashRecordSet(nil, newRecord, key, val)
-			if err != nil {
-				return nil
+			if !err.IsUndefined() {
+				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
 			key := resolve(element.Key)
-			if key == nil {
-				return nil
+			if key.IsUndefined() {
+				return value.Undefined
 			}
 			val := resolve(element.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			err := vm.HashRecordSet(nil, newRecord, key, val)
-			if err != nil {
-				return nil
+			if !err.IsUndefined() {
+				return value.Undefined
 			}
 		default:
-			return nil
+			return value.Undefined
 		}
 	}
 
-	return newRecord
+	return value.Ref(newRecord)
 }
 
 func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
 	if !static {
-		return nil
+		return value.Undefined
 	}
 
 	newSet := value.NewHashSet(len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
-		if element == nil {
-			return nil
+		if element.IsUndefined() {
+			return value.Undefined
 		}
 		err := vm.HashSetAppend(nil, newSet, element)
-		if err != nil {
-			return nil
+		if !err.IsUndefined() {
+			return value.Undefined
 		}
 	}
 
-	return newSet
+	return value.Ref(newSet)
 }
-
 func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
-		return nil
+		return value.Undefined
 	}
 
 	newList := make(value.ArrayList, 0, len(node.Elements))
@@ -334,18 +333,18 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			key := resolve(e.Key)
-			if key == nil {
-				return nil
+			if key.IsUndefined() {
+				return value.Undefined
 			}
 
 			index, ok := value.ToGoInt(key)
 			if !ok {
-				return nil
+				return value.Undefined
 			}
 
 			val := resolve(e.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			if index >= len(newList) {
@@ -355,54 +354,54 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 			newList[index] = val
 		default:
 			element := resolve(elementNode)
-			if element == nil {
-				return nil
+			if element.IsUndefined() {
+				return value.Undefined
 			}
 
 			newList = append(newList, element)
 		}
 	}
 
-	return &newList
+	return value.Ref(&newList)
 }
 
 func resolveSpecialArrayListLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
 	if !static {
-		return nil
+		return value.Undefined
 	}
 
 	newList := make(value.ArrayList, 0, len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
-		if element == nil {
-			return nil
+		if element.IsUndefined() {
+			return value.Undefined
 		}
 		newList = append(newList, element)
 	}
 
-	return &newList
+	return value.Ref(&newList)
 }
 
 func resolveSpecialArrayTupleLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
 	if !static {
-		return nil
+		return value.Undefined
 	}
 
 	newList := make(value.ArrayTuple, 0, len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
-		if element == nil {
-			return nil
+		if element.IsUndefined() {
+			return value.Undefined
 		}
 		newList = append(newList, element)
 	}
 
-	return &newList
+	return value.Ref(&newList)
 }
 
 func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
-		return nil
+		return value.Undefined
 	}
 
 	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
@@ -410,18 +409,18 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			key := resolve(e.Key)
-			if key == nil {
-				return nil
+			if key.IsUndefined() {
+				return value.Undefined
 			}
 
 			index, ok := value.ToGoInt(key)
 			if !ok {
-				return nil
+				return value.Undefined
 			}
 
 			val := resolve(e.Value)
-			if val == nil {
-				return nil
+			if val.IsUndefined() {
+				return value.Undefined
 			}
 
 			if index >= len(newArrayTuple) {
@@ -431,25 +430,25 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 			newArrayTuple[index] = val
 		default:
 			element := resolve(elementNode)
-			if element == nil {
-				return nil
+			if element.IsUndefined() {
+				return value.Undefined
 			}
 
 			newArrayTuple = append(newArrayTuple, element)
 		}
 	}
 
-	return &newArrayTuple
+	return value.Ref(&newArrayTuple)
 }
 
 func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
 	left := resolve(node.Left)
-	if left == nil {
-		return nil
+	if left.IsUndefined() {
+		return value.Undefined
 	}
 	right := resolve(node.Right)
-	if right == nil {
-		return nil
+	if right.IsUndefined() {
+		return value.Undefined
 	}
 
 	switch node.Op.Type {
@@ -470,7 +469,7 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
 		return left
 	}
 
-	return nil
+	return value.Undefined
 }
 
 func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Value {
@@ -482,8 +481,8 @@ func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Val
 	}
 
 	result, err := value.Subscript(receiver, key)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
 	return result
@@ -494,8 +493,8 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	key := resolve(node.Key)
 
 	result, err := value.Subscript(receiver, key)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
 	return result
@@ -503,27 +502,27 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 
 func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	right := resolve(node.Right)
-	if right == nil {
-		return nil
+	if right.IsUndefined() {
+		return value.Undefined
 	}
 
 	switch node.Op.Type {
 	case token.TILDE:
 		result := value.BitwiseNot(right)
-		if result == nil {
-			return nil
+		if result.IsUndefined() {
+			return value.Undefined
 		}
 		return result
 	case token.PLUS:
 		result := value.UnaryPlus(right)
-		if result == nil {
-			return nil
+		if result.IsUndefined() {
+			return value.Undefined
 		}
 		return result
 	case token.MINUS:
 		result := value.Negate(right)
-		if result == nil {
-			return nil
+		if result.IsUndefined() {
+			return value.Undefined
 		}
 		return result
 	case token.BANG:
@@ -531,22 +530,22 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	case token.AND:
 		singleton := right.SingletonClass()
 		if singleton == nil {
-			return nil
+			return value.Undefined
 		}
-		return singleton
+		return value.Ref(singleton)
 	default:
-		return nil
+		return value.Undefined
 	}
 }
 
 func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 	left := resolve(node.Left)
-	if left == nil {
-		return nil
+	if left.IsUndefined() {
+		return value.Undefined
 	}
 	right := resolve(node.Right)
-	if right == nil {
-		return nil
+	if right.IsUndefined() {
+		return value.Undefined
 	}
 
 	var result value.Value
@@ -602,131 +601,131 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 	case token.LESS_EQUAL:
 		result, err = value.LessThanEqual(left, right)
 	default:
-		return nil
+		return value.Undefined
 	}
 
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 	return result
 }
 
 func resolveInt(node *ast.IntLiteralNode) value.Value {
 	i, err := value.ParseBigInt(node.Value, 0)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 	if i.IsSmallInt() {
-		return i.ToSmallInt()
+		return i.ToSmallInt().ToValue()
 	}
 
-	return i
+	return value.Ref(i)
 }
 
 func resolveInt64(node *ast.Int64LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 64)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.Int64(i)
+	return value.Int64(i).ToValue()
 }
 
 func resolveInt32(node *ast.Int32LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 32)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.Int32(i)
+	return value.Int32(i).ToValue()
 }
 
 func resolveInt16(node *ast.Int16LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 16)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.Int16(i)
+	return value.Int16(i).ToValue()
 }
 
 func resolveInt8(node *ast.Int8LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 8)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.Int8(i)
+	return value.Int8(i).ToValue()
 }
 
 func resolveUInt64(node *ast.UInt64LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 64)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.UInt64(i)
+	return value.UInt64(i).ToValue()
 }
 
 func resolveUInt32(node *ast.UInt32LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 32)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.UInt32(i)
+	return value.UInt32(i).ToValue()
 }
 
 func resolveUInt16(node *ast.UInt16LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 16)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.UInt16(i)
+	return value.UInt16(i).ToValue()
 }
 
 func resolveUInt8(node *ast.UInt8LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 8)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return value.UInt8(i)
+	return value.UInt8(i).ToValue()
 }
 
 func resolveBigFloat(node *ast.BigFloatLiteralNode) value.Value {
 	f, err := value.ParseBigFloat(node.Value)
-	if err != nil {
-		return nil
+	if !err.IsUndefined() {
+		return value.Undefined
 	}
 
-	return f
+	return value.Ref(f)
 }
 
 func resolveFloat64(node *ast.Float64LiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
-		return nil
+		return value.Undefined
 	}
 
-	return value.Float64(f)
+	return value.Float64(f).ToValue()
 }
 
 func resolveFloat32(node *ast.Float32LiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 32)
 	if err != nil {
-		return nil
+		return value.Undefined
 	}
 
-	return value.Float32(f)
+	return value.Float32(f).ToValue()
 }
 
 func resolveFloat(node *ast.FloatLiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
-		return nil
+		return value.Undefined
 	}
 
-	return value.Float(f)
+	return value.Float(f).ToValue()
 }

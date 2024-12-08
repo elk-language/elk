@@ -24,8 +24,8 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					nil,
-					value.SmallInt(5),
+					value.Undefined,
+					value.SmallInt(5).ToValue(),
 				},
 			),
 		},
@@ -54,12 +54,12 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					nil,
-					&value.ArrayList{
-						value.SmallInt(5),
-						value.SmallInt(3),
-					},
-					value.SmallInt(1),
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.SmallInt(5).ToValue(),
+						value.SmallInt(3).ToValue(),
+					}),
+					value.SmallInt(1).ToValue(),
 				},
 			),
 		},

@@ -59,7 +59,7 @@ func (e *evaluator) evaluate(input string) {
 	}
 
 	value, runtimeErr := e.vm.InterpretREPL(fn)
-	if runtimeErr != nil {
+	if !runtimeErr.IsUndefined() {
 		e.vm.PrintError()
 		e.vm.ResetError()
 		return
