@@ -13,33 +13,33 @@ func initHashRecord() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			iterator := value.NewHashRecordIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
-			return value.SmallInt(self.Length()), nil
+			self := args[0].MustReference().(*value.HashRecord)
+			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"[]",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			key := args[1]
 			result, err := HashRecordGet(vm, self, key)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			if result == nil {
-				return value.Nil, nil
+			if result.IsUndefined() {
+				return value.Nil, value.Undefined
 			}
-			return result, nil
+			return result, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -47,24 +47,24 @@ func initHashRecord() {
 		c,
 		"+",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			other := args[1]
 
-			switch o := other.(type) {
+			switch o := other.SafeAsReference().(type) {
 			case *value.HashMap:
 				result, err := HashRecordConcat(vm, self, (*value.HashRecord)(o))
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return result, nil
+				return value.Ref(result), value.Undefined
 			case *value.HashRecord:
 				result, err := HashRecordConcat(vm, self, o)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return result, nil
+				return value.Ref((*value.HashRecord)(result)), value.Undefined
 			default:
-				return nil, value.NewCoerceError(value.HashRecordClass, other.Class())
+				return value.Undefined, value.Ref(value.NewCoerceError(value.HashRecordClass, other.Class()))
 			}
 		},
 		DefWithParameters(1),
@@ -73,18 +73,18 @@ func initHashRecord() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			otherVal := args[1]
-			switch other := otherVal.(type) {
+			switch other := otherVal.SafeAsReference().(type) {
 			case *value.Pair:
 				contains, err := HashRecordContains(vm, self, other)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 
-				return value.ToElkBool(contains), nil
+				return value.ToElkBool(contains), value.Undefined
 			default:
-				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
+				return value.Undefined, value.Ref(value.NewCoerceError(value.PairClass, otherVal.Class()))
 			}
 		},
 		DefWithParameters(1),
@@ -93,13 +93,13 @@ func initHashRecord() {
 		c,
 		"contains_key",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			contains, err := HashRecordContainsKey(vm, self, args[1])
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -107,13 +107,13 @@ func initHashRecord() {
 		c,
 		"contains_value",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			contains, err := HashRecordContainsValue(vm, self, args[1])
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
 
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -121,16 +121,16 @@ func initHashRecord() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
-			other, ok := args[1].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
+			other, ok := args[1].SafeAsReference().(*value.HashRecord)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Undefined
 			}
 			equal, err := HashRecordEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -138,22 +138,22 @@ func initHashRecord() {
 		c,
 		"=~",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
-			switch other := args[1].(type) {
+			self := args[0].MustReference().(*value.HashRecord)
+			switch other := args[1].SafeAsReference().(type) {
 			case *value.HashRecord:
 				equal, err := HashRecordLaxEqual(vm, self, other)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), nil
+				return value.ToElkBool(equal), value.Undefined
 			case *value.HashMap:
 				equal, err := HashRecordLaxEqual(vm, self, (*value.HashRecord)(other))
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), nil
+				return value.ToElkBool(equal), value.Undefined
 			default:
-				return value.False, nil
+				return value.False, value.Undefined
 			}
 		},
 		DefWithParameters(1),
@@ -163,51 +163,51 @@ func initHashRecord() {
 		c,
 		"map",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			callable := args[1]
 			newRecord := value.NewHashRecord(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for i, pair := range self.Table {
-					if pair.Key == nil {
+					if pair.Key.IsUndefined() {
 						continue
 					}
-					result, err := vm.CallClosure(function, &self.Table[i])
-					if err != nil {
-						return nil, err
+					result, err := vm.CallClosure(function, value.Ref(&self.Table[i]))
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
-					r, ok := result.(*value.Pair)
+					r, ok := result.SafeAsReference().(*value.Pair)
 					if !ok {
-						return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
 					}
 					err = HashRecordSet(vm, newRecord, r.Key, r.Value)
-					if err != nil {
-						return nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 				}
-				return newRecord, nil
+				return value.Ref(newRecord), value.Undefined
 			}
 
 			// callable is another value
 			for i, pair := range self.Table {
-				if pair.Key == nil {
+				if pair.Key.IsUndefined() {
 					continue
 				}
-				result, err := vm.CallMethodByName(callSymbol, callable, &self.Table[i])
-				if err != nil {
-					return nil, err
+				result, err := vm.CallMethodByName(callSymbol, callable, value.Ref(&self.Table[i]))
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
-				r, ok := result.(*value.Pair)
+				r, ok := result.SafeAsReference().(*value.Pair)
 				if !ok {
-					return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
 				}
 				err = HashRecordSet(vm, newRecord, r.Key, r.Value)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 			}
-			return newRecord, nil
+			return value.Ref(newRecord), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -216,43 +216,43 @@ func initHashRecord() {
 		c,
 		"map_values",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecord)
+			self := args[0].MustReference().(*value.HashRecord)
 			callable := args[1]
 			newRecord := value.NewHashRecord(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for _, pair := range self.Table {
-					if pair.Key == nil {
+					if pair.Key.IsUndefined() {
 						continue
 					}
 					result, err := vm.CallClosure(function, pair.Value)
-					if err != nil {
-						return nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 					err = HashRecordSet(vm, newRecord, pair.Key, result)
-					if err != nil {
-						return nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 				}
-				return newRecord, nil
+				return value.Ref(newRecord), value.Undefined
 			}
 
 			// callable is another value
 			for _, pair := range self.Table {
-				if pair.Key == nil {
+				if pair.Key.IsUndefined() {
 					continue
 				}
 				result, err := vm.CallMethodByName(callSymbol, callable, pair.Value)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 				err = HashRecordSet(vm, newRecord, pair.Key, result)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 			}
-			return newRecord, nil
+			return value.Ref(newRecord), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -266,7 +266,7 @@ func initHashRecordIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashRecordIterator)
+			self := args[0].MustReference().(*value.HashRecordIterator)
 			return self.Next()
 		},
 	)
@@ -274,7 +274,7 @@ func initHashRecordIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Undefined
 		},
 	)
 
@@ -288,7 +288,7 @@ func NewHashRecordWithElements(vm *VM, elements ...value.Pair) (*value.HashRecor
 // Create a new hash record with the given entries.
 func MustNewHashRecordWithElements(vm *VM, elements ...value.Pair) *value.HashRecord {
 	hrec, err := NewHashRecordWithElements(vm, elements...)
-	if err != nil {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -299,17 +299,17 @@ func NewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...valu
 	h := value.NewHashRecord(capacity)
 	for _, element := range elements {
 		err := HashRecordSet(vm, h, element.Key, element.Value)
-		if err != nil {
+		if !err.IsUndefined() {
 			return nil, err
 		}
 	}
 
-	return h, nil
+	return h, value.Undefined
 }
 
 func MustNewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) *value.HashRecord {
 	hrec, err := NewHashRecordWithCapacityAndElements(vm, capacity, elements...)
-	if err != nil {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -336,7 +336,7 @@ func HashRecordCopy(vm *VM, target *value.HashRecord, source *value.HashRecord) 
 }
 
 // Create a new map containing the pairs of both maps.
-func HashRecordConcat(vm *VM, x *value.HashRecord, y *value.HashRecord) (value.Value, value.Value) {
+func HashRecordConcat(vm *VM, x *value.HashRecord, y *value.HashRecord) (*value.HashMap, value.Value) {
 	return HashMapConcat(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
@@ -395,12 +395,12 @@ func NewHashRecordComparer(opts *cmp.Options) cmp.Option {
 
 		v := New()
 		for _, xPair := range x.Table {
-			if xPair.Key == nil {
+			if xPair.Key.IsUndefined() {
 				continue
 			}
 
 			yVal, err := HashRecordGet(v, y, xPair.Key)
-			if err != nil {
+			if !err.IsUndefined() {
 				return false
 			}
 

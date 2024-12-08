@@ -502,7 +502,7 @@ func (vm *VM) run() {
 		case bytecode.ROOT:
 			vm.push(value.Ref(value.RootModule))
 		case bytecode.UNDEFINED:
-			vm.push(value.Undefined.ToValue())
+			vm.push(value.Undefined)
 		case bytecode.LOAD_VALUE8:
 			vm.push(vm.readValue8())
 		case bytecode.LOAD_VALUE16:
@@ -1324,7 +1324,7 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 		// populate missing optional arguments with undefined
 		missingArgCount := paramCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
-			vm.push(value.Undefined.ToValue())
+			vm.push(value.Undefined)
 		}
 	} else if paramCount != callInfo.ArgumentCount {
 		return value.Ref(value.NewWrongArgumentCountError(
@@ -1598,7 +1598,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
+		vm.stack[firstElementIndex+i] = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -1696,7 +1696,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
+		vm.stack[firstElementIndex+i] = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -1795,7 +1795,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined.ToValue()
+		vm.stack[firstElementIndex+i] = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -2159,7 +2159,7 @@ func (vm *VM) opDefConst() {
 func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 	firstLocalIndex := lastLocalIndex - varsToPop
 	for i := lastLocalIndex; i > firstLocalIndex; i-- {
-		vm.stack[i] = value.Undefined.ToValue()
+		vm.stack[i] = value.Undefined
 	}
 }
 
@@ -2190,7 +2190,7 @@ func (vm *VM) pop() value.Value {
 
 	vm.sp--
 	val := vm.stack[vm.sp]
-	vm.stack[vm.sp] = value.Undefined.ToValue()
+	vm.stack[vm.sp] = value.Undefined
 	return val
 }
 
@@ -2206,7 +2206,7 @@ func (vm *VM) popN(n int) {
 	}
 
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
-		vm.stack[i] = value.Undefined.ToValue()
+		vm.stack[i] = value.Undefined
 	}
 	vm.sp -= n
 }
@@ -2229,7 +2229,7 @@ func (vm *VM) popNSkipOne(n int) {
 
 	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
-		vm.stack[i] = value.Undefined.ToValue()
+		vm.stack[i] = value.Undefined
 	}
 	vm.sp -= n
 }

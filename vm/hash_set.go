@@ -15,53 +15,53 @@ func initHashSet() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			iterator := value.NewHashSetIterator(self)
-			return iterator, nil
+			return value.Ref(iterator), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
-			return value.SmallInt(self.Capacity()), nil
+			self := args[0].MustReference().(*value.HashSet)
+			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
-			return value.SmallInt(self.Length()), nil
+			self := args[0].MustReference().(*value.HashSet)
+			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"left_capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
-			return value.SmallInt(self.LeftCapacity()), nil
+			self := args[0].MustReference().(*value.HashSet)
+			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"grow",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
 			if !ok && n == -1 {
-				return nil, value.NewTooLargeCapacityError(nValue.Inspect())
+				return value.Undefined, value.Ref(value.NewTooLargeCapacityError(nValue.Inspect()))
 			}
 			if n < 0 {
-				return nil, value.NewNegativeCapacityError(nValue.Inspect())
+				return value.Undefined, value.Ref(value.NewNegativeCapacityError(nValue.Inspect()))
 			}
 			if !ok {
-				return nil, value.NewCapacityTypeError(nValue.Inspect())
+				return value.Undefined, value.Ref(value.NewCapacityTypeError(nValue.Inspect()))
 			}
 			HashSetGrow(vm, self, n)
-			return self, nil
+			return value.Ref(self), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -69,17 +69,17 @@ func initHashSet() {
 		c,
 		"+",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			otherVal := args[1]
-			other, ok := otherVal.(*value.HashSet)
+			other, ok := otherVal.SafeAsReference().(*value.HashSet)
 			if !ok {
-				return nil, value.NewCoerceError(value.HashSetClass, otherVal.Class())
+				return value.Undefined, value.Ref(value.NewCoerceError(value.HashSetClass, otherVal.Class()))
 			}
 			result, err := HashSetUnion(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return result, nil
+			return value.Ref(result), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -90,17 +90,17 @@ func initHashSet() {
 		c,
 		"&",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			otherVal := args[1]
-			other, ok := otherVal.(*value.HashSet)
+			other, ok := otherVal.SafeAsReference().(*value.HashSet)
 			if !ok {
-				return nil, value.NewCoerceError(value.HashSetClass, otherVal.Class())
+				return value.Undefined, value.Ref(value.NewCoerceError(value.HashSetClass, otherVal.Class()))
 			}
 			result, err := HashSetIntersection(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return result, nil
+			return value.Ref(result), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -110,16 +110,16 @@ func initHashSet() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
-			other, ok := args[1].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
+			other, ok := args[1].SafeAsReference().(*value.HashSet)
 			if !ok {
-				return value.False, nil
+				return value.False, value.Undefined
 			}
 			equal, err := HashSetEqual(vm, self, other)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), nil
+			return value.ToElkBool(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -129,13 +129,13 @@ func initHashSet() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			val := args[1]
 			contains, err := HashSetContains(vm, self, val)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), nil
+			return value.ToElkBool(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -143,15 +143,15 @@ func initHashSet() {
 		c,
 		"append",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
-			val := args[1].(*value.ArrayList)
+			self := args[0].MustReference().(*value.HashSet)
+			val := args[1].SafeAsReference().(*value.ArrayList)
 			for _, element := range *val {
 				err := HashSetAppend(vm, self, element)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 			}
-			return self, nil
+			return value.Ref(self), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -159,13 +159,13 @@ func initHashSet() {
 		c,
 		"<<",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			val := args[1]
 			err := HashSetAppend(vm, self, val)
-			if err != nil {
-				return nil, err
+			if !err.IsUndefined() {
+				return value.Undefined, err
 			}
-			return self, nil
+			return value.Ref(self), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -174,43 +174,43 @@ func initHashSet() {
 		c,
 		"map",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSet)
+			self := args[0].MustReference().(*value.HashSet)
 			callable := args[1]
 			newSet := value.NewHashSet(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for _, val := range self.Table {
-					if val == nil || val == value.Undefined {
+					if val == DeletedHashSetValue || val.IsUndefined() {
 						continue
 					}
 					result, err := vm.CallClosure(function, val)
-					if err != nil {
-						return nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 					err = HashSetAppend(vm, newSet, result)
-					if err != nil {
-						return nil, err
+					if !err.IsUndefined() {
+						return value.Undefined, err
 					}
 				}
-				return newSet, nil
+				return value.Ref(newSet), value.Undefined
 			}
 
 			// callable is another value
 			for _, val := range self.Table {
-				if val == nil || val == value.Undefined {
+				if val == DeletedHashSetValue || val.IsUndefined() {
 					continue
 				}
 				result, err := vm.CallMethodByName(callSymbol, callable, val)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 				err = HashSetAppend(vm, newSet, result)
-				if err != nil {
-					return nil, err
+				if !err.IsUndefined() {
+					return value.Undefined, err
 				}
 			}
-			return newSet, nil
+			return value.Ref(newSet), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -224,7 +224,7 @@ func initHashSetIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.HashSetIterator)
+			self := args[0].MustReference().(*value.HashSetIterator)
 			return self.Next()
 		},
 	)
@@ -232,7 +232,7 @@ func initHashSetIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return args[0], nil
+			return args[0], value.Undefined
 		},
 	)
 
@@ -252,12 +252,12 @@ func NewHashSetComparer(opts *cmp.Options) cmp.Option {
 
 		v := New()
 		for _, xVal := range x.Table {
-			if xVal == nil || xVal == value.Undefined {
+			if xVal == DeletedHashSetValue || xVal.IsUndefined() {
 				continue
 			}
 
 			contains, err := HashSetContains(v, y, xVal)
-			if err != nil {
+			if !err.IsUndefined() {
 				return false
 			}
 			if !contains {
@@ -277,7 +277,7 @@ func NewHashSetWithElements(vm *VM, elements ...value.Value) (*value.HashSet, va
 // Create a new hash set with the given entries.
 func MustNewHashSetWithElements(vm *VM, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithElements(vm, elements...)
-	if err != nil {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -288,29 +288,29 @@ func NewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.V
 	s := value.NewHashSet(capacity)
 	for _, element := range elements {
 		err := HashSetAppend(vm, s, element)
-		if err != nil {
+		if !err.IsUndefined() {
 			return nil, err
 		}
 	}
 
-	return s, nil
+	return s, value.Undefined
 }
 
 func NewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) (*value.HashSet, value.Value) {
 	s := value.NewHashSet(capacity)
 	for _, element := range elements {
 		err := HashSetAppendWithMaxLoad(vm, s, element, maxLoad)
-		if err != nil {
+		if !err.IsUndefined() {
 			return nil, err
 		}
 	}
 
-	return s, nil
+	return s, value.Undefined
 }
 
 func MustNewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithCapacityAndElements(vm, capacity, elements...)
-	if err != nil {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -319,7 +319,7 @@ func MustNewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...val
 
 func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithCapacityAndElementsMaxLoad(vm, capacity, maxLoad, elements...)
-	if err != nil {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 
@@ -329,24 +329,24 @@ func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad 
 // Checks whether two hash sets are equal
 func HashSetEqual(vm *VM, x *value.HashSet, y *value.HashSet) (bool, value.Value) {
 	if x.Length() != y.Length() {
-		return false, nil
+		return false, value.Undefined
 	}
 
 	for _, xVal := range x.Table {
-		if xVal == nil || xVal == value.Undefined {
+		if xVal == DeletedHashSetValue || xVal.IsUndefined() {
 			continue
 		}
 
 		contains, err := HashSetContains(vm, y, xVal)
-		if err != nil {
+		if !err.IsUndefined() {
 			return false, err
 		}
 		if !contains {
-			return false, nil
+			return false, value.Undefined
 		}
 	}
 
-	return true, nil
+	return true, value.Undefined
 }
 
 // Create a new set that is the union of the given two sets
@@ -364,17 +364,17 @@ func HashSetUnion(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, v
 	newSet := value.NewHashSet(longer.Elements)
 	HashSetCopy(vm, newSet, longer)
 	for _, shorterVal := range shorter.Table {
-		if shorterVal == nil || shorterVal == value.Undefined {
+		if shorterVal == DeletedHashSetValue || shorterVal.IsUndefined() {
 			continue
 		}
 
 		err := HashSetAppend(vm, newSet, shorterVal)
-		if err != nil {
+		if !err.IsUndefined() {
 			return nil, err
 		}
 	}
 
-	return newSet, nil
+	return newSet, value.Undefined
 }
 
 // Create a new set that is the intersection of the given two sets
@@ -391,12 +391,12 @@ func HashSetIntersection(vm *VM, x *value.HashSet, y *value.HashSet) (*value.Has
 
 	newSet := value.NewHashSet(5)
 	for _, shorterVal := range shorter.Table {
-		if shorterVal == nil || shorterVal == value.Undefined {
+		if shorterVal == DeletedHashSetValue || shorterVal.IsUndefined() {
 			continue
 		}
 
 		contains, err := HashSetContains(vm, longer, shorterVal)
-		if err != nil {
+		if !err.IsUndefined() {
 			return nil, err
 		}
 		if contains {
@@ -404,68 +404,68 @@ func HashSetIntersection(vm *VM, x *value.HashSet, y *value.HashSet) (*value.Has
 		}
 	}
 
-	return newSet, nil
+	return newSet, value.Undefined
 }
 
 // Delete the given value from the hash set
 func HashSetDelete(vm *VM, hashSet *value.HashSet, val value.Value) (bool, value.Value) {
 	if hashSet.Length() == 0 {
-		return false, nil
+		return false, value.Undefined
 	}
 
 	index, err := HashSetIndex(vm, hashSet, val)
-	if err != nil {
+	if !err.IsUndefined() {
 		return false, err
 	}
 	if index < 0 {
-		return false, nil
+		return false, value.Undefined
 	}
 	existingVal := hashSet.Table[index]
-	if existingVal == nil || existingVal == value.Undefined {
-		return false, nil
+	if existingVal == DeletedHashSetValue || existingVal.IsUndefined() {
+		return false, value.Undefined
 	}
 
-	// undefined means that the entry has been deleted
-	hashSet.Table[index] = value.Undefined
+	// `DeletedHashSetValue` means that the entry has been deleted
+	hashSet.Table[index] = DeletedHashSetValue
 	hashSet.Elements--
 
-	return true, nil
+	return true, value.Undefined
 }
 
 // Check whether the given value is contained within the set.
 func HashSetContains(vm *VM, set *value.HashSet, val value.Value) (bool, value.Value) {
 	if set.Length() == 0 {
-		return false, nil
+		return false, value.Undefined
 	}
 
 	index, err := HashSetIndex(vm, set, val)
-	if err != nil {
+	if !err.IsUndefined() {
 		return false, err
 	}
 	if index == -1 {
-		return false, nil
+		return false, value.Undefined
 	}
 
 	valInSlot := set.Table[index]
-	if valInSlot == nil || valInSlot == value.Undefined {
-		return false, nil
+	if valInSlot == DeletedHashSetValue || valInSlot.IsUndefined() {
+		return false, value.Undefined
 	}
-	return true, nil
+	return true, value.Undefined
 }
 
 func HashSetCopyTable(vm *VM, target *value.HashSet, source []value.Value) value.Value {
 	for _, entry := range source {
-		if entry == nil || entry == value.Undefined {
+		if entry == DeletedHashSetValue || entry.IsUndefined() {
 			continue
 		}
 
 		err := HashSetAppendWithMaxLoad(vm, target, entry, 1)
-		if err != nil {
+		if !err.IsUndefined() {
 			return err
 		}
 	}
 
-	return nil
+	return value.Undefined
 }
 
 // Copy the pairs of one hashmap to the other.
@@ -476,12 +476,12 @@ func HashSetCopy(vm *VM, target *value.HashSet, source *value.HashSet) value.Val
 	}
 
 	for _, entry := range source.Table {
-		if entry == nil || entry == value.Undefined {
+		if entry == DeletedHashSetValue || entry.IsUndefined() {
 			continue
 		}
 
 		i, err := HashSetIndex(vm, target, entry)
-		if err != nil {
+		if !err.IsUndefined() {
 			return err
 		}
 		if i == -1 {
@@ -492,7 +492,7 @@ func HashSetCopy(vm *VM, target *value.HashSet, source *value.HashSet) value.Val
 		target.Elements++
 	}
 
-	return nil
+	return value.Undefined
 }
 
 // Add additional n empty slots for new elements.
@@ -503,7 +503,7 @@ func HashSetGrow(vm *VM, set *value.HashSet, newSlots int) value.Value {
 // Resize the given set to the desired capacity.
 func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
 	if set.Capacity() == capacity {
-		return nil
+		return value.Undefined
 	}
 
 	oldTable := set.Table
@@ -513,12 +513,12 @@ func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
 	}
 
 	for _, entry := range oldTable {
-		if entry == nil || entry == value.Undefined {
+		if entry == DeletedHashSetValue || entry.IsUndefined() {
 			continue
 		}
 
 		i, err := HashSetIndex(vm, tmpHashSet, entry)
-		if err != nil {
+		if !err.IsUndefined() {
 			return err
 		}
 		if i == -1 {
@@ -532,7 +532,7 @@ func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
 	set.OccupiedSlots = tmpHashSet.OccupiedSlots
 	set.Elements = tmpHashSet.Elements
 	set.Table = newTable
-	return nil
+	return value.Undefined
 }
 
 func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad float64) value.Value {
@@ -543,21 +543,21 @@ func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLo
 	}
 
 	index, err := HashSetIndex(vm, set, val)
-	if err != nil {
+	if !err.IsUndefined() {
 		return err
 	}
 	if index == -1 {
 		panic(fmt.Sprintf("no room in target hashset when trying to add a new value: %s", set.Inspect()))
 	}
 	entry := set.Table[index]
-	if entry == nil {
+	if entry.IsUndefined() {
 		set.OccupiedSlots++
 		set.Elements++
 	}
 
 	set.Table[index] = val
 
-	return nil
+	return value.Undefined
 }
 
 // Set a value under the given key.
@@ -565,12 +565,38 @@ func HashSetAppend(vm *VM, set *value.HashSet, val value.Value) value.Value {
 	return HashSetAppendWithMaxLoad(vm, set, val, value.HashSetMaxLoad)
 }
 
+var DeletedHashSetValue value.Value = value.Ref(DeletedHashSetValueType{})
+
+type DeletedHashSetValueType struct{}
+
+func (DeletedHashSetValueType) Class() *value.Class {
+	return nil
+}
+func (DeletedHashSetValueType) DirectClass() *value.Class {
+	return nil
+}
+func (DeletedHashSetValueType) SingletonClass() *value.Class {
+	return nil
+}
+func (DeletedHashSetValueType) Inspect() string {
+	return "<empty_hash_set_slot>"
+}
+func (DeletedHashSetValueType) InstanceVariables() value.SymbolMap {
+	return nil
+}
+func (e DeletedHashSetValueType) Copy() value.Reference {
+	return e
+}
+func (e DeletedHashSetValueType) Error() string {
+	return e.Inspect()
+}
+
 // Get the index that the value should be inserted into.
-// Returns (nil, err) when an error has been encountered.
-// Returns (-1, nil) when there's no room for new values.
+// Returns (0, err) when an error has been encountered.
+// Returns (-1, undefined) when there's no room for new values.
 func HashSetIndex(vm *VM, set *value.HashSet, val value.Value) (int, value.Value) {
 	hash, err := Hash(vm, val)
-	if err != nil {
+	if !err.IsUndefined() {
 		return 0, err
 	}
 	deletedIndex := -1
@@ -581,13 +607,13 @@ func HashSetIndex(vm *VM, set *value.HashSet, val value.Value) (int, value.Value
 
 	for {
 		entry := set.Table[index]
-		if entry == nil {
+		if entry.IsUndefined() {
 			// empty bucket
 			if deletedIndex != -1 {
-				return deletedIndex, nil
+				return deletedIndex, value.Undefined
 			}
-			return index, nil
-		} else if entry == value.Undefined {
+			return index, value.Undefined
+		} else if entry == DeletedHashSetValue {
 			if deletedIndex == -1 {
 				// deleted entry
 				deletedIndex = index
@@ -595,11 +621,11 @@ func HashSetIndex(vm *VM, set *value.HashSet, val value.Value) (int, value.Value
 		} else {
 			// present entry
 			equal, err := Equal(vm, entry, val)
-			if err != nil {
+			if !err.IsUndefined() {
 				return 0, err
 			}
 			if value.Truthy(equal) {
-				return index, nil
+				return index, value.Undefined
 			}
 		}
 
@@ -612,7 +638,7 @@ func HashSetIndex(vm *VM, set *value.HashSet, val value.Value) (int, value.Value
 		// when we reach the start index
 		// all slots are checked
 		if index == startIndex {
-			return -1, nil
+			return -1, value.Undefined
 		}
 	}
 }

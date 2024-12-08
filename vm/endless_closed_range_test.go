@@ -18,41 +18,41 @@ func TestEndlessClosedRangeContains(t *testing.T) {
 	}{
 		"include int in the middle": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			val:      value.SmallInt(5),
+			val:      value.SmallInt(5).ToValue(),
 			contains: true,
 		},
 		"include int equal to start": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			val:      value.SmallInt(3),
+			val:      value.SmallInt(3).ToValue(),
 			contains: true,
 		},
 		"not include int lesser than start": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			val:      value.SmallInt(2),
+			val:      value.SmallInt(2).ToValue(),
 			contains: false,
 		},
 		"include float": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			val:      value.Float(5.7),
+			val:      value.Float(5.7).ToValue(),
 			contains: true,
 		},
 		"throw when incomparable value": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			val: value.String("foo"),
-			err: value.NewError(
+			val: value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int` cannot be coerced into `Std::String`",
-			),
+			)),
 		},
 	}
 
@@ -63,7 +63,7 @@ func TestEndlessClosedRangeContains(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
@@ -82,28 +82,28 @@ func TestEndlessClosedRangeEqual(t *testing.T) {
 	}{
 		"two identical ranges": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
 			other: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
 			equal: true,
 		},
 		"different start": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(4),
+				value.SmallInt(4).ToValue(),
 			),
 			other: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
 			equal: false,
 		},
 		"Two ranges with the same values of different types": {
 			r: value.NewEndlessClosedRange(
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
 			other: value.NewEndlessClosedRange(
-				value.Float(3),
+				value.Float(3).ToValue(),
 			),
 			equal: false,
 		},
@@ -116,7 +116,7 @@ func TestEndlessClosedRangeEqual(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
@@ -136,31 +136,31 @@ func TestEndlessClosedRangeIteratorNext(t *testing.T) {
 		"first iteration": {
 			i: value.NewEndlessClosedRangeIterator(
 				value.NewEndlessClosedRange(
-					value.SmallInt(2),
+					value.SmallInt(2).ToValue(),
 				),
 			),
 			after: value.NewEndlessClosedRangeIteratorWithCurrentElement(
 				value.NewEndlessClosedRange(
-					value.SmallInt(2),
+					value.SmallInt(2).ToValue(),
 				),
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
-			want: value.SmallInt(2),
+			want: value.SmallInt(2).ToValue(),
 		},
 		"second iteration": {
 			i: value.NewEndlessClosedRangeIteratorWithCurrentElement(
 				value.NewEndlessClosedRange(
-					value.SmallInt(2),
+					value.SmallInt(2).ToValue(),
 				),
-				value.SmallInt(3),
+				value.SmallInt(3).ToValue(),
 			),
 			after: value.NewEndlessClosedRangeIteratorWithCurrentElement(
 				value.NewEndlessClosedRange(
-					value.SmallInt(2),
+					value.SmallInt(2).ToValue(),
 				),
-				value.SmallInt(4),
+				value.SmallInt(4).ToValue(),
 			),
-			want: value.SmallInt(3),
+			want: value.SmallInt(3).ToValue(),
 		},
 	}
 
@@ -172,7 +172,7 @@ func TestEndlessClosedRangeIteratorNext(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if tc.err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

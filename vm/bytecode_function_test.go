@@ -72,24 +72,24 @@ func TestBytecodeFunction_AddConstant(t *testing.T) {
 			chunkBefore: &vm.BytecodeFunction{
 				Values: []value.Value{},
 			},
-			add:      value.Float(2.3),
+			add:      value.Float(2.3).ToValue(),
 			wantInt:  0,
 			wantSize: bytecode.UINT8_SIZE,
 			chunkAfter: &vm.BytecodeFunction{
-				Values: []value.Value{value.Float(2.3)},
+				Values: []value.Value{value.Float(2.3).ToValue()},
 			},
 		},
 		"add to a value pool with 255 elements": {
 			chunkBefore: &vm.BytecodeFunction{
 				Values: []value.Value{255: value.Nil},
 			},
-			add:      value.Float(2.3),
+			add:      value.Float(2.3).ToValue(),
 			wantInt:  256,
 			wantSize: bytecode.UINT16_SIZE,
 			chunkAfter: &vm.BytecodeFunction{
 				Values: []value.Value{
 					255: value.Nil,
-					256: value.Float(2.3),
+					256: value.Float(2.3).ToValue(),
 				},
 			},
 		},
@@ -97,13 +97,13 @@ func TestBytecodeFunction_AddConstant(t *testing.T) {
 			chunkBefore: &vm.BytecodeFunction{
 				Values: []value.Value{65535: value.Nil},
 			},
-			add:      value.Float(2.3),
+			add:      value.Float(2.3).ToValue(),
 			wantInt:  65536,
 			wantSize: bytecode.UINT32_SIZE,
 			chunkAfter: &vm.BytecodeFunction{
 				Values: []value.Value{
 					65535: value.Nil,
-					65536: value.Float(2.3),
+					65536: value.Float(2.3).ToValue(),
 				},
 			},
 		},
@@ -193,7 +193,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0,
 				0,
-				[]value.Value{value.SmallInt(4)},
+				[]value.Value{value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -208,7 +208,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0,
 				0,
-				[]value.Value{value.SmallInt(4)},
+				[]value.Value{value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -240,7 +240,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0,
 				0,
-				[]value.Value{0x1_00: value.SmallInt(4)},
+				[]value.Value{0x1_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -255,7 +255,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0,
 				0,
-				[]value.Value{value.SmallInt(4)},
+				[]value.Value{value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -287,7 +287,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0,
 				0,
-				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
+				[]value.Value{0x1_00_00_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -993,7 +993,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1007,7 +1007,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1021,7 +1021,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00_00_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1077,7 +1077,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1091,7 +1091,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1105,7 +1105,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00_00_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1273,7 +1273,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{value.SmallInt(4)},
+				[]value.Value{value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1287,7 +1287,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.SmallInt(4)},
+				[]value.Value{0x1_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1301,7 +1301,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
+				[]value.Value{0x1_00_00_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1315,7 +1315,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{value.SmallInt(4)},
+				[]value.Value{value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1329,7 +1329,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.SmallInt(4)},
+				[]value.Value{0x1_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -1343,7 +1343,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
+				[]value.Value{0x1_00_00_00: value.SmallInt(4).ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2154,7 +2154,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2168,7 +2168,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2182,7 +2182,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0x1_00_00_00: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2280,7 +2280,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2294,7 +2294,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2308,7 +2308,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2322,7 +2322,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0)},
+				[]value.Value{0: value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0))},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2350,7 +2350,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0: value.ToSymbol("Foo::Bar")},
+				[]value.Value{0: value.ToSymbol("Foo::Bar").ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2364,7 +2364,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00: value.ToSymbol("Foo::Bar")},
+				[]value.Value{0x1_00: value.ToSymbol("Foo::Bar").ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
@@ -2378,7 +2378,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				0, 0,
-				[]value.Value{0x1_00_00_00: value.ToSymbol("Foo::Bar")},
+				[]value.Value{0x1_00_00_00: value.ToSymbol("Foo::Bar").ToValue()},
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 

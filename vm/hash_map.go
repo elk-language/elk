@@ -540,7 +540,7 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 
 // Get the element under the given key.
 // Returns (value, undefined) when the value has been found.
-// Returns (undefined, undefine) when the key is not present.
+// Returns (undefined, undefined) when the key is not present.
 // Returns (undefined, err) when there was an error.
 func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, value.Value) {
 	if hashMap.Length() == 0 {

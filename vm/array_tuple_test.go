@@ -18,17 +18,17 @@ func TestArrayTupleContains(t *testing.T) {
 	}{
 		"empty tuple": {
 			tuple:    &value.ArrayTuple{},
-			val:      value.SmallInt(5),
+			val:      value.SmallInt(5).ToValue(),
 			contains: false,
 		},
 		"coercible elements": {
-			tuple:    &value.ArrayTuple{value.String("foo"), value.Float(5)},
-			val:      value.SmallInt(5),
+			tuple:    &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			val:      value.SmallInt(5).ToValue(),
 			contains: false,
 		},
 		"has the value": {
-			tuple:    &value.ArrayTuple{value.String("foo"), value.SmallInt(5), value.Float(9.3)},
-			val:      value.SmallInt(5),
+			tuple:    &value.ArrayTuple{value.Ref(value.String("foo")), value.SmallInt(5).ToValue(), value.Float(9.3).ToValue()},
+			val:      value.SmallInt(5).ToValue(),
 			contains: true,
 		},
 	}
@@ -40,7 +40,7 @@ func TestArrayTupleContains(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
@@ -58,18 +58,18 @@ func TestArrayTupleEqual(t *testing.T) {
 		err   value.Value
 	}{
 		"two identical tuples": {
-			tuple: &value.ArrayTuple{value.String("foo"), value.Float(5)},
-			other: &value.ArrayTuple{value.String("foo"), value.Float(5)},
+			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: true,
 		},
 		"different length": {
-			tuple: &value.ArrayTuple{value.String("foo"), value.Float(5)},
-			other: &value.ArrayTuple{value.String("foo"), value.Float(5), value.Nil},
+			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue(), value.Nil},
 			equal: false,
 		},
 		"the same values of different types": {
-			tuple: &value.ArrayTuple{value.String("foo"), value.SmallInt(5)},
-			other: &value.ArrayTuple{value.String("foo"), value.Float(5)},
+			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.SmallInt(5).ToValue()},
+			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: false,
 		},
 	}
@@ -81,7 +81,7 @@ func TestArrayTupleEqual(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {

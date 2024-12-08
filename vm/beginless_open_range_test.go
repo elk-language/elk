@@ -18,41 +18,41 @@ func TestBeginlessOpenRangeContains(t *testing.T) {
 	}{
 		"include int in the middle": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(5),
+			val:      value.SmallInt(5).ToValue(),
 			contains: true,
 		},
 		"not include int equal to end": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(10),
+			val:      value.SmallInt(10).ToValue(),
 			contains: false,
 		},
 		"not include int greater than end": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.SmallInt(11),
+			val:      value.SmallInt(11).ToValue(),
 			contains: false,
 		},
 		"include float": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
-			val:      value.Float(5.7),
+			val:      value.Float(5.7).ToValue(),
 			contains: true,
 		},
 		"throw when incomparable value": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
-			val: value.String("foo"),
-			err: value.NewError(
+			val: value.Ref(value.String("foo")),
+			err: value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int` cannot be coerced into `Std::String`",
-			),
+			)),
 		},
 	}
 
@@ -63,7 +63,7 @@ func TestBeginlessOpenRangeContains(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
@@ -82,28 +82,28 @@ func TestBeginlessOpenRangeEqual(t *testing.T) {
 	}{
 		"two identical ranges": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
 			equal: true,
 		},
 		"different end": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(11),
+				value.SmallInt(11).ToValue(),
 			),
 			other: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
 			equal: false,
 		},
 		"Two ranges with the same values of different types": {
 			r: value.NewBeginlessOpenRange(
-				value.SmallInt(10),
+				value.SmallInt(10).ToValue(),
 			),
 			other: value.NewBeginlessOpenRange(
-				value.Float(10),
+				value.Float(10).ToValue(),
 			),
 			equal: false,
 		},
@@ -116,7 +116,7 @@ func TestBeginlessOpenRangeEqual(t *testing.T) {
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if err != nil {
+			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
