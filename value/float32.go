@@ -31,8 +31,8 @@ func Float32NaN() Float32 {
 
 func (f Float32) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(FLOAT32_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&f)),
+		flag: FLOAT32_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&f)),
 	}
 }
 

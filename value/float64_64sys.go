@@ -8,7 +8,7 @@ import (
 
 func (f Float64) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(FLOAT64_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&f)),
+		flag: FLOAT64_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&f)),
 	}
 }

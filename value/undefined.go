@@ -1,7 +1,5 @@
 package value
 
-import "unsafe"
-
 // Elk's internal undefined value.
 // Serves as a sentinel value that indicates
 // that no "real" value is present.
@@ -20,7 +18,7 @@ func initUndefined() {
 
 func (u UndefinedType) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(UNDEFINED_FLAG)),
+		flag: UNDEFINED_FLAG,
 	}
 }
 

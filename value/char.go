@@ -21,8 +21,8 @@ type Char rune
 
 func (c Char) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(CHAR_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&c)),
+		flag: CHAR_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&c)),
 	}
 }
 

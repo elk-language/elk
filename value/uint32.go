@@ -16,8 +16,8 @@ type UInt32 uint32
 
 func (i UInt32) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(UINT32_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+		flag: UINT32_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&i)),
 	}
 }
 

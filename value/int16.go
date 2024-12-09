@@ -16,8 +16,8 @@ type Int16 int16
 
 func (i Int16) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(INT16_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+		flag: INT16_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&i)),
 	}
 }
 

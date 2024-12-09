@@ -15,8 +15,8 @@ type Int8 int8
 
 func (i Int8) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(INT8_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+		flag: INT8_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&i)),
 	}
 }
 

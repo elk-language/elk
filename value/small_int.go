@@ -26,8 +26,8 @@ const MinSmallInt = math.MinInt
 
 func (i SmallInt) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(SMALL_INT_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&i)),
+		flag: SMALL_INT_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&i)),
 	}
 }
 

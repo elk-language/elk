@@ -18,8 +18,8 @@ var SymbolClass *Class // ::Std::Symbol
 
 func (s Symbol) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(SYMBOL_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&s)),
+		flag: SYMBOL_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&s)),
 	}
 }
 

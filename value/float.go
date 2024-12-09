@@ -30,8 +30,8 @@ func FloatNaN() Float {
 
 func (f Float) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(FLOAT_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&f)),
+		flag: FLOAT_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&f)),
 	}
 }
 

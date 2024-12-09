@@ -11,10 +11,16 @@ import (
 
 var ValueClass *Class // ::Std::Value
 
+type iface struct {
+	tab uintptr
+	ptr unsafe.Pointer
+}
+
 // `undefined` is the zero value of `Value`, it maps directly to Go `nil`
 type Value struct {
-	tab  uintptr
-	data unsafe.Pointer
+	data uintptr
+	ptr  unsafe.Pointer
+	flag uint8
 }
 
 const (
@@ -39,12 +45,18 @@ const (
 	UINT64_FLAG
 	FLOAT64_FLAG
 	DURATION_FLAG
-	INLINE_VALUE_FLAG
+	REFERENCE_FLAG
 )
 
 // Convert a Reference to a Value
 func Ref(ref Reference) Value {
-	return *(*Value)(unsafe.Pointer(&ref))
+	i := *(*iface)(unsafe.Pointer(&ref))
+
+	return Value{
+		data: i.tab,
+		ptr:  i.ptr,
+		flag: REFERENCE_FLAG,
+	}
 }
 
 func (v Value) Inspect() string {
@@ -349,12 +361,12 @@ func (v Value) Error() string {
 	}
 }
 
-func (v Value) ValueFlag() uint64 {
-	return uint64(uintptr(v.data))
+func (v Value) ValueFlag() uint8 {
+	return v.flag
 }
 
 func (v Value) IsReference() bool {
-	return uintptr(v.data) > INLINE_VALUE_FLAG
+	return v.flag == REFERENCE_FLAG
 }
 
 // Returns `nil` when the value is not a reference
@@ -395,15 +407,15 @@ func ToValueErr[T ToValuer](t T, err Value) (Value, Value) {
 }
 
 func (v Value) IsInlineValue() bool {
-	return uintptr(v.data) < INLINE_VALUE_FLAG
+	return v.flag != REFERENCE_FLAG
 }
 
 func (v Value) IsSmallInt() bool {
-	return uintptr(v.data) == SMALL_INT_FLAG
+	return v.flag == SMALL_INT_FLAG
 }
 
 func (v Value) AsSmallInt() SmallInt {
-	return *(*SmallInt)(unsafe.Pointer(&v.tab))
+	return *(*SmallInt)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustSmallInt() SmallInt {
@@ -414,11 +426,11 @@ func (v Value) MustSmallInt() SmallInt {
 }
 
 func (v Value) IsChar() bool {
-	return uintptr(v.data) == CHAR_FLAG
+	return v.flag == CHAR_FLAG
 }
 
 func (v Value) AsChar() Char {
-	return *(*Char)(unsafe.Pointer(&v.tab))
+	return *(*Char)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustChar() Char {
@@ -429,11 +441,11 @@ func (v Value) MustChar() Char {
 }
 
 func (v Value) IsFloat() bool {
-	return uintptr(v.data) == FLOAT_FLAG
+	return v.flag == FLOAT_FLAG
 }
 
 func (v Value) AsFloat() Float {
-	return *(*Float)(unsafe.Pointer(&v.tab))
+	return *(*Float)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustFloat() Float {
@@ -444,11 +456,11 @@ func (v Value) MustFloat() Float {
 }
 
 func (v Value) IsFloat32() bool {
-	return uintptr(v.data) == FLOAT32_FLAG
+	return v.flag == FLOAT32_FLAG
 }
 
 func (v Value) AsFloat32() Float32 {
-	return *(*Float32)(unsafe.Pointer(&v.tab))
+	return *(*Float32)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustFloat32() Float32 {
@@ -459,11 +471,11 @@ func (v Value) MustFloat32() Float32 {
 }
 
 func (v Value) IsFloat64() bool {
-	return uintptr(v.data) == FLOAT64_FLAG
+	return v.flag == FLOAT64_FLAG
 }
 
 func (v Value) AsFloat64() Float64 {
-	return *(*Float64)(unsafe.Pointer(&v.tab))
+	return *(*Float64)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustFloat64() Float64 {
@@ -474,11 +486,11 @@ func (v Value) MustFloat64() Float64 {
 }
 
 func (v Value) IsInt8() bool {
-	return uintptr(v.data) == INT8_FLAG
+	return v.flag == INT8_FLAG
 }
 
 func (v Value) AsInt8() Int8 {
-	return *(*Int8)(unsafe.Pointer(&v.tab))
+	return *(*Int8)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustInt8() Int8 {
@@ -489,11 +501,11 @@ func (v Value) MustInt8() Int8 {
 }
 
 func (v Value) IsUInt8() bool {
-	return uintptr(v.data) == UINT8_FLAG
+	return v.flag == UINT8_FLAG
 }
 
 func (v Value) AsUInt8() UInt8 {
-	return *(*UInt8)(unsafe.Pointer(&v.tab))
+	return *(*UInt8)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustUInt8() UInt8 {
@@ -504,11 +516,11 @@ func (v Value) MustUInt8() UInt8 {
 }
 
 func (v Value) IsInt16() bool {
-	return uintptr(v.data) == INT16_FLAG
+	return v.flag == INT16_FLAG
 }
 
 func (v Value) AsInt16() Int16 {
-	return *(*Int16)(unsafe.Pointer(&v.tab))
+	return *(*Int16)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustInt16() Int16 {
@@ -519,11 +531,11 @@ func (v Value) MustInt16() Int16 {
 }
 
 func (v Value) IsUInt16() bool {
-	return uintptr(v.data) == UINT16_FLAG
+	return v.flag == UINT16_FLAG
 }
 
 func (v Value) AsUInt16() UInt16 {
-	return *(*UInt16)(unsafe.Pointer(&v.tab))
+	return *(*UInt16)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustUInt16() UInt16 {
@@ -534,11 +546,11 @@ func (v Value) MustUInt16() UInt16 {
 }
 
 func (v Value) IsInt32() bool {
-	return uintptr(v.data) == INT32_FLAG
+	return v.flag == INT32_FLAG
 }
 
 func (v Value) AsInt32() Int32 {
-	return *(*Int32)(unsafe.Pointer(&v.tab))
+	return *(*Int32)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustInt32() Int32 {
@@ -549,11 +561,11 @@ func (v Value) MustInt32() Int32 {
 }
 
 func (v Value) IsUInt32() bool {
-	return uintptr(v.data) == UINT32_FLAG
+	return v.flag == UINT32_FLAG
 }
 
 func (v Value) AsUInt32() UInt32 {
-	return *(*UInt32)(unsafe.Pointer(&v.tab))
+	return *(*UInt32)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustUInt32() UInt32 {
@@ -564,11 +576,11 @@ func (v Value) MustUInt32() UInt32 {
 }
 
 func (v Value) IsInt64() bool {
-	return uintptr(v.data) == INT64_FLAG
+	return v.flag == INT64_FLAG
 }
 
 func (v Value) AsInt64() Int64 {
-	return *(*Int64)(unsafe.Pointer(&v.tab))
+	return *(*Int64)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustInt64() Int64 {
@@ -579,11 +591,11 @@ func (v Value) MustInt64() Int64 {
 }
 
 func (v Value) IsUInt64() bool {
-	return uintptr(v.data) == UINT64_FLAG
+	return v.flag == UINT64_FLAG
 }
 
 func (v Value) AsUInt64() UInt64 {
-	return *(*UInt64)(unsafe.Pointer(&v.tab))
+	return *(*UInt64)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustUInt64() UInt64 {
@@ -594,11 +606,11 @@ func (v Value) MustUInt64() UInt64 {
 }
 
 func (v Value) IsDuration() bool {
-	return uintptr(v.data) == DURATION_FLAG
+	return v.flag == DURATION_FLAG
 }
 
 func (v Value) AsDuration() Duration {
-	return *(*Duration)(unsafe.Pointer(&v.tab))
+	return *(*Duration)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustDuration() Duration {
@@ -609,11 +621,11 @@ func (v Value) MustDuration() Duration {
 }
 
 func (v Value) IsTrue() bool {
-	return uintptr(v.data) == TRUE_FLAG
+	return v.flag == TRUE_FLAG
 }
 
 func (v Value) AsTrue() TrueType {
-	return *(*TrueType)(unsafe.Pointer(&v.tab))
+	return *(*TrueType)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustTrue() TrueType {
@@ -624,11 +636,11 @@ func (v Value) MustTrue() TrueType {
 }
 
 func (v Value) IsSymbol() bool {
-	return uintptr(v.data) == SYMBOL_FLAG
+	return v.flag == SYMBOL_FLAG
 }
 
 func (v Value) AsSymbol() Symbol {
-	return *(*Symbol)(unsafe.Pointer(&v.tab))
+	return *(*Symbol)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustSymbol() Symbol {
@@ -639,11 +651,11 @@ func (v Value) MustSymbol() Symbol {
 }
 
 func (v Value) IsFalse() bool {
-	return uintptr(v.data) == FALSE_FLAG
+	return v.flag == FALSE_FLAG
 }
 
 func (v Value) AsFalse() FalseType {
-	return *(*FalseType)(unsafe.Pointer(&v.tab))
+	return *(*FalseType)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustFalse() FalseType {
@@ -654,11 +666,11 @@ func (v Value) MustFalse() FalseType {
 }
 
 func (v Value) IsNil() bool {
-	return uintptr(v.data) == NIL_FLAG
+	return v.flag == NIL_FLAG
 }
 
 func (v Value) AsNil() NilType {
-	return *(*NilType)(unsafe.Pointer(&v.tab))
+	return *(*NilType)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustNil() NilType {
@@ -669,11 +681,11 @@ func (v Value) MustNil() NilType {
 }
 
 func (v Value) IsUndefined() bool {
-	return uintptr(v.data) == UNDEFINED_FLAG
+	return v.flag == UNDEFINED_FLAG
 }
 
 func (v Value) AsUndefined() UndefinedType {
-	return *(*UndefinedType)(unsafe.Pointer(&v.tab))
+	return *(*UndefinedType)(unsafe.Pointer(&v.data))
 }
 
 func (v Value) MustUndefined() UndefinedType {
@@ -2899,7 +2911,7 @@ func NewValueComparer(opts *cmp.Options) cmp.Option {
 			}
 			return x == y
 		default:
-			return x.tab == y.tab
+			return x.data == y.data
 		}
 	})
 }

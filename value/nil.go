@@ -1,8 +1,6 @@
 package value
 
 import (
-	"unsafe"
-
 	"github.com/cespare/xxhash/v2"
 )
 
@@ -15,7 +13,7 @@ var Nil Value = NilType{}.ToValue()
 
 func (n NilType) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(NIL_FLAG)),
+		flag: NIL_FLAG,
 	}
 }
 

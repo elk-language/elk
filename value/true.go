@@ -1,8 +1,6 @@
 package value
 
 import (
-	"unsafe"
-
 	"github.com/cespare/xxhash/v2"
 )
 
@@ -15,7 +13,7 @@ var True = TrueType{}.ToValue()
 
 func (TrueType) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(TRUE_FLAG)),
+		flag: TRUE_FLAG,
 	}
 }
 

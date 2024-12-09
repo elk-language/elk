@@ -8,7 +8,7 @@ import (
 
 func (d Duration) ToValue() Value {
 	return Value{
-		data: unsafe.Pointer(uintptr(DURATION_FLAG)),
-		tab:  *(*uintptr)(unsafe.Pointer(&d)),
+		flag: DURATION_FLAG,
+		data: *(*uintptr)(unsafe.Pointer(&d)),
 	}
 }
