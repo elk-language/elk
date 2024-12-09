@@ -378,7 +378,11 @@ func (v Value) SafeAsReference() Reference {
 }
 
 func (v Value) AsReference() Reference {
-	return *(*Reference)(unsafe.Pointer(&v))
+	i := iface{
+		tab: v.data,
+		ptr: v.ptr,
+	}
+	return *(*Reference)(unsafe.Pointer(&i))
 }
 
 func (v Value) MustReference() Reference {
