@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func Options() cmp.Options {
@@ -46,6 +47,8 @@ func init() {
 	Comparer = &opts
 	*Comparer = append(
 		*Comparer,
+		cmp.AllowUnexported(value.SymbolTableStruct{}),
+		cmpopts.IgnoreFields(value.SymbolTableStruct{}, "mutex"),
 		cmp.AllowUnexported(
 			value.Object{},
 			value.BigInt{},
@@ -64,7 +67,8 @@ func init() {
 		value.NewClassComparer(Comparer),
 		value.NewModuleComparer(Comparer),
 		value.NewRegexComparer(Comparer),
-		value.NewValueComparer(Comparer),
+		value.NewReferenceComparer(),
+		value.NewInlineValueComparer(Comparer),
 		vm.NewHashSetComparer(Comparer),
 		vm.NewHashMapComparer(Comparer),
 		vm.NewHashRecordComparer(Comparer),

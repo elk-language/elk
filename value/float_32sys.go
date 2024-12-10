@@ -2,5 +2,7 @@
 
 package value
 
+const FloatPrecision = 24
+
 // Elk's Float value
 type Float float32

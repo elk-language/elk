@@ -199,6 +199,9 @@ func (i UInt64) Modulo(other Value) (UInt64, Value) {
 	}
 
 	o := other.AsUInt64()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
 	return i % o, Undefined
 }
 

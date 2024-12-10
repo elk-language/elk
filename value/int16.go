@@ -202,6 +202,9 @@ func (i Int16) Modulo(other Value) (Int16, Value) {
 	}
 
 	o := other.AsInt16()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
 	return i % o, Undefined
 }
 

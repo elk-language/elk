@@ -3,6 +3,7 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
@@ -564,15 +565,16 @@ func TestTimeFormat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.time.Format(tc.format)
-			if diff := cmp.Diff(tc.err, err); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
 
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}

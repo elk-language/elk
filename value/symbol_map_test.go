@@ -6,7 +6,6 @@ import (
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestSymbolMapGet(t *testing.T) {
@@ -39,9 +38,10 @@ func TestSymbolMapGet(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.symbolMap.Get(tc.get)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -131,16 +131,13 @@ func TestSymbolMapGetString(t *testing.T) {
 			originalSymbolTable := value.SymbolTable
 			value.SymbolTable = tc.symbolTable
 			got := tc.symbolMap.GetString(tc.get)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-			opts := []cmp.Option{
-				cmp.AllowUnexported(value.SymbolTableStruct{}),
-				cmpopts.IgnoreFields(value.SymbolTableStruct{}, "mutex"),
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.symbolTableAfter, value.SymbolTable, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			value.SymbolTable = originalSymbolTable
 		})
@@ -193,7 +190,7 @@ func TestSymbolMapSet(t *testing.T) {
 			got := tc.symbolMap
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -371,10 +368,10 @@ func TestSymbolMapSetString(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.symbolTableAfter, value.SymbolTable, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			value.SymbolTable = originalSymbolTable
 		})

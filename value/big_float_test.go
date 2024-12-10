@@ -88,12 +88,12 @@ func TestBigFloatAdd(t *testing.T) {
 		"BigFloat + SmallInt => BigFloat": {
 			left:  value.NewBigFloat(2.5),
 			right: value.SmallInt(120).ToValue(),
-			want:  value.Ref(value.NewBigFloat(122.5).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(122.5).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat + BigInt => BigFloat": {
 			left:  value.NewBigFloat(2.5),
 			right: value.Ref(value.NewBigInt(120)),
-			want:  value.Ref(value.NewBigFloat(122.5).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(122.5).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat + Int64 => TypeError": {
 			left:  value.NewBigFloat(2.5),
@@ -173,10 +173,10 @@ func TestBigFloatAdd(t *testing.T) {
 			got, err := tc.left.Add(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -209,7 +209,7 @@ func TestCountFloatDigits(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.CountFloatDigits(tc.str)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -235,12 +235,12 @@ func TestBigFloatSubtract(t *testing.T) {
 		"BigFloat - SmallInt => BigFloat": {
 			left:  value.NewBigFloat(120.5),
 			right: value.SmallInt(2).ToValue(),
-			want:  value.Ref(value.NewBigFloat(118.5).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(118.5).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat - BigInt => BigFloat": {
 			left:  value.NewBigFloat(120.5),
 			right: value.Ref(value.NewBigInt(2)),
-			want:  value.Ref(value.NewBigFloat(118.5).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(118.5).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat - Int64 => TypeError": {
 			left:  value.NewBigFloat(20.5),
@@ -374,7 +374,7 @@ func TestBigFloatSubtract(t *testing.T) {
 				t.Fatalf("want: %s, got: %s\n%s", tc.want.Inspect(), got.Inspect(), diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -400,12 +400,12 @@ func TestBigFloatMultiply(t *testing.T) {
 		"BigFloat * SmallInt => BigFloat": {
 			left:  value.NewBigFloat(2.5),
 			right: value.SmallInt(10).ToValue(),
-			want:  value.Ref(value.NewBigFloat(25.0).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(25.0).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat * BigInt => BigFloat": {
 			left:  value.NewBigFloat(2.5),
 			right: value.Ref(value.NewBigInt(10)),
-			want:  value.Ref(value.NewBigFloat(25.0).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(25.0).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat * Int64 => TypeError": {
 			left:  value.NewBigFloat(2.55),
@@ -576,10 +576,10 @@ func TestBigFloatMultiply(t *testing.T) {
 			got, err := tc.left.Multiply(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -605,12 +605,12 @@ func TestBigFloatDivide(t *testing.T) {
 		"BigFloat / SmallInt => BigFloat": {
 			left:  value.NewBigFloat(2.68),
 			right: value.SmallInt(2).ToValue(),
-			want:  value.Ref(value.NewBigFloat(1.34).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(1.34).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat / BigInt => BigFloat": {
 			left:  value.NewBigFloat(2.68),
 			right: value.Ref(value.NewBigInt(2)),
-			want:  value.Ref(value.NewBigFloat(1.34).SetPrecision(64)),
+			want:  value.Ref(value.NewBigFloat(1.34).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat / Int64 => TypeError": {
 			left:  value.NewBigFloat(2.68),
@@ -781,10 +781,10 @@ func TestBigFloatDivide(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -810,7 +810,7 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"SmallInt 5 ** 2": {
 			a:    value.NewBigFloat(5),
 			b:    value.SmallInt(2).ToValue(),
-			want: value.Ref(value.NewBigFloat(25).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(25).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 5p92 ** 2": {
 			a:    value.NewBigFloat(5).SetPrecision(92),
@@ -820,33 +820,33 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"SmallInt 7 ** 8": {
 			a:    value.NewBigFloat(7),
 			b:    value.SmallInt(8).ToValue(),
-			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 2.5 ** 5": {
 			a:    value.NewBigFloat(2.5),
 			b:    value.SmallInt(5).ToValue(),
-			want: value.Ref(value.NewBigFloat(97.65625).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(97.65625).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 7.12 ** 1": {
 			a:    value.NewBigFloat(7.12),
 			b:    value.SmallInt(1).ToValue(),
-			want: value.Ref(value.NewBigFloat(7.12).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(7.12).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 4 ** -2": {
 			a:    value.NewBigFloat(4),
 			b:    value.SmallInt(-2).ToValue(),
-			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 25 ** 0": {
 			a:    value.NewBigFloat(25),
 			b:    value.SmallInt(0).ToValue(),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.SmallIntBits)),
 		},
 
 		"BigInt 5 ** 2": {
 			a:    value.NewBigFloat(5),
 			b:    value.Ref(value.NewBigInt(2)),
-			want: value.Ref(value.NewBigFloat(25).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(25).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 5p78 ** 2": {
 			a:    value.NewBigFloat(5).SetPrecision(78),
@@ -856,33 +856,33 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"BigInt 7 ** 8": {
 			a:    value.NewBigFloat(7),
 			b:    value.Ref(value.NewBigInt(8)),
-			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 2.5 ** 5": {
 			a:    value.NewBigFloat(2.5),
 			b:    value.Ref(value.NewBigInt(5)),
-			want: value.Ref(value.NewBigFloat(97.65625).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(97.65625).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 7.12 ** 1": {
 			a:    value.NewBigFloat(7.12),
 			b:    value.Ref(value.NewBigInt(1)),
-			want: value.Ref(value.NewBigFloat(7.12).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(7.12).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 4 ** -2": {
 			a:    value.NewBigFloat(4),
 			b:    value.Ref(value.NewBigInt(-2)),
-			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 25 ** 0": {
 			a:    value.NewBigFloat(25),
 			b:    value.Ref(value.NewBigInt(0)),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.SmallIntBits)),
 		},
 
 		"Float 5 ** 2": {
 			a:    value.NewBigFloat(5),
 			b:    value.Float(2).ToValue(),
-			want: value.Ref(value.NewBigFloat(25).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(25).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 5p83 ** 2": {
 			a:    value.NewBigFloat(5).SetPrecision(83),
@@ -892,32 +892,32 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"Float 7 ** 8": {
 			a:    value.NewBigFloat(7),
 			b:    value.Float(8).ToValue(),
-			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 2.5 ** 2.5": {
 			a:    value.NewBigFloat(2.5),
 			b:    value.Float(2.5).ToValue(),
-			want: value.Ref(value.NewBigFloat(9.882117688026186).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(9.882117688026186).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 3 ** 2.5": {
 			a:    value.NewBigFloat(3),
 			b:    value.Float(2.5).ToValue(),
-			want: value.Ref(value.NewBigFloat(15.588457268119896).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(15.588457268119896).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 6 ** 1": {
 			a:    value.NewBigFloat(6),
 			b:    value.Float(1).ToValue(),
-			want: value.Ref(value.NewBigFloat(6).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(6).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 4 ** -2": {
 			a:    value.NewBigFloat(4),
 			b:    value.Float(-2).ToValue(),
-			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 25 ** 0": {
 			a:    value.NewBigFloat(25),
 			b:    value.Float(0).ToValue(),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 25 ** NaN": {
 			a:    value.NewBigFloat(25),
@@ -947,7 +947,7 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"Float 0 ** +Inf": { // Pow(±0, +Inf) = +0
 			a:    value.NewBigFloat(0),
 			b:    value.FloatInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 0 ** -8": { // Pow(±0, y) = +Inf for finite y < 0 and not an odd integer
 			a:    value.NewBigFloat(0),
@@ -957,22 +957,22 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"Float 0 ** 7": { // Pow(±0, y) = ±0 for y an odd integer > 0
 			a:    value.NewBigFloat(0),
 			b:    value.Float(7).ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 0 ** 8": { // Pow(±0, y) = +0 for finite y > 0 and not an odd integer
 			a:    value.NewBigFloat(0),
 			b:    value.Float(8).ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -1 ** +Inf": { // Pow(-1, ±Inf) = 1
 			a:    value.NewBigFloat(-1),
 			b:    value.FloatInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -1 ** -Inf": { // Pow(-1, ±Inf) = 1
 			a:    value.NewBigFloat(-1),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 2 ** +Inf": { // Pow(x, +Inf) = +Inf for |x| > 1
 			a:    value.NewBigFloat(2),
@@ -987,22 +987,22 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"Float 2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
 			a:    value.NewBigFloat(2),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
 			a:    value.NewBigFloat(-2),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 0.5 ** +Inf": { // Pow(x, +Inf) = +0 for |x| < 1
 			a:    value.NewBigFloat(0.5),
 			b:    value.FloatInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -0.5 ** +Inf": { // Pow(x, +Inf) = +0 for |x| < 1
 			a:    value.NewBigFloat(-0.5),
 			b:    value.FloatInf().ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float 0.5 ** -Inf": { // Pow(x, -Inf) = +Inf for |x| < 1
 			a:    value.NewBigFloat(0.5),
@@ -1022,12 +1022,12 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"Float +Inf ** -7": { // Pow(+Inf, y) = +0 for y < 0
 			a:    value.BigFloatInf(),
 			b:    value.Float(-7).ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -Inf ** -7": {
 			a:    value.BigFloatNegInf(),
 			b:    value.Float(-7).ToValue(),
-			want: value.Ref(value.NewBigFloat(0).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(0).SetPrecision(value.FloatPrecision)),
 		},
 		"Float -5.5 ** 3.8": { // Pow(x, y) = NaN for finite x < 0 and finite non-integer y
 			a:    value.NewBigFloat(-5.5),
@@ -1038,37 +1038,37 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"BigFloat 5 ** 2": {
 			a:    value.NewBigFloat(5),
 			b:    value.Ref(value.NewBigFloat(2)),
-			want: value.Ref(value.NewBigFloat(25).SetPrecision(53)),
+			want: value.Ref(value.NewBigFloat(25).SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 7 ** 8": {
 			a:    value.NewBigFloat(7),
 			b:    value.Ref(value.NewBigFloat(8)),
-			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(53)),
+			want: value.Ref(value.NewBigFloat(5764801).SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 2.5 ** 2.5": {
 			a:    value.NewBigFloat(2.5),
 			b:    value.Ref(value.NewBigFloat(2.5)),
-			want: value.Ref(value.ParseBigFloatPanic("9.882117688026186").SetPrecision(53)),
+			want: value.Ref(value.ParseBigFloatPanic("9.882117688026186").SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 3 ** 2.5": {
 			a:    value.NewBigFloat(3),
 			b:    value.Ref(value.NewBigFloat(2.5)),
-			want: value.Ref(value.ParseBigFloatPanic("15.588457268119896").SetPrecision(53)),
+			want: value.Ref(value.ParseBigFloatPanic("15.588457268119896").SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 6 ** 1": {
 			a:    value.NewBigFloat(6),
 			b:    value.Ref(value.NewBigFloat(1)),
-			want: value.Ref(value.NewBigFloat(6).SetPrecision(53)),
+			want: value.Ref(value.NewBigFloat(6).SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 4 ** -2": {
 			a:    value.NewBigFloat(4),
 			b:    value.Ref(value.NewBigFloat(-2)),
-			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(53)),
+			want: value.Ref(value.NewBigFloat(0.0625).SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 25 ** 0": {
 			a:    value.NewBigFloat(25),
 			b:    value.Ref(value.NewBigFloat(0)),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(53)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.FloatPrecision)),
 		},
 		"BigFloat 25 ** NaN": {
 			a:    value.NewBigFloat(25),
@@ -1193,10 +1193,10 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1281,7 +1281,7 @@ func TestBigFloat_Mod(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1312,7 +1312,7 @@ func TestBigFloat_FloorBigFloat(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1339,78 +1339,78 @@ func TestBigFloat_Modulo(t *testing.T) {
 		"SmallInt 25 % 3": {
 			a:    value.NewBigFloat(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 25.6 % 3": {
 			a:    value.NewBigFloat(25.6),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.Ref(value.NewBigFloat(1.6000000000000014).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1.6000000000000014).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 76 % 6": {
 			a:    value.NewBigFloat(76),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.Ref(value.NewBigFloat(4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(4).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt -76 % 6": {
 			a:    value.NewBigFloat(-76),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.Ref(value.NewBigFloat(-4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(-4).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 76 % -6": {
 			a:    value.NewBigFloat(76),
 			b:    value.SmallInt(-6).ToValue(),
-			want: value.Ref(value.NewBigFloat(4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(4).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt -76 % -6": {
 			a:    value.NewBigFloat(-76),
 			b:    value.SmallInt(-6).ToValue(),
-			want: value.Ref(value.NewBigFloat(-4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(-4).SetPrecision(value.SmallIntBits)),
 		},
 		"SmallInt 124 % 9": {
 			a:    value.NewBigFloat(124),
 			b:    value.SmallInt(9).ToValue(),
-			want: value.Ref(value.NewBigFloat(7).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(7).SetPrecision(value.SmallIntBits)),
 		},
 
 		"BigInt 25 % 3": {
 			a:    value.NewBigFloat(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.Ref(value.NewBigFloat(1).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(1).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 76 % 6": {
 			a:    value.NewBigFloat(76),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.Ref(value.NewBigFloat(4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(4).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 76.5 % 6": {
 			a:    value.NewBigFloat(76.5),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.Ref(value.NewBigFloat(4.5).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(4.5).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt -76 % 6": {
 			a:    value.NewBigFloat(-76),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.Ref(value.NewBigFloat(-4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(-4).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 76 % -6": {
 			a:    value.NewBigFloat(76),
 			b:    value.Ref(value.NewBigInt(-6)),
-			want: value.Ref(value.NewBigFloat(4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(4).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt -76 % -6": {
 			a:    value.NewBigFloat(-76),
 			b:    value.Ref(value.NewBigInt(-6)),
-			want: value.Ref(value.NewBigFloat(-4).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(-4).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 124 % 9": {
 			a:    value.NewBigFloat(124),
 			b:    value.Ref(value.NewBigInt(9)),
-			want: value.Ref(value.NewBigFloat(7).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(7).SetPrecision(value.SmallIntBits)),
 		},
 		"BigInt 9765 % 9223372036854775808": {
 			a:    value.NewBigFloat(9765),
 			b:    value.Ref(value.ParseBigIntPanic("9223372036854775808", 10)),
-			want: value.Ref(value.NewBigFloat(9765).SetPrecision(64)),
+			want: value.Ref(value.NewBigFloat(9765).SetPrecision(value.SmallIntBits)),
 		},
 
 		"Float 25 % 3": {
@@ -1526,8 +1526,8 @@ func TestBigFloat_Modulo(t *testing.T) {
 		},
 		"BigFloat 74 % 6.25 with higher precision": {
 			a:    value.NewBigFloat(74),
-			b:    value.Ref(value.NewBigFloat(6.25).SetPrecision(64)),
-			want: value.Ref(value.NewBigFloat(5.25).SetPrecision(64)),
+			b:    value.Ref(value.NewBigFloat(6.25).SetPrecision(value.SmallIntBits)),
+			want: value.Ref(value.NewBigFloat(5.25).SetPrecision(value.SmallIntBits)),
 		},
 		"BigFloat -74 % 6.25": {
 			a:    value.NewBigFloat(-74),
@@ -1587,10 +1587,10 @@ func TestBigFloat_Modulo(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1849,10 +1849,10 @@ func TestBigFloat_GreaterThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2111,10 +2111,10 @@ func TestBigFloat_GreaterThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2339,10 +2339,10 @@ func TestBigFloat_LessThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2576,10 +2576,10 @@ func TestBigFloat_LessThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2814,10 +2814,10 @@ func TestBigFloat_Compare(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -3201,7 +3201,7 @@ func TestBigFloat_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -3515,7 +3515,7 @@ func TestBigFloat_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

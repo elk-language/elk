@@ -3,6 +3,7 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
@@ -49,8 +50,9 @@ func TestValueToBool(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.ToBool(tc.val)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -85,7 +87,7 @@ func TestValue_InspectSlice(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.InspectSlice(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -133,8 +135,9 @@ func TestValueToNotBool(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.ToNotBool(tc.val)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -183,7 +186,7 @@ func TestValueTruthy(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.Truthy(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -232,7 +235,7 @@ func TestValueFalsy(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.Falsy(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -265,7 +268,7 @@ func TestValue_InstanceOf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.InstanceOf(tc.val, tc.class)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -298,7 +301,7 @@ func TestValue_ClassIsA(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := value.IsA(tc.val, tc.class)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

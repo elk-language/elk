@@ -65,7 +65,7 @@ func NewTimezone(loc *time.Location) *Timezone {
 
 func MustLoadTimezone(name string) *Timezone {
 	tz, err := LoadTimezone(name)
-	if !err.IsNil() {
+	if !err.IsUndefined() {
 		panic(err)
 	}
 

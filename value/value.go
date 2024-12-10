@@ -2877,16 +2877,21 @@ func BitwiseXor(left, right Value) (result, err Value) {
 	}
 }
 
-func NewValueComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y Value) bool {
-		if x.IsReference() != y.IsReference() {
+func NewReferenceComparer() cmp.Option {
+	filter := func(x Value, y Value) bool { return x.IsReference() && y.IsReference() }
+	transformer := cmp.Transformer("ValueToReference", func(val Value) Reference { return val.AsReference() })
+
+	return cmp.FilterValues(
+		filter,
+		transformer,
+	)
+}
+
+func NewInlineValueComparer(opts *cmp.Options) cmp.Option {
+	comparer := cmp.Comparer(func(x, y Value) bool {
+		if x.IsReference() || y.IsReference() {
 			return false
 		}
-
-		if x.IsReference() {
-			return cmp.Equal(x.AsReference(), y.AsReference(), *opts...)
-		}
-
 		if x.ValueFlag() != y.ValueFlag() {
 			return false
 		}
@@ -2917,4 +2922,11 @@ func NewValueComparer(opts *cmp.Options) cmp.Option {
 			return x.data == y.data
 		}
 	})
+
+	filter := func(x Value, y Value) bool { return !x.IsReference() || !y.IsReference() }
+
+	return cmp.FilterValues(
+		filter,
+		comparer,
+	)
 }

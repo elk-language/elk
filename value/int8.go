@@ -199,6 +199,9 @@ func (i Int8) Modulo(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
+	if o == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
 	return i % o, Undefined
 }
 

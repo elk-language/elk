@@ -37,10 +37,10 @@ func TestArrayTuple_Concat(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -90,10 +90,10 @@ func TestArrayTuple_Repeat(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -122,7 +122,7 @@ func TestArrayTuple_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.t.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -159,8 +159,9 @@ func TestArrayTuple_Expand(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.t.Expand(tc.new)
-			if diff := cmp.Diff(tc.want, tc.t); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.t, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -187,8 +188,9 @@ func TestArrayTuple_Append(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.t.Append(tc.val)
-			if diff := cmp.Diff(tc.want, tc.t); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.t, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -267,11 +269,12 @@ func TestArrayTuple_SubscriptSet(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := tc.l.SubscriptSet(tc.key, tc.val)
-			if diff := cmp.Diff(tc.want, tc.l, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -354,14 +357,15 @@ func TestArrayTuple_Subscript(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			want, err := tc.l.Subscript(tc.key)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsNil() {
 				return
 			}
-			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, want, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -398,8 +402,9 @@ func TestArrayTupleIterator_Inspect(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Inspect()
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -457,17 +462,18 @@ func TestArrayTupleIterator_Next(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.l.Next()
-			if diff := cmp.Diff(tc.err, err); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsNil() {
 				return
 			}
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.after, tc.l); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.after, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}

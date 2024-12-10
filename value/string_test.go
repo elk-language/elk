@@ -122,13 +122,13 @@ func TestString_GraphemeAt(t *testing.T) {
 			got, err := tc.s.GraphemeAt(tc.i)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -233,13 +233,13 @@ func TestString_Subscript(t *testing.T) {
 			got, err := tc.s.Subscript(tc.i)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -334,13 +334,13 @@ func TestString_ByteAt(t *testing.T) {
 			got, err := tc.s.ByteAt(tc.i)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -397,7 +397,7 @@ func TestString_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.s.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -432,10 +432,10 @@ func TestStringConcat(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -485,10 +485,10 @@ func TestStringRepeat(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -533,10 +533,10 @@ func TestString_RemoveSuffix(t *testing.T) {
 			got, err := tc.str.RemoveSuffix(tc.suffix)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -565,7 +565,7 @@ func TestStringByteCount(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.ByteCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -594,7 +594,7 @@ func TestStringCharCount(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.CharCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -623,7 +623,7 @@ func TestStringGraphemeCount(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.GraphemeCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -652,7 +652,7 @@ func TestStringReverseBytes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.ReverseBytes()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -681,7 +681,7 @@ func TestStringReverseChars(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.ReverseChars()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -710,7 +710,7 @@ func TestStringReverseGraphemes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.str.ReverseGraphemes()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -887,10 +887,10 @@ func TestString_Compare(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1068,10 +1068,10 @@ func TestString_GreaterThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1253,10 +1253,10 @@ func TestString_GreaterThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1438,10 +1438,10 @@ func TestString_LessThan(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1623,10 +1623,10 @@ func TestString_LessThanEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1807,7 +1807,7 @@ func TestString_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1989,7 +1989,7 @@ func TestString_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2020,7 +2020,7 @@ func TestStringCharIterator_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2115,17 +2115,18 @@ func TestStringCharIterator_Next(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.s.Next()
-			if diff := cmp.Diff(tc.err, err); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.after, tc.s); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.after, tc.s, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2155,8 +2156,9 @@ func TestStringByteIterator_Inspect(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.Inspect()
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -2229,17 +2231,18 @@ func TestStringByteIterator_Next(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.s.Next()
-			if diff := cmp.Diff(tc.err, err); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.after, tc.s); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.after, tc.s, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}

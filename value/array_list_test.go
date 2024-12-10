@@ -40,7 +40,7 @@ func TestArrayList_Grow(t *testing.T) {
 			tc.l.Grow(tc.n)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.capAfter, tc.l.Capacity(), opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -50,18 +50,18 @@ func TestArrayList_Concat(t *testing.T) {
 	tests := map[string]struct {
 		left  *value.ArrayList
 		right value.Value
-		want  value.Value
+		want  *value.ArrayList
 		err   value.Value
 	}{
 		"ArrayList + ArrayList => ArrayList": {
 			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
 			right: value.Ref(&value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
-			want:  value.Ref(&value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"ArrayList + ArrayTuple => ArrayList": {
 			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
 			right: value.Ref(&value.ArrayTuple{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
-			want:  value.Ref(&value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))}),
+			want:  &value.ArrayList{value.SmallInt(2).ToValue(), value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 		},
 		"ArrayList + Int => TypeError": {
 			left:  &value.ArrayList{value.SmallInt(2).ToValue()},
@@ -75,13 +75,13 @@ func TestArrayList_Concat(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -131,10 +131,10 @@ func TestArrayList_Repeat(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -163,7 +163,7 @@ func TestArrayList_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -200,8 +200,9 @@ func TestArrayList_Expand(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.l.Expand(tc.new)
-			if diff := cmp.Diff(tc.want, tc.l); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -228,8 +229,9 @@ func TestArrayList_Append(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.l.Append(tc.val)
-			if diff := cmp.Diff(tc.want, tc.l); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -308,11 +310,12 @@ func TestArrayList_SubscriptSet(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := tc.l.SubscriptSet(tc.key, tc.val)
-			if diff := cmp.Diff(tc.want, tc.l, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -380,13 +383,13 @@ func TestArrayList_Subscript(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			want, err := tc.l.Subscript(tc.key)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -421,7 +424,7 @@ func TestArrayList_Length(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Length()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -459,7 +462,7 @@ func TestArrayListIterator_Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -517,17 +520,18 @@ func TestArrayListIterator_Next(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.l.Next()
-			if diff := cmp.Diff(tc.err, err); diff != "" {
-				t.Fatalf(diff)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 			if !tc.err.IsUndefined() {
 				return
 			}
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
 			}
-			if diff := cmp.Diff(tc.after, tc.l); diff != "" {
-				t.Fatalf(diff)
+			if diff := cmp.Diff(tc.after, tc.l, opts...); diff != "" {
+				t.Fatal(diff)
 			}
 		})
 	}

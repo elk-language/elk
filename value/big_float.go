@@ -298,8 +298,8 @@ func (f *BigFloat) Precision() uint {
 // the float in the given string.
 func PrecisionForFloatString(str string) uint {
 	prec := uint(math.Ceil(float64(CountFloatDigits(str)) * math.Log2(10.0)))
-	if prec < 53 {
-		return 53
+	if prec < FloatPrecision {
+		return FloatPrecision
 	}
 
 	return prec
@@ -521,7 +521,7 @@ func floorBigFloat(z *big.Float, x *big.Float) *big.Float {
 func (f *BigFloat) FloorBigFloat() *BigFloat {
 	result := &big.Float{}
 	fGo := f.AsGoBigFloat()
-	prec := max(fGo.Prec(), 53)
+	prec := max(fGo.Prec(), FloatPrecision)
 	result.SetPrec(prec)
 	return ToElkBigFloat(floorBigFloat(result, f.AsGoBigFloat()))
 }
@@ -736,7 +736,7 @@ func (f *BigFloat) Exponentiate(other Value) (Value, Value) {
 			result.ExpBigFloat(f, o)
 			return Ref(result), Undefined
 		case *BigInt:
-			prec := max(f.Precision(), uint(o.BitSize()), 64)
+			prec := max(f.Precision(), uint(o.BitSize()), SmallIntBits)
 			oBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(o)
 			oBigFloat.ExpBigFloat(f, oBigFloat)
 			return Ref(oBigFloat), Undefined
@@ -747,12 +747,12 @@ func (f *BigFloat) Exponentiate(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		prec := max(f.Precision(), 53)
+		prec := max(f.Precision(), FloatPrecision)
 		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(other.AsFloat())
 		oBigFloat.ExpBigFloat(f, oBigFloat)
 		return Ref(oBigFloat), Undefined
 	case SMALL_INT_FLAG:
-		prec := max(f.Precision(), 64)
+		prec := max(f.Precision(), SmallIntBits)
 		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(other.AsSmallInt())
 		oBigFloat.ExpBigFloat(f, oBigFloat)
 		return Ref(oBigFloat), Undefined
@@ -770,7 +770,7 @@ func (f *BigFloat) Modulo(other Value) (Value, Value) {
 			result := (&BigFloat{}).SetPrecision(max(o.Precision(), f.Precision()))
 			return Ref(result.Mod(f, o)), Undefined
 		case *BigInt:
-			prec := max(f.Precision(), uint(o.BitSize()), 64)
+			prec := max(f.Precision(), uint(o.BitSize()), SmallIntBits)
 			otherBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(o)
 			return Ref(otherBigFloat.Mod(f, otherBigFloat)), Undefined
 		default:
@@ -780,11 +780,11 @@ func (f *BigFloat) Modulo(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		prec := max(f.Precision(), 53)
+		prec := max(f.Precision(), FloatPrecision)
 		otherBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(other.AsFloat())
 		return Ref(otherBigFloat.Mod(f, otherBigFloat)), Undefined
 	case SMALL_INT_FLAG:
-		prec := max(f.Precision(), 64)
+		prec := max(f.Precision(), SmallIntBits)
 		otherBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(other.AsSmallInt())
 		return Ref(otherBigFloat.Mod(f, otherBigFloat)), Undefined
 	default:
@@ -843,15 +843,13 @@ func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
 			if f.IsNaN() || o.IsNaN() {
 				return False, Undefined
 			}
-			result := (&BigFloat{}).AddBigFloat(f, o)
-			return Ref(result), Undefined
+			return ToElkBool(f.Cmp(o) > 0), Undefined
 		case *BigInt:
 			if f.IsNaN() {
 				return False, Undefined
 			}
 			otherBigFloat := (&BigFloat{}).SetBigInt(o)
-			result := otherBigFloat.AddBigFloat(f, otherBigFloat)
-			return Ref(result), Undefined
+			return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -867,14 +865,13 @@ func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
 		if otherBigFloat.Precision() < f.Precision() {
 			otherBigFloat.SetPrecision(f.Precision())
 		}
-		return Ref(otherBigFloat.AddBigFloat(f, otherBigFloat)), Undefined
+		return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
 			return False, Undefined
 		}
 		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		result := otherBigFloat.AddBigFloat(f, otherBigFloat)
-		return Ref(result), Undefined
+		return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}

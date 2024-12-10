@@ -48,10 +48,10 @@ func TestFloat32_Exponentiate(t *testing.T) {
 			got, err := tc.a.Exponentiate(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -91,10 +91,10 @@ func TestFloat32_Add(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -133,10 +133,10 @@ func TestFloat32_Subtract(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -176,10 +176,10 @@ func TestFloat32_Multiply(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -223,10 +223,10 @@ func TestFloat32_GreaterThan(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -271,10 +271,10 @@ func TestFloat32_GreaterThanEqual(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -318,10 +318,10 @@ func TestFloat32_LessThan(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -365,10 +365,10 @@ func TestFloat32_LessThanEqual(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -857,7 +857,7 @@ func TestFloat32_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -902,10 +902,10 @@ func TestFloat32_Divide(t *testing.T) {
 			got, err := tc.a.Divide(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -928,10 +928,10 @@ func TestFloat32_Modulo(t *testing.T) {
 			b:   value.Int32(2).ToValue(),
 			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float32`")),
 		},
-		"perform modulo for Float32 and return an error": {
+		"perform modulo for Float64 and return an error": {
 			a:   value.Float32(5),
-			b:   value.Float32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Float32`")),
+			b:   value.Float64(2).ToValue(),
+			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float32`")),
 		},
 		"21 % 10": {
 			a:    value.Float32(21),
@@ -951,7 +951,7 @@ func TestFloat32_Modulo(t *testing.T) {
 		"56.87 % 3": {
 			a:    value.Float32(56.87),
 			b:    value.Float32(3).ToValue(),
-			want: value.Float32(2.8699999999999974),
+			want: value.Float32(2.869999),
 		},
 	}
 
@@ -960,10 +960,10 @@ func TestFloat32_Modulo(t *testing.T) {
 			got, err := tc.a.Modulo(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
