@@ -106,6 +106,9 @@ var InvalidTimezoneErrorClass *Class
 // Thrown when the called method is not builtin.
 var NotBuiltinErrorClass *Class
 
+// ::Std::FileSystemError
+var FileSystemErrorClass *Class
+
 var NotBuiltinError *Object
 
 // Create a new Elk error.
@@ -521,6 +524,9 @@ func initException() {
 
 	IndexErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("IndexError", Ref(IndexErrorClass))
+
+	FileSystemErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("FileSystemError", Ref(FileSystemErrorClass))
 
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))

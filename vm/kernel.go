@@ -8,16 +8,7 @@ import (
 
 // ::Std::Kernel
 func initKernel() {
-	// Instance methods
 	c := &value.KernelModule.SingletonClass().MethodContainer
-	Def(
-		c,
-		"inspect_stack",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
-			v.InspectStack()
-			return value.Nil, value.Undefined
-		},
-	)
 	Def(
 		c,
 		"print",

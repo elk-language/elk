@@ -13,3 +13,4 @@ class Std::OutOfRangeError < Std::Error; end
 ]##
 class Std::FormatError < Std::Error; end
 
+class Std::FileSystemError < Std::Error; end

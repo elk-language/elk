@@ -72,6 +72,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a data structure that\ncan be used to check if it contains\na value.", value.ToSymbol("Container"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -96,6 +97,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
+		namespace.TryDefineClass("", false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, value.ToSymbol("Float"), objectClass, env)
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float32"), objectClass, env)
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float64"), objectClass, env)
@@ -795,6 +797,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("Debug").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("inspect_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(value.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))
+				namespace.DefineMethod("", false, false, true, value.ToSymbol("stop_cpu_profile"), nil, nil, Void{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Decrementable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1029,6 +1047,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				namespace.DefineMethod("Calculates a hash of the value.", false, false, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("FileSystemError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Error", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 

@@ -54,6 +54,7 @@ func InitGlobalEnvironment() {
 	initGlobalObject()
 	initInterface()
 	initKernel()
+	initDebug()
 	initUndefined()
 	initFunction()
 	initMethod()

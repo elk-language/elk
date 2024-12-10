@@ -1,0 +1,8 @@
+##[
+  Contains various debugging utilities.
+]##
+module Std::Debug
+  def start_cpu_profile(file_path: String)! FileSystemError; end
+  def stop_cpu_profile; end
+  def inspect_stack; end
+end
