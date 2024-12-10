@@ -3,7 +3,6 @@ package value
 import (
 	"fmt"
 	"strconv"
-	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -16,7 +15,7 @@ type Int8 int8
 func (i Int8) ToValue() Value {
 	return Value{
 		flag: INT8_FLAG,
-		data: *(*uintptr)(unsafe.Pointer(&i)),
+		data: uintptr(i),
 	}
 }
 

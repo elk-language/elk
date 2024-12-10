@@ -2,13 +2,9 @@
 
 package value
 
-import (
-	"unsafe"
-)
-
 func (d Duration) ToValue() Value {
 	return Value{
 		flag: DURATION_FLAG,
-		data: *(*uintptr)(unsafe.Pointer(&d)),
+		data: uintptr(d),
 	}
 }

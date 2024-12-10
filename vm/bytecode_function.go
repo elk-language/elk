@@ -284,16 +284,20 @@ type IntSize uint8
 func (f *BytecodeFunction) AddValue(obj value.Value) (int, IntSize) {
 	var id int
 	if obj.IsReference() {
-		switch obj.AsReference().(type) {
-		case value.String, value.Int64,
-			value.UInt64, value.Float64:
-			if i := slices.Index(f.Values, obj); i != -1 {
-				id = i
+		objRef := obj.AsReference()
+		i := -1
+		for j, value := range f.Values {
+			if !value.IsReference() {
+				continue
+			}
+
+			if value.AsReference() == objRef {
+				i = j
+				id = j
 				break
 			}
-			id = len(f.Values)
-			f.Values = append(f.Values, obj)
-		default:
+		}
+		if i == -1 {
 			id = len(f.Values)
 			f.Values = append(f.Values, obj)
 		}

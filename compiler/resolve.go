@@ -208,7 +208,7 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 			return value.Undefined
 		}
 		err := vm.HashSetAppend(nil, newSet, val)
-		if err.IsUndefined() {
+		if !err.IsUndefined() {
 			return value.Undefined
 		}
 	}

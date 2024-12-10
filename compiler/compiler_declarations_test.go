@@ -826,7 +826,7 @@ func TestAlias(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("namespaceDefinitions"),
+						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE8), 1,
@@ -849,7 +849,7 @@ func TestAlias(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("methodDefinitions"),
+						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE8), 1,

@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
-	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -17,7 +16,7 @@ type Int32 int32
 func (i Int32) ToValue() Value {
 	return Value{
 		flag: INT32_FLAG,
-		data: *(*uintptr)(unsafe.Pointer(&i)),
+		data: uintptr(i),
 	}
 }
 

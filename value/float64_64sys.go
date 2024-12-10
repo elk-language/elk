@@ -3,12 +3,12 @@
 package value
 
 import (
-	"unsafe"
+	"math"
 )
 
 func (f Float64) ToValue() Value {
 	return Value{
 		flag: FLOAT64_FLAG,
-		data: *(*uintptr)(unsafe.Pointer(&f)),
+		data: uintptr(math.Float64bits(float64(f))),
 	}
 }

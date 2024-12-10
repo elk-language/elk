@@ -2,13 +2,9 @@
 
 package value
 
-import (
-	"unsafe"
-)
-
 func (i Int64) ToValue() Value {
 	return Value{
 		flag: INT64_FLAG,
-		data: *(*uintptr)(unsafe.Pointer(&i)),
+		data: uintptr(i),
 	}
 }

@@ -419,7 +419,7 @@ func (v Value) IsSmallInt() bool {
 }
 
 func (v Value) AsSmallInt() SmallInt {
-	return *(*SmallInt)(unsafe.Pointer(&v.data))
+	return SmallInt(v.data)
 }
 
 func (v Value) MustSmallInt() SmallInt {
@@ -434,7 +434,7 @@ func (v Value) IsChar() bool {
 }
 
 func (v Value) AsChar() Char {
-	return *(*Char)(unsafe.Pointer(&v.data))
+	return Char(v.data)
 }
 
 func (v Value) MustChar() Char {
@@ -464,7 +464,7 @@ func (v Value) IsFloat32() bool {
 }
 
 func (v Value) AsFloat32() Float32 {
-	return *(*Float32)(unsafe.Pointer(&v.data))
+	return Float32(math.Float32frombits(uint32(v.data)))
 }
 
 func (v Value) MustFloat32() Float32 {
@@ -479,7 +479,7 @@ func (v Value) IsFloat64() bool {
 }
 
 func (v Value) AsFloat64() Float64 {
-	return *(*Float64)(unsafe.Pointer(&v.data))
+	return Float64(math.Float64frombits(uint64(v.data)))
 }
 
 func (v Value) MustFloat64() Float64 {
@@ -494,7 +494,7 @@ func (v Value) IsInt8() bool {
 }
 
 func (v Value) AsInt8() Int8 {
-	return *(*Int8)(unsafe.Pointer(&v.data))
+	return Int8(v.data)
 }
 
 func (v Value) MustInt8() Int8 {
@@ -509,7 +509,7 @@ func (v Value) IsUInt8() bool {
 }
 
 func (v Value) AsUInt8() UInt8 {
-	return *(*UInt8)(unsafe.Pointer(&v.data))
+	return UInt8(v.data)
 }
 
 func (v Value) MustUInt8() UInt8 {
@@ -524,7 +524,7 @@ func (v Value) IsInt16() bool {
 }
 
 func (v Value) AsInt16() Int16 {
-	return *(*Int16)(unsafe.Pointer(&v.data))
+	return Int16(v.data)
 }
 
 func (v Value) MustInt16() Int16 {
@@ -539,7 +539,7 @@ func (v Value) IsUInt16() bool {
 }
 
 func (v Value) AsUInt16() UInt16 {
-	return *(*UInt16)(unsafe.Pointer(&v.data))
+	return UInt16(v.data)
 }
 
 func (v Value) MustUInt16() UInt16 {
@@ -554,7 +554,7 @@ func (v Value) IsInt32() bool {
 }
 
 func (v Value) AsInt32() Int32 {
-	return *(*Int32)(unsafe.Pointer(&v.data))
+	return Int32(v.data)
 }
 
 func (v Value) MustInt32() Int32 {
@@ -569,7 +569,7 @@ func (v Value) IsUInt32() bool {
 }
 
 func (v Value) AsUInt32() UInt32 {
-	return *(*UInt32)(unsafe.Pointer(&v.data))
+	return UInt32(v.data)
 }
 
 func (v Value) MustUInt32() UInt32 {
@@ -584,7 +584,7 @@ func (v Value) IsInt64() bool {
 }
 
 func (v Value) AsInt64() Int64 {
-	return *(*Int64)(unsafe.Pointer(&v.data))
+	return Int64(v.data)
 }
 
 func (v Value) MustInt64() Int64 {
@@ -599,7 +599,7 @@ func (v Value) IsUInt64() bool {
 }
 
 func (v Value) AsUInt64() UInt64 {
-	return *(*UInt64)(unsafe.Pointer(&v.data))
+	return UInt64(v.data)
 }
 
 func (v Value) MustUInt64() UInt64 {
@@ -614,7 +614,7 @@ func (v Value) IsDuration() bool {
 }
 
 func (v Value) AsDuration() Duration {
-	return *(*Duration)(unsafe.Pointer(&v.data))
+	return Duration(v.data)
 }
 
 func (v Value) MustDuration() Duration {
@@ -644,7 +644,7 @@ func (v Value) IsSymbol() bool {
 }
 
 func (v Value) AsSymbol() Symbol {
-	return *(*Symbol)(unsafe.Pointer(&v.data))
+	return Symbol(v.data)
 }
 
 func (v Value) MustSymbol() Symbol {
@@ -699,8 +699,7 @@ func (v Value) MustUndefined() UndefinedType {
 	return v.AsUndefined()
 }
 
-// BENCHMARK: self-implemented tagged union
-// Elk Value
+// Elk Reference Value
 type Reference interface {
 	Class() *Class                // Return the class of the value
 	DirectClass() *Class          // Return the direct class of this value that will be searched for methods first
