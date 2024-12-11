@@ -2235,8 +2235,13 @@ func LaxNotEqual(left, right Value) Value {
 
 // Check whether left is equal to right.
 // When successful returns (result).
-// When there are no builtin addition functions for the given type returns (nil).
+// When there are no builtin addition functions for the given type returns (undefined).
 func Equal(left, right Value) Value {
+	class := left.Class()
+	if !IsA(right, class) {
+		return False
+	}
+
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
 		case *BigInt:
@@ -2252,7 +2257,7 @@ func Equal(left, right Value) Value {
 		case UInt64:
 			return l.Equal(right)
 		default:
-			return ToElkBool(left == right)
+			return Undefined
 		}
 	}
 
@@ -2300,7 +2305,7 @@ func Equal(left, right Value) Value {
 		l := left.AsUInt8()
 		return l.Equal(right)
 	default:
-		return ToElkBool(left == right)
+		return Undefined
 	}
 }
 

@@ -850,7 +850,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(1).ToValue(),
-					Value: value.Ref(value.String("foo")),
+					Value: value.SmallInt(1).ToValue(),
 				},
 				value.Pair{
 					Key:   value.SmallInt(2).ToValue(),
@@ -1107,7 +1107,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(1).ToValue(),
-					Value: value.Ref(value.String("foo")),
+					Value: value.SmallInt(1).ToValue(),
 				},
 				value.Pair{
 					Key:   value.SmallInt(2).ToValue(),

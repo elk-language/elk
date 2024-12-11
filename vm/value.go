@@ -58,7 +58,7 @@ func initValue() {
 				return ObjectHash(self).ToValue(), value.Undefined
 			}
 			if err.IsUndefined() {
-				return value.Ref(result), value.Undefined
+				return result.ToValue(), value.Undefined
 			}
 			return value.Undefined, err
 		},
@@ -89,7 +89,7 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 
 	if err == value.Ref(value.NotBuiltinError) {
 		if vm == nil {
-			return 0, value.Undefined
+			return 0, value.Nil
 		}
 		class := key.DirectClass()
 		method := class.LookupMethod(symbol.L_hash)
@@ -99,6 +99,11 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 		dynamicResult, dynamicErr := vm.CallMethod(method, key)
 		if !dynamicErr.IsUndefined() {
 			return 0, dynamicErr
+		}
+		if dynamicResult.IsReference() {
+			if r, ok := dynamicResult.AsReference().(value.UInt64); ok {
+				return r, value.Undefined
+			}
 		}
 		if dynamicResult.IsUInt64() {
 			return dynamicResult.AsUInt64(), value.Undefined

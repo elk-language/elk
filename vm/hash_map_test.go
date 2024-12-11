@@ -310,8 +310,8 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 			}
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(nil, 2, elements...)
-			if !err.IsUndefined() {
-				t.Fatalf("error is not undefined: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error is not value.Nil: %#v", err)
 			}
 			if hmap != nil {
 				t.Fatalf("result should be nil, got: %#v", hmap)
@@ -1026,8 +1026,8 @@ func TestHashMapContainsKey(t *testing.T) {
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
-			if !err.IsUndefined() {
-				t.Fatalf("error should be undefined, got: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm get from empty hashmap": func(t *testing.T) {
@@ -1403,8 +1403,8 @@ func TestHashMapGet(t *testing.T) {
 			if !result.IsUndefined() {
 				t.Fatalf("result should be undefined, got: %#v", result)
 			}
-			if !err.IsUndefined() {
-				t.Fatalf("error should be undefined, got: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error should be value.Nil, got: %#v", err)
 			}
 		},
 		"with vm get from empty hashmap": func(t *testing.T) {
@@ -1676,8 +1676,8 @@ func TestHashMapSetCapacity(t *testing.T) {
 			}
 
 			err := vm.HashMapSetCapacity(nil, hmap, 25)
-			if !err.IsUndefined() {
-				t.Fatalf("error is not undefined: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error is not nil: %#v", err)
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
@@ -1935,8 +1935,8 @@ func TestHashMapSet(t *testing.T) {
 			)
 
 			err := vm.HashMapSet(nil, hmap, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")), value.True)
-			if !err.IsUndefined() {
-				t.Fatalf("error should be undefined, got: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 		"with vm set in empty hashmap": func(t *testing.T) {

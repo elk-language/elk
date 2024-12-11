@@ -98,8 +98,8 @@ func TestNewHashSetWithElements(t *testing.T) {
 			}
 
 			set, err := vm.NewHashSetWithElements(nil, elements...)
-			if !err.IsUndefined() {
-				t.Fatalf("error is not undefined: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error is not value.Nil: %#v", err)
 			}
 			if set != nil {
 				t.Fatalf("result should be nil, got: %#v", set)
@@ -217,8 +217,8 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 			}
 
 			set, err := vm.NewHashSetWithCapacityAndElements(nil, 2, elements...)
-			if !err.IsUndefined() {
-				t.Fatalf("error is not undefined: %#v", err)
+			if !err.IsNil() {
+				t.Fatalf("error is not value.Nil: %#v", err)
 			}
 			if set != nil {
 				t.Fatalf("result should be nil, got: %#v", set)
@@ -295,10 +295,10 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			}
-			wantErr := value.NewError(
+			wantErr := value.Ref(value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int` cannot be coerced into `Std::UInt64`",
-			)
+			))
 
 			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
@@ -686,8 +686,8 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 
 			err := vm.HashSetSetCapacity(nil, set, 25)
-			if !err.IsUndefined() {
-				t.Fatalf("error is not undefined: %s", err.Inspect())
+			if !err.IsNil() {
+				t.Fatalf("error is not nil: %s", err.Inspect())
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
@@ -883,8 +883,8 @@ func TestHashSetAdd(t *testing.T) {
 			)
 
 			err := vm.HashSetAppend(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
-			if !err.IsUndefined() {
-				t.Fatalf("error should be undefined, got: %s", err.Inspect())
+			if !err.IsNil() {
+				t.Fatalf("error should be value.Nil, got: %s", err.Inspect())
 			}
 		},
 		"with vm set in empty hashset": func(t *testing.T) {
@@ -1438,10 +1438,12 @@ func TestHashSetDelete(t *testing.T) {
 
 			result, err := vm.HashSetDelete(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if result != true {
-				t.Fatalf("result should be true, got: %#v", result)
+				t.Fail()
+				t.Logf("result should be true, got: %#v", result)
 			}
 			if !err.IsUndefined() {
-				t.Fatalf("error should be undefined, got: %s", err.Inspect())
+				t.Fail()
+				t.Logf("error should be undefined, got: %s", err.Inspect())
 			}
 			if diff := cmp.Diff(expected, set, comparer.Options()); diff != "" {
 				t.Fatal(diff)
