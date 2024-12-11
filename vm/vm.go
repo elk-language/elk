@@ -49,6 +49,7 @@ type VM struct {
 	ip              int           // Instruction pointer -- points to the next bytecode instruction
 	sp              int           // Stack pointer -- points to the offset where the next element will be pushed to
 	fp              int           // Frame pointer -- points to the offset where the current frame starts
+	callFrameIndex  int           // Index of the next call frame
 	localCount      int           // the amount of registered locals
 	stack           []value.Value // Value stack
 	callFrames      []CallFrame   // Call stack
@@ -86,7 +87,7 @@ func WithStderr(stderr io.Writer) Option {
 func New(opts ...Option) *VM {
 	vm := &VM{
 		stack:      make([]value.Value, VALUE_STACK_SIZE),
-		callFrames: make([]CallFrame, 0, CALL_STACK_SIZE),
+		callFrames: make([]CallFrame, CALL_STACK_SIZE),
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
@@ -334,7 +335,7 @@ func (vm *VM) run() {
 			}
 
 			// return normally
-			if len(vm.callFrames) == 0 {
+			if vm.callFrameIndex == 0 {
 				return
 			}
 			vm.returnFromFunction()
@@ -342,7 +343,7 @@ func (vm *VM) run() {
 				return
 			}
 		case bytecode.RETURN:
-			if len(vm.callFrames) == 0 {
+			if vm.callFrameIndex == 0 {
 				return
 			}
 			vm.returnFromFunction()
@@ -351,7 +352,7 @@ func (vm *VM) run() {
 			}
 		case bytecode.RETURN_FIRST_ARG:
 			vm.opGetLocal(1)
-			if len(vm.callFrames) == 0 {
+			if vm.callFrameIndex == 0 {
 				return
 			}
 			vm.returnFromFunction()
@@ -360,7 +361,7 @@ func (vm *VM) run() {
 			}
 		case bytecode.RETURN_SELF:
 			vm.self()
-			if len(vm.callFrames) == 0 {
+			if vm.callFrameIndex == 0 {
 				return
 			}
 			vm.returnFromFunction()
@@ -798,18 +799,11 @@ func (vm *VM) returnFromFunction() {
 	vm.push(returnValue)
 }
 
-func (vm *VM) lastCallFrame() *CallFrame {
-	lastIndex := len(vm.callFrames) - 1
-	return &vm.callFrames[lastIndex]
-}
-
 // Restore the state of the VM to the last call frame.
 func (vm *VM) restoreLastFrame() {
-	lastIndex := len(vm.callFrames) - 1
+	lastIndex := vm.callFrameIndex - 1
 	cf := vm.callFrames[lastIndex]
-	// reset the popped call frame
-	vm.callFrames[lastIndex] = CallFrame{}
-	vm.callFrames = vm.callFrames[:lastIndex]
+	vm.callFrameIndex = lastIndex
 
 	vm.ip = cf.ip
 	vm.opCloseUpvalues(&vm.stack[vm.fp])
@@ -839,7 +833,7 @@ func (vm *VM) BuildStackTrace() string {
 	buffer.WriteString("Stack trace (the most recent call is last)\n")
 
 	var i int
-	for j := range len(vm.callFrames) {
+	for j := range vm.callFrameIndex {
 		callFrame := &vm.callFrames[j]
 		addStackTraceEntry(
 			&buffer,
@@ -1430,11 +1424,8 @@ func (vm *VM) opDefSetter() {
 }
 
 func (vm *VM) addCallFrame(cf CallFrame) {
-	if len(vm.callFrames) == CALL_STACK_SIZE {
-		panic(fmt.Sprintf("Stack overflow: %d", CALL_STACK_SIZE))
-	}
-
-	vm.callFrames = append(vm.callFrames, cf)
+	vm.callFrames[vm.callFrameIndex] = cf
+	vm.callFrameIndex++
 }
 
 // preserve the current state of the vm in a call frame
@@ -2184,10 +2175,6 @@ func (vm *VM) swap() {
 
 // Pop an element off the value stack.
 func (vm *VM) pop() value.Value {
-	if vm.sp == 0 {
-		panic("tried to pop when there are no elements on the value stack!")
-	}
-
 	vm.sp--
 	val := vm.stack[vm.sp]
 	vm.stack[vm.sp] = value.Undefined
@@ -2201,10 +2188,6 @@ func (vm *VM) popAll() {
 
 // Pop n elements off the value stack.
 func (vm *VM) popN(n int) {
-	if vm.sp-n < 0 {
-		panic("tried to pop more elements than are available on the value stack!")
-	}
-
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
 		vm.stack[i] = value.Undefined
 	}
@@ -2213,20 +2196,12 @@ func (vm *VM) popN(n int) {
 
 // Pop one element off the value stack skipping the first one.
 func (vm *VM) popSkipOne() {
-	if vm.sp-2 < 0 {
-		panic("tried to pop more elements than are available on the value stack!")
-	}
-
 	vm.sp--
 	vm.stack[vm.sp-1] = vm.stack[vm.sp]
 }
 
 // Pop n elements off the value stack skipping the first one.
 func (vm *VM) popNSkipOne(n int) {
-	if vm.sp-n-1 < 0 {
-		panic("tried to pop more elements than are available on the value stack!")
-	}
-
 	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
 	for i := vm.sp - 1; i >= vm.sp-n; i-- {
 		vm.stack[i] = value.Undefined
@@ -2242,20 +2217,12 @@ func (vm *VM) replace(val value.Value) {
 // Return the element on top of the stack
 // without popping it.
 func (vm *VM) peek() value.Value {
-	if vm.sp == 0 {
-		panic("tried to peek when there are no elements on the value stack!")
-	}
-
 	return vm.stack[vm.sp-1]
 }
 
 // Return the nth element on top of the stack
 // without popping it.
 func (vm *VM) peekAt(n int) value.Value {
-	if vm.sp-n <= 0 {
-		panic(fmt.Sprintf("tried to peek outside of the valid range: %d", n))
-	}
-
 	return vm.stack[vm.sp-1-n]
 }
 
@@ -2697,7 +2664,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 			return
 		}
 
-		if vm.mode == singleFunctionCallMode || len(vm.callFrames) < 1 {
+		if vm.mode == singleFunctionCallMode || vm.callFrameIndex < 1 {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
 			vm.push(err)
