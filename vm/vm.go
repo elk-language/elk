@@ -321,11 +321,14 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 
 // The main execution loop of the VM.
 func (vm *VM) run() {
-	for {
-		// fmt.Println()
-		// vm.bytecode.DisassembleInstruction(os.Stdout, vm.ip)
-		// fmt.Println()
+	defer func() {
+		// Return normally if the panic was an elk error
+		if r := recover(); r == (stopVM{}) {
+			return
+		}
+	}()
 
+	for {
 		instruction := bytecode.OpCode(vm.readByte())
 		// BENCHMARK: replace with a jump table
 		switch instruction {
@@ -734,10 +737,6 @@ func (vm *VM) run() {
 			vm.InspectStack()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
-		}
-
-		if vm.mode == errorMode {
-			return
 		}
 	}
 
@@ -2668,12 +2667,15 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
 			vm.push(err)
-			return
+			panic(stopVM{})
 		}
 
 		vm.restoreLastFrame()
 	}
 }
+
+// Used in a panic to stop the VM
+type stopVM struct{}
 
 func (vm *VM) jumpToFinallyForReturn() bool {
 	catchEntry := vm.findFinallyCatchEntry()

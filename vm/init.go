@@ -33,6 +33,7 @@ func InitGlobalEnvironment() {
 	initHashSetIterator()
 	initInt()
 	initKernel()
+	initDebug()
 	initLeftOpenRange()
 	initLeftOpenRangeIterator()
 	initMethod()
