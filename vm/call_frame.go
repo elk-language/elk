@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"unsafe"
+
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
 )
@@ -20,8 +22,8 @@ func init() {
 // Contains the data of a single function call.
 type CallFrame struct {
 	bytecode   *BytecodeFunction
-	ip         int // Instruction pointer - points to the next bytecode instruction for this frame
-	fp         int // Frame pointer -- points to the offset on the value stack where the current frame start
+	ip         uintptr // Instruction pointer - points to the next bytecode instruction for this frame
+	fp         int     // Frame pointer -- points to the offset on the value stack where the current frame start
 	localCount int
 	upvalues   []*Upvalue
 }
@@ -30,8 +32,15 @@ func (c CallFrame) Name() value.Symbol {
 	return c.bytecode.Name()
 }
 
+func (c *CallFrame) ipIndex() int {
+	return int(
+		uintptr(unsafe.Pointer(c.ip)) -
+			uintptr(unsafe.Pointer(&c.bytecode.Instructions[0])),
+	)
+}
+
 func (c CallFrame) LineNumber() int {
-	return c.bytecode.GetLineNumber(c.ip - 1)
+	return c.bytecode.GetLineNumber(c.ipIndex() - 1)
 }
 
 func (c CallFrame) FileName() string {

@@ -20,7 +20,6 @@ import (
 	"github.com/fatih/color"
 )
 
-// BENCHMARK: compare with a dynamically allocated array
 var VALUE_STACK_SIZE int
 
 func init() {
@@ -46,9 +45,9 @@ type VM struct {
 	bytecode        *BytecodeFunction
 	upvalues        []*Upvalue
 	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
-	ip              int           // Instruction pointer -- points to the next bytecode instruction
+	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
 	sp              int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp              int           // Frame pointer -- points to the offset where the current frame starts
+	fp              int           // Frame pointer -- points to the offset where the section of the stack for current frame starts
 	callFrameIndex  int           // Index of the next call frame
 	localCount      int           // the amount of registered locals
 	stack           []value.Value // Value stack
@@ -103,7 +102,7 @@ func New(opts ...Option) *VM {
 // Execute the given bytecode chunk.
 func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
-	vm.ip = 0
+	vm.ipSet(&fn.Instructions[0])
 	vm.push(value.Ref(value.GlobalObject))
 	vm.localCount = 1
 	vm.run()
@@ -117,7 +116,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 // Execute the given bytecode chunk.
 func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
-	vm.ip = 0
+	vm.ipSet(&fn.Instructions[0])
 	if vm.sp == 0 {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
@@ -210,7 +209,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	vm.createCurrentCallFrame()
 	vm.bytecode = closure.Bytecode
 	vm.fp = vm.sp
-	vm.ip = 0
+	vm.ipSet(&closure.Bytecode.Instructions[0])
 	vm.localCount = len(args)
 	vm.upvalues = closure.Upvalues
 	vm.mode = singleFunctionCallMode
@@ -257,7 +256,7 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
 		vm.fp = vm.sp
-		vm.ip = 0
+		vm.ipSet(&m.Instructions[0])
 		vm.localCount = len(args)
 		vm.mode = singleFunctionCallMode
 		for _, arg := range args {
@@ -293,7 +292,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 		vm.bytecode = m
 		vm.fp = vm.sp - args - 1
 		vm.localCount = args + 1
-		vm.ip = 0
+		vm.ipSet(&m.Instructions[0])
 	case *NativeMethod:
 		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
 		if !err.IsUndefined() {
@@ -386,7 +385,7 @@ func (vm *VM) run() {
 			}
 
 			vm.popN(2)
-			vm.ip = int(jumpOffset)
+			vm.ipSetOffset(int(jumpOffset))
 		case bytecode.NOOP:
 		case bytecode.DUP:
 			vm.push(vm.peek())
@@ -652,37 +651,37 @@ func (vm *VM) run() {
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ip += int(jump)
+				vm.ipAdd(int(jump))
 				break
 			}
-			vm.ip += 2
+			vm.ipAdd(2)
 		case bytecode.JUMP_IF_NIL:
 			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
-				vm.ip += int(jump)
+				vm.ipAdd(int(jump))
 				break
 			}
-			vm.ip += 2
+			vm.ipAdd(2)
 		case bytecode.JUMP_IF:
 			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ip += int(jump)
+				vm.ipAdd(int(jump))
 				break
 			}
-			vm.ip += 2
+			vm.ipAdd(2)
 		case bytecode.JUMP:
 			jump := vm.readUint16()
-			vm.ip += int(jump)
+			vm.ipAdd(int(jump))
 		case bytecode.JUMP_UNLESS_UNDEF:
 			if !vm.peek().IsUndefined() {
 				jump := vm.readUint16()
-				vm.ip += int(jump)
+				vm.ipAdd(int(jump))
 				break
 			}
-			vm.ip += 2
+			vm.ipAdd(2)
 		case bytecode.LOOP:
 			jump := vm.readUint16()
-			vm.ip -= int(jump)
+			vm.ipAdd(-int(jump))
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.MUST:
@@ -762,7 +761,7 @@ func (vm *VM) closure() {
 			closure.Upvalues[i] = vm.upvalues[upIndex]
 		}
 	}
-	vm.ip++ // skip past the terminator
+	vm.ipIncrement() // skip past the terminator
 }
 
 func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
@@ -847,7 +846,7 @@ func (vm *VM) BuildStackTrace() string {
 		&buffer,
 		i+1,
 		vm.bytecode.FileName(),
-		vm.bytecode.GetLineNumber(vm.ip-1),
+		vm.bytecode.GetLineNumber(vm.ipOffset()-1),
 		vm.bytecode.Name().String(),
 	)
 	// Stack trace (the most recent call is last):
@@ -875,19 +874,39 @@ func (vm *VM) readValue32() value.Value {
 	return vm.bytecode.Values[vm.readUint32()]
 }
 
+// Get the typesafe instruction pointer
+func (vm *VM) ipGet() *byte {
+	return (*byte)(unsafe.Pointer(vm.ip))
+}
+
+// Set the typesafe instruction pointer
+func (vm *VM) ipSet(ptr *byte) {
+	vm.ip = uintptr(unsafe.Pointer(ptr))
+}
+
+// Increment the instruction pointer
+func (vm *VM) ipIncrement() {
+	vm.ipAdd(1)
+}
+
+// Add n to the instruction pointer
+func (vm *VM) ipAdd(n int) {
+	vm.ip = (uintptr)(unsafe.Add(unsafe.Pointer(vm.ip), n))
+}
+
 // Read the next byte of code
 func (vm *VM) readByte() byte {
 	// BENCHMARK: compare pointer arithmetic to offsets
-	byt := vm.bytecode.Instructions[vm.ip]
-	vm.ip++
+	byt := *vm.ipGet()
+	vm.ipIncrement()
 	return byt
 }
 
 // Read the next 2 bytes of code
 func (vm *VM) readUint16() uint16 {
 	// BENCHMARK: compare manual bit shifts
-	result := binary.BigEndian.Uint16(vm.bytecode.Instructions[vm.ip : vm.ip+2])
-	vm.ip += 2
+	result := binary.BigEndian.Uint16(unsafe.Slice(vm.ipGet(), 2))
+	vm.ipAdd(2)
 
 	return result
 }
@@ -895,9 +914,8 @@ func (vm *VM) readUint16() uint16 {
 // Read the next 4 bytes of code
 func (vm *VM) readUint32() uint32 {
 	// BENCHMARK: compare manual bit shifts
-	result := binary.BigEndian.Uint32(vm.bytecode.Instructions[vm.ip : vm.ip+4])
-
-	vm.ip += 4
+	result := binary.BigEndian.Uint32(unsafe.Slice(vm.ipGet(), 4))
+	vm.ipAdd(4)
 
 	return result
 }
@@ -1209,7 +1227,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
 	vm.fp = vm.sp - function.parameterCount - 1
-	vm.ip = 0
+	vm.ipSet(&function.Instructions[0])
 	vm.upvalues = closure.Upvalues
 
 	return value.Undefined
@@ -1294,7 +1312,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
 	vm.fp = vm.sp - method.ParameterCount() - 1
-	vm.ip = 0
+	vm.ipSet(&method.Instructions[0])
 
 	return value.Undefined
 }
@@ -1445,7 +1463,7 @@ func (vm *VM) executeNamespaceBody(namespace value.Value, body *BytecodeFunction
 
 	vm.bytecode = body
 	vm.fp = vm.sp
-	vm.ip = 0
+	vm.ipSet(&body.Instructions[0])
 	vm.localCount = 1
 	// set namespace as `self`
 	vm.push(namespace)
@@ -1457,7 +1475,7 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 
 	vm.bytecode = fn
 	vm.fp = vm.sp
-	vm.ip = 0
+	vm.ipSet(&fn.Instructions[0])
 	vm.localCount = 1
 	vm.push(value.Ref(value.GlobalObject))
 }
@@ -1568,7 +1586,7 @@ func (vm *VM) opForIn() value.Value {
 	iterator := vm.pop()
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
-		vm.ip += int(vm.readUint16())
+		vm.ipAdd(int(vm.readUint16()))
 		return value.Undefined
 	}
 	if !err.IsUndefined() {
@@ -1576,7 +1594,7 @@ func (vm *VM) opForIn() value.Value {
 	}
 
 	vm.push(result)
-	vm.ip += 2
+	vm.ipAdd(2)
 	return value.Undefined
 }
 
@@ -2639,6 +2657,17 @@ func (vm *VM) mustAs() {
 	}
 }
 
+func (vm *VM) ipOffset() int {
+	return int(
+		vm.ip -
+			uintptr(unsafe.Pointer(&vm.bytecode.Instructions[0])),
+	)
+}
+
+func (vm *VM) ipSetOffset(offset int) {
+	vm.ipSet((*byte)(unsafe.Add(unsafe.Pointer(&vm.bytecode.Instructions[0]), offset)))
+}
+
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
@@ -2649,15 +2678,16 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 	for {
 		var foundCatch *CatchEntry
 
+		ipIndex := vm.ipOffset()
 		for _, catchEntry := range vm.bytecode.CatchEntries {
-			if !catchEntry.Finally && vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+			if !catchEntry.Finally && ipIndex > catchEntry.From && ipIndex <= catchEntry.To {
 				foundCatch = catchEntry
 				break
 			}
 		}
 
 		if foundCatch != nil {
-			vm.ip = foundCatch.JumpAddress
+			vm.ipSetOffset(foundCatch.JumpAddress)
 			vm.push(value.Ref(stackTrace))
 			vm.push(err)
 			return
@@ -2684,7 +2714,7 @@ func (vm *VM) jumpToFinallyForReturn() bool {
 	}
 
 	// execute finally
-	vm.ip = catchEntry.JumpAddress
+	vm.ipSetOffset(catchEntry.JumpAddress)
 	return true
 }
 
@@ -2695,13 +2725,14 @@ func (vm *VM) jumpToFinallyForBreakOrContinue() bool {
 	}
 
 	// execute finally
-	vm.ip = catchEntry.JumpAddress + 4 // skip NIL, JUMP, offsetByte1, offsetByte2
+	vm.ipSetOffset(catchEntry.JumpAddress + 4) // skip NIL, JUMP, offsetByte1, offsetByte2
 	return true
 }
 
 func (vm *VM) findFinallyCatchEntry() *CatchEntry {
+	ipIndex := vm.ipOffset()
 	for _, catchEntry := range vm.bytecode.CatchEntries {
-		if catchEntry.Finally && vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+		if catchEntry.Finally && ipIndex > catchEntry.From && ipIndex <= catchEntry.To {
 			return catchEntry
 		}
 	}
