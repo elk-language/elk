@@ -651,37 +651,37 @@ func (vm *VM) run() {
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ipAdd(int(jump))
+				vm.ipIncrementBy(int(jump))
 				break
 			}
-			vm.ipAdd(2)
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL:
 			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
-				vm.ipAdd(int(jump))
+				vm.ipIncrementBy(int(jump))
 				break
 			}
-			vm.ipAdd(2)
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF:
 			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ipAdd(int(jump))
+				vm.ipIncrementBy(int(jump))
 				break
 			}
-			vm.ipAdd(2)
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP:
 			jump := vm.readUint16()
-			vm.ipAdd(int(jump))
+			vm.ipIncrementBy(int(jump))
 		case bytecode.JUMP_UNLESS_UNDEF:
 			if !vm.peek().IsUndefined() {
 				jump := vm.readUint16()
-				vm.ipAdd(int(jump))
+				vm.ipIncrementBy(int(jump))
 				break
 			}
-			vm.ipAdd(2)
+			vm.ipIncrementBy(2)
 		case bytecode.LOOP:
 			jump := vm.readUint16()
-			vm.ipAdd(-int(jump))
+			vm.ipIncrementBy(-int(jump))
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.MUST:
@@ -874,6 +874,17 @@ func (vm *VM) readValue32() value.Value {
 	return vm.bytecode.Values[vm.readUint32()]
 }
 
+func (vm *VM) ipOffset() int {
+	return int(
+		vm.ip -
+			uintptr(unsafe.Pointer(&vm.bytecode.Instructions[0])),
+	)
+}
+
+func (vm *VM) ipSetOffset(offset int) {
+	vm.ipSet((*byte)(unsafe.Add(unsafe.Pointer(&vm.bytecode.Instructions[0]), offset)))
+}
+
 // Get the typesafe instruction pointer
 func (vm *VM) ipGet() *byte {
 	return (*byte)(unsafe.Pointer(vm.ip))
@@ -886,11 +897,11 @@ func (vm *VM) ipSet(ptr *byte) {
 
 // Increment the instruction pointer
 func (vm *VM) ipIncrement() {
-	vm.ipAdd(1)
+	vm.ipIncrementBy(1)
 }
 
 // Add n to the instruction pointer
-func (vm *VM) ipAdd(n int) {
+func (vm *VM) ipIncrementBy(n int) {
 	vm.ip = (uintptr)(unsafe.Add(unsafe.Pointer(vm.ip), n))
 }
 
@@ -906,7 +917,7 @@ func (vm *VM) readByte() byte {
 func (vm *VM) readUint16() uint16 {
 	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint16(unsafe.Slice(vm.ipGet(), 2))
-	vm.ipAdd(2)
+	vm.ipIncrementBy(2)
 
 	return result
 }
@@ -915,7 +926,7 @@ func (vm *VM) readUint16() uint16 {
 func (vm *VM) readUint32() uint32 {
 	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint32(unsafe.Slice(vm.ipGet(), 4))
-	vm.ipAdd(4)
+	vm.ipIncrementBy(4)
 
 	return result
 }
@@ -1586,7 +1597,7 @@ func (vm *VM) opForIn() value.Value {
 	iterator := vm.pop()
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
-		vm.ipAdd(int(vm.readUint16()))
+		vm.ipIncrementBy(int(vm.readUint16()))
 		return value.Undefined
 	}
 	if !err.IsUndefined() {
@@ -1594,7 +1605,7 @@ func (vm *VM) opForIn() value.Value {
 	}
 
 	vm.push(result)
-	vm.ipAdd(2)
+	vm.ipIncrementBy(2)
 	return value.Undefined
 }
 
@@ -2655,17 +2666,6 @@ func (vm *VM) mustAs() {
 			)),
 		)
 	}
-}
-
-func (vm *VM) ipOffset() int {
-	return int(
-		vm.ip -
-			uintptr(unsafe.Pointer(&vm.bytecode.Instructions[0])),
-	)
-}
-
-func (vm *VM) ipSetOffset(offset int) {
-	vm.ipSet((*byte)(unsafe.Add(unsafe.Pointer(&vm.bytecode.Instructions[0]), offset)))
 }
 
 // Throw an error and attempt to find code
