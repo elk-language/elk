@@ -6312,22 +6312,20 @@ func TestCatch(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.GET_CONST8), 0,
-									byte(bytecode.LOAD_VALUE8), 1,
-									byte(bytecode.CALL_METHOD8), 2,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.CALL_SELF8), 1,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE8), 3,
+									byte(bytecode.LOAD_VALUE8), 2,
 									byte(bytecode.THROW),
 									byte(bytecode.RETURN),
 								},
 								L(P(5, 2, 5), P(60, 5, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 7),
+									bytecode.NewLineInfo(3, 5),
 									bytecode.NewLineInfo(4, 3),
 									bytecode.NewLineInfo(5, 1),
 								},
 								[]value.Value{
-									value.ToSymbol("Std::Kernel").ToValue(),
 									value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
 									value.ToSymbol("foo").ToValue(),

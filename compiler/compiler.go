@@ -3354,48 +3354,58 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 }
 
 func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, span *position.Span) {
-	c.compileNode(receiver)
+	_, onSelf := receiver.(*ast.SelfLiteralNode)
 
 	switch op.Type {
 	case token.QUESTION_DOT:
+		c.compileNode(receiver)
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(name, op, args, span)
+		c.compileInnerMethodCall(name, op, args, false, span)
 
 		// if nil
 		// leave nil on the stack
 		c.patchJump(nilJump, span)
 	case token.QUESTION_DOT_DOT:
+		c.compileNode(receiver)
 		c.emit(span.EndPos.Line, bytecode.DUP)
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(name, op, args, span)
+		c.compileInnerMethodCall(name, op, args, false, span)
 
 		// if nil
 		// leave nil on the stack
 		c.patchJump(nilJump, span)
 	case token.DOT_DOT:
+		if !onSelf {
+			c.compileNode(receiver)
+		}
 		c.emit(span.EndPos.Line, bytecode.DUP)
-		c.compileInnerMethodCall(name, op, args, span)
+		c.compileInnerMethodCall(name, op, args, onSelf, span)
 	case token.DOT:
-		c.compileInnerMethodCall(name, op, args, span)
+		if !onSelf {
+			c.compileNode(receiver)
+		}
+		c.compileInnerMethodCall(name, op, args, onSelf, span)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *Compiler) compileInnerMethodCall(name string, op *token.Token, args []ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileInnerMethodCall(name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, span *position.Span) {
 	for _, posArg := range args {
 		c.compileNode(posArg)
 	}
 
 	nameSym := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSym, len(args))
-	if name == "call" {
+	if onSelf {
+		c.emitCallSelf(callInfo, span)
+	} else if name == "call" {
 		c.emitCall(callInfo, span)
 	} else {
 		c.emitCallMethod(callInfo, span)

@@ -102,7 +102,7 @@ type Checker struct {
 	mode                    mode
 	returnType              types.Type
 	throwType               types.Type
-	selfType                types.Type // the type of `self`
+	selfType                types.Type // the type of self
 	constantScopes          []constantScope
 	constantScopesCopyCache []constantScope
 	methodScopes            []methodScope
@@ -3885,11 +3885,21 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	} else {
 		switch under := method.DefinedUnder.(type) {
 		case *types.Module:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+			if under == c.selfType {
+				receiver = ast.NewSelfLiteralNode(node.Span())
+				c.checkNonNilableInstanceVariablesForSelf(node.Span())
+			} else {
+				// from using
+				receiver = ast.NewPublicConstantNode(node.Span(), under.Name())
+			}
 		case *types.SingletonClass:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
+			if under == c.selfType {
+				receiver = ast.NewSelfLiteralNode(node.Span())
+				c.checkNonNilableInstanceVariablesForSelf(node.Span())
+			} else {
+				// from using
+				receiver = ast.NewPublicConstantNode(node.Span(), under.AttachedObject.Name())
+			}
 		default:
 			// from self
 			receiver = ast.NewSelfLiteralNode(node.Span())

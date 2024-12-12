@@ -1886,25 +1886,23 @@ func TestDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("foo="),
 								[]byte{
-									byte(bytecode.GET_CONST8), 0,
 									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
 									byte(bytecode.ADD),
 									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-									byte(bytecode.CALL_METHOD8), 2,
+									byte(bytecode.CALL_SELF8), 1,
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_FIRST_ARG),
 								},
 								L(P(5, 2, 5), P(48, 4, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 12),
+									bytecode.NewLineInfo(3, 10),
 									bytecode.NewLineInfo(4, 2),
 								},
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("Std::Kernel").ToValue(),
 									value.SmallInt(2).ToValue(),
 									value.Ref(value.NewCallSiteInfo(
 										value.ToSymbol("println"),
@@ -1962,27 +1960,25 @@ func TestDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("foo="),
 								[]byte{
-									byte(bytecode.GET_CONST8), 0,
 									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
 									byte(bytecode.ADD),
 									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-									byte(bytecode.CALL_METHOD8), 2,
+									byte(bytecode.CALL_SELF8), 1,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE8), 3,
+									byte(bytecode.LOAD_VALUE8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_FIRST_ARG),
 								},
 								L(P(5, 2, 5), P(68, 5, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 13),
+									bytecode.NewLineInfo(3, 11),
 									bytecode.NewLineInfo(4, 4),
 								},
 								1,
 								0,
 								[]value.Value{
-									value.ToSymbol("Std::Kernel").ToValue(),
 									value.SmallInt(2).ToValue(),
 									value.Ref(value.NewCallSiteInfo(
 										value.ToSymbol("println"),
