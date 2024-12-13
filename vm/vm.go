@@ -48,8 +48,8 @@ type VM struct {
 	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
 	sp              *value.Value  // Stack pointer -- points to the offset where the next element will be pushed to
 	fp              *value.Value  // Frame pointer -- points to the offset where the section of the stack for current frame starts
-	callFrameIndex  int           // Index of the next call frame
 	localCount      int           // the amount of registered locals
+	cfp             uintptr       // Call frame pointer
 	stack           []value.Value // Value stack
 	callFrames      []CallFrame   // Call stack
 	errStackTrace   string        // The most recent error stack trace
@@ -85,15 +85,17 @@ func WithStderr(stderr io.Writer) Option {
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	stack := make([]value.Value, VALUE_STACK_SIZE)
+	callFrames := make([]CallFrame, CALL_STACK_SIZE)
 	vm := &VM{
 		stack:      stack,
 		sp:         &stack[0],
 		fp:         &stack[0],
-		callFrames: make([]CallFrame, CALL_STACK_SIZE),
+		callFrames: callFrames,
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
 	}
+	vm.cfpSet(&callFrames[0])
 
 	for _, opt := range opts {
 		opt(vm)
@@ -327,9 +329,11 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 func (vm *VM) run() {
 	defer func() {
 		// Return normally if the panic was an elk error
-		if r := recover(); r == (stopVM{}) {
+		r := recover()
+		if r == nil || r == (stopVM{}) {
 			return
 		}
+		panic(r)
 	}()
 
 	for {
@@ -342,7 +346,7 @@ func (vm *VM) run() {
 			}
 
 			// return normally
-			if vm.callFrameIndex == 0 {
+			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
 			vm.returnFromFunction()
@@ -350,7 +354,7 @@ func (vm *VM) run() {
 				return
 			}
 		case bytecode.RETURN:
-			if vm.callFrameIndex == 0 {
+			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
 			vm.returnFromFunction()
@@ -359,7 +363,7 @@ func (vm *VM) run() {
 			}
 		case bytecode.RETURN_FIRST_ARG:
 			vm.opGetLocal(1)
-			if vm.callFrameIndex == 0 {
+			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
 			vm.returnFromFunction()
@@ -368,7 +372,7 @@ func (vm *VM) run() {
 			}
 		case bytecode.RETURN_SELF:
 			vm.self()
-			if vm.callFrameIndex == 0 {
+			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
 			vm.returnFromFunction()
@@ -804,9 +808,8 @@ func (vm *VM) returnFromFunction() {
 
 // Restore the state of the VM to the last call frame.
 func (vm *VM) restoreLastFrame() {
-	lastIndex := vm.callFrameIndex - 1
-	cf := vm.callFrames[lastIndex]
-	vm.callFrameIndex = lastIndex
+	vm.cfpIncrementBy(-1)
+	cf := vm.cfpGet()
 
 	vm.ip = cf.ip
 	vm.opCloseUpvalues(vm.fp)
@@ -836,16 +839,23 @@ func (vm *VM) BuildStackTrace() string {
 	buffer.WriteString("Stack trace (the most recent call is last)\n")
 
 	var i int
-	for j := range vm.callFrameIndex {
-		callFrame := &vm.callFrames[j]
-		addStackTraceEntry(
-			&buffer,
-			j,
-			callFrame.FileName(),
-			callFrame.LineNumber(),
-			callFrame.Name().String(),
-		)
-		i = j
+	if vm.cfp != uintptr(unsafe.Pointer(&vm.callFrames[0])) {
+		callFrame := &vm.callFrames[0]
+		for {
+			addStackTraceEntry(
+				&buffer,
+				i,
+				callFrame.FileName(),
+				callFrame.LineNumber(),
+				callFrame.Name().String(),
+			)
+
+			i++
+			callFrame = vm.callFrameAdd(callFrame, 1)
+			if uintptr(unsafe.Pointer(callFrame)) == vm.cfp {
+				break
+			}
+		}
 	}
 	addStackTraceEntry(
 		&buffer,
@@ -898,7 +908,11 @@ func (vm *VM) spOffset() int {
 }
 
 func (vm *VM) spAdd(n int) *value.Value {
-	return (*value.Value)(unsafe.Add(unsafe.Pointer(vm.sp), n*int(value.ValueSize)))
+	return vm.stackAdd(vm.sp, n)
+}
+
+func (vm *VM) stackAdd(ptr *value.Value, n int) *value.Value {
+	return (*value.Value)(unsafe.Add(unsafe.Pointer(ptr), n*int(value.ValueSize)))
 }
 
 func (vm *VM) fpOffset() int {
@@ -938,6 +952,33 @@ func (vm *VM) ipIncrement() {
 // Add n to the instruction pointer
 func (vm *VM) ipIncrementBy(n int) {
 	vm.ip = (uintptr)(unsafe.Add(unsafe.Pointer(vm.ip), n))
+}
+
+// Increment the call frame pointer
+func (vm *VM) cfpIncrement() {
+	vm.cfpIncrementBy(1)
+}
+
+func (vm *VM) cfpAdd(n int) *CallFrame {
+	return vm.callFrameAdd(vm.cfpGet(), n)
+}
+
+func (vm *VM) cfpGet() *CallFrame {
+	return (*CallFrame)(unsafe.Pointer(vm.cfp))
+}
+
+// Add n to the call frame pointer
+func (vm *VM) cfpIncrementBy(n int) {
+	vm.cfpSet(vm.cfpAdd(n))
+}
+
+// Set the typesafe call frame pointer
+func (vm *VM) cfpSet(ptr *CallFrame) {
+	vm.cfp = uintptr(unsafe.Pointer(ptr))
+}
+
+func (vm *VM) callFrameAdd(ptr *CallFrame, n int) *CallFrame {
+	return (*CallFrame)(unsafe.Add(unsafe.Pointer(ptr), n*int(CallFrameSize)))
 }
 
 // Read the next byte of code
@@ -1490,8 +1531,8 @@ func (vm *VM) opDefSetter() {
 }
 
 func (vm *VM) addCallFrame(cf CallFrame) {
-	vm.callFrames[vm.callFrameIndex] = cf
-	vm.callFrameIndex++
+	*vm.cfpGet() = cf
+	vm.cfpIncrement()
 }
 
 // preserve the current state of the vm in a call frame
@@ -1655,7 +1696,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i := range dynamicElements {
-		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementPtr := vm.stackAdd(firstElement, i)
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
@@ -1756,7 +1797,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i := range dynamicElements {
-		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementPtr := vm.stackAdd(firstElement, i)
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
@@ -1858,7 +1899,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 
 	var buffer strings.Builder
 	for i := range dynamicElements {
-		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementPtr := vm.stackAdd(firstElement, i)
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
@@ -1995,7 +2036,7 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 	}
 
 	for i := range dynamicElements {
-		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		val := *vm.stackAdd(firstElement, i)
 		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
 		if !err.IsUndefined() {
 			return err
@@ -2047,8 +2088,8 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
-		key := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
-		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), (i+1)*int(value.ValueSize)))
+		key := *vm.stackAdd(firstElement, i)
+		val := *vm.stackAdd(firstElement, i+1)
 		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
 		if !err.IsUndefined() {
 			return err
@@ -2083,8 +2124,8 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
-		key := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
-		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), (i+1)*int(value.ValueSize)))
+		key := *vm.stackAdd(firstElement, i)
+		val := *vm.stackAdd(firstElement, i+1)
 		HashRecordSetWithMaxLoad(vm, newRecord, key, val, 1)
 	}
 	vm.popN((dynamicElements * 2) + 1)
@@ -2744,7 +2785,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 			return
 		}
 
-		if vm.mode == singleFunctionCallMode || vm.callFrameIndex < 1 {
+		if vm.mode == singleFunctionCallMode || vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
 			vm.push(err)

@@ -19,6 +19,8 @@ func init() {
 	CALL_STACK_SIZE = val
 }
 
+const CallFrameSize = unsafe.Sizeof(CallFrame{})
+
 // Contains the data of a single function call.
 type CallFrame struct {
 	bytecode   *BytecodeFunction
