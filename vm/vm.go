@@ -46,8 +46,8 @@ type VM struct {
 	upvalues        []*Upvalue
 	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
 	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
-	sp              int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp              int           // Frame pointer -- points to the offset where the section of the stack for current frame starts
+	sp              *value.Value  // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              *value.Value  // Frame pointer -- points to the offset where the section of the stack for current frame starts
 	callFrameIndex  int           // Index of the next call frame
 	localCount      int           // the amount of registered locals
 	stack           []value.Value // Value stack
@@ -84,8 +84,11 @@ func WithStderr(stderr io.Writer) Option {
 
 // Create a new VM instance.
 func New(opts ...Option) *VM {
+	stack := make([]value.Value, VALUE_STACK_SIZE)
 	vm := &VM{
-		stack:      make([]value.Value, VALUE_STACK_SIZE),
+		stack:      stack,
+		sp:         &stack[0],
+		fp:         &stack[0],
 		callFrames: make([]CallFrame, CALL_STACK_SIZE),
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
@@ -117,7 +120,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
-	if vm.sp == 0 {
+	if vm.sp == &vm.stack[0] {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
 		vm.localCount = 1
@@ -167,7 +170,8 @@ func (vm *VM) StackTop() value.Value {
 }
 
 func (vm *VM) Stack() []value.Value {
-	return vm.stack[:vm.sp]
+	spIndex := vm.spOffset()
+	return vm.stack[:spIndex]
 }
 
 func (vm *VM) InspectStack() {
@@ -290,11 +294,12 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
-		vm.fp = vm.sp - args - 1
+		vm.fp = vm.spAdd(-args - 1)
 		vm.localCount = args + 1
 		vm.ipSet(&m.Instructions[0])
 	case *NativeMethod:
-		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
+		argsPointer := vm.spAdd(-args - 1)
+		result, err := m.Function(vm, unsafe.Slice(argsPointer, args+1))
 		if !err.IsUndefined() {
 			return err
 		}
@@ -308,7 +313,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 }
 
 func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
-	self := vm.stack[vm.sp-args-1]
+	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
@@ -393,7 +398,7 @@ func (vm *VM) run() {
 			vm.swap()
 		case bytecode.DUP_N:
 			n := int(vm.readByte())
-			for _, element := range vm.stack[vm.sp-n : vm.sp] {
+			for _, element := range unsafe.Slice(vm.spAdd(-n), n) {
 				vm.push(element)
 			}
 		case bytecode.SELF:
@@ -567,10 +572,10 @@ func (vm *VM) run() {
 		case bytecode.SET_UPVALUE16:
 			vm.opSetUpvalue(int(vm.readUint16()))
 		case bytecode.CLOSE_UPVALUE8:
-			last := &vm.stack[vm.fp+int(vm.readByte())]
+			last := vm.fpAdd(int(vm.readByte()))
 			vm.opCloseUpvalues(last)
 		case bytecode.CLOSE_UPVALUE16:
-			last := &vm.stack[vm.fp+int(vm.readUint16())]
+			last := vm.fpAdd(int(vm.readUint16()))
 			vm.opCloseUpvalues(last)
 		case bytecode.LEAVE_SCOPE16:
 			vm.opLeaveScope(int(vm.readByte()), int(vm.readByte()))
@@ -756,7 +761,7 @@ func (vm *VM) closure() {
 		}
 
 		if flags.HasFlag(UpvalueLocalFlag) {
-			closure.Upvalues[i] = vm.captureUpvalue(&vm.stack[vm.fp+upIndex])
+			closure.Upvalues[i] = vm.captureUpvalue(vm.fpAdd(upIndex))
 		} else {
 			closure.Upvalues[i] = vm.upvalues[upIndex]
 		}
@@ -804,8 +809,8 @@ func (vm *VM) restoreLastFrame() {
 	vm.callFrameIndex = lastIndex
 
 	vm.ip = cf.ip
-	vm.opCloseUpvalues(&vm.stack[vm.fp])
-	vm.popN(vm.sp - vm.fp)
+	vm.opCloseUpvalues(vm.fp)
+	vm.popN(vm.spOffsetFrom(vm.fp))
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
@@ -872,6 +877,36 @@ func (vm *VM) readValue16() value.Value {
 // of a value and retrieve the value.
 func (vm *VM) readValue32() value.Value {
 	return vm.bytecode.Values[vm.readUint32()]
+}
+
+// Increment the stack pointer
+func (vm *VM) spIncrement() {
+	vm.spIncrementBy(1)
+}
+
+// Add n to the stack pointer
+func (vm *VM) spIncrementBy(n int) {
+	vm.sp = vm.spAdd(n)
+}
+
+func (vm *VM) spOffsetFrom(ptr *value.Value) int {
+	return int(uintptr(unsafe.Pointer(vm.sp))-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
+}
+
+func (vm *VM) spOffset() int {
+	return vm.spOffsetFrom(&vm.stack[0])
+}
+
+func (vm *VM) spAdd(n int) *value.Value {
+	return (*value.Value)(unsafe.Add(unsafe.Pointer(vm.sp), n*int(value.ValueSize)))
+}
+
+func (vm *VM) fpOffset() int {
+	return int(uintptr(unsafe.Pointer(vm.fp))-uintptr(unsafe.Pointer(&vm.stack[0]))) / int(value.ValueSize)
+}
+
+func (vm *VM) fpAdd(n int) *value.Value {
+	return (*value.Value)(unsafe.Add(unsafe.Pointer(vm.fp), n*int(value.ValueSize)))
 }
 
 func (vm *VM) ipOffset() int {
@@ -1016,10 +1051,10 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 
 	// shift all arguments one slot forward to make room for self
 	for i := 0; i < callInfo.ArgumentCount; i++ {
-		vm.stack[vm.sp-i] = vm.stack[vm.sp-i-1]
+		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
 	}
-	vm.stack[vm.sp-callInfo.ArgumentCount] = self
-	vm.sp++
+	*vm.spAdd(-callInfo.ArgumentCount) = self
+	vm.spIncrement()
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
@@ -1112,8 +1147,8 @@ func (vm *VM) opAppend() {
 // Create a new instance of a class
 func (vm *VM) opInstantiate(args int) (err value.Value) {
 	callInfo := value.NewCallSiteInfo(symbol.S_init, args)
-	classIndex := vm.sp - callInfo.ArgumentCount - 1
-	classVal := vm.stack[classIndex]
+	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	classVal := *classPtr
 	var class *value.Class
 	switch c := classVal.SafeAsReference().(type) {
 	case *value.Class:
@@ -1124,7 +1159,7 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 
 	instance := class.CreateInstance()
 	// replace the class with the instance
-	vm.stack[classIndex] = instance
+	*classPtr = instance
 	method := class.LookupMethod(callInfo.Name)
 
 	switch m := method.(type) {
@@ -1156,7 +1191,7 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
-	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
+	self := *vm.spAdd(-callInfo.ArgumentCount - 1)
 	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
@@ -1218,7 +1253,7 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
-	self, isClosure := vm.stack[vm.sp-callInfo.ArgumentCount-1].MustReference().(*Closure)
+	self, isClosure := vm.spAdd(-callInfo.ArgumentCount - 1).MustReference().(*Closure)
 	if !isClosure {
 		return vm.opCallMethod(callInfoIndex)
 	}
@@ -1237,7 +1272,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
-	vm.fp = vm.sp - function.parameterCount - 1
+	vm.fp = vm.spAdd(-function.parameterCount - 1)
 	vm.ipSet(&function.Instructions[0])
 	vm.upvalues = closure.Upvalues
 
@@ -1248,7 +1283,8 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
 
-	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
+	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	self := *selfPtr
 	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
@@ -1303,8 +1339,10 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 		return prepErr
 	}
 
-	returnVal, nativeErr := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
-	vm.popN(method.ParameterCount() + 1)
+	paramCount := method.ParameterCount()
+	args := unsafe.Slice(vm.spAdd(-paramCount-1), paramCount+1)
+	returnVal, nativeErr := method.Function(vm, args)
+	vm.popN(paramCount + 1)
 	if !nativeErr.IsUndefined() {
 		return nativeErr
 	}
@@ -1322,7 +1360,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
-	vm.fp = vm.sp - method.ParameterCount() - 1
+	vm.fp = vm.spAdd(-method.ParameterCount() - 1)
 	vm.ipSet(&method.Instructions[0])
 
 	return value.Undefined
@@ -1498,7 +1536,7 @@ func (vm *VM) opSetLocal(index int) {
 
 // Set a local variable or value.
 func (vm *VM) setLocalValue(index int, val value.Value) {
-	vm.stack[vm.fp+index] = val
+	*vm.fpAdd(index) = val
 }
 
 // Read a local variable or value.
@@ -1508,7 +1546,7 @@ func (vm *VM) opGetLocal(index int) {
 
 // Read a local variable or value.
 func (vm *VM) getLocalValue(index int) value.Value {
-	return vm.stack[vm.fp+index]
+	return *vm.fpAdd(index)
 }
 
 // Set an upvalue.
@@ -1613,11 +1651,13 @@ var toStringSymbol = value.ToSymbol("to_string")
 
 // Create a new string.
 func (vm *VM) opNewString(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - dynamicElements
+	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
-	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined
+	for i := range dynamicElements {
+		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementVal := *elementPtr
+		*elementPtr = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -1703,7 +1743,8 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			buffer.WriteString(string(str))
 		}
 	}
-	vm.sp -= dynamicElements
+
+	vm.spIncrementBy(-dynamicElements)
 	vm.push(value.Ref(value.String(buffer.String())))
 
 	return value.Undefined
@@ -1711,11 +1752,13 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 
 // Create a new symbol.
 func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - dynamicElements
+	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
-	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined
+	for i := range dynamicElements {
+		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementVal := *elementPtr
+		*elementPtr = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -1801,7 +1844,8 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			buffer.WriteString(string(str))
 		}
 	}
-	vm.sp -= dynamicElements
+
+	vm.spIncrementBy(-dynamicElements)
 	vm.push(value.ToSymbol(buffer.String()).ToValue())
 
 	return value.Undefined
@@ -1810,11 +1854,13 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 // Create a new regex.
 func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	flags := bitfield.BitField8FromInt(flagByte)
-	firstElementIndex := vm.sp - dynamicElements
+	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
-	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
-		vm.stack[firstElementIndex+i] = value.Undefined
+	for i := range dynamicElements {
+		elementPtr := (*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		elementVal := *elementPtr
+		*elementPtr = value.Undefined
 
 		if elementVal.IsReference() {
 			switch element := elementVal.AsReference().(type) {
@@ -1900,7 +1946,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			buffer.WriteString(string(str))
 		}
 	}
-	vm.sp -= dynamicElements
+	vm.spIncrementBy(-dynamicElements)
 	re, err := value.CompileRegex(buffer.String(), flags)
 	if err != nil {
 		return value.Ref(value.NewError(value.RegexCompileErrorClass, err.Error()))
@@ -1912,9 +1958,9 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 
 // Create a new hashset.
 func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - dynamicElements
-	capacity := vm.stack[firstElementIndex-2]
-	baseSet := vm.stack[firstElementIndex-1]
+	firstElement := vm.spAdd(-dynamicElements)
+	capacity := *vm.spAdd(-dynamicElements - 2)
+	baseSet := *vm.spAdd(-dynamicElements - 1)
 	var newSet *value.HashSet
 
 	var additionalCapacity int
@@ -1948,8 +1994,8 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 		}
 	}
 
-	for i := firstElementIndex; i < vm.sp; i++ {
-		val := vm.stack[i]
+	for i := range dynamicElements {
+		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
 		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
 		if !err.IsUndefined() {
 			return err
@@ -1963,9 +2009,10 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 
 // Create a new hashmap.
 func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - (dynamicElements * 2)
-	capacity := vm.stack[firstElementIndex-2]
-	baseMap := vm.stack[firstElementIndex-1]
+	firstElementOffset := -(dynamicElements * 2)
+	firstElement := vm.spAdd(firstElementOffset)
+	capacity := *vm.spAdd(firstElementOffset - 2)
+	baseMap := *vm.spAdd(firstElementOffset - 1)
 	var newMap *value.HashMap
 
 	var additionalCapacity int
@@ -1999,9 +2046,9 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 		}
 	}
 
-	for i := firstElementIndex; i < vm.sp; i += 2 {
-		key := vm.stack[i]
-		val := vm.stack[i+1]
+	for i := 0; i < dynamicElements*2; i += 2 {
+		key := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), (i+1)*int(value.ValueSize)))
 		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
 		if !err.IsUndefined() {
 			return err
@@ -2015,8 +2062,9 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 
 // Create a new hash record.
 func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - (dynamicElements * 2)
-	baseMap := vm.stack[firstElementIndex-1]
+	firstElementOffset := -(dynamicElements * 2)
+	firstElement := vm.spAdd(firstElementOffset)
+	baseMap := *vm.spAdd(firstElementOffset - 1)
 	var newRecord *value.HashRecord
 
 	if baseMap.IsUndefined() {
@@ -2034,56 +2082,14 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 		}
 	}
 
-	for i := firstElementIndex; i < vm.sp; i += 2 {
-		key := vm.stack[i]
-		val := vm.stack[i+1]
+	for i := 0; i < dynamicElements*2; i += 2 {
+		key := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), i*int(value.ValueSize)))
+		val := *(*value.Value)(unsafe.Add(unsafe.Pointer(firstElement), (i+1)*int(value.ValueSize)))
 		HashRecordSetWithMaxLoad(vm, newRecord, key, val, 1)
 	}
 	vm.popN((dynamicElements * 2) + 1)
 
 	vm.push(value.Ref(newRecord))
-	return value.Undefined
-}
-
-// Create a new array list.
-func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
-	firstElementIndex := vm.sp - dynamicElements
-	capacity := vm.stack[firstElementIndex-2]
-	baseList := vm.stack[firstElementIndex-1]
-	var newArrayList value.ArrayList
-
-	var additionalCapacity int
-
-	if !capacity.IsUndefined() {
-		c, ok := value.ToGoInt(capacity)
-		if c == -1 && !ok {
-			return value.Ref(value.NewTooLargeCapacityError(capacity.Inspect()))
-		}
-		if c < 0 {
-			return value.Ref(value.NewNegativeCapacityError(capacity.Inspect()))
-		}
-		if !ok {
-			return value.Ref(value.NewCapacityTypeError(capacity.Inspect()))
-		}
-		additionalCapacity = c
-	}
-
-	if baseList.IsUndefined() {
-		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
-	} else {
-		switch l := baseList.SafeAsReference().(type) {
-		case *value.ArrayList:
-			newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
-			newArrayList = append(newArrayList, *l...)
-		default:
-			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
-		}
-	}
-
-	newArrayList = append(newArrayList, vm.stack[firstElementIndex:vm.sp]...)
-	vm.popN(dynamicElements + 2)
-
-	vm.push(value.Ref(&newArrayList))
 	return value.Undefined
 }
 
@@ -2124,10 +2130,52 @@ func (vm *VM) opNewRange() {
 	vm.push(newRange)
 }
 
+// Create a new array list.
+func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
+	firstElement := vm.spAdd(-dynamicElements)
+	capacity := *vm.spAdd(-dynamicElements - 2)
+	baseList := *vm.spAdd(-dynamicElements - 1)
+	var newArrayList value.ArrayList
+
+	var additionalCapacity int
+
+	if !capacity.IsUndefined() {
+		c, ok := value.ToGoInt(capacity)
+		if c == -1 && !ok {
+			return value.Ref(value.NewTooLargeCapacityError(capacity.Inspect()))
+		}
+		if c < 0 {
+			return value.Ref(value.NewNegativeCapacityError(capacity.Inspect()))
+		}
+		if !ok {
+			return value.Ref(value.NewCapacityTypeError(capacity.Inspect()))
+		}
+		additionalCapacity = c
+	}
+
+	if baseList.IsUndefined() {
+		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
+	} else {
+		switch l := baseList.SafeAsReference().(type) {
+		case *value.ArrayList:
+			newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
+			newArrayList = append(newArrayList, *l...)
+		default:
+			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
+		}
+	}
+
+	newArrayList = append(newArrayList, unsafe.Slice(firstElement, dynamicElements)...)
+	vm.popN(dynamicElements + 2)
+
+	vm.push(value.Ref(&newArrayList))
+	return value.Undefined
+}
+
 // Create a new arrayTuple.
 func (vm *VM) opNewArrayTuple(dynamicElements int) {
-	firstElementIndex := vm.sp - dynamicElements
-	baseArrayTuple := vm.stack[firstElementIndex-1]
+	firstElement := vm.spAdd(-dynamicElements)
+	baseArrayTuple := *vm.spAdd(-dynamicElements - 1)
 	var newArrayTuple value.ArrayTuple
 
 	if baseArrayTuple.IsUndefined() {
@@ -2142,7 +2190,7 @@ func (vm *VM) opNewArrayTuple(dynamicElements int) {
 		}
 	}
 
-	newArrayTuple = append(newArrayTuple, vm.stack[firstElementIndex:vm.sp]...)
+	newArrayTuple = append(newArrayTuple, unsafe.Slice(firstElement, dynamicElements)...)
 	vm.popN(dynamicElements + 1)
 
 	vm.push(value.Ref(&newArrayTuple))
@@ -2184,74 +2232,77 @@ func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 
 // Register slots for local variables and values.
 func (vm *VM) opPrepLocals(count int) {
-	vm.sp += count
+	vm.spIncrementBy(count)
 	vm.localCount += count
 }
 
 // Push an element on top of the value stack.
 func (vm *VM) push(val value.Value) {
-	vm.stack[vm.sp] = val
-	vm.sp++
+	*vm.sp = val
+	vm.spIncrement()
 }
 
 // Push an element on top of the value stack.
 func (vm *VM) swap() {
-	tmp := vm.stack[vm.sp-2]
-	vm.stack[vm.sp-2] = vm.stack[vm.sp-1]
-	vm.stack[vm.sp-1] = tmp
+	firstPtr := vm.spAdd(-2)
+	secondPtr := vm.spAdd(-1)
+	tmp := *firstPtr
+	*firstPtr = *secondPtr
+	*secondPtr = tmp
 }
 
 // Pop an element off the value stack.
 func (vm *VM) pop() value.Value {
-	vm.sp--
-	val := vm.stack[vm.sp]
-	vm.stack[vm.sp] = value.Undefined
+	vm.spIncrementBy(-1)
+	val := *vm.sp
+	*vm.sp = value.Undefined
 	return val
 }
 
 // Pop all values on the stack leaving only slots for locals
 func (vm *VM) popAll() {
-	vm.popN(vm.sp - vm.localCount - 1)
+	vm.popN(vm.spOffset() - vm.localCount - 1)
 }
 
 // Pop n elements off the value stack.
 func (vm *VM) popN(n int) {
-	for i := vm.sp - 1; i >= vm.sp-n; i-- {
+	spOffset := vm.spOffset()
+	for i := spOffset - 1; i >= spOffset; i-- {
 		vm.stack[i] = value.Undefined
 	}
-	vm.sp -= n
+	vm.spIncrementBy(-n)
 }
 
 // Pop one element off the value stack skipping the first one.
 func (vm *VM) popSkipOne() {
-	vm.sp--
-	vm.stack[vm.sp-1] = vm.stack[vm.sp]
+	vm.spIncrementBy(-1)
+	*vm.spAdd(-1) = *vm.sp
 }
 
 // Pop n elements off the value stack skipping the first one.
 func (vm *VM) popNSkipOne(n int) {
-	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
-	for i := vm.sp - 1; i >= vm.sp-n; i-- {
-		vm.stack[i] = value.Undefined
+	*vm.spAdd(-n - 1) = *vm.spAdd(-1)
+	for i := vm.spOffset() - 1; i >= vm.spOffset()-n; i-- {
+		*vm.spAdd(i) = value.Undefined
 	}
-	vm.sp -= n
+	vm.spIncrementBy(-n)
 }
 
 // Replaces the value on top of the stack without popping it.
 func (vm *VM) replace(val value.Value) {
-	vm.stack[vm.sp-1] = val
+	*vm.spAdd(-1) = val
 }
 
 // Return the element on top of the stack
 // without popping it.
 func (vm *VM) peek() value.Value {
-	return vm.stack[vm.sp-1]
+	return *vm.spAdd(-1)
 }
 
 // Return the nth element on top of the stack
 // without popping it.
 func (vm *VM) peekAt(n int) value.Value {
-	return vm.stack[vm.sp-1-n]
+	return *vm.spAdd(-1 - n)
 }
 
 type unaryOperationFunc func(val value.Value) value.Value
@@ -2515,7 +2566,7 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 		return value.Undefined
 	}
 
-	self := vm.stack[vm.sp-2]
+	self := *vm.spAdd(-2)
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {
@@ -2537,7 +2588,7 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 		return value.Undefined
 	}
 
-	self := vm.stack[vm.sp-2]
+	self := *vm.spAdd(-2)
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {

@@ -16,6 +16,8 @@ type iface struct {
 	ptr unsafe.Pointer
 }
 
+const ValueSize = unsafe.Sizeof(Value{})
+
 // `undefined` is the zero value of `Value`, it maps directly to Go `nil`
 type Value struct {
 	data uintptr
