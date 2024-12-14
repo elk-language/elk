@@ -241,9 +241,6 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 	self := args[0]
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
-	if method == nil {
-		return value.Undefined, value.Ref(value.NewNoMethodError(string(name.ToString()), self))
-	}
 	return vm.CallMethod(method, args...)
 }
 
@@ -318,10 +315,6 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
-	if method == nil {
-		return value.Ref(value.NewNoMethodError(string(name.ToString()), self))
-	}
-
 	return vm.callMethodOnStack(method, args)
 }
 
@@ -1174,9 +1167,6 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
-	if method == nil {
-		return value.Ref(value.NewNoMethodError(string(callInfo.Name.ToString()), self))
-	}
 
 	// shift all arguments one slot forward to make room for self
 	for i := 0; i < callInfo.ArgumentCount; i++ {
@@ -1190,9 +1180,34 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 		return vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
 	}
 
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+func (vm *VM) callGetterMethod(method *GetterMethod) value.Value {
+	self := vm.pop() // pop self
+	result, err := method.Call(self)
+	if !err.IsUndefined() {
+		return err
+	}
+	vm.push(result)
+	return value.Undefined
+}
+
+func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
+	other := vm.pop()
+	self := vm.pop() // pop self
+	result, err := method.Call(self, other)
+	if !err.IsUndefined() {
+		return err
+	}
+	vm.push(result)
+	return value.Undefined
 }
 
 // Set the value of an instance variable
@@ -1297,85 +1312,13 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case nil:
-		if callInfo.ArgumentCount == 0 {
-			// no initialiser defined
-			// no arguments given
-			// just replace the class with the instance
-			return value.Undefined
-		}
-
-		return value.Ref(value.NewWrongArgumentCountError(
-			callInfo.Name.String(),
-			callInfo.ArgumentCount,
-			0,
-		))
+		// no initialiser defined
+		// no arguments given
+		// just replace the class with the instance
+		return value.Undefined
 	default:
 		panic(fmt.Sprintf("tried to call an invalid initialiser method: %#v", method))
 	}
-}
-
-// Call a method in a pattern.
-// Return false if the receiver does not have the method
-// or it throws TypeError.
-func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
-
-	self := *vm.spAdd(-callInfo.ArgumentCount - 1)
-	class := self.DirectClass()
-
-	method := class.LookupMethod(callInfo.Name)
-	if method == nil {
-		vm.popN(callInfo.ArgumentCount + 1)
-		vm.push(value.False)
-		return value.Undefined
-	}
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		err = vm.callBytecodeFunction(m, callInfo)
-	case *NativeMethod:
-		err = vm.callNativeMethod(m, callInfo)
-	case *GetterMethod:
-		if callInfo.ArgumentCount != 0 {
-			return value.Ref(value.NewWrongArgumentCountError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				0,
-			))
-		}
-		vm.pop() // pop self
-		var result value.Value
-		result, err = m.Call(self)
-		if err.IsUndefined() {
-			vm.push(result)
-		}
-	case *SetterMethod:
-		if callInfo.ArgumentCount != 1 {
-			return value.Ref(value.NewWrongArgumentCountError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				1,
-			))
-		}
-		other := vm.pop()
-		vm.pop() // pop self
-		var result value.Value
-		result, err = m.Call(self, other)
-		if err.IsUndefined() {
-			vm.push(result)
-		}
-	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
-	}
-
-	if !err.IsUndefined() {
-		if err.Class() == value.TypeErrorClass {
-			vm.push(value.False)
-			return value.Undefined
-		}
-		return err
-	}
-
-	return value.Undefined
 }
 
 // Call the `opCall` method with an explicit receiver
@@ -1393,10 +1336,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	function := closure.Bytecode
-	if err := vm.prepareArguments(function, callInfo); !err.IsUndefined() {
-		return err
-	}
-
+	vm.prepareArguments(function, callInfo)
 	vm.createCurrentCallFrame()
 
 	vm.localCount = function.parameterCount + 1
@@ -1417,46 +1357,15 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
-	if method == nil {
-		vm.popN(callInfo.ArgumentCount + 1)
-		return value.Ref(value.NewNoMethodError(string(callInfo.Name.ToString()), self))
-	}
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		return vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
-		if callInfo.ArgumentCount != 0 {
-			return value.Ref(value.NewWrongArgumentCountError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				0,
-			))
-		}
-		vm.pop() // pop self
-		result, err := m.Call(self)
-		if !err.IsUndefined() {
-			return err
-		}
-		vm.push(result)
-		return value.Undefined
+		return vm.callGetterMethod(m)
 	case *SetterMethod:
-		if callInfo.ArgumentCount != 1 {
-			return value.Ref(value.NewWrongArgumentCountError(
-				method.Name().String(),
-				callInfo.ArgumentCount,
-				1,
-			))
-		}
-		other := vm.pop()
-		vm.pop() // pop self
-		result, err := m.Call(self, other)
-		if !err.IsUndefined() {
-			return err
-		}
-		vm.push(result)
-		return value.Undefined
+		return vm.callSetterMethod(m)
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
 	}
@@ -1464,9 +1373,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	if prepErr := vm.prepareArguments(method, callInfo); !prepErr.IsUndefined() {
-		return prepErr
-	}
+	vm.prepareArguments(method, callInfo)
 
 	paramCount := method.ParameterCount()
 	args := unsafe.Slice(vm.spAdd(-paramCount-1), paramCount+1)
@@ -1481,10 +1388,7 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
-	if err := vm.prepareArguments(method, callInfo); !err.IsUndefined() {
-		return err
-	}
-
+	vm.prepareArguments(method, callInfo)
 	vm.createCurrentCallFrame()
 
 	vm.localCount = method.parameterCount + 1
@@ -1495,19 +1399,9 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	return value.Undefined
 }
 
-func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) {
 	optParamCount := method.OptionalParameterCount()
 	paramCount := method.ParameterCount()
-	reqParamCount := paramCount - optParamCount
-
-	if callInfo.ArgumentCount < reqParamCount {
-		return value.Ref(value.NewWrongArgumentCountRangeError(
-			method.Name().String(),
-			callInfo.ArgumentCount,
-			reqParamCount,
-			paramCount,
-		))
-	}
 
 	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
@@ -1515,15 +1409,7 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 		for i := 0; i < missingArgCount; i++ {
 			vm.push(value.Undefined)
 		}
-	} else if paramCount != callInfo.ArgumentCount {
-		return value.Ref(value.NewWrongArgumentCountError(
-			method.Name().String(),
-			callInfo.ArgumentCount,
-			paramCount,
-		))
 	}
-
-	return value.Undefined
 }
 
 // Include a mixin in a class/mixin.
