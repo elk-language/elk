@@ -9,6 +9,12 @@ import (
 type CallSiteInfo struct {
 	Name          Symbol
 	ArgumentCount int
+	Cache         [3]CallCache
+}
+
+type CallCache struct {
+	Class  *Class
+	Method Method
 }
 
 // Create a new CallSiteInfo.

@@ -1159,14 +1159,37 @@ func (vm *VM) selfValue() value.Value {
 	return vm.getLocalValue(0)
 }
 
+func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, index int) value.Method {
+	for i := range len(callInfo.Cache) {
+		cacheEntry := callInfo.Cache[i]
+		if cacheEntry.Class == class {
+			return cacheEntry.Method
+		}
+		if cacheEntry.Class == nil {
+			method := class.LookupMethod(callInfo.Name)
+			newCache := callInfo.Cache
+			newCache[i] = value.CallCache{
+				Class:  class,
+				Method: method,
+			}
+			vm.bytecode.Values[index] = value.Ref(&value.CallSiteInfo{
+				Name:          callInfo.Name,
+				ArgumentCount: callInfo.ArgumentCount,
+				Cache:         newCache,
+			})
+			return method
+		}
+	}
+
+	return class.LookupMethod(callInfo.Name)
+}
+
 // Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
 	self := vm.selfValue()
 	class := self.DirectClass()
-
-	method := class.LookupMethod(callInfo.Name)
 
 	// shift all arguments one slot forward to make room for self
 	for i := 0; i < callInfo.ArgumentCount; i++ {
@@ -1175,6 +1198,7 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	*vm.spAdd(-callInfo.ArgumentCount) = self
 	vm.spIncrement()
 
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		return vm.callBytecodeFunction(m, callInfo)
@@ -1356,7 +1380,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	self := *selfPtr
 	class := self.DirectClass()
 
-	method := class.LookupMethod(callInfo.Name)
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		return vm.callBytecodeFunction(m, callInfo)
