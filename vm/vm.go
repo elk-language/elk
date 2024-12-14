@@ -46,8 +46,8 @@ type VM struct {
 	upvalues        []*Upvalue
 	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
 	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
-	sp              *value.Value  // Stack pointer -- points to the offset where the next element will be pushed to
-	fp              *value.Value  // Frame pointer -- points to the offset where the section of the stack for current frame starts
+	sp              uintptr       // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              uintptr       // Frame pointer -- points to the offset where the section of the stack for current frame starts
 	localCount      int           // the amount of registered locals
 	cfp             uintptr       // Call frame pointer
 	stack           []value.Value // Value stack
@@ -88,8 +88,8 @@ func New(opts ...Option) *VM {
 	callFrames := make([]CallFrame, CALL_STACK_SIZE)
 	vm := &VM{
 		stack:      stack,
-		sp:         &stack[0],
-		fp:         &stack[0],
+		sp:         uintptr(unsafe.Pointer(&stack[0])),
+		fp:         uintptr(unsafe.Pointer(&stack[0])),
 		callFrames: callFrames,
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
@@ -122,7 +122,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
-	if vm.sp == &vm.stack[0] {
+	if vm.sp == uintptr(unsafe.Pointer(&vm.stack[0])) {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
 		vm.localCount = 1
@@ -296,7 +296,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
-		vm.fp = vm.spAdd(-args - 1)
+		vm.fpSet(vm.spAdd(-args - 1))
 		vm.localCount = args + 1
 		vm.ipSet(&m.Instructions[0])
 	case *NativeMethod:
@@ -884,8 +884,8 @@ func (vm *VM) restoreLastFrame() {
 	cf := vm.cfpGet()
 
 	vm.ip = cf.ip
-	vm.opCloseUpvalues(vm.fp)
-	vm.popN(vm.spOffsetFrom(vm.fp))
+	vm.opCloseUpvalues(vm.fpGet())
+	vm.popN(vm.spOffsetFrom(vm.fpGet()))
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
@@ -968,7 +968,15 @@ func (vm *VM) spIncrement() {
 
 // Add n to the stack pointer
 func (vm *VM) spIncrementBy(n int) {
-	vm.sp = vm.spAdd(n)
+	vm.sp = vm.sp + uintptr(n)*value.ValueSize
+}
+
+func (vm *VM) spSet(ptr *value.Value) {
+	vm.sp = uintptr(unsafe.Pointer(ptr))
+}
+
+func (vm *VM) spGet() *value.Value {
+	return (*value.Value)(unsafe.Pointer(vm.sp))
 }
 
 func (vm *VM) spOffsetFrom(ptr *value.Value) int {
@@ -980,7 +988,7 @@ func (vm *VM) spOffset() int {
 }
 
 func (vm *VM) spAdd(n int) *value.Value {
-	return vm.stackAdd(vm.sp, n)
+	return vm.stackAdd(vm.spGet(), n)
 }
 
 func (vm *VM) stackAdd(ptr *value.Value, n int) *value.Value {
@@ -993,6 +1001,14 @@ func (vm *VM) fpOffset() int {
 
 func (vm *VM) fpAdd(n int) *value.Value {
 	return (*value.Value)(unsafe.Add(unsafe.Pointer(vm.fp), n*int(value.ValueSize)))
+}
+
+func (vm *VM) fpSet(ptr *value.Value) {
+	vm.fp = uintptr(unsafe.Pointer(ptr))
+}
+
+func (vm *VM) fpGet() *value.Value {
+	return (*value.Value)(unsafe.Pointer(vm.fp))
 }
 
 func (vm *VM) ipOffset() int {
@@ -1385,7 +1401,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
-	vm.fp = vm.spAdd(-function.parameterCount - 1)
+	vm.fpSet(vm.spAdd(-function.parameterCount - 1))
 	vm.ipSet(&function.Instructions[0])
 	vm.upvalues = closure.Upvalues
 
@@ -1473,7 +1489,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
-	vm.fp = vm.spAdd(-method.ParameterCount() - 1)
+	vm.fpSet(vm.spAdd(-method.ParameterCount() - 1))
 	vm.ipSet(&method.Instructions[0])
 
 	return value.Undefined
@@ -2351,7 +2367,7 @@ func (vm *VM) opPrepLocals(count int) {
 
 // Push an element on top of the value stack.
 func (vm *VM) push(val value.Value) {
-	*vm.sp = val
+	*vm.spGet() = val
 	vm.spIncrement()
 }
 
@@ -2367,8 +2383,8 @@ func (vm *VM) swap() {
 // Pop an element off the value stack.
 func (vm *VM) pop() value.Value {
 	vm.spIncrementBy(-1)
-	val := *vm.sp
-	*vm.sp = value.Undefined
+	val := *vm.spGet()
+	*vm.spGet() = value.Undefined
 	return val
 }
 
@@ -2389,7 +2405,7 @@ func (vm *VM) popN(n int) {
 // Pop one element off the value stack skipping the first one.
 func (vm *VM) popSkipOne() {
 	vm.spIncrementBy(-1)
-	*vm.spAdd(-1) = *vm.sp
+	*vm.spAdd(-1) = *vm.spGet()
 }
 
 // Pop n elements off the value stack skipping the first one.

@@ -24,8 +24,8 @@ const CallFrameSize = unsafe.Sizeof(CallFrame{})
 // Contains the data of a single function call.
 type CallFrame struct {
 	bytecode   *BytecodeFunction
-	ip         uintptr      // Instruction pointer - points to the next bytecode instruction for this frame
-	fp         *value.Value // Frame pointer -- points to the offset on the value stack where the current frame start
+	ip         uintptr // Instruction pointer - points to the next bytecode instruction for this frame
+	fp         uintptr // Frame pointer -- points to the offset on the value stack where the current frame start
 	localCount int
 	upvalues   []*Upvalue
 }
