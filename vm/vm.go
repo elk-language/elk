@@ -375,8 +375,8 @@ func (vm *VM) run() {
 		case bytecode.CLOSURE:
 			vm.closure()
 		case bytecode.JUMP_TO_FINALLY:
-			leftFinallyCount := vm.peek().MustSmallInt()
-			jumpOffset := vm.peekAt(1).MustSmallInt()
+			leftFinallyCount := vm.peek().AsSmallInt()
+			jumpOffset := vm.peekAt(1).AsSmallInt()
 
 			if leftFinallyCount > 0 {
 				vm.replace((leftFinallyCount - 1).ToValue())
@@ -761,10 +761,10 @@ func (vm *VM) run() {
 		case bytecode.MUST:
 			vm.opMust()
 		case bytecode.AS:
-			vm.mustAs()
+			vm.opAs()
 		case bytecode.RETHROW:
 			err := vm.pop()
-			stackTrace := vm.pop().MustReference().(value.String)
+			stackTrace := vm.pop().AsReference().(value.String)
 			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.opLeftBitshift())
@@ -816,7 +816,7 @@ func (vm *VM) run() {
 }
 
 func (vm *VM) closure() {
-	function := vm.peek().MustReference().(*BytecodeFunction)
+	function := vm.peek().AsReference().(*BytecodeFunction)
 	closure := NewClosure(function, vm.selfValue())
 	vm.replace(value.Ref(closure))
 
@@ -1094,7 +1094,7 @@ func (vm *VM) self() {
 
 func (vm *VM) opDefNamespace() {
 	typ := vm.readByte()
-	name := vm.pop().MustSymbol()
+	name := vm.pop().AsSymbol()
 	parentNamespace := vm.pop()
 
 	var parentConstantContainer value.ConstantContainer
@@ -1236,7 +1236,7 @@ func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
 
 // Set the value of an instance variable
 func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].MustSymbol()
+	name := vm.bytecode.Values[nameIndex].AsSymbol()
 	val := vm.peek()
 
 	self := vm.selfValue()
@@ -1251,7 +1251,7 @@ func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 
 // Get the value of an instance variable
 func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].MustSymbol()
+	name := vm.bytecode.Values[nameIndex].AsSymbol()
 
 	self := vm.selfValue()
 	ivars := self.InstanceVariables()
@@ -1300,7 +1300,7 @@ func (vm *VM) opAppend() {
 		vm.replace(value.Ref(&value.ArrayTuple{element}))
 		return
 	}
-	switch c := collection.MustReference().(type) {
+	switch c := collection.AsReference().(type) {
 	case *value.ArrayTuple:
 		c.Append(element)
 	case *value.ArrayList:
@@ -1347,9 +1347,9 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 
 // Call the `opCall` method with an explicit receiver
 func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
-	self, isClosure := vm.spAdd(-callInfo.ArgumentCount - 1).MustReference().(*Closure)
+	self, isClosure := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference().(*Closure)
 	if !isClosure {
 		return vm.opCallMethod(callInfoIndex)
 	}
@@ -1374,7 +1374,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 // Call a method with an explicit receiver
 func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].MustReference().(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -1441,7 +1441,7 @@ func (vm *VM) opInclude() (err value.Value) {
 	mixinVal := vm.pop()
 	targetValue := vm.pop()
 
-	mixin, ok := mixinVal.MustReference().(*value.Mixin)
+	mixin, ok := mixinVal.AsReference().(*value.Mixin)
 	if !ok || !mixin.IsMixin() {
 		return value.Ref(value.NewIsNotMixinError(mixinVal.Inspect()))
 	}
@@ -1463,8 +1463,8 @@ func (vm *VM) opInclude() (err value.Value) {
 
 // Define a new method alias
 func (vm *VM) opDefMethodAlias() {
-	newName := vm.pop().MustSymbol()
-	oldName := vm.pop().MustSymbol()
+	newName := vm.pop().AsSymbol()
+	oldName := vm.pop().AsSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -1477,8 +1477,8 @@ func (vm *VM) opDefMethodAlias() {
 
 // Define a new method
 func (vm *VM) opDefMethod() {
-	name := vm.pop().MustSymbol()
-	body := vm.pop().MustReference().(*BytecodeFunction)
+	name := vm.pop().AsSymbol()
+	body := vm.pop().AsReference().(*BytecodeFunction)
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -1491,20 +1491,20 @@ func (vm *VM) opDefMethod() {
 
 // Initialise a namespace
 func (vm *VM) opInitNamespace() {
-	body := vm.pop().MustReference().(*BytecodeFunction)
+	body := vm.pop().AsReference().(*BytecodeFunction)
 	namespace := vm.pop()
 	vm.executeNamespaceBody(namespace, body)
 }
 
 // Execute a chunk of bytecode
 func (vm *VM) opExec() {
-	bytecodeFunc := vm.pop().MustReference().(*BytecodeFunction)
+	bytecodeFunc := vm.pop().AsReference().(*BytecodeFunction)
 	vm.executeFunc(bytecodeFunc)
 }
 
 // Define a getter method
 func (vm *VM) opDefGetter() {
-	name := vm.pop().MustSymbol()
+	name := vm.pop().AsSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -1517,7 +1517,7 @@ func (vm *VM) opDefGetter() {
 
 // Define a setter method
 func (vm *VM) opDefSetter() {
-	name := vm.pop().MustSymbol()
+	name := vm.pop().AsSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -1630,8 +1630,8 @@ func (vm *VM) opCloseUpvalues(lastToClose *value.Value) {
 
 // Set the superclass/parent of a class
 func (vm *VM) opSetSuperclass() {
-	newSuperclass := vm.pop().MustReference().(*value.Class)
-	class := vm.pop().MustReference().(*value.Class)
+	newSuperclass := vm.pop().AsReference().(*value.Class)
+	class := vm.pop().AsReference().(*value.Class)
 
 	if class.Parent != nil {
 		return
@@ -1642,7 +1642,7 @@ func (vm *VM) opSetSuperclass() {
 
 // Look for a constant with the given name.
 func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].MustSymbol()
+	symbol := vm.bytecode.Values[nameIndex].AsSymbol()
 
 	val := value.RootModule.Constants.Get(symbol)
 	if val.IsUndefined() {
@@ -1717,7 +1717,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 				if !err.IsUndefined() {
 					return err
 				}
-				str, ok := strVal.MustReference().(value.String)
+				str, ok := strVal.SafeAsReference().(value.String)
 				if !ok {
 					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 				}
@@ -2238,11 +2238,11 @@ func (vm *VM) opNewArrayTuple(dynamicElements int) {
 // Define a new constant
 func (vm *VM) opDefConst() {
 	constVal := vm.pop()
-	constName := vm.pop().MustSymbol()
+	constName := vm.pop().AsSymbol()
 	namespace := vm.pop()
 	var constants value.ConstantContainer
 
-	switch n := namespace.MustReference().(type) {
+	switch n := namespace.AsReference().(type) {
 	case *value.Class:
 		constants = n.ConstantContainer
 	case *value.Module:
@@ -2743,8 +2743,8 @@ func (vm *VM) opMust() {
 }
 
 // Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
-func (vm *VM) mustAs() {
-	class := vm.pop().MustReference().(*value.Class)
+func (vm *VM) opAs() {
+	class := vm.pop().AsReference().(*value.Class)
 	val := vm.peek()
 	if !value.IsA(val, class) {
 		vm.throw(
