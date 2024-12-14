@@ -7,6 +7,14 @@ type SimpleInt interface {
 	SmallInt | Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
 }
 
+type SingedInt interface {
+	SmallInt | Int64 | Int32 | Int16 | Int8
+}
+
+type UnsignedInt interface {
+	UInt64 | UInt32 | UInt16 | UInt8
+}
+
 func initInt() {
 	IntClass = NewClass()
 	StdModule.AddConstantString("Int", Ref(IntClass))

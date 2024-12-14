@@ -2,6 +2,7 @@ package vm
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -419,27 +420,41 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
 		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
-		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC, bytecode.DEF_METHOD_ALIAS:
+		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC, bytecode.DEF_METHOD_ALIAS,
+		bytecode.INT_M1, bytecode.INT_0, bytecode.INT_1, bytecode.INT_2, bytecode.INT_3, bytecode.INT_4, bytecode.INT_5,
+		bytecode.INT64_0, bytecode.INT64_1, bytecode.UINT64_0, bytecode.UINT64_1, bytecode.INT32_0, bytecode.INT32_1,
+		bytecode.UINT32_0, bytecode.UINT32_1, bytecode.INT16_0, bytecode.INT16_1,
+		bytecode.UINT16_0, bytecode.UINT16_1, bytecode.INT8_0, bytecode.INT8_1,
+		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
-		bytecode.INSTANTIATE8:
-		return f.disassembleNumericOperands(output, 1, 1, offset)
+		bytecode.INSTANTIATE8, bytecode.LOAD_UINT64_8,
+		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
+		bytecode.LOAD_UINT8:
+		return f.disassembleUnsignedNumericOperands(output, 1, 1, offset)
+	case bytecode.LOAD_INT_8, bytecode.LOAD_INT64_8,
+		bytecode.LOAD_INT32_8, bytecode.LOAD_INT16_8, bytecode.LOAD_INT8:
+		return f.disassembleSignedNumericOperands(output, 1, 1, offset)
+	case bytecode.LOAD_CHAR_8:
+		return f.disassembleChar(output, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
 		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
 		bytecode.INSTANTIATE16:
-		return f.disassembleNumericOperands(output, 1, 2, offset)
+		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
+	case bytecode.LOAD_INT_16:
+		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
 	case bytecode.NEW_ARRAY_TUPLE32, bytecode.NEW_ARRAY_LIST32, bytecode.NEW_STRING32,
 		bytecode.NEW_HASH_MAP32, bytecode.NEW_HASH_RECORD32, bytecode.NEW_SYMBOL32,
 		bytecode.NEW_HASH_SET32:
-		return f.disassembleNumericOperands(output, 1, 4, offset)
+		return f.disassembleUnsignedNumericOperands(output, 1, 4, offset)
 	case bytecode.LEAVE_SCOPE16:
-		return f.disassembleNumericOperands(output, 2, 1, offset)
+		return f.disassembleUnsignedNumericOperands(output, 2, 1, offset)
 	case bytecode.LEAVE_SCOPE32:
-		return f.disassembleNumericOperands(output, 2, 2, offset)
+		return f.disassembleUnsignedNumericOperands(output, 2, 2, offset)
 	case bytecode.DEF_NAMESPACE:
 		return f.disassembleDefNamespace(output, offset)
 	case bytecode.NEW_REGEX8:
@@ -487,7 +502,27 @@ func (f *BytecodeFunction) disassembleOneByteInstruction(output io.Writer, name 
 	return offset + 1
 }
 
-func (f *BytecodeFunction) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset int) (int, error) {
+func (f *BytecodeFunction) disassembleChar(output io.Writer, offset int) (int, error) {
+	operandBytes := 1
+	bytes := 1 + operandBytes
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, offset)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	a := rune(f.Instructions[offset+1])
+	fmt.Fprintf(output, "%-16c", a)
+	fmt.Fprintln(output)
+
+	return offset + bytes, nil
+}
+
+func (f *BytecodeFunction) disassembleUnsignedNumericOperands(output io.Writer, operands, operandBytes, offset int) (int, error) {
 	bytes := 1 + operands*operandBytes
 	if result, err := f.checkBytes(output, offset, bytes); err != nil {
 		return result, err
@@ -499,18 +534,41 @@ func (f *BytecodeFunction) disassembleNumericOperands(output io.Writer, operands
 	f.dumpBytes(output, offset, bytes)
 	f.printOpCode(output, opcode)
 
-	readFunc := readFuncForBytes(operandBytes)
+	readFunc := readFuncForUnsignedBytes(operandBytes)
 
 	for i := 0; i < operands; i++ {
 		a := readFunc(f.Instructions[offset+1+i*operandBytes : offset+1+(i+1)*operandBytes])
-		f.printNumField(output, a)
+		printNumField(output, a)
 	}
 	fmt.Fprintln(output)
 
 	return offset + bytes, nil
 }
 
-func readFuncForBytes(bytes int) intReadFunc {
+func (f *BytecodeFunction) disassembleSignedNumericOperands(output io.Writer, operands, operandBytes, offset int) (int, error) {
+	bytes := 1 + operands*operandBytes
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, offset)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	readFunc := readFuncForSignedBytes(operandBytes)
+
+	for i := 0; i < operands; i++ {
+		a := readFunc(f.Instructions[offset+1+i*operandBytes : offset+1+(i+1)*operandBytes])
+		printNumField(output, a)
+	}
+	fmt.Fprintln(output)
+
+	return offset + bytes, nil
+}
+
+func readFuncForUnsignedBytes(bytes int) unsignedIntReadFunc {
 	switch bytes {
 	case 8:
 		return readUint64
@@ -520,6 +578,21 @@ func readFuncForBytes(bytes int) intReadFunc {
 		return readUint16
 	case 1:
 		return readUint8
+	default:
+		panic(fmt.Sprintf("incorrect bytesize of operands: %d", bytes))
+	}
+}
+
+func readFuncForSignedBytes(bytes int) signedIntReadFunc {
+	switch bytes {
+	case 8:
+		return readInt64
+	case 4:
+		return readInt32
+	case 2:
+		return readInt16
+	case 1:
+		return readInt8
 	default:
 		panic(fmt.Sprintf("incorrect bytesize of operands: %d", bytes))
 	}
@@ -670,15 +743,15 @@ func (f *BytecodeFunction) disassembleNewRegex(output io.Writer, sizeBytes, offs
 	flags := bitfield.BitField8FromInt(flagByte)
 	fmt.Fprintf(output, "%-16s", fmt.Sprintf("%d (%s)", flagByte, flag.ToStringWithDisabledFlags(flags)))
 
-	sizeReadFunc := readFuncForBytes(sizeBytes)
+	sizeReadFunc := readFuncForUnsignedBytes(sizeBytes)
 	size := sizeReadFunc(f.Instructions[offset+1+flagBytes : offset+1+flagBytes+sizeBytes])
-	f.printNumField(output, size)
+	printNumField(output, size)
 	fmt.Fprintln(output)
 
 	return offset + bytes, nil
 }
 
-type intReadFunc func([]byte) uint64
+type unsignedIntReadFunc func([]byte) uint64
 
 func readUint64(b []byte) uint64 {
 	return binary.BigEndian.Uint64(b)
@@ -694,6 +767,24 @@ func readUint16(b []byte) uint64 {
 
 func readUint8(b []byte) uint64 {
 	return uint64(b[0])
+}
+
+type signedIntReadFunc func([]byte) int64
+
+func readInt64(b []byte) int64 {
+	return int64(binary.BigEndian.Uint64(b))
+}
+
+func readInt32(b []byte) int64 {
+	return int64(int32(binary.BigEndian.Uint32(b)))
+}
+
+func readInt16(b []byte) int64 {
+	return int64(int16(binary.BigEndian.Uint16(b)))
+}
+
+func readInt8(b []byte) int64 {
+	return int64(int8(b[0]))
 }
 
 func (f *BytecodeFunction) disassembleValue(output io.Writer, byteLength, offset int) (int, error) {
@@ -721,7 +812,7 @@ func (f *BytecodeFunction) disassembleValue(output io.Writer, byteLength, offset
 	if constantIndex >= len(f.Values) {
 		msg := fmt.Sprintf("invalid value index %d (0x%X)", constantIndex, constantIndex)
 		fmt.Fprintln(output, msg)
-		return offset + byteLength, fmt.Errorf(msg)
+		return offset + byteLength, errors.New(msg)
 	}
 	constant := f.Values[constantIndex]
 	fmt.Fprintf(output, "%d (%s)\n", constantIndex, constant.Inspect())
@@ -739,7 +830,7 @@ func (f *BytecodeFunction) checkBytes(output io.Writer, offset, byteLength int) 
 	f.printOpCode(output, opcode)
 	msg := "not enough bytes"
 	fmt.Fprintln(output, msg)
-	return len(f.Instructions) - 1, fmt.Errorf(msg)
+	return len(f.Instructions) - 1, errors.New(msg)
 }
 
 func (f *BytecodeFunction) printLineNumber(output io.Writer, offset int) {
@@ -764,6 +855,6 @@ func (f *BytecodeFunction) printOpCode(output io.Writer, opcode bytecode.OpCode)
 	fmt.Fprintf(output, "%-18s", opcode.String())
 }
 
-func (f *BytecodeFunction) printNumField(output io.Writer, n uint64) {
+func printNumField[I int64 | uint64](output io.Writer, n I) {
 	fmt.Fprintf(output, "%-16d", n)
 }

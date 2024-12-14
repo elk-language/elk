@@ -5128,9 +5128,134 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 		c.emit(span.StartPos.Line, bytecode.FALSE)
 	case value.NIL_FLAG:
 		c.emit(span.StartPos.Line, bytecode.NIL)
+	case value.SMALL_INT_FLAG:
+		c.emitSmallInt(val.AsSmallInt(), span)
+	case value.INT64_FLAG:
+		emitSignedInt(c, val, val.AsInt64(), bytecode.INT64_0, bytecode.INT64_1, bytecode.LOAD_INT64_8, span)
+	case value.UINT64_FLAG:
+		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.UINT64_0, bytecode.UINT64_1, bytecode.LOAD_UINT64_8, span)
+	case value.INT32_FLAG:
+		emitSignedInt(c, val, val.AsInt32(), bytecode.INT32_0, bytecode.INT32_1, bytecode.LOAD_INT32_8, span)
+	case value.UINT32_FLAG:
+		emitUnsignedInt(c, val, val.AsUInt32(), bytecode.UINT32_0, bytecode.UINT32_1, bytecode.LOAD_UINT32_8, span)
+	case value.INT16_FLAG:
+		emitSignedInt(c, val, val.AsInt16(), bytecode.INT16_0, bytecode.INT16_1, bytecode.LOAD_INT16_8, span)
+	case value.UINT16_FLAG:
+		emitUnsignedInt(c, val, val.AsUInt16(), bytecode.UINT16_0, bytecode.UINT16_1, bytecode.LOAD_UINT16_8, span)
+	case value.INT8_FLAG:
+		emitSignedInt(c, val, val.AsInt8(), bytecode.INT8_0, bytecode.INT8_1, bytecode.LOAD_INT8, span)
+	case value.UINT8_FLAG:
+		emitUnsignedInt(c, val, val.AsUInt8(), bytecode.UINT8_0, bytecode.UINT8_1, bytecode.LOAD_UINT8, span)
+	case value.CHAR_FLAG:
+		c.emitChar(val.AsChar(), span)
+	case value.FLOAT_FLAG:
+		c.emitFloat(val.AsFloat(), span)
 	default:
 		c.emitLoadValue(val, span)
 	}
+}
+
+func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcode0, opcode1, opcodeLoad bytecode.OpCode, span *position.Span) {
+	line := span.StartPos.Line
+	switch i {
+	case 0:
+		c.emit(line, opcode0)
+		return
+	case 1:
+		c.emit(line, opcode1)
+		return
+	}
+
+	if i >= math.MinInt8 && i <= math.MaxInt8 {
+		c.emit(line, opcodeLoad, byte(i))
+		return
+	}
+
+	c.emitLoadValue(iVal, span)
+}
+
+func emitUnsignedInt[I value.UnsignedInt](c *Compiler, iVal value.Value, i I, opcode0, opcode1, opcodeLoad bytecode.OpCode, span *position.Span) {
+	line := span.StartPos.Line
+	switch i {
+	case 0:
+		c.emit(line, opcode0)
+		return
+	case 1:
+		c.emit(line, opcode1)
+		return
+	}
+
+	if i <= math.MaxUint8 {
+		c.emit(line, opcodeLoad, byte(i))
+		return
+	}
+
+	c.emitLoadValue(iVal, span)
+}
+
+func (c *Compiler) emitSmallInt(i value.SmallInt, span *position.Span) {
+	line := span.StartPos.Line
+	switch i {
+	case -1:
+		c.emit(line, bytecode.INT_M1)
+		return
+	case 0:
+		c.emit(line, bytecode.INT_0)
+		return
+	case 1:
+		c.emit(line, bytecode.INT_1)
+		return
+	case 2:
+		c.emit(line, bytecode.INT_2)
+		return
+	case 3:
+		c.emit(line, bytecode.INT_3)
+		return
+	case 4:
+		c.emit(line, bytecode.INT_4)
+		return
+	case 5:
+		c.emit(line, bytecode.INT_5)
+		return
+	}
+
+	if i >= math.MinInt8 && i <= math.MaxInt8 {
+		c.emit(line, bytecode.LOAD_INT_8, byte(i))
+		return
+	}
+	if i >= math.MinInt16 && i <= math.MaxInt16 {
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(i))
+		c.emit(line, bytecode.LOAD_INT_16, bytes...)
+		return
+	}
+
+	c.emitLoadValue(i.ToValue(), span)
+}
+
+func (c *Compiler) emitChar(char value.Char, span *position.Span) {
+	line := span.StartPos.Line
+
+	if char >= math.MinInt8 && char <= math.MaxInt8 {
+		c.emit(line, bytecode.LOAD_CHAR_8, byte(char))
+		return
+	}
+
+	c.emitLoadValue(char.ToValue(), span)
+}
+
+func (c *Compiler) emitFloat(f value.Float, span *position.Span) {
+	line := span.StartPos.Line
+	switch f {
+	case 0:
+		c.emit(line, bytecode.FLOAT_0)
+		return
+	case 1:
+		c.emit(line, bytecode.FLOAT_1)
+		return
+	}
+
+	c.emitLoadValue(f.ToValue(), span)
 }
 
 func (c *Compiler) emitHashSet(set *value.HashSet, span *position.Span) {

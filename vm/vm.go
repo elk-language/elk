@@ -407,6 +407,78 @@ func (vm *VM) run() {
 			}
 		case bytecode.SELF:
 			vm.self()
+		case bytecode.INT_M1:
+			vm.push(value.SmallInt(-1).ToValue())
+		case bytecode.INT_0:
+			vm.push(value.SmallInt(0).ToValue())
+		case bytecode.INT_1:
+			vm.push(value.SmallInt(1).ToValue())
+		case bytecode.INT_2:
+			vm.push(value.SmallInt(2).ToValue())
+		case bytecode.INT_3:
+			vm.push(value.SmallInt(3).ToValue())
+		case bytecode.INT_4:
+			vm.push(value.SmallInt(4).ToValue())
+		case bytecode.INT_5:
+			vm.push(value.SmallInt(5).ToValue())
+		case bytecode.LOAD_INT_8:
+			vm.push(value.SmallInt(int8(vm.readByte())).ToValue())
+		case bytecode.LOAD_INT_16:
+			vm.push(value.SmallInt(int16(vm.readUint16())).ToValue())
+		case bytecode.LOAD_CHAR_8:
+			vm.push(value.Char(int8(vm.readByte())).ToValue())
+		case bytecode.FLOAT_0:
+			vm.push(value.Float(0).ToValue())
+		case bytecode.FLOAT_1:
+			vm.push(value.Float(1).ToValue())
+		case bytecode.INT64_0:
+			vm.push(value.Int64(0).ToValue())
+		case bytecode.INT64_1:
+			vm.push(value.Int64(1).ToValue())
+		case bytecode.LOAD_INT64_8:
+			vm.push(value.Int64(int8(vm.readByte())).ToValue())
+		case bytecode.UINT64_0:
+			vm.push(value.UInt64(0).ToValue())
+		case bytecode.UINT64_1:
+			vm.push(value.UInt64(1).ToValue())
+		case bytecode.LOAD_UINT64_8:
+			vm.push(value.UInt64(vm.readByte()).ToValue())
+		case bytecode.INT32_0:
+			vm.push(value.Int32(0).ToValue())
+		case bytecode.INT32_1:
+			vm.push(value.Int32(1).ToValue())
+		case bytecode.LOAD_INT32_8:
+			vm.push(value.Int32(int8(vm.readByte())).ToValue())
+		case bytecode.UINT32_0:
+			vm.push(value.UInt32(0).ToValue())
+		case bytecode.UINT32_1:
+			vm.push(value.UInt32(1).ToValue())
+		case bytecode.LOAD_UINT32_8:
+			vm.push(value.UInt32(vm.readByte()).ToValue())
+		case bytecode.INT16_0:
+			vm.push(value.Int16(0).ToValue())
+		case bytecode.INT16_1:
+			vm.push(value.Int16(1).ToValue())
+		case bytecode.LOAD_INT16_8:
+			vm.push(value.Int16(int8(vm.readByte())).ToValue())
+		case bytecode.UINT16_0:
+			vm.push(value.UInt16(0).ToValue())
+		case bytecode.UINT16_1:
+			vm.push(value.UInt16(1).ToValue())
+		case bytecode.LOAD_UINT16_8:
+			vm.push(value.UInt16(vm.readByte()).ToValue())
+		case bytecode.INT8_0:
+			vm.push(value.Int8(0).ToValue())
+		case bytecode.INT8_1:
+			vm.push(value.Int8(1).ToValue())
+		case bytecode.LOAD_INT8:
+			vm.push(value.Int8(vm.readByte()).ToValue())
+		case bytecode.UINT8_0:
+			vm.push(value.UInt8(0).ToValue())
+		case bytecode.UINT8_1:
+			vm.push(value.UInt8(1).ToValue())
+		case bytecode.LOAD_UINT8:
+			vm.push(value.UInt8(vm.readByte()).ToValue())
 		case bytecode.DEF_NAMESPACE:
 			vm.opDefNamespace()
 		case bytecode.GET_SINGLETON:
