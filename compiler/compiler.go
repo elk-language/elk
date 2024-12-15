@@ -220,6 +220,10 @@ func (c *Compiler) EmitReturn() {
 	c.prepLocals()
 }
 
+func (c *Compiler) typeOf(node ast.Node) types.Type {
+	return node.Type(c.env)
+}
+
 func (c *Compiler) compileGlobalEnv() {
 	span := &c.Bytecode.Location.Span
 	c.compileModuleDefinition(c.env.Root, c.env.Root, value.ToSymbol("Root"), span)
@@ -1799,18 +1803,6 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 	c.patchLoopJumps(continueOffset)
 }
 
-func (c *Compiler) complexSetterCall(opCode bytecode.OpCode, node *ast.AttributeAccessNode, val ast.ExpressionNode, span *position.Span) {
-	c.compileNode(node.Receiver)
-	name := value.ToSymbol(node.AttributeName)
-	callInfo := value.NewCallSiteInfo(name, 0)
-	c.emitCallMethod(callInfo, node.Span())
-
-	c.compileNode(val)
-	c.emit(span.StartPos.Line, opCode)
-
-	c.emitSetterCall(node.AttributeName, node.Span())
-}
-
 func (c *Compiler) emitSetterCall(name string, span *position.Span) {
 	nameSymbol := value.ToSymbol(name + "=")
 	callInfo := value.NewCallSiteInfo(nameSymbol, 1)
@@ -1976,42 +1968,9 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 
 		// if not nil
 		c.patchJump(nonNilJump, span)
-	case token.PLUS_EQUAL:
-		c.complexSetterCall(bytecode.ADD, attr, node.Right, node.Span())
-	case token.MINUS_EQUAL:
-		c.complexSetterCall(bytecode.SUBTRACT, attr, node.Right, node.Span())
-	case token.STAR_EQUAL:
-		c.complexSetterCall(bytecode.MULTIPLY, attr, node.Right, node.Span())
-	case token.SLASH_EQUAL:
-		c.complexSetterCall(bytecode.DIVIDE, attr, node.Right, node.Span())
-	case token.STAR_STAR_EQUAL:
-		c.complexSetterCall(bytecode.EXPONENTIATE, attr, node.Right, node.Span())
-	case token.PERCENT_EQUAL:
-		c.complexSetterCall(bytecode.MODULO, attr, node.Right, node.Span())
-	case token.LBITSHIFT_EQUAL:
-		c.complexSetterCall(bytecode.LBITSHIFT, attr, node.Right, node.Span())
-	case token.LTRIPLE_BITSHIFT_EQUAL:
-		c.complexSetterCall(bytecode.LOGIC_LBITSHIFT, attr, node.Right, node.Span())
-	case token.RBITSHIFT_EQUAL:
-		c.complexSetterCall(bytecode.RBITSHIFT, attr, node.Right, node.Span())
-	case token.RTRIPLE_BITSHIFT_EQUAL:
-		c.complexSetterCall(bytecode.LOGIC_RBITSHIFT, attr, node.Right, node.Span())
-	case token.AND_EQUAL:
-		c.complexSetterCall(bytecode.BITWISE_AND, attr, node.Right, node.Span())
-	case token.OR_EQUAL:
-		c.complexSetterCall(bytecode.BITWISE_OR, attr, node.Right, node.Span())
-	case token.XOR_EQUAL:
-		c.complexSetterCall(bytecode.BITWISE_XOR, attr, node.Right, node.Span())
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
-}
-
-func (c *Compiler) complexInstanceVariableAssignment(ivarSymbol value.Symbol, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	c.emitGetInstanceVariable(ivarSymbol, span)
-	c.compileNode(valueNode)
-	c.emit(span.StartPos.Line, opcode)
-	c.emitSetInstanceVariable(ivarSymbol, span)
 }
 
 func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode) {
@@ -2072,32 +2031,6 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 
 		// if not nil
 		c.patchJump(nonNilJump, span)
-	case token.PLUS_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.ADD, node.Span())
-	case token.MINUS_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.SUBTRACT, node.Span())
-	case token.STAR_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.MULTIPLY, node.Span())
-	case token.SLASH_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.DIVIDE, node.Span())
-	case token.STAR_STAR_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.EXPONENTIATE, node.Span())
-	case token.PERCENT_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.MODULO, node.Span())
-	case token.LBITSHIFT_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LBITSHIFT, node.Span())
-	case token.LTRIPLE_BITSHIFT_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LOGIC_LBITSHIFT, node.Span())
-	case token.RBITSHIFT_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.RBITSHIFT, node.Span())
-	case token.RTRIPLE_BITSHIFT_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LOGIC_RBITSHIFT, node.Span())
-	case token.AND_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_AND, node.Span())
-	case token.OR_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_OR, node.Span())
-	case token.XOR_EQUAL:
-		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_XOR, node.Span())
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
@@ -2177,32 +2110,6 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// if not nil
 		c.patchJump(nonNilJump, span)
 		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
-	case token.PLUS_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.ADD, node.Span())
-	case token.MINUS_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.SUBTRACT, node.Span())
-	case token.STAR_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.MULTIPLY, node.Span())
-	case token.SLASH_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.DIVIDE, node.Span())
-	case token.STAR_STAR_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.EXPONENTIATE, node.Span())
-	case token.PERCENT_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.MODULO, node.Span())
-	case token.LBITSHIFT_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LBITSHIFT, node.Span())
-	case token.LTRIPLE_BITSHIFT_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LOGIC_LBITSHIFT, node.Span())
-	case token.RBITSHIFT_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.RBITSHIFT, node.Span())
-	case token.RTRIPLE_BITSHIFT_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LOGIC_RBITSHIFT, node.Span())
-	case token.AND_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_AND, node.Span())
-	case token.OR_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_OR, node.Span())
-	case token.XOR_EQUAL:
-		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_XOR, node.Span())
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
@@ -2225,21 +2132,6 @@ func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressio
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
-	}
-}
-
-func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	local, upvalue, ok := c.compileLocalVariableAccess(name, span)
-	if !ok {
-		return
-	}
-	c.compileNode(valueNode)
-	c.emit(span.StartPos.Line, opcode)
-
-	if upvalue != nil {
-		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
-	} else {
-		c.emitSetLocal(span.StartPos.Line, local.index)
 	}
 }
 
@@ -2295,32 +2187,6 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 
 		// if not nil
 		c.patchJump(nonNilJump, span)
-	case token.PLUS_EQUAL:
-		c.complexAssignment(name, right, bytecode.ADD, span)
-	case token.MINUS_EQUAL:
-		c.complexAssignment(name, right, bytecode.SUBTRACT, span)
-	case token.STAR_EQUAL:
-		c.complexAssignment(name, right, bytecode.MULTIPLY, span)
-	case token.SLASH_EQUAL:
-		c.complexAssignment(name, right, bytecode.DIVIDE, span)
-	case token.STAR_STAR_EQUAL:
-		c.complexAssignment(name, right, bytecode.EXPONENTIATE, span)
-	case token.PERCENT_EQUAL:
-		c.complexAssignment(name, right, bytecode.MODULO, span)
-	case token.AND_EQUAL:
-		c.complexAssignment(name, right, bytecode.BITWISE_AND, span)
-	case token.OR_EQUAL:
-		c.complexAssignment(name, right, bytecode.BITWISE_OR, span)
-	case token.XOR_EQUAL:
-		c.complexAssignment(name, right, bytecode.BITWISE_XOR, span)
-	case token.LBITSHIFT_EQUAL:
-		c.complexAssignment(name, right, bytecode.LBITSHIFT, span)
-	case token.LTRIPLE_BITSHIFT_EQUAL:
-		c.complexAssignment(name, right, bytecode.LOGIC_LBITSHIFT, span)
-	case token.RBITSHIFT_EQUAL:
-		c.complexAssignment(name, right, bytecode.RBITSHIFT, span)
-	case token.RTRIPLE_BITSHIFT_EQUAL:
-		c.complexAssignment(name, right, bytecode.LOGIC_RBITSHIFT, span)
 	case token.EQUAL_OP:
 		c.setLocal(name, right, span)
 	case token.COLON_EQUAL:
@@ -4773,23 +4639,23 @@ func (c *Compiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode)
 }
 
 func (c *Compiler) emitNewHashSet(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_SET8, bytecode.NEW_HASH_SET32, size, span)
+	c.emitNewCollection(bytecode.NEW_HASH_SET8, bytecode.NEW_HASH_SET16, size, span)
 }
 
 func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE32, size, span)
+	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE16, size, span)
 }
 
 func (c *Compiler) emitNewArrayList(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST32, size, span)
+	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST16, size, span)
 }
 
 func (c *Compiler) emitNewHashMap(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_MAP32, size, span)
+	c.emitNewCollection(bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_MAP16, size, span)
 }
 
 func (c *Compiler) emitNewHashRecord(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_RECORD8, bytecode.NEW_HASH_RECORD32, size, span)
+	c.emitNewCollection(bytecode.NEW_HASH_RECORD8, bytecode.NEW_HASH_RECORD16, size, span)
 }
 
 func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *position.Span) {
@@ -4798,34 +4664,34 @@ func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *positi
 		return
 	}
 
-	if size <= math.MaxUint32 {
-		c.emit(span.EndPos.Line, bytecode.NEW_REGEX32)
+	if size <= math.MaxUint16 {
+		c.emit(span.EndPos.Line, bytecode.NEW_REGEX16)
 		c.emitByte(flags.Byte())
-		c.emitUint32(uint32(size))
+		c.emitUint16(uint16(size))
 		return
 	}
 
 	c.Errors.AddFailure(
-		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint32),
+		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint16),
 		c.newLocation(span),
 	)
 }
 
-func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
+func (c *Compiler) emitNewCollection(opcode8, opcode16 bytecode.OpCode, size int, span *position.Span) {
 	if size <= math.MaxUint8 {
 		c.emit(span.EndPos.Line, opcode8, byte(size))
 		return
 	}
 
-	if size <= math.MaxUint32 {
-		bytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(bytes, uint32(size))
-		c.emit(span.EndPos.Line, opcode32, bytes...)
+	if size <= math.MaxUint16 {
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(size))
+		c.emit(span.EndPos.Line, opcode16, bytes...)
 		return
 	}
 
 	c.Errors.AddFailure(
-		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
+		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint16),
 		c.newLocation(span),
 	)
 }
@@ -4910,7 +4776,7 @@ func (c *Compiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedSt
 		}
 	}
 
-	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
+	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING16, len(node.Content), node.Span())
 }
 
 func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSymbolLiteralNode) {
@@ -4927,7 +4793,7 @@ func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSy
 		}
 	}
 
-	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL32, len(node.Content.Content), node.Span())
+	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL16, len(node.Content.Content), node.Span())
 }
 
 func (c *Compiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
@@ -5007,15 +4873,24 @@ func (c *Compiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode) {
 	}
 	c.compileNode(node.Left)
 	c.compileNode(node.Right)
-	c.emitBinaryOperation(node.Op, node.Span())
+	c.emitBinaryOperation(c.typeOf(node.Left), node.Op, node.Span())
 }
 
-func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span) {
+func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, span *position.Span) {
 	line := span.StartPos.Line
 	switch opToken.Type {
 	case token.PLUS:
+		// c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span)
+		if typ == c.env.StdSubtype(symbol.Int) {
+			c.emit(line, bytecode.ADD_INT)
+			return
+		}
 		c.emit(line, bytecode.ADD)
 	case token.MINUS:
+		if typ == c.env.StdSubtype(symbol.Int) {
+			c.emit(line, bytecode.SUBTRACT_INT)
+			return
+		}
 		c.emit(line, bytecode.SUBTRACT)
 	case token.STAR:
 		c.emit(line, bytecode.MULTIPLY)
@@ -5060,6 +4935,10 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 	case token.LESS:
 		c.emit(line, bytecode.LESS)
 	case token.LESS_EQUAL:
+		if typ == c.env.StdSubtype(symbol.Int) {
+			c.emit(line, bytecode.LESS_EQUAL_INT)
+			return
+		}
 		c.emit(line, bytecode.LESS_EQUAL)
 	case token.SPACESHIP_OP:
 		c.emit(line, bytecode.COMPARE)
@@ -5602,7 +5481,7 @@ func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
 }
 
 // Emit an instruction that loads a value from the pool
-func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) int {
+func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16 bytecode.OpCode) int {
 	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
@@ -5611,13 +5490,9 @@ func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, o
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
 		c.Bytecode.AddInstruction(span.StartPos.Line, opCode16, bytes...)
-	case bytecode.UINT32_SIZE:
-		bytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, opCode32, bytes...)
 	default:
 		c.Errors.AddFailure(
-			fmt.Sprintf("value pool limit reached: %d", math.MaxUint32),
+			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
 		return -1
@@ -5633,7 +5508,6 @@ func (c *Compiler) emitGetConst(val value.Symbol, span *position.Span) int {
 		span,
 		bytecode.GET_CONST8,
 		bytecode.GET_CONST16,
-		bytecode.GET_CONST32,
 	)
 }
 
@@ -5644,7 +5518,6 @@ func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
 		span,
 		bytecode.LOAD_VALUE8,
 		bytecode.LOAD_VALUE16,
-		bytecode.LOAD_VALUE32,
 	)
 }
 
@@ -5675,7 +5548,6 @@ func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Spa
 		span,
 		bytecode.SET_IVAR8,
 		bytecode.SET_IVAR16,
-		bytecode.SET_IVAR32,
 	)
 }
 
@@ -5686,7 +5558,6 @@ func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Spa
 		span,
 		bytecode.GET_IVAR8,
 		bytecode.GET_IVAR16,
-		bytecode.GET_IVAR32,
 	)
 }
 
@@ -5697,7 +5568,6 @@ func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, span *position.Spa
 		span,
 		bytecode.CALL_SELF8,
 		bytecode.CALL_SELF16,
-		bytecode.CALL_SELF32,
 	)
 }
 
@@ -5708,7 +5578,6 @@ func (c *Compiler) emitCall(callInfo *value.CallSiteInfo, span *position.Span) i
 		span,
 		bytecode.CALL8,
 		bytecode.CALL16,
-		bytecode.CALL32,
 	)
 }
 
@@ -5719,7 +5588,6 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 		span,
 		bytecode.CALL_METHOD8,
 		bytecode.CALL_METHOD16,
-		bytecode.CALL_METHOD32,
 	)
 }
 

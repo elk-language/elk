@@ -425,7 +425,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.INT64_0, bytecode.INT64_1, bytecode.UINT64_0, bytecode.UINT64_1, bytecode.INT32_0, bytecode.INT32_1,
 		bytecode.UINT32_0, bytecode.UINT32_1, bytecode.INT16_0, bytecode.INT16_1,
 		bytecode.UINT16_0, bytecode.UINT16_1, bytecode.INT8_0, bytecode.INT8_1,
-		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1:
+		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -443,14 +443,12 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
 		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
-		bytecode.INSTANTIATE16:
+		bytecode.INSTANTIATE16, bytecode.NEW_ARRAY_TUPLE16, bytecode.NEW_ARRAY_LIST16, bytecode.NEW_STRING16,
+		bytecode.NEW_HASH_MAP16, bytecode.NEW_HASH_RECORD16, bytecode.NEW_SYMBOL16,
+		bytecode.NEW_HASH_SET16:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
-	case bytecode.NEW_ARRAY_TUPLE32, bytecode.NEW_ARRAY_LIST32, bytecode.NEW_STRING32,
-		bytecode.NEW_HASH_MAP32, bytecode.NEW_HASH_RECORD32, bytecode.NEW_SYMBOL32,
-		bytecode.NEW_HASH_SET32:
-		return f.disassembleUnsignedNumericOperands(output, 1, 4, offset)
 	case bytecode.LEAVE_SCOPE16:
 		return f.disassembleUnsignedNumericOperands(output, 2, 1, offset)
 	case bytecode.LEAVE_SCOPE32:
@@ -459,8 +457,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleDefNamespace(output, offset)
 	case bytecode.NEW_REGEX8:
 		return f.disassembleNewRegex(output, 1, offset)
-	case bytecode.NEW_REGEX32:
-		return f.disassembleNewRegex(output, 4, offset)
+	case bytecode.NEW_REGEX16:
+		return f.disassembleNewRegex(output, 2, offset)
 	case bytecode.CLOSURE:
 		return f.disassembleClosure(output, offset)
 	case bytecode.NEW_RANGE:
@@ -473,10 +471,6 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
 		bytecode.CALL16, bytecode.GET_CONST16:
 		return f.disassembleValue(output, 3, offset)
-	case bytecode.LOAD_VALUE32, bytecode.CALL_METHOD32,
-		bytecode.CALL_SELF32, bytecode.GET_IVAR32, bytecode.SET_IVAR32,
-		bytecode.CALL32, bytecode.GET_CONST32:
-		return f.disassembleValue(output, 5, offset)
 	default:
 		f.printLineNumber(output, offset)
 		f.dumpBytes(output, offset, 1)

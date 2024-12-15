@@ -520,10 +520,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opGetIvar(int(vm.readUint16())),
 			)
-		case bytecode.GET_IVAR32:
-			vm.throwIfErr(
-				vm.opGetIvar(int(vm.readUint32())),
-			)
 		case bytecode.SET_IVAR8:
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readByte())),
@@ -531,10 +527,6 @@ func (vm *VM) run() {
 		case bytecode.SET_IVAR16:
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readUint16())),
-			)
-		case bytecode.SET_IVAR32:
-			vm.throwIfErr(
-				vm.opSetIvar(int(vm.readUint32())),
 			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
@@ -544,10 +536,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readUint16())),
 			)
-		case bytecode.CALL_METHOD32:
-			vm.throwIfErr(
-				vm.opCallMethod(int(vm.readUint32())),
-			)
 		case bytecode.CALL8:
 			vm.throwIfErr(
 				vm.opCall(int(vm.readByte())),
@@ -556,10 +544,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opCall(int(vm.readUint16())),
 			)
-		case bytecode.CALL32:
-			vm.throwIfErr(
-				vm.opCall(int(vm.readUint32())),
-			)
 		case bytecode.CALL_SELF8:
 			vm.throwIfErr(
 				vm.opCallSelf(int(vm.readByte())),
@@ -567,10 +551,6 @@ func (vm *VM) run() {
 		case bytecode.CALL_SELF16:
 			vm.throwIfErr(
 				vm.opCallSelf(int(vm.readUint16())),
-			)
-		case bytecode.CALL_SELF32:
-			vm.throwIfErr(
-				vm.opCallSelf(int(vm.readUint32())),
 			)
 		case bytecode.INSTANCE_OF:
 			vm.throwIfErr(vm.opInstanceOf())
@@ -584,12 +564,14 @@ func (vm *VM) run() {
 			vm.push(vm.readValue8())
 		case bytecode.LOAD_VALUE16:
 			vm.push(vm.readValue16())
-		case bytecode.LOAD_VALUE32:
-			vm.push(vm.readValue32())
 		case bytecode.ADD:
 			vm.throwIfErr(vm.opAdd())
+		case bytecode.ADD_INT:
+			vm.opAddInt()
 		case bytecode.SUBTRACT:
 			vm.throwIfErr(vm.opSubtract())
+		case bytecode.SUBTRACT_INT:
+			vm.opSubtractInt()
 		case bytecode.MULTIPLY:
 			vm.throwIfErr(vm.opMultiply())
 		case bytecode.DIVIDE:
@@ -662,62 +644,58 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opGetConst(int(vm.readUint16())),
 			)
-		case bytecode.GET_CONST32:
-			vm.throwIfErr(
-				vm.opGetConst(int(vm.readUint32())),
-			)
 		case bytecode.DEF_CONST:
 			vm.opDefConst()
 		case bytecode.NEW_RANGE:
 			vm.opNewRange()
 		case bytecode.NEW_ARRAY_TUPLE8:
 			vm.opNewArrayTuple(int(vm.readByte()))
-		case bytecode.NEW_ARRAY_TUPLE32:
-			vm.opNewArrayTuple(int(vm.readUint32()))
+		case bytecode.NEW_ARRAY_TUPLE16:
+			vm.opNewArrayTuple(int(vm.readUint16()))
 		case bytecode.NEW_ARRAY_LIST8:
 			vm.throwIfErr(
 				vm.opNewArrayList(int(vm.readByte())),
 			)
-		case bytecode.NEW_ARRAY_LIST32:
+		case bytecode.NEW_ARRAY_LIST16:
 			vm.throwIfErr(
-				vm.opNewArrayList(int(vm.readUint32())),
+				vm.opNewArrayList(int(vm.readUint16())),
 			)
 		case bytecode.NEW_HASH_SET8:
 			vm.throwIfErr(
 				vm.opNewHashSet(int(vm.readByte())),
 			)
-		case bytecode.NEW_HASH_SET32:
+		case bytecode.NEW_HASH_SET16:
 			vm.throwIfErr(
-				vm.opNewHashSet(int(vm.readUint32())),
+				vm.opNewHashSet(int(vm.readUint16())),
 			)
 		case bytecode.NEW_HASH_MAP8:
 			vm.throwIfErr(
 				vm.opNewHashMap(int(vm.readByte())),
 			)
-		case bytecode.NEW_HASH_MAP32:
+		case bytecode.NEW_HASH_MAP16:
 			vm.throwIfErr(
-				vm.opNewHashMap(int(vm.readUint32())),
+				vm.opNewHashMap(int(vm.readUint16())),
 			)
 		case bytecode.NEW_HASH_RECORD8:
 			vm.throwIfErr(
 				vm.opNewHashRecord(int(vm.readByte())),
 			)
-		case bytecode.NEW_HASH_RECORD32:
+		case bytecode.NEW_HASH_RECORD16:
 			vm.throwIfErr(
-				vm.opNewHashRecord(int(vm.readUint32())),
+				vm.opNewHashRecord(int(vm.readUint16())),
 			)
 		case bytecode.NEW_STRING8:
 			vm.throwIfErr(vm.opNewString(int(vm.readByte())))
-		case bytecode.NEW_STRING32:
-			vm.throwIfErr(vm.opNewString(int(vm.readUint32())))
+		case bytecode.NEW_STRING16:
+			vm.throwIfErr(vm.opNewString(int(vm.readUint16())))
 		case bytecode.NEW_SYMBOL8:
 			vm.throwIfErr(vm.opNewSymbol(int(vm.readByte())))
-		case bytecode.NEW_SYMBOL32:
-			vm.throwIfErr(vm.opNewSymbol(int(vm.readUint32())))
+		case bytecode.NEW_SYMBOL16:
+			vm.throwIfErr(vm.opNewSymbol(int(vm.readUint16())))
 		case bytecode.NEW_REGEX8:
 			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readByte())))
-		case bytecode.NEW_REGEX32:
-			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readUint32())))
+		case bytecode.NEW_REGEX16:
+			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readUint16())))
 		case bytecode.FOR_IN:
 			vm.throwIfErr(vm.opForIn())
 		case bytecode.GET_ITERATOR:
@@ -806,6 +784,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opLessThan())
 		case bytecode.LESS_EQUAL:
 			vm.throwIfErr(vm.opLessThanEqual())
+		case bytecode.LESS_EQUAL_INT:
+			vm.opLessThanEqualInt()
 		case bytecode.INSPECT_STACK:
 			vm.InspectStack()
 		default:
@@ -2689,6 +2669,22 @@ func (vm *VM) opLessThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.LessThanEqual, symbol.OpLessThanEqual)
 }
 
+// Check whether the first operand is less than or equal to the second and push the result to the stack.
+func (vm *VM) opLessThanEqualInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.LessThanEqual(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.LessThanEqual(right)
+	}
+	vm.replace(result)
+}
+
 // Perform a left bitshift and push the result to the stack.
 func (vm *VM) opLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshift, symbol.OpLeftBitshift)
@@ -2714,9 +2710,41 @@ func (vm *VM) opAdd() (err value.Value) {
 	return vm.binaryOperation(value.Add, symbol.OpAdd)
 }
 
+// Add two operands together and push the result to the stack.
+func (vm *VM) opAddInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Add(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Add(right)
+	}
+
+	vm.replace(result)
+}
+
 // Subtract two operands and push the result to the stack.
 func (vm *VM) opSubtract() (err value.Value) {
 	return vm.binaryOperation(value.Subtract, symbol.OpSubtract)
+}
+
+// Subtract two operands and push the result to the stack.
+func (vm *VM) opSubtractInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Subtract(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Subtract(right)
+	}
+	vm.replace(result)
 }
 
 // Multiply two operands together and push the result to the stack.

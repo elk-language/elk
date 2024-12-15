@@ -46,9 +46,10 @@ const (
 	RETURN                          // Return from the current frame
 	LOAD_VALUE8                     // Push a value with a single byte index onto the value stack
 	LOAD_VALUE16                    // Push a value with a two byte index onto the value stack
-	LOAD_VALUE32                    // Push a value with a four byte index onto the value stack
 	ADD                             // Take two values from the stack, add them together (or call the + method) and push the result
+	ADD_INT                         // Take two values from the stack, add them together (or call the + method) and push the result
 	SUBTRACT                        // Take two values from the stack, subtract them (or call the - method) and push the result
+	SUBTRACT_INT                    // Take two values from the stack, subtract them (or call the - method) and push the result
 	MULTIPLY                        // Take two values from the stack, multiply them (or call the * method) and push the result
 	DIVIDE                          // Take two values from the stack, divide them (or call the / method) and push the result
 	EXPONENTIATE                    // Take two values from the stack, raise one to the power signified by the other
@@ -87,6 +88,7 @@ const (
 	GREATER_EQUAL                   // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
 	LESS                            // Take two values from the stack, check if the first value is less than the second and push the result
 	LESS_EQUAL                      // Take two values from the stack, check if the first value is less than or equal to the second and push the result
+	LESS_EQUAL_INT                  // Take two values from the stack, check if the first value is less than or equal to the second and push the result
 	NOOP                            // Does not perform any operation, placeholder.
 	ROOT                            // Push `Std::Root` onto the stack.
 	NOT_EQUAL                       // Take two values from the stack, check if they're not equal and push the result
@@ -95,13 +97,11 @@ const (
 	SELF                            // Push `self` onto the stack
 	CALL_METHOD8                    // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD16                   // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
-	CALL_METHOD32                   // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
 	DEF_METHOD                      // Define a new method
 	UNDEFINED                       // Push the undefined value onto the stack
 	GET_CLASS                       // Pop one value off the stack push its class
 	CALL_SELF8                      // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_SELF16                     // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
-	CALL_SELF32                     // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
 	INCLUDE                         // Include a mixin in a class/mixin
 	GET_SINGLETON                   // Pop one value off the stack push its singleton class
 	JUMP_UNLESS_UNDEF               // Jump n bytes forward unless the value on the stack is undefined
@@ -115,32 +115,30 @@ const (
 	RETURN_SELF                     // Push self and return
 	GET_IVAR8                       // Get the value of an instance variable (8 bit operand)
 	GET_IVAR16                      // Get the value of an instance variable (16 bit operand)
-	GET_IVAR32                      // Get the value of an instance variable (32 bit operand)
 	SET_IVAR8                       // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                      // Set the value of an instance variable (16 bit operand)
-	SET_IVAR32                      // Set the value of an instance variable (32 bit operand)
 	NEW_ARRAY_TUPLE8                // Create a new arrayTuple (8 bit operand)
-	NEW_ARRAY_TUPLE32               // Create a new arrayTuple (32 bit operand)
+	NEW_ARRAY_TUPLE16               // Create a new arrayTuple (16 bit operand)
 	APPEND                          // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
 	COPY                            // Create a copy of the value on top of the stack and replace it on the stack.
 	SUBSCRIPT                       // Pops 2 values off the stack. Get the element in a ArrayList, ArrayTuple or HashMap under the given key.
 	SUBSCRIPT_SET                   // Pops 3 values off the stack. Set the element in a ArrayList, ArrayTuple or HashMap under the given key.
 	APPEND_AT                       // Set an element at the given index in the ArrayTuple or ArrayList, if the index is out of range, expand the collection, filling the empty slots with `nil`
 	NEW_ARRAY_LIST8                 // Create a new list (8 bit operand)
-	NEW_ARRAY_LIST32                // Create a new list (32 bit operand)
+	NEW_ARRAY_LIST16                // Create a new list (16 bit operand)
 	GET_ITERATOR                    // Get the iterator of the value on top of the stack.
 	FOR_IN                          // Drives the for..in loop
 	NEW_STRING8                     // Create a new string (8 bit operand)
-	NEW_STRING32                    // Create a new string (32 bit operand)
+	NEW_STRING16                    // Create a new string (16 bit operand)
 	NEW_HASH_MAP8                   // Create a new hashmap (8 bit operand)
-	NEW_HASH_MAP32                  // Create a new hashmap (32 bit operand)
+	NEW_HASH_MAP16                  // Create a new hashmap (16 bit operand)
 	MAP_SET                         // Set a value under the given key in a hash record or hashmap, pops the key and value and leaves the collection on the stack
 	NEW_HASH_RECORD8                // Create a new hash record (8 bit operand)
-	NEW_HASH_RECORD32               // Create a new hash record (32 bit operand)
+	NEW_HASH_RECORD16               // Create a new hash record (16 bit operand)
 	LAX_EQUAL                       // Take two values from the stack, check if they are equal and push the result
 	LAX_NOT_EQUAL                   // Take two values from the stack, check if they are not equal and push the result
 	NEW_REGEX8                      // Create a new regex (8 bit operand)
-	NEW_REGEX32                     // Create a new regex (32 bit operand)
+	NEW_REGEX16                     // Create a new regex (16 bit operand)
 	BITWISE_AND_NOT                 // Take two values from the stack, perform a bitwise AND NOT and push the result
 	UNARY_PLUS                      // Perform unary plus on the value on top of the stack like `+a`
 	INCREMENT                       // Increment the value on top of the stack
@@ -149,7 +147,7 @@ const (
 	DUP_N                           // Duplicate the top N values on top of the stack
 	POP_N_SKIP_ONE                  // Pop the top N values on top of the stack skipping the first one
 	NEW_SYMBOL8                     // Create a new symbol (8 bit operand)
-	NEW_SYMBOL32                    // Create a new symbol (32 bit operand)
+	NEW_SYMBOL16                    // Create a new symbol (16 bit operand)
 	SWAP                            // Swap the top two values on the stack
 	NEW_RANGE                       // Create a new range
 	SET_SUPERCLASS                  // Sets the superclass/parent of a class
@@ -160,7 +158,7 @@ const (
 	POP_SKIP_ONE                    // Pop the value on top of the stack skipping the first one
 	INSPECT_STACK                   // Prints the stack, for debugging
 	NEW_HASH_SET8                   // Create a new hashset (8 bit operand)
-	NEW_HASH_SET32                  // Create a new hashset (32 bit operand)
+	NEW_HASH_SET16                  // Create a new hashset (16 bit operand)
 	THROW                           // Throw a value/error
 	RETHROW                         // Rethrow a value/error
 	POP_ALL                         // Pop all values on the stack, leaving only the slots reserved for locals
@@ -169,7 +167,6 @@ const (
 	CLOSURE                         // Wrap the function on top of the stack in a closure
 	CALL8                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
 	CALL16                          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
-	CALL32                          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
 	SET_UPVALUE8                    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
 	SET_UPVALUE16                   // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
 	GET_UPVALUE8                    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
@@ -180,7 +177,6 @@ const (
 	DEF_METHOD_ALIAS                // Define a new method alias
 	GET_CONST8                      // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
 	GET_CONST16                     // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
-	GET_CONST32                     // Get the value of the constant with the name stored under the given index in the value pool (32 bit operand)
 	DEF_CONST                       // Define a new constant
 	EXEC                            // Execute a chunk of bytecode
 	INT_M1                          // Push -1 onto the stack
@@ -226,11 +222,12 @@ var opCodeNames = [...]string{
 	RETURN:            "RETURN",
 	LOAD_VALUE8:       "LOAD_VALUE8",
 	LOAD_VALUE16:      "LOAD_VALUE16",
-	LOAD_VALUE32:      "LOAD_VALUE32",
 	POP:               "POP",
 	POP_N:             "POP_N",
 	ADD:               "ADD",
+	ADD_INT:           "ADD_INT",
 	SUBTRACT:          "SUBTRACT",
+	SUBTRACT_INT:      "SUBTRACT_INT",
 	MULTIPLY:          "MULTIPLY",
 	DIVIDE:            "DIVIDE",
 	EXPONENTIATE:      "EXPONENTIATE",
@@ -267,6 +264,7 @@ var opCodeNames = [...]string{
 	GREATER_EQUAL:     "GREATER_EQUAL",
 	LESS:              "LESS",
 	LESS_EQUAL:        "LESS_EQUAL",
+	LESS_EQUAL_INT:    "LESS_EQUAL_INT",
 	NOOP:              "NOOP",
 	ROOT:              "ROOT",
 	NOT_EQUAL:         "NOT_EQUAL",
@@ -275,13 +273,11 @@ var opCodeNames = [...]string{
 	SELF:              "SELF",
 	CALL_METHOD8:      "CALL_METHOD8",
 	CALL_METHOD16:     "CALL_METHOD16",
-	CALL_METHOD32:     "CALL_METHOD32",
 	DEF_METHOD:        "DEF_METHOD",
 	UNDEFINED:         "UNDEFINED",
 	GET_CLASS:         "GET_CLASS",
 	CALL_SELF8:        "CALL_SELF8",
 	CALL_SELF16:       "CALL_SELF16",
-	CALL_SELF32:       "CALL_SELF32",
 	INCLUDE:           "INCLUDE",
 	GET_SINGLETON:     "GET_SINGLETON",
 	JUMP_UNLESS_UNDEF: "JUMP_UNLESS_UNDEF",
@@ -295,32 +291,30 @@ var opCodeNames = [...]string{
 	RETURN_SELF:       "RETURN_SELF",
 	GET_IVAR8:         "GET_IVAR8",
 	GET_IVAR16:        "GET_IVAR16",
-	GET_IVAR32:        "GET_IVAR32",
 	SET_IVAR8:         "SET_IVAR8",
 	SET_IVAR16:        "SET_IVAR16",
-	SET_IVAR32:        "SET_IVAR32",
 	NEW_ARRAY_TUPLE8:  "NEW_ARRAY_TUPLE8",
-	NEW_ARRAY_TUPLE32: "NEW_ARRAY_TUPLE32",
+	NEW_ARRAY_TUPLE16: "NEW_ARRAY_TUPLE16",
 	APPEND:            "APPEND",
 	COPY:              "COPY",
 	SUBSCRIPT:         "SUBSCRIPT",
 	SUBSCRIPT_SET:     "SUBSCRIPT_SET",
 	APPEND_AT:         "APPEND_AT",
 	NEW_ARRAY_LIST8:   "NEW_ARRAY_LIST8",
-	NEW_ARRAY_LIST32:  "NEW_ARRAY_LIST32",
+	NEW_ARRAY_LIST16:  "NEW_ARRAY_LIST16",
 	GET_ITERATOR:      "GET_ITERATOR",
 	FOR_IN:            "FOR_IN",
 	NEW_STRING8:       "NEW_STRING8",
-	NEW_STRING32:      "NEW_STRING32",
+	NEW_STRING16:      "NEW_STRING16",
 	NEW_HASH_MAP8:     "NEW_HASH_MAP8",
-	NEW_HASH_MAP32:    "NEW_HASH_MAP32",
+	NEW_HASH_MAP16:    "NEW_HASH_MAP16",
 	MAP_SET:           "MAP_SET",
 	NEW_HASH_RECORD8:  "NEW_HASH_RECORD8",
-	NEW_HASH_RECORD32: "NEW_HASH_RECORD32",
+	NEW_HASH_RECORD16: "NEW_HASH_RECORD16",
 	LAX_EQUAL:         "LAX_EQUAL",
 	LAX_NOT_EQUAL:     "LAX_NOT_EQUAL",
 	NEW_REGEX8:        "NEW_REGEX8",
-	NEW_REGEX32:       "NEW_REGEX32",
+	NEW_REGEX16:       "NEW_REGEX16",
 	BITWISE_AND_NOT:   "BITWISE_AND_NOT",
 	UNARY_PLUS:        "UNARY_PLUS",
 	INCREMENT:         "INCREMENT",
@@ -329,7 +323,7 @@ var opCodeNames = [...]string{
 	DUP_N:             "DUP_N",
 	POP_N_SKIP_ONE:    "POP_N_SKIP_ONE",
 	NEW_SYMBOL8:       "NEW_SYMBOL8",
-	NEW_SYMBOL32:      "NEW_SYMBOL32",
+	NEW_SYMBOL16:      "NEW_SYMBOL16",
 	SWAP:              "SWAP",
 	NEW_RANGE:         "NEW_RANGE",
 	SET_SUPERCLASS:    "SET_SUPERCLASS",
@@ -340,7 +334,7 @@ var opCodeNames = [...]string{
 	POP_SKIP_ONE:      "POP_SKIP_ONE",
 	INSPECT_STACK:     "INSPECT_STACK",
 	NEW_HASH_SET8:     "NEW_HASH_SET8",
-	NEW_HASH_SET32:    "NEW_HASH_SET32",
+	NEW_HASH_SET16:    "NEW_HASH_SET16",
 	THROW:             "THROW",
 	RETHROW:           "RETHROW",
 	POP_ALL:           "POP_ALL",
@@ -349,7 +343,6 @@ var opCodeNames = [...]string{
 	CLOSURE:           "CLOSURE",
 	CALL8:             "CALL8",
 	CALL16:            "CALL16",
-	CALL32:            "CALL32",
 	SET_UPVALUE8:      "SET_UPVALUE8",
 	SET_UPVALUE16:     "SET_UPVALUE16",
 	GET_UPVALUE8:      "GET_UPVALUE8",
@@ -360,7 +353,6 @@ var opCodeNames = [...]string{
 	DEF_METHOD_ALIAS:  "DEF_METHOD_ALIAS",
 	GET_CONST8:        "GET_CONST8",
 	GET_CONST16:       "GET_CONST16",
-	GET_CONST32:       "GET_CONST32",
 	DEF_CONST:         "DEF_CONST",
 	EXEC:              "EXEC",
 	INT_M1:            "INT_M1",
