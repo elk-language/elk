@@ -358,18 +358,18 @@ func (c *Checker) checkMethodOverride(
 
 			switch baseTypeParam.Variance {
 			case types.INVARIANT:
-				if !c.isTheSameType(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
-					!c.isTheSameType(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+				if !c.IsTheSameType(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
+					!c.IsTheSameType(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
 					isInvalid = true
 				}
 			case types.COVARIANT:
-				if !c.isSubtype(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
-					!c.isSubtype(baseTypeParam.LowerBound, overrideTypeParam.LowerBound, nil) {
+				if !c.IsSubtype(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
+					!c.IsSubtype(baseTypeParam.LowerBound, overrideTypeParam.LowerBound, nil) {
 					isInvalid = true
 				}
 			case types.CONTRAVARIANT:
-				if !c.isSubtype(baseTypeParam.UpperBound, overrideTypeParam.UpperBound, nil) ||
-					!c.isSubtype(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+				if !c.IsSubtype(baseTypeParam.UpperBound, overrideTypeParam.UpperBound, nil) ||
+					!c.IsSubtype(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
 					isInvalid = true
 				}
 			}
@@ -386,7 +386,7 @@ func (c *Checker) checkMethodOverride(
 		}
 	}
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
+	if !c.IsSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has a different return type, is `%s`, should be `%s`",
@@ -395,7 +395,7 @@ func (c *Checker) checkMethodOverride(
 		)
 		areIncompatible = true
 	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, nil) {
+	if !c.IsSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, nil) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has different throw type, is `%s`, should be `%s`",
@@ -411,7 +411,7 @@ func (c *Checker) checkMethodOverride(
 		for i := range len(baseMethod.Params) {
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, nil) {
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.IsSubtype(oldParam.Type, newParam.Type, nil) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - has an incompatible parameter, is `%s`, should be `%s`",
@@ -631,7 +631,7 @@ func (c *Checker) checkSpecialMethods(name value.Symbol, checkedMethod *types.Me
 func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
 	params := checkedMethod.Params
 
-	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+	if !c.IsTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"equality operator `%s` must return `%s`",
@@ -689,7 +689,7 @@ func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.
 func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
 	params := checkedMethod.Params
 
-	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+	if !c.IsTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"relational operator `%s` must return `%s`",
@@ -719,7 +719,7 @@ func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *type
 	} else {
 		paramSpan = span
 	}
-	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type, nil) {
+	if !checkedMethod.IsAbstract() && !c.IsSubtype(c.selfType, param.Type, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"parameter `%s` of relational operator `%s` must accept `%s`",
@@ -798,7 +798,7 @@ func (c *Checker) addToReturnType(typ types.Type) {
 		return
 	}
 
-	c.returnType = c.newNormalisedUnion(c.returnType, typ)
+	c.returnType = c.NewNormalisedUnion(c.returnType, typ)
 }
 
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
@@ -863,7 +863,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
-		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+		if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -908,7 +908,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				posRestParam.Type = inferredParamType
 			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
-			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
+			if !c.IsSubtype(posArgType, posRestParam.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
@@ -938,7 +938,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+			if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -997,7 +997,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
-			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
+			if !c.IsSubtype(namedArgType, param.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1070,7 +1070,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				),
 			)
 			namedArgType := c.typeOf(typedNamedArgValue)
-			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
+			if !c.IsSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
@@ -1179,7 +1179,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 		posArgType := c.typeOf(typedPosArg)
-		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+		if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1218,7 +1218,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
-			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
+			if !c.IsSubtype(posArgType, posRestParam.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
@@ -1242,7 +1242,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
-			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+			if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1294,7 +1294,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
 			namedArgType := c.typeOf(typedNamedArgValue)
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
-			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
+			if !c.IsSubtype(namedArgType, param.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1359,7 +1359,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 				),
 			)
 			namedArgType := c.typeOf(typedNamedArgValue)
-			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
+			if !c.IsSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
@@ -1483,7 +1483,7 @@ func (c *Checker) checkSimpleMethodCall(
 	case token.DOT, token.DOT_DOT:
 		method = c.getMethod(receiverType, methodName, span)
 	case token.QUESTION_DOT, token.QUESTION_DOT_DOT:
-		nonNilableReceiverType := c.toNonNilable(receiverType)
+		nonNilableReceiverType := c.ToNonNilable(receiverType)
 		method = c.getMethod(nonNilableReceiverType, methodName, span)
 	default:
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
@@ -1506,19 +1506,19 @@ func (c *Checker) checkSimpleMethodCall(
 	case token.DOT:
 		returnType = method.ReturnType
 	case token.QUESTION_DOT:
-		if !c.isNilable(receiverType) {
+		if !c.IsNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				span,
 			)
 			returnType = method.ReturnType
 		} else {
-			returnType = c.toNilable(method.ReturnType)
+			returnType = c.ToNilable(method.ReturnType)
 		}
 	case token.DOT_DOT:
 		returnType = receiverType
 	case token.QUESTION_DOT_DOT:
-		if !c.isNilable(receiverType) {
+		if !c.IsNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				span,
@@ -1944,7 +1944,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
+	if !c.IsSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -1955,7 +1955,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		)
 		areCompatible = false
 	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
+	if !c.IsSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -1982,7 +1982,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			if oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+			if oldParam.Kind != newParam.Kind || !c.IsSubtype(oldParam.Type, newParam.Type, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -2036,7 +2036,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 	errDetailsBuff := new(strings.Builder)
 
 	returnType := c.inferTypeArguments(baseMethod.ReturnType, overrideMethod.ReturnType, typeArgs, nil)
-	if returnType == nil || !c.isSubtype(returnType, baseMethod.ReturnType, errSpan) {
+	if returnType == nil || !c.IsSubtype(returnType, baseMethod.ReturnType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -2049,7 +2049,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 	}
 
 	throwType := c.inferTypeArguments(baseMethod.ThrowType, overrideMethod.ThrowType, typeArgs, nil)
-	if throwType == nil || !c.isSubtype(throwType, baseMethod.ThrowType, errSpan) {
+	if throwType == nil || !c.IsSubtype(throwType, baseMethod.ThrowType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -2078,7 +2078,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 
 			newParamType := c.inferTypeArguments(oldParam.Type, newParam.Type, typeArgs, nil)
 			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind ||
-				newParamType == nil || !c.isSubtype(oldParam.Type, newParamType, errSpan) {
+				newParamType == nil || !c.IsSubtype(oldParam.Type, newParamType, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -2180,10 +2180,10 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[value.
 					whereParam := whereParams[i]
 					whereArg := whereArgs[i]
 
-					if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+					if !c.IsSubtype(whereParam.LowerBound, whereArg, nil) {
 						continue methodLoop
 					}
-					if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+					if !c.IsSubtype(whereArg, whereParam.UpperBound, nil) {
 						continue methodLoop
 					}
 				}
@@ -2303,10 +2303,10 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			whereParam := whereParams[i]
 			whereArg := whereArgs[i]
 
-			if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+			if !c.IsSubtype(whereParam.LowerBound, whereArg, nil) {
 				return nil
 			}
-			if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+			if !c.IsSubtype(whereArg, whereParam.UpperBound, nil) {
 				return nil
 			}
 		}
@@ -2557,7 +2557,7 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) 
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
-	typ = c.toNonLiteral(typ, true)
+	typ = c.ToNonLiteral(typ, true)
 
 	switch t := typ.(type) {
 	case types.Self:

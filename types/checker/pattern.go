@@ -209,8 +209,8 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		rightType := c.typeOf(node.Right)
 		c.mode = prevMode
 
-		node.SetType(c.newNormalisedUnion(leftType, rightType))
-		return node, c.newNormalisedUnion(leftCatchType, rightCatchType)
+		node.SetType(c.NewNormalisedUnion(leftType, rightType))
+		return node, c.NewNormalisedUnion(leftCatchType, rightCatchType)
 	case token.AND_AND:
 		var leftCatchType, rightCatchType types.Type
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
@@ -219,7 +219,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
 		rightType := c.typeOf(node.Right)
 
-		intersection := c.newNormalisedIntersection(leftType, rightType)
+		intersection := c.NewNormalisedIntersection(leftType, rightType)
 		if types.IsNever(intersection) {
 			c.addWarning(
 				"this pattern is impossible to satisfy",
@@ -227,7 +227,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 			)
 		}
 		node.SetType(intersection)
-		return node, c.newNormalisedIntersection(leftCatchType, rightCatchType)
+		return node, c.NewNormalisedIntersection(leftCatchType, rightCatchType)
 	default:
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.String()))
 	}
@@ -279,13 +279,13 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 
 func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) (*ast.UnaryExpressionNode, types.Type) {
 	node.Right = c.checkExpression(node.Right)
-	rightType := c.toNonLiteral(c.typeOf(node.Right), false)
+	rightType := c.ToNonLiteral(c.typeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Span()) {
 		node.SetType(types.Untyped{})
 		return node, types.Never{}
 	}
 
-	intersection := c.newNormalisedIntersection(rightType, matchedType)
+	intersection := c.NewNormalisedIntersection(rightType, matchedType)
 	node.SetType(intersection)
 	c.getMethod(intersection, operator, node.Op.Span())
 	return node, types.Never{}
@@ -447,7 +447,7 @@ func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *as
 
 	var fullyCapturedType types.Type
 	node.Value, fullyCapturedType = c.checkPattern(node.Value, returnType)
-	return returnType, c.isSubtype(returnType, fullyCapturedType, nil)
+	return returnType, c.IsSubtype(returnType, fullyCapturedType, nil)
 }
 
 func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) (attrType types.Type, fullyCaptured bool) {
@@ -557,7 +557,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	var startType, endType types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
-		startType = c.toNonLiteral(c.typeOf(node.Start), false)
+		startType = c.ToNonLiteral(c.typeOf(node.Start), false)
 		if _, ok := startType.(*types.Class); !ok {
 			c.addFailure(
 				fmt.Sprintf(
@@ -570,7 +570,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	}
 	if node.End != nil {
 		node.End = c.checkExpression(node.End)
-		endType = c.toNonLiteral(c.typeOf(node.End), false)
+		endType = c.ToNonLiteral(c.typeOf(node.End), false)
 		if _, ok := endType.(*types.Class); !ok {
 			c.addFailure(
 				fmt.Sprintf(
@@ -582,7 +582,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 		}
 	}
 
-	if startType != nil && endType != nil && !c.isTheSameType(startType, endType, nil) {
+	if startType != nil && endType != nil && !c.IsTheSameType(startType, endType, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"range pattern start and end must be of the same type, got `%s` and `%s`",
@@ -631,7 +631,7 @@ func (c *Checker) addCannotMatchError(assignedType types.Type, targetType types.
 }
 
 func (c *Checker) checkCanMatch(assignedType types.Type, targetType types.Type, span *position.Span) bool {
-	if !c.typesIntersect(assignedType, targetType) {
+	if !c.TypesIntersect(assignedType, targetType) {
 		c.addCannotMatchError(assignedType, targetType, span)
 		return false
 	}
@@ -719,16 +719,16 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 		var local *local
 		switch c.mode {
 		case valuePatternMode:
-			varType := c.toNonLiteral(patternType, false)
+			varType := c.ToNonLiteral(patternType, false)
 			local = newLocal(varType, true, true)
 		case nilableValuePatternMode:
-			varType := c.toNilable(c.toNonLiteral(patternType, false))
+			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
 			local = newLocal(varType, true, true)
 		case nilablePatternMode:
-			varType := c.toNilable(c.toNonLiteral(patternType, false))
+			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
 			local = newLocal(varType, true, false)
 		default:
-			varType := c.toNonLiteral(patternType, false)
+			varType := c.ToNonLiteral(patternType, false)
 			local = newLocal(varType, true, false)
 		}
 		c.addLocal(name, local)

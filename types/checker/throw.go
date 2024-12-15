@@ -66,14 +66,14 @@ func (c *Checker) checkCalledMethodThrowType(method *types.Method, span *positio
 
 func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
 	for _, catchScope := range c.catchScopes {
-		if c.isSubtype(throwType, catchScope.typ, nil) {
+		if c.IsSubtype(throwType, catchScope.typ, nil) {
 			return
 		}
 	}
 
 	switch c.mode {
 	case methodMode, closureInferReturnTypeMode, initMode:
-		expectedThrowType := c.newNormalisedUnion(c.throwType, throwType)
+		expectedThrowType := c.NewNormalisedUnion(c.throwType, throwType)
 		c.addFailure(
 			fmt.Sprintf(
 				"thrown value of type `%s` must be caught or added to the signature of the function `%s`",

@@ -87,12 +87,12 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return typeArg.Type
 		}
 
-		nonLiteral := c.toNonLiteral(givenType, false)
-		if !c.isSubtype(givenType, p.UpperBound, nil) {
+		nonLiteral := c.ToNonLiteral(givenType, false)
+		if !c.IsSubtype(givenType, p.UpperBound, nil) {
 			c.addUpperBoundError(givenType, p.UpperBound, errSpan)
 			return nil
 		}
-		if !c.isSubtype(p.LowerBound, nonLiteral, nil) {
+		if !c.IsSubtype(p.LowerBound, nonLiteral, nil) {
 			c.addLowerBoundError(givenType, p.LowerBound, errSpan)
 			return nil
 		}
@@ -106,7 +106,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if !ok {
 			return p
 		}
-		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
+		if !c.IsSubtype(g.Namespace, p.Namespace, nil) {
 			return p
 		}
 		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
@@ -181,7 +181,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return p
 		}
 	case *types.InstanceOf:
-		nonLiteral := c.toNonLiteral(givenType, false)
+		nonLiteral := c.ToNonLiteral(givenType, false)
 		switch g := nonLiteral.(type) {
 		case *types.InstanceOf:
 			result := c.inferTypeArguments(g.Type, p.Type, typeArgMap, errSpan)
@@ -271,7 +271,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			gElementsToSkip := make([]bool, len(g.Elements))
 			for _, pElement := range p.Elements {
 				for j, gElement := range g.Elements {
-					if c.isSubtype(gElement, pElement, nil) {
+					if c.IsSubtype(gElement, pElement, nil) {
 						gElementsToSkip[j] = true
 						break
 					}
@@ -335,7 +335,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		case *types.Union:
 			narrowedGivenElements := make([]types.Type, 0, len(g.Elements))
 			for _, gElement := range g.Elements {
-				if c.isSubtype(gElement, p, nil) {
+				if c.IsSubtype(gElement, p, nil) {
 					continue
 				}
 				narrowedGivenElements = append(narrowedGivenElements, gElement)
@@ -460,7 +460,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		}
 		return arg.Type
 	case *types.TypeParameter:
-		if !c.isTheSameType(t.Namespace, generic.Namespace, nil) {
+		if !c.IsTheSameType(t.Namespace, generic.Namespace, nil) {
 			return t
 		}
 		arg := generic.ArgumentMap[t.Name]
@@ -747,9 +747,9 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 func (c *Checker) normaliseType(typ types.Type) types.Type {
 	switch t := typ.(type) {
 	case *types.Union:
-		return c.newNormalisedUnion(t.Elements...)
+		return c.NewNormalisedUnion(t.Elements...)
 	case *types.Intersection:
-		return c.newNormalisedIntersection(t.Elements...)
+		return c.NewNormalisedIntersection(t.Elements...)
 	case *types.Generic:
 		for _, arg := range t.TypeArguments.AllArguments() {
 			arg.Type = c.normaliseType(arg.Type)
@@ -785,7 +785,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		case types.Any, types.Untyped:
 			return t.Type
 		}
-		if c.isNilable(t.Type) {
+		if c.IsNilable(t.Type) {
 			return t.Type
 		}
 		if union, ok := t.Type.(*types.Union); ok {
@@ -809,13 +809,13 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 			for _, element := range nestedType.Elements {
 				intersectionElements = append(intersectionElements, types.NewNot(element))
 			}
-			return c.newNormalisedIntersection(intersectionElements...)
+			return c.NewNormalisedIntersection(intersectionElements...)
 		case *types.Intersection:
 			unionElements := make([]types.Type, 0, len(nestedType.Elements))
 			for _, element := range nestedType.Elements {
 				unionElements = append(unionElements, types.NewNot(element))
 			}
-			return c.newNormalisedUnion(unionElements...)
+			return c.NewNormalisedUnion(unionElements...)
 		}
 
 		return t
@@ -872,7 +872,7 @@ func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElement
 	return types.NewUnion(*newUnionElements...)
 }
 
-func (c *Checker) newNormalisedIntersection(elements ...types.Type) types.Type {
+func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 	var containsNot bool
 	var containsUninitialisedNamedTypes bool
 
@@ -956,10 +956,10 @@ eliminateSupertypesLoop:
 
 		for j := 0; j < len(normalisedElements); j++ {
 			normalisedElement := normalisedElements[j]
-			if c.isSubtype(normalisedElement, element, nil) {
+			if c.IsSubtype(normalisedElement, element, nil) {
 				continue eliminateSupertypesLoop
 			}
-			if c.isSubtype(element, normalisedElement, nil) {
+			if c.IsSubtype(element, normalisedElement, nil) {
 				normalisedElements[j] = element
 				continue eliminateSupertypesLoop
 			}
@@ -978,7 +978,7 @@ eliminateSupertypesLoop:
 	return types.NewIntersection(normalisedElements...)
 }
 
-func (c *Checker) newNormalisedUnion(elements ...types.Type) types.Type {
+func (c *Checker) NewNormalisedUnion(elements ...types.Type) types.Type {
 	var normalisedElements []types.Type
 
 elementLoop:
@@ -995,14 +995,14 @@ elementLoop:
 		case *types.Not:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if c.isTheSameType(e.Type, normalisedElement, nil) {
+				if c.IsTheSameType(e.Type, normalisedElement, nil) {
 					return types.Any{}
 				}
-				if c.isSubtype(normalisedElement, element, nil) {
+				if c.IsSubtype(normalisedElement, element, nil) {
 					normalisedElements[j] = element
 					continue elementLoop
 				}
-				if c.isSubtype(element, normalisedElement, nil) {
+				if c.IsSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}
@@ -1010,14 +1010,14 @@ elementLoop:
 		default:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type, element, nil) {
+				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.IsTheSameType(normalisedNot.Type, element, nil) {
 					return types.Any{}
 				}
-				if c.isSubtype(normalisedElement, element, nil) {
+				if c.IsSubtype(normalisedElement, element, nil) {
 					normalisedElements[j] = element
 					continue elementLoop
 				}
-				if c.isSubtype(element, normalisedElement, nil) {
+				if c.IsSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}

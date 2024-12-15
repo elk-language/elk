@@ -88,7 +88,7 @@ func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) type
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}
-	narrowedType := c.newNormalisedIntersection(localType, typ)
+	narrowedType := c.NewNormalisedIntersection(localType, typ)
 	local.typ = narrowedType
 	return narrowedType
 }
@@ -148,7 +148,7 @@ func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assum
 	switch assume {
 	case assumptionTruthy:
 		// the whole condition is truthy, so the entire expression must be truthy
-		if c.isFalsy(leftType) || c.isFalsy(rightType) {
+		if c.IsFalsy(leftType) || c.IsFalsy(rightType) {
 			// any side is falsy, so the condition is impossible
 			c.narrowCondition(node.Left, assumptionNever)
 			c.narrowCondition(node.Right, assumptionNever)
@@ -159,7 +159,7 @@ func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assum
 		return
 	case assumptionNotNil:
 		// the whole condition is not nil, so the entire expression must be not nil
-		if c.isNil(leftType) || c.isNil(rightType) {
+		if c.IsNil(leftType) || c.IsNil(rightType) {
 			// any side is nil, so the condition is impossible
 			c.narrowCondition(node.Left, assumptionNever)
 			c.narrowCondition(node.Right, assumptionNever)
@@ -174,12 +174,12 @@ func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assum
 		return
 	case assumptionFalsy:
 		// the whole condition is falsy
-		if c.isTruthy(leftType) {
+		if c.IsTruthy(leftType) {
 			// left is truthy, so right must be falsy
 			c.narrowCondition(node.Right, assumptionFalsy)
 			return
 		}
-		if c.isTruthy(rightType) {
+		if c.IsTruthy(rightType) {
 			// left is falsy, right is truthy
 			c.narrowCondition(node.Left, assumptionFalsy)
 		}
@@ -194,7 +194,7 @@ func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assump
 	switch assume {
 	case assumptionFalsy:
 		// the whole condition is falsy, so the entire expression must be falsy
-		if c.isTruthy(leftType) || c.isTruthy(rightType) {
+		if c.IsTruthy(leftType) || c.IsTruthy(rightType) {
 			// any side is truthy, so the condition is impossible
 			c.narrowCondition(node.Left, assumptionNever)
 			c.narrowCondition(node.Right, assumptionNever)
@@ -205,7 +205,7 @@ func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assump
 		return
 	case assumptionNil:
 		// the whole condition is nil, so the entire expression must be nil
-		if c.isNotNilable(leftType) || c.isNotNilable(rightType) {
+		if c.IsNotNilable(leftType) || c.IsNotNilable(rightType) {
 			// any side is not nilable, so the condition is impossible
 			c.narrowCondition(node.Left, assumptionNever)
 			c.narrowCondition(node.Right, assumptionNever)
@@ -220,18 +220,18 @@ func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assump
 		return
 	case assumptionTruthy:
 		// the whole condition is truthy
-		if c.isFalsy(leftType) {
+		if c.IsFalsy(leftType) {
 			// left is falsy, so right must be truthy
 			c.narrowCondition(node.Right, assumptionTruthy)
 			return
 		}
-		if c.isFalsy(rightType) {
+		if c.IsFalsy(rightType) {
 			// right is falsy, left be truthy
 			c.narrowCondition(node.Left, assumptionTruthy)
 		}
 	case assumptionNotNil:
 		// the whole condition is not nil
-		if c.isFalsy(leftType) {
+		if c.IsFalsy(leftType) {
 			// left is falsy, so right must not be nil
 			c.narrowCondition(node.Right, assumptionNotNil)
 			return
@@ -246,7 +246,7 @@ func (c *Checker) narrowNilCoalescing(node *ast.LogicalExpressionNode, assume as
 	switch assume {
 	case assumptionNil:
 		// the whole condition is nil, so the entire expression must be nil
-		if c.isNotNilable(leftType) || c.isNotNilable(rightType) {
+		if c.IsNotNilable(leftType) || c.IsNotNilable(rightType) {
 			// any side is not nilable, so the condition is impossible
 			c.narrowCondition(node.Left, assumptionNever)
 			c.narrowCondition(node.Right, assumptionNever)
@@ -261,12 +261,12 @@ func (c *Checker) narrowNilCoalescing(node *ast.LogicalExpressionNode, assume as
 		return
 	case assumptionNotNil:
 		// the whole condition is not nil
-		if c.isNil(leftType) {
+		if c.IsNil(leftType) {
 			// left is nil, so right must not be nil
 			c.narrowCondition(node.Right, assumptionNotNil)
 			return
 		}
-		if c.isNil(rightType) {
+		if c.IsNil(rightType) {
 			// right is nil, left must not be nil
 			c.narrowCondition(node.Left, assumptionNotNil)
 		}
@@ -321,7 +321,7 @@ func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type)
 		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
-	local.typ = c.newNormalisedIntersection(local.typ, typ)
+	local.typ = c.NewNormalisedIntersection(local.typ, typ)
 }
 
 func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
@@ -362,7 +362,7 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 }
 
 func (c *Checker) differenceType(a, b types.Type) types.Type {
-	return c.newNormalisedIntersection(a, types.NewNot(b))
+	return c.NewNormalisedIntersection(a, types.NewNot(b))
 }
 
 func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assumption) {
@@ -424,31 +424,31 @@ func (c *Checker) narrowLocal(name string, localType types.Type, assume assumpti
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = c.toNonFalsy(localType)
+		local.typ = c.ToNonFalsy(localType)
 	case assumptionFalsy:
-		local.typ = c.toNonTruthy(localType)
+		local.typ = c.ToNonTruthy(localType)
 	case assumptionNever:
 		local.typ = types.Never{}
 	case assumptionNil:
 		local.typ = types.Nil{}
 	case assumptionNotNil:
-		local.typ = c.toNonNilable(localType)
+		local.typ = c.ToNonNilable(localType)
 	}
 }
 
-func (c *Checker) toNonNilable(typ types.Type) types.Type {
+func (c *Checker) ToNonNilable(typ types.Type) types.Type {
 	return c.differenceType(typ, types.Nil{})
 }
 
-func (c *Checker) toNonFalsy(typ types.Type) types.Type {
-	return c.newNormalisedIntersection(typ, types.NewNot(types.Nil{}), types.NewNot(types.False{}))
+func (c *Checker) ToNonFalsy(typ types.Type) types.Type {
+	return c.NewNormalisedIntersection(typ, types.NewNot(types.Nil{}), types.NewNot(types.False{}))
 }
 
-func (c *Checker) toNonTruthy(typ types.Type) types.Type {
-	return c.newNormalisedIntersection(typ, types.NewUnion(types.Nil{}, types.False{}))
+func (c *Checker) ToNonTruthy(typ types.Type) types.Type {
+	return c.NewNormalisedIntersection(typ, types.NewUnion(types.Nil{}, types.False{}))
 }
 
-func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
+func (c *Checker) ToNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
 	if typ == nil {
 		return types.Void{}
 	}
@@ -461,15 +461,15 @@ func (c *Checker) toNonLiteral(typ types.Type, widenSingletonTypes bool) types.T
 		case *types.Union:
 			newElements := make([]types.Type, len(t.Elements))
 			for i, element := range t.Elements {
-				newElements[i] = c.toNonLiteral(element, widenSingletonTypes)
+				newElements[i] = c.ToNonLiteral(element, widenSingletonTypes)
 			}
-			return c.newNormalisedUnion(newElements...)
+			return c.NewNormalisedUnion(newElements...)
 		}
 	}
 
 	return typ.ToNonLiteral(c.GlobalEnv)
 }
 
-func (c *Checker) toNilable(typ types.Type) types.Type {
+func (c *Checker) ToNilable(typ types.Type) types.Type {
 	return c.normaliseType(types.NewNilable(typ))
 }

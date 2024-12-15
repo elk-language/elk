@@ -652,31 +652,31 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		}
 	case *ast.ArrayListLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayList(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdArrayList(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkArrayListLiteralNodeWithType(n, generic)
 	case *ast.ArrayTupleLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkArrayTupleLiteralNodeWithType(n, generic)
 	case *ast.HashSetLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdHashSet(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdHashSet(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashSetLiteralNodeWithType(n, generic)
 	case *ast.HashMapLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashMap(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.IsSubtype(c.StdHashMap(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashMapLiteralNodeWithType(n, generic)
 	case *ast.HashRecordLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashRecord(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.IsSubtype(c.StdHashRecord(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashRecordLiteralNodeWithType(n, generic)
@@ -1120,7 +1120,7 @@ func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpre
 		)
 	}
 
-	if !c.typesIntersect(runtimeType, staticType) {
+	if !c.TypesIntersect(runtimeType, staticType) {
 		c.addFailure(
 			fmt.Sprintf(
 				"cannot cast type `%s` to type `%s`",
@@ -1161,7 +1161,7 @@ func (c *Checker) checkTryExpressionNode(node *ast.TryExpressionNode) *ast.TryEx
 func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.MustExpressionNode {
 	node.Value = c.checkExpression(node.Value)
 	mustType := c.typeOf(node.Value)
-	if !c.isNilable(mustType) {
+	if !c.IsNilable(mustType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"unnecessary `%s`, type `%s` is not nilable",
@@ -1174,7 +1174,7 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 		return node
 	}
 
-	node.SetType(c.toNonNilable(mustType))
+	node.SetType(c.ToNonNilable(mustType))
 	return node
 }
 
@@ -1184,10 +1184,10 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	methodName value.Symbol,
 	span *position.Span,
 ) types.Type {
-	leftType := c.toNonLiteral(c.typeOf(left), true)
+	leftType := c.ToNonLiteral(c.typeOf(left), true)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
-	rightType := c.toNonLiteral(c.typeOf(right), true)
+	rightType := c.ToNonLiteral(c.typeOf(right), true)
 	rightClassType, rightIsClass := rightType.(*types.Class)
 	if !leftIsClass || !rightIsClass {
 		return c.checkBinaryOpMethodCall(
@@ -1373,7 +1373,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -1384,7 +1384,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		c.addUnreachableCodeError(node.ElseExpression.Span())
 		return thenKeyType, thenValueType
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -1396,7 +1396,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		return elseKeyType, elseValueType
 	}
 
-	return c.newNormalisedUnion(thenKeyType, elseKeyType), c.newNormalisedUnion(thenValueType, elseValueType)
+	return c.NewNormalisedUnion(thenKeyType, elseKeyType), c.NewNormalisedUnion(thenValueType, elseValueType)
 }
 
 func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
@@ -1404,40 +1404,40 @@ func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Ty
 		switch p := pairNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			p.Key = c.checkExpression(p.Key)
-			keyTypes = append(keyTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Key), false))
+			keyTypes = append(keyTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Key), false))
 
 			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false))
 		case *ast.SymbolKeyValueExpressionNode:
 			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
 
 			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p.Value), false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false))
 		case *ast.PublicIdentifierNode:
 			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
 
 			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p), false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p), false))
 		case *ast.PrivateIdentifierNode:
 			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
 
 			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.toNonLiteral(c.typeOfGuardVoid(p), false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p), false))
 		case *ast.ModifierNode:
 			keyType, valueType := c.checkModifierInRecord(p)
-			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
+			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
 
-			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
 		case *ast.ModifierIfElseNode:
 			keyType, valueType := c.checkRecordIfElseModifier(p)
 
-			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
-			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
 		case *ast.ModifierForInNode:
 			keyType, valueType := c.checkRecordForInModifier(p)
 
-			keyTypes = append(keyTypes, c.toNonLiteral(keyType, false))
-			valueTypes = append(valueTypes, c.toNonLiteral(valueType, false))
+			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
+			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
 		default:
 			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
 		}
@@ -1499,12 +1499,12 @@ func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.Expr
 
 func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkMapPairs(node.Elements)
-	keyType := c.newNormalisedUnion(keyTypes...)
-	valueType := c.newNormalisedUnion(valueTypes...)
+	keyType := c.NewNormalisedUnion(keyTypes...)
+	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.IsSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.IsSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), types.Any{}, types.Any{})
@@ -1517,7 +1517,7 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.typeOf(node.Capacity)
-		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -1539,11 +1539,11 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	var valueTypes []types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
-		valueTypes = append(valueTypes, c.toNonLiteral(c.typeOf(node.Start), false))
+		valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOf(node.Start), false))
 	}
 	if node.End != nil {
 		node.End = c.checkExpression(node.End)
-		valueTypes = append(valueTypes, c.toNonLiteral(c.typeOf(node.End), false))
+		valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOf(node.End), false))
 	}
 
 	var rangeClassName value.Symbol
@@ -1583,14 +1583,14 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	}
 
 	rangeClass := c.Std(rangeClassName).(*types.Class)
-	if typ != nil && !c.isTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
+	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.IsSubtype(c.StdRange(), typ.Namespace, nil) {
 		typ = nil
 	}
 	comparable := c.Std(symbol.Comparable).(*types.Interface)
-	valueType := c.newNormalisedUnion(valueTypes...)
+	valueType := c.NewNormalisedUnion(valueTypes...)
 	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
 
-	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.IsSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(valueTypes) == 0 {
 		c.addFailure(
@@ -1599,7 +1599,7 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 		)
 		generic := types.NewGenericWithTypeArgs(rangeClass, types.Untyped{})
 		node.SetType(generic)
-	} else if !c.isSubtype(valueType, comparableValueType, node.Span()) {
+	} else if !c.IsSubtype(valueType, comparableValueType, node.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type %s is not comparable and cannot be used in range literals",
@@ -1623,12 +1623,12 @@ func (c *Checker) checkHashRecordLiteralNode(node *ast.HashRecordLiteralNode) as
 
 func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	keyTypes, valueTypes := c.checkRecordPairs(node.Elements)
-	keyType := c.newNormalisedUnion(keyTypes...)
-	valueType := c.newNormalisedUnion(valueTypes...)
+	keyType := c.NewNormalisedUnion(keyTypes...)
+	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.IsSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.IsSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), types.Any{}, types.Any{})
@@ -1659,7 +1659,7 @@ func (c *Checker) checkArrayListElements(elements []ast.ExpressionNode) []types.
 	for i, elementNode := range elements {
 		elementNode = c.checkArrayListElement(elementNode)
 		elements[i] = elementNode
-		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		elementTypes = append(elementTypes, c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false))
 	}
 
 	return elementTypes
@@ -1683,7 +1683,7 @@ func (c *Checker) checkArrayListElement(node ast.ExpressionNode) ast.ExpressionN
 func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
 	node.Key = c.checkExpression(node.Key)
 	keyType := c.typeOfGuardVoid(node.Key)
-	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+	if !c.IsSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"index must be an integer, got type `%s`",
@@ -1695,7 +1695,7 @@ func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionN
 
 	node.Value = c.checkExpression(node.Value)
 	node.SetType(
-		types.NewNilable(c.toNonLiteral(c.typeOf(node.Value), false)),
+		types.NewNilable(c.ToNonLiteral(c.typeOf(node.Value), false)),
 	)
 	return node
 }
@@ -1705,7 +1705,7 @@ func (c *Checker) checkHashSetElements(elements []ast.ExpressionNode) []types.Ty
 	for i, elementNode := range elements {
 		elementNode = c.checkHashSetElement(elementNode)
 		elements[i] = elementNode
-		elementTypes = append(elementTypes, c.toNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		elementTypes = append(elementTypes, c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false))
 	}
 
 	return elementTypes
@@ -1753,7 +1753,7 @@ func (c *Checker) checkArrayTupleElement(node ast.ExpressionNode) ast.Expression
 func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
 	node.Key = c.checkExpression(node.Key)
 	keyType := c.typeOfGuardVoid(node.Key)
-	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+	if !c.IsSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"index must be an integer, got type `%s`",
@@ -1776,9 +1776,9 @@ func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.
 
 func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkArrayListElements(node.Elements)
-	elementType := c.newNormalisedUnion(elementTypes...)
+	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), types.Any{}))
@@ -1789,7 +1789,7 @@ func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNo
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.typeOf(node.Capacity)
-		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -1813,7 +1813,7 @@ func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collect
 	if capacity != nil {
 		capacity = c.checkExpression(capacity)
 		capacityType := c.typeOf(capacity)
-		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -1989,9 +1989,9 @@ func (c *Checker) checkHashSetLiteralNode(node *ast.HashSetLiteralNode) ast.Expr
 
 func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkHashSetElements(node.Elements)
-	elementType := c.newNormalisedUnion(elementTypes...)
+	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), types.Any{}))
@@ -2002,7 +2002,7 @@ func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.typeOf(node.Capacity)
-		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -2022,9 +2022,9 @@ func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) as
 
 func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteralNode, typ *types.Generic) ast.ExpressionNode {
 	elementTypes := c.checkArrayTupleElements(node.Elements)
-	elementType := c.newNormalisedUnion(elementTypes...)
+	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), types.Any{}))
@@ -2049,7 +2049,7 @@ func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) 
 		if loop.returnType == nil {
 			loop.returnType = typ
 		} else {
-			loop.returnType = c.newNormalisedUnion(loop.returnType, typ)
+			loop.returnType = c.NewNormalisedUnion(loop.returnType, typ)
 		}
 	}
 
@@ -2070,7 +2070,7 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 		if loop.returnType == nil {
 			loop.returnType = typ
 		} else {
-			loop.returnType = c.newNormalisedUnion(loop.returnType, typ)
+			loop.returnType = c.NewNormalisedUnion(loop.returnType, typ)
 		}
 	}
 
@@ -2152,7 +2152,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		endless = true
 		typ = types.Never{}
 	}
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2163,7 +2163,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		endless = true
 		typ = types.Never{}
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this loop will never execute since type `%s` is falsy",
@@ -2194,10 +2194,10 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		return node
 	}
 	if typ == nil {
-		typ = c.toNilable(thenType)
+		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.newNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(typ, loop.returnType)
 	}
 	node.SetType(typ)
 	return node
@@ -2223,7 +2223,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 	if typ == nil {
 		typ = types.Nil{}
 	} else {
-		typ = c.toNilable(typ)
+		typ = c.ToNilable(typ)
 	}
 	node.SetType(typ)
 	return node
@@ -2299,7 +2299,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	if typ == nil {
 		typ = types.Nil{}
 	} else {
-		typ = c.toNilable(typ)
+		typ = c.ToNilable(typ)
 	}
 	node.SetType(typ)
 	return node
@@ -2309,7 +2309,7 @@ func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Typ
 	iterable := c.StdPrimitiveIterable()
 	iterableOfAny := types.NewGenericWithUpperBoundTypeArgs(iterable)
 
-	if c.isSubtype(typ, iterableOfAny, span) {
+	if c.IsSubtype(typ, iterableOfAny, span) {
 		return c.getIteratorElementType(typ, span)
 	}
 
@@ -2361,7 +2361,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 	var typ types.Type
 	var endless bool
 	var noop bool
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this loop will never execute since type `%s` is truthy",
@@ -2375,7 +2375,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 		noop = true
 		typ = types.Nil{}
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2400,10 +2400,10 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 		return node
 	}
 	if typ == nil {
-		typ = c.toNilable(thenType)
+		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.newNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(typ, loop.returnType)
 	}
 	node.SetType(typ)
 	return node
@@ -2416,7 +2416,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 
 	var typ types.Type
 	var endless bool
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2425,7 +2425,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 			node.Right.Span(),
 		)
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2444,10 +2444,10 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 	c.popLocalEnv()
 
 	if typ == nil {
-		typ = c.toNilable(thenType)
+		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.newNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(typ, loop.returnType)
 	}
 	node.SetType(typ)
 	return node
@@ -2461,7 +2461,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 	var typ types.Type
 	var endless bool
 	var noop bool
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2472,7 +2472,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		endless = true
 		typ = types.Never{}
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this loop will never execute since type `%s` is falsy",
@@ -2500,10 +2500,10 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		return node
 	}
 	if typ == nil {
-		typ = c.toNilable(thenType)
+		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.newNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(typ, loop.returnType)
 	}
 	node.SetType(typ)
 	return node
@@ -2516,7 +2516,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 
 	var typ types.Type
 	var endless bool
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2527,7 +2527,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 		endless = true
 		typ = types.Never{}
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2544,10 +2544,10 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 	c.popLocalEnv()
 
 	if typ == nil {
-		typ = c.toNilable(thenType)
+		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.newNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(typ, loop.returnType)
 	}
 	node.SetType(typ)
 	return node
@@ -2586,7 +2586,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2600,7 +2600,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 		node.SetType(elseType)
 		return node
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2615,7 +2615,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 		return node
 	}
 
-	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(thenType, elseType))
 	return node
 }
 
@@ -2689,7 +2689,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2703,7 +2703,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 		node.SetType(thenType)
 		return node
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2718,7 +2718,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 		return node
 	}
 
-	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(thenType, elseType))
 	return node
 }
 
@@ -2741,7 +2741,7 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2753,7 +2753,7 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 		node.SetType(thenType)
 		return node
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2766,7 +2766,7 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 		return node
 	}
 
-	node.SetType(c.newNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(thenType, elseType))
 	return node
 }
 
@@ -2783,7 +2783,7 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpr
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2794,7 +2794,7 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpr
 		node.SetType(thenType)
 		return node
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2824,7 +2824,7 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn Check
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2836,7 +2836,7 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn Check
 		node.SetType(types.Never{})
 		return node
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2878,7 +2878,7 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2888,7 +2888,7 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 		)
 		return keyType, valueType
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2929,7 +2929,7 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 
 	c.popLocalEnv()
 
-	if c.isTruthy(conditionType) {
+	if c.IsTruthy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -2940,7 +2940,7 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 		c.addUnreachableCodeError(node.Left.Span())
 		return types.Never{}, types.Never{}
 	}
-	if c.isFalsy(conditionType) {
+	if c.IsFalsy(conditionType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -2972,8 +2972,8 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 
 			c.popLocalEnv()
 		}
-		resultType = c.newNormalisedUnion(catchResultTypes...)
-		fullyCaughtType := c.newNormalisedUnion(fullyCaughtTypes...)
+		resultType = c.NewNormalisedUnion(catchResultTypes...)
+		fullyCaughtType := c.NewNormalisedUnion(fullyCaughtTypes...)
 		c.pushCatchScope(makeCatchScope(fullyCaughtType))
 		defer c.popCatchScope()
 	}
@@ -2991,7 +2991,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	if resultType == nil {
 		resultType = bodyResultType
 	} else {
-		resultType = c.newNormalisedUnion(resultType, bodyResultType)
+		resultType = c.NewNormalisedUnion(resultType, bodyResultType)
 	}
 	node.SetType(resultType)
 	return node
@@ -3084,7 +3084,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
-	if c.isNil(leftType) {
+	if c.IsNil(leftType) {
 		c.addWarning(
 			"this condition will always have the same result",
 			node.Left.Span(),
@@ -3092,7 +3092,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 		node.SetType(rightType)
 		return node
 	}
-	if c.isNotNilable(leftType) {
+	if c.IsNotNilable(leftType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` can never be nil",
@@ -3104,7 +3104,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 		node.SetType(leftType)
 		return node
 	}
-	node.SetType(c.newNormalisedUnion(c.toNonNilable(leftType), rightType))
+	node.SetType(c.NewNormalisedUnion(c.ToNonNilable(leftType), rightType))
 
 	return node
 }
@@ -3120,7 +3120,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
-	if c.isTruthy(leftType) {
+	if c.IsTruthy(leftType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -3132,7 +3132,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 		node.SetType(leftType)
 		return node
 	}
-	if c.isFalsy(leftType) {
+	if c.IsFalsy(leftType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -3143,7 +3143,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 		node.SetType(rightType)
 		return node
 	}
-	union := c.newNormalisedUnion(c.toNonFalsy(leftType), rightType)
+	union := c.NewNormalisedUnion(c.ToNonFalsy(leftType), rightType)
 	node.SetType(union)
 
 	return node
@@ -3160,7 +3160,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOf(node.Right)
 
-	if c.isTruthy(leftType) {
+	if c.IsTruthy(leftType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is truthy",
@@ -3171,7 +3171,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 		node.SetType(rightType)
 		return node
 	}
-	if c.isFalsy(leftType) {
+	if c.IsFalsy(leftType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this condition will always have the same result since type `%s` is falsy",
@@ -3184,7 +3184,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 		return node
 	}
 
-	node.SetType(c.newNormalisedUnion(c.toNonTruthy(leftType), rightType))
+	node.SetType(c.NewNormalisedUnion(c.ToNonTruthy(leftType), rightType))
 
 	return node
 }
@@ -3303,7 +3303,7 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOfGuardVoid(node.Right)
 
-	if !c.typesIntersect(leftType, rightType) {
+	if !c.TypesIntersect(leftType, rightType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this strict equality check is impossible, `%s` cannot ever be equal to `%s`",
@@ -3323,7 +3323,7 @@ func (c *Checker) checkEqual(node *ast.BinaryExpressionNode) {
 	leftType := c.typeOfGuardVoid(node.Left)
 	rightType := c.typeOfGuardVoid(node.Right)
 
-	if !c.typesIntersect(leftType, rightType) {
+	if !c.TypesIntersect(leftType, rightType) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this equality check is impossible, `%s` cannot ever be equal to `%s`",
@@ -3378,7 +3378,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		return
 	}
 
-	if c.isSubtype(leftType, class, nil) {
+	if c.IsSubtype(leftType, class, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this \"instance of\" check is always true, `%s` will always be an instance of `%s`",
@@ -3390,7 +3390,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		return
 	}
 
-	if !c.isSubtype(class, leftType, nil) {
+	if !c.IsSubtype(class, leftType, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"impossible \"instance of\" check, `%s` cannot ever be an instance of `%s`",
@@ -3437,7 +3437,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		return
 	}
 
-	if c.isSubtype(leftType, rightSingleton.AttachedObject, nil) {
+	if c.IsSubtype(leftType, rightSingleton.AttachedObject, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this \"is a\" check is always true, `%s` will always be an instance of `%s`",
@@ -3532,7 +3532,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(span *position.Span) {
 
 	self := c.selfType.(types.Namespace)
 	for name, ivar := range types.SortedInstanceVariables(self) {
-		if c.isNilable(ivar.Type) || initialisedIvars.Contains(name) {
+		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(name) {
 			continue
 		}
 		if name == symbol.S_empty {
@@ -3557,7 +3557,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, sp
 
 	if init == nil {
 		for name, ivar := range types.SortedInstanceVariables(class) {
-			if c.isNilable(ivar.Type) {
+			if c.IsNilable(ivar.Type) {
 				continue
 			}
 			if name == symbol.S_empty {
@@ -3582,7 +3582,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, sp
 	}
 
 	for name, ivar := range types.SortedInstanceVariables(class) {
-		if c.isNilable(ivar.Type) || initialisedIvars.Contains(name) {
+		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(name) {
 			continue
 		}
 		if name == symbol.S_empty {
@@ -3655,7 +3655,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			if superIvar == nil {
 				continue
 			}
-			if !c.isTheSameType(superIvar, includedIvar, nil) {
+			if !c.IsTheSameType(superIvar, includedIvar, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
 					name:              name,
 					super:             superIvar,
@@ -3979,12 +3979,12 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		typeArgument := c.typeOf(typeArgumentNode)
 
 		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap)
-		if !c.isSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
+		if !c.IsSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
 			c.addUpperBoundError(typeArgument, upperBound, typeArgumentNode.Span())
 			fail = true
 		}
 		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap)
-		if !c.isSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
+		if !c.IsSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
 			c.addLowerBoundError(typeArgument, lowerBound, typeArgumentNode.Span())
 			fail = true
 		}
@@ -4606,7 +4606,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	var shadows []*local
 	var canAssign bool
 	for ; currentVar != nil; currentVar = currentVar.shadowOf {
-		if c.isSubtype(assignedType, currentVar.typ, nil) {
+		if c.IsSubtype(assignedType, currentVar.typ, nil) {
 			for _, shadow := range shadows {
 				shadow.typ = currentVar.typ
 			}
@@ -4617,7 +4617,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 	if !canAssign {
 		// for interface implementation errors
-		c.isSubtype(assignedType, variable.typ, node.Right.Span())
+		c.IsSubtype(assignedType, variable.typ, node.Right.Span())
 		c.addCannotBeAssignedError(assignedType, variable.typ, node.Right.Span())
 	}
 
@@ -4637,7 +4637,7 @@ func (c *Checker) checkRegexContent(node ast.RegexLiteralContentNode) {
 	case *ast.RegexInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.isSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.IsSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.RegexLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -4664,11 +4664,11 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 	case *ast.StringInspectInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.isSubtype(c.typeOf(n.Expression), c.StdInspectable(), expr.Span())
+		c.IsSubtype(c.typeOf(n.Expression), c.StdInspectable(), expr.Span())
 	case *ast.StringInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.isSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.IsSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.StringLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -5537,7 +5537,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.NilableTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := c.toNilable(c.typeOf(n.TypeNode))
+		typ := c.ToNilable(c.typeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
 	case *ast.NotTypeNode:
@@ -5839,7 +5839,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 	}
 
 	if currentIvar != nil {
-		if !c.isTheSameType(typ, currentIvar, span) {
+		if !c.IsTheSameType(typ, currentIvar, span) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
@@ -5921,7 +5921,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 
 		declaredType = c.typeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
-		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
+		if ivar != nil && !c.IsTheSameType(ivar, declaredType, nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
@@ -5940,7 +5940,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	switch c.mode {
 	case mixinMode, classMode:
 	case moduleMode, singletonMode:
-		if !c.isNilable(declaredType) {
+		if !c.IsNilable(declaredType) {
 			c.addFailure(
 				fmt.Sprintf(
 					"instance variable `%s` must be declared as nilable",
@@ -6002,7 +6002,7 @@ func (c *Checker) checkVariableDeclaration(
 	if typeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(initialiser)
-		actualType := c.toNonLiteral(c.typeOfGuardVoid(init), false)
+		actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
 		c.addLocal(name, newLocal(actualType, true, false))
 		return init, nil, actualType
 	}
@@ -6061,7 +6061,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 		c.popLocalEnv()
 	}
 
-	returnType := c.newNormalisedUnion(returnTypes...)
+	returnType := c.NewNormalisedUnion(returnTypes...)
 	node.SetType(returnType)
 	return node
 }
@@ -6070,7 +6070,7 @@ func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetPa
 	for parent := range types.Parents(namespace) {
 		switch p := parent.(type) {
 		case *types.Generic:
-			if c.isTheSameNamespace(p.Namespace, targetParent) {
+			if c.IsTheSameNamespace(p.Namespace, targetParent) {
 				return p
 			}
 		case *types.Class:
@@ -6092,7 +6092,7 @@ func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetPa
 func (c *Checker) combineTypeArguments(base, other *types.TypeArguments) {
 	for key, baseVal := range base.ArgumentMap {
 		otherVal := other.ArgumentMap[key]
-		baseVal.Type = c.newNormalisedUnion(baseVal.Type, otherVal.Type)
+		baseVal.Type = c.NewNormalisedUnion(baseVal.Type, otherVal.Type)
 	}
 }
 
@@ -6138,7 +6138,7 @@ func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace
 }
 
 func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (extractedNamespace types.Type, typeArgs *types.TypeArguments) {
-	extractedNamespace = c.newNormalisedIntersection(typ, ofAny)
+	extractedNamespace = c.NewNormalisedIntersection(typ, ofAny)
 	typeArgs = c._extractTypeArguments(extractedNamespace, namespace)
 	return extractedNamespace, typeArgs
 }
@@ -6153,7 +6153,7 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 		patternKeyType := l.Get(0).Type
 		patternValueType := l.Get(1).Type
 		recordOfPatternElement := types.NewGenericWithTypeArgs(recordMixin, patternKeyType, patternValueType)
-		if c.isSubtype(l, recordOfPatternElement, nil) {
+		if c.IsSubtype(l, recordOfPatternElement, nil) {
 			return patternKeyType, patternValueType
 		}
 	case *types.Union:
@@ -6162,14 +6162,14 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 		for i, element := range l.Elements {
 			newKeys[i], newValues[i] = c._extractRecordElement(element, recordMixin, recordOfAny)
 		}
-		return c.newNormalisedUnion(newKeys...), c.newNormalisedUnion(newValues...)
+		return c.NewNormalisedUnion(newKeys...), c.NewNormalisedUnion(newValues...)
 	}
 
 	return types.Any{}, types.Any{}
 }
 
 func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
-	extractedRecord = c.newNormalisedIntersection(typ, recordOfAny)
+	extractedRecord = c.NewNormalisedIntersection(typ, recordOfAny)
 	keyType, valueType = c._extractRecordElement(extractedRecord, recordMixin, recordOfAny)
 	return extractedRecord, keyType, valueType
 }
@@ -6183,7 +6183,7 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 
 		patternElementType := l.Get(0).Type
 		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionMixin, patternElementType)
-		if c.isSubtype(l, collectionOfPatternElement, nil) {
+		if c.IsSubtype(l, collectionOfPatternElement, nil) {
 			return patternElementType
 		}
 	case *types.Union:
@@ -6191,14 +6191,14 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 		for i, element := range l.Elements {
 			newElements[i] = c._extractCollectionElement(element, collectionMixin, collectionOfAny)
 		}
-		return c.newNormalisedUnion(newElements...)
+		return c.NewNormalisedUnion(newElements...)
 	}
 
 	return types.Any{}
 }
 
 func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
-	extractedCollection = c.newNormalisedIntersection(typ, collectionOfAny)
+	extractedCollection = c.NewNormalisedIntersection(typ, collectionOfAny)
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
@@ -6450,7 +6450,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 }
 
 func (c *Checker) checkCanAssign(assignedType, targetType types.Type, span *position.Span) bool {
-	if !c.isSubtype(assignedType, targetType, span) {
+	if !c.IsSubtype(assignedType, targetType, span) {
 		c.addCannotBeAssignedError(assignedType, targetType, span)
 		return false
 	}
@@ -6470,7 +6470,7 @@ func (c *Checker) addCannotBeAssignedError(assignedType, targetType types.Type, 
 }
 
 func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, span *position.Span) {
-	if !c.isSubtype(assignedType, targetType, span) {
+	if !c.IsSubtype(assignedType, targetType, span) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to instance variable `%s` of type `%s`",
