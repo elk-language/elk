@@ -22,7 +22,7 @@ func (c *Checker) IsNotNilable(typ types.Type) bool {
 
 // Type is always `nil`
 func (c *Checker) IsNil(typ types.Type) bool {
-	return types.IsNil(typ, c.GlobalEnv)
+	return types.IsNil(typ, c.env)
 }
 
 // Type is always falsy.

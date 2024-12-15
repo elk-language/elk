@@ -96,7 +96,7 @@ const (
 type Checker struct {
 	Filename                string               // name of the current source file
 	Errors                  *error.SyncErrorList // list of typechecking errors
-	GlobalEnv               *types.GlobalEnvironment
+	env                     *types.GlobalEnvironment
 	IsHeader                bool // whether the currently checked file is an Elk header file `.elh`
 	phase                   phase
 	mode                    mode
@@ -153,6 +153,11 @@ func New() *Checker {
 	return newChecker("", nil, false)
 }
 
+// Instantiate a new Checker instance.
+func NewWithEnv(env *types.GlobalEnvironment) *Checker {
+	return newChecker("", env, false)
+}
+
 // Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
@@ -162,10 +167,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
-	envCopy := c.GlobalEnv.DeepCopyEnv()
-	localEnvsCopy := c.deepCopyLocalEnvs(c.GlobalEnv, envCopy)
-	constantScopesCopy := c.deepCopyConstantScopes(c.GlobalEnv, envCopy)
-	methodScopesCopy := c.deepCopyMethodScopes(c.GlobalEnv, envCopy)
+	envCopy := c.env.DeepCopyEnv()
+	localEnvsCopy := c.deepCopyLocalEnvs(c.env, envCopy)
+	constantScopesCopy := c.deepCopyConstantScopes(c.env, envCopy)
+	methodScopesCopy := c.deepCopyMethodScopes(c.env, envCopy)
 	c.methodScopesCopyCache = nil
 	c.constantScopesCopyCache = nil
 
@@ -186,7 +191,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 }
 
 func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
-	c.GlobalEnv = newEnv
+	c.env = newEnv
 	c.selfType = newEnv.StdSubtype(symbol.Object)
 	c.constantScopes = []constantScope{
 		makeConstantScope(newEnv.Std()),
@@ -287,9 +292,9 @@ func (c *Checker) initCompiler(span *position.Span) {
 
 	var mainCompiler *compiler.Compiler
 	if c.compiler != nil {
-		mainCompiler = c.compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+		mainCompiler = c.compiler.CreateMainCompiler(c, c.newLocation(span), c.Errors)
 	} else {
-		mainCompiler = compiler.CreateMainCompiler(c.GlobalEnv, c.newLocation(span), c.Errors)
+		mainCompiler = compiler.CreateMainCompiler(c, c.newLocation(span), c.Errors)
 	}
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
@@ -622,7 +627,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
 		c.pushIsolatedLocalEnv()
-		c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
+		c.selfType = c.env.StdSubtype(symbol.Class)
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1001,104 +1006,108 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	}
 }
 
+func (c *Checker) Env() *types.GlobalEnvironment {
+	return c.env
+}
+
 func (c *Checker) StdInt() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.Int)
+	return c.env.StdSubtypeClass(symbol.Int)
 }
 
 func (c *Checker) StdFloat() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.Float)
+	return c.env.StdSubtypeClass(symbol.Float)
 }
 
 func (c *Checker) StdBigFloat() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.BigFloat)
+	return c.env.StdSubtypeClass(symbol.BigFloat)
 }
 
 func (c *Checker) StdClass() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.Class)
+	return c.env.StdSubtypeClass(symbol.Class)
 }
 
 func (c *Checker) Std(name value.Symbol) types.Type {
-	return c.GlobalEnv.StdSubtype(name)
+	return c.env.StdSubtype(name)
 }
 
 func (c *Checker) StdPrimitiveIterable() *types.Interface {
-	return c.GlobalEnv.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
+	return c.env.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
 }
 
 func (c *Checker) StdString() types.Type {
-	return c.GlobalEnv.StdSubtype(symbol.String)
+	return c.env.StdSubtype(symbol.String)
 }
 
 func (c *Checker) StdStringConvertible() types.Type {
-	return c.GlobalEnv.StdSubtype(symbol.StringConvertible)
+	return c.env.StdSubtype(symbol.StringConvertible)
 }
 
 func (c *Checker) StdInspectable() types.Type {
-	return c.GlobalEnv.StdSubtype(symbol.Inspectable)
+	return c.env.StdSubtype(symbol.Inspectable)
 }
 
 func (c *Checker) StdAnyInt() types.Type {
-	return c.GlobalEnv.StdSubtype(symbol.AnyInt)
+	return c.env.StdSubtype(symbol.AnyInt)
 }
 
 func (c *Checker) StdBool() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.Bool)
+	return c.env.StdSubtypeClass(symbol.Bool)
 }
 
 func (c *Checker) StdArrayList() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayList)
+	return c.env.StdSubtypeClass(symbol.ArrayList)
 }
 
 func (c *Checker) StdList() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.List).(*types.Mixin)
+	return c.env.StdSubtype(symbol.List).(*types.Mixin)
 }
 
 func (c *Checker) StdArrayTuple() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.ArrayTuple)
+	return c.env.StdSubtypeClass(symbol.ArrayTuple)
 }
 
 func (c *Checker) StdTuple() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Tuple).(*types.Mixin)
+	return c.env.StdSubtype(symbol.Tuple).(*types.Mixin)
 }
 
 func (c *Checker) StdHashSet() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.HashSet)
+	return c.env.StdSubtypeClass(symbol.HashSet)
 }
 
 func (c *Checker) StdSet() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Set).(*types.Mixin)
+	return c.env.StdSubtype(symbol.Set).(*types.Mixin)
 }
 
 func (c *Checker) StdHashMap() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.HashMap)
+	return c.env.StdSubtypeClass(symbol.HashMap)
 }
 
 func (c *Checker) StdMap() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Map).(*types.Mixin)
+	return c.env.StdSubtype(symbol.Map).(*types.Mixin)
 }
 
 func (c *Checker) StdHashRecord() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.HashRecord)
+	return c.env.StdSubtypeClass(symbol.HashRecord)
 }
 
 func (c *Checker) StdRange() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Range).(*types.Mixin)
+	return c.env.StdSubtype(symbol.Range).(*types.Mixin)
 }
 
 func (c *Checker) StdRecord() *types.Mixin {
-	return c.GlobalEnv.StdSubtype(symbol.Record).(*types.Mixin)
+	return c.env.StdSubtype(symbol.Record).(*types.Mixin)
 }
 
 func (c *Checker) StdNil() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.Nil)
+	return c.env.StdSubtypeClass(symbol.Nil)
 }
 
 func (c *Checker) StdTrue() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.True)
+	return c.env.StdSubtypeClass(symbol.True)
 }
 
 func (c *Checker) StdFalse() *types.Class {
-	return c.GlobalEnv.StdSubtypeClass(symbol.False)
+	return c.env.StdSubtypeClass(symbol.False)
 }
 
 func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpressionNode {
@@ -3752,7 +3761,7 @@ func (c *Checker) typeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
-	return node.Type(c.GlobalEnv)
+	return node.Type(c.env)
 }
 
 func (c *Checker) typeGuardVoid(typ types.Type, span *position.Span) types.Type {
@@ -4716,9 +4725,9 @@ func (c *Checker) addUnreachableCodeError(span *position.Span) {
 func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
+		return c.env.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.PrivateConstantNode:
-		return c.GlobalEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
+		return c.env.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.ConstantLookupNode:
 		return c.resolveTypeLookupInRoot(constant)
 	default:
@@ -4728,7 +4737,7 @@ func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (
 
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
-	root := c.GlobalEnv.Root
+	root := c.env.Root
 	constant, ok := root.SubtypeString(name)
 	if ok {
 		return constant.Type
@@ -4738,7 +4747,7 @@ func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
 
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleConstantInRoot(name string) types.Type {
-	root := c.GlobalEnv.Root
+	root := c.env.Root
 	constant, ok := root.ConstantString(name)
 	if ok {
 		return constant.Type
@@ -4756,7 +4765,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
-		namespace := c.GlobalEnv.Root
+		namespace := c.env.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
@@ -4770,7 +4779,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(c.newLocation(l.Span()))
 		}
 	case *ast.PrivateConstantNode:
-		namespace := c.GlobalEnv.Root
+		namespace := c.env.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
@@ -4784,7 +4793,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(c.newLocation(l.Span()))
 		}
 	case nil:
-		leftContainerType = c.GlobalEnv.Root
+		leftContainerType = c.env.Root
 	case *ast.ConstantLookupNode:
 		_, leftContainerType, leftContainerName, _ = c._resolveConstantLookupTypeInRoot(l, false)
 	default:
@@ -4922,7 +4931,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 			placeholder.Locations.Push(c.newLocation(l.Span()))
 		}
 	case nil:
-		leftContainerType = c.GlobalEnv.Root
+		leftContainerType = c.env.Root
 	case *ast.ConstantLookupNode:
 		_, leftContainerType, leftContainerName = c._resolveConstantLookupForDeclaration(l, false)
 	default:
@@ -5228,7 +5237,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Span())
 	case nil:
-		leftContainerType = c.GlobalEnv.Root
+		leftContainerType = c.env.Root
 	case *ast.ConstantLookupNode:
 		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
 	default:
@@ -5542,7 +5551,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.NotTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := c.normaliseType(types.NewNot(c.typeOf(n.TypeNode)))
+		typ := c.NormaliseType(types.NewNot(c.typeOf(n.TypeNode)))
 		n.SetType(typ)
 		return n
 	case *ast.SingletonTypeNode:
@@ -6303,7 +6312,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.GlobalEnv,
+				c.env,
 			)
 			t.Namespace = module
 			namespace.DefineConstant(constantName, module)
@@ -6313,7 +6322,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			module := types.NewModule(
 				docComment,
 				fullConstantName,
-				c.GlobalEnv,
+				c.env,
 			)
 			c.replaceSimpleNamespacePlaceholder(t, module, module)
 			namespace.DefineConstant(constantName, module)
@@ -6321,15 +6330,15 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			return module
 		default:
 			c.addRedeclaredConstantError(fullConstantName, span)
-			return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
+			return types.NewModule(docComment, fullConstantName, c.env)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewModule(docComment, fullConstantName, c.GlobalEnv)
+		return types.NewModule(docComment, fullConstantName, c.env)
 	}
 
-	return namespace.DefineModule(docComment, constantName, c.GlobalEnv)
+	return namespace.DefineModule(docComment, constantName, c.env)
 }
 
 func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, errSpan *position.Span) {
@@ -6360,7 +6369,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				primitive,
 				fullConstantName,
 				nil,
-				c.GlobalEnv,
+				c.env,
 			)
 			classSingleton := class.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
@@ -6376,7 +6385,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				primitive,
 				fullConstantName,
 				nil,
-				c.GlobalEnv,
+				c.env,
 			)
 		}
 
@@ -6406,7 +6415,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.GlobalEnv,
+				c.env,
 			)
 			t.Namespace = class
 			namespace.DefineConstant(constantName, class.Singleton())
@@ -6421,7 +6430,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				primitive,
 				fullConstantName,
 				nil,
-				c.GlobalEnv,
+				c.env,
 			)
 		}
 	}
@@ -6434,7 +6443,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			primitive,
 			fullConstantName,
 			nil,
-			c.GlobalEnv,
+			c.env,
 		)
 	}
 
@@ -6445,7 +6454,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 		primitive,
 		constantName,
 		nil,
-		c.GlobalEnv,
+		c.env,
 	)
 }
 
@@ -7456,7 +7465,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				docComment,
 				abstract,
 				fullConstantName,
-				c.GlobalEnv,
+				c.env,
 			)
 			mixinSingleton := mixin.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
@@ -7465,7 +7474,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, span)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.env)
 		}
 
 		switch t := constantType.(type) {
@@ -7492,7 +7501,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.GlobalEnv,
+				c.env,
 			)
 			t.Namespace = mixin
 			namespace.DefineConstant(constantName, mixin.Singleton())
@@ -7500,15 +7509,15 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, span)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.env)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewMixin(docComment, abstract, fullConstantName, c.GlobalEnv)
+		return types.NewMixin(docComment, abstract, fullConstantName, c.env)
 	}
 
-	return namespace.DefineMixin(docComment, abstract, constantName, c.GlobalEnv)
+	return namespace.DefineMixin(docComment, abstract, constantName, c.env)
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Interface {
@@ -7520,7 +7529,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			iface := types.NewInterface(
 				docComment,
 				fullConstantName,
-				c.GlobalEnv,
+				c.env,
 			)
 			ifaceSingleton := iface.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
@@ -7529,7 +7538,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, span)
-			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, c.env)
 		}
 
 		switch t := constantType.(type) {
@@ -7543,7 +7552,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.GlobalEnv,
+				c.env,
 			)
 			t.Namespace = iface
 			namespace.DefineConstant(constantName, iface.Singleton())
@@ -7551,11 +7560,11 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, span)
-			return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+			return types.NewInterface(docComment, fullConstantName, c.env)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, c.GlobalEnv)
+		return types.NewInterface(docComment, fullConstantName, c.env)
 	} else {
-		return namespace.DefineInterface(docComment, constantName, c.GlobalEnv)
+		return namespace.DefineInterface(docComment, constantName, c.env)
 	}
 }

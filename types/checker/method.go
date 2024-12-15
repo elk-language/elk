@@ -28,7 +28,7 @@ func (c *Checker) newMethodChecker(
 	isInit bool,
 ) *Checker {
 	checker := &Checker{
-		GlobalEnv:      c.GlobalEnv,
+		env:            c.env,
 		Filename:       filename,
 		mode:           methodMode,
 		phase:          methodCheckPhase,
@@ -2642,7 +2642,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 
 		return nil
 	case *types.Nilable:
-		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
+		nilType := c.env.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.Method(name)
 		if nilMethod == nil {
 			c.addMissingMethodError(nilType, name.String(), errSpan)

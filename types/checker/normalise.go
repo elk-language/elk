@@ -596,7 +596,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 }
 
 func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
-	return c.normaliseType(c._replaceTypeParameters(typ, typeArgMap))
+	return c.NormaliseType(c._replaceTypeParameters(typ, typeArgMap))
 }
 
 func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
@@ -744,7 +744,7 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 	)
 }
 
-func (c *Checker) normaliseType(typ types.Type) types.Type {
+func (c *Checker) NormaliseType(typ types.Type) types.Type {
 	switch t := typ.(type) {
 	case *types.Union:
 		return c.NewNormalisedUnion(t.Elements...)
@@ -752,7 +752,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		return c.NewNormalisedIntersection(t.Elements...)
 	case *types.Generic:
 		for _, arg := range t.TypeArguments.AllArguments() {
-			arg.Type = c.normaliseType(arg.Type)
+			arg.Type = c.NormaliseType(arg.Type)
 		}
 		return t
 	case *types.SingletonOf:
@@ -778,7 +778,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 			return t
 		}
 	case *types.Nilable:
-		t.Type = c.normaliseType(t.Type)
+		t.Type = c.NormaliseType(t.Type)
 		switch t.Type.(type) {
 		case types.Never:
 			return types.Nil{}
@@ -794,7 +794,7 @@ func (c *Checker) normaliseType(typ types.Type) types.Type {
 		}
 		return t
 	case *types.Not:
-		t.Type = c.normaliseType(t.Type)
+		t.Type = c.NormaliseType(t.Type)
 		switch nestedType := t.Type.(type) {
 		case *types.Not:
 			return nestedType.Type
@@ -877,7 +877,7 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 	var containsUninitialisedNamedTypes bool
 
 	for i := 0; i < len(elements); i++ {
-		element := c.normaliseType(elements[i])
+		element := c.NormaliseType(elements[i])
 		if types.IsNever(element) || types.IsUntyped(element) {
 			return element
 		}
@@ -926,7 +926,7 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 	distributedIntersection := c.intersectionOfUnionsToUnionOfIntersections(elements)
 	intersection, ok := distributedIntersection.(*types.Intersection)
 	if !ok {
-		return c.normaliseType(distributedIntersection)
+		return c.NormaliseType(distributedIntersection)
 	}
 
 	elements = intersection.Elements
@@ -951,7 +951,7 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 
 eliminateSupertypesLoop:
 	for i := 0; i < len(elements); i++ {
-		elements[i] = c.normaliseType(elements[i])
+		elements[i] = c.NormaliseType(elements[i])
 		element := elements[i]
 
 		for j := 0; j < len(normalisedElements); j++ {
@@ -983,7 +983,7 @@ func (c *Checker) NewNormalisedUnion(elements ...types.Type) types.Type {
 
 elementLoop:
 	for i := 0; i < len(elements); i++ {
-		element := c.normaliseType(elements[i])
+		element := c.NormaliseType(elements[i])
 		if types.IsNever(element) || types.IsUntyped(element) {
 			continue elementLoop
 		}
@@ -1039,7 +1039,7 @@ func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.Un
 	union := types.NewUnion()
 	elements := new([]ast.TypeNode)
 	c._constructUnionType(node, elements, union)
-	normalisedUnion := c.normaliseType(union)
+	normalisedUnion := c.NormaliseType(union)
 
 	newNode := ast.NewUnionTypeNode(
 		node.Span(),
@@ -1079,7 +1079,7 @@ func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) 
 	intersection := types.NewIntersection()
 	elements := new([]ast.TypeNode)
 	c._constructIntersectionType(node, elements, intersection)
-	normalisedIntersection := c.normaliseType(intersection)
+	normalisedIntersection := c.NormaliseType(intersection)
 
 	newNode := ast.NewIntersectionTypeNode(
 		node.Span(),

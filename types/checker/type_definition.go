@@ -573,7 +573,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+		superclass = c.env.StdSubtypeClass(symbol.Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -669,7 +669,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		return
 	}
 
-	mixin := types.NewMixin("", false, "", c.GlobalEnv)
+	mixin := types.NewMixin("", false, "", c.env)
 	originalTypeParams := currentNamespace.TypeParameters()
 	for _, typeParam := range originalTypeParams {
 		mixin.DefineSubtypeWithFullName(
