@@ -129,7 +129,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		typ := actualType
 		if node.TypeNode != nil {
 			node.TypeNode = c.checkTypeNode(node.TypeNode)
-			declaredType := c.typeOf(node.TypeNode)
+			declaredType := c.TypeOf(node.TypeNode)
 			c.checkCanAssign(actualType, declaredType, init.Span())
 			typ = declaredType
 		}
@@ -153,7 +153,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	}
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
-	declaredType := c.typeOf(node.TypeNode)
+	declaredType := c.TypeOf(node.TypeNode)
 	container.DefineConstant(constantName, declaredType)
 	node.SetType(declaredType)
 	c.registerConstantCheck(fullConstantName, constantName, container, node)
@@ -210,7 +210,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 	check.state = CHECKING_CONST
 
 	node := check.node
-	declaredType := c.typeOf(node.TypeNode)
+	declaredType := c.TypeOf(node.TypeNode)
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	init := node.Initialiser
 	if init != nil {
@@ -265,7 +265,7 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		return c.resolveConstantLookupType(constant)
 	case *ast.GenericConstantNode:
 		typeNode, name := c.checkGenericConstantType(constant)
-		return c.typeOf(typeNode), name
+		return c.TypeOf(typeNode), name
 	default:
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}

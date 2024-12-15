@@ -182,16 +182,16 @@ func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok boo
 }
 
 func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
-	namedType := c.typeOf(node).(*types.NamedType)
+	namedType := c.TypeOf(node).(*types.NamedType)
 	typeNode := c.checkTypeNode(node.TypeNode)
-	typ := c.typeOf(typeNode)
+	typ := c.TypeOf(typeNode)
 	namedType.Type = typ
 
 	return true
 }
 
 func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) bool {
-	namedType := c.typeOf(node).(*types.GenericNamedType)
+	namedType := c.TypeOf(node).(*types.GenericNamedType)
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name))
@@ -213,7 +213,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	c.mode = namedGenericTypeDefinitionMode
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
-	typ := c.typeOf(node.TypeNode)
+	typ := c.TypeOf(node.TypeNode)
 	namedType.Type = typ
 	namedType.TypeParameters = typeParams
 
@@ -287,7 +287,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	c.mode = inheritanceMode
 
 	n := c.checkComplexConstantType(node)
-	constantType := c.typeOf(n)
+	constantType := c.TypeOf(n)
 
 	c.mode = prevMode
 
@@ -379,7 +379,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	c.mode = inheritanceMode
 
 	n := c.checkComplexConstantType(node)
-	constantType := c.typeOf(n)
+	constantType := c.TypeOf(n)
 
 	c.mode = prevMode
 
@@ -429,7 +429,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 }
 
 func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNode) {
-	iface, ok := c.typeOf(node).(*types.Interface)
+	iface, ok := c.TypeOf(node).(*types.Interface)
 	if !ok {
 		return
 	}
@@ -451,7 +451,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 }
 
 func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Mixin)
+	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if !ok {
 		return
 	}
@@ -550,7 +550,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 }
 
 func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
-	class, ok := c.typeOf(node).(*types.Class)
+	class, ok := c.TypeOf(node).(*types.Class)
 	if !ok {
 		return
 	}
@@ -580,7 +580,7 @@ superclassSwitch:
 		c.mode = inheritanceMode
 
 		node.Superclass = c.checkComplexConstantType(node.Superclass)
-		superclassType = c.typeOf(node.Superclass)
+		superclassType = c.TypeOf(node.Superclass)
 
 		c.mode = prevMode
 
@@ -785,7 +785,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 	var lowerType types.Type
 	if node.LowerBound != nil {
 		node.LowerBound = c.checkTypeNode(node.LowerBound)
-		lowerType = c.typeOf(node.LowerBound)
+		lowerType = c.TypeOf(node.LowerBound)
 	} else if !leaveNil {
 		lowerType = types.Never{}
 	}
@@ -793,7 +793,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 	var upperType types.Type
 	if node.UpperBound != nil {
 		node.UpperBound = c.checkTypeNode(node.UpperBound)
-		upperType = c.typeOf(node.UpperBound)
+		upperType = c.TypeOf(node.UpperBound)
 	} else if !leaveNil {
 		upperType = types.Any{}
 	}
@@ -831,7 +831,7 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 	var lowerType types.Type
 	if node.LowerBound != nil {
 		node.LowerBound = c.checkTypeNode(node.LowerBound)
-		lowerType = c.typeOf(node.LowerBound)
+		lowerType = c.TypeOf(node.LowerBound)
 	} else {
 		lowerType = types.Never{}
 	}
@@ -839,7 +839,7 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 	var upperType types.Type
 	if node.UpperBound != nil {
 		node.UpperBound = c.checkTypeNode(node.UpperBound)
-		upperType = c.typeOf(node.UpperBound)
+		upperType = c.TypeOf(node.UpperBound)
 	} else {
 		upperType = types.Any{}
 	}

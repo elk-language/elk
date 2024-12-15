@@ -50,13 +50,13 @@ const (
 func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
 	switch n := node.(type) {
 	case *ast.PublicIdentifierNode:
-		c.narrowLocalToType(n.Value, c.typeOf(n), typ)
+		c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
 	case *ast.PrivateIdentifierNode:
-		c.narrowLocalToType(n.Value, c.typeOf(n), typ)
+		c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
 	case *ast.VariableDeclarationNode:
-		c.narrowLocalToType(n.Name, c.typeOf(n), typ)
+		c.narrowLocalToType(n.Name, c.TypeOf(n), typ)
 	case *ast.ValueDeclarationNode:
-		c.narrowLocalToType(n.Name, c.typeOf(n), typ)
+		c.narrowLocalToType(n.Name, c.TypeOf(n), typ)
 	case *ast.AssignmentExpressionNode:
 		c.narrowAssignmentToType(n, typ)
 	}
@@ -65,7 +65,7 @@ func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
 func (c *Checker) narrowAssignmentToType(node *ast.AssignmentExpressionNode, typ types.Type) {
 	switch node.Op.Type {
 	case token.EQUAL_OP, token.COLON_EQUAL:
-		nodeType := c.typeOf(node)
+		nodeType := c.TypeOf(node)
 		switch l := node.Left.(type) {
 		case *ast.PublicIdentifierNode:
 			c.narrowLocalToType(l.Value, nodeType, typ)
@@ -102,13 +102,13 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	case *ast.LogicalExpressionNode:
 		c.narrowLogical(n, assume)
 	case *ast.PublicIdentifierNode:
-		c.narrowLocal(n.Value, c.typeOf(n), assume)
+		c.narrowLocal(n.Value, c.TypeOf(n), assume)
 	case *ast.PrivateIdentifierNode:
-		c.narrowLocal(n.Value, c.typeOf(n), assume)
+		c.narrowLocal(n.Value, c.TypeOf(n), assume)
 	case *ast.VariableDeclarationNode:
-		c.narrowLocal(n.Name, c.typeOf(n), assume)
+		c.narrowLocal(n.Name, c.TypeOf(n), assume)
 	case *ast.ValueDeclarationNode:
-		c.narrowLocal(n.Name, c.typeOf(n), assume)
+		c.narrowLocal(n.Name, c.TypeOf(n), assume)
 	case *ast.AssignmentExpressionNode:
 		c.narrowAssignment(n, assume)
 	}
@@ -117,7 +117,7 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 func (c *Checker) narrowAssignment(node *ast.AssignmentExpressionNode, assume assumption) {
 	switch node.Op.Type {
 	case token.EQUAL_OP, token.COLON_EQUAL:
-		nodeType := c.typeOf(node)
+		nodeType := c.TypeOf(node)
 		switch l := node.Left.(type) {
 		case *ast.PublicIdentifierNode:
 			c.narrowLocal(l.Value, nodeType, assume)
@@ -142,8 +142,8 @@ func (c *Checker) narrowLogical(node *ast.LogicalExpressionNode, assume assumpti
 }
 
 func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assumption) {
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	leftType := c.TypeOf(node.Left)
+	rightType := c.TypeOf(node.Right)
 
 	switch assume {
 	case assumptionTruthy:
@@ -188,8 +188,8 @@ func (c *Checker) narrowLogicalAnd(node *ast.LogicalExpressionNode, assume assum
 }
 
 func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assumption) {
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	leftType := c.TypeOf(node.Left)
+	rightType := c.TypeOf(node.Right)
 
 	switch assume {
 	case assumptionFalsy:
@@ -240,8 +240,8 @@ func (c *Checker) narrowLogicalOr(node *ast.LogicalExpressionNode, assume assump
 }
 
 func (c *Checker) narrowNilCoalescing(node *ast.LogicalExpressionNode, assume assumption) {
-	leftType := c.typeOf(node.Left)
-	rightType := c.typeOf(node.Right)
+	leftType := c.TypeOf(node.Left)
+	rightType := c.TypeOf(node.Right)
 
 	switch assume {
 	case assumptionNil:
@@ -293,8 +293,8 @@ func (c *Checker) narrowBinary(node *ast.BinaryExpressionNode, assume assumption
 func (c *Checker) narrowEqual(node *ast.BinaryExpressionNode, assume assumption) {
 	switch assume {
 	case assumptionTruthy:
-		c.narrowToIntersectWith(node.Left, c.typeOf(node.Right))
-		c.narrowToIntersectWith(node.Right, c.typeOf(node.Left))
+		c.narrowToIntersectWith(node.Left, c.TypeOf(node.Right))
+		c.narrowToIntersectWith(node.Right, c.TypeOf(node.Left))
 	case assumptionNil:
 		c.narrowCondition(node.Left, assumptionNever)
 		c.narrowCondition(node.Right, assumptionNever)
@@ -335,7 +335,7 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 		return
 	}
 
-	rightSingleton, ok := c.typeOf(right).(*types.SingletonClass)
+	rightSingleton, ok := c.TypeOf(right).(*types.SingletonClass)
 	if !ok {
 		return
 	}
@@ -376,7 +376,7 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 		return
 	}
 
-	rightSingleton, ok := c.typeOf(right).(*types.SingletonClass)
+	rightSingleton, ok := c.TypeOf(right).(*types.SingletonClass)
 	if !ok {
 		return
 	}

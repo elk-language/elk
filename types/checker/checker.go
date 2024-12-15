@@ -301,7 +301,7 @@ func (c *Checker) initCompiler(span *position.Span) {
 
 func (c *Checker) checkClassesWithIvars() {
 	for _, classNode := range c.classesWithIvars {
-		class := c.typeOf(classNode).(*types.Class)
+		class := c.TypeOf(classNode).(*types.Class)
 		c.checkNonNilableInstanceVariableForClass(class, classNode.Span())
 	}
 	c.classesWithIvars = nil
@@ -496,7 +496,7 @@ func (c *Checker) checkStatement(node ast.Node) (types.Type, *position.Span) {
 		return nil, nil
 	case *ast.ExpressionStatementNode:
 		node.Expression = c.checkExpression(node.Expression)
-		return c.typeOf(node.Expression), node.Expression.Span()
+		return c.TypeOf(node.Expression), node.Expression.Span()
 	case *ast.ImportStatementNode:
 		return nil, nil
 	default:
@@ -515,7 +515,7 @@ func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
 }
 
 func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) {
-	module, ok := c.typeOf(node).(*types.Module)
+	module, ok := c.TypeOf(node).(*types.Module)
 	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
@@ -541,7 +541,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 }
 
 func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
-	class, ok := c.typeOf(node).(*types.Class)
+	class, ok := c.TypeOf(node).(*types.Class)
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(class, node.Constant.Span())
@@ -568,7 +568,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 }
 
 func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Mixin)
+	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(mixin, node.Constant.Span())
@@ -595,7 +595,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 }
 
 func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclarationNode) {
-	iface, ok := c.typeOf(node).(*types.Interface)
+	iface, ok := c.TypeOf(node).(*types.Interface)
 	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
@@ -621,7 +621,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 }
 
 func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpressionNode) {
-	class, ok := c.typeOf(node).(*types.SingletonClass)
+	class, ok := c.TypeOf(node).(*types.SingletonClass)
 	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
@@ -709,7 +709,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
 		return n
 	case *ast.ExtendWhereBlockExpressionNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"cannot declare extend blocks in this context",
 				node.Span(),
@@ -718,7 +718,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		}
 		return n
 	case *ast.ImplementExpressionNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"cannot implement interfaces in this context",
 				node.Span(),
@@ -727,7 +727,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		}
 		return n
 	case *ast.InstanceVariableDeclarationNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"instance variable definitions cannot appear in this context",
 				n.Span(),
@@ -736,7 +736,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		}
 		return n
 	case *ast.UsingExpressionNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"using declarations cannot appear in this context",
 				n.Span(),
@@ -747,7 +747,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		c.resolveUsingExpression(n)
 		return n
 	case *ast.TypeDefinitionNode, *ast.GenericTypeDefinitionNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"type definitions cannot appear in this context",
 				n.Span(),
@@ -765,7 +765,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.MethodDefinitionNode, *ast.InitDefinitionNode,
 		*ast.MethodSignatureDefinitionNode, *ast.SetterDeclarationNode,
 		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
-		if c.typeOf(node) == nil {
+		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"method definitions cannot appear in this context",
 				node.Span(),
@@ -1112,10 +1112,10 @@ func (c *Checker) StdFalse() *types.Class {
 
 func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpressionNode {
 	node.Value = c.checkExpression(node.Value)
-	staticType := c.typeOf(node.Value)
+	staticType := c.TypeOf(node.Value)
 
 	node.RuntimeType = c.checkComplexConstantType(node.RuntimeType)
-	runtimeType := c.typeOf(node.RuntimeType)
+	runtimeType := c.TypeOf(node.RuntimeType)
 
 	switch runtimeType.(type) {
 	case *types.Class, *types.Mixin:
@@ -1162,14 +1162,14 @@ func (c *Checker) checkTryExpressionNode(node *ast.TryExpressionNode) *ast.TryEx
 	}
 	c.mode = prevMode
 
-	tryType := c.typeOf(node.Value)
+	tryType := c.TypeOf(node.Value)
 	node.SetType(tryType)
 	return node
 }
 
 func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.MustExpressionNode {
 	node.Value = c.checkExpression(node.Value)
-	mustType := c.typeOf(node.Value)
+	mustType := c.TypeOf(node.Value)
 	if !c.IsNilable(mustType) {
 		c.addWarning(
 			fmt.Sprintf(
@@ -1193,10 +1193,10 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	methodName value.Symbol,
 	span *position.Span,
 ) types.Type {
-	leftType := c.ToNonLiteral(c.typeOf(left), true)
+	leftType := c.ToNonLiteral(c.TypeOf(left), true)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
-	rightType := c.ToNonLiteral(c.typeOf(right), true)
+	rightType := c.ToNonLiteral(c.TypeOf(right), true)
 	rightClassType, rightIsClass := rightType.(*types.Class)
 	if !leftIsClass || !rightIsClass {
 		return c.checkBinaryOpMethodCall(
@@ -1240,7 +1240,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 	switch node.Op.Type {
 	case token.PLUS:
 		node.Right = c.checkExpression(node.Right)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		switch rightType.(type) {
 		case types.NumericLiteral:
 			node.SetType(rightType)
@@ -1260,7 +1260,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		return node
 	case token.MINUS:
 		node.Right = c.checkExpression(node.Right)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		switch r := rightType.(type) {
 		case types.NumericLiteral:
 			copy := r.CopyNumeric()
@@ -1320,7 +1320,7 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 			),
 		),
 	)
-	node.SetType(c.typeOf(expr))
+	node.SetType(c.TypeOf(expr))
 	return node
 }
 
@@ -1346,15 +1346,15 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	switch l := node.ThenExpression.(type) {
 	case *ast.KeyValueExpressionNode:
 		l.Key = c.checkExpression(l.Key)
-		thenKeyType = c.typeOf(l.Key)
+		thenKeyType = c.TypeOf(l.Key)
 
 		l.Value = c.checkExpression(l.Value)
-		thenValueType = c.typeOf(l.Value)
+		thenValueType = c.TypeOf(l.Value)
 	case *ast.SymbolKeyValueExpressionNode:
 		thenKeyType = c.Std(symbol.Symbol)
 
 		l.Value = c.checkExpression(l.Value)
-		thenValueType = c.typeOf(l.Value)
+		thenValueType = c.TypeOf(l.Value)
 	default:
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
@@ -1366,15 +1366,15 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	switch l := node.ElseExpression.(type) {
 	case *ast.KeyValueExpressionNode:
 		l.Key = c.checkExpression(l.Key)
-		elseKeyType = c.typeOf(l.Key)
+		elseKeyType = c.TypeOf(l.Key)
 
 		l.Value = c.checkExpression(l.Value)
-		elseValueType = c.typeOf(l.Value)
+		elseValueType = c.TypeOf(l.Value)
 	case *ast.SymbolKeyValueExpressionNode:
 		elseKeyType = c.Std(symbol.Symbol)
 
 		l.Value = c.checkExpression(l.Value)
-		elseValueType = c.typeOf(l.Value)
+		elseValueType = c.TypeOf(l.Value)
 	default:
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
@@ -1525,7 +1525,7 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
-		capacityType := c.typeOf(node.Capacity)
+		capacityType := c.TypeOf(node.Capacity)
 		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
@@ -1548,11 +1548,11 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	var valueTypes []types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
-		valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOf(node.Start), false))
+		valueTypes = append(valueTypes, c.ToNonLiteral(c.TypeOf(node.Start), false))
 	}
 	if node.End != nil {
 		node.End = c.checkExpression(node.End)
-		valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOf(node.End), false))
+		valueTypes = append(valueTypes, c.ToNonLiteral(c.TypeOf(node.End), false))
 	}
 
 	var rangeClassName value.Symbol
@@ -1704,7 +1704,7 @@ func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionN
 
 	node.Value = c.checkExpression(node.Value)
 	node.SetType(
-		types.NewNilable(c.ToNonLiteral(c.typeOf(node.Value), false)),
+		types.NewNilable(c.ToNonLiteral(c.TypeOf(node.Value), false)),
 	)
 	return node
 }
@@ -1774,7 +1774,7 @@ func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpression
 
 	node.Value = c.checkExpression(node.Value)
 	node.SetType(
-		types.NewNilable(c.typeOf(node.Value)),
+		types.NewNilable(c.TypeOf(node.Value)),
 	)
 	return node
 }
@@ -1797,7 +1797,7 @@ func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNo
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
-		capacityType := c.typeOf(node.Capacity)
+		capacityType := c.TypeOf(node.Capacity)
 		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
@@ -1821,7 +1821,7 @@ func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collect
 
 	if capacity != nil {
 		capacity = c.checkExpression(capacity)
-		capacityType := c.typeOf(capacity)
+		capacityType := c.TypeOf(capacity)
 		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
@@ -2010,7 +2010,7 @@ func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, 
 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
-		capacityType := c.typeOf(node.Capacity)
+		capacityType := c.TypeOf(node.Capacity)
 		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
@@ -2217,7 +2217,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
-	inType := c.typeOf(node.InExpression)
+	inType := c.TypeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
@@ -2242,7 +2242,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 	c.pushNestedLocalEnv()
 
 	node.InExpression = c.checkExpression(node.InExpression)
-	inType := c.typeOf(node.InExpression)
+	inType := c.TypeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
@@ -2273,14 +2273,14 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn CheckExpressionFunc) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.InExpression = c.checkExpression(node.InExpression)
-	inType := c.typeOf(node.InExpression)
+	inType := c.TypeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
 	node.ThenExpression = fn(node.ThenExpression)
-	thenType := c.typeOf(node.ThenExpression)
+	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2293,7 +2293,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
-	inType := c.typeOf(node.InExpression)
+	inType := c.TypeOf(node.InExpression)
 	elementType := c.checkIsIterable(inType, node.InExpression.Span())
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
@@ -2448,7 +2448,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 	loop := c.registerLoop(label, endless)
 
 	node.Left = c.checkExpression(node.Left)
-	thenType := c.typeOf(node.Left)
+	thenType := c.TypeOf(node.Left)
 
 	c.popLocalEnv()
 
@@ -2548,7 +2548,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 	loop := c.registerLoop(label, endless)
 
 	node.Left = c.checkExpression(node.Left)
-	thenType := c.typeOf(node.Left)
+	thenType := c.TypeOf(node.Left)
 
 	c.popLocalEnv()
 
@@ -2564,7 +2564,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 
 func (c *Checker) checkTypeofExpressionNode(node *ast.TypeofExpressionNode) ast.ExpressionNode {
 	node.Value = c.checkExpression(node.Value)
-	typ := c.typeOf(node.Value)
+	typ := c.TypeOf(node.Value)
 	fmt.Printf("typeof: %s\n", types.InspectWithColor(typ))
 	return node
 }
@@ -2739,13 +2739,13 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	node.ThenExpression = fn(node.ThenExpression)
-	thenType := c.typeOf(node.ThenExpression)
+	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	node.ElseExpression = fn(node.ElseExpression)
-	elseType := c.typeOf(node.ElseExpression)
+	elseType := c.TypeOf(node.ElseExpression)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2871,15 +2871,15 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
 		l.Key = c.checkExpression(l.Key)
-		keyType = c.typeOf(l.Key)
+		keyType = c.TypeOf(l.Key)
 
 		l.Value = c.checkExpression(l.Value)
-		valueType = c.typeOf(l.Value)
+		valueType = c.TypeOf(l.Value)
 	case *ast.SymbolKeyValueExpressionNode:
 		keyType = c.Std(symbol.Symbol)
 
 		l.Value = c.checkExpression(l.Value)
-		valueType = c.typeOf(l.Value)
+		valueType = c.TypeOf(l.Value)
 	default:
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
@@ -2922,15 +2922,15 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
 		l.Key = c.checkExpression(l.Key)
-		keyType = c.typeOf(l.Key)
+		keyType = c.TypeOf(l.Key)
 
 		l.Value = c.checkExpression(l.Value)
-		valueType = c.typeOf(l.Value)
+		valueType = c.TypeOf(l.Value)
 	case *ast.SymbolKeyValueExpressionNode:
 		keyType = c.Std(symbol.Symbol)
 
 		l.Value = c.checkExpression(l.Value)
-		valueType = c.typeOf(l.Value)
+		valueType = c.TypeOf(l.Value)
 	default:
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
@@ -3091,7 +3091,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 	c.popLocalEnv()
 
 	leftType := c.typeOfGuardVoid(node.Left)
-	rightType := c.typeOf(node.Right)
+	rightType := c.TypeOf(node.Right)
 
 	if c.IsNil(leftType) {
 		c.addWarning(
@@ -3127,7 +3127,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 	c.popLocalEnv()
 
 	leftType := c.typeOfGuardVoid(node.Left)
-	rightType := c.typeOf(node.Right)
+	rightType := c.TypeOf(node.Right)
 
 	if c.IsTruthy(leftType) {
 		c.addWarning(
@@ -3167,7 +3167,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 	c.popLocalEnv()
 
 	leftType := c.typeOfGuardVoid(node.Left)
-	rightType := c.typeOf(node.Right)
+	rightType := c.TypeOf(node.Right)
 
 	if c.IsTruthy(leftType) {
 		c.addWarning(
@@ -3367,7 +3367,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		right = node.Right
 	}
 	leftType := c.typeOfGuardVoid(left)
-	rightType := c.typeOf(right)
+	rightType := c.TypeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
@@ -3425,7 +3425,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		right = node.Right
 	}
 	leftType := c.typeOfGuardVoid(left)
-	rightType := c.typeOf(right)
+	rightType := c.TypeOf(right)
 
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
@@ -3619,7 +3619,7 @@ type instanceVariableOverride struct {
 }
 
 func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
-	if c.typeOf(node) == nil {
+	if c.TypeOf(node) == nil {
 		c.addFailure(
 			"cannot include mixins in this context",
 			node.Span(),
@@ -3629,7 +3629,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 	targetNamespace := c.currentMethodScope().container
 
 	for _, constantNode := range node.Constants {
-		constantType := c.typeOf(constantNode)
+		constantType := c.TypeOf(constantNode)
 		var includedMixin types.Namespace
 		switch t := constantType.(type) {
 		case *types.Mixin:
@@ -3757,7 +3757,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 	}
 }
 
-func (c *Checker) typeOf(node ast.Node) types.Type {
+func (c *Checker) TypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
@@ -3779,7 +3779,7 @@ func (c *Checker) typeGuardVoid(typ types.Type, span *position.Span) types.Type 
 }
 
 func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
-	typ := c.typeOf(node)
+	typ := c.TypeOf(node)
 	if node != nil {
 		return c.typeGuardVoid(typ, node.Span())
 	}
@@ -3975,7 +3975,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 
 		typeArgs[i] = c.checkTypeNode(typeArgs[i])
 		typeArgumentNode := typeArgs[i]
-		typeArgument := c.typeOf(typeArgumentNode)
+		typeArgument := c.TypeOf(typeArgumentNode)
 		typeArgumentMap[typeParameter.Name] = types.NewTypeArgument(
 			typeArgument,
 			typeParameter.Variance,
@@ -3985,7 +3985,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	for i := range len(typeParams) {
 		typeParameter := typeParams[i]
 		typeArgumentNode := typeArgs[i]
-		typeArgument := c.typeOf(typeArgumentNode)
+		typeArgument := c.TypeOf(typeArgumentNode)
 
 		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap)
 		if !c.IsSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
@@ -4549,7 +4549,7 @@ func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressio
 	subscriptNode.Key = args[0]
 	assignmentNode.Right = args[1]
 
-	assignmentNode.SetType(c.typeOf(assignmentNode.Right))
+	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }
 
@@ -4566,7 +4566,7 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 	attributeNode.Receiver = receiver
 	assignmentNode.Right = args[0]
 
-	assignmentNode.SetType(c.typeOf(assignmentNode.Right))
+	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }
 
@@ -4646,7 +4646,7 @@ func (c *Checker) checkRegexContent(node ast.RegexLiteralContentNode) {
 	case *ast.RegexInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.IsSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.RegexLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -4673,11 +4673,11 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 	case *ast.StringInspectInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.typeOf(n.Expression), c.StdInspectable(), expr.Span())
+		c.IsSubtype(c.TypeOf(n.Expression), c.StdInspectable(), expr.Span())
 	case *ast.StringInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.typeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.IsSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.StringLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -5546,12 +5546,12 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.NilableTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := c.ToNilable(c.typeOf(n.TypeNode))
+		typ := c.ToNilable(c.TypeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
 	case *ast.NotTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := c.NormaliseType(types.NewNot(c.typeOf(n.TypeNode)))
+		typ := c.NormaliseType(types.NewNot(c.TypeOf(n.TypeNode)))
 		n.SetType(typ)
 		return n
 	case *ast.SingletonTypeNode:
@@ -5579,7 +5579,7 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.String()))
 	}
 
-	typ := c.typeOf(node.TypeNode)
+	typ := c.TypeOf(node.TypeNode)
 	switch t := typ.(type) {
 	case types.NumericLiteral:
 		if negate {
@@ -5606,7 +5606,7 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 
 func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNode {
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
-	typ := c.typeOf(node.TypeNode)
+	typ := c.TypeOf(node.TypeNode)
 	var singleton *types.SingletonClass
 	switch t := typ.(type) {
 	case *types.Class:
@@ -5663,7 +5663,7 @@ func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNo
 
 func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.TypeNode {
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
-	typ := c.typeOf(node.TypeNode)
+	typ := c.TypeOf(node.TypeNode)
 	var namespace types.Namespace
 
 	switch t := typ.(type) {
@@ -5735,7 +5735,7 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNo
 	case token.SLASH:
 		node.Left = c.checkTypeNode(node.Left)
 		node.Right = c.checkTypeNode(node.Right)
-		typ := c.differenceType(c.typeOf(node.Left), c.typeOf(node.Right))
+		typ := c.differenceType(c.TypeOf(node.Left), c.TypeOf(node.Right))
 		node.SetType(typ)
 		return node
 	default:
@@ -5874,7 +5874,7 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 		}
 
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -5887,7 +5887,7 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 		}
 
 		c.declareMethodForSetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -5901,7 +5901,7 @@ func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 
 		c.declareMethodForSetter(attribute, node.DocComment())
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.typeOf(attribute.TypeNode), attribute.Span())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Span())
 	}
 }
 
@@ -5928,7 +5928,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 
 		c.mode = prevMode
 
-		declaredType = c.typeOf(declaredTypeNode)
+		declaredType = c.TypeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
 		if ivar != nil && !c.IsTheSameType(ivar, declaredType, nil) {
 			c.addFailure(
@@ -6002,7 +6002,7 @@ func (c *Checker) checkVariableDeclaration(
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
-		declaredType := c.typeOf(declaredTypeNode)
+		declaredType := c.TypeOf(declaredTypeNode)
 		c.addLocal(name, newLocal(declaredType, false, false))
 		return initialiser, declaredTypeNode, types.Void{}
 	}
@@ -6019,7 +6019,7 @@ func (c *Checker) checkVariableDeclaration(
 	// with a type and an initializer
 
 	declaredTypeNode := c.checkTypeNode(typeNode)
-	declaredType := c.typeOf(declaredTypeNode)
+	declaredType := c.TypeOf(declaredTypeNode)
 	init := c.checkExpressionWithType(initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(name, newLocal(declaredType, true, false))
@@ -6055,7 +6055,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 	for _, caseNode := range node.Cases {
 		c.pushNestedLocalEnv()
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
-		patternType := c.typeOf(caseNode.Pattern)
+		patternType := c.TypeOf(caseNode.Pattern)
 		c.narrowToType(node.Value, patternType)
 		caseType, _ := c.checkStatements(caseNode.Body)
 		returnTypes = append(returnTypes, caseType)
@@ -6238,7 +6238,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
-		declaredType := c.typeOf(declaredTypeNode)
+		declaredType := c.TypeOf(declaredTypeNode)
 		c.addLocal(node.Name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
@@ -6259,7 +6259,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	// with a type and an initializer
 
 	declaredTypeNode := c.checkTypeNode(node.TypeNode)
-	declaredType := c.typeOf(declaredTypeNode)
+	declaredType := c.TypeOf(declaredTypeNode)
 	init := c.checkExpressionWithType(node.Initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
 	c.addLocal(node.Name, newLocal(declaredType, true, true))
@@ -6878,7 +6878,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 				s,
 			)
 			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, "")
-			s.SetType(c.typeOf(newNode))
+			s.SetType(c.TypeOf(newNode))
 		case *ast.PublicConstantAsNode:
 			newNode := ast.NewConstantLookupNode(
 				s.Span(),
@@ -6886,7 +6886,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 				s.Target,
 			)
 			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, s.AsName)
-			s.SetType(c.typeOf(newNode))
+			s.SetType(c.TypeOf(newNode))
 		case *ast.PublicIdentifierNode, *ast.PublicIdentifierAsNode:
 		default:
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
@@ -7170,7 +7170,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNode) {
-	class, ok := c.typeOf(node).(*types.Class)
+	class, ok := c.TypeOf(node).(*types.Class)
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
@@ -7200,7 +7200,7 @@ func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDecl
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
-	module, ok := c.typeOf(node).(*types.Module)
+	module, ok := c.TypeOf(node).(*types.Module)
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
 		c.pushMethodScope(makeLocalMethodScope(module))
@@ -7221,7 +7221,7 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNode) {
-	mixin, ok := c.typeOf(node).(*types.Mixin)
+	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(mixin))
 		c.pushMethodScope(makeLocalMethodScope(mixin))
@@ -7242,7 +7242,7 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
-	iface, ok := c.typeOf(node).(*types.Interface)
+	iface, ok := c.TypeOf(node).(*types.Interface)
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
 		c.pushMethodScope(makeLocalMethodScope(iface))
@@ -7285,7 +7285,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
-	namespace, ok := c.typeOf(node).(*types.MixinWithWhere)
+	namespace, ok := c.TypeOf(node).(*types.MixinWithWhere)
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(namespace))
 		c.pushMethodScope(makeLocalMethodScope(namespace))
@@ -7428,7 +7428,7 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 }
 
 func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode) {
-	typ := c.typeOf(entry)
+	typ := c.TypeOf(entry)
 	switch t := typ.(type) {
 	case *types.Module:
 		c.pushConstScope(makeUsingConstantScope(t))

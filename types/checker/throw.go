@@ -41,7 +41,7 @@ func (c *Checker) checkThrowExpressionNode(node *ast.ThrowExpressionNode) *ast.T
 		thrownType = c.Std(symbol.Error)
 	} else {
 		node.Value = c.checkExpression(node.Value)
-		thrownType = c.typeOf(node.Value)
+		thrownType = c.TypeOf(node.Value)
 	}
 
 	if !node.Unchecked {

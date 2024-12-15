@@ -504,7 +504,7 @@ func (c *Checker) checkMethod(
 			if p.SetInstanceVariable {
 				c.registerInitialisedInstanceVariable(value.ToSymbol(p.Name))
 			}
-			declaredType = c.typeOf(p).(*types.Parameter).Type
+			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				switch p.Kind {
@@ -517,7 +517,7 @@ func (c *Checker) checkMethod(
 			var initNode ast.ExpressionNode
 			if p.Initialiser != nil {
 				initNode = c.checkExpression(p.Initialiser)
-				initType := c.typeOf(initNode)
+				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Span())
 			}
 			c.addLocal(p.Name, newLocal(declaredType, true, false))
@@ -526,7 +526,7 @@ func (c *Checker) checkMethod(
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
-			declaredType = c.typeOf(p).(*types.Parameter).Type
+			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				switch p.Kind {
@@ -539,7 +539,7 @@ func (c *Checker) checkMethod(
 			var initNode ast.ExpressionNode
 			if p.Initialiser != nil {
 				initNode = c.checkExpression(p.Initialiser)
-				initType := c.typeOf(initNode)
+				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Span())
 			}
 			c.addLocal(p.Name, newLocal(declaredType, true, false))
@@ -853,7 +853,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		param := method.Params[currentParamIndex]
 
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
-		posArgType := c.typeOf(typedPosArg)
+		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
 		if inferredParamType == nil {
@@ -900,7 +900,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
-			posArgType := c.typeOf(typedPosArg)
+			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Span())
 			if inferredParamType == nil {
 				posRestParam.Type = types.Untyped{}
@@ -930,7 +930,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			param := method.Params[currentParamIndex]
 
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
-			posArgType := c.typeOf(typedPosArg)
+			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
 			if inferredParamType == nil {
 				param.Type = types.Untyped{}
@@ -989,7 +989,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
-			namedArgType := c.typeOf(typedNamedArgValue)
+			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Span())
 			if inferredParamType == nil {
 				param.Type = types.Untyped{}
@@ -1054,7 +1054,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
 
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
-			posArgType := c.typeOf(typedNamedArgValue)
+			posArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Span())
 			if inferredParamType == nil {
 				namedRestParam.Type = types.Untyped{}
@@ -1069,7 +1069,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					typedNamedArgValue,
 				),
 			)
-			namedArgType := c.typeOf(typedNamedArgValue)
+			namedArgType := c.TypeOf(typedNamedArgValue)
 			if !c.IsSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -1178,7 +1178,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-		posArgType := c.typeOf(typedPosArg)
+		posArgType := c.TypeOf(typedPosArg)
 		if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 			c.addFailure(
 				fmt.Sprintf(
@@ -1217,7 +1217,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpressionWithType(posArg, posRestParam.Type)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
-			posArgType := c.typeOf(typedPosArg)
+			posArgType := c.TypeOf(typedPosArg)
 			if !c.IsSubtype(posArgType, posRestParam.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -1241,7 +1241,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-			posArgType := c.typeOf(typedPosArg)
+			posArgType := c.TypeOf(typedPosArg)
 			if !c.IsSubtype(posArgType, param.Type, posArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -1292,7 +1292,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
-			namedArgType := c.typeOf(typedNamedArgValue)
+			namedArgType := c.TypeOf(typedNamedArgValue)
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.IsSubtype(namedArgType, param.Type, namedArg.Span()) {
 				c.addFailure(
@@ -1358,7 +1358,7 @@ func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positiona
 					typedNamedArgValue,
 				),
 			)
-			namedArgType := c.typeOf(typedNamedArgValue)
+			namedArgType := c.TypeOf(typedNamedArgValue)
 			if !c.IsSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
 				c.addFailure(
 					fmt.Sprintf(
@@ -1457,7 +1457,7 @@ func (c *Checker) checkSimpleMethodCall(
 	typ types.Type,
 ) {
 	receiver = c.checkExpression(receiver)
-	receiverType := c.typeOf(receiver)
+	receiverType := c.TypeOf(receiver)
 
 	// Allow arbitrary method calls on `never` and `nothing`.
 	// Typecheck the arguments.
@@ -1679,7 +1679,7 @@ func (c *Checker) declareMethod(
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(p.TypeNode)
+				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {
@@ -1728,7 +1728,7 @@ func (c *Checker) declareMethod(
 					declaredType = currentIvar
 				} else {
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
-					declaredType = c.typeOf(p.TypeNode)
+					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
 						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Span())
 					} else {
@@ -1737,7 +1737,7 @@ func (c *Checker) declareMethod(
 				}
 			} else if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(p.TypeNode)
+				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {
@@ -1772,7 +1772,7 @@ func (c *Checker) declareMethod(
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
-				declaredType = c.typeOf(p.TypeNode)
+				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
 			} else {
@@ -1818,7 +1818,7 @@ func (c *Checker) declareMethod(
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
-		returnType = c.typeOf(typedReturnTypeNode)
+		returnType = c.TypeOf(typedReturnTypeNode)
 	} else if inferReturnType {
 	} else if baseMethod != nil && baseMethod.ReturnType != nil {
 		returnType = baseMethod.ReturnType
@@ -1830,7 +1830,7 @@ func (c *Checker) declareMethod(
 	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
-		throwType = c.typeOf(typedThrowTypeNode)
+		throwType = c.TypeOf(typedThrowTypeNode)
 	} else if baseMethod != nil && baseMethod.ThrowType != nil {
 		throwType = baseMethod.ThrowType
 	} else {

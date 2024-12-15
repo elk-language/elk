@@ -196,7 +196,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 	case token.OR_OR:
 		var leftCatchType, rightCatchType types.Type
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
-		leftType := c.typeOf(node.Left)
+		leftType := c.TypeOf(node.Left)
 
 		prevMode := c.mode
 		switch c.mode {
@@ -206,7 +206,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 			c.mode = nilablePatternMode
 		}
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		c.mode = prevMode
 
 		node.SetType(c.NewNormalisedUnion(leftType, rightType))
@@ -214,10 +214,10 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 	case token.AND_AND:
 		var leftCatchType, rightCatchType types.Type
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
-		leftType := c.typeOf(node.Left)
+		leftType := c.TypeOf(node.Left)
 
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 
 		intersection := c.NewNormalisedIntersection(leftType, rightType)
 		if types.IsNever(intersection) {
@@ -237,13 +237,13 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 	switch node.Op.Type {
 	case token.STRICT_EQUAL:
 		node.Right = c.checkExpression(node.Right)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Span())
 		node.SetType(rightType)
 		return node, types.Never{}
 	case token.EQUAL_EQUAL:
 		node.Right = c.checkExpression(node.Right)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Span())
 		node.SetType(rightType)
 		if rightType.IsLiteral() {
@@ -252,7 +252,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 		return node, types.Never{}
 	case token.NOT_EQUAL, token.STRICT_NOT_EQUAL:
 		node.Right = c.checkExpression(node.Right)
-		rightType := c.typeOf(node.Right)
+		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Span())
 		node.SetType(matchedType)
 		return node, types.Never{}
@@ -279,7 +279,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 
 func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) (*ast.UnaryExpressionNode, types.Type) {
 	node.Right = c.checkExpression(node.Right)
-	rightType := c.ToNonLiteral(c.typeOf(node.Right), false)
+	rightType := c.ToNonLiteral(c.TypeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Span()) {
 		node.SetType(types.Untyped{})
 		return node, types.Never{}
@@ -294,7 +294,7 @@ func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedT
 func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) (ast.PatternNode, types.Type) {
 	result, fullyCapturedType := c.checkPattern(node.Pattern, typ)
 	node.Pattern = result
-	patternType := c.typeOf(node.Pattern)
+	patternType := c.TypeOf(node.Pattern)
 
 	switch name := node.Name.(type) {
 	case *ast.PublicIdentifierNode:
@@ -426,7 +426,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 	}
 
 	if allAttributesFullyCaptured {
-		return node, c.typeOf(node)
+		return node, c.TypeOf(node)
 	}
 
 	return node, types.Never{}
@@ -497,7 +497,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 			node.Elements[i] = newE
 		case *ast.KeyValuePatternNode:
 			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
-			patternKeyType := c.typeOf(e.Key)
+			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Span())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 		case *ast.SymbolKeyValuePatternNode:
@@ -539,7 +539,7 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.KeyValuePatternNode:
 			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
-			patternKeyType := c.typeOf(e.Key)
+			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Span())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 		case *ast.SymbolKeyValuePatternNode:
@@ -557,7 +557,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	var startType, endType types.Type
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
-		startType = c.ToNonLiteral(c.typeOf(node.Start), false)
+		startType = c.ToNonLiteral(c.TypeOf(node.Start), false)
 		if _, ok := startType.(*types.Class); !ok {
 			c.addFailure(
 				fmt.Sprintf(
@@ -570,7 +570,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	}
 	if node.End != nil {
 		node.End = c.checkExpression(node.End)
-		endType = c.ToNonLiteral(c.typeOf(node.End), false)
+		endType = c.ToNonLiteral(c.TypeOf(node.End), false)
 		if _, ok := endType.(*types.Class); !ok {
 			c.addFailure(
 				fmt.Sprintf(
@@ -614,7 +614,7 @@ func (c *Checker) checkRegexLiteralPattern(node ast.RegexLiteralNode, typ types.
 
 func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ types.Type) (ast.PatternNode, types.Type) {
 	n := c.checkExpression(node)
-	nodeType := c.typeOf(n)
+	nodeType := c.TypeOf(n)
 	c.checkCanMatch(typ, nodeType, n.Span())
 	return n.(ast.PatternNode), nodeType
 }
