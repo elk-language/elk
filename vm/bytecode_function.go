@@ -425,7 +425,10 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.INT64_0, bytecode.INT64_1, bytecode.UINT64_0, bytecode.UINT64_1, bytecode.INT32_0, bytecode.INT32_1,
 		bytecode.UINT32_0, bytecode.UINT32_1, bytecode.INT16_0, bytecode.INT16_1,
 		bytecode.UINT16_0, bytecode.UINT16_1, bytecode.INT8_0, bytecode.INT8_1,
-		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT:
+		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.FLOAT_2,
+		bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT,
+		bytecode.GET_LOCAL_1, bytecode.GET_LOCAL_2, bytecode.GET_LOCAL_3, bytecode.GET_LOCAL_4,
+		bytecode.SET_LOCAL_1, bytecode.SET_LOCAL_2, bytecode.SET_LOCAL_3, bytecode.SET_LOCAL_4:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
