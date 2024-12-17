@@ -5114,6 +5114,9 @@ func (c *Compiler) emitFloat(f value.Float, span *position.Span) {
 	case 1:
 		c.emit(line, bytecode.FLOAT_1)
 		return
+	case 2:
+		c.emit(line, bytecode.FLOAT_2)
+		return
 	}
 
 	c.emitLoadValue(f.ToValue(), span)
@@ -5409,6 +5412,21 @@ func (c *Compiler) patchJump(offset int, span *position.Span) {
 
 // Emit an instruction that sets a local variable or value.
 func (c *Compiler) emitSetLocal(line int, index uint16) {
+	switch index {
+	case 1:
+		c.emit(line, bytecode.SET_LOCAL_1)
+		return
+	case 2:
+		c.emit(line, bytecode.SET_LOCAL_2)
+		return
+	case 3:
+		c.emit(line, bytecode.SET_LOCAL_3)
+		return
+	case 4:
+		c.emit(line, bytecode.SET_LOCAL_4)
+		return
+	}
+
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_LOCAL16)
 		c.emitUint16(index)
@@ -5420,6 +5438,21 @@ func (c *Compiler) emitSetLocal(line int, index uint16) {
 
 // Emit an instruction that gets the value of a local.
 func (c *Compiler) emitGetLocal(line int, index uint16) {
+	switch index {
+	case 1:
+		c.emit(line, bytecode.GET_LOCAL_1)
+		return
+	case 2:
+		c.emit(line, bytecode.GET_LOCAL_2)
+		return
+	case 3:
+		c.emit(line, bytecode.GET_LOCAL_3)
+		return
+	case 4:
+		c.emit(line, bytecode.GET_LOCAL_4)
+		return
+	}
+
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_LOCAL16)
 		c.emitUint16(index)

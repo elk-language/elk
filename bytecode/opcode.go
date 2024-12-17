@@ -65,8 +65,16 @@ const (
 	LEAVE_SCOPE32                   // Leave a scope and pop off any local variables (32 bit operand)
 	PREP_LOCALS8                    // Prepare slots for local variables and values (8 bit operand)
 	PREP_LOCALS16                   // Prepare slots for local variables and values (16 bit operand)
+	SET_LOCAL_1                     // Assign the value on top of the stack to the local variable with index 1
+	SET_LOCAL_2                     // Assign the value on top of the stack to the local variable with index 2
+	SET_LOCAL_3                     // Assign the value on top of the stack to the local variable with index 3
+	SET_LOCAL_4                     // Assign the value on top of the stack to the local variable with index 4
 	SET_LOCAL8                      // Assign the value on top of the stack to the local variable with the given index (8 bit operand)
 	SET_LOCAL16                     // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
+	GET_LOCAL_1                     // Push the value of the local variable with index 1
+	GET_LOCAL_2                     // Push the value of the local variable with index 2
+	GET_LOCAL_3                     // Push the value of the local variable with index 3
+	GET_LOCAL_4                     // Push the value of the local variable with index 4
 	GET_LOCAL8                      // Push the value of the local variable with the given index onto the stack (8 bit operand)
 	GET_LOCAL16                     // Push the value of the local variable with the given index onto the stack (16 bit operand)
 	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
@@ -215,6 +223,7 @@ const (
 	LOAD_CHAR_8                     // Push an 8 bit Char onto the stack
 	FLOAT_0                         // Push 0.0 onto the stack
 	FLOAT_1                         // Push 1.0 onto the stack
+	FLOAT_2                         // Push 1.0 onto the stack
 )
 
 var opCodeNames = [...]string{
@@ -241,8 +250,16 @@ var opCodeNames = [...]string{
 	LEAVE_SCOPE32:     "LEAVE_SCOPE32",
 	PREP_LOCALS8:      "PREP_LOCALS8",
 	PREP_LOCALS16:     "PREP_LOCALS16",
+	SET_LOCAL_1:       "SET_LOCAL_1",
+	SET_LOCAL_2:       "SET_LOCAL_2",
+	SET_LOCAL_3:       "SET_LOCAL_3",
+	SET_LOCAL_4:       "SET_LOCAL_4",
 	SET_LOCAL8:        "SET_LOCAL8",
 	SET_LOCAL16:       "SET_LOCAL16",
+	GET_LOCAL_1:       "GET_LOCAL_1",
+	GET_LOCAL_2:       "GET_LOCAL_2",
+	GET_LOCAL_3:       "GET_LOCAL_3",
+	GET_LOCAL_4:       "GET_LOCAL_4",
 	GET_LOCAL8:        "GET_LOCAL8",
 	GET_LOCAL16:       "GET_LOCAL16",
 	JUMP_UNLESS:       "JUMP_UNLESS",
@@ -391,4 +408,5 @@ var opCodeNames = [...]string{
 	LOAD_CHAR_8:       "LOAD_CHAR_8",
 	FLOAT_0:           "FLOAT_0",
 	FLOAT_1:           "FLOAT_1",
+	FLOAT_2:           "FLOAT_2",
 }

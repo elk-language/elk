@@ -606,10 +606,26 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opIncrement())
 		case bytecode.DECREMENT:
 			vm.throwIfErr(vm.opDecrement())
+		case bytecode.GET_LOCAL_1:
+			vm.opGetLocal(1)
+		case bytecode.GET_LOCAL_2:
+			vm.opGetLocal(2)
+		case bytecode.GET_LOCAL_3:
+			vm.opGetLocal(3)
+		case bytecode.GET_LOCAL_4:
+			vm.opGetLocal(4)
 		case bytecode.GET_LOCAL8:
 			vm.opGetLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
 			vm.opGetLocal(int(vm.readUint16()))
+		case bytecode.SET_LOCAL_1:
+			vm.opSetLocal(1)
+		case bytecode.SET_LOCAL_2:
+			vm.opSetLocal(2)
+		case bytecode.SET_LOCAL_3:
+			vm.opSetLocal(3)
+		case bytecode.SET_LOCAL_4:
+			vm.opSetLocal(4)
 		case bytecode.SET_LOCAL8:
 			vm.opSetLocal(int(vm.readByte()))
 		case bytecode.SET_LOCAL16:
