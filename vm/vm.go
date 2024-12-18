@@ -424,6 +424,8 @@ func (vm *VM) run() {
 			vm.push(value.Float(0).ToValue())
 		case bytecode.FLOAT_1:
 			vm.push(value.Float(1).ToValue())
+		case bytecode.FLOAT_2:
+			vm.push(value.Float(2).ToValue())
 		case bytecode.INT64_0:
 			vm.push(value.Int64(0).ToValue())
 		case bytecode.INT64_1:
@@ -723,6 +725,121 @@ func (vm *VM) run() {
 				break
 			}
 			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_UNDEF:
+			if !vm.peek().IsUndefined() {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_ILE:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result, _ = left.LessThanEqualBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result, _ = leftBig.LessThanEqualBool(right)
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_ILT:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result, _ = left.LessThanBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result, _ = leftBig.LessThanBool(right)
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_IGE:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result, _ = left.GreaterThanEqualBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result, _ = leftBig.GreaterThanEqualBool(right)
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_IGT:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result, _ = left.GreaterThanBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result, _ = leftBig.GreaterThanBool(right)
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_IEQ:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result = left.StrictEqualBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result = leftBig.EqualBool(right)
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_IF_IEQ:
+			right := vm.pop()
+			left := vm.peek()
+
+			var result bool
+			if left.IsSmallInt() {
+				left := left.AsSmallInt()
+				result = left.StrictEqualBool(right)
+			} else {
+				leftBig := left.AsReference().(*value.BigInt)
+				result = leftBig.EqualBool(right)
+			}
+			if result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL:
 			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
@@ -740,13 +857,6 @@ func (vm *VM) run() {
 		case bytecode.JUMP:
 			jump := vm.readUint16()
 			vm.ipIncrementBy(int(jump))
-		case bytecode.JUMP_UNLESS_UNDEF:
-			if !vm.peek().IsUndefined() {
-				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
-				break
-			}
-			vm.ipIncrementBy(2)
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ipIncrementBy(-int(jump))

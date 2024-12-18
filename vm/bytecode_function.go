@@ -448,7 +448,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
 		bytecode.INSTANTIATE16, bytecode.NEW_ARRAY_TUPLE16, bytecode.NEW_ARRAY_LIST16, bytecode.NEW_STRING16,
 		bytecode.NEW_HASH_MAP16, bytecode.NEW_HASH_RECORD16, bytecode.NEW_SYMBOL16,
-		bytecode.NEW_HASH_SET16:
+		bytecode.NEW_HASH_SET16, bytecode.JUMP_IF_IEQ, bytecode.JUMP_UNLESS_IEQ, bytecode.JUMP_UNLESS_IGE,
+		bytecode.JUMP_UNLESS_IGT, bytecode.JUMP_UNLESS_ILT, bytecode.JUMP_UNLESS_ILE:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)

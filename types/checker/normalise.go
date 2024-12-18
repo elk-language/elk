@@ -88,11 +88,11 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		}
 
 		nonLiteral := c.ToNonLiteral(givenType, false)
-		if !c.IsSubtype(givenType, p.UpperBound, nil) {
+		if !c.isSubtype(givenType, p.UpperBound, nil) {
 			c.addUpperBoundError(givenType, p.UpperBound, errSpan)
 			return nil
 		}
-		if !c.IsSubtype(p.LowerBound, nonLiteral, nil) {
+		if !c.isSubtype(p.LowerBound, nonLiteral, nil) {
 			c.addLowerBoundError(givenType, p.LowerBound, errSpan)
 			return nil
 		}
@@ -106,7 +106,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if !ok {
 			return p
 		}
-		if !c.IsSubtype(g.Namespace, p.Namespace, nil) {
+		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
 			return p
 		}
 		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
@@ -271,7 +271,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			gElementsToSkip := make([]bool, len(g.Elements))
 			for _, pElement := range p.Elements {
 				for j, gElement := range g.Elements {
-					if c.IsSubtype(gElement, pElement, nil) {
+					if c.isSubtype(gElement, pElement, nil) {
 						gElementsToSkip[j] = true
 						break
 					}
@@ -335,7 +335,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		case *types.Union:
 			narrowedGivenElements := make([]types.Type, 0, len(g.Elements))
 			for _, gElement := range g.Elements {
-				if c.IsSubtype(gElement, p, nil) {
+				if c.isSubtype(gElement, p, nil) {
 					continue
 				}
 				narrowedGivenElements = append(narrowedGivenElements, gElement)
@@ -460,7 +460,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		}
 		return arg.Type
 	case *types.TypeParameter:
-		if !c.IsTheSameType(t.Namespace, generic.Namespace, nil) {
+		if !c.isTheSameType(t.Namespace, generic.Namespace, nil) {
 			return t
 		}
 		arg := generic.ArgumentMap[t.Name]
@@ -956,10 +956,10 @@ eliminateSupertypesLoop:
 
 		for j := 0; j < len(normalisedElements); j++ {
 			normalisedElement := normalisedElements[j]
-			if c.IsSubtype(normalisedElement, element, nil) {
+			if c.isSubtype(normalisedElement, element, nil) {
 				continue eliminateSupertypesLoop
 			}
-			if c.IsSubtype(element, normalisedElement, nil) {
+			if c.isSubtype(element, normalisedElement, nil) {
 				normalisedElements[j] = element
 				continue eliminateSupertypesLoop
 			}
@@ -995,14 +995,14 @@ elementLoop:
 		case *types.Not:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if c.IsTheSameType(e.Type, normalisedElement, nil) {
+				if c.isTheSameType(e.Type, normalisedElement, nil) {
 					return types.Any{}
 				}
-				if c.IsSubtype(normalisedElement, element, nil) {
+				if c.isSubtype(normalisedElement, element, nil) {
 					normalisedElements[j] = element
 					continue elementLoop
 				}
-				if c.IsSubtype(element, normalisedElement, nil) {
+				if c.isSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}
@@ -1010,14 +1010,14 @@ elementLoop:
 		default:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.IsTheSameType(normalisedNot.Type, element, nil) {
+				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type, element, nil) {
 					return types.Any{}
 				}
-				if c.IsSubtype(normalisedElement, element, nil) {
+				if c.isSubtype(normalisedElement, element, nil) {
 					normalisedElements[j] = element
 					continue elementLoop
 				}
-				if c.IsSubtype(element, normalisedElement, nil) {
+				if c.isSubtype(element, normalisedElement, nil) {
 					continue elementLoop
 				}
 			}

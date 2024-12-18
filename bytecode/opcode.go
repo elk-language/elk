@@ -77,9 +77,15 @@ const (
 	GET_LOCAL_4                     // Push the value of the local variable with index 4
 	GET_LOCAL8                      // Push the value of the local variable with the given index onto the stack (8 bit operand)
 	GET_LOCAL16                     // Push the value of the local variable with the given index onto the stack (16 bit operand)
+	JUMP_UNLESS_ILE                 // Jump n bytes forward if the the Int on the stack is not less than or equal to the second value
+	JUMP_UNLESS_ILT                 // Jump n bytes forward if the the Int on the stack is not less than the second value
+	JUMP_UNLESS_IGE                 // Jump n bytes forward if the the Int on the stack is not greater than or equal to the second value
+	JUMP_UNLESS_IGT                 // Jump n bytes forward if the the Int on the stack is not greater than the second value
+	JUMP_UNLESS_IEQ                 // Jump n bytes forward if the the Int on the stack is not equal to the second value
 	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
 	JUMP                            // Jump n bytes forward
 	JUMP_IF                         // Jump n bytes forward if the value on the stack is truthy
+	JUMP_IF_IEQ                     // Jump n bytes forward if the the Int on the stack is equal to the second value
 	LOOP                            // Jump n bytes backward
 	JUMP_IF_NIL                     // Jump n bytes forward if the value on the stack is nil
 	RBITSHIFT                       // Take two values from the stack, perform a right bitshift and push the result
@@ -262,9 +268,15 @@ var opCodeNames = [...]string{
 	GET_LOCAL_4:       "GET_LOCAL_4",
 	GET_LOCAL8:        "GET_LOCAL8",
 	GET_LOCAL16:       "GET_LOCAL16",
+	JUMP_UNLESS_ILE:   "JUMP_UNLESS_ILE",
+	JUMP_UNLESS_ILT:   "JUMP_UNLESS_ILT",
+	JUMP_UNLESS_IGE:   "JUMP_UNLESS_IGE",
+	JUMP_UNLESS_IGT:   "JUMP_UNLESS_IGT",
+	JUMP_UNLESS_IEQ:   "JUMP_UNLESS_IEQ",
 	JUMP_UNLESS:       "JUMP_UNLESS",
 	JUMP:              "JUMP",
 	JUMP_IF:           "JUMP_IF",
+	JUMP_IF_IEQ:       "JUMP_IF_IEQ",
 	LOOP:              "LOOP",
 	JUMP_IF_NIL:       "JUMP_IF_NIL",
 	RBITSHIFT:         "RBITSHIFT",

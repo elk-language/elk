@@ -314,7 +314,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		}
 		isAlreadyIncluded, includedNamespace := c.includesMixin(target, mixin)
 		includedGeneric, isGeneric := includedNamespace.(*types.Generic)
-		if isAlreadyIncluded && isGeneric && !c.IsTheSameType(con, includedGeneric, nil) {
+		if isAlreadyIncluded && isGeneric && !c.isTheSameType(con, includedGeneric, nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot include mixin `%s` since `%s` has already been included",
@@ -532,8 +532,8 @@ func (c *Checker) checkNamespaceTypeParameters(
 
 		if newTypeParam.Name != oldTypeParam.Name ||
 			newTypeParam.Variance != oldTypeParam.Variance ||
-			!c.IsTheSameType(newTypeParam.LowerBound, oldTypeParam.LowerBound, nil) ||
-			!c.IsTheSameType(newTypeParam.UpperBound, oldTypeParam.UpperBound, nil) {
+			!c.isTheSameType(newTypeParam.LowerBound, oldTypeParam.LowerBound, nil) ||
+			!c.isTheSameType(newTypeParam.UpperBound, oldTypeParam.UpperBound, nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"type parameter mismatch in `%s`, is `%s`, should be `%s`",
@@ -624,7 +624,7 @@ superclassSwitch:
 	var previousSuperclass types.Type = class.Superclass()
 	if !class.Checked && previousSuperclass == nil && superclass != nil {
 		class.SetParent(superclass)
-	} else if !c.IsTheSameType(previousSuperclass, superclass, nil) {
+	} else if !c.isTheSameType(previousSuperclass, superclass, nil) {
 		var span *position.Span
 		if node.Superclass == nil {
 			span = node.Span()
@@ -708,7 +708,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		if whereTypeParam.LowerBound == nil {
 			newLowerBound = originalTypeParam.LowerBound
 		} else {
-			if !c.IsSubtype(originalTypeParam.LowerBound, whereTypeParam.LowerBound, nil) {
+			if !c.isSubtype(originalTypeParam.LowerBound, whereTypeParam.LowerBound, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"type parameter `%s` in where clause should have a wider lower bound, has `%s`, should have `%s` or its supertype",
@@ -727,7 +727,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		if whereTypeParam.UpperBound == nil {
 			newUpperBound = originalTypeParam.UpperBound
 		} else {
-			if !c.IsSubtype(whereTypeParam.UpperBound, originalTypeParam.UpperBound, nil) {
+			if !c.isSubtype(whereTypeParam.UpperBound, originalTypeParam.UpperBound, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"type parameter `%s` in where clause should have a narrower upper bound, has `%s`, should have `%s` or its subtype",

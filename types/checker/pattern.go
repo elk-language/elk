@@ -447,7 +447,7 @@ func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *as
 
 	var fullyCapturedType types.Type
 	node.Value, fullyCapturedType = c.checkPattern(node.Value, returnType)
-	return returnType, c.IsSubtype(returnType, fullyCapturedType, nil)
+	return returnType, c.isSubtype(returnType, fullyCapturedType, nil)
 }
 
 func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, span *position.Span) (attrType types.Type, fullyCaptured bool) {
@@ -582,7 +582,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 		}
 	}
 
-	if startType != nil && endType != nil && !c.IsTheSameType(startType, endType, nil) {
+	if startType != nil && endType != nil && !c.isTheSameType(startType, endType, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"range pattern start and end must be of the same type, got `%s` and `%s`",

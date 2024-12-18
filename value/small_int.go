@@ -436,116 +436,144 @@ func (i SmallInt) Compare(other Value) (Value, Value) {
 // Check whether i is greater than other and return an error
 // if something went wrong.
 func (i SmallInt) GreaterThan(other Value) (Value, Value) {
+	result, err := i.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether i is greater than other and return an error
+// if something went wrong.
+func (i SmallInt) GreaterThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) == 1), Undefined
+			return iBigInt.Cmp(o) == 1, Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == 1), Undefined
+			return iBigFloat.Cmp(o) == 1, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i > other.AsSmallInt()), Undefined
+		return i > other.AsSmallInt(), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(Float(i) > other.AsFloat()), Undefined
+		return Float(i) > other.AsFloat(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
 func (i SmallInt) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether i is greater than or equal to other and return an error
+// if something went wrong.
+func (i SmallInt) GreaterThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) >= 0), Undefined
+			return iBigInt.Cmp(o) >= 0, Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) >= 0), Undefined
+			return iBigFloat.Cmp(o) >= 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i >= other.AsSmallInt()), Undefined
+		return i >= other.AsSmallInt(), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(Float(i) >= other.AsFloat()), Undefined
+		return Float(i) >= other.AsFloat(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
 // Check whether i is less than other and return an error
 // if something went wrong.
 func (i SmallInt) LessThan(other Value) (Value, Value) {
+	result, err := i.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether i is less than other and return an error
+// if something went wrong.
+func (i SmallInt) LessThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) == -1), Undefined
+			return iBigInt.Cmp(o) == -1, Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == -1), Undefined
+			return iBigFloat.Cmp(o) == -1, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i < other.AsSmallInt()), Undefined
+		return i < other.AsSmallInt(), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(Float(i) < other.AsFloat()), Undefined
+		return Float(i) < other.AsFloat(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
 func (i SmallInt) LessThanEqual(other Value) (Value, Value) {
+	result, err := i.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether i is less than or equal to other and return an error
+// if something went wrong.
+func (i SmallInt) LessThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) <= 0), Undefined
+			return iBigInt.Cmp(o) <= 0, Undefined
 		case *BigFloat:
 			if o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) <= 0), Undefined
+			return iBigFloat.Cmp(o) <= 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i <= other.AsSmallInt()), Undefined
+		return i <= other.AsSmallInt(), Undefined
 	case FLOAT_FLAG:
-		return ToElkBool(Float(i) <= other.AsFloat()), Undefined
+		return Float(i) <= other.AsFloat(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 }
 
@@ -611,6 +639,25 @@ func (i SmallInt) LaxEqual(other Value) Value {
 // Check whether i is equal to other
 func (i SmallInt) Equal(other Value) Value {
 	return i.StrictEqual(other)
+}
+
+// Check whether i is strictly equal to other
+func (i SmallInt) StrictEqualBool(other Value) bool {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			iBigInt := NewBigInt(int64(i))
+			return iBigInt.Cmp(o) == 0
+		default:
+			return false
+		}
+	}
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return i == other.AsSmallInt()
+	default:
+		return false
+	}
 }
 
 // Check whether i is strictly equal to other

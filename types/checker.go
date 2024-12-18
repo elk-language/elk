@@ -1,13 +1,12 @@
 package types
 
 import (
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
 
 type Checker interface {
 	Env() *GlobalEnvironment
-	IsSubtype(a, b Type, errSpan *position.Span) bool
+	IsSubtype(a, b Type) bool
 	IsNilable(typ Type) bool
 	IsNotNilable(typ Type) bool
 	IsNil(typ Type) bool
@@ -15,7 +14,7 @@ type Checker interface {
 	IsTruthy(typ Type) bool
 	CanBeFalsy(typ Type) bool
 	CanBeTruthy(typ Type) bool
-	IsTheSameType(a, b Type, errSpan *position.Span) bool
+	IsTheSameType(a, b Type) bool
 	TypesIntersect(a, b Type) bool
 	NewNormalisedUnion(elements ...Type) Type
 	NewNormalisedIntersection(elements ...Type) Type

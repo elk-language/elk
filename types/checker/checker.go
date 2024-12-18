@@ -657,31 +657,31 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		}
 	case *ast.ArrayListLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdArrayList(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayList(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkArrayListLiteralNodeWithType(n, generic)
 	case *ast.ArrayTupleLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkArrayTupleLiteralNodeWithType(n, generic)
 	case *ast.HashSetLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.IsSubtype(c.StdHashSet(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdHashSet(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashSetLiteralNodeWithType(n, generic)
 	case *ast.HashMapLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.IsSubtype(c.StdHashMap(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashMap(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashMapLiteralNodeWithType(n, generic)
 	case *ast.HashRecordLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.IsSubtype(c.StdHashRecord(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashRecord(), generic.Namespace, nil) {
 			break
 		}
 		return c.checkHashRecordLiteralNodeWithType(n, generic)
@@ -1512,8 +1512,8 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.IsSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.IsSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), types.Any{}, types.Any{})
@@ -1526,7 +1526,7 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.TypeOf(node.Capacity)
-		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -1592,14 +1592,14 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	}
 
 	rangeClass := c.Std(rangeClassName).(*types.Class)
-	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.IsSubtype(c.StdRange(), typ.Namespace, nil) {
+	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
 		typ = nil
 	}
 	comparable := c.Std(symbol.Comparable).(*types.Interface)
 	valueType := c.NewNormalisedUnion(valueTypes...)
 	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
 
-	if typ != nil && c.IsSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(valueTypes) == 0 {
 		c.addFailure(
@@ -1608,7 +1608,7 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 		)
 		generic := types.NewGenericWithTypeArgs(rangeClass, types.Untyped{})
 		node.SetType(generic)
-	} else if !c.IsSubtype(valueType, comparableValueType, node.Span()) {
+	} else if !c.isSubtype(valueType, comparableValueType, node.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type %s is not comparable and cannot be used in range literals",
@@ -1636,8 +1636,8 @@ func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteral
 	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.IsSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.IsSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), types.Any{}, types.Any{})
@@ -1692,7 +1692,7 @@ func (c *Checker) checkArrayListElement(node ast.ExpressionNode) ast.ExpressionN
 func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
 	node.Key = c.checkExpression(node.Key)
 	keyType := c.typeOfGuardVoid(node.Key)
-	if !c.IsSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"index must be an integer, got type `%s`",
@@ -1762,7 +1762,7 @@ func (c *Checker) checkArrayTupleElement(node ast.ExpressionNode) ast.Expression
 func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
 	node.Key = c.checkExpression(node.Key)
 	keyType := c.typeOfGuardVoid(node.Key)
-	if !c.IsSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
+	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"index must be an integer, got type `%s`",
@@ -1787,7 +1787,7 @@ func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNo
 	elementTypes := c.checkArrayListElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), types.Any{}))
@@ -1798,7 +1798,7 @@ func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNo
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.TypeOf(node.Capacity)
-		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -1822,7 +1822,7 @@ func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collect
 	if capacity != nil {
 		capacity = c.checkExpression(capacity)
 		capacityType := c.TypeOf(capacity)
-		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -2000,7 +2000,7 @@ func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, 
 	elementTypes := c.checkHashSetElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), types.Any{}))
@@ -2011,7 +2011,7 @@ func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, 
 	if node.Capacity != nil {
 		node.Capacity = c.checkExpression(node.Capacity)
 		capacityType := c.TypeOf(node.Capacity)
-		if !c.IsSubtype(capacityType, c.StdAnyInt(), nil) {
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"capacity must be an integer, got `%s`",
@@ -2033,7 +2033,7 @@ func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteral
 	elementTypes := c.checkArrayTupleElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.IsSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), types.Any{}))
@@ -2318,7 +2318,7 @@ func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Typ
 	iterable := c.StdPrimitiveIterable()
 	iterableOfAny := types.NewGenericWithUpperBoundTypeArgs(iterable)
 
-	if c.IsSubtype(typ, iterableOfAny, span) {
+	if c.isSubtype(typ, iterableOfAny, span) {
 		return c.getIteratorElementType(typ, span)
 	}
 
@@ -3387,7 +3387,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		return
 	}
 
-	if c.IsSubtype(leftType, class, nil) {
+	if c.isSubtype(leftType, class, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this \"instance of\" check is always true, `%s` will always be an instance of `%s`",
@@ -3399,7 +3399,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		return
 	}
 
-	if !c.IsSubtype(class, leftType, nil) {
+	if !c.isSubtype(class, leftType, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"impossible \"instance of\" check, `%s` cannot ever be an instance of `%s`",
@@ -3446,7 +3446,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		return
 	}
 
-	if c.IsSubtype(leftType, rightSingleton.AttachedObject, nil) {
+	if c.isSubtype(leftType, rightSingleton.AttachedObject, nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this \"is a\" check is always true, `%s` will always be an instance of `%s`",
@@ -3664,7 +3664,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			if superIvar == nil {
 				continue
 			}
-			if !c.IsTheSameType(superIvar, includedIvar, nil) {
+			if !c.isTheSameType(superIvar, includedIvar, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
 					name:              name,
 					super:             superIvar,
@@ -3988,12 +3988,12 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		typeArgument := c.TypeOf(typeArgumentNode)
 
 		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap)
-		if !c.IsSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
+		if !c.isSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
 			c.addUpperBoundError(typeArgument, upperBound, typeArgumentNode.Span())
 			fail = true
 		}
 		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap)
-		if !c.IsSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
+		if !c.isSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
 			c.addLowerBoundError(typeArgument, lowerBound, typeArgumentNode.Span())
 			fail = true
 		}
@@ -4615,7 +4615,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	var shadows []*local
 	var canAssign bool
 	for ; currentVar != nil; currentVar = currentVar.shadowOf {
-		if c.IsSubtype(assignedType, currentVar.typ, nil) {
+		if c.isSubtype(assignedType, currentVar.typ, nil) {
 			for _, shadow := range shadows {
 				shadow.typ = currentVar.typ
 			}
@@ -4626,7 +4626,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 	if !canAssign {
 		// for interface implementation errors
-		c.IsSubtype(assignedType, variable.typ, node.Right.Span())
+		c.isSubtype(assignedType, variable.typ, node.Right.Span())
 		c.addCannotBeAssignedError(assignedType, variable.typ, node.Right.Span())
 	}
 
@@ -4646,7 +4646,7 @@ func (c *Checker) checkRegexContent(node ast.RegexLiteralContentNode) {
 	case *ast.RegexInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.isSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.RegexLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -4673,11 +4673,11 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 	case *ast.StringInspectInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.TypeOf(n.Expression), c.StdInspectable(), expr.Span())
+		c.isSubtype(c.TypeOf(n.Expression), c.StdInspectable(), expr.Span())
 	case *ast.StringInterpolationNode:
 		expr := c.checkExpression(n.Expression)
 		n.Expression = expr
-		c.IsSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
+		c.isSubtype(c.TypeOf(n.Expression), c.StdStringConvertible(), expr.Span())
 	case *ast.StringLiteralContentSectionNode:
 	default:
 		c.addFailure(
@@ -5848,7 +5848,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 	}
 
 	if currentIvar != nil {
-		if !c.IsTheSameType(typ, currentIvar, span) {
+		if !c.isTheSameType(typ, currentIvar, span) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
@@ -5930,7 +5930,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 
 		declaredType = c.TypeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
-		if ivar != nil && !c.IsTheSameType(ivar, declaredType, nil) {
+		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
@@ -6162,7 +6162,7 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 		patternKeyType := l.Get(0).Type
 		patternValueType := l.Get(1).Type
 		recordOfPatternElement := types.NewGenericWithTypeArgs(recordMixin, patternKeyType, patternValueType)
-		if c.IsSubtype(l, recordOfPatternElement, nil) {
+		if c.isSubtype(l, recordOfPatternElement, nil) {
 			return patternKeyType, patternValueType
 		}
 	case *types.Union:
@@ -6192,7 +6192,7 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 
 		patternElementType := l.Get(0).Type
 		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionMixin, patternElementType)
-		if c.IsSubtype(l, collectionOfPatternElement, nil) {
+		if c.isSubtype(l, collectionOfPatternElement, nil) {
 			return patternElementType
 		}
 	case *types.Union:
@@ -6459,7 +6459,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 }
 
 func (c *Checker) checkCanAssign(assignedType, targetType types.Type, span *position.Span) bool {
-	if !c.IsSubtype(assignedType, targetType, span) {
+	if !c.isSubtype(assignedType, targetType, span) {
 		c.addCannotBeAssignedError(assignedType, targetType, span)
 		return false
 	}
@@ -6479,7 +6479,7 @@ func (c *Checker) addCannotBeAssignedError(assignedType, targetType types.Type, 
 }
 
 func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, span *position.Span) {
-	if !c.IsSubtype(assignedType, targetType, span) {
+	if !c.isSubtype(assignedType, targetType, span) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to instance variable `%s` of type `%s`",

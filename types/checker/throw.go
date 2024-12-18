@@ -66,7 +66,7 @@ func (c *Checker) checkCalledMethodThrowType(method *types.Method, span *positio
 
 func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
 	for _, catchScope := range c.catchScopes {
-		if c.IsSubtype(throwType, catchScope.typ, nil) {
+		if c.isSubtype(throwType, catchScope.typ, nil) {
 			return
 		}
 	}
