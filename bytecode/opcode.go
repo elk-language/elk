@@ -83,6 +83,7 @@ const (
 	JUMP_UNLESS_IGT                 // Jump n bytes forward if the the Int on the stack is not greater than the second value
 	JUMP_UNLESS_IEQ                 // Jump n bytes forward if the the Int on the stack is not equal to the second value
 	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
+	JUMP_UNLESS_NIL                 // Jump n bytes forward if the value on the stack is not nil
 	JUMP                            // Jump n bytes forward
 	JUMP_IF                         // Jump n bytes forward if the value on the stack is truthy
 	JUMP_IF_IEQ                     // Jump n bytes forward if the the Int on the stack is equal to the second value
@@ -274,6 +275,7 @@ var opCodeNames = [...]string{
 	JUMP_UNLESS_IGT:   "JUMP_UNLESS_IGT",
 	JUMP_UNLESS_IEQ:   "JUMP_UNLESS_IEQ",
 	JUMP_UNLESS:       "JUMP_UNLESS",
+	JUMP_UNLESS_NIL:   "JUMP_UNLESS_NIL",
 	JUMP:              "JUMP",
 	JUMP_IF:           "JUMP_IF",
 	JUMP_IF_IEQ:       "JUMP_IF_IEQ",

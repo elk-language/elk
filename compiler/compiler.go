@@ -2376,26 +2376,8 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 		return
 	}
 
-	if cond, ok := condition.(*ast.BinaryExpressionNode); ok {
-		jumpOp, reverse := c.optimiseIf(jumpOp, cond)
-		if jumpOp != bytecode.ZERO_VALUE {
-			c.compileIf(
-				jumpOp,
-				func() {
-					if reverse {
-						c.compileNode(cond.Right)
-						c.compileNode(cond.Left)
-					} else {
-						c.compileNode(cond.Left)
-						c.compileNode(cond.Right)
-					}
-				},
-				then,
-				els,
-				span,
-			)
-			return
-		}
+	if c.optimiseIf(jumpOp, condition, then, els, span) {
+		return
 	}
 
 	c.compileIf(
@@ -2409,129 +2391,457 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 	)
 }
 
-func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
-	switch condition.Op.Type {
+func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) bool {
+	cond, ok := condition.(*ast.BinaryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	switch cond.Op.Type {
 	case token.LESS_EQUAL:
-		return c.optimiseIfLessEqual(jumpOp, condition)
+		return c.optimiseIfLessEqual(jumpOp, cond, then, els, span)
 	case token.LESS:
-		return c.optimiseIfLess(jumpOp, condition)
+		return c.optimiseIfLess(jumpOp, cond, then, els, span)
 	case token.GREATER_EQUAL:
-		return c.optimiseIfGreaterEqual(jumpOp, condition)
+		return c.optimiseIfGreaterEqual(jumpOp, cond, then, els, span)
 	case token.GREATER:
-		return c.optimiseIfGreater(jumpOp, condition)
+		return c.optimiseIfGreater(jumpOp, cond, then, els, span)
 	case token.EQUAL_EQUAL:
-		return c.optimiseIfEqual(jumpOp, condition)
+		return c.optimiseIfEqual(jumpOp, cond, then, els, span)
 	case token.NOT_EQUAL:
-		return c.optimiseIfNotEqual(jumpOp, condition)
+		return c.optimiseIfNotEqual(jumpOp, cond, then, els, span)
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
+	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_IF_NIL,
+				func() {
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_IF_NIL,
+				func() {
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_IF_IEQ, false
+			c.compileIf(
+				bytecode.JUMP_IF_IEQ,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_IF_IEQ,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_NIL,
+				func() {
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_NIL,
+				func() {
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IEQ, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IEQ,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IEQ,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
+	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_NIL,
+				func() {
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_NIL,
+				func() {
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IEQ, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IEQ,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IEQ,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_IF_NIL,
+				func() {
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			c.compileIf(
+				bytecode.JUMP_IF_NIL,
+				func() {
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_IF_IEQ, false
+			c.compileIf(
+				bytecode.JUMP_IF_IEQ,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_IF_IEQ,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IGT, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGT,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILT,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_ILE, true
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILE,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IGE, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGE,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		// Reverse only when leftType is subtype of BuiltinComparable
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILE,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_ILT, true
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILT,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_ILT, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILT,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGT,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IGE, true
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGE,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
-func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode) (bytecode.OpCode, bool) {
+func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_ILE, false
+			c.compileIf(
+				bytecode.JUMP_UNLESS_ILE,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGE,
+				func() {
+					c.compileNode(condition.Right)
+					c.compileNode(condition.Left)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			return bytecode.JUMP_UNLESS_IGT, true
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			c.compileIf(
+				bytecode.JUMP_UNLESS_IGT,
+				func() {
+					c.compileNode(condition.Left)
+					c.compileNode(condition.Right)
+				},
+				then,
+				els,
+				span,
+			)
+			return true
 		}
 	}
 
-	return 0, false
+	return false
 }
 
 func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode) {

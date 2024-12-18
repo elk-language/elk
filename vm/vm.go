@@ -847,6 +847,13 @@ func (vm *VM) run() {
 				break
 			}
 			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_NIL:
+			if vm.peek() != value.Nil {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF:
 			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
