@@ -339,7 +339,7 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
 
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 			c.compileNode(p.Initialiser)
@@ -554,7 +554,7 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
 
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 			c.compileNode(p.Initialiser)
@@ -1117,8 +1117,6 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		span := catchNode.Span()
 		c.pattern(catchNode.Pattern)
 		jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-		// pop the boolean return value of the pattern
-		c.emit(span.StartPos.Line, bytecode.POP)
 
 		c.compileStatements(catchNode.Body, catchNode.Span())
 
@@ -1130,8 +1128,6 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
 
 		c.patchJump(jumpOverCatchBody, span)
-		// pop the boolean return value of the pattern after jump
-		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	if len(node.Finally) > 0 {
@@ -1168,13 +1164,13 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.compileStatements(node.Finally, span)
 
 		c.emit(span.EndPos.Line, bytecode.SWAP)
-		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
 		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
 		c.emit(span.EndPos.Line, bytecode.JUMP_TO_FINALLY)
 		c.patchJump(jumpOverFinallyBreakOrContinueOffset, span)
 
-		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF)
-		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL)
+		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NP)
+		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
 		// FALSE
 		c.emit(span.EndPos.Line, bytecode.POP_N, 2)          // pop the flag and return value of finally
 		c.emit(span.EndPos.Line, bytecode.POP_N_SKIP_ONE, 2) // pop the thrown value and the stack trace leaving the return value of catch
@@ -1405,9 +1401,8 @@ func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpre
 	c.compileNode(node.Condition)
 	// jump past the loop if the condition is falsy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-	// pop the condition value
-	// and the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+	// pop the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
@@ -1418,8 +1413,6 @@ func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpre
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
-	// pop the condition value
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
@@ -1468,9 +1461,8 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	c.compileNode(condition)
 	// jump past the loop if the condition is falsy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-	// pop the condition value
-	// and the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+	// pop the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
@@ -1478,8 +1470,6 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
-	// pop the condition value
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
@@ -1528,9 +1518,8 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	c.compileNode(condition)
 	// jump past the loop if the condition is truthy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-	// pop the condition value
-	// and the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+	// pop the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
@@ -1538,8 +1527,6 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
-	// pop the condition value
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
@@ -1574,9 +1561,8 @@ func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpre
 	c.compileNode(node.Condition)
 	// jump past the loop if the condition is truthy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-	// pop the condition value
-	// and the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+	// pop the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP)
 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
@@ -1587,8 +1573,6 @@ func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpre
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
-	// pop the condition value
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
@@ -1685,7 +1669,6 @@ func (c *Compiler) compileForIn(
 	default:
 		c.pattern(param)
 		jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-		c.emit(span.EndPos.Line, bytecode.POP)
 
 		c.emitValue(
 			value.Ref(value.NewError(
@@ -1697,7 +1680,6 @@ func (c *Compiler) compileForIn(
 		c.emit(span.EndPos.Line, bytecode.THROW)
 
 		c.patchJump(jumpOverErrorOffset, span)
-		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	// loop body
@@ -1752,9 +1734,8 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 		c.compileNode(node.Condition)
 		// jump past the loop if the condition is falsy
 		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-		// pop the condition value
-		// and the return value of the last iteration
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+		// pop the return value of the last iteration
+		c.emit(span.EndPos.Line, bytecode.POP)
 	} else {
 		// pop the return value of the last iteration
 		c.emit(span.EndPos.Line, bytecode.POP)
@@ -1777,8 +1758,6 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 	// after loop
 	if node.Condition != nil {
 		c.patchJump(loopBodyOffset, span)
-		// pop the condition value
-		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	c.leaveScope(span.EndPos.Line)
@@ -1909,7 +1888,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		c.compileNode(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -1924,7 +1903,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		c.compileNode(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -1939,7 +1918,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		c.compileNode(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 		// if nil
@@ -1974,7 +1953,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -1988,7 +1967,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -2002,7 +1981,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 		// if nil
@@ -2044,7 +2023,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -2062,7 +2041,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -2080,7 +2059,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 		// if nil
@@ -2139,7 +2118,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -2149,7 +2128,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		c.patchJump(jump, span)
 	case token.AND_AND_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(span.StartPos.Line, bytecode.POP)
@@ -2159,7 +2138,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		c.patchJump(jump, span)
 	case token.QUESTION_QUESTION_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 		// if nil
@@ -2323,15 +2302,12 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func()
 
 	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
 
-	c.emit(span.StartPos.Line, bytecode.POP)
-
 	then()
 	c.leaveScope(span.StartPos.Line)
 
 	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 	c.patchJump(thenJumpOffset, span)
-	c.emit(span.StartPos.Line, bytecode.POP)
 
 	if els != nil {
 		c.enterScope("", defaultScopeType)
@@ -3063,9 +3039,9 @@ func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
 	var op bytecode.OpCode
 	switch pat.Op.Type {
 	case token.OR_OR:
-		op = bytecode.JUMP_IF
+		op = bytecode.JUMP_IF_NP
 	case token.AND_AND:
-		op = bytecode.JUMP_UNLESS
+		op = bytecode.JUMP_UNLESS_NP
 	default:
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
 	}
@@ -3128,7 +3104,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 	c.compileNode(node.ObjectType)
 	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3142,7 +3118,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.PublicIdentifierNode:
@@ -3182,7 +3158,7 @@ func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 	}
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
@@ -3223,7 +3199,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 	}
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3237,7 +3213,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.KeyValuePatternNode:
@@ -3247,7 +3223,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.PublicIdentifierNode:
@@ -3297,7 +3273,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 	c.emitValue(value.Ref(value.SetMixin), span)
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3313,7 +3289,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
 	}
 
-	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3330,7 +3306,7 @@ subPatternLoop:
 		callInfo := value.NewCallSiteInfo(symbol.L_contains, 1)
 		c.emitCallMethod(callInfo, span)
 
-		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		jumpsToPatch = append(jumpsToPatch, jmp)
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
@@ -3391,7 +3367,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 	}
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3413,7 +3389,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
 	}
 
-	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3429,7 +3405,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 
 		c.pattern(element)
 		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		jumpsToPatch = append(jumpsToPatch, jmp)
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
@@ -3463,7 +3439,6 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			loopEndJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 
 			// loop body
-			c.emit(span.StartPos.Line, bytecode.POP)
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
@@ -3480,7 +3455,6 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			c.emitLoop(span, loopStartOffset)
 			// loop end
 			c.patchJump(loopEndJump, span)
-			c.emit(span.StartPos.Line, bytecode.POP)
 		} else {
 			// create the iterator variable
 			// i := length - element_after_rest_count
@@ -3506,7 +3480,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 
 			c.pattern(element)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
 			c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3554,7 +3528,7 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
 
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
 
-		c.emit(caseSpan.StartPos.Line, bytecode.POP_N, 2)
+		c.emit(caseSpan.StartPos.Line, bytecode.POP)
 
 		c.compileStatements(caseNode.Body, caseSpan)
 
@@ -3565,7 +3539,6 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
 
 		c.patchJump(jumpOverBodyOffset, caseSpan)
 		c.leaveScope(caseSpan.EndPos.Line)
-		c.emit(caseSpan.EndPos.Line, bytecode.POP)
 	}
 
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -3664,7 +3637,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 	switch op.Type {
 	case token.QUESTION_DOT:
 		c.compileNode(receiver)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
@@ -3676,7 +3649,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 	case token.QUESTION_DOT_DOT:
 		c.compileNode(receiver)
 		c.emit(span.EndPos.Line, bytecode.DUP)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
@@ -3729,7 +3702,7 @@ func (c *Compiler) compileCallNode(node *ast.CallNode) {
 	c.compileNode(node.Receiver)
 
 	if node.NilSafe {
-		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
@@ -3909,7 +3882,6 @@ func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDecl
 	c.pattern(node.Pattern)
 
 	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.emitValue(
 		value.Ref(value.NewError(
@@ -3921,7 +3893,6 @@ func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDecl
 	c.emit(span.EndPos.Line, bytecode.THROW)
 
 	c.patchJump(jumpOverErrorOffset, span)
-	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
@@ -3930,7 +3901,6 @@ func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatt
 	c.pattern(node.Pattern)
 
 	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	c.emitValue(
 		value.Ref(value.NewError(
@@ -3942,7 +3912,6 @@ func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatt
 	c.emit(span.EndPos.Line, bytecode.THROW)
 
 	c.patchJump(jumpOverErrorOffset, span)
-	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) {
@@ -5268,7 +5237,7 @@ func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode)
 // Compiles the `??` operator
 func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
-	nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+	nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 	nonNilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP)
 
 	// if nil
@@ -5283,7 +5252,7 @@ func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
 // Compiles the `||` operator
 func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
-	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF)
+	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NP)
 
 	// if falsy
 	c.emit(node.Span().StartPos.Line, bytecode.POP)
@@ -5296,7 +5265,7 @@ func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode) {
 // Compiles the `&&` operator
 func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
-	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS)
+	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 	// if truthy
 	c.emit(node.Span().StartPos.Line, bytecode.POP)

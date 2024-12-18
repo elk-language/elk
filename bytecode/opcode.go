@@ -82,13 +82,18 @@ const (
 	JUMP_UNLESS_IGE                 // Jump n bytes forward if the the Int on the stack is not greater than or equal to the second value
 	JUMP_UNLESS_IGT                 // Jump n bytes forward if the the Int on the stack is not greater than the second value
 	JUMP_UNLESS_IEQ                 // Jump n bytes forward if the the Int on the stack is not equal to the second value
-	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
 	JUMP_UNLESS_NIL                 // Jump n bytes forward if the value on the stack is not nil
+	JUMP_UNLESS_NNP                 // Jump n bytes forward if the value on the stack is not nil, does not pop the value
+	JUMP_UNLESS_UNP                 // Jump n bytes forward unless the value on the stack is undefined, does not pop the value
+	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
+	JUMP_UNLESS_NP                  // Jump n bytes forward if the value on the stack is falsy, does not pop the value
 	JUMP                            // Jump n bytes forward
 	JUMP_IF                         // Jump n bytes forward if the value on the stack is truthy
+	JUMP_IF_NP                      // Jump n bytes forward if the value on the stack is truthy, does not pop the value
 	JUMP_IF_IEQ                     // Jump n bytes forward if the the Int on the stack is equal to the second value
 	LOOP                            // Jump n bytes backward
 	JUMP_IF_NIL                     // Jump n bytes forward if the value on the stack is nil
+	JUMP_IF_NIL_NP                  // Jump n bytes forward if the value on the stack is nil, does not pop the value
 	RBITSHIFT                       // Take two values from the stack, perform a right bitshift and push the result
 	LOGIC_RBITSHIFT                 // Take two values from the stack, perform a logical right bitshift and push the result
 	LBITSHIFT                       // Take two values from the stack, perform a left bitshift and push the result
@@ -119,7 +124,6 @@ const (
 	CALL_SELF16                     // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
 	INCLUDE                         // Include a mixin in a class/mixin
 	GET_SINGLETON                   // Pop one value off the stack push its singleton class
-	JUMP_UNLESS_UNDEF               // Jump n bytes forward unless the value on the stack is undefined
 	COMPARE                         // Pop two values, compare them using `<=>` and push the result
 	DOC_COMMENT                     // Attach a doc comment to an Elk object
 	DEF_GETTER                      // Define a getter method
@@ -274,10 +278,14 @@ var opCodeNames = [...]string{
 	JUMP_UNLESS_IGE:   "JUMP_UNLESS_IGE",
 	JUMP_UNLESS_IGT:   "JUMP_UNLESS_IGT",
 	JUMP_UNLESS_IEQ:   "JUMP_UNLESS_IEQ",
-	JUMP_UNLESS:       "JUMP_UNLESS",
 	JUMP_UNLESS_NIL:   "JUMP_UNLESS_NIL",
+	JUMP_UNLESS_NNP:   "JUMP_UNLESS_NNP",
+	JUMP_UNLESS_UNP:   "JUMP_UNLESS_UNP",
+	JUMP_UNLESS:       "JUMP_UNLESS",
+	JUMP_UNLESS_NP:    "JUMP_UNLESS_NP",
 	JUMP:              "JUMP",
 	JUMP_IF:           "JUMP_IF",
+	JUMP_IF_NP:        "JUMP_IF_NP",
 	JUMP_IF_IEQ:       "JUMP_IF_IEQ",
 	LOOP:              "LOOP",
 	JUMP_IF_NIL:       "JUMP_IF_NIL",
@@ -311,7 +319,6 @@ var opCodeNames = [...]string{
 	CALL_SELF16:       "CALL_SELF16",
 	INCLUDE:           "INCLUDE",
 	GET_SINGLETON:     "GET_SINGLETON",
-	JUMP_UNLESS_UNDEF: "JUMP_UNLESS_UNDEF",
 	COMPARE:           "COMPARE",
 	DOC_COMMENT:       "DOC_COMMENT",
 	DEF_GETTER:        "DEF_GETTER",

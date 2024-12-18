@@ -719,13 +719,20 @@ func (vm *VM) run() {
 		case bytecode.GET_ITERATOR:
 			vm.throwIfErr(vm.opGetIterator())
 		case bytecode.JUMP_UNLESS:
+			if value.Falsy(vm.pop()) {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_NP:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(int(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
-		case bytecode.JUMP_UNLESS_UNDEF:
+		case bytecode.JUMP_UNLESS_UNP:
 			if !vm.peek().IsUndefined() {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(int(jump))
@@ -734,7 +741,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_ILE:
 			right := vm.pop()
-			left := vm.peek()
+			left := vm.pop()
 
 			var result bool
 			if left.IsSmallInt() {
@@ -841,6 +848,13 @@ func (vm *VM) run() {
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL:
+			if vm.pop() == value.Nil {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_IF_NIL_NP:
 			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(int(jump))
@@ -848,6 +862,13 @@ func (vm *VM) run() {
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NIL:
+			if vm.pop() != value.Nil {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_NNP:
 			if vm.peek() != value.Nil {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(int(jump))
@@ -855,6 +876,13 @@ func (vm *VM) run() {
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF:
+			if value.Truthy(vm.pop()) {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(int(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_IF_NP:
 			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(int(jump))
