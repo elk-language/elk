@@ -311,12 +311,12 @@ func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) 
 }
 
 func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
-	c.compileNode(node)
+	c.compileNode(node, false)
 }
 
 // Entry point to the compilation process
 func (c *Compiler) compileProgram(node ast.Node) {
-	c.compileNode(node)
+	c.compileNode(node, false)
 	c.emitReturn(node.Span(), nil)
 	c.prepLocals()
 }
@@ -342,8 +342,8 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
 
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
-			c.compileNode(p.Initialiser)
-			c.emitSetLocal(pSpan.StartPos.Line, local.index)
+			c.compileNode(p.Initialiser, false)
+			c.emitSetLocalNoPop(pSpan.StartPos.Line, local.index)
 
 			c.patchJump(jump, pSpan)
 			// pops the value after SET_LOCAL when the argument was missing
@@ -351,7 +351,7 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 	}
-	c.compileStatements(body, span)
+	c.compileStatements(body, span, false)
 
 	c.emitReturn(span, nil)
 	c.prepLocals()
@@ -557,8 +557,8 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
 
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
-			c.compileNode(p.Initialiser)
-			c.emitSetLocal(pSpan.StartPos.Line, local.index)
+			c.compileNode(p.Initialiser, false)
+			c.emitSetLocalNoPop(pSpan.StartPos.Line, local.index)
 
 			c.patchJump(jump, pSpan)
 			// pops the value after SET_LOCAL when the argument was missing
@@ -568,12 +568,12 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 
 		if p.SetInstanceVariable {
 			c.emitGetLocal(span.StartPos.Line, local.index)
-			c.emitSetInstanceVariable(value.ToSymbol(p.Name), pSpan)
+			c.emitSetInstanceVariableNoPop(value.ToSymbol(p.Name), pSpan)
 			// pop the value after setting it
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 	}
-	c.compileStatements(body, span)
+	c.compileStatements(body, span, false)
 
 	c.emitReturn(span, nil)
 	c.prepLocals()
@@ -724,7 +724,7 @@ func (c *Compiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) {
 	c.emitGetConst(value.ToSymbol(node.Value), node.Span())
 }
 
-func (c *Compiler) compileNode(node ast.Node) bool {
+func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 	switch node := node.(type) {
 	case nil, *ast.AliasDeclarationNode, *ast.IncludeExpressionNode,
 		*ast.EmptyStatementNode, *ast.MethodDefinitionNode, *ast.UsingExpressionNode,
@@ -735,14 +735,71 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode:
 		return false
-	case *ast.ProgramNode:
-		c.compileStatements(node.Body, node.Span())
-	case *ast.ExtendWhereBlockExpressionNode:
-		c.compileStatements(node.Body, node.Span())
 	case *ast.ExpressionStatementNode:
-		return c.compileNode(node.Expression)
+		return c.nodeIsCompilable(node.Expression)
+	case *ast.InterfaceDeclarationNode:
+		return c.interfaceIsCompilable(node)
+	case *ast.ClassDeclarationNode:
+		return c.classIsCompilable(node)
+	case *ast.ModuleDeclarationNode:
+		return c.moduleIsCompilable(node)
+	case *ast.MixinDeclarationNode:
+		return c.mixinIsCompilable(node)
+	case *ast.SingletonBlockExpressionNode:
+		return c.singletonBlockIsCompilable(node)
+	default:
+		return true
+	}
+}
+
+type expressionResult uint8
+
+const (
+	expressionCompiled              expressionResult = iota // expression has been compiled and can be popped
+	expressionIgnored                                       // expression was ignored
+	expressionCompiledWithoutResult                         // expression has been successfully compiled but should not be popped
+)
+
+func (c *Compiler) compileNodeWithoutResult(node ast.Node) {
+	if c.compileNode(node, true) == expressionCompiled {
+		c.emit(node.Span().EndPos.Line, bytecode.POP)
+	}
+}
+
+func (c *Compiler) compileNodeWithResult(node ast.Node) {
+	switch c.compileNode(node, false) {
+	case expressionCompiledWithoutResult, expressionIgnored:
+		c.emit(node.Span().EndPos.Line, bytecode.NIL)
+	}
+}
+
+func (c *Compiler) mustCompileNode(node ast.Node, valueIsIgnored bool) {
+	if valueIsIgnored {
+		c.compileNodeWithoutResult(node)
+	} else {
+		c.compileNodeWithResult(node)
+	}
+}
+
+func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionResult {
+	switch node := node.(type) {
+	case nil, *ast.AliasDeclarationNode, *ast.IncludeExpressionNode,
+		*ast.EmptyStatementNode, *ast.MethodDefinitionNode, *ast.UsingExpressionNode,
+		*ast.ConstantDeclarationNode, *ast.TypeDefinitionNode, *ast.GenericTypeDefinitionNode,
+		*ast.MethodSignatureDefinitionNode, *ast.ImplementExpressionNode,
+		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
+		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
+		*ast.InstanceVariableDeclarationNode:
+		return expressionIgnored
+	case *ast.ProgramNode:
+		return c.compileStatements(node.Body, node.Span(), valueIsIgnored)
+	case *ast.ExtendWhereBlockExpressionNode:
+		c.compileStatements(node.Body, node.Span(), false)
+	case *ast.ExpressionStatementNode:
+		return c.compileNode(node.Expression, valueIsIgnored)
 	case *ast.LabeledExpressionNode:
-		c.compileLabeledExpressionNode(node)
+		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.UndefinedLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	case *ast.PublicConstantNode:
@@ -750,11 +807,11 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.PrivateConstantNode:
 		c.compilePrivateConstantNode(node)
 	case *ast.GenericConstantNode:
-		c.compileNode(node.Constant)
+		return c.compileNode(node.Constant, valueIsIgnored)
 	case *ast.SelfLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
-		c.compileAssignmentExpressionNode(node)
+		return c.compileAssignmentExpressionNode(node, valueIsIgnored)
 	case *ast.InterfaceDeclarationNode:
 		return c.compileInterfaceDeclarationNode(node)
 	case *ast.ClassDeclarationNode:
@@ -768,11 +825,11 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.ClosureLiteralNode:
 		c.compileClosureLiteralNode(node)
 	case *ast.SwitchExpressionNode:
-		c.compileSwitchExpressionNode(node)
+		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		c.compileSubscriptExpressionNode(node)
 	case *ast.NilSafeSubscriptExpressionNode:
-		c.compileNilSafeSubscriptExpressionNode(node)
+		return c.compileNilSafeSubscriptExpressionNode(node)
 	case *ast.AttributeAccessNode:
 		c.compileAttributeAccessNode(node)
 	case *ast.NewExpressionNode:
@@ -796,7 +853,7 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.ValuePatternDeclarationNode:
 		c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
-		c.compileValueDeclarationNode(node)
+		return c.compileValueDeclarationNode(node, valueIsIgnored)
 	case *ast.PublicIdentifierNode:
 		c.compileLocalVariableAccess(node.Value, node.Span())
 	case *ast.PrivateIdentifierNode:
@@ -806,7 +863,7 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.BinaryExpressionNode:
 		c.compileBinaryExpressionNode(node)
 	case *ast.LogicalExpressionNode:
-		c.compileLogicalExpressionNode(node)
+		return c.compileLogicalExpressionNode(node, valueIsIgnored)
 	case *ast.UnaryExpressionNode:
 		c.compileUnaryExpressionNode(node)
 	case *ast.RangeLiteralNode:
@@ -872,21 +929,21 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.MustExpressionNode:
 		c.compileMustExpressionNode(node)
 	case *ast.TryExpressionNode:
-		c.compileTryExpressionNode(node)
+		return c.compileTryExpressionNode(node, valueIsIgnored)
 	case *ast.AsExpressionNode:
 		c.compileAsExpressionNode(node)
 	case *ast.TypeofExpressionNode:
-		c.compileTypeofExpressionNode(node)
+		return c.compileTypeofExpressionNode(node, valueIsIgnored)
 	case *ast.DoExpressionNode:
 		c.compileDoExpressionNode(node)
 	case *ast.IfExpressionNode:
-		c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span(), valueIsIgnored)
 	case *ast.UnlessExpressionNode:
-		c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		return c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span(), valueIsIgnored)
 	case *ast.ModifierIfElseNode:
-		c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
+		return c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span(), valueIsIgnored)
 	case *ast.ModifierNode:
-		c.compileModifierExpressionNode("", node)
+		return c.compileModifierExpressionNode("", node, valueIsIgnored)
 	case *ast.BreakExpressionNode:
 		c.compileBreakExpressionNode(node)
 	case *ast.ContinueExpressionNode:
@@ -904,7 +961,7 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 	case *ast.ModifierForInNode:
 		c.compileModifierForInNode("", node)
 	case *ast.PostfixExpressionNode:
-		c.compilePostfixExpressionNode(node)
+		return c.compilePostfixExpressionNode(node, valueIsIgnored)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content).ToValue(), node.Span())
 	case *ast.IntLiteralNode:
@@ -913,86 +970,84 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
-		// BENCHMARK: Compare with storing
-		// ints inline in Bytecode instead of as constants.
 		c.emitValue(value.Int8(i).ToValue(), node.Span())
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Int16(i).ToValue(), node.Span())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Int32(i).ToValue(), node.Span())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Int64(i).ToValue(), node.Span())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.UInt8(i).ToValue(), node.Span())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.UInt16(i).ToValue(), node.Span())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.UInt32(i).ToValue(), node.Span())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.UInt64(i).ToValue(), node.Span())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Float(f).ToValue(), node.Span())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if !err.IsUndefined() {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Ref(f), node.Span())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Float64(f).ToValue(), node.Span())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
 			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
-			return true
+			return expressionCompiled
 		}
 		c.emitValue(value.Float32(f).ToValue(), node.Span())
 	default:
@@ -1002,34 +1057,34 @@ func (c *Compiler) compileNode(node ast.Node) bool {
 		)
 	}
 
-	return true
+	return expressionCompiled
 }
 
-func (c *Compiler) compileTypeofExpressionNode(node *ast.TypeofExpressionNode) {
-	c.compileNode(node.Value)
+func (c *Compiler) compileTypeofExpressionNode(node *ast.TypeofExpressionNode, valueIsIgnored bool) expressionResult {
+	return c.compileNode(node.Value, valueIsIgnored)
 }
 
-func (c *Compiler) compileTryExpressionNode(node *ast.TryExpressionNode) {
-	c.compileNode(node.Value)
+func (c *Compiler) compileTryExpressionNode(node *ast.TryExpressionNode, valueIsIgnored bool) expressionResult {
+	return c.compileNode(node.Value, valueIsIgnored)
 }
 
 func (c *Compiler) compileMustExpressionNode(node *ast.MustExpressionNode) {
 	span := node.Span()
-	c.compileNode(node.Value)
+	c.compileNodeWithResult(node.Value)
 	c.emit(span.StartPos.Line, bytecode.MUST)
 }
 
 func (c *Compiler) compileAsExpressionNode(node *ast.AsExpressionNode) {
 	span := node.Span()
-	c.compileNode(node.Value)
-	c.compileNode(node.RuntimeType)
+	c.compileNode(node.Value, false)
+	c.compileNode(node.RuntimeType, false)
 	c.emit(span.StartPos.Line, bytecode.AS)
 }
 
 func (c *Compiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) {
 	span := node.Span()
 	if node.Value != nil {
-		c.compileNode(node.Value)
+		c.compileNode(node.Value, false)
 	} else {
 		c.emitValue(value.Ref(value.NewError(value.ErrorClass, "error")), span)
 	}
@@ -1072,7 +1127,7 @@ func (c *Compiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode,
 		c.emitGetConst(namespaceName, node.Constant.Span())
 	}
 	c.emitValue(constName.ToValue(), span)
-	c.compileNode(node.Initialiser)
+	c.compileNode(node.Initialiser, false)
 	c.emit(span.StartPos.Line, bytecode.DEF_CONST)
 }
 
@@ -1089,16 +1144,15 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	}
 
 	c.enterScope("", scopeType)
-	c.compileStatements(node.Body, span)
+	c.compileStatementsWithResult(node.Body, span)
 	c.leaveScope(span.EndPos.Line)
 
 	doEndOffset := c.nextInstructionOffset()
 
 	if len(node.Finally) > 0 {
 		c.enterScope("", defaultScopeType)
-		c.compileStatements(node.Finally, span)
 		// pop the return value of finally leaving the return value of do
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileStatementsWithoutResult(node.Finally)
 		c.leaveScope(span.EndPos.Line)
 	}
 
@@ -1118,7 +1172,7 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.pattern(catchNode.Pattern)
 		jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 
-		c.compileStatements(catchNode.Body, catchNode.Span())
+		c.compileStatementsWithResult(catchNode.Body, catchNode.Span())
 
 		if len(node.Finally) < 1 {
 			// pop the thrown value and the stack trace, leaving the return value of the catch
@@ -1161,7 +1215,7 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.patchJump(jumpOverBreakOrContinueEntryOffset, span)
 		c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, span)
 
-		c.compileStatements(node.Finally, span)
+		c.compileStatementsWithResult(node.Finally, span)
 
 		c.emit(span.EndPos.Line, bytecode.SWAP)
 		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
@@ -1243,7 +1297,7 @@ func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
 	if node.Value == nil {
 		c.emit(span.StartPos.Line, bytecode.NIL)
 	} else {
-		c.compileNode(node.Value)
+		c.compileNode(node.Value, false)
 	}
 
 	finallyCount := c.countFinallyInLoop(node.Label)
@@ -1297,14 +1351,14 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 
 	if !loop.returnsValueFromLastIteration {
 		if node.Value != nil {
-			c.compileNode(node.Value)
+			c.compileNode(node.Value, false)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
 	} else {
 		if node.Value == nil {
 			c.emit(span.StartPos.Line, bytecode.NIL)
 		} else {
-			c.compileNode(node.Value)
+			c.compileNode(node.Value, false)
 		}
 	}
 
@@ -1398,14 +1452,14 @@ func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpre
 	var loopBodyOffset int
 
 	// loop condition eg. `i < 5`
-	c.compileNode(node.Condition)
+	c.compileNode(node.Condition, false)
 	// jump past the loop if the condition is falsy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatements(node.ThenBody, span)
+	c.compileStatementsWithResult(node.ThenBody, span)
 
 	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
@@ -1446,7 +1500,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	var loopBodyOffset int
 
 	// loop body
-	c.compileNode(body)
+	c.compileNodeWithResult(body)
 	// continue
 	continueOffset := c.nextInstructionOffset()
 	if conditionIsStaticFalsy {
@@ -1458,7 +1512,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	}
 
 	// loop condition eg. `i < 5`
-	c.compileNode(condition)
+	c.compileNode(condition, false)
 	// jump past the loop if the condition is falsy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 	// pop the return value of the last iteration
@@ -1503,7 +1557,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	var loopBodyOffset int
 
 	// loop body
-	c.compileNode(body)
+	c.compileNodeWithResult(body)
 	// continue
 	continueOffset := c.nextInstructionOffset()
 	if conditionIsStaticTruthy {
@@ -1515,7 +1569,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	}
 
 	// loop condition eg. `i > 5`
-	c.compileNode(condition)
+	c.compileNodeWithResult(condition)
 	// jump past the loop if the condition is truthy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
 	// pop the return value of the last iteration
@@ -1558,14 +1612,14 @@ func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpre
 	var loopBodyOffset int
 
 	// loop condition eg. `i > 5`
-	c.compileNode(node.Condition)
+	c.compileNode(node.Condition, false)
 	// jump past the loop if the condition is truthy
 	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatements(node.ThenBody, span)
+	c.compileStatementsWithResult(node.ThenBody, span)
 
 	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
@@ -1579,7 +1633,7 @@ func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpre
 }
 
 // Compile a labeled expression eg. `$foo: println("bar")`
-func (c *Compiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode) {
+func (c *Compiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode, valueIsIgnored bool) expressionResult {
 	switch expr := node.Expression.(type) {
 	case *ast.WhileExpressionNode:
 		c.compileWhileExpressionNode(node.Label, expr)
@@ -1594,10 +1648,12 @@ func (c *Compiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode)
 	case *ast.ModifierForInNode:
 		c.compileModifierForInNode(node.Label, expr)
 	case *ast.ModifierNode:
-		c.compileModifierExpressionNode(node.Label, expr)
+		return c.compileModifierExpressionNode(node.Label, expr, valueIsIgnored)
 	default:
-		c.compileNode(node.Expression)
+		return c.compileNode(node.Expression, valueIsIgnored)
 	}
+
+	return expressionCompiled
 }
 
 // Compile a for in loop eg. `for i in [1, 2] then println(i)`
@@ -1607,7 +1663,7 @@ func (c *Compiler) compileForInExpressionNode(label string, node *ast.ForInExpre
 		node.Pattern,
 		node.InExpression,
 		func() {
-			c.compileStatements(node.ThenBody, node.Span())
+			c.compileStatements(node.ThenBody, node.Span(), false)
 		},
 		node.Span(),
 		false,
@@ -1621,7 +1677,9 @@ func (c *Compiler) compileModifierForInNode(label string, node *ast.ModifierForI
 		node.Pattern,
 		node.InExpression,
 		func() {
-			if !c.compileNode(node.ThenExpression) {
+			result := c.compileNode(node.ThenExpression, false)
+			switch result {
+			case expressionIgnored, expressionCompiledWithoutResult:
 				c.emit(node.ThenExpression.Span().StartPos.Line, bytecode.NIL)
 			}
 		},
@@ -1641,12 +1699,12 @@ func (c *Compiler) compileForIn(
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, false)
 
-	c.compileNode(inExpression)
+	c.compileNode(inExpression, false)
 	c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
 	iteratorVar := c.defineLocal(iteratorVarName, span)
-	c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+	c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 	c.emit(span.EndPos.Line, bytecode.POP)
 
 	// loop start
@@ -1660,11 +1718,11 @@ func (c *Compiler) compileForIn(
 	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
 		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
+		c.emitSetLocalNoPop(param.Span().StartPos.Line, paramVar.index)
 		c.emit(param.Span().EndPos.Line, bytecode.POP)
 	case *ast.PublicIdentifierNode:
 		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
+		c.emitSetLocalNoPop(param.Span().StartPos.Line, paramVar.index)
 		c.emit(param.Span().EndPos.Line, bytecode.POP)
 	default:
 		c.pattern(param)
@@ -1718,8 +1776,7 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 
 	// loop initialiser eg. `i := 0`
 	if node.Initialiser != nil {
-		c.compileNode(node.Initialiser)
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.compileNodeWithoutResult(node.Initialiser)
 	}
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
@@ -1731,24 +1788,20 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 	var loopBodyOffset int
 	// loop condition eg. `i < 5`
 	if node.Condition != nil {
-		c.compileNode(node.Condition)
+		c.compileNodeWithResult(node.Condition)
 		// jump past the loop if the condition is falsy
 		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-		// pop the return value of the last iteration
-		c.emit(span.EndPos.Line, bytecode.POP)
-	} else {
-		// pop the return value of the last iteration
-		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+	// pop the return value of the last iteration
+	c.emit(span.EndPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatements(node.ThenBody, span)
+	c.compileStatementsWithResult(node.ThenBody, span)
 
 	if node.Increment != nil {
 		continueOffset = c.nextInstructionOffset()
 		// increment step eg. `i += 1`
-		c.compileNode(node.Increment)
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.compileNodeWithoutResult(node.Increment)
 	}
 
 	c.leaveScope(span.EndPos.Line)
@@ -1776,7 +1829,7 @@ func (c *Compiler) emitGetterCall(name string, span *position.Span) {
 	c.emitCallMethod(callInfo, span)
 }
 
-func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode) {
+func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
 		// get variable value
@@ -1792,7 +1845,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode)
 		}
 
 		// set variable
-		c.setLocalWithoutValue(n.Value, n.Span())
+		return c.setLocalWithoutValue(n.Value, n.Span(), valueIsIgnored)
 	case *ast.PrivateIdentifierNode:
 		// get variable value
 		c.compileLocalVariableAccess(n.Value, n.Span())
@@ -1807,11 +1860,11 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode)
 		}
 
 		// set variable
-		c.setLocalWithoutValue(n.Value, n.Span())
+		return c.setLocalWithoutValue(n.Value, n.Span(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		// get value
-		c.compileNode(n.Receiver)
-		c.compileNode(n.Key)
+		c.compileNodeWithResult(n.Receiver)
+		c.compileNodeWithResult(n.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
@@ -1848,10 +1901,11 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode)
 		}
 
 		// set instance variable
-		c.emitSetInstanceVariable(ivarSymbol, node.Span())
+		c.emitSetInstanceVariable(ivarSymbol, node.Span(), valueIsIgnored)
+		return valueIgnoredToResult(valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		// get value
-		c.compileNode(n.Receiver)
+		c.compileNodeWithResult(n.Receiver)
 		name := value.ToSymbol(n.AttributeName)
 		callInfo := value.NewCallSiteInfo(name, 0)
 		c.emitCallMethod(callInfo, node.Span())
@@ -1873,26 +1927,28 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode)
 			c.newLocation(node.Span()),
 		)
 	}
+
+	return expressionCompiled
 }
 
 func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr *ast.AttributeAccessNode) {
 	// compile the argument
 	switch node.Op.Type {
 	case token.EQUAL_OP:
-		c.compileNode(attr.Receiver)
-		c.compileNode(node.Right)
+		c.compileNodeWithResult(attr.Receiver)
+		c.compileNodeWithResult(node.Right)
 		c.emitSetterCall(attr.AttributeName, node.Span())
 	case token.OR_OR_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(attr.Receiver)
+		c.compileNodeWithResult(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
 		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		c.compileNodeWithResult(node.Right)
 		c.emitSetterCall(attr.AttributeName, span)
 
 		// if truthy
@@ -1900,14 +1956,14 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.AND_AND_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(attr.Receiver)
+		c.compileNodeWithResult(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
 		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		c.compileNodeWithResult(node.Right)
 		c.emitSetterCall(attr.AttributeName, span)
 
 		// if falsy
@@ -1915,7 +1971,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.QUESTION_QUESTION_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(attr.Receiver)
+		c.compileNodeWithResult(attr.Receiver)
 		c.emitGetterCall(attr.AttributeName, span)
 
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
@@ -1924,7 +1980,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		// if nil
 		c.patchJump(nilJump, span)
 		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		c.compileNodeWithResult(node.Right)
 		c.emitSetterCall(attr.AttributeName, span)
 
 		// if not nil
@@ -1934,7 +1990,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	}
 }
 
-func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode) {
+func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode, valueIsIgnored bool) expressionResult {
 	switch c.mode {
 	case topLevelMode:
 		c.Errors.AddFailure(
@@ -1946,146 +2002,210 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 	ivarSymbol := value.ToSymbol(ivar.Value)
 	switch node.Op.Type {
 	case token.EQUAL_OP:
-		c.compileNode(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+		c.compileNodeWithResult(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.OR_OR_EQUAL:
 		span := node.Span()
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		}
 
 		// if falsy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
 
 		// if truthy
 		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
 		span := node.Span()
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		}
 
 		// if truthy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
 
 		// if falsy
 		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
 		span := node.Span()
 		// Read the current value
 		c.emitGetInstanceVariable(ivarSymbol, span)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
-		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+		}
 
 		// if nil
-		c.patchJump(nilJump, span)
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
 
 		// if not nil
-		c.patchJump(nonNilJump, span)
+		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
+
+	return expressionCompiled
 }
 
 func (c *Compiler) complexSubscriptAssignment(subscript *ast.SubscriptExpressionNode, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	c.compileNode(subscript.Receiver)
-	c.compileNode(subscript.Key)
+	c.compileNodeWithResult(subscript.Receiver)
+	c.compileNodeWithResult(subscript.Key)
 	c.emit(span.EndPos.Line, bytecode.DUP_N, 2)
 	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
 
-	c.compileNode(valueNode)
+	c.compileNodeWithResult(valueNode)
 	c.emit(span.StartPos.Line, opcode)
 	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
 }
 
-func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subscript *ast.SubscriptExpressionNode) {
+func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subscript *ast.SubscriptExpressionNode, valueIsIgnored bool) expressionResult {
 	switch node.Op.Type {
 	case token.EQUAL_OP:
-		c.compileNode(subscript.Receiver)
-		c.compileNode(subscript.Key)
-		c.compileNode(node.Right)
+		c.compileNodeWithResult(subscript.Receiver)
+		c.compileNodeWithResult(subscript.Key)
+		c.compileNodeWithResult(node.Right)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
 	case token.OR_OR_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(subscript.Receiver)
-		c.compileNode(subscript.Key)
+		c.compileNodeWithResult(subscript.Receiver)
+		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		}
 
 		// if falsy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		if valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
 
 		// if truthy
 		c.patchJump(jump, span)
-		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		if valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+		} else {
+			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		}
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(subscript.Receiver)
-		c.compileNode(subscript.Key)
+		c.compileNodeWithResult(subscript.Receiver)
+		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		}
 
 		// if truthy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
 
 		// if falsy
 		c.patchJump(jump, span)
-		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		if valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+		} else {
+			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		}
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
 		span := node.Span()
 		// Read the current value
-		c.compileNode(subscript.Receiver)
-		c.compileNode(subscript.Key)
+		c.compileNodeWithResult(subscript.Receiver)
+		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
-		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+		}
 
 		// if nil
-		c.patchJump(nilJump, span)
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(node.Right)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.compileNodeWithResult(node.Right)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
 
 		// if not nil
-		c.patchJump(nonNilJump, span)
-		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		c.patchJump(jump, span)
+		if valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+		} else {
+			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+		}
+		return valueIgnoredToResult(valueIsIgnored)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
+
+	return expressionCompiled
 }
 
-func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode) {
+func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span(), valueIsIgnored)
 	case *ast.PrivateIdentifierNode:
-		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
-		c.subscriptAssignment(node, n)
+		return c.subscriptAssignment(node, n, valueIsIgnored)
 	case *ast.InstanceVariableNode:
-		c.instanceVariableAssignment(node, n)
+		return c.instanceVariableAssignment(node, n, valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		c.attributeAssignment(node, n)
 	default:
@@ -2094,6 +2214,8 @@ func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressio
 			c.newLocation(node.Span()),
 		)
 	}
+
+	return expressionCompiled
 }
 
 // Return the offset of the next instruction.
@@ -2101,69 +2223,94 @@ func (c *Compiler) nextInstructionOffset() int {
 	return len(c.Bytecode.Instructions)
 }
 
-func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
+func (c *Compiler) setLocalWithoutValue(name string, span *position.Span, valueIsIgnored bool) expressionResult {
 	if local, ok := c.resolveLocal(name, span); ok {
-		c.emitSetLocal(span.StartPos.Line, local.index)
+		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
-		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
+		return c.emitSetUpvalue(span.StartPos.Line, upvalue.index, valueIsIgnored)
 	}
+
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
-func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
-	c.compileNode(valueNode)
-	c.setLocalWithoutValue(name, span)
+func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
+	c.compileNodeWithResult(valueNode)
+	return c.setLocalWithoutValue(name, span, valueIsIgnored)
 }
 
-func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		}
 
 		// if falsy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.setLocal(name, right, span)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.setLocal(name, right, span, valueIsIgnored)
 
 		// if truthy
 		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		}
 
 		// if truthy
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.setLocal(name, right, span)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.setLocal(name, right, span, valueIsIgnored)
 
 		// if falsy
 		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
 		c.compileLocalVariableAccess(name, span)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
-		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		var jump int
+		if valueIsIgnored {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+		} else {
+			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+		}
 
 		// if nil
-		c.patchJump(nilJump, span)
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.setLocal(name, right, span)
+		if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.setLocal(name, right, span, valueIsIgnored)
 
 		// if not nil
-		c.patchJump(nonNilJump, span)
+		c.patchJump(jump, span)
+		return valueIgnoredToResult(valueIsIgnored)
 	case token.EQUAL_OP:
-		c.setLocal(name, right, span)
+		return c.setLocal(name, right, span, valueIsIgnored)
 	case token.COLON_EQUAL:
-		c.compileNode(right)
+		c.compileNodeWithResult(right)
 		local := c.defineLocal(name, span)
 		if local == nil {
-			return
+			return valueIgnoredToResult(valueIsIgnored)
 		}
-		c.emitSetLocal(span.StartPos.Line, local.index)
+		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
 			c.newLocation(span),
 		)
-		return
 	}
+
+	return expressionCompiled
 }
 
 func (c *Compiler) compileInstanceVariableAccess(name string, span *position.Span) {
@@ -2228,12 +2375,12 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	return upvalue
 }
 
-func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode) {
+func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) expressionResult {
 	switch node.Modifier.Type {
 	case token.IF:
-		c.compileModifierIfExpression(false, node.Right, node.Left, nil, node.Span())
+		return c.compileModifierIfExpression(false, node.Right, node.Left, nil, node.Span(), valueIsIgnored)
 	case token.UNLESS:
-		c.compileModifierIfExpression(true, node.Right, node.Left, nil, node.Span())
+		return c.compileModifierIfExpression(true, node.Right, node.Left, nil, node.Span(), valueIsIgnored)
 	case token.WHILE:
 		c.modifierWhileExpression(label, node)
 	case token.UNTIL:
@@ -2244,13 +2391,15 @@ func (c *Compiler) compileModifierExpressionNode(label string, node *ast.Modifie
 			c.newLocation(node.Span()),
 		)
 	}
+
+	return expressionCompiled
 }
 
-func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
-			c.compileNode(els)
+			c.mustCompileNode(els, valueIsIgnored)
 		}
 	}
 	var jumpOp bytecode.OpCode
@@ -2259,22 +2408,23 @@ func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els
 	} else {
 		jumpOp = bytecode.JUMP_UNLESS
 	}
-	c.compileIfWithConditionExpression(
+	return c.compileIfWithConditionExpression(
 		jumpOp,
 		condition,
 		func() {
-			c.compileNode(then)
+			c.mustCompileNode(then, valueIsIgnored)
 		},
 		elsFunc,
 		span,
+		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span, valueIsIgnored bool) expressionResult {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
-			c.compileStatements(els, span)
+			c.compileStatements(els, span, valueIsIgnored)
 		}
 	}
 
@@ -2285,18 +2435,19 @@ func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode
 		jumpOp = bytecode.JUMP_UNLESS
 	}
 
-	c.compileIfWithConditionExpression(
+	return c.compileIfWithConditionExpression(
 		jumpOp,
 		condition,
 		func() {
-			c.compileStatements(then, span)
+			c.compileStatements(then, span, valueIsIgnored)
 		},
 		elsFunc,
 		span,
+		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), span *position.Span) {
+func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), span *position.Span, valueIsIgnored bool) expressionResult {
 	c.enterScope("", defaultScopeType)
 	condition()
 
@@ -2313,13 +2464,22 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func()
 		c.enterScope("", defaultScopeType)
 		els()
 		c.leaveScope(span.StartPos.Line)
-	} else {
+	} else if !valueIsIgnored {
 		c.emit(span.StartPos.Line, bytecode.NIL)
 	}
 	c.patchJump(elseJumpOffset, span)
+
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
-func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) {
+func valueIgnoredToResult(valueIsIgnored bool) expressionResult {
+	if valueIsIgnored {
+		return expressionCompiledWithoutResult
+	}
+	return expressionCompiled
+}
+
+func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) expressionResult {
 	if result := resolve(condition); !result.IsUndefined() {
 		// if gets optimised away
 		c.enterScope("", defaultScopeType)
@@ -2337,37 +2497,44 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 
 		if checkFunc(result) {
 			if then == nil {
+				if valueIsIgnored {
+					return expressionCompiledWithoutResult
+				}
 				c.emit(span.StartPos.Line, bytecode.NIL)
-				return
+				return expressionCompiled
 			}
 			then()
-			return
+			return valueIgnoredToResult(valueIsIgnored)
 		}
 
 		if els == nil {
+			if valueIsIgnored {
+				return expressionCompiledWithoutResult
+			}
 			c.emit(span.StartPos.Line, bytecode.NIL)
-			return
+			return expressionCompiled
 		}
 		els()
-		return
+		return valueIgnoredToResult(valueIsIgnored)
 	}
 
-	if c.optimiseIf(jumpOp, condition, then, els, span) {
-		return
+	if c.optimiseIf(jumpOp, condition, then, els, span, valueIsIgnored) {
+		return valueIgnoredToResult(valueIsIgnored)
 	}
 
-	c.compileIf(
+	return c.compileIf(
 		jumpOp,
 		func() {
-			c.compileNode(condition)
+			c.compileNodeWithResult(condition)
 		},
 		then,
 		els,
 		span,
+		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	cond, ok := condition.(*ast.BinaryExpressionNode)
 	if !ok {
 		return false
@@ -2375,23 +2542,23 @@ func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition ast.ExpressionNo
 
 	switch cond.Op.Type {
 	case token.LESS_EQUAL:
-		return c.optimiseIfLessEqual(jumpOp, cond, then, els, span)
+		return c.optimiseIfLessEqual(jumpOp, cond, then, els, span, valueIsIgnored)
 	case token.LESS:
-		return c.optimiseIfLess(jumpOp, cond, then, els, span)
+		return c.optimiseIfLess(jumpOp, cond, then, els, span, valueIsIgnored)
 	case token.GREATER_EQUAL:
-		return c.optimiseIfGreaterEqual(jumpOp, cond, then, els, span)
+		return c.optimiseIfGreaterEqual(jumpOp, cond, then, els, span, valueIsIgnored)
 	case token.GREATER:
-		return c.optimiseIfGreater(jumpOp, cond, then, els, span)
+		return c.optimiseIfGreater(jumpOp, cond, then, els, span, valueIsIgnored)
 	case token.EQUAL_EQUAL:
-		return c.optimiseIfEqual(jumpOp, cond, then, els, span)
+		return c.optimiseIfEqual(jumpOp, cond, then, els, span, valueIsIgnored)
 	case token.NOT_EQUAL:
-		return c.optimiseIfNotEqual(jumpOp, cond, then, els, span)
+		return c.optimiseIfNotEqual(jumpOp, cond, then, els, span, valueIsIgnored)
 	}
 
 	return false
 }
 
-func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2400,11 +2567,12 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_IF_NIL,
 				func() {
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2412,11 +2580,12 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_IF_NIL,
 				func() {
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2424,12 +2593,13 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_IF_IEQ,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2437,12 +2607,13 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_IF_IEQ,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2452,11 +2623,12 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_UNLESS_NIL,
 				func() {
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2464,11 +2636,12 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_UNLESS_NIL,
 				func() {
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2476,12 +2649,13 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IEQ,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2489,12 +2663,13 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IEQ,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2503,7 +2678,7 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 	return false
 }
 
-func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2512,11 +2687,12 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_UNLESS_NIL,
 				func() {
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2524,11 +2700,12 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_UNLESS_NIL,
 				func() {
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2536,12 +2713,13 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IEQ,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2549,12 +2727,13 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IEQ,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2564,11 +2743,12 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_IF_NIL,
 				func() {
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2576,11 +2756,12 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_IF_NIL,
 				func() {
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2588,12 +2769,13 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_IF_IEQ,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2601,12 +2783,13 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 			c.compileIf(
 				bytecode.JUMP_IF_IEQ,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2615,7 +2798,7 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 	return false
 }
 
-func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2624,12 +2807,13 @@ func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.Bina
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGT,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2637,12 +2821,13 @@ func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.Bina
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILT,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2652,12 +2837,13 @@ func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.Bina
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILE,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2666,7 +2852,7 @@ func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.Bina
 	return false
 }
 
-func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2675,12 +2861,13 @@ func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGE,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2689,12 +2876,13 @@ func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILE,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2704,12 +2892,13 @@ func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILT,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2718,7 +2907,7 @@ func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast
 	return false
 }
 
-func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2727,12 +2916,13 @@ func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryE
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILT,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2740,12 +2930,13 @@ func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryE
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGT,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2755,12 +2946,13 @@ func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryE
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGE,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2769,7 +2961,7 @@ func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryE
 	return false
 }
 
-func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span) bool {
+func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -2778,12 +2970,13 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 			c.compileIf(
 				bytecode.JUMP_UNLESS_ILE,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2791,12 +2984,13 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGE,
 				func() {
-					c.compileNode(condition.Right)
-					c.compileNode(condition.Left)
+					c.compileNodeWithResult(condition.Right)
+					c.compileNodeWithResult(condition.Left)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2806,12 +3000,13 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 			c.compileIf(
 				bytecode.JUMP_UNLESS_IGT,
 				func() {
-					c.compileNode(condition.Left)
-					c.compileNode(condition.Right)
+					c.compileNodeWithResult(condition.Left)
+					c.compileNodeWithResult(condition.Right)
 				},
 				then,
 				els,
 				span,
+				valueIsIgnored,
 			)
 			return true
 		}
@@ -2820,21 +3015,27 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 	return false
 }
 
-func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode) {
+func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
 	if initialised {
-		c.compileNode(node.Initialiser)
+		c.compileNodeWithResult(node.Initialiser)
 	}
 	local := c.defineLocal(node.Name, node.Span())
 	if local == nil {
-		return
+		return valueIgnoredToResult(valueIsIgnored)
 	}
+
 	if initialised {
-		c.emitSetLocal(node.Span().StartPos.Line, local.index)
-	} else {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		return c.emitSetLocal(node.Span().StartPos.Line, local.index, valueIsIgnored)
 	}
+
+	if !valueIsIgnored {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		return expressionCompiled
+	}
+
+	return expressionCompiledWithoutResult
 }
 
 func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {
@@ -2847,23 +3048,22 @@ func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {
 	}
 }
 
-func (c *Compiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) {
+func (c *Compiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) expressionResult {
 	if c.resolveAndEmit(node) {
-		return
+		return expressionCompiled
 	}
 
-	c.compileIfWithConditionExpression(
+	return c.compileIfWithConditionExpression(
 		bytecode.JUMP_IF_NIL,
 		node.Receiver,
 		func() {
-			c.compileNode(node.Receiver)
-			c.compileNode(node.Key)
+			c.compileNodeWithResult(node.Receiver)
+			c.compileNodeWithResult(node.Key)
 			c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 		},
-		func() {
-			c.emit(node.Span().EndPos.Line, bytecode.NIL)
-		},
+		func() {},
 		node.Span(),
+		false,
 	)
 }
 
@@ -2874,7 +3074,7 @@ func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 		bytecode.JUMP_UNLESS,
 		func() {
 			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.compileNode(pattern)
+			c.compileNodeWithResult(pattern)
 			c.emit(span.StartPos.Line, bytecode.DUP_N, 2)
 			c.emit(span.StartPos.Line, bytecode.SWAP)
 			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
@@ -2888,13 +3088,14 @@ func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 			c.emit(span.StartPos.Line, bytecode.FALSE)
 		},
 		span,
+		false,
 	)
 }
 
 func (c *Compiler) literalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.compileNode(pattern)
+	c.compileNodeWithResult(pattern)
 	c.emit(span.StartPos.Line, opcode)
 }
 
@@ -2927,7 +3128,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, span)
 		}
-		c.setLocalWithoutValue(pat.Value, span)
+		c.setLocalWithoutValue(pat.Value, span, false)
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.PrivateIdentifierNode:
 		switch c.mode {
@@ -2936,7 +3137,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, span)
 		}
-		c.setLocalWithoutValue(pat.Value, span)
+		c.setLocalWithoutValue(pat.Value, span, false)
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
 		c.objectPattern(pat)
@@ -2944,7 +3145,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		c.asPattern(pat)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.compileNode(pat)
+		c.compileNode(pat, false)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
 		c.emitCallMethod(callInfo, span)
@@ -3075,7 +3276,7 @@ func (c *Compiler) asPattern(node *ast.AsPatternNode) {
 	default:
 		c.defineLocalOverrideCurrentScope(varName, span)
 	}
-	c.setLocalWithoutValue(varName, span)
+	c.setLocalWithoutValue(varName, span, false)
 	c.pattern(node.Pattern)
 }
 
@@ -3091,8 +3292,7 @@ func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.
 	default:
 		identVar = c.defineLocalOverrideCurrentScope(name, span)
 	}
-	c.emitSetLocal(span.StartPos.Line, identVar.index)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emitSetLocalPop(span.StartPos.Line, identVar.index)
 }
 
 func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
@@ -3101,7 +3301,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 
 	span := node.Span()
 	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.DUP)
-	c.compileNode(node.ObjectType)
+	c.compileNodeWithResult(node.ObjectType)
 	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.IS_A)
 
 	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
@@ -3162,7 +3362,7 @@ func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.compileNode(node)
+	c.compileNodeWithResult(node)
 	c.emit(span.StartPos.Line, bytecode.LAX_EQUAL)
 
 	// leave false on the stack from the falsy if that jumped here
@@ -3183,7 +3383,7 @@ func (c *Compiler) identifierMapPatternElement(name string, span *position.Span)
 	if identVar == nil {
 		return
 	}
-	c.emitSetLocal(span.StartPos.Line, identVar.index)
+	c.emitSetLocalNoPop(span.StartPos.Line, identVar.index)
 	c.emit(span.StartPos.Line, bytecode.POP)
 }
 
@@ -3218,7 +3418,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.KeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.compileNode(e.Key)
+			c.compileNodeWithResult(e.Key)
 			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
 
 			c.pattern(e.Value)
@@ -3302,7 +3502,7 @@ subPatternLoop:
 
 		span := element.Span()
 		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.compileNode(element)
+		c.compileNodeWithResult(element)
 		callInfo := value.NewCallSiteInfo(symbol.L_contains, 1)
 		c.emitCallMethod(callInfo, span)
 
@@ -3354,7 +3554,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 		c.emitNewArrayList(0, span)
 		restListVar = c.defineLocal(restVariableName, span)
-		c.emitSetLocal(span.StartPos.Line, restListVar.index)
+		c.emitSetLocalNoPop(span.StartPos.Line, restListVar.index)
 		c.emit(span.StartPos.Line, bytecode.POP)
 	}
 	c.enterPattern()
@@ -3377,7 +3577,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 	var lengthVar *local
 	if elementBeforeRestCount != -1 {
 		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), span)
-		c.emitSetLocal(span.StartPos.Line, lengthVar.index)
+		c.emitSetLocalNoPop(span.StartPos.Line, lengthVar.index)
 	}
 
 	if elementBeforeRestCount == -1 {
@@ -3420,14 +3620,14 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
 				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
 				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
-				c.emitSetLocal(span.StartPos.Line, lengthVar.index)
+				c.emitSetLocalNoPop(span.StartPos.Line, lengthVar.index)
 				c.emit(span.StartPos.Line, bytecode.POP)
 			}
 
 			// create the iterator variable
 			// i := element_before_rest_count
 			c.emitValue(value.SmallInt(elementBeforeRestCount).ToValue(), span)
-			c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.POP)
 
 			// loop header
@@ -3449,7 +3649,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			// i++
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.INCREMENT)
-			c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.POP)
 
 			c.emitLoop(span, loopStartOffset)
@@ -3460,13 +3660,13 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			// i := length - element_after_rest_count
 			if elementAfterRestCount == 0 {
 				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-				c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+				c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 				c.emit(span.StartPos.Line, bytecode.POP)
 			} else {
 				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
 				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
 				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
-				c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+				c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 				c.emit(span.StartPos.Line, bytecode.POP)
 			}
 		}
@@ -3487,7 +3687,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			// i++
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.INCREMENT)
-			c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
 	}
@@ -3512,11 +3712,11 @@ func (c *Compiler) leavePattern() {
 	c.patternNesting--
 }
 
-func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
+func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) expressionResult {
 	span := node.Span()
 
 	c.enterScope("", defaultScopeType)
-	c.compileNode(node.Value)
+	c.compileNodeWithResult(node.Value)
 
 	var jumpToEndOffsets []int
 
@@ -3530,7 +3730,7 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
 
 		c.emit(caseSpan.StartPos.Line, bytecode.POP)
 
-		c.compileStatements(caseNode.Body, caseSpan)
+		c.compileStatements(caseNode.Body, caseSpan, valueIsIgnored)
 
 		c.leaveScopeWithoutMutating(caseSpan.EndPos.Line)
 
@@ -3542,13 +3742,14 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode) {
 	}
 
 	c.emit(span.StartPos.Line, bytecode.POP)
-	c.compileStatements(node.ElseBody, span)
+	c.compileStatements(node.ElseBody, span, valueIsIgnored)
 
 	for _, offset := range jumpToEndOffsets {
 		c.patchJump(offset, span)
 	}
 
 	c.leaveScope(span.EndPos.Line)
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
 func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode) {
@@ -3556,13 +3757,13 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 		return
 	}
 
-	c.compileNode(node.Receiver)
-	c.compileNode(node.Key)
+	c.compileNodeWithResult(node.Receiver)
+	c.compileNodeWithResult(node.Key)
 	c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 }
 
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
-	c.compileNode(node.Receiver)
+	c.compileNodeWithResult(node.Receiver)
 
 	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0)
@@ -3576,7 +3777,7 @@ func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 func (c *Compiler) compileConstructorCallNode(node *ast.ConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNode(node.Class)
+			c.compileNodeWithResult(node.Class)
 		},
 		node.PositionalArguments,
 		node.Span(),
@@ -3596,7 +3797,7 @@ func (c *Compiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
 func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNode(node.Class)
+			c.compileNodeWithResult(node.Class)
 		},
 		node.PositionalArguments,
 		node.Span(),
@@ -3606,7 +3807,7 @@ func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructo
 func (c *Compiler) compileConstructorCall(class func(), args []ast.ExpressionNode, span *position.Span) {
 	class()
 	for _, posArg := range args {
-		c.compileNode(posArg)
+		c.compileNodeWithResult(posArg)
 	}
 
 	c.emitInstantiate(len(args), span)
@@ -3636,7 +3837,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 	switch op.Type {
 	case token.QUESTION_DOT:
-		c.compileNode(receiver)
+		c.compileNodeWithResult(receiver)
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
@@ -3647,7 +3848,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 		// leave nil on the stack
 		c.patchJump(nilJump, span)
 	case token.QUESTION_DOT_DOT:
-		c.compileNode(receiver)
+		c.compileNodeWithResult(receiver)
 		c.emit(span.EndPos.Line, bytecode.DUP)
 		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
@@ -3660,13 +3861,13 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 		c.patchJump(nilJump, span)
 	case token.DOT_DOT:
 		if !onSelf {
-			c.compileNode(receiver)
+			c.compileNodeWithResult(receiver)
 		}
 		c.emit(span.EndPos.Line, bytecode.DUP)
 		c.compileInnerMethodCall(name, op, args, onSelf, span)
 	case token.DOT:
 		if !onSelf {
-			c.compileNode(receiver)
+			c.compileNodeWithResult(receiver)
 		}
 		c.compileInnerMethodCall(name, op, args, onSelf, span)
 	default:
@@ -3676,7 +3877,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 func (c *Compiler) compileInnerMethodCall(name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, span *position.Span) {
 	for _, posArg := range args {
-		c.compileNode(posArg)
+		c.compileNodeWithResult(posArg)
 	}
 
 	nameSym := value.ToSymbol(name)
@@ -3699,7 +3900,7 @@ func (c *Compiler) compileInnerMethodCall(name string, op *token.Token, args []a
 }
 
 func (c *Compiler) compileCallNode(node *ast.CallNode) {
-	c.compileNode(node.Receiver)
+	c.compileNodeWithResult(node.Receiver)
 
 	if node.NilSafe {
 		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
@@ -3719,7 +3920,7 @@ func (c *Compiler) compileCallNode(node *ast.CallNode) {
 
 func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 	for _, posArg := range node.PositionalArguments {
-		c.compileNode(posArg)
+		c.compileNodeWithResult(posArg)
 	}
 
 	name := value.ToSymbol("call")
@@ -3727,7 +3928,7 @@ func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 	c.emitCall(callInfo, node.Span())
 }
 
-func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) bool {
+func (c *Compiler) singletonBlockIsCompilable(node *ast.SingletonBlockExpressionNode) bool {
 	if len(node.Body) <= 0 {
 		return false
 	}
@@ -3742,13 +3943,22 @@ func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockE
 		return false
 	}
 
+	node.Bytecode = singletonCompiler.Bytecode
+	return true
+}
+
+func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) expressionResult {
+	if node.Bytecode == nil {
+		return expressionIgnored
+	}
+
+	span := node.Span()
 	c.emit(span.StartPos.Line, bytecode.SELF)
 	c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 
-	result := singletonCompiler.Bytecode
-	c.emitValue(value.Ref(result), span)
+	c.emitValue(value.Ref(node.Bytecode), span)
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-	return true
+	return expressionCompiled
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
@@ -3782,14 +3992,12 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	c.emitByte(vm.ClosureTerminatorFlag)
 }
 
-func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) bool {
+func (c *Compiler) mixinIsCompilable(node *ast.MixinDeclarationNode) bool {
 	if len(node.Body) <= 0 {
 		return false
 	}
 
-	span := node.Span()
 	mixinType := c.typeOf(node).(*types.Mixin)
-	mixinName := value.ToSymbol(mixinType.Name())
 
 	mixinCompiler := New(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
 	mixinCompiler.Errors = c.Errors
@@ -3797,77 +4005,115 @@ func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) b
 		return false
 	}
 
-	c.emitGetConst(mixinName, node.Constant.Span())
-	result := mixinCompiler.Bytecode
-	c.emitValue(value.Ref(result), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	node.Bytecode = mixinCompiler.Bytecode
 	return true
 }
 
-func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) bool {
+func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) expressionResult {
+	if node.Bytecode == nil {
+		return expressionIgnored
+	}
+
+	span := node.Span()
+	mixinType := c.typeOf(node).(*types.Mixin)
+	mixinName := value.ToSymbol(mixinType.Name())
+
+	c.emitGetConst(mixinName, node.Constant.Span())
+	c.emitValue(value.Ref(node.Bytecode), span)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return expressionCompiled
+}
+
+func (c *Compiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) bool {
 	if len(node.Body) <= 0 {
 		return false
+	}
+
+	modType := c.typeOf(node).(*types.Module)
+	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
+	modCompiler.Errors = c.Errors
+	if !modCompiler.compileNamespace(node) {
+		return false
+	}
+	node.Bytecode = modCompiler.Bytecode
+	return true
+}
+
+func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) expressionResult {
+	if node.Bytecode == nil {
+		return expressionIgnored
 	}
 
 	span := node.Span()
 	modType := c.typeOf(node).(*types.Module)
 	modName := value.ToSymbol(modType.Name())
 
-	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
-	modCompiler.Errors = c.Errors
-	if !modCompiler.compileNamespace(node) {
-		return false
-	}
-
 	c.emitGetConst(modName, node.Constant.Span())
-	result := modCompiler.Bytecode
-	c.emitValue(value.Ref(result), span)
+	c.emitValue(value.Ref(node.Bytecode), span)
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-	return true
+	return expressionCompiled
 }
 
-func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) bool {
+func (c *Compiler) interfaceIsCompilable(node *ast.InterfaceDeclarationNode) bool {
 	if len(node.Body) <= 0 {
 		return false
 	}
 
-	span := node.Span()
 	ifaceType := c.typeOf(node).(*types.Interface)
-	className := value.ToSymbol(ifaceType.Name())
 
 	ifaceCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
 	ifaceCompiler.Errors = c.Errors
 	if !ifaceCompiler.compileNamespace(node) {
 		return false
 	}
-
-	c.emitGetConst(className, node.Constant.Span())
-	result := ifaceCompiler.Bytecode
-	c.emitValue(value.Ref(result), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	node.Bytecode = ifaceCompiler.Bytecode
 	return true
 }
 
-func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) bool {
+func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) expressionResult {
+	if node.Bytecode == nil {
+		return expressionIgnored
+	}
+
+	span := node.Span()
+	ifaceType := c.typeOf(node).(*types.Interface)
+	className := value.ToSymbol(ifaceType.Name())
+
+	c.emitGetConst(className, node.Constant.Span())
+	c.emitValue(value.Ref(node.Bytecode), span)
+	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	return expressionCompiled
+}
+
+func (c *Compiler) classIsCompilable(node *ast.ClassDeclarationNode) bool {
 	if len(node.Body) <= 0 {
 		return false
 	}
 
-	span := node.Span()
 	classType := c.typeOf(node).(*types.Class)
-	className := value.ToSymbol(classType.Name())
 
 	classCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
 	classCompiler.Errors = c.Errors
 	if !classCompiler.compileNamespace(node) {
 		return false
 	}
+	node.Bytecode = classCompiler.Bytecode
+	return true
+}
+
+func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) expressionResult {
+	if node.Bytecode == nil {
+		return expressionIgnored
+	}
+
+	span := node.Span()
+	classType := c.typeOf(node).(*types.Class)
+	className := value.ToSymbol(classType.Name())
 
 	c.emitGetConst(className, node.Constant.Span())
-	result := classCompiler.Bytecode
-	c.emitValue(value.Ref(result), span)
+	c.emitValue(value.Ref(node.Bytecode), span)
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
-	return true
+	return expressionCompiled
 }
 
 func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {
@@ -3878,7 +4124,7 @@ func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDecl
 	}()
 
 	span := node.Span()
-	c.compileNode(node.Initialiser)
+	c.compileNodeWithResult(node.Initialiser)
 	c.pattern(node.Pattern)
 
 	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
@@ -3897,7 +4143,7 @@ func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDecl
 
 func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
 	span := node.Span()
-	c.compileNode(node.Initialiser)
+	c.compileNodeWithResult(node.Initialiser)
 	c.pattern(node.Pattern)
 
 	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
@@ -3918,45 +4164,74 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 	initialised := node.Initialiser != nil
 
 	if initialised {
-		c.compileNode(node.Initialiser)
+		c.compileNodeWithResult(node.Initialiser)
 	}
 	local := c.defineLocal(node.Name, node.Span())
 	if local == nil {
 		return
 	}
 	if initialised {
-		c.emitSetLocal(node.Span().StartPos.Line, local.index)
+		c.emitSetLocalNoPop(node.Span().StartPos.Line, local.index)
 	} else {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	}
 }
 
 // Compile each element of a collection of statements.
-func (c *Compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
-	if !c.compileStatementsOk(collection) {
-		c.emit(span.EndPos.Line, bytecode.NIL)
+func (c *Compiler) compileStatements(collection []ast.StatementNode, span *position.Span, valueIsIgnored bool) expressionResult {
+	if valueIsIgnored {
+		c.compileStatementsWithoutResult(collection)
+		return expressionCompiledWithoutResult
 	}
+
+	c.compileStatementsWithResult(collection, span)
+	return expressionCompiled
 }
 
-// Same as [compileStatements] but returns false when no instructions were emitted instead of
-// emitting a `nil` value.
-func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
-	var isPresent bool
+// Compiles a list of statements leaving no value on the stack
+func (c *Compiler) compileStatementsWithoutResult(collection []ast.StatementNode) {
 	for _, s := range collection {
-		exprIsPresent := c.compileNode(s)
-		if exprIsPresent {
-			isPresent = true
+		result := c.compileNode(s, true)
+		switch result {
+		case expressionCompiled:
 			c.emit(s.Span().EndPos.Line, bytecode.POP)
 		}
 	}
+}
 
-	if isPresent {
-		// remove the last POP instruction
-		c.removeOpcode()
-		return true
+// Compiles a list of statements leaving the value produced by the last statement on the stack
+func (c *Compiler) compileStatementsWithResult(collection []ast.StatementNode, span *position.Span) {
+	if !c.compileStatementsOk(collection) {
+		c.emit(span.EndPos.Line, bytecode.NIL)
+		return
+	}
+}
+
+// Compiles a list of statements leaving the value produced by the last statement on the stack
+func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
+	lastCompilableIndex := -1
+	for i, s := range collection {
+		if c.nodeIsCompilable(s) {
+			lastCompilableIndex = i
+		}
 	}
 
-	return false
+	if lastCompilableIndex == -1 {
+		return false
+	}
+
+	for i, s := range collection {
+		isLast := lastCompilableIndex == i
+		result := c.compileNode(s, !isLast)
+		switch result {
+		case expressionCompiled:
+			if !isLast {
+				c.emit(s.Span().EndPos.Line, bytecode.POP)
+			}
+		}
+	}
+
+	return true
 }
 
 func (c *Compiler) removeOpcode() {
@@ -3973,7 +4248,7 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 	span := node.Span()
 
 	if node.Start == nil {
-		c.compileNode(node.End)
+		c.compileNodeWithResult(node.End)
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
@@ -3987,7 +4262,7 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 		return
 	}
 	if node.End == nil {
-		c.compileNode(node.Start)
+		c.compileNodeWithResult(node.Start)
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
@@ -4001,8 +4276,8 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 		return
 	}
 
-	c.compileNode(node.Start)
-	c.compileNode(node.End)
+	c.compileNodeWithResult(node.Start)
+	c.compileNodeWithResult(node.End)
 	switch node.Op.Type {
 	case token.CLOSED_RANGE_OP:
 		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.CLOSED_RANGE_FLAG)
@@ -4039,7 +4314,7 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 	if node.Capacity == nil {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if baseSet.Length() == 0 && baseSet.Capacity() == 0 {
@@ -4068,7 +4343,7 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 			}
 		}
 	}
@@ -4092,25 +4367,27 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 					jumpOp,
 					e.Right,
 					func() {
-						c.compileNode(e.Left)
+						c.compileNodeWithResult(e.Left)
 						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 					},
 					func() {},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIfWithConditionExpression(
 					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
-						c.compileNode(e.ThenExpression)
+						c.compileNodeWithResult(e.ThenExpression)
 						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 					},
 					func() {
-						c.compileNode(e.ElseExpression)
+						c.compileNodeWithResult(e.ElseExpression)
 						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 					},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierForInNode:
 				c.compileForIn(
@@ -4118,14 +4395,14 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 					e.Pattern,
 					e.InExpression,
 					func() {
-						c.compileNode(e.ThenExpression)
+						c.compileNodeWithResult(e.ThenExpression)
 						c.emit(e.ThenExpression.Span().EndPos.Line, bytecode.APPEND)
 					},
 					e.Span(),
 					true,
 				)
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 			}
 		}
@@ -4182,7 +4459,7 @@ elementLoop:
 	if node.Capacity == nil {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if baseMap.Length() == 0 && baseMap.Capacity() == 0 {
@@ -4211,11 +4488,11 @@ elementLoop:
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(element.Key)
-				c.compileNode(element.Value)
+				c.compileNodeWithResult(element.Key)
+				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
 				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Span())
-				c.compileNode(element.Value)
+				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
 				c.compileLocalVariableAccess(element.Value, element.Span())
@@ -4233,12 +4510,12 @@ elementLoop:
 		for _, elementNode := range modifierElementNodes {
 			switch e := elementNode.(type) {
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(e.Key)
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Key)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
 				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Span())
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
@@ -4257,12 +4534,12 @@ elementLoop:
 					func() {
 						switch then := e.Left.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4270,6 +4547,7 @@ elementLoop:
 					},
 					func() {},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIfWithConditionExpression(
@@ -4278,12 +4556,12 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4292,18 +4570,19 @@ elementLoop:
 					func() {
 						switch els := e.ElseExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(els.Key)
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Key)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Span())
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierForInNode:
 				c.compileForIn(
@@ -4313,12 +4592,12 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4400,11 +4679,11 @@ elementLoop:
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(element.Key)
-				c.compileNode(element.Value)
+				c.compileNodeWithResult(element.Key)
+				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
 				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Span())
-				c.compileNode(element.Value)
+				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
 				c.compileLocalVariableAccess(element.Value, element.Span())
@@ -4422,12 +4701,12 @@ elementLoop:
 		for _, elementNode := range modifierElementNodes {
 			switch e := elementNode.(type) {
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(e.Key)
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Key)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
 				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Span())
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
@@ -4446,12 +4725,12 @@ elementLoop:
 					func() {
 						switch then := e.Left.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4459,6 +4738,7 @@ elementLoop:
 					},
 					func() {},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIfWithConditionExpression(
@@ -4467,12 +4747,12 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4481,18 +4761,19 @@ elementLoop:
 					func() {
 						switch els := e.ElseExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(els.Key)
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Key)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Span())
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierForInNode:
 				c.compileForIn(
@@ -4502,12 +4783,12 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
@@ -4575,7 +4856,7 @@ elementLoop:
 	if node.Capacity == nil {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if len(baseList) == 0 && (keyValueCount == 0 || cap(baseList) == 0) {
@@ -4608,7 +4889,7 @@ elementLoop:
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 			}
 		}
 	}
@@ -4618,8 +4899,8 @@ elementLoop:
 		for _, elementNode := range modifierElementNodes {
 			switch e := elementNode.(type) {
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(e.Key)
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Key)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
@@ -4638,16 +4919,17 @@ elementLoop:
 					func() {
 						switch then := e.Left.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.Left)
+							c.compileNodeWithResult(e.Left)
 							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIfWithConditionExpression(
@@ -4656,26 +4938,27 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ThenExpression)
+							c.compileNodeWithResult(e.ThenExpression)
 							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {
 						switch els := e.ElseExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(els.Key)
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Key)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ElseExpression)
+							c.compileNodeWithResult(e.ElseExpression)
 							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierForInNode:
 				c.compileForIn(
@@ -4685,11 +4968,11 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ThenExpression)
+							c.compileNodeWithResult(e.ThenExpression)
 							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
@@ -4697,7 +4980,7 @@ elementLoop:
 					true,
 				)
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 			}
 		}
@@ -4770,7 +5053,7 @@ elementLoop:
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 			}
 		}
 	}
@@ -4780,8 +5063,8 @@ elementLoop:
 		for _, elementNode := range modifierElementNodes {
 			switch e := elementNode.(type) {
 			case *ast.KeyValueExpressionNode:
-				c.compileNode(e.Key)
-				c.compileNode(e.Value)
+				c.compileNodeWithResult(e.Key)
+				c.compileNodeWithResult(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
@@ -4800,16 +5083,17 @@ elementLoop:
 					func() {
 						switch then := e.Left.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.Left)
+							c.compileNodeWithResult(e.Left)
 							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIfWithConditionExpression(
@@ -4818,26 +5102,27 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ThenExpression)
+							c.compileNodeWithResult(e.ThenExpression)
 							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {
 						switch els := e.ElseExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(els.Key)
-							c.compileNode(els.Value)
+							c.compileNodeWithResult(els.Key)
+							c.compileNodeWithResult(els.Value)
 							c.emit(els.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ElseExpression)
+							c.compileNodeWithResult(e.ElseExpression)
 							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
 					e.Span(),
+					false,
 				)
 			case *ast.ModifierForInNode:
 				c.compileForIn(
@@ -4847,11 +5132,11 @@ elementLoop:
 					func() {
 						switch then := e.ThenExpression.(type) {
 						case *ast.KeyValueExpressionNode:
-							c.compileNode(then.Key)
-							c.compileNode(then.Value)
+							c.compileNodeWithResult(then.Key)
+							c.compileNodeWithResult(then.Value)
 							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
-							c.compileNode(e.ThenExpression)
+							c.compileNodeWithResult(e.ThenExpression)
 							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
@@ -4859,7 +5144,7 @@ elementLoop:
 					true,
 				)
 			default:
-				c.compileNode(elementNode)
+				c.compileNodeWithResult(elementNode)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 			}
 		}
@@ -4914,7 +5199,7 @@ func (c *Compiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLitera
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewArrayList(0, span)
 	}
@@ -4932,7 +5217,7 @@ func (c *Compiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLiteralN
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewArrayList(0, span)
 	}
@@ -4950,7 +5235,7 @@ func (c *Compiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayListLi
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewArrayList(0, span)
 	}
@@ -4968,7 +5253,7 @@ func (c *Compiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLiteralN
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewArrayList(0, span)
 	}
@@ -4986,7 +5271,7 @@ func (c *Compiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLiteralNod
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewHashSet(0, span)
 	}
@@ -5004,7 +5289,7 @@ func (c *Compiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLiteralNode)
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewHashSet(0, span)
 	}
@@ -5022,7 +5307,7 @@ func (c *Compiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashSetLitera
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewHashSet(0, span)
 	}
@@ -5040,7 +5325,7 @@ func (c *Compiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode)
 		c.emitLoadValue(list, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 	} else {
-		c.compileNode(node.Capacity)
+		c.compileNodeWithResult(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewHashSet(0, span)
 	}
@@ -5158,7 +5443,7 @@ func (c *Compiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedReg
 		case *ast.RegexLiteralContentSectionNode:
 			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
 		case *ast.RegexInterpolationNode:
-			c.compileNode(element.Expression)
+			c.compileNodeWithResult(element.Expression)
 		}
 	}
 	c.emitNewRegex(node.Flags, len(node.Content), node.Span())
@@ -5176,9 +5461,9 @@ func (c *Compiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedSt
 		case *ast.StringLiteralContentSectionNode:
 			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
 		case *ast.StringInterpolationNode:
-			c.compileNode(element.Expression)
+			c.compileNodeWithResult(element.Expression)
 		case *ast.StringInspectInterpolationNode:
-			c.compileNode(element.Expression)
+			c.compileNodeWithResult(element.Expression)
 			callInfo := value.NewCallSiteInfo(inspectSymbol, 0)
 			c.emitCallMethod(callInfo, element.Span())
 		}
@@ -5197,7 +5482,7 @@ func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSy
 		case *ast.StringLiteralContentSectionNode:
 			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
 		case *ast.StringInterpolationNode:
-			c.compileNode(element.Expression)
+			c.compileNodeWithResult(element.Expression)
 		}
 	}
 
@@ -5218,69 +5503,101 @@ func (c *Compiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 }
 
 // Compiles boolean binary operators
-func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode) {
+func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode, valueIsIgnored bool) expressionResult {
+	if r := resolve(node); !r.IsUndefined() {
+		if valueIsIgnored {
+			return expressionCompiledWithoutResult
+		}
+		c.emitValue(r, node.Span())
+		return expressionCompiled
+	}
+
 	if c.resolveAndEmit(node) {
-		return
+		return expressionCompiled
 	}
 	switch node.Op.Type {
 	case token.AND_AND:
-		c.logicalAnd(node)
+		return c.logicalAnd(node, valueIsIgnored)
 	case token.OR_OR:
-		c.logicalOr(node)
+		return c.logicalOr(node, valueIsIgnored)
 	case token.QUESTION_QUESTION:
-		c.nilCoalescing(node)
+		return c.nilCoalescing(node, valueIsIgnored)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
+
+	return expressionCompiled
 }
 
 // Compiles the `??` operator
-func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
-	c.compileNode(node.Left)
-	nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
-	nonNilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP)
+func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode, valueIsIgnored bool) expressionResult {
+	c.compileNodeWithResult(node.Left)
+	var jump int
+	if valueIsIgnored {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+	} else {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+	}
 
 	// if nil
-	c.patchJump(nilJump, node.Span())
-	c.emit(node.Span().StartPos.Line, bytecode.POP)
-	c.compileNode(node.Right)
+	if !valueIsIgnored {
+		c.emit(node.Span().StartPos.Line, bytecode.POP)
+	}
+	c.mustCompileNode(node.Right, valueIsIgnored)
 
 	// if not nil
-	c.patchJump(nonNilJump, node.Span())
+	c.patchJump(jump, node.Span())
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
 // Compiles the `||` operator
-func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode) {
-	c.compileNode(node.Left)
-	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NP)
+func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode, valueIsIgnored bool) expressionResult {
+	c.compileNodeWithResult(node.Left)
+	var jump int
+	if valueIsIgnored {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF)
+	} else {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NP)
+	}
 
 	// if falsy
-	c.emit(node.Span().StartPos.Line, bytecode.POP)
-	c.compileNode(node.Right)
+	if !valueIsIgnored {
+		c.emit(node.Span().StartPos.Line, bytecode.POP)
+	}
+	c.mustCompileNode(node.Right, valueIsIgnored)
 
 	// if truthy
 	c.patchJump(jump, node.Span())
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
 // Compiles the `&&` operator
-func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode) {
-	c.compileNode(node.Left)
-	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NP)
+func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode, valueIsIgnored bool) expressionResult {
+	c.compileNodeWithResult(node.Left)
+	var jump int
+	if valueIsIgnored {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS)
+	} else {
+		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	}
 
 	// if truthy
-	c.emit(node.Span().StartPos.Line, bytecode.POP)
-	c.compileNode(node.Right)
+	if !valueIsIgnored {
+		c.emit(node.Span().StartPos.Line, bytecode.POP)
+	}
+	c.compileNode(node.Right, valueIsIgnored)
 
 	// if falsy
 	c.patchJump(jump, node.Span())
+	return valueIgnoredToResult(valueIsIgnored)
 }
 
 func (c *Compiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
-	c.compileNode(node.Left)
-	c.compileNode(node.Right)
+	c.compileNodeWithResult(node.Left)
+	c.compileNodeWithResult(node.Right)
 	c.emitBinaryOperation(c.typeOf(node.Left), node.Op, node.Span())
 }
 
@@ -5717,7 +6034,7 @@ func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
-	c.compileNode(node.Right)
+	c.compileNodeWithResult(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
 		c.emit(node.Span().StartPos.Line, bytecode.UNARY_PLUS)
@@ -5757,7 +6074,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 	switch c.mode {
 	case setterMethodMode:
 		if value != nil {
-			c.compileNode(value)
+			c.compileNodeWithResult(value)
 		}
 		c.emit(span.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
@@ -5768,7 +6085,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		}
 	case initMethodMode:
 		if value != nil {
-			c.compileNode(value)
+			c.compileNodeWithResult(value)
 		}
 		c.emit(span.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
@@ -5779,7 +6096,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		}
 	case namespaceMode:
 		if value != nil {
-			c.compileNode(value)
+			c.compileNodeWithResult(value)
 		}
 		if c.lastOpCode != bytecode.NIL {
 			c.emit(span.EndPos.Line, bytecode.POP)
@@ -5792,7 +6109,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		}
 	default:
 		if value != nil {
-			c.compileNode(value)
+			c.compileNodeWithResult(value)
 		}
 		if c.isNestedInFinally() {
 			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
@@ -5836,8 +6153,45 @@ func (c *Compiler) patchJump(offset int, span *position.Span) {
 	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, span)
 }
 
+// Emit an instruction that sets a local variable or value
+func (c *Compiler) emitSetLocal(line int, index uint16, valueIsIgnored bool) expressionResult {
+	if valueIsIgnored {
+		c.emitSetLocalPop(line, index)
+		return expressionCompiledWithoutResult
+	} else {
+		c.emitSetLocalNoPop(line, index)
+		return expressionCompiled
+	}
+}
+
+// Emit an instruction that sets a local variable or value without popping it
+func (c *Compiler) emitSetLocalNoPop(line int, index uint16) {
+	switch index {
+	case 1:
+		c.emit(line, bytecode.SET_LOCAL_1_NP)
+		return
+	case 2:
+		c.emit(line, bytecode.SET_LOCAL_2_NP)
+		return
+	case 3:
+		c.emit(line, bytecode.SET_LOCAL_3_NP)
+		return
+	case 4:
+		c.emit(line, bytecode.SET_LOCAL_4_NP)
+		return
+	}
+
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_LOCAL16_NP)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_LOCAL8_NP, byte(index))
+}
+
 // Emit an instruction that sets a local variable or value.
-func (c *Compiler) emitSetLocal(line int, index uint16) {
+func (c *Compiler) emitSetLocalPop(line int, index uint16) {
 	switch index {
 	case 1:
 		c.emit(line, bytecode.SET_LOCAL_1)
@@ -5889,7 +6243,27 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 }
 
 // Emit an instruction that sets an upvalue.
-func (c *Compiler) emitSetUpvalue(line int, index uint16) {
+func (c *Compiler) emitSetUpvalue(line int, index uint16, valueIsIgnored bool) expressionResult {
+	if valueIsIgnored {
+		c.emitSetUpvaluePop(line, index)
+		return expressionCompiledWithoutResult
+	} else {
+		c.emitSetUpvalueNoPop(line, index)
+		return expressionCompiled
+	}
+}
+
+// Emit an instruction that sets an upvalue.
+func (c *Compiler) emitSetUpvaluePop(line int, index uint16) {
+	switch index {
+	case 0:
+		c.emit(line, bytecode.SET_UPVALUE_0)
+		return
+	case 1:
+		c.emit(line, bytecode.SET_UPVALUE_1)
+		return
+	}
+
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_UPVALUE16)
 		c.emitUint16(index)
@@ -5899,8 +6273,37 @@ func (c *Compiler) emitSetUpvalue(line int, index uint16) {
 	c.emit(line, bytecode.SET_UPVALUE8, byte(index))
 }
 
+// Emit an instruction that sets an upvalue without popping it.
+func (c *Compiler) emitSetUpvalueNoPop(line int, index uint16) {
+	switch index {
+	case 0:
+		c.emit(line, bytecode.SET_UPVALUE_0_NP)
+		return
+	case 1:
+		c.emit(line, bytecode.SET_UPVALUE_1_NP)
+		return
+	}
+
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_UPVALUE_NP16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_UPVALUE_NP8, byte(index))
+}
+
 // Emit an instruction that gets the value of an upvalue.
 func (c *Compiler) emitGetUpvalue(line int, index uint16) {
+	switch index {
+	case 0:
+		c.emit(line, bytecode.GET_UPVALUE_0)
+		return
+	case 1:
+		c.emit(line, bytecode.GET_UPVALUE_1)
+		return
+	}
+
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_UPVALUE16)
 		c.emitUint16(index)
@@ -5982,13 +6385,31 @@ func (c *Compiler) emitInstantiate(args int, span *position.Span) {
 	)
 }
 
-// Emit an instruction that sets the value of an instance variable.
-func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span) int {
+// Emit an instruction that sets the value of an instance variable
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span, valueIsIgnored bool) int {
+	if valueIsIgnored {
+		return c.emitSetInstanceVariablePop(name, span)
+	}
+	return c.emitSetInstanceVariableNoPop(name, span)
+}
+
+// Emit an instruction that sets the value of an instance variable and pops it
+func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, span *position.Span) int {
 	return c.emitAddValue(
 		name.ToValue(),
 		span,
 		bytecode.SET_IVAR8,
 		bytecode.SET_IVAR16,
+	)
+}
+
+// Emit an instruction that sets the value of an instance variable without popping
+func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, span *position.Span) int {
+	return c.emitAddValue(
+		name.ToValue(),
+		span,
+		bytecode.SET_IVAR_NP8,
+		bytecode.SET_IVAR_NP16,
 	)
 }
 

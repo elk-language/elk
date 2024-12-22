@@ -15,6 +15,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
 )
 
 // Checks whether all expressions in the given list are static.
@@ -2192,7 +2193,8 @@ func NewExtendWhereBlockExpressionNode(span *position.Span, body []StatementNode
 //	end
 type SingletonBlockExpressionNode struct {
 	TypedNodeBase
-	Body []StatementNode // do expression body
+	Body     []StatementNode // do expression body
+	Bytecode *vm.BytecodeFunction
 }
 
 func (*SingletonBlockExpressionNode) SkipTypechecking() bool {
@@ -3418,6 +3420,7 @@ type ClassDeclarationNode struct {
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Superclass     ExpressionNode      // the super/parent class of this class
 	Body           []StatementNode     // body of the class
+	Bytecode       *vm.BytecodeFunction
 }
 
 func (*ClassDeclarationNode) SkipTypechecking() bool {
@@ -3462,6 +3465,7 @@ type ModuleDeclarationNode struct {
 	DocCommentableNodeBase
 	Constant ExpressionNode  // The constant that will hold the module value
 	Body     []StatementNode // body of the module
+	Bytecode *vm.BytecodeFunction
 }
 
 func (*ModuleDeclarationNode) SkipTypechecking() bool {
@@ -3499,6 +3503,7 @@ type MixinDeclarationNode struct {
 	TypeParameters        []TypeParameterNode // Generic type variable definitions
 	Body                  []StatementNode     // body of the mixin
 	IncludesAndImplements []ExpressionNode
+	Bytecode              *vm.BytecodeFunction
 }
 
 func (*MixinDeclarationNode) SkipTypechecking() bool {
@@ -3539,6 +3544,7 @@ type InterfaceDeclarationNode struct {
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Body           []StatementNode     // body of the interface
 	Implements     []*ImplementExpressionNode
+	Bytecode       *vm.BytecodeFunction
 }
 
 func (*InterfaceDeclarationNode) SkipTypechecking() bool {

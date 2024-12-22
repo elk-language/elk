@@ -71,6 +71,12 @@ const (
 	SET_LOCAL_4                     // Assign the value on top of the stack to the local variable with index 4
 	SET_LOCAL8                      // Assign the value on top of the stack to the local variable with the given index (8 bit operand)
 	SET_LOCAL16                     // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
+	SET_LOCAL_1_NP                  // Assign the value on top of the stack to the local variable with index 1 without popping the value
+	SET_LOCAL_2_NP                  // Assign the value on top of the stack to the local variable with index 2 without popping the value
+	SET_LOCAL_3_NP                  // Assign the value on top of the stack to the local variable with index 3 without popping the value
+	SET_LOCAL_4_NP                  // Assign the value on top of the stack to the local variable with index 4 without popping the value
+	SET_LOCAL8_NP                   // Assign the value on top of the stack to the local variable with the given index (8 bit operand) without popping the value
+	SET_LOCAL16_NP                  // Assign the value on top of the stack to the local variable with the given index (16 bit operand) without popping the value
 	GET_LOCAL_1                     // Push the value of the local variable with index 1
 	GET_LOCAL_2                     // Push the value of the local variable with index 2
 	GET_LOCAL_3                     // Push the value of the local variable with index 3
@@ -136,6 +142,8 @@ const (
 	GET_IVAR16                      // Get the value of an instance variable (16 bit operand)
 	SET_IVAR8                       // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                      // Set the value of an instance variable (16 bit operand)
+	SET_IVAR_NP8                    // Set the value of an instance variable, does not pop the value (8 bit operand)
+	SET_IVAR_NP16                   // Set the value of an instance variable, does not pop the value (16 bit operand)
 	NEW_ARRAY_TUPLE8                // Create a new arrayTuple (8 bit operand)
 	NEW_ARRAY_TUPLE16               // Create a new arrayTuple (16 bit operand)
 	APPEND                          // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
@@ -186,8 +194,16 @@ const (
 	CLOSURE                         // Wrap the function on top of the stack in a closure
 	CALL8                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
 	CALL16                          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
+	SET_UPVALUE_0                   // Assign the value on top of the stack to the upvalue with index 0
+	SET_UPVALUE_1                   // Assign the value on top of the stack to the upvalue with index 1
 	SET_UPVALUE8                    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
 	SET_UPVALUE16                   // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
+	SET_UPVALUE_0_NP                // Assign the value on top of the stack to the upvalue with index 0
+	SET_UPVALUE_1_NP                // Assign the value on top of the stack to the upvalue with index 1
+	SET_UPVALUE_NP8                 // Assign the value on top of the stack to the upvalue with the given index without popping it (8 bit operand)
+	SET_UPVALUE_NP16                // Assign the value on top of the stack to the upvalue with the given index without popping it (16 bit operand)
+	GET_UPVALUE_0                   // Push the value of the upvalue with index 0
+	GET_UPVALUE_1                   // Push the value of the upvalue with index 1
 	GET_UPVALUE8                    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
 	GET_UPVALUE16                   // Push the value of the upvalue with the given index onto the stack (16 bit operand)
 	CLOSE_UPVALUE8                  // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
@@ -267,6 +283,12 @@ var opCodeNames = [...]string{
 	SET_LOCAL_4:       "SET_LOCAL_4",
 	SET_LOCAL8:        "SET_LOCAL8",
 	SET_LOCAL16:       "SET_LOCAL16",
+	SET_LOCAL_1_NP:    "SET_LOCAL_1_NP",
+	SET_LOCAL_2_NP:    "SET_LOCAL_2_NP",
+	SET_LOCAL_3_NP:    "SET_LOCAL_3_NP",
+	SET_LOCAL_4_NP:    "SET_LOCAL_4_NP",
+	SET_LOCAL8_NP:     "SET_LOCAL8_NP",
+	SET_LOCAL16_NP:    "SET_LOCAL16_NP",
 	GET_LOCAL_1:       "GET_LOCAL_1",
 	GET_LOCAL_2:       "GET_LOCAL_2",
 	GET_LOCAL_3:       "GET_LOCAL_3",
@@ -331,6 +353,8 @@ var opCodeNames = [...]string{
 	GET_IVAR16:        "GET_IVAR16",
 	SET_IVAR8:         "SET_IVAR8",
 	SET_IVAR16:        "SET_IVAR16",
+	SET_IVAR_NP8:      "SET_IVAR_NP8",
+	SET_IVAR_NP16:     "SET_IVAR_NP16",
 	NEW_ARRAY_TUPLE8:  "NEW_ARRAY_TUPLE8",
 	NEW_ARRAY_TUPLE16: "NEW_ARRAY_TUPLE16",
 	APPEND:            "APPEND",
@@ -381,8 +405,16 @@ var opCodeNames = [...]string{
 	CLOSURE:           "CLOSURE",
 	CALL8:             "CALL8",
 	CALL16:            "CALL16",
+	SET_UPVALUE_0:     "SET_UPVALUE_0",
+	SET_UPVALUE_1:     "SET_UPVALUE_1",
 	SET_UPVALUE8:      "SET_UPVALUE8",
 	SET_UPVALUE16:     "SET_UPVALUE16",
+	SET_UPVALUE_0_NP:  "SET_UPVALUE_0_NP",
+	SET_UPVALUE_1_NP:  "SET_UPVALUE_1_NP",
+	SET_UPVALUE_NP8:   "SET_UPVALUE_NP8",
+	SET_UPVALUE_NP16:  "SET_UPVALUE_NP16",
+	GET_UPVALUE_0:     "GET_UPVALUE_0",
+	GET_UPVALUE_1:     "GET_UPVALUE_1",
 	GET_UPVALUE8:      "GET_UPVALUE8",
 	GET_UPVALUE16:     "GET_UPVALUE16",
 	CLOSE_UPVALUE8:    "CLOSE_UPVALUE8",

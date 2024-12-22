@@ -530,6 +530,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readUint16())),
 			)
+		case bytecode.SET_IVAR_NP8:
+			vm.throwIfErr(
+				vm.opSetIvarNoPop(int(vm.readByte())),
+			)
+		case bytecode.SET_IVAR_NP16:
+			vm.throwIfErr(
+				vm.opSetIvarNoPop(int(vm.readUint16())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readByte())),
@@ -632,14 +640,42 @@ func (vm *VM) run() {
 			vm.opSetLocal(int(vm.readByte()))
 		case bytecode.SET_LOCAL16:
 			vm.opSetLocal(int(vm.readUint16()))
+		case bytecode.SET_LOCAL_1_NP:
+			vm.opSetLocalNoPop(1)
+		case bytecode.SET_LOCAL_2_NP:
+			vm.opSetLocalNoPop(2)
+		case bytecode.SET_LOCAL_3_NP:
+			vm.opSetLocalNoPop(3)
+		case bytecode.SET_LOCAL_4_NP:
+			vm.opSetLocalNoPop(4)
+		case bytecode.SET_LOCAL8_NP:
+			vm.opSetLocalNoPop(int(vm.readByte()))
+		case bytecode.SET_LOCAL16_NP:
+			vm.opSetLocalNoPop(int(vm.readUint16()))
+		case bytecode.GET_UPVALUE_0:
+			vm.opGetUpvalue(0)
+		case bytecode.GET_UPVALUE_1:
+			vm.opGetUpvalue(1)
 		case bytecode.GET_UPVALUE8:
 			vm.opGetUpvalue(int(vm.readByte()))
 		case bytecode.GET_UPVALUE16:
 			vm.opGetUpvalue(int(vm.readUint16()))
+		case bytecode.SET_UPVALUE_0:
+			vm.opSetUpvalue(0)
+		case bytecode.SET_UPVALUE_1:
+			vm.opSetUpvalue(1)
 		case bytecode.SET_UPVALUE8:
 			vm.opSetUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
 			vm.opSetUpvalue(int(vm.readUint16()))
+		case bytecode.SET_UPVALUE_0_NP:
+			vm.opSetUpvalueNoPop(0)
+		case bytecode.SET_UPVALUE_1_NP:
+			vm.opSetUpvalueNoPop(1)
+		case bytecode.SET_UPVALUE_NP8:
+			vm.opSetUpvalueNoPop(int(vm.readByte()))
+		case bytecode.SET_UPVALUE_NP16:
+			vm.opSetUpvalueNoPop(int(vm.readUint16()))
 		case bytecode.CLOSE_UPVALUE8:
 			last := vm.fpAdd(int(vm.readByte()))
 			vm.opCloseUpvalues(last)
@@ -1378,6 +1414,21 @@ func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
 // Set the value of an instance variable
 func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].AsSymbol()
+	val := vm.pop()
+
+	self := vm.selfValue()
+	ivars := self.InstanceVariables()
+	if ivars == nil {
+		return value.Ref(value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect()))
+	}
+
+	ivars.Set(name, val)
+	return value.Undefined
+}
+
+// Set the value of an instance variable
+func (vm *VM) opSetIvarNoPop(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].AsSymbol()
 	val := vm.peek()
 
 	self := vm.selfValue()
@@ -1711,6 +1762,11 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 
 // Set a local variable or value.
 func (vm *VM) opSetLocal(index int) {
+	vm.setLocalValue(index, vm.pop())
+}
+
+// Set a local variable or value.
+func (vm *VM) opSetLocalNoPop(index int) {
 	vm.setLocalValue(index, vm.peek())
 }
 
@@ -1731,6 +1787,11 @@ func (vm *VM) getLocalValue(index int) value.Value {
 
 // Set an upvalue.
 func (vm *VM) opSetUpvalue(index int) {
+	vm.setUpvalueValue(index, vm.pop())
+}
+
+// Set an upvalue without popping.
+func (vm *VM) opSetUpvalueNoPop(index int) {
 	vm.setUpvalueValue(index, vm.peek())
 }
 

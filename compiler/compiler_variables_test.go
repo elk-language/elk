@@ -233,7 +233,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(41, 5, 6), P(72, 7, 8)),
@@ -321,7 +321,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(41, 5, 6), P(72, 7, 8)),
@@ -410,7 +410,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(42, 5, 6), P(73, 7, 8)),
@@ -505,7 +505,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(58, 6, 7), P(91, 8, 9)),
@@ -596,7 +596,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(58, 6, 7), P(91, 8, 9)),
@@ -687,7 +687,7 @@ func TestInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.SET_IVAR_NP8), 1,
 									byte(bytecode.RETURN),
 								},
 								L(P(62, 6, 7), P(95, 8, 9)),
@@ -762,7 +762,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<class: Foo>"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.SET_IVAR_NP8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -832,7 +832,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.SET_IVAR_NP8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -902,7 +902,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<interface: Foo>"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.SET_IVAR_NP8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -970,7 +970,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.SET_IVAR_NP8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
