@@ -846,6 +846,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileCallNode(node)
 	case *ast.ReturnExpressionNode:
 		c.compileReturnExpressionNode(node)
+		return expressionCompiledWithoutResult
 	case *ast.VariablePatternDeclarationNode:
 		c.compilerVariablePatternDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
@@ -2456,18 +2457,24 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func()
 	then()
 	c.leaveScope(span.StartPos.Line)
 
-	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	compileElse := !valueIsIgnored || els != nil
+	var elseJumpOffset int
+	if compileElse {
+		elseJumpOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	}
 
 	c.patchJump(thenJumpOffset, span)
 
-	if els != nil {
-		c.enterScope("", defaultScopeType)
-		els()
-		c.leaveScope(span.StartPos.Line)
-	} else if !valueIsIgnored {
-		c.emit(span.StartPos.Line, bytecode.NIL)
+	if compileElse {
+		if els != nil {
+			c.enterScope("", defaultScopeType)
+			els()
+			c.leaveScope(span.StartPos.Line)
+		} else if !valueIsIgnored {
+			c.emit(span.StartPos.Line, bytecode.NIL)
+		}
+		c.patchJump(elseJumpOffset, span)
 	}
-	c.patchJump(elseJumpOffset, span)
 
 	return valueIgnoredToResult(valueIsIgnored)
 }
