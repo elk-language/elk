@@ -5519,9 +5519,6 @@ func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode,
 		return expressionCompiled
 	}
 
-	if c.resolveAndEmit(node) {
-		return expressionCompiled
-	}
 	switch node.Op.Type {
 	case token.AND_AND:
 		return c.logicalAnd(node, valueIsIgnored)
