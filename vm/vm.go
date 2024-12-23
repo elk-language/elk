@@ -757,21 +757,21 @@ func (vm *VM) run() {
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.pop()) {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NP:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_UNP:
 			if !vm.peek().IsUndefined() {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -789,7 +789,7 @@ func (vm *VM) run() {
 			}
 			if !result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -807,7 +807,7 @@ func (vm *VM) run() {
 			}
 			if !result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -825,7 +825,7 @@ func (vm *VM) run() {
 			}
 			if !result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -843,7 +843,7 @@ func (vm *VM) run() {
 			}
 			if !result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -861,7 +861,7 @@ func (vm *VM) run() {
 			}
 			if !result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
@@ -879,58 +879,58 @@ func (vm *VM) run() {
 			}
 			if result {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL:
 			if vm.pop() == value.Nil {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL_NP:
 			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NIL:
 			if vm.pop() != value.Nil {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NNP:
 			if vm.peek() != value.Nil {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF:
 			if value.Truthy(vm.pop()) {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NP:
 			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
-				vm.ipIncrementBy(int(jump))
+				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP:
 			jump := vm.readUint16()
-			vm.ipIncrementBy(int(jump))
+			vm.ipIncrementBy(uintptr(jump))
 		case bytecode.LOOP:
 			jump := vm.readUint16()
-			vm.ipIncrementBy(-int(jump))
+			vm.ipDecrementBy(uintptr(jump))
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.MUST:
@@ -1211,8 +1211,13 @@ func (vm *VM) ipIncrement() {
 }
 
 // Add n to the instruction pointer
-func (vm *VM) ipIncrementBy(n int) {
-	vm.ip = (uintptr)(unsafe.Add(unsafe.Pointer(vm.ip), n))
+func (vm *VM) ipIncrementBy(n uintptr) {
+	vm.ip = vm.ip + n
+}
+
+// Subtract n from the instruction pointer
+func (vm *VM) ipDecrementBy(n uintptr) {
+	vm.ip = vm.ip - n
 }
 
 // Increment the call frame pointer
@@ -1873,7 +1878,7 @@ func (vm *VM) opForIn() value.Value {
 	iterator := vm.pop()
 	result, err := vm.CallMethodByName(nextSymbol, iterator)
 	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
-		vm.ipIncrementBy(int(vm.readUint16()))
+		vm.ipIncrementBy(uintptr(vm.readUint16()))
 		return value.Undefined
 	}
 	if !err.IsUndefined() {
