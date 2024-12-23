@@ -1042,6 +1042,7 @@ func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
 	return newUpvalue
 }
 
+//go:inline
 func (vm *VM) returnFromFunction() {
 	returnValue := vm.pop()
 	vm.restoreLastFrame()
@@ -1049,6 +1050,8 @@ func (vm *VM) returnFromFunction() {
 }
 
 // Restore the state of the VM to the last call frame.
+//
+//go:inline
 func (vm *VM) restoreLastFrame() {
 	vm.cfpIncrementBy(-1)
 	cf := vm.cfpGet()
@@ -1552,7 +1555,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	function := closure.Bytecode
-	vm.prepareArguments(function, callInfo)
+	vm.prepareArguments(function.parameterCount, callInfo)
 	vm.createCurrentCallFrame()
 
 	vm.localCount = function.parameterCount + 1
@@ -1589,7 +1592,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	vm.prepareArguments(method, callInfo)
+	vm.prepareArguments(method.parameterCount, callInfo)
 
 	paramCount := method.ParameterCount()
 	args := unsafe.Slice(vm.spAdd(-paramCount-1), paramCount+1)
@@ -1604,7 +1607,7 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
-	vm.prepareArguments(method, callInfo)
+	vm.prepareArguments(method.parameterCount, callInfo)
 	vm.createCurrentCallFrame()
 
 	vm.localCount = method.parameterCount + 1
@@ -1615,16 +1618,10 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	return value.Undefined
 }
 
-func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) {
-	optParamCount := method.OptionalParameterCount()
-	paramCount := method.ParameterCount()
-
-	if optParamCount > 0 {
-		// populate missing optional arguments with undefined
-		missingArgCount := paramCount - callInfo.ArgumentCount
-		for i := 0; i < missingArgCount; i++ {
-			vm.push(value.Undefined)
-		}
+func (vm *VM) prepareArguments(paramCount int, callInfo *value.CallSiteInfo) {
+	// populate missing optional arguments with undefined
+	for range paramCount - callInfo.ArgumentCount {
+		vm.push(value.Undefined)
 	}
 }
 

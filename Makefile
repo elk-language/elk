@@ -9,7 +9,7 @@ vet:
 	go vet ./...
 
 build: fmt
-	go build .
+	go build -ldflags "-s -w"
 
 test: header
 	go test ./... -timeout 10s
