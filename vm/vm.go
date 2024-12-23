@@ -1371,7 +1371,7 @@ func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, ind
 
 // Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Reference())
 
 	self := vm.selfValue()
 	class := self.DirectClass()

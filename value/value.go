@@ -387,6 +387,10 @@ func (v Value) AsReference() Reference {
 	return *(*Reference)(unsafe.Pointer(&i))
 }
 
+func (v Value) Reference() unsafe.Pointer {
+	return unsafe.Pointer(v.ptr)
+}
+
 func (v Value) MustReference() Reference {
 	if !v.IsReference() {
 		panic(fmt.Sprintf("value `%s` is not a reference", v.Inspect()))
