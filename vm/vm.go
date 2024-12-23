@@ -293,7 +293,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
-		vm.fpSet(vm.spAdd(-args - 1))
+		vm.fp = vm.spSubtractRaw(uintptr(args) + 1)
 		vm.localCount = args + 1
 		vm.ipSet(&m.Instructions[0])
 	case *NativeMethod:
@@ -1164,6 +1164,14 @@ func (vm *VM) spAdd(n int) *value.Value {
 	return vm.stackAdd(vm.spGet(), n)
 }
 
+func (vm *VM) spAddRaw(n uintptr) uintptr {
+	return vm.sp + n*uintptr(value.ValueSize)
+}
+
+func (vm *VM) spSubtractRaw(n uintptr) uintptr {
+	return vm.sp - n*uintptr(value.ValueSize)
+}
+
 func (vm *VM) stackAdd(ptr *value.Value, n int) *value.Value {
 	return (*value.Value)(unsafe.Add(unsafe.Pointer(ptr), n*int(value.ValueSize)))
 }
@@ -1371,7 +1379,7 @@ func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, ind
 
 // Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Reference())
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	self := vm.selfValue()
 	class := self.DirectClass()
@@ -1386,7 +1394,8 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		return vm.callBytecodeFunction(m, callInfo)
+		vm.callBytecodeFunction(m, callInfo)
+		return value.Undefined
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
@@ -1532,7 +1541,8 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		return vm.callBytecodeFunction(m, callInfo)
+		vm.callBytecodeFunction(m, callInfo)
+		return value.Undefined
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case nil:
@@ -1565,7 +1575,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 
 	vm.localCount = function.parameterCount + 1
 	vm.bytecode = function
-	vm.fpSet(vm.spAdd(-function.parameterCount - 1))
+	vm.fp = vm.spSubtractRaw(uintptr(function.parameterCount) + 1)
 	vm.ipSet(&function.Instructions[0])
 	vm.upvalues = closure.Upvalues
 
@@ -1583,7 +1593,8 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		return vm.callBytecodeFunction(m, callInfo)
+		vm.callBytecodeFunction(m, callInfo)
+		return value.Undefined
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
@@ -1611,16 +1622,14 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 }
 
 // set up the vm to execute a bytecode method
-func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
 	vm.prepareArguments(method.parameterCount, callInfo)
 	vm.createCurrentCallFrame()
 
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
-	vm.fpSet(vm.spAdd(-method.ParameterCount() - 1))
+	vm.fp = vm.spSubtractRaw(uintptr(method.parameterCount + 1))
 	vm.ipSet(&method.Instructions[0])
-
-	return value.Undefined
 }
 
 func (vm *VM) prepareArguments(paramCount int, callInfo *value.CallSiteInfo) {

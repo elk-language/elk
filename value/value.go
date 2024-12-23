@@ -387,8 +387,8 @@ func (v Value) AsReference() Reference {
 	return *(*Reference)(unsafe.Pointer(&i))
 }
 
-func (v Value) Reference() unsafe.Pointer {
-	return unsafe.Pointer(v.ptr)
+func (v Value) Pointer() unsafe.Pointer {
+	return v.ptr
 }
 
 func (v Value) MustReference() Reference {
