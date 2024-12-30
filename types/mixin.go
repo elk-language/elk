@@ -147,6 +147,9 @@ func (m *Mixin) Copy() *Mixin {
 }
 
 func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
+	mixinConstantPath := GetConstantPath(m.name)
+	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
+
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
 		return newType.(*Mixin)
 	}
@@ -157,8 +160,6 @@ func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 		Checked:       m.Checked,
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
 	}
-	mixinConstantPath := GetConstantPath(m.name)
-	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
 
 	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)

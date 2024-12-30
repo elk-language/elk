@@ -881,14 +881,16 @@ func TestBigInt_GreaterThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 		"Int64 and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 > 3": {
@@ -1008,14 +1010,16 @@ func TestBigInt_GreaterThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 		"Int64 and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 >= 3": {
@@ -1135,14 +1139,16 @@ func TestBigInt_LessThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 		"Int64 and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 < 3": {
@@ -1262,14 +1268,16 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 		"Int64 and return an error": {
-			a:   value.NewBigInt(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
+			a:    value.NewBigInt(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 <= 3": {

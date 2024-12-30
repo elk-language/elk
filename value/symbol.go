@@ -140,6 +140,15 @@ func (s Symbol) Equal(other Value) Value {
 }
 
 // Check whether s is equal to other
+func (s Symbol) EqualBool(other Value) bool {
+	if other.IsSymbol() {
+		return s == other.AsSymbol()
+	}
+
+	return false
+}
+
+// Check whether s is equal to other
 func (s Symbol) StrictEqual(other Value) Value {
 	return s.Equal(other)
 }

@@ -165,48 +165,72 @@ func (f Float64) Compare(other Value) (Value, Value) {
 }
 
 func (f Float64) GreaterThan(other Value) (Value, Value) {
+	result, err := f.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float64) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsFloat64() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat64()
-	return ToElkBool(f > o), Undefined
+	return f > o, Undefined
 }
 
 func (f Float64) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float64) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsFloat64() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat64()
-	return ToElkBool(f >= o), Undefined
+	return f >= o, Undefined
 }
 
 func (f Float64) LessThan(other Value) (Value, Value) {
+	result, err := f.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float64) LessThanBool(other Value) (bool, Value) {
 	if !other.IsFloat64() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat64()
-	return ToElkBool(f < o), Undefined
+	return f < o, Undefined
 }
 
 func (f Float64) LessThanEqual(other Value) (Value, Value) {
+	result, err := f.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float64) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsFloat64() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat64()
-	return ToElkBool(f <= o), Undefined
+	return f <= o, Undefined
 }
 
 func (f Float64) Equal(other Value) Value {
+	return ToElkBool(f.EqualBool(other))
+}
+
+func (f Float64) EqualBool(other Value) bool {
 	if !other.IsFloat64() {
-		return False
+		return false
 	}
 
 	o := other.AsFloat64()
-	return ToElkBool(f == o)
+	return f == o
 }
 
 func (f Float64) StrictEqual(other Value) Value {

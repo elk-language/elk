@@ -235,48 +235,72 @@ func (i UInt16) Compare(other Value) (Value, Value) {
 }
 
 func (i UInt16) GreaterThan(other Value) (Value, Value) {
+	result, err := i.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt16) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsUInt16() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i > o), Undefined
+	return i > o, Undefined
 }
 
 func (i UInt16) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt16) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt16() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i >= o), Undefined
+	return i >= o, Undefined
 }
 
 func (i UInt16) LessThan(other Value) (Value, Value) {
+	result, err := i.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt16) LessThanBool(other Value) (bool, Value) {
 	if !other.IsUInt16() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i < o), Undefined
+	return i < o, Undefined
 }
 
 func (i UInt16) LessThanEqual(other Value) (Value, Value) {
+	result, err := i.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt16) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt16() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i <= o), Undefined
+	return i <= o, Undefined
 }
 
 func (i UInt16) Equal(other Value) Value {
+	return ToElkBool(i.EqualBool(other))
+}
+
+func (i UInt16) EqualBool(other Value) bool {
 	if !other.IsUInt16() {
-		return False
+		return false
 	}
 
 	o := other.AsUInt16()
-	return ToElkBool(i == o)
+	return i == o
 }
 
 func (i UInt16) StrictEqual(other Value) Value {

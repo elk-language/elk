@@ -232,14 +232,16 @@ func TestInt16_GreaterThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Int16(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Int16(5),
-			b:   value.Int64(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Int64(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
 		},
 		"15i16 > 30i16": {
 			a:    value.Int16(15),
@@ -280,14 +282,16 @@ func TestInt16_GreaterThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Int16(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Int16(5),
-			b:   value.Int64(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Int64(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
 		},
 		"15i16 >= 30i16": {
 			a:    value.Int16(15),
@@ -328,14 +332,16 @@ func TestInt16_LessThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Int16(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Int16(5),
-			b:   value.Int64(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Int64(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
 		},
 		"15i16 < 30i16": {
 			a:    value.Int16(15),
@@ -376,14 +382,16 @@ func TestInt16_LessThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Int16(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int16`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Int16(5),
-			b:   value.Int64(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
+			a:    value.Int16(5),
+			b:    value.Int64(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Int16`")),
 		},
 		"15i16 <= 30i16": {
 			a:    value.Int16(15),

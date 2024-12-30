@@ -837,21 +837,28 @@ func (f *BigFloat) Compare(other Value) (Value, Value) {
 // Check whether f is greater than other and return an error
 // if something went wrong.
 func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
+	result, err := f.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is greater than other and return an error
+// if something went wrong.
+func (f *BigFloat) GreaterThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
-			return ToElkBool(f.Cmp(o) > 0), Undefined
+			return f.Cmp(o) > 0, Undefined
 		case *BigInt:
 			if f.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			otherBigFloat := (&BigFloat{}).SetBigInt(o)
-			return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
+			return f.Cmp(otherBigFloat) > 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -859,42 +866,49 @@ func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := NewBigFloat(float64(o))
 		if otherBigFloat.Precision() < f.Precision() {
 			otherBigFloat.SetPrecision(f.Precision())
 		}
-		return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
+		return f.Cmp(otherBigFloat) > 0, Undefined
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		return ToElkBool(f.Cmp(otherBigFloat) > 0), Undefined
+		return f.Cmp(otherBigFloat) > 0, Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is greater than or equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) GreaterThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
-			return ToElkBool(f.Cmp(o) >= 0), Undefined
+			return f.Cmp(o) >= 0, Undefined
 		case *BigInt:
 			if f.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			otherBigFloat := (&BigFloat{}).SetBigInt(o)
-			return ToElkBool(f.Cmp(otherBigFloat) >= 0), Undefined
+			return f.Cmp(otherBigFloat) >= 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -902,42 +916,49 @@ func (f *BigFloat) GreaterThanEqual(other Value) (Value, Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := NewBigFloat(float64(o))
 		if otherBigFloat.Precision() < f.Precision() {
 			otherBigFloat.SetPrecision(f.Precision())
 		}
-		return ToElkBool(f.Cmp(otherBigFloat) >= 0), Undefined
+		return f.Cmp(otherBigFloat) >= 0, Undefined
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		return ToElkBool(f.Cmp(otherBigFloat) >= 0), Undefined
+		return f.Cmp(otherBigFloat) >= 0, Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is less than other and return an error
 // if something went wrong.
 func (f *BigFloat) LessThan(other Value) (Value, Value) {
+	result, err := f.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is less than other and return an error
+// if something went wrong.
+func (f *BigFloat) LessThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
-			return ToElkBool(f.Cmp(o) == -1), Undefined
+			return f.Cmp(o) == -1, Undefined
 		case *BigInt:
 			if f.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			otherBigFloat := (&BigFloat{}).SetBigInt(o)
-			return ToElkBool(f.Cmp(otherBigFloat) == -1), Undefined
+			return f.Cmp(otherBigFloat) == -1, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -945,218 +966,237 @@ func (f *BigFloat) LessThan(other Value) (Value, Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := NewBigFloat(float64(o))
 		if otherBigFloat.Precision() < f.Precision() {
 			otherBigFloat.SetPrecision(f.Precision())
 		}
-		return ToElkBool(f.Cmp(otherBigFloat) == -1), Undefined
+		return f.Cmp(otherBigFloat) == -1, Undefined
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
 		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		return ToElkBool(f.Cmp(otherBigFloat) == -1), Undefined
+		return f.Cmp(otherBigFloat) == -1, Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
+	}
+}
+
+// Check whether f is less than or equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) LessThanEqualBool(other Value) (bool, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigFloat:
+			if f.IsNaN() || o.IsNaN() {
+				return false, Undefined
+			}
+			return f.Cmp(o) <= 0, Undefined
+		case *BigInt:
+			if f.IsNaN() {
+				return false, Undefined
+			}
+			otherBigFloat := (&BigFloat{}).SetBigInt(o)
+			return f.Cmp(otherBigFloat) <= 0, Undefined
+		default:
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case FLOAT_FLAG:
+		o := other.AsFloat()
+		if f.IsNaN() || o.IsNaN() {
+			return false, Undefined
+		}
+		otherBigFloat := NewBigFloat(float64(o))
+		if otherBigFloat.Precision() < f.Precision() {
+			otherBigFloat.SetPrecision(f.Precision())
+		}
+		return f.Cmp(otherBigFloat) <= 0, Undefined
+	case SMALL_INT_FLAG:
+		if f.IsNaN() {
+			return false, Undefined
+		}
+		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
+		return f.Cmp(otherBigFloat) <= 0, Undefined
+	default:
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) LessThanEqual(other Value) (Value, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
-			}
-			return ToElkBool(f.Cmp(o) <= 0), Undefined
-		case *BigInt:
-			if f.IsNaN() {
-				return False, Undefined
-			}
-			otherBigFloat := (&BigFloat{}).SetBigInt(o)
-			return ToElkBool(f.Cmp(otherBigFloat) <= 0), Undefined
-		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
-		}
-	}
-
-	switch other.ValueFlag() {
-	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
-		}
-		otherBigFloat := NewBigFloat(float64(o))
-		if otherBigFloat.Precision() < f.Precision() {
-			otherBigFloat.SetPrecision(f.Precision())
-		}
-		return ToElkBool(f.Cmp(otherBigFloat) <= 0), Undefined
-	case SMALL_INT_FLAG:
-		if f.IsNaN() {
-			return False, Undefined
-		}
-		otherBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		return ToElkBool(f.Cmp(otherBigFloat) <= 0), Undefined
-	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
-	}
+	result, err := f.LessThanEqualBool(other)
+	return ToElkBool(result), err
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) LaxEqual(other Value) Value {
+	return ToElkBool(f.LaxEqualBool(other))
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) LaxEqualBool(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			if f.IsNaN() {
-				return False
+				return false
 			}
 
 			oBigFloat := (&BigFloat{}).SetBigInt(o)
-			return ToElkBool(f.Cmp(oBigFloat) == 0)
+			return f.Cmp(oBigFloat) == 0
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False
+				return false
 			}
 
-			return ToElkBool(f.Cmp(o) == 0)
+			return f.Cmp(o) == 0
 		case Int64:
 			if f.IsNaN() {
-				return False
+				return false
 			}
 
 			oBigFloat := (&BigFloat{}).SetInt64(o)
-			return ToElkBool(f.Cmp(oBigFloat) == 0)
+			return f.Cmp(oBigFloat) == 0
 		case UInt64:
 			if f.IsNaN() {
-				return False
+				return false
 			}
 
 			oBigFloat := (&BigFloat{}).SetUInt64(o)
-			return ToElkBool(f.Cmp(oBigFloat) == 0)
+			return f.Cmp(oBigFloat) == 0
 		case Float64:
 			if f.IsNaN() || o.IsNaN() {
-				return False
+				return false
 			}
 
 			oBigFloat := (&BigFloat{}).SetFloat64(o)
-			return ToElkBool(f.Cmp(oBigFloat) == 0)
+			return f.Cmp(oBigFloat) == 0
 		default:
-			return False
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetSmallInt(other.AsSmallInt())
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case INT64_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(other.AsInt64())
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case INT32_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt32()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case INT16_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt16()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case INT8_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt8()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case UINT64_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(other.AsUInt64())
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case UINT32_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(other.AsUInt32()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case UINT16_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(other.AsUInt16()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case UINT8_FLAG:
 		if f.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(other.AsUInt8()))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case FLOAT64_FLAG:
 		o := other.AsFloat64()
 		if f.IsNaN() || o.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat64(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	case FLOAT32_FLAG:
 		o := other.AsFloat32()
 		if f.IsNaN() || o.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat64(Float64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	default:
-		return False
+		return false
 	}
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) Equal(other Value) Value {
+	return ToElkBool(f.EqualBool(other))
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) EqualBool(other Value) bool {
 	if other.IsFloat() {
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False
+			return false
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0)
+		return f.Cmp(oBigFloat) == 0
 	}
 
-	return False
+	return false
 }
 
 // Check whether f is strictly equal to other and return an error

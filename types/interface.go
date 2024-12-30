@@ -132,6 +132,9 @@ func (i *Interface) Copy() *Interface {
 }
 
 func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
+	ifaceConstantPath := GetConstantPath(i.name)
+	parentNamespace := DeepCopyNamespacePath(ifaceConstantPath[:len(ifaceConstantPath)-1], oldEnv, newEnv)
+
 	if newType, ok := NameToTypeOk(i.name, newEnv); ok {
 		return newType.(*Interface)
 	}
@@ -141,8 +144,6 @@ func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
 		Checked:       i.Checked,
 		NamespaceBase: MakeNamespaceBase(i.docComment, i.name),
 	}
-	ifaceConstantPath := GetConstantPath(i.name)
-	parentNamespace := DeepCopyNamespacePath(ifaceConstantPath[:len(ifaceConstantPath)-1], oldEnv, newEnv)
 	parentNamespace.DefineSubtype(value.ToSymbol(ifaceConstantPath[len(ifaceConstantPath)-1]), newIface)
 
 	newIface.methods = MethodsDeepCopyEnv(i.methods, oldEnv, newEnv)

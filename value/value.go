@@ -1947,6 +1947,71 @@ func GreaterThan(left, right Value) (result, err Value) {
 	}
 }
 
+func GreaterThanBool(left, right Value) (result bool, err Value) {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.GreaterThanBool(right)
+		case *BigFloat:
+			return l.GreaterThanBool(right)
+		case String:
+			return l.GreaterThanBool(right)
+		case Float64:
+			return l.GreaterThanBool(right)
+		case Int64:
+			return l.GreaterThanBool(right)
+		case UInt64:
+			return l.GreaterThanBool(right)
+		default:
+			return false, Undefined
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.GreaterThanBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.GreaterThanBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.GreaterThanBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.GreaterThanBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.GreaterThanBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.GreaterThanBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.GreaterThanBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.GreaterThanBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.GreaterThanBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.GreaterThanBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.GreaterThanBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.GreaterThanBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.GreaterThanBool(right)
+	default:
+		return false, Undefined
+	}
+}
+
 // Check whether left is greater than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -2013,6 +2078,71 @@ func GreaterThanEqual(left, right Value) (result, err Value) {
 		return l.GreaterThanEqual(right)
 	default:
 		return Undefined, Undefined
+	}
+}
+
+func GreaterThanEqualBool(left, right Value) (result bool, err Value) {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.GreaterThanEqualBool(right)
+		case *BigFloat:
+			return l.GreaterThanEqualBool(right)
+		case String:
+			return l.GreaterThanEqualBool(right)
+		case Float64:
+			return l.GreaterThanEqualBool(right)
+		case Int64:
+			return l.GreaterThanEqualBool(right)
+		case UInt64:
+			return l.GreaterThanEqualBool(right)
+		default:
+			return false, Undefined
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.GreaterThanEqualBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.GreaterThanEqualBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.GreaterThanEqualBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.GreaterThanEqualBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.GreaterThanEqualBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.GreaterThanEqualBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.GreaterThanEqualBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.GreaterThanEqualBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.GreaterThanEqualBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.GreaterThanEqualBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.GreaterThanEqualBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.GreaterThanEqualBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.GreaterThanEqualBool(right)
+	default:
+		return false, Undefined
 	}
 }
 
@@ -2085,10 +2215,75 @@ func LessThan(left, right Value) (result, err Value) {
 	}
 }
 
+func LessThanBool(left, right Value) (result bool, err Value) {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LessThanBool(right)
+		case *BigFloat:
+			return l.LessThanBool(right)
+		case String:
+			return l.LessThanBool(right)
+		case Float64:
+			return l.LessThanBool(right)
+		case Int64:
+			return l.LessThanBool(right)
+		case UInt64:
+			return l.LessThanBool(right)
+		default:
+			return false, Undefined
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LessThanBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LessThanBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LessThanBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.LessThanBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.LessThanBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.LessThanBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.LessThanBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.LessThanBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.LessThanBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.LessThanBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.LessThanBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.LessThanBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.LessThanBool(right)
+	default:
+		return false, Undefined
+	}
+}
+
 // Check whether left is less than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
-// When there are no builtin addition functions for the given type returns (undefined, undefined).
+// When there are no builtin functions for the given type returns (undefined, undefined).
 func LessThanEqual(left, right Value) (result, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2151,6 +2346,71 @@ func LessThanEqual(left, right Value) (result, err Value) {
 		return l.LessThanEqual(right)
 	default:
 		return Undefined, Undefined
+	}
+}
+
+func LessThanEqualBool(left, right Value) (result bool, err Value) {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LessThanEqualBool(right)
+		case *BigFloat:
+			return l.LessThanEqualBool(right)
+		case String:
+			return l.LessThanEqualBool(right)
+		case Float64:
+			return l.LessThanEqualBool(right)
+		case Int64:
+			return l.LessThanEqualBool(right)
+		case UInt64:
+			return l.LessThanEqualBool(right)
+		default:
+			return false, Undefined
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LessThanEqualBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LessThanEqualBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LessThanEqualBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.LessThanEqualBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.LessThanEqualBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.LessThanEqualBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.LessThanEqualBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.LessThanEqualBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.LessThanEqualBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.LessThanEqualBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.LessThanEqualBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.LessThanEqualBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.LessThanEqualBool(right)
+	default:
+		return false, Undefined
 	}
 }
 
@@ -2315,6 +2575,79 @@ func Equal(left, right Value) Value {
 	}
 }
 
+func EqualBool(left, right Value) bool {
+	class := left.Class()
+	if !IsA(right, class) {
+		return false
+	}
+
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.EqualBool(right)
+		case *BigFloat:
+			return l.EqualBool(right)
+		case String:
+			return l.EqualBool(right)
+		case Float64:
+			return l.EqualBool(right)
+		case Int64:
+			return l.EqualBool(right)
+		case UInt64:
+			return l.EqualBool(right)
+		default:
+			return false
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.EqualBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.EqualBool(right)
+	case SYMBOL_FLAG:
+		l := left.AsSymbol()
+		return l.EqualBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.EqualBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.EqualBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.EqualBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.EqualBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.EqualBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.EqualBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.EqualBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.EqualBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.EqualBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.EqualBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.EqualBool(right)
+	default:
+		return false
+	}
+}
+
 // Check whether left is not equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
@@ -2398,13 +2731,81 @@ func StrictEqual(left, right Value) Value {
 	}
 }
 
+func StrictEqualBool(left, right Value) bool {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.EqualBool(right)
+		case *BigFloat:
+			return l.EqualBool(right)
+		case String:
+			return l.EqualBool(right)
+		case Float64:
+			return l.EqualBool(right)
+		case Int64:
+			return l.EqualBool(right)
+		case UInt64:
+			return l.EqualBool(right)
+		default:
+			return left == right
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.EqualBool(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.EqualBool(right)
+	case SYMBOL_FLAG:
+		l := left.AsSymbol()
+		return l.EqualBool(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.EqualBool(right)
+	case FLOAT64_FLAG:
+		l := left.AsFloat64()
+		return l.EqualBool(right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return l.EqualBool(right)
+	case INT64_FLAG:
+		l := left.AsInt64()
+		return l.EqualBool(right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return l.EqualBool(right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return l.EqualBool(right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return l.EqualBool(right)
+	case UINT64_FLAG:
+		l := left.AsUInt64()
+		return l.EqualBool(right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return l.EqualBool(right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return l.EqualBool(right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return l.EqualBool(right)
+	default:
+		return left == right
+	}
+}
+
 // Check whether left is strictly not equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
 func StrictNotEqual(left, right Value) Value {
-	val := StrictEqual(left, right)
+	val := StrictEqualBool(left, right)
 
-	return ToNotBool(val)
+	return ToElkBool(val)
 }
 
 // Execute a right bit shift >>.

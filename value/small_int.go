@@ -641,6 +641,11 @@ func (i SmallInt) Equal(other Value) Value {
 	return i.StrictEqual(other)
 }
 
+// Check whether i is equal to other
+func (i SmallInt) EqualBool(other Value) bool {
+	return i.StrictEqualBool(other)
+}
+
 // Check whether i is strictly equal to other
 func (i SmallInt) StrictEqualBool(other Value) bool {
 	if other.IsReference() {

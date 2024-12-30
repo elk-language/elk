@@ -168,48 +168,72 @@ func (f Float32) Compare(other Value) (Value, Value) {
 }
 
 func (f Float32) GreaterThan(other Value) (Value, Value) {
+	result, err := f.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float32) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsFloat32() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f > o), Undefined
+	return f > o, Undefined
 }
 
 func (f Float32) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float32) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsFloat32() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f >= o), Undefined
+	return f >= o, Undefined
 }
 
 func (f Float32) LessThan(other Value) (Value, Value) {
+	result, err := f.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float32) LessThanBool(other Value) (bool, Value) {
 	if !other.IsFloat32() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f < o), Undefined
+	return f < o, Undefined
 }
 
 func (f Float32) LessThanEqual(other Value) (Value, Value) {
+	result, err := f.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (f Float32) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsFloat32() {
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f <= o), Undefined
+	return f <= o, Undefined
 }
 
 func (f Float32) Equal(other Value) Value {
+	return ToElkBool(f.EqualBool(other))
+}
+
+func (f Float32) EqualBool(other Value) bool {
 	if !other.IsFloat32() {
-		return False
+		return false
 	}
 
 	o := other.AsFloat32()
-	return ToElkBool(f == o)
+	return f == o
 }
 
 func (f Float32) StrictEqual(other Value) Value {

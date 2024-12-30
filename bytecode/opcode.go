@@ -42,25 +42,34 @@ func (o OpCode) String() string {
 }
 
 const (
-	ZERO_VALUE        OpCode = iota // Zero value
+	NOOP              OpCode = iota // Does not perform any operation, placeholder.
 	RETURN                          // Return from the current frame
 	LOAD_VALUE8                     // Push a value with a single byte index onto the value stack
 	LOAD_VALUE16                    // Push a value with a two byte index onto the value stack
 	ADD                             // Take two values from the stack, add them together (or call the + method) and push the result
-	ADD_INT                         // Take two values from the stack, add them together (or call the + method) and push the result
+	ADD_INT                         // Take an Int and another value from the stack, add them together (or call the + method) and push the result
+	ADD_FLOAT                       // Take a Float and another value from the stack, add them together (or call the + method) and push the result
 	SUBTRACT                        // Take two values from the stack, subtract them (or call the - method) and push the result
-	SUBTRACT_INT                    // Take two values from the stack, subtract them (or call the - method) and push the result
+	SUBTRACT_INT                    // Take an Int and another value from the stack, subtract them (or call the - method) and push the result
+	SUBTRACT_FLOAT                  // Take a Float and another value from the stack, subtract them (or call the - method) and push the result
 	MULTIPLY                        // Take two values from the stack, multiply them (or call the * method) and push the result
+	MULTIPLY_INT                    // Take an Int and another value from the stack, multiply them (or call the * method) and push the result
+	MULTIPLY_FLOAT                  // Take a Float and another value from the stack, multiply them (or call the * method) and push the result
 	DIVIDE                          // Take two values from the stack, divide them (or call the / method) and push the result
+	DIVIDE_INT                      // Take an Int and Take two values from the stack, divide them (or call the / method) and push the result
+	DIVIDE_FLOAT                    // Take a Float and Take two values from the stack, divide them (or call the / method) and push the result
 	EXPONENTIATE                    // Take two values from the stack, raise one to the power signified by the other
+	EXPONENTIATE_INT                // Take an Int and another value from the stack, raise one to the power signified by the other
 	NEGATE                          // Take a value off the stack and negate it
+	NEGATE_INT                      // Take an Int off the stack and negate it
+	NEGATE_FLOAT                    // Take a Float off the stack and negate it
 	NOT                             // Take a value off the stack and perform boolean negation (converting it to a Bool)
 	BITWISE_NOT                     // Take a value off the stack and perform bitwise negation
 	TRUE                            // Push true onto the stack
 	FALSE                           // Push false onto the stack
 	NIL                             // Push nil onto the stack
 	POP                             // Pop an element off the stack.
-	POP_N                           // Pop n elements off the stack.
+	POP_2                           // Pop two elements off the stack
 	LEAVE_SCOPE16                   // Leave a scope and pop off any local variables (16 bit operand)
 	LEAVE_SCOPE32                   // Leave a scope and pop off any local variables (32 bit operand)
 	PREP_LOCALS8                    // Prepare slots for local variables and values (8 bit operand)
@@ -71,18 +80,17 @@ const (
 	SET_LOCAL_4                     // Assign the value on top of the stack to the local variable with index 4
 	SET_LOCAL8                      // Assign the value on top of the stack to the local variable with the given index (8 bit operand)
 	SET_LOCAL16                     // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
-	SET_LOCAL_1_NP                  // Assign the value on top of the stack to the local variable with index 1 without popping the value
-	SET_LOCAL_2_NP                  // Assign the value on top of the stack to the local variable with index 2 without popping the value
-	SET_LOCAL_3_NP                  // Assign the value on top of the stack to the local variable with index 3 without popping the value
-	SET_LOCAL_4_NP                  // Assign the value on top of the stack to the local variable with index 4 without popping the value
-	SET_LOCAL8_NP                   // Assign the value on top of the stack to the local variable with the given index (8 bit operand) without popping the value
-	SET_LOCAL16_NP                  // Assign the value on top of the stack to the local variable with the given index (16 bit operand) without popping the value
 	GET_LOCAL_1                     // Push the value of the local variable with index 1
 	GET_LOCAL_2                     // Push the value of the local variable with index 2
 	GET_LOCAL_3                     // Push the value of the local variable with index 3
 	GET_LOCAL_4                     // Push the value of the local variable with index 4
 	GET_LOCAL8                      // Push the value of the local variable with the given index onto the stack (8 bit operand)
 	GET_LOCAL16                     // Push the value of the local variable with the given index onto the stack (16 bit operand)
+	JUMP_UNLESS_LE                  // Jump n bytes forward if the the value on the stack is not less than or equal to the second value
+	JUMP_UNLESS_LT                  // Jump n bytes forward if the the value on the stack is not less than the second value
+	JUMP_UNLESS_GE                  // Jump n bytes forward if the the value on the stack is not greater than or equal to the second value
+	JUMP_UNLESS_GT                  // Jump n bytes forward if the the value on the stack is not greater than the second value
+	JUMP_UNLESS_EQ                  // Jump n bytes forward if the the value on the stack is not equal to the second value
 	JUMP_UNLESS_ILE                 // Jump n bytes forward if the the Int on the stack is not less than or equal to the second value
 	JUMP_UNLESS_ILT                 // Jump n bytes forward if the the Int on the stack is not less than the second value
 	JUMP_UNLESS_IGE                 // Jump n bytes forward if the the Int on the stack is not greater than or equal to the second value
@@ -97,27 +105,45 @@ const (
 	JUMP_IF                         // Jump n bytes forward if the value on the stack is truthy
 	JUMP_IF_NP                      // Jump n bytes forward if the value on the stack is truthy, does not pop the value
 	JUMP_IF_IEQ                     // Jump n bytes forward if the the Int on the stack is equal to the second value
+	JUMP_IF_EQ                      // Jump n bytes forward if the the value on the stack is equal to the second value
 	LOOP                            // Jump n bytes backward
 	JUMP_IF_NIL                     // Jump n bytes forward if the value on the stack is nil
 	JUMP_IF_NIL_NP                  // Jump n bytes forward if the value on the stack is nil, does not pop the value
 	RBITSHIFT                       // Take two values from the stack, perform a right bitshift and push the result
+	RBITSHIFT_INT                   // Take an Int and another value from the stack, perform a right bitshift and push the result
 	LOGIC_RBITSHIFT                 // Take two values from the stack, perform a logical right bitshift and push the result
 	LBITSHIFT                       // Take two values from the stack, perform a left bitshift and push the result
+	LBITSHIFT_INT                   // Take an Int and another value from the stack, perform a left bitshift and push the result
 	LOGIC_LBITSHIFT                 // Take two values from the stack, perform a logical left bitshift and push the result
 	BITWISE_AND                     // Take two values from the stack, perform a bitwise AND and push the result
+	BITWISE_AND_INT                 // Take an Int and another value from the stack, perform a bitwise AND and push the result
 	BITWISE_OR                      // Take two values from the stack, perform a bitwise OR and push the result
+	BITWISE_OR_INT                  // Take an Int and another value from the stack, perform a bitwise OR and push the result
 	BITWISE_XOR                     // Take two values from the stack, perform a bitwise XOR and push the result
+	BITWISE_XOR_INT                 // Take an Int and another value from the stack, perform a bitwise XOR and push the result
 	MODULO                          // Take two values from the stack, perform modulo and push the result
+	MODULO_INT                      // Take an Int and another value from the stack, perform modulo and push the result
+	MODULO_FLOAT                    // Take a Float and another value from the stack, perform modulo and push the result
 	EQUAL                           // Take two values from the stack, check if they're equal and push the result
+	EQUAL_INT                       // Take an Int and another value from the stack, check if they're equal and push the result
+	EQUAL_FLOAT                     // Take a Float and another value from the stack, check if they're equal and push the result
 	STRICT_EQUAL                    // Take two values from the stack, check if they're strictly equal and push the result
 	GREATER                         // Take two values from the stack, check if the first value is greater than the second and push the result
+	GREATER_INT                     // Take an Int and another value from the stack, check if the first value is greater than the second and push the result
+	GREATER_FLOAT                   // Take a Float and another value from the stack, check if the first value is greater than the second and push the result
 	GREATER_EQUAL                   // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
+	GREATER_EQUAL_I                 // Take an Int and another value from the stack, check if the first value is greater than or equal to the second and push the result
+	GREATER_EQUAL_F                 // Take a Float and another value from the stack, check if the first value is greater than or equal to the second and push the result
 	LESS                            // Take two values from the stack, check if the first value is less than the second and push the result
+	LESS_INT                        // Take an Int and another value from the stack, check if the first value is less than the second and push the result
+	LESS_FLOAT                      // Take a Float and another value from the stack, check if the first value is less than the second and push the result
 	LESS_EQUAL                      // Take two values from the stack, check if the first value is less than or equal to the second and push the result
-	LESS_EQUAL_INT                  // Take two values from the stack, check if the first value is less than or equal to the second and push the result
-	NOOP                            // Does not perform any operation, placeholder.
+	LESS_EQUAL_INT                  // Take an Int and another value from the stack, check if the first value is less than or equal to the second and push the result
+	LESS_EQUAL_FLOAT                // Take a Float and another value from the stack, check if the first value is less than or equal to the second and push the result
 	ROOT                            // Push `Std::Root` onto the stack.
 	NOT_EQUAL                       // Take two values from the stack, check if they're not equal and push the result
+	NOT_EQUAL_INT                   // Take an Int and another value from the stack, check if they're not equal and push the result
+	NOT_EQUAL_FLOAT                 // Take a Float and another value from the stack, check if they're not equal and push the result
 	STRICT_NOT_EQUAL                // Take two values from the stack, check if they're strictly not equal and push the result
 	INIT_NAMESPACE                  // Initialise a namespace
 	SELF                            // Push `self` onto the stack
@@ -142,8 +168,6 @@ const (
 	GET_IVAR16                      // Get the value of an instance variable (16 bit operand)
 	SET_IVAR8                       // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                      // Set the value of an instance variable (16 bit operand)
-	SET_IVAR_NP8                    // Set the value of an instance variable, does not pop the value (8 bit operand)
-	SET_IVAR_NP16                   // Set the value of an instance variable, does not pop the value (16 bit operand)
 	NEW_ARRAY_TUPLE8                // Create a new arrayTuple (8 bit operand)
 	NEW_ARRAY_TUPLE16               // Create a new arrayTuple (16 bit operand)
 	APPEND                          // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
@@ -169,10 +193,12 @@ const (
 	BITWISE_AND_NOT                 // Take two values from the stack, perform a bitwise AND NOT and push the result
 	UNARY_PLUS                      // Perform unary plus on the value on top of the stack like `+a`
 	INCREMENT                       // Increment the value on top of the stack
+	INCREMENT_INT                   // Increment the Int on top of the stack
 	DECREMENT                       // Decrement the value on top of the stack
+	DECREMENT_INT                   // Decrement the Int on top of the stack
 	DUP                             // Duplicate the value on top of the stack
-	DUP_N                           // Duplicate the top N values on top of the stack
-	POP_N_SKIP_ONE                  // Pop the top N values on top of the stack skipping the first one
+	DUP_2                           // Duplicate the top 2 values on top of the stack
+	POP_2_SKIP_ONE                  // Pop the top 2 values on top of the stack skipping the first one
 	NEW_SYMBOL8                     // Create a new symbol (8 bit operand)
 	NEW_SYMBOL16                    // Create a new symbol (16 bit operand)
 	SWAP                            // Swap the top two values on the stack
@@ -198,10 +224,6 @@ const (
 	SET_UPVALUE_1                   // Assign the value on top of the stack to the upvalue with index 1
 	SET_UPVALUE8                    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
 	SET_UPVALUE16                   // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
-	SET_UPVALUE_0_NP                // Assign the value on top of the stack to the upvalue with index 0
-	SET_UPVALUE_1_NP                // Assign the value on top of the stack to the upvalue with index 1
-	SET_UPVALUE_NP8                 // Assign the value on top of the stack to the upvalue with the given index without popping it (8 bit operand)
-	SET_UPVALUE_NP16                // Assign the value on top of the stack to the upvalue with the given index without popping it (16 bit operand)
 	GET_UPVALUE_0                   // Push the value of the upvalue with index 0
 	GET_UPVALUE_1                   // Push the value of the upvalue with index 1
 	GET_UPVALUE8                    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
@@ -223,56 +245,49 @@ const (
 	INT_5                           // Push 5 onto the stack
 	LOAD_INT_8                      // Push an 8 bit Int onto the stack
 	LOAD_INT_16                     // Push a 16 bit Int onto the stack
-	INT64_0                         // Push 0i64 onto the stack
-	INT64_1                         // Push 1i64 onto the stack
 	LOAD_INT64_8                    // Push an 8 bit Int64 onto the stack
-	UINT64_0                        // Push 0u64 onto the stack
-	UINT64_1                        // Push 1u64 onto the stack
 	LOAD_UINT64_8                   // Push an 8 bit UInt64 onto the stack
-	INT32_0                         // Push 0i32 onto the stack
-	INT32_1                         // Push 1i32 onto the stack
 	LOAD_INT32_8                    // Push an 8 bit Int32 onto the stack
-	UINT32_0                        // Push 0u32 onto the stack
-	UINT32_1                        // Push 1u32 onto the stack
 	LOAD_UINT32_8                   // Push an 8 bit UInt32 onto the stack
-	INT16_0                         // Push 0i16 onto the stack
-	INT16_1                         // Push 1i16 onto the stack
 	LOAD_INT16_8                    // Push an 8 bit Int16 onto the stack
-	UINT16_0                        // Push 0u16 onto the stack
-	UINT16_1                        // Push 1u16 onto the stack
 	LOAD_UINT16_8                   // Push an 8 bit UInt16 onto the stack
-	INT8_0                          // Push 0i8 onto the stack
-	INT8_1                          // Push 1i8 onto the stack
 	LOAD_INT8                       // Push an Int8 onto the stack
-	UINT8_0                         // Push 0u8 onto the stack
-	UINT8_1                         // Push 1u8 onto the stack
 	LOAD_UINT8                      // Push a UInt8 onto the stack
 	LOAD_CHAR_8                     // Push an 8 bit Char onto the stack
 	FLOAT_0                         // Push 0.0 onto the stack
 	FLOAT_1                         // Push 1.0 onto the stack
-	FLOAT_2                         // Push 1.0 onto the stack
+	FLOAT_2                         // Push 2.0 onto the stack
 )
 
 var opCodeNames = [...]string{
-	ZERO_VALUE:        "ZERO_VALUE",
+	NOOP:              "NOOP",
 	RETURN:            "RETURN",
 	LOAD_VALUE8:       "LOAD_VALUE8",
 	LOAD_VALUE16:      "LOAD_VALUE16",
-	POP:               "POP",
-	POP_N:             "POP_N",
 	ADD:               "ADD",
 	ADD_INT:           "ADD_INT",
+	ADD_FLOAT:         "ADD_FLOAT",
 	SUBTRACT:          "SUBTRACT",
 	SUBTRACT_INT:      "SUBTRACT_INT",
+	SUBTRACT_FLOAT:    "SUBTRACT_FLOAT",
 	MULTIPLY:          "MULTIPLY",
+	MULTIPLY_INT:      "MULTIPLY_INT",
+	MULTIPLY_FLOAT:    "MULTIPLY_FLOAT",
 	DIVIDE:            "DIVIDE",
+	DIVIDE_INT:        "DIVIDE_INT",
+	DIVIDE_FLOAT:      "DIVIDE_FLOAT",
 	EXPONENTIATE:      "EXPONENTIATE",
+	EXPONENTIATE_INT:  "EXPONENTIATE_INT",
 	NEGATE:            "NEGATE",
+	NEGATE_INT:        "NEGATE_INT",
+	NEGATE_FLOAT:      "NEGATE_FLOAT",
 	NOT:               "NOT",
 	BITWISE_NOT:       "BITWISE_NOT",
 	TRUE:              "TRUE",
 	FALSE:             "FALSE",
 	NIL:               "NIL",
+	POP:               "POP",
+	POP_2:             "POP_2",
 	LEAVE_SCOPE16:     "LEAVE_SCOPE16",
 	LEAVE_SCOPE32:     "LEAVE_SCOPE32",
 	PREP_LOCALS8:      "PREP_LOCALS8",
@@ -283,18 +298,17 @@ var opCodeNames = [...]string{
 	SET_LOCAL_4:       "SET_LOCAL_4",
 	SET_LOCAL8:        "SET_LOCAL8",
 	SET_LOCAL16:       "SET_LOCAL16",
-	SET_LOCAL_1_NP:    "SET_LOCAL_1_NP",
-	SET_LOCAL_2_NP:    "SET_LOCAL_2_NP",
-	SET_LOCAL_3_NP:    "SET_LOCAL_3_NP",
-	SET_LOCAL_4_NP:    "SET_LOCAL_4_NP",
-	SET_LOCAL8_NP:     "SET_LOCAL8_NP",
-	SET_LOCAL16_NP:    "SET_LOCAL16_NP",
 	GET_LOCAL_1:       "GET_LOCAL_1",
 	GET_LOCAL_2:       "GET_LOCAL_2",
 	GET_LOCAL_3:       "GET_LOCAL_3",
 	GET_LOCAL_4:       "GET_LOCAL_4",
 	GET_LOCAL8:        "GET_LOCAL8",
 	GET_LOCAL16:       "GET_LOCAL16",
+	JUMP_UNLESS_LE:    "JUMP_UNLESS_LE",
+	JUMP_UNLESS_LT:    "JUMP_UNLESS_LT",
+	JUMP_UNLESS_GE:    "JUMP_UNLESS_GE",
+	JUMP_UNLESS_GT:    "JUMP_UNLESS_GT",
+	JUMP_UNLESS_EQ:    "JUMP_UNLESS_EQ",
 	JUMP_UNLESS_ILE:   "JUMP_UNLESS_ILE",
 	JUMP_UNLESS_ILT:   "JUMP_UNLESS_ILT",
 	JUMP_UNLESS_IGE:   "JUMP_UNLESS_IGE",
@@ -309,26 +323,44 @@ var opCodeNames = [...]string{
 	JUMP_IF:           "JUMP_IF",
 	JUMP_IF_NP:        "JUMP_IF_NP",
 	JUMP_IF_IEQ:       "JUMP_IF_IEQ",
+	JUMP_IF_EQ:        "JUMP_IF_EQ",
 	LOOP:              "LOOP",
 	JUMP_IF_NIL:       "JUMP_IF_NIL",
 	RBITSHIFT:         "RBITSHIFT",
+	RBITSHIFT_INT:     "RBITSHIFT_INT",
 	LOGIC_RBITSHIFT:   "LOGIC_RBITSHIFT",
 	LBITSHIFT:         "LBITSHIFT",
+	LBITSHIFT_INT:     "LBITSHIFT_INT",
 	LOGIC_LBITSHIFT:   "LOGIC_LBITSHIFT",
 	BITWISE_AND:       "BITWISE_AND",
+	BITWISE_AND_INT:   "BITWISE_AND_INT",
 	BITWISE_OR:        "BITWISE_OR",
+	BITWISE_OR_INT:    "BITWISE_OR_INT",
 	BITWISE_XOR:       "BITWISE_XOR",
+	BITWISE_XOR_INT:   "BITWISE_XOR_INT",
 	MODULO:            "MODULO",
+	MODULO_INT:        "MODULO_INT",
+	MODULO_FLOAT:      "MODULO_FLOAT",
 	EQUAL:             "EQUAL",
+	EQUAL_INT:         "EQUAL_INT",
+	EQUAL_FLOAT:       "EQUAL_FLOAT",
 	STRICT_EQUAL:      "STRICT_EQUAL",
 	GREATER:           "GREATER",
+	GREATER_INT:       "GREATER_INT",
+	GREATER_FLOAT:     "GREATER_FLOAT",
 	GREATER_EQUAL:     "GREATER_EQUAL",
+	GREATER_EQUAL_I:   "GREATER_EQUAL_I",
+	GREATER_EQUAL_F:   "GREATER_EQUAL_F",
 	LESS:              "LESS",
+	LESS_INT:          "LESS_INT",
+	LESS_FLOAT:        "LESS_FLOAT",
 	LESS_EQUAL:        "LESS_EQUAL",
 	LESS_EQUAL_INT:    "LESS_EQUAL_INT",
-	NOOP:              "NOOP",
+	LESS_EQUAL_FLOAT:  "LESS_EQUAL_FLOAT",
 	ROOT:              "ROOT",
 	NOT_EQUAL:         "NOT_EQUAL",
+	NOT_EQUAL_INT:     "NOT_EQUAL_INT",
+	NOT_EQUAL_FLOAT:   "NOT_EQUAL_FLOAT",
 	STRICT_NOT_EQUAL:  "STRICT_NOT_EQUAL",
 	INIT_NAMESPACE:    "INIT_NAMESPACE",
 	SELF:              "SELF",
@@ -353,8 +385,6 @@ var opCodeNames = [...]string{
 	GET_IVAR16:        "GET_IVAR16",
 	SET_IVAR8:         "SET_IVAR8",
 	SET_IVAR16:        "SET_IVAR16",
-	SET_IVAR_NP8:      "SET_IVAR_NP8",
-	SET_IVAR_NP16:     "SET_IVAR_NP16",
 	NEW_ARRAY_TUPLE8:  "NEW_ARRAY_TUPLE8",
 	NEW_ARRAY_TUPLE16: "NEW_ARRAY_TUPLE16",
 	APPEND:            "APPEND",
@@ -380,10 +410,12 @@ var opCodeNames = [...]string{
 	BITWISE_AND_NOT:   "BITWISE_AND_NOT",
 	UNARY_PLUS:        "UNARY_PLUS",
 	INCREMENT:         "INCREMENT",
+	INCREMENT_INT:     "INCREMENT_INT",
 	DECREMENT:         "DECREMENT",
+	DECREMENT_INT:     "DECREMENT_INT",
 	DUP:               "DUP",
-	DUP_N:             "DUP_N",
-	POP_N_SKIP_ONE:    "POP_N_SKIP_ONE",
+	DUP_2:             "DUP_2",
+	POP_2_SKIP_ONE:    "POP_2_SKIP_ONE",
 	NEW_SYMBOL8:       "NEW_SYMBOL8",
 	NEW_SYMBOL16:      "NEW_SYMBOL16",
 	SWAP:              "SWAP",
@@ -409,10 +441,6 @@ var opCodeNames = [...]string{
 	SET_UPVALUE_1:     "SET_UPVALUE_1",
 	SET_UPVALUE8:      "SET_UPVALUE8",
 	SET_UPVALUE16:     "SET_UPVALUE16",
-	SET_UPVALUE_0_NP:  "SET_UPVALUE_0_NP",
-	SET_UPVALUE_1_NP:  "SET_UPVALUE_1_NP",
-	SET_UPVALUE_NP8:   "SET_UPVALUE_NP8",
-	SET_UPVALUE_NP16:  "SET_UPVALUE_NP16",
 	GET_UPVALUE_0:     "GET_UPVALUE_0",
 	GET_UPVALUE_1:     "GET_UPVALUE_1",
 	GET_UPVALUE8:      "GET_UPVALUE8",
@@ -434,29 +462,13 @@ var opCodeNames = [...]string{
 	INT_5:             "INT_5",
 	LOAD_INT_8:        "LOAD_INT_8",
 	LOAD_INT_16:       "LOAD_INT_16",
-	INT64_0:           "INT64_0",
-	INT64_1:           "INT64_1",
 	LOAD_INT64_8:      "LOAD_INT64_8",
-	UINT64_0:          "UINT64_0",
-	UINT64_1:          "UINT64_1",
 	LOAD_UINT64_8:     "LOAD_UINT64_8",
-	INT32_0:           "INT32_0",
-	INT32_1:           "INT32_1",
 	LOAD_INT32_8:      "LOAD_INT32_8",
-	UINT32_0:          "UINT32_0",
-	UINT32_1:          "UINT32_1",
 	LOAD_UINT32_8:     "LOAD_UINT32_8",
-	INT16_0:           "INT16_0",
-	INT16_1:           "INT16_1",
 	LOAD_INT16_8:      "LOAD_INT16_8",
-	UINT16_0:          "UINT16_0",
-	UINT16_1:          "UINT16_1",
 	LOAD_UINT16_8:     "LOAD_UINT16_8",
-	INT8_0:            "INT8_0",
-	INT8_1:            "INT8_1",
 	LOAD_INT8:         "LOAD_INT8",
-	UINT8_0:           "UINT8_0",
-	UINT8_1:           "UINT8_1",
 	LOAD_UINT8:        "LOAD_UINT8",
 	LOAD_CHAR_8:       "LOAD_CHAR_8",
 	FLOAT_0:           "FLOAT_0",

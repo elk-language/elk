@@ -80,9 +80,17 @@ var (
 
 // special symbols
 var (
-	S_empty    = value.ToSymbol("")          // empty symbol
-	S_init     = value.ToSymbol("#init")     // #init
-	S_contains = value.ToSymbol("#contains") // #contains
+	S_empty                    = value.ToSymbol("")                          // empty symbol
+	S_init                     = value.ToSymbol("#init")                     // #init
+	S_contains                 = value.ToSymbol("#contains")                 // #contains
+	S_BuiltinAddable           = value.ToSymbol("#BuiltinAddable")           // #BuiltinAddable
+	S_BuiltinSubtractable      = value.ToSymbol("#BuiltinSubtractable")      // #BuiltinSubtractable
+	S_BuiltinMultipliable      = value.ToSymbol("#BuiltinMultipliable")      // #BuiltinMultipliable
+	S_BuiltinDividable         = value.ToSymbol("#BuiltinDividable")         // #BuiltinDividable
+	S_BuiltinNumeric           = value.ToSymbol("#BuiltinNumeric")           // #BuiltinNumeric
+	S_BuiltinInt               = value.ToSymbol("#BuiltinInt")               // #BuiltinInt
+	S_BuiltinLogicBitshiftable = value.ToSymbol("#BuiltinLogicBitshiftable") // #BuiltinLogicBitshiftable
+	S_BuiltinEquatable         = value.ToSymbol("#BuiltinEquatable ")        // #BuiltinEquatable
 )
 
 var (

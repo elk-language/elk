@@ -206,80 +206,108 @@ func (c Char) Compare(other Value) (Value, Value) {
 // Check whether c is greater than other and return an error
 // if something went wrong.
 func (c Char) GreaterThan(other Value) (Value, Value) {
+	result, err := c.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether c is greater than other and return an error
+// if something went wrong.
+func (c Char) GreaterThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) == 1), Undefined
+			return String(c).Cmp(o) == 1, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c > other.AsChar()), Undefined
+		return c > other.AsChar(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is greater than or equal to other and return an error
 // if something went wrong.
 func (c Char) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := c.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether c is greater than or equal to other and return an error
+// if something went wrong.
+func (c Char) GreaterThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) >= 0), Undefined
+			return String(c).Cmp(o) >= 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c >= other.AsChar()), Undefined
+		return c >= other.AsChar(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is less than other and return an error
 // if something went wrong.
 func (c Char) LessThan(other Value) (Value, Value) {
+	result, err := c.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether c is less than other and return an error
+// if something went wrong.
+func (c Char) LessThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) == -1), Undefined
+			return String(c).Cmp(o) == -1, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c < other.AsChar()), Undefined
+		return c < other.AsChar(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
 // Check whether c is less than or equal to other and return an error
 // if something went wrong.
 func (c Char) LessThanEqual(other Value) (Value, Value) {
+	result, err := c.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether c is less than or equal to other and return an error
+// if something went wrong.
+func (c Char) LessThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return ToElkBool(String(c).Cmp(o) <= 0), Undefined
+			return String(c).Cmp(o) <= 0, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c <= other.AsChar()), Undefined
+		return c <= other.AsChar(), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
+		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
 }
 
@@ -309,11 +337,16 @@ func (c Char) LaxEqual(other Value) Value {
 
 // Check whether s is equal to other
 func (c Char) Equal(other Value) Value {
+	return ToElkBool(c.EqualBool(other))
+}
+
+// Check whether s is equal to other
+func (c Char) EqualBool(other Value) bool {
 	if other.IsChar() {
-		return ToElkBool(c == other.AsChar())
+		return c == other.AsChar()
 	}
 
-	return False
+	return false
 }
 
 // Convert to uppercase

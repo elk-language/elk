@@ -393,11 +393,9 @@ func (vm *VM) run() {
 			vm.push(vm.peek())
 		case bytecode.SWAP:
 			vm.swap()
-		case bytecode.DUP_N:
-			n := int(vm.readByte())
-			for _, element := range unsafe.Slice(vm.spAdd(-n), n) {
-				vm.push(element)
-			}
+		case bytecode.DUP_2:
+			vm.push(*vm.spAdd(-2))
+			vm.push(*vm.spAdd(-2))
 		case bytecode.SELF:
 			vm.self()
 		case bytecode.INT_M1:
@@ -426,52 +424,20 @@ func (vm *VM) run() {
 			vm.push(value.Float(1).ToValue())
 		case bytecode.FLOAT_2:
 			vm.push(value.Float(2).ToValue())
-		case bytecode.INT64_0:
-			vm.push(value.Int64(0).ToValue())
-		case bytecode.INT64_1:
-			vm.push(value.Int64(1).ToValue())
 		case bytecode.LOAD_INT64_8:
 			vm.push(value.Int64(int8(vm.readByte())).ToValue())
-		case bytecode.UINT64_0:
-			vm.push(value.UInt64(0).ToValue())
-		case bytecode.UINT64_1:
-			vm.push(value.UInt64(1).ToValue())
 		case bytecode.LOAD_UINT64_8:
 			vm.push(value.UInt64(vm.readByte()).ToValue())
-		case bytecode.INT32_0:
-			vm.push(value.Int32(0).ToValue())
-		case bytecode.INT32_1:
-			vm.push(value.Int32(1).ToValue())
 		case bytecode.LOAD_INT32_8:
 			vm.push(value.Int32(int8(vm.readByte())).ToValue())
-		case bytecode.UINT32_0:
-			vm.push(value.UInt32(0).ToValue())
-		case bytecode.UINT32_1:
-			vm.push(value.UInt32(1).ToValue())
 		case bytecode.LOAD_UINT32_8:
 			vm.push(value.UInt32(vm.readByte()).ToValue())
-		case bytecode.INT16_0:
-			vm.push(value.Int16(0).ToValue())
-		case bytecode.INT16_1:
-			vm.push(value.Int16(1).ToValue())
 		case bytecode.LOAD_INT16_8:
 			vm.push(value.Int16(int8(vm.readByte())).ToValue())
-		case bytecode.UINT16_0:
-			vm.push(value.UInt16(0).ToValue())
-		case bytecode.UINT16_1:
-			vm.push(value.UInt16(1).ToValue())
 		case bytecode.LOAD_UINT16_8:
 			vm.push(value.UInt16(vm.readByte()).ToValue())
-		case bytecode.INT8_0:
-			vm.push(value.Int8(0).ToValue())
-		case bytecode.INT8_1:
-			vm.push(value.Int8(1).ToValue())
 		case bytecode.LOAD_INT8:
 			vm.push(value.Int8(vm.readByte()).ToValue())
-		case bytecode.UINT8_0:
-			vm.push(value.UInt8(0).ToValue())
-		case bytecode.UINT8_1:
-			vm.push(value.UInt8(1).ToValue())
 		case bytecode.LOAD_UINT8:
 			vm.push(value.UInt8(vm.readByte()).ToValue())
 		case bytecode.DEF_NAMESPACE:
@@ -530,14 +496,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readUint16())),
 			)
-		case bytecode.SET_IVAR_NP8:
-			vm.throwIfErr(
-				vm.opSetIvarNoPop(int(vm.readByte())),
-			)
-		case bytecode.SET_IVAR_NP16:
-			vm.throwIfErr(
-				vm.opSetIvarNoPop(int(vm.readUint16())),
-			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readByte())),
@@ -578,18 +536,36 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opAdd())
 		case bytecode.ADD_INT:
 			vm.opAddInt()
+		case bytecode.ADD_FLOAT:
+			vm.opAddFloat()
 		case bytecode.SUBTRACT:
 			vm.throwIfErr(vm.opSubtract())
 		case bytecode.SUBTRACT_INT:
 			vm.opSubtractInt()
+		case bytecode.SUBTRACT_FLOAT:
+			vm.opSubtractFloat()
 		case bytecode.MULTIPLY:
 			vm.throwIfErr(vm.opMultiply())
+		case bytecode.MULTIPLY_INT:
+			vm.opMultiplyInt()
+		case bytecode.MULTIPLY_FLOAT:
+			vm.opMultiplyFloat()
 		case bytecode.DIVIDE:
 			vm.throwIfErr(vm.opDivide())
+		case bytecode.DIVIDE_INT:
+			vm.opDivideInt()
+		case bytecode.DIVIDE_FLOAT:
+			vm.opDivideFloat()
 		case bytecode.EXPONENTIATE:
 			vm.throwIfErr(vm.opExponentiate())
+		case bytecode.EXPONENTIATE_INT:
+			vm.opExponentiateInt()
 		case bytecode.NEGATE:
 			vm.throwIfErr(vm.opNegate())
+		case bytecode.NEGATE_INT:
+			vm.opNegateInt()
+		case bytecode.NEGATE_FLOAT:
+			vm.opNegateFloat()
 		case bytecode.UNARY_PLUS:
 			vm.throwIfErr(vm.opUnaryPlus())
 		case bytecode.BITWISE_NOT:
@@ -606,16 +582,20 @@ func (vm *VM) run() {
 			vm.pop()
 		case bytecode.POP_ALL:
 			vm.popAll()
-		case bytecode.POP_N:
-			vm.popN(int(vm.readByte()))
-		case bytecode.POP_N_SKIP_ONE:
-			vm.popNSkipOne(int(vm.readByte()))
+		case bytecode.POP_2:
+			vm.popN(2)
+		case bytecode.POP_2_SKIP_ONE:
+			vm.popNSkipOne(2)
 		case bytecode.POP_SKIP_ONE:
 			vm.popSkipOne()
 		case bytecode.INCREMENT:
 			vm.throwIfErr(vm.opIncrement())
+		case bytecode.INCREMENT_INT:
+			vm.opIncrementInt()
 		case bytecode.DECREMENT:
 			vm.throwIfErr(vm.opDecrement())
+		case bytecode.DECREMENT_INT:
+			vm.opDecrementInt()
 		case bytecode.GET_LOCAL_1:
 			vm.opGetLocal(1)
 		case bytecode.GET_LOCAL_2:
@@ -640,18 +620,6 @@ func (vm *VM) run() {
 			vm.opSetLocal(int(vm.readByte()))
 		case bytecode.SET_LOCAL16:
 			vm.opSetLocal(int(vm.readUint16()))
-		case bytecode.SET_LOCAL_1_NP:
-			vm.opSetLocalNoPop(1)
-		case bytecode.SET_LOCAL_2_NP:
-			vm.opSetLocalNoPop(2)
-		case bytecode.SET_LOCAL_3_NP:
-			vm.opSetLocalNoPop(3)
-		case bytecode.SET_LOCAL_4_NP:
-			vm.opSetLocalNoPop(4)
-		case bytecode.SET_LOCAL8_NP:
-			vm.opSetLocalNoPop(int(vm.readByte()))
-		case bytecode.SET_LOCAL16_NP:
-			vm.opSetLocalNoPop(int(vm.readUint16()))
 		case bytecode.GET_UPVALUE_0:
 			vm.opGetUpvalue(0)
 		case bytecode.GET_UPVALUE_1:
@@ -668,14 +636,6 @@ func (vm *VM) run() {
 			vm.opSetUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
 			vm.opSetUpvalue(int(vm.readUint16()))
-		case bytecode.SET_UPVALUE_0_NP:
-			vm.opSetUpvalueNoPop(0)
-		case bytecode.SET_UPVALUE_1_NP:
-			vm.opSetUpvalueNoPop(1)
-		case bytecode.SET_UPVALUE_NP8:
-			vm.opSetUpvalueNoPop(int(vm.readByte()))
-		case bytecode.SET_UPVALUE_NP16:
-			vm.opSetUpvalueNoPop(int(vm.readUint16()))
 		case bytecode.CLOSE_UPVALUE8:
 			last := vm.fpAdd(int(vm.readByte()))
 			vm.opCloseUpvalues(last)
@@ -770,6 +730,88 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_UNP:
 			if !vm.peek().IsUndefined() {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_LE:
+			right := vm.pop()
+			left := vm.pop()
+
+			result, err := value.LessThanEqualBool(left, right)
+			if !err.IsUndefined() {
+				vm.throw(err)
+				break
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_LT:
+			right := vm.pop()
+			left := vm.peek()
+
+			result, err := value.LessThanBool(left, right)
+			if !err.IsUndefined() {
+				vm.throw(err)
+				break
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_GE:
+			right := vm.pop()
+			left := vm.peek()
+
+			result, err := value.GreaterThanEqualBool(left, right)
+			if !err.IsUndefined() {
+				vm.throw(err)
+				break
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_GT:
+			right := vm.pop()
+			left := vm.peek()
+
+			result, err := value.GreaterThanBool(left, right)
+			if !err.IsUndefined() {
+				vm.throw(err)
+				break
+			}
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_EQ:
+			right := vm.pop()
+			left := vm.peek()
+
+			result := value.EqualBool(left, right)
+			if !result {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
+		case bytecode.JUMP_IF_EQ:
+			right := vm.pop()
+			left := vm.peek()
+
+			result := value.EqualBool(left, right)
+			if result {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
 				break
@@ -943,46 +985,82 @@ func (vm *VM) run() {
 			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.opLeftBitshift())
+		case bytecode.LBITSHIFT_INT:
+			vm.opLeftBitshiftInt()
 		case bytecode.LOGIC_LBITSHIFT:
 			vm.throwIfErr(vm.opLogicalLeftBitshift())
 		case bytecode.RBITSHIFT:
 			vm.throwIfErr(vm.opRightBitshift())
+		case bytecode.RBITSHIFT_INT:
+			vm.opRightBitshiftInt()
 		case bytecode.LOGIC_RBITSHIFT:
 			vm.throwIfErr(vm.opLogicalRightBitshift())
 		case bytecode.BITWISE_AND:
 			vm.throwIfErr(vm.opBitwiseAnd())
+		case bytecode.BITWISE_AND_INT:
+			vm.opBitwiseAndInt()
 		case bytecode.BITWISE_AND_NOT:
 			vm.throwIfErr(vm.opBitwiseAndNot())
 		case bytecode.BITWISE_OR:
 			vm.throwIfErr(vm.opBitwiseOr())
+		case bytecode.BITWISE_OR_INT:
+			vm.opBitwiseOrInt()
 		case bytecode.BITWISE_XOR:
 			vm.throwIfErr(vm.opBitwiseXor())
+		case bytecode.BITWISE_XOR_INT:
+			vm.opBitwiseXorInt()
 		case bytecode.MODULO:
 			vm.throwIfErr(vm.opModulo())
+		case bytecode.MODULO_INT:
+			vm.opModuloInt()
+		case bytecode.MODULO_FLOAT:
+			vm.opModuloFloat()
 		case bytecode.COMPARE:
 			vm.throwIfErr(vm.opCompare())
 		case bytecode.EQUAL:
 			vm.throwIfErr(vm.opEqual())
+		case bytecode.EQUAL_INT:
+			vm.opEqualInt()
+		case bytecode.EQUAL_FLOAT:
+			vm.opEqualFloat()
 		case bytecode.NOT_EQUAL:
 			vm.throwIfErr(vm.opNotEqual())
+		case bytecode.NOT_EQUAL_INT:
+			vm.opNotEqualInt()
+		case bytecode.NOT_EQUAL_FLOAT:
+			vm.opNotEqualFloat()
 		case bytecode.LAX_EQUAL:
 			vm.throwIfErr(vm.opLaxEqual())
 		case bytecode.LAX_NOT_EQUAL:
 			vm.throwIfErr(vm.opLaxNotEqual())
 		case bytecode.STRICT_EQUAL:
-			vm.throwIfErr(vm.opStrictEqual())
+			vm.opStrictEqual()
 		case bytecode.STRICT_NOT_EQUAL:
-			vm.throwIfErr(vm.opStrictNotEqual())
+			vm.opStrictNotEqual()
 		case bytecode.GREATER:
 			vm.throwIfErr(vm.opGreaterThan())
+		case bytecode.GREATER_INT:
+			vm.opGreaterThanInt()
+		case bytecode.GREATER_FLOAT:
+			vm.opGreaterThanFloat()
 		case bytecode.GREATER_EQUAL:
 			vm.throwIfErr(vm.opGreaterThanEqual())
+		case bytecode.GREATER_EQUAL_I:
+			vm.opGreaterThanEqualInt()
+		case bytecode.GREATER_EQUAL_F:
+			vm.opGreaterThanEqualFloat()
 		case bytecode.LESS:
 			vm.throwIfErr(vm.opLessThan())
+		case bytecode.LESS_INT:
+			vm.opLessThanInt()
+		case bytecode.LESS_FLOAT:
+			vm.opLessThanFloat()
 		case bytecode.LESS_EQUAL:
 			vm.throwIfErr(vm.opLessThanEqual())
 		case bytecode.LESS_EQUAL_INT:
 			vm.opLessThanEqualInt()
+		case bytecode.LESS_EQUAL_FLOAT:
+			vm.opLessThanEqualFloat()
 		case bytecode.INSPECT_STACK:
 			vm.InspectStack()
 		default:
@@ -1443,21 +1521,6 @@ func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 	return value.Undefined
 }
 
-// Set the value of an instance variable
-func (vm *VM) opSetIvarNoPop(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsSymbol()
-	val := vm.peek()
-
-	self := vm.selfValue()
-	ivars := self.InstanceVariables()
-	if ivars == nil {
-		return value.Ref(value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect()))
-	}
-
-	ivars.Set(name, val)
-	return value.Undefined
-}
-
 // Get the value of an instance variable
 func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].AsSymbol()
@@ -1777,11 +1840,6 @@ func (vm *VM) opSetLocal(index int) {
 }
 
 // Set a local variable or value.
-func (vm *VM) opSetLocalNoPop(index int) {
-	vm.setLocalValue(index, vm.peek())
-}
-
-// Set a local variable or value.
 func (vm *VM) setLocalValue(index int, val value.Value) {
 	*vm.fpAdd(index) = val
 }
@@ -1799,11 +1857,6 @@ func (vm *VM) getLocalValue(index int) value.Value {
 // Set an upvalue.
 func (vm *VM) opSetUpvalue(index int) {
 	vm.setUpvalueValue(index, vm.pop())
-}
-
-// Set an upvalue without popping.
-func (vm *VM) opSetUpvalueNoPop(index int) {
-	vm.setUpvalueValue(index, vm.peek())
 }
 
 // Set an upvalue.
@@ -2574,6 +2627,54 @@ func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) val
 	return value.Undefined
 }
 
+// Negate the Int on top of the stack
+func (vm *VM) opNegateInt() {
+	operand := vm.peek()
+	var result value.Value
+	if operand.IsSmallInt() {
+		operand := operand.AsSmallInt()
+		result = operand.Negate()
+	} else {
+		operand := operand.AsReference().(*value.BigInt)
+		result = value.Ref(operand.Negate())
+	}
+	vm.replace(result)
+}
+
+// Negate the Float on top of the stack
+func (vm *VM) opNegateFloat() {
+	operand := vm.peek()
+	o := operand.AsFloat()
+	result := (-o).ToValue()
+	vm.replace(result)
+}
+
+func (vm *VM) opIncrementInt() {
+	operand := vm.peek()
+	var result value.Value
+	if operand.IsSmallInt() {
+		operand := operand.AsSmallInt()
+		result = operand.Increment()
+	} else {
+		operand := operand.AsReference().(*value.BigInt)
+		result = value.Ref(operand.Increment())
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opDecrementInt() {
+	operand := vm.peek()
+	var result value.Value
+	if operand.IsSmallInt() {
+		operand := operand.AsSmallInt()
+		result = operand.Decrement()
+	} else {
+		operand := operand.AsReference().(*value.BigInt)
+		result = operand.Decrement()
+	}
+	vm.replace(result)
+}
+
 // Increment the element on top of the stack
 func (vm *VM) opIncrement() (err value.Value) {
 	return vm.unaryOperation(value.Increment, symbol.OpIncrement)
@@ -2873,13 +2974,21 @@ func (vm *VM) opLaxNotEqual() (err value.Value) {
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
-func (vm *VM) opStrictEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.StrictEqual, symbol.OpStrictEqual)
+func (vm *VM) opStrictEqual() {
+	right := vm.pop()
+	left := vm.peek()
+
+	result := value.StrictEqual(left, right)
+	vm.replace(result)
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
-func (vm *VM) opStrictNotEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, symbol.OpStrictEqual)
+func (vm *VM) opStrictNotEqual() {
+	right := vm.pop()
+	left := vm.peek()
+
+	result := value.StrictNotEqual(left, right)
+	vm.replace(result)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
@@ -2918,6 +3027,87 @@ func (vm *VM) opLessThanEqualInt() {
 	vm.replace(result)
 }
 
+func (vm *VM) opLessThanEqualFloat() {
+	right := vm.pop()
+	left := vm.peek()
+
+	l := left.AsSmallInt()
+	result, _ := l.LessThanEqual(right)
+	vm.replace(result)
+}
+
+func (vm *VM) opLessThanInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.LessThan(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.LessThan(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opLessThanFloat() {
+	right := vm.pop()
+	left := vm.peek()
+
+	l := left.AsSmallInt()
+	result, _ := l.LessThan(right)
+	vm.replace(result)
+}
+
+func (vm *VM) opGreaterThanInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.GreaterThan(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.GreaterThan(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opGreaterThanFloat() {
+	right := vm.pop()
+	left := vm.peek()
+
+	l := left.AsFloat()
+	result, _ := l.GreaterThan(right)
+	vm.replace(result)
+}
+
+func (vm *VM) opGreaterThanEqualInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.GreaterThanEqual(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.GreaterThanEqual(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opGreaterThanEqualFloat() {
+	right := vm.pop()
+	left := vm.peek()
+
+	l := left.AsFloat()
+	result, _ := l.GreaterThanEqual(right)
+	vm.replace(result)
+}
+
 // Perform a left bitshift and push the result to the stack.
 func (vm *VM) opLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshift, symbol.OpLeftBitshift)
@@ -2943,7 +3133,82 @@ func (vm *VM) opAdd() (err value.Value) {
 	return vm.binaryOperation(value.Add, symbol.OpAdd)
 }
 
-// Add two operands together and push the result to the stack.
+func (vm *VM) opBitwiseOrInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.BitwiseOr(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.BitwiseOr(right)
+	}
+
+	vm.replace(result)
+}
+
+func (vm *VM) opBitwiseXorInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.BitwiseXor(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.BitwiseXor(right)
+	}
+
+	vm.replace(result)
+}
+
+func (vm *VM) opBitwiseAndInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.BitwiseAnd(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.BitwiseAnd(right)
+	}
+
+	vm.replace(result)
+}
+
+func (vm *VM) opLeftBitshiftInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.LeftBitshift(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.LeftBitshift(right)
+	}
+
+	vm.replace(result)
+}
+
+func (vm *VM) opRightBitshiftInt() {
+	right := vm.pop()
+	left := vm.peek()
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.RightBitshift(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.RightBitshift(right)
+	}
+
+	vm.replace(result)
+}
+
+// Add an Int to another value and push the result to the stack.
 func (vm *VM) opAddInt() {
 	right := vm.pop()
 	left := vm.peek()
@@ -2959,12 +3224,21 @@ func (vm *VM) opAddInt() {
 	vm.replace(result)
 }
 
+// Add a Float to another value and push the result to the stack.
+func (vm *VM) opAddFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsFloat()
+	result, _ := l.Add(right)
+	vm.replace(result)
+}
+
 // Subtract two operands and push the result to the stack.
 func (vm *VM) opSubtract() (err value.Value) {
 	return vm.binaryOperation(value.Subtract, symbol.OpSubtract)
 }
 
-// Subtract two operands and push the result to the stack.
+// Subtract a value from an Int another value and push the result to the stack.
 func (vm *VM) opSubtractInt() {
 	right := vm.pop()
 	left := vm.peek()
@@ -2978,6 +3252,152 @@ func (vm *VM) opSubtractInt() {
 		result, _ = leftBig.Subtract(right)
 	}
 	vm.replace(result)
+}
+
+// Subtract a value from a Float another value and push the result to the stack.
+func (vm *VM) opSubtractFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsSmallInt()
+	result, _ := l.Subtract(right)
+	vm.replace(result)
+}
+
+// Multiply an Int by another value and push the result to the stack.
+func (vm *VM) opMultiplyInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Multiply(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Multiply(right)
+	}
+	vm.replace(result)
+}
+
+// Multiply a Float by another value and push the result to the stack.
+func (vm *VM) opMultiplyFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsFloat()
+	result, _ := l.Multiply(right)
+	vm.replace(result)
+}
+
+// Divide an Int by another value and push the result to the stack.
+func (vm *VM) opDivideInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Divide(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Divide(right)
+	}
+	vm.replace(result)
+}
+
+// Divide a Float by another value and push the result to the stack.
+func (vm *VM) opDivideFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsFloat()
+	result, _ := l.Divide(right)
+	vm.replace(result)
+}
+
+// Exponentiate an Int by another value and push the result to the stack.
+func (vm *VM) opExponentiateInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Exponentiate(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Exponentiate(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opModuloInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result, _ = left.Modulo(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result, _ = leftBig.Modulo(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opModuloFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsFloat()
+	result, _ := l.Modulo(right)
+	vm.replace(result)
+}
+
+func (vm *VM) opEqualInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result value.Value
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result = left.Equal(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result = leftBig.Equal(right)
+	}
+	vm.replace(result)
+}
+
+func (vm *VM) opEqualFloat() {
+	right := vm.pop()
+	left := vm.peek()
+	l := left.AsFloat()
+	result := l.Equal(right)
+	vm.replace(result)
+}
+
+func (vm *VM) opNotEqualInt() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result bool
+	if left.IsSmallInt() {
+		left := left.AsSmallInt()
+		result = left.EqualBool(right)
+	} else {
+		leftBig := left.AsReference().(*value.BigInt)
+		result = leftBig.EqualBool(right)
+	}
+	vm.replace(value.ToElkBool(!result))
+}
+
+func (vm *VM) opNotEqualFloat() {
+	right := vm.pop()
+	left := vm.peek()
+
+	var result bool
+	l := left.AsFloat()
+	result = l.EqualBool(right)
+	vm.replace(value.ToElkBool(!result))
 }
 
 // Multiply two operands together and push the result to the stack.

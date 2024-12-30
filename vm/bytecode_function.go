@@ -422,22 +422,25 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
 		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC, bytecode.DEF_METHOD_ALIAS,
 		bytecode.INT_M1, bytecode.INT_0, bytecode.INT_1, bytecode.INT_2, bytecode.INT_3, bytecode.INT_4, bytecode.INT_5,
-		bytecode.INT64_0, bytecode.INT64_1, bytecode.UINT64_0, bytecode.UINT64_1, bytecode.INT32_0, bytecode.INT32_1,
-		bytecode.UINT32_0, bytecode.UINT32_1, bytecode.INT16_0, bytecode.INT16_1,
-		bytecode.UINT16_0, bytecode.UINT16_1, bytecode.INT8_0, bytecode.INT8_1,
-		bytecode.UINT8_0, bytecode.UINT8_1, bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.FLOAT_2,
+		bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.FLOAT_2,
 		bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT,
 		bytecode.GET_LOCAL_1, bytecode.GET_LOCAL_2, bytecode.GET_LOCAL_3, bytecode.GET_LOCAL_4,
 		bytecode.SET_LOCAL_1, bytecode.SET_LOCAL_2, bytecode.SET_LOCAL_3, bytecode.SET_LOCAL_4,
-		bytecode.SET_LOCAL_1_NP, bytecode.SET_LOCAL_2_NP, bytecode.SET_LOCAL_3_NP, bytecode.SET_LOCAL_4_NP,
-		bytecode.SET_LOCAL16_NP, bytecode.SET_LOCAL8_NP, bytecode.GET_UPVALUE_0, bytecode.GET_UPVALUE_1,
+		bytecode.GET_UPVALUE_0, bytecode.GET_UPVALUE_1,
 		bytecode.SET_UPVALUE_0, bytecode.SET_UPVALUE_1, bytecode.SET_UPVALUE8, bytecode.SET_UPVALUE16,
-		bytecode.SET_UPVALUE_0_NP, bytecode.SET_UPVALUE_1_NP:
+		bytecode.POP_2, bytecode.POP_2_SKIP_ONE, bytecode.DUP_2,
+		bytecode.ADD_FLOAT, bytecode.SUBTRACT_FLOAT, bytecode.MULTIPLY_INT, bytecode.MULTIPLY_FLOAT,
+		bytecode.DIVIDE_INT, bytecode.DIVIDE_FLOAT, bytecode.EXPONENTIATE_INT, bytecode.NEGATE_INT, bytecode.NEGATE_FLOAT,
+		bytecode.RBITSHIFT_INT, bytecode.LBITSHIFT_INT, bytecode.BITWISE_AND_INT, bytecode.BITWISE_OR_INT,
+		bytecode.BITWISE_XOR_INT, bytecode.MODULO_INT, bytecode.MODULO_FLOAT, bytecode.EQUAL_INT, bytecode.EQUAL_FLOAT,
+		bytecode.GREATER_INT, bytecode.GREATER_FLOAT, bytecode.GREATER_EQUAL_I, bytecode.GREATER_EQUAL_F,
+		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
+		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
-	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
+	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
-		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
-		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE_NP8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
+		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.NEW_SYMBOL8,
+		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
 		bytecode.INSTANTIATE8, bytecode.LOAD_UINT64_8,
 		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
 		bytecode.LOAD_UINT8:
@@ -449,12 +452,14 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleChar(output, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNP, bytecode.FOR_IN,
-		bytecode.SET_UPVALUE_NP16, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
+		bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
 		bytecode.INSTANTIATE16, bytecode.NEW_ARRAY_TUPLE16, bytecode.NEW_ARRAY_LIST16, bytecode.NEW_STRING16,
 		bytecode.NEW_HASH_MAP16, bytecode.NEW_HASH_RECORD16, bytecode.NEW_SYMBOL16,
 		bytecode.NEW_HASH_SET16, bytecode.JUMP_IF_IEQ, bytecode.JUMP_UNLESS_IEQ, bytecode.JUMP_UNLESS_IGE,
 		bytecode.JUMP_UNLESS_IGT, bytecode.JUMP_UNLESS_ILT, bytecode.JUMP_UNLESS_ILE, bytecode.JUMP_UNLESS_NIL,
-		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP:
+		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
+		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
+		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
@@ -473,11 +478,11 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.NEW_RANGE:
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_SELF8,
-		bytecode.GET_IVAR8, bytecode.SET_IVAR_NP8, bytecode.SET_IVAR8,
+		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
 		bytecode.CALL8, bytecode.GET_CONST8:
 		return f.disassembleValue(output, 2, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_SELF16,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR_NP16, bytecode.SET_IVAR16,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
 		bytecode.CALL16, bytecode.GET_CONST16:
 		return f.disassembleValue(output, 3, offset)
 	default:

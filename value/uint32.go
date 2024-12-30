@@ -235,48 +235,72 @@ func (i UInt32) Compare(other Value) (Value, Value) {
 }
 
 func (i UInt32) GreaterThan(other Value) (Value, Value) {
+	result, err := i.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt32) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsUInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i > o), Undefined
+	return i > o, Undefined
 }
 
 func (i UInt32) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt32) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i >= o), Undefined
+	return i >= o, Undefined
 }
 
 func (i UInt32) LessThan(other Value) (Value, Value) {
+	result, err := i.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt32) LessThanBool(other Value) (bool, Value) {
 	if !other.IsUInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i < o), Undefined
+	return i < o, Undefined
 }
 
 func (i UInt32) LessThanEqual(other Value) (Value, Value) {
+	result, err := i.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt32) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i <= o), Undefined
+	return i <= o, Undefined
 }
 
 func (i UInt32) Equal(other Value) Value {
+	return ToElkBool(i.EqualBool(other))
+}
+
+func (i UInt32) EqualBool(other Value) bool {
 	if !other.IsUInt32() {
-		return False
+		return false
 	}
 
 	o := other.AsUInt32()
-	return ToElkBool(i == o)
+	return i == o
 }
 
 func (i UInt32) StrictEqual(other Value) Value {

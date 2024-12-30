@@ -194,14 +194,16 @@ func TestFloat64_GreaterThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
 		},
 		"15f64 > 30f64": {
 			a:    value.Float64(15),
@@ -242,14 +244,16 @@ func TestFloat64_GreaterThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
 		},
 		"15f64 >= 30f64": {
 			a:    value.Float64(15),
@@ -290,14 +294,16 @@ func TestFloat64_LessThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
 		},
 		"15f64 < 30f64": {
 			a:    value.Float64(15),
@@ -338,14 +344,16 @@ func TestFloat64_LessThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.Float64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
+			a:    value.Float64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`")),
 		},
 		"15f64 <= 30f64": {
 			a:    value.Float64(15),

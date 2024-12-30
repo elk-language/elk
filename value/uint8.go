@@ -232,48 +232,72 @@ func (i UInt8) Compare(other Value) (Value, Value) {
 }
 
 func (i UInt8) GreaterThan(other Value) (Value, Value) {
+	result, err := i.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt8) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsUInt8() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt8()
-	return ToElkBool(i > o), Undefined
+	return i > o, Undefined
 }
 
 func (i UInt8) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt8) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt8() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt8()
-	return ToElkBool(i >= o), Undefined
+	return i >= o, Undefined
 }
 
 func (i UInt8) LessThan(other Value) (Value, Value) {
+	result, err := i.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt8) LessThanBool(other Value) (bool, Value) {
 	if !other.IsUInt8() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt8()
-	return ToElkBool(i < o), Undefined
+	return i < o, Undefined
 }
 
 func (i UInt8) LessThanEqual(other Value) (Value, Value) {
+	result, err := i.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i UInt8) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsUInt8() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsUInt8()
-	return ToElkBool(i <= o), Undefined
+	return i <= o, Undefined
 }
 
 func (i UInt8) Equal(other Value) Value {
+	return ToElkBool(i.EqualBool(other))
+}
+
+func (i UInt8) EqualBool(other Value) bool {
 	if !other.IsUInt8() {
-		return False
+		return false
 	}
 
 	o := other.AsUInt8()
-	return ToElkBool(i == o)
+	return i == o
 }
 
 func (i UInt8) StrictEqual(other Value) Value {

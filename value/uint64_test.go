@@ -226,14 +226,16 @@ func TestUInt64_GreaterThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
 		},
 		"15u64 > 30u64": {
 			a:    value.UInt64(15),
@@ -274,14 +276,16 @@ func TestUInt64_GreaterThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
 		},
 		"15u64 >= 30u64": {
 			a:    value.UInt64(15),
@@ -322,14 +326,16 @@ func TestUInt64_LessThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
 		},
 		"15u64 < 30u64": {
 			a:    value.UInt64(15),
@@ -370,14 +376,16 @@ func TestUInt64_LessThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt64`")),
 		},
 		"Int32 and return an error": {
-			a:   value.UInt64(5),
-			b:   value.Int32(2).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
+			a:    value.UInt64(5),
+			b:    value.Int32(2).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::UInt64`")),
 		},
 		"15u64 <= 30u64": {
 			a:    value.UInt64(15),

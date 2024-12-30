@@ -120,6 +120,9 @@ func (m *Module) Copy() *Module {
 }
 
 func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
+	moduleConstantPath := GetConstantPath(m.name)
+	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
+
 	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
 		return newType.(*Module)
 	}
@@ -128,8 +131,6 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
 		defined:       m.defined,
 	}
-	moduleConstantPath := GetConstantPath(m.name)
-	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
 	if parentNamespace != nil {
 		parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
 	}

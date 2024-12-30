@@ -1177,7 +1177,7 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 		if len(node.Finally) < 1 {
 			// pop the thrown value and the stack trace, leaving the return value of the catch
-			c.emit(span.EndPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+			c.emit(span.EndPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		jump := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
@@ -1220,25 +1220,25 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 		c.emit(span.EndPos.Line, bytecode.SWAP)
 		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+		c.emit(span.EndPos.Line, bytecode.POP_2)
 		c.emit(span.EndPos.Line, bytecode.JUMP_TO_FINALLY)
 		c.patchJump(jumpOverFinallyBreakOrContinueOffset, span)
 
 		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NP)
 		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
 		// FALSE
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2)          // pop the flag and return value of finally
-		c.emit(span.EndPos.Line, bytecode.POP_N_SKIP_ONE, 2) // pop the thrown value and the stack trace leaving the return value of catch
+		c.emit(span.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
+		c.emit(span.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
 		jumpToEndOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 
 		c.patchJump(jumpToFinallyReturnOffset, span)
 		// return with finally
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2) // pop the flag and return value of finally
+		c.emit(span.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
 		c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
 
 		c.patchJump(jumpToRethrowOffset, span)
 		// pop the flag and the return value of finally
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+		c.emit(span.EndPos.Line, bytecode.POP_2)
 		c.emit(span.EndPos.Line, bytecode.RETHROW)
 
 		c.patchJump(jumpToEndOffset, span)
@@ -1866,7 +1866,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		// get value
 		c.compileNodeWithResult(n.Receiver)
 		c.compileNodeWithResult(n.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
 		switch node.Op.Type {
@@ -2082,7 +2082,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 func (c *Compiler) complexSubscriptAssignment(subscript *ast.SubscriptExpressionNode, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
 	c.compileNodeWithResult(subscript.Receiver)
 	c.compileNodeWithResult(subscript.Key)
-	c.emit(span.EndPos.Line, bytecode.DUP_N, 2)
+	c.emit(span.EndPos.Line, bytecode.DUP_2)
 	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
 
 	c.compileNodeWithResult(valueNode)
@@ -2102,7 +2102,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
 		var jump int
@@ -2125,9 +2125,9 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// if truthy
 		c.patchJump(jump, span)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
@@ -2135,7 +2135,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
 		var jump int
@@ -2155,9 +2155,9 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// if falsy
 		c.patchJump(jump, span)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
@@ -2165,7 +2165,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
 		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 
 		var jump int
@@ -2185,9 +2185,9 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		// if not nil
 		c.patchJump(jump, span)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	default:
@@ -3082,7 +3082,7 @@ func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 		func() {
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.compileNodeWithResult(pattern)
-			c.emit(span.StartPos.Line, bytecode.DUP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.DUP_2)
 			c.emit(span.StartPos.Line, bytecode.SWAP)
 			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
 			c.emit(span.StartPos.Line, bytecode.IS_A)
@@ -3091,7 +3091,7 @@ func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
 			c.emit(span.StartPos.Line, opcode)
 		},
 		func() {
-			c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(span.StartPos.Line, bytecode.POP_2)
 			c.emit(span.StartPos.Line, bytecode.FALSE)
 		},
 		span,
@@ -4243,7 +4243,7 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 
 func (c *Compiler) removeOpcode() {
 	c.lastOpCode = c.secondToLastOpCode
-	c.secondToLastOpCode = bytecode.ZERO_VALUE
+	c.secondToLastOpCode = bytecode.NOOP
 	c.Bytecode.RemoveByte()
 }
 
@@ -5609,66 +5609,236 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 	line := span.StartPos.Line
 	switch opToken.Type {
 	case token.PLUS:
-		// c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span)
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.ADD_INT)
 			return
 		}
-		c.emit(line, bytecode.ADD)
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.ADD_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
+			c.emit(line, bytecode.ADD)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span)
 	case token.MINUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.SUBTRACT_INT)
 			return
 		}
-		c.emit(line, bytecode.SUBTRACT)
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.SUBTRACT_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubtractable)) {
+			c.emit(line, bytecode.SUBTRACT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubtract, 1), span)
 	case token.STAR:
-		c.emit(line, bytecode.MULTIPLY)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.MULTIPLY_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.MULTIPLY_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinMultipliable)) {
+			c.emit(line, bytecode.MULTIPLY)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpMultiply, 1), span)
 	case token.SLASH:
-		c.emit(line, bytecode.DIVIDE)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.DIVIDE_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.DIVIDE_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinMultipliable)) {
+			c.emit(line, bytecode.DIVIDE)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDivide, 1), span)
 	case token.STAR_STAR:
-		c.emit(line, bytecode.EXPONENTIATE)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.EXPONENTIATE_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.EXPONENTIATE)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpExponentiate, 1), span)
 	case token.LBITSHIFT:
-		c.emit(line, bytecode.LBITSHIFT)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.LBITSHIFT_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.LBITSHIFT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1), span)
 	case token.LTRIPLE_BITSHIFT:
-		c.emit(line, bytecode.LOGIC_LBITSHIFT)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
+			c.emit(line, bytecode.LOGIC_LBITSHIFT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1), span)
 	case token.RBITSHIFT:
-		c.emit(line, bytecode.RBITSHIFT)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.RBITSHIFT_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.RBITSHIFT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpRightBitshift, 1), span)
 	case token.RTRIPLE_BITSHIFT:
-		c.emit(line, bytecode.LOGIC_RBITSHIFT)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
+			c.emit(line, bytecode.LOGIC_RBITSHIFT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1), span)
 	case token.AND:
-		c.emit(line, bytecode.BITWISE_AND)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.BITWISE_AND_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.BITWISE_AND)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAnd, 1), span)
 	case token.AND_TILDE:
-		c.emit(line, bytecode.BITWISE_AND_NOT)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.BITWISE_AND_NOT)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), span)
 	case token.OR:
-		c.emit(line, bytecode.BITWISE_OR)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.BITWISE_OR_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.BITWISE_OR)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), span)
 	case token.XOR:
 		c.emit(line, bytecode.BITWISE_XOR)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.BITWISE_XOR_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
+			c.emit(line, bytecode.BITWISE_XOR)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), span)
 	case token.PERCENT:
-		c.emit(line, bytecode.MODULO)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.MODULO_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.MODULO)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), span)
 	case token.LAX_EQUAL:
-		c.emit(line, bytecode.LAX_EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
+			c.emit(line, bytecode.LAX_EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span)
 	case token.LAX_NOT_EQUAL:
-		c.emit(line, bytecode.LAX_NOT_EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
+			c.emit(line, bytecode.LAX_NOT_EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span)
+		c.emit(line, bytecode.NOT)
 	case token.EQUAL_EQUAL:
-		c.emit(line, bytecode.EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
+			c.emit(line, bytecode.EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span)
 	case token.NOT_EQUAL:
-		c.emit(line, bytecode.NOT_EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
+			c.emit(line, bytecode.NOT_EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span)
+		c.emit(line, bytecode.NOT)
 	case token.STRICT_EQUAL:
 		c.emit(line, bytecode.STRICT_EQUAL)
 	case token.STRICT_NOT_EQUAL:
 		c.emit(line, bytecode.STRICT_NOT_EQUAL)
 	case token.GREATER:
-		c.emit(line, bytecode.GREATER)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.GREATER_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.GREATER_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.GREATER)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), span)
 	case token.GREATER_EQUAL:
-		c.emit(line, bytecode.GREATER_EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.GREATER_EQUAL_I)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.GREATER_EQUAL_F)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.GREATER_EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), span)
 	case token.LESS:
-		c.emit(line, bytecode.LESS)
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.LESS_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.LESS_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.LESS)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), span)
 	case token.LESS_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LESS_EQUAL_INT)
 			return
 		}
-		c.emit(line, bytecode.LESS_EQUAL)
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.LESS_EQUAL_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(line, bytecode.LESS_EQUAL)
+			return
+		}
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1), span)
 	case token.SPACESHIP_OP:
 		c.emit(line, bytecode.COMPARE)
 	case token.INSTANCE_OF_OP:
@@ -5739,21 +5909,21 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	case value.SMALL_INT_FLAG:
 		c.emitSmallInt(val.AsSmallInt(), span)
 	case value.INT64_FLAG:
-		emitSignedInt(c, val, val.AsInt64(), bytecode.INT64_0, bytecode.INT64_1, bytecode.LOAD_INT64_8, span)
+		emitSignedInt(c, val, val.AsInt64(), bytecode.LOAD_INT64_8, span)
 	case value.UINT64_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.UINT64_0, bytecode.UINT64_1, bytecode.LOAD_UINT64_8, span)
+		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.LOAD_UINT64_8, span)
 	case value.INT32_FLAG:
-		emitSignedInt(c, val, val.AsInt32(), bytecode.INT32_0, bytecode.INT32_1, bytecode.LOAD_INT32_8, span)
+		emitSignedInt(c, val, val.AsInt32(), bytecode.LOAD_INT32_8, span)
 	case value.UINT32_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt32(), bytecode.UINT32_0, bytecode.UINT32_1, bytecode.LOAD_UINT32_8, span)
+		emitUnsignedInt(c, val, val.AsUInt32(), bytecode.LOAD_UINT32_8, span)
 	case value.INT16_FLAG:
-		emitSignedInt(c, val, val.AsInt16(), bytecode.INT16_0, bytecode.INT16_1, bytecode.LOAD_INT16_8, span)
+		emitSignedInt(c, val, val.AsInt16(), bytecode.LOAD_INT16_8, span)
 	case value.UINT16_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt16(), bytecode.UINT16_0, bytecode.UINT16_1, bytecode.LOAD_UINT16_8, span)
+		emitUnsignedInt(c, val, val.AsUInt16(), bytecode.LOAD_UINT16_8, span)
 	case value.INT8_FLAG:
-		emitSignedInt(c, val, val.AsInt8(), bytecode.INT8_0, bytecode.INT8_1, bytecode.LOAD_INT8, span)
+		emitSignedInt(c, val, val.AsInt8(), bytecode.LOAD_INT8, span)
 	case value.UINT8_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt8(), bytecode.UINT8_0, bytecode.UINT8_1, bytecode.LOAD_UINT8, span)
+		emitUnsignedInt(c, val, val.AsUInt8(), bytecode.LOAD_UINT8, span)
 	case value.CHAR_FLAG:
 		c.emitChar(val.AsChar(), span)
 	case value.FLOAT_FLAG:
@@ -5763,17 +5933,8 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	}
 }
 
-func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcode0, opcode1, opcodeLoad bytecode.OpCode, span *position.Span) {
+func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, span *position.Span) {
 	line := span.StartPos.Line
-	switch i {
-	case 0:
-		c.emit(line, opcode0)
-		return
-	case 1:
-		c.emit(line, opcode1)
-		return
-	}
-
 	if i >= math.MinInt8 && i <= math.MaxInt8 {
 		c.emit(line, opcodeLoad, byte(i))
 		return
@@ -5782,17 +5943,8 @@ func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcode
 	c.emitLoadValue(iVal, span)
 }
 
-func emitUnsignedInt[I value.UnsignedInt](c *Compiler, iVal value.Value, i I, opcode0, opcode1, opcodeLoad bytecode.OpCode, span *position.Span) {
+func emitUnsignedInt[I value.UnsignedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, span *position.Span) {
 	line := span.StartPos.Line
-	switch i {
-	case 0:
-		c.emit(line, opcode0)
-		return
-	case 1:
-		c.emit(line, opcode1)
-		return
-	}
-
 	if i <= math.MaxUint8 {
 		c.emit(line, opcodeLoad, byte(i))
 		return
@@ -6170,28 +6322,8 @@ func (c *Compiler) emitSetLocal(line int, index uint16, valueIsIgnored bool) exp
 
 // Emit an instruction that sets a local variable or value without popping it
 func (c *Compiler) emitSetLocalNoPop(line int, index uint16) {
-	switch index {
-	case 1:
-		c.emit(line, bytecode.SET_LOCAL_1_NP)
-		return
-	case 2:
-		c.emit(line, bytecode.SET_LOCAL_2_NP)
-		return
-	case 3:
-		c.emit(line, bytecode.SET_LOCAL_3_NP)
-		return
-	case 4:
-		c.emit(line, bytecode.SET_LOCAL_4_NP)
-		return
-	}
-
-	if index > math.MaxUint8 {
-		c.emit(line, bytecode.SET_LOCAL16_NP)
-		c.emitUint16(index)
-		return
-	}
-
-	c.emit(line, bytecode.SET_LOCAL8_NP, byte(index))
+	c.emit(line, bytecode.DUP)
+	c.emitSetLocalPop(line, index)
 }
 
 // Emit an instruction that sets a local variable or value.
@@ -6279,22 +6411,8 @@ func (c *Compiler) emitSetUpvaluePop(line int, index uint16) {
 
 // Emit an instruction that sets an upvalue without popping it.
 func (c *Compiler) emitSetUpvalueNoPop(line int, index uint16) {
-	switch index {
-	case 0:
-		c.emit(line, bytecode.SET_UPVALUE_0_NP)
-		return
-	case 1:
-		c.emit(line, bytecode.SET_UPVALUE_1_NP)
-		return
-	}
-
-	if index > math.MaxUint8 {
-		c.emit(line, bytecode.SET_UPVALUE_NP16)
-		c.emitUint16(index)
-		return
-	}
-
-	c.emit(line, bytecode.SET_UPVALUE_NP8, byte(index))
+	c.emit(line, bytecode.DUP)
+	c.emitSetUpvaluePop(line, index)
 }
 
 // Emit an instruction that gets the value of an upvalue.
@@ -6409,12 +6527,8 @@ func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, span *position.
 
 // Emit an instruction that sets the value of an instance variable without popping
 func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, span *position.Span) int {
-	return c.emitAddValue(
-		name.ToValue(),
-		span,
-		bytecode.SET_IVAR_NP8,
-		bytecode.SET_IVAR_NP16,
-	)
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	return c.emitSetInstanceVariablePop(name, span)
 }
 
 // Emit an instruction that reads the value of an instance variable.

@@ -386,20 +386,27 @@ func (f Float) Compare(other Value) (result, err Value) {
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f Float) GreaterThan(other Value) (result, err Value) {
+func (f Float) GreaterThan(other Value) (Value, Value) {
+	result, err := f.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is greater than other and return an error
+// if something went wrong.
+func (f Float) GreaterThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) == 1), Undefined
+			return fBigFloat.Cmp(o) == 1, Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f > oFloat), Undefined
+			return f > oFloat, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -407,32 +414,39 @@ func (f Float) GreaterThan(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
-		return ToElkBool(f > o), Undefined
+		return f > o, Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f > Float(other.AsSmallInt())), Undefined
+		return f > Float(other.AsSmallInt()), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f Float) GreaterThanEqual(other Value) (result, err Value) {
+func (f Float) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is greater than or equal to other and return an error
+// if something went wrong.
+func (f Float) GreaterThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) >= 0), Undefined
+			return fBigFloat.Cmp(o) >= 0, Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f >= oFloat), Undefined
+			return f >= oFloat, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -440,32 +454,39 @@ func (f Float) GreaterThanEqual(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
-		return ToElkBool(f >= o), Undefined
+		return f >= o, Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f >= Float(other.AsSmallInt())), Undefined
+		return f >= Float(other.AsSmallInt()), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f Float) LessThan(other Value) (result, err Value) {
+func (f Float) LessThan(other Value) (Value, Value) {
+	result, err := f.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is less than other and return an error
+// if something went wrong.
+func (f Float) LessThanBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) == -1), Undefined
+			return fBigFloat.Cmp(o) == -1, Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f < oFloat), Undefined
+			return f < oFloat, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -473,32 +494,39 @@ func (f Float) LessThan(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
-		return ToElkBool(f < o), Undefined
+		return f < o, Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f < Float(other.AsSmallInt())), Undefined
+		return f < Float(other.AsSmallInt()), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f Float) LessThanEqual(other Value) (result, err Value) {
+func (f Float) LessThanEqual(other Value) (Value, Value) {
+	result, err := f.LessThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+// Check whether f is less than or equal to other and return an error
+// if something went wrong.
+func (f Float) LessThanEqualBool(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False, Undefined
+				return false, Undefined
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) <= 0), Undefined
+			return fBigFloat.Cmp(o) <= 0, Undefined
 		case *BigInt:
 			oFloat := o.ToFloat()
-			return ToElkBool(f <= oFloat), Undefined
+			return f <= oFloat, Undefined
 		default:
-			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
 	}
 
@@ -506,13 +534,13 @@ func (f Float) LessThanEqual(other Value) (result, err Value) {
 	case FLOAT_FLAG:
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
-			return False, Undefined
+			return false, Undefined
 		}
-		return ToElkBool(f <= o), Undefined
+		return f <= o, Undefined
 	case SMALL_INT_FLAG:
-		return ToElkBool(f <= Float(other.AsSmallInt())), Undefined
+		return f <= Float(other.AsSmallInt()), Undefined
 	default:
-		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 }
 
@@ -572,11 +600,17 @@ func (f Float) LaxEqual(other Value) Value {
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f Float) Equal(other Value) Value {
+	return ToElkBool(f.EqualBool(other))
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f Float) EqualBool(other Value) bool {
 	if other.IsFloat() {
-		return ToElkBool(f == other.AsFloat())
+		return f == other.AsFloat()
 	}
 
-	return False
+	return false
 }
 
 // Check whether f is strictly equal to other and return an error

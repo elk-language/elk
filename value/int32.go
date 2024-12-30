@@ -235,48 +235,71 @@ func (i Int32) Compare(other Value) (Value, Value) {
 }
 
 func (i Int32) GreaterThan(other Value) (Value, Value) {
+	result, err := i.GreaterThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i Int32) GreaterThanBool(other Value) (bool, Value) {
 	if !other.IsInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt32()
-	return ToElkBool(i > o), Undefined
+	return i > o, Undefined
 }
 
 func (i Int32) GreaterThanEqual(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqualBool(other)
+	return ToElkBool(result), err
+}
+
+func (i Int32) GreaterThanEqualBool(other Value) (bool, Value) {
 	if !other.IsInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt32()
-	return ToElkBool(i >= o), Undefined
+	return i >= o, Undefined
 }
 
 func (i Int32) LessThan(other Value) (Value, Value) {
+	result, err := i.LessThanBool(other)
+	return ToElkBool(result), err
+}
+
+func (i Int32) LessThanBool(other Value) (bool, Value) {
 	if !other.IsInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt32()
-	return ToElkBool(i < o), Undefined
+	return i < o, Undefined
 }
 
 func (i Int32) LessThanEqual(other Value) (Value, Value) {
-	if !other.IsInt32() {
-		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
-	}
-
-	o := other.AsInt32()
-	return ToElkBool(i <= o), Undefined
+	result, err := i.LessThanEqualBool(other)
+	return ToElkBool(result), err
 }
 
-func (i Int32) Equal(other Value) Value {
+func (i Int32) LessThanEqualBool(other Value) (bool, Value) {
 	if !other.IsInt32() {
-		return False
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInt32()
-	return ToElkBool(i == o)
+	return i <= o, Undefined
+}
+func (i Int32) Equal(other Value) Value {
+	return ToElkBool(i.EqualBool(other))
+}
+
+func (i Int32) EqualBool(other Value) bool {
+	if !other.IsInt32() {
+		return false
+	}
+
+	o := other.AsInt32()
+	return i == o
 }
 
 func (i Int32) StrictEqual(other Value) Value {

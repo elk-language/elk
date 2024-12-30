@@ -1581,24 +1581,28 @@ func TestFloat_GreaterThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
 		},
 		"Char and return an error": {
-			a:   value.Float(5),
-			b:   value.Char('f').ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Char('f').ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
 		},
 		"Float64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Float64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Float64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
 		},
 
 		"SmallInt 25.0 > 3": {
@@ -1842,24 +1846,28 @@ func TestFloat_GreaterThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
 		},
 		"Char and return an error": {
-			a:   value.Float(5),
-			b:   value.Char('f').ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Char('f').ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
 		},
 		"Float64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Float64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Float64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
 		},
 
 		"SmallInt 25.0 >= 3": {
@@ -2105,24 +2113,28 @@ func TestFloat_LessThan(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
 		},
 		"Char and return an error": {
-			a:   value.Float(5),
-			b:   value.Char('f').ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Char('f').ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
 		},
 		"Float64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Float64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Float64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
 		},
 
 		"SmallInt 25.0 < 3": {
@@ -2332,24 +2344,28 @@ func TestFloat_LessThanEqual(t *testing.T) {
 		err  value.Value
 	}{
 		"String and return an error": {
-			a:   value.Float(5),
-			b:   value.Ref(value.String("foo")),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Ref(value.String("foo")),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float`")),
 		},
 		"Char and return an error": {
-			a:   value.Float(5),
-			b:   value.Char('f').ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Char('f').ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::Float`")),
 		},
 		"Int64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Int64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Int64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Float`")),
 		},
 		"Float64 and return an error": {
-			a:   value.Float(5),
-			b:   value.Float64(7).ToValue(),
-			err: value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
+			a:    value.Float(5),
+			b:    value.Float64(7).ToValue(),
+			want: value.False,
+			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Float`")),
 		},
 
 		"SmallInt 25.0 <= 3": {
