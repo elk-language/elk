@@ -27,6 +27,7 @@ type CallFrame struct {
 	ip         uintptr // Instruction pointer - points to the next bytecode instruction for this frame
 	fp         uintptr // Frame pointer -- points to the offset on the value stack where the current frame start
 	localCount int
+	stopVM     bool
 	upvalues   []*Upvalue
 }
 
