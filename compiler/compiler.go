@@ -5733,7 +5733,6 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 		}
 		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), span)
 	case token.XOR:
-		c.emit(line, bytecode.BITWISE_XOR)
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_XOR_INT)
 			return

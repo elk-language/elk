@@ -331,14 +331,14 @@ func (vm *VM) run() {
 			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
-			if vm.returnFromFunction() {
+			if vm.restoreLastFrame() {
 				return
 			}
 		case bytecode.RETURN:
 			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
-			if vm.returnFromFunction() {
+			if vm.restoreLastFrame() {
 				return
 			}
 		case bytecode.RETURN_FIRST_ARG:
@@ -346,7 +346,7 @@ func (vm *VM) run() {
 			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
-			if vm.returnFromFunction() {
+			if vm.restoreLastFrame() {
 				return
 			}
 		case bytecode.RETURN_SELF:
@@ -354,7 +354,7 @@ func (vm *VM) run() {
 			if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) {
 				return
 			}
-			if vm.returnFromFunction() {
+			if vm.restoreLastFrame() {
 				return
 			}
 		case bytecode.CLOSURE:
@@ -1105,14 +1105,6 @@ func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
 	return newUpvalue
 }
 
-//go:inline
-func (vm *VM) returnFromFunction() bool {
-	returnValue := vm.peek()
-	stopVM := vm.restoreLastFrame()
-	vm.push(returnValue)
-	return stopVM
-}
-
 // Restore the state of the VM to the last call frame.
 //
 //go:inline
@@ -1120,13 +1112,15 @@ func (vm *VM) restoreLastFrame() bool {
 	vm.cfpIncrementBy(-1)
 	cf := vm.cfpGet()
 
+	returnValue := vm.peek()
 	vm.ip = cf.ip
 	vm.opCloseUpvalues(vm.fp)
-	vm.popN(vm.spOffsetFrom(vm.fpGet()))
+	vm.popN(vm.spOffsetFrom(vm.fpGet()) - 1)
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
 	vm.upvalues = cf.upvalues
+	*vm.spAdd(-1) = returnValue
 	return cf.stopVM
 }
 
@@ -3449,7 +3443,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.restoreLastFrame() {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
-			vm.push(err)
+			vm.replace(err)
 			panic(stopVM{})
 		}
 	}
