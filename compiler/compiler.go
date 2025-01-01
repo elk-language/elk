@@ -1701,7 +1701,12 @@ func (c *Compiler) compileForIn(
 	c.initLoopJumpSet(label, false)
 
 	c.compileNode(inExpression, false)
-	c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
+	inExpressionType := c.typeOf(inExpression)
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.S_BuiltinIterable)) {
+		c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
+	} else {
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.L_iter, 0), inExpression.Span())
+	}
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
 	iteratorVar := c.defineLocal(iteratorVarName, span)
@@ -1711,10 +1716,18 @@ func (c *Compiler) compileForIn(
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
-	c.enterScope("", defaultScopeType)
 
 	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
+
+	var loopBodyOffset int
+
+	nextType := c.checker.GetIteratorElementType(inExpressionType)
+	if c.checker.IsSubtype(nextType, c.checker.Std(symbol.S_BuiltinIterator)) {
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.FOR_IN_BUILTIN)
+	} else {
+		c.emitCallNext(value.NewCallSiteInfo(symbol.L_next, 0), inExpression.Span())
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
+	}
 
 	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
@@ -1748,7 +1761,6 @@ func (c *Compiler) compileForIn(
 	if !collectionLiteral {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -6567,6 +6579,16 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 		span,
 		bytecode.CALL_METHOD8,
 		bytecode.CALL_METHOD16,
+	)
+}
+
+// Emit an instruction that calls the `next` method
+func (c *Compiler) emitCallNext(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
+		value.Ref(callInfo),
+		span,
+		bytecode.NEXT8,
+		bytecode.NEXT16,
 	)
 }
 

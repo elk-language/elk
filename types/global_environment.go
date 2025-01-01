@@ -156,33 +156,77 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 }
 
 func setupHelperTypes(env *GlobalEnvironment) {
+	ArrayList := env.StdSubtypeClass(symbol.ArrayList)
 	BivariantArrayList := NewGenericWithVariance(
-		env.StdSubtypeClass(symbol.ArrayList),
+		ArrayList,
 		BIVARIANT,
 		Any{},
 	)
+
+	ArrayTuple := env.StdSubtypeClass(symbol.ArrayTuple)
 	BivariantArrayTuple := NewGenericWithVariance(
-		env.StdSubtypeClass(symbol.ArrayTuple),
+		ArrayTuple,
 		BIVARIANT,
 		Any{},
 	)
+
+	HashSet := env.StdSubtypeClass(symbol.HashSet)
+	BivariantHashSet := NewGenericWithVariance(
+		HashSet,
+		BIVARIANT,
+		Any{},
+	)
+
+	HashMap := env.StdSubtypeClass(symbol.HashMap)
+	BivariantHashMap := NewGenericWithVariance(
+		HashMap,
+		BIVARIANT,
+		Any{},
+		Any{},
+	)
+
+	HashRecord := env.StdSubtypeClass(symbol.HashRecord)
+	BivariantHashRecord := NewGenericWithVariance(
+		HashRecord,
+		BIVARIANT,
+		Any{},
+		Any{},
+	)
+
+	Int := env.StdSubtypeClass(symbol.Int)
+	Int64 := env.StdSubtypeClass(symbol.Int64)
+	Int32 := env.StdSubtypeClass(symbol.Int32)
+	Int16 := env.StdSubtypeClass(symbol.Int16)
+	Int8 := env.StdSubtypeClass(symbol.Int8)
+	UInt64 := env.StdSubtypeClass(symbol.UInt64)
+	UInt32 := env.StdSubtypeClass(symbol.UInt32)
+	UInt16 := env.StdSubtypeClass(symbol.UInt16)
+	UInt8 := env.StdSubtypeClass(symbol.UInt8)
+	Float := env.StdSubtypeClass(symbol.Float)
+	Float64 := env.StdSubtypeClass(symbol.Float64)
+	Float32 := env.StdSubtypeClass(symbol.Float32)
+	BigFloat := env.StdSubtypeClass(symbol.BigFloat)
+	String := env.StdSubtypeClass(symbol.String)
+	Char := env.StdSubtypeClass(symbol.Char)
+	Regex := env.StdSubtypeClass(symbol.Regex)
+
 	BuiltinAddable := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
-		env.StdSubtype(symbol.String),
-		env.StdSubtype(symbol.Char),
-		env.StdSubtype(symbol.Regex),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
+		String,
+		Char,
+		Regex,
 		BivariantArrayList,
 		BivariantArrayTuple,
 	)
@@ -190,123 +234,153 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	stdModule.DefineSubtype(symbol.S_BuiltinAddable, BuiltinAddable)
 
 	BuiltinSubtractable := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
-		env.StdSubtype(symbol.String),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
+		String,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinSubtractable, BuiltinSubtractable)
 
 	BuiltinMultipliable := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
-		env.StdSubtype(symbol.String),
-		env.StdSubtype(symbol.Char),
-		env.StdSubtype(symbol.Regex),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
+		String,
+		Char,
+		Regex,
 		BivariantArrayList,
 		BivariantArrayTuple,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinMultipliable, BuiltinMultipliable)
 
 	BuiltinDividable := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinDividable, BuiltinDividable)
 
 	BuiltinNumeric := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinNumeric, BuiltinNumeric)
 
 	BuiltinInt := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinInt, BuiltinInt)
 
 	BuiltinLogicBitshiftable := NewUnion(
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinLogicBitshiftable, BuiltinLogicBitshiftable)
 
 	BuiltinEquatable := NewUnion(
-		env.StdSubtype(symbol.Int),
-		env.StdSubtype(symbol.Int64),
-		env.StdSubtype(symbol.Int32),
-		env.StdSubtype(symbol.Int16),
-		env.StdSubtype(symbol.Int8),
-		env.StdSubtype(symbol.UInt64),
-		env.StdSubtype(symbol.UInt32),
-		env.StdSubtype(symbol.UInt16),
-		env.StdSubtype(symbol.UInt8),
-		env.StdSubtype(symbol.Float),
-		env.StdSubtype(symbol.Float64),
-		env.StdSubtype(symbol.Float32),
-		env.StdSubtype(symbol.BigFloat),
-		env.StdSubtype(symbol.String),
-		env.StdSubtype(symbol.Char),
-		env.StdSubtype(symbol.Regex),
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Float,
+		Float64,
+		Float32,
+		BigFloat,
+		String,
+		Char,
+		Regex,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinEquatable, BuiltinEquatable)
+
+	BuiltinIterable := NewUnion(
+		env.StdSubtype(symbol.String),
+		String.MustSubtype("ByteIterator"),
+		String.MustSubtype("CharIterator"),
+		String.MustSubtype("GraphemeIterator"),
+		BivariantArrayList,
+		ArrayList.MustSubtype("Iterator"),
+		BivariantArrayTuple,
+		ArrayTuple.MustSubtype("Iterator"),
+		BivariantHashMap,
+		HashMap.MustSubtype("Iterator"),
+		BivariantHashRecord,
+		HashRecord.MustSubtype("Iterator"),
+		BivariantHashSet,
+		HashSet.MustSubtype("Iterator"),
+	)
+	stdModule.DefineSubtype(symbol.S_BuiltinIterable, BuiltinIterable)
+
+	BuiltinIterator := NewUnion(
+		String.MustSubtype("ByteIterator"),
+		String.MustSubtype("CharIterator"),
+		String.MustSubtype("GraphemeIterator"),
+		ArrayList.MustSubtype("Iterator"),
+		ArrayTuple.MustSubtype("Iterator"),
+		HashMap.MustSubtype("Iterator"),
+		HashRecord.MustSubtype("Iterator"),
+		HashSet.MustSubtype("Iterator"),
+	)
+	stdModule.DefineSubtype(symbol.S_BuiltinIterator, BuiltinIterator)
 
 }
 

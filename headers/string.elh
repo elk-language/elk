@@ -120,6 +120,11 @@ sealed primitive class ::Std::String < Value
 	alias char_iter iter
 
 	##[
+		Iterates over all grapheme clusters of a `String`.
+	]##
+	def grapheme_iter: GraphemeIterator; end
+
+	##[
 		Iterates over all bytes of a `String`.
 	]##
 	def byte_iter: ByteIterator; end
@@ -163,5 +168,23 @@ sealed primitive class ::Std::String < Value
 			Returns itself.
 		]##
 		def iter: ByteIterator; end
+	end
+
+	##[
+		Iterates over all grapheme clusters of a `String`.
+	]##
+	sealed primitive class GraphemeIterator
+		include Std::Iterator::Base[String]
+
+		##[
+			Get the next grapheme.
+			Throws `:stop_iteration` when no more graphemes are available.
+		]##
+		def next: String ! :stop_iteration; end
+
+		##[
+			Returns itself.
+		]##
+		def iter: GraphemeIterator; end
 	end
 end

@@ -178,7 +178,10 @@ const (
 	NEW_ARRAY_LIST8                 // Create a new list (8 bit operand)
 	NEW_ARRAY_LIST16                // Create a new list (16 bit operand)
 	GET_ITERATOR                    // Get the iterator of the value on top of the stack.
+	FOR_IN_BUILTIN                  // Drives the for..in loop, for builtin iterable types
 	FOR_IN                          // Drives the for..in loop
+	NEXT8                           // Call the `next` method on a builtin iterator type (8 bit operand)
+	NEXT16                          // Call the `next` method on a builtin iterator type (16 bit operand)
 	NEW_STRING8                     // Create a new string (8 bit operand)
 	NEW_STRING16                    // Create a new string (16 bit operand)
 	NEW_HASH_MAP8                   // Create a new hashmap (8 bit operand)
@@ -326,6 +329,7 @@ var opCodeNames = [...]string{
 	JUMP_IF_EQ:        "JUMP_IF_EQ",
 	LOOP:              "LOOP",
 	JUMP_IF_NIL:       "JUMP_IF_NIL",
+	JUMP_IF_NIL_NP:    "JUMP_IF_NIL_NP",
 	RBITSHIFT:         "RBITSHIFT",
 	RBITSHIFT_INT:     "RBITSHIFT_INT",
 	LOGIC_RBITSHIFT:   "LOGIC_RBITSHIFT",
@@ -395,6 +399,9 @@ var opCodeNames = [...]string{
 	NEW_ARRAY_LIST8:   "NEW_ARRAY_LIST8",
 	NEW_ARRAY_LIST16:  "NEW_ARRAY_LIST16",
 	GET_ITERATOR:      "GET_ITERATOR",
+	NEXT8:             "NEXT8",
+	NEXT16:            "NEXT16",
+	FOR_IN_BUILTIN:    "FOR_IN_BUILTIN",
 	FOR_IN:            "FOR_IN",
 	NEW_STRING8:       "NEW_STRING8",
 	NEW_STRING16:      "NEW_STRING16",

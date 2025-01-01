@@ -10,9 +10,10 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-var StringClass *Class             // ::Std::String
-var StringCharIteratorClass *Class // ::Std::String::CharIterator
-var StringByteIteratorClass *Class // ::Std::String::ByteIterator
+var StringClass *Class                 // ::Std::String
+var StringCharIteratorClass *Class     // ::Std::String::CharIterator
+var StringByteIteratorClass *Class     // ::Std::String::ByteIterator
+var StringGraphemeIteratorClass *Class // ::Std::String::GraphemeIterator
 
 // Elk's String value
 type String string
@@ -699,6 +700,70 @@ func (s *StringByteIterator) Next() (Value, Value) {
 	return result.ToValue(), Undefined
 }
 
+type StringGraphemeIterator struct {
+	String String
+	Rest   string
+	State  int
+}
+
+func NewStringGraphemeIterator(str String) *StringGraphemeIterator {
+	return &StringGraphemeIterator{
+		String: str,
+		Rest:   string(str),
+		State:  -1,
+	}
+}
+
+func NewStringGraphemeIteratorWithRestAndState(str String, rest string, state int) *StringGraphemeIterator {
+	return &StringGraphemeIterator{
+		String: str,
+		Rest:   rest,
+		State:  state,
+	}
+}
+
+func (*StringGraphemeIterator) Class() *Class {
+	return StringGraphemeIteratorClass
+}
+
+func (*StringGraphemeIterator) DirectClass() *Class {
+	return StringGraphemeIteratorClass
+}
+
+func (*StringGraphemeIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (s *StringGraphemeIterator) Error() string {
+	return s.Inspect()
+}
+
+func (s *StringGraphemeIterator) Copy() Reference {
+	return &StringGraphemeIterator{
+		String: s.String,
+		Rest:   s.Rest,
+		State:  s.State,
+	}
+}
+
+func (s *StringGraphemeIterator) Inspect() string {
+	return fmt.Sprintf("Std::String::GraphemeIterator{string: %s}", s.String.Inspect())
+}
+
+func (*StringGraphemeIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (s *StringGraphemeIterator) Next() (Value, Value) {
+	if len(s.Rest) == 0 {
+		return Undefined, stopIterationSymbol.ToValue()
+	}
+
+	var grapheme string
+	grapheme, s.Rest, _, s.State = uniseg.FirstGraphemeClusterInString(s.Rest, s.State)
+	return Ref(String(grapheme)), Undefined
+}
+
 func initString() {
 	StringClass = NewClass()
 	StdModule.AddConstantString("String", Ref(StringClass))
@@ -708,4 +773,7 @@ func initString() {
 
 	StringByteIteratorClass = NewClass()
 	StringClass.AddConstantString("ByteIterator", Ref(StringByteIteratorClass))
+
+	StringGraphemeIteratorClass = NewClass()
+	StringClass.AddConstantString("GraphemeIterator", Ref(StringGraphemeIteratorClass))
 }

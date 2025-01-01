@@ -90,7 +90,9 @@ var (
 	S_BuiltinNumeric           = value.ToSymbol("#BuiltinNumeric")           // #BuiltinNumeric
 	S_BuiltinInt               = value.ToSymbol("#BuiltinInt")               // #BuiltinInt
 	S_BuiltinLogicBitshiftable = value.ToSymbol("#BuiltinLogicBitshiftable") // #BuiltinLogicBitshiftable
-	S_BuiltinEquatable         = value.ToSymbol("#BuiltinEquatable ")        // #BuiltinEquatable
+	S_BuiltinEquatable         = value.ToSymbol("#BuiltinEquatable")         // #BuiltinEquatable
+	S_BuiltinIterable          = value.ToSymbol("#BuiltinIterable")          // #BuiltinIterable
+	S_BuiltinIterator          = value.ToSymbol("#BuiltinIterator")          // #BuiltinIterator
 )
 
 var (

@@ -695,10 +695,16 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readByte())))
 		case bytecode.NEW_REGEX16:
 			vm.throwIfErr(vm.opNewRegex(vm.readByte(), int(vm.readUint16())))
+		case bytecode.NEXT8:
+			vm.throwIfErr(vm.opNext(int(vm.readByte())))
+		case bytecode.NEXT16:
+			vm.throwIfErr(vm.opNext(int(vm.readUint16())))
+		case bytecode.FOR_IN_BUILTIN:
+			vm.opForInBuiltin()
 		case bytecode.FOR_IN:
-			vm.throwIfErr(vm.opForIn())
+			vm.opForIn()
 		case bytecode.GET_ITERATOR:
-			vm.throwIfErr(vm.opGetIterator())
+			vm.opGetIterator()
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.popGet()) {
 				jump := vm.readUint16()
@@ -911,28 +917,28 @@ func (vm *VM) run() {
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL:
-			if vm.popGet() == value.Nil {
+			if vm.popGet().IsNil() {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_NIL_NP:
-			if vm.peek() == value.Nil {
+			if vm.peek().IsNil() {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NIL:
-			if vm.popGet() != value.Nil {
+			if !vm.popGet().IsNil() {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
 				break
 			}
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_NNP:
-			if vm.peek() != value.Nil {
+			if !vm.peek().IsNil() {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
 				break
@@ -1890,9 +1896,25 @@ func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
 }
 
 // Get the iterator of the value on top of the stack.
-func (vm *VM) opGetIterator() value.Value {
+func (vm *VM) opGetIterator() {
 	val := vm.peek()
-	result, err := vm.CallMethodByName(iteratorSymbol, val)
+	result := value.Iter(val)
+	vm.replace(result)
+}
+
+var stopIterationSymbol = value.ToSymbol("stop_iteration")
+
+// Get the next element of an iterator
+func (vm *VM) opNext(callInfoIndex int) value.Value {
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	iterator := vm.peek()
+
+	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
+	result, err := vm.CallMethod(method, iterator)
+	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
+		vm.replace(value.Undefined)
+		return value.Undefined
+	}
 	if !err.IsUndefined() {
 		return err
 	}
@@ -1901,25 +1923,30 @@ func (vm *VM) opGetIterator() value.Value {
 	return value.Undefined
 }
 
-var nextSymbol = value.ToSymbol("next")
-var stopIterationSymbol = value.ToSymbol("stop_iteration")
-var iteratorSymbol = value.ToSymbol("iter")
-
-// Drive the for..in loop.
-func (vm *VM) opForIn() value.Value {
-	iterator := vm.popGet()
-	result, err := vm.CallMethodByName(nextSymbol, iterator)
-	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
+// Drives the for..in loop.
+func (vm *VM) opForIn() {
+	result := vm.peek()
+	if result.IsUndefined() {
+		vm.pop()
 		vm.ipIncrementBy(uintptr(vm.readUint16()))
-		return value.Undefined
-	}
-	if !err.IsUndefined() {
-		return err
+		return
 	}
 
-	vm.push(result)
 	vm.ipIncrementBy(2)
-	return value.Undefined
+}
+
+// Drives the for..in loop for builtin iterable types
+func (vm *VM) opForInBuiltin() {
+	iterator := vm.peek()
+	result, err := value.Next(iterator)
+	if !err.IsUndefined() {
+		vm.pop()
+		vm.ipIncrementBy(uintptr(vm.readUint16()))
+		return
+	}
+
+	vm.replace(result)
+	vm.ipIncrementBy(2)
 }
 
 var toStringSymbol = value.ToSymbol("to_string")

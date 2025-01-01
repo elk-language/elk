@@ -243,6 +243,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("String"), objectClass, env)
 			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, value.ToSymbol("ByteIterator"), objectClass, env)
 			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, value.ToSymbol("CharIterator"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, value.ToSymbol("GraphemeIterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
@@ -2786,6 +2787,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Concatenate this `String`\nwith another `String` or `Char`.\n\nCreates a new `String` containing the content\nof both operands.", false, true, true, value.ToSymbol("concat"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env)), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Get the Unicode grapheme cluster with the given index.\nIndices start at 0.", false, false, true, value.ToSymbol("grapheme_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Get the number of unicode grapheme clusters\npresent in this string.", false, false, true, value.ToSymbol("grapheme_count"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Iterates over all grapheme clusters of a `String`.", false, false, true, value.ToSymbol("grapheme_iter"), nil, nil, NameToType("Std::String::GraphemeIterator", env), Never{})
 				namespace.DefineMethod("Calculates a hash of the string.", false, false, true, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
 				namespace.DefineMethod("Check whether the `String` is empty.", false, false, true, value.ToSymbol("is_empty"), nil, nil, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Iterates over all unicode code points of a `String`.", false, false, true, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})
@@ -2829,6 +2831,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define methods
 					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})
 					namespace.DefineMethod("Get the next character.\nThrows `:stop_iteration` when no more characters are available.", false, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::Char", env), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("GraphemeIterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::String", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
+
+					// Define methods
+					namespace.DefineMethod("Returns itself.", false, false, true, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::GraphemeIterator", env), Never{})
+					namespace.DefineMethod("Get the next grapheme.\nThrows `:stop_iteration` when no more graphemes are available.", false, false, true, value.ToSymbol("next"), nil, nil, NameToType("Std::String", env), NewSymbolLiteral("stop_iteration"))
 
 					// Define constants
 

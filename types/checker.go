@@ -29,4 +29,5 @@ type Checker interface {
 	StdNil() *Class
 	StdTrue() *Class
 	StdFalse() *Class
+	GetIteratorElementType(Type) Type
 }

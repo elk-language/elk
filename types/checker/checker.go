@@ -2333,6 +2333,10 @@ func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Typ
 	return types.Untyped{}
 }
 
+func (c *Checker) GetIteratorElementType(typ types.Type) types.Type {
+	return c.getIteratorElementType(typ, nil)
+}
+
 func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) types.Type {
 	iterMethod := c.getMethod(typ, symbol.L_iter, span)
 	if iterMethod == nil {

@@ -451,8 +451,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.LOAD_CHAR_8:
 		return f.disassembleChar(output, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
-		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNP, bytecode.FOR_IN,
-		bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
+		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNP, bytecode.FOR_IN_BUILTIN,
+		bytecode.FOR_IN, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16,
 		bytecode.INSTANTIATE16, bytecode.NEW_ARRAY_TUPLE16, bytecode.NEW_ARRAY_LIST16, bytecode.NEW_STRING16,
 		bytecode.NEW_HASH_MAP16, bytecode.NEW_HASH_RECORD16, bytecode.NEW_SYMBOL16,
 		bytecode.NEW_HASH_SET16, bytecode.JUMP_IF_IEQ, bytecode.JUMP_UNLESS_IEQ, bytecode.JUMP_UNLESS_IGE,
@@ -479,11 +479,11 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_SELF8,
 		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
-		bytecode.CALL8, bytecode.GET_CONST8:
+		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8:
 		return f.disassembleValue(output, 2, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_SELF16,
 		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
-		bytecode.CALL16, bytecode.GET_CONST16:
+		bytecode.CALL16, bytecode.GET_CONST16, bytecode.NEXT16:
 		return f.disassembleValue(output, 3, offset)
 	default:
 		f.printLineNumber(output, offset)

@@ -2078,6 +2078,123 @@ func TestStringCharIterator_Inspect(t *testing.T) {
 	}
 }
 
+func TestStringGraphemeIterator_Next(t *testing.T) {
+	tests := map[string]struct {
+		s     *value.StringGraphemeIterator
+		after *value.StringGraphemeIterator
+		want  value.Value
+		err   value.Value
+	}{
+		"empty": {
+			s: value.NewStringGraphemeIterator(
+				value.String(""),
+			),
+			after: value.NewStringGraphemeIterator(
+				value.String(""),
+			),
+			err: value.ToSymbol("stop_iteration").ToValue(),
+		},
+		"with two chars offset 0": {
+			s: value.NewStringGraphemeIterator(
+				value.String("ab"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("ab"),
+				"b",
+				0,
+			),
+			want: value.Ref(value.String("a")),
+		},
+		"with two code point unicode graphemes offset 0": {
+			s: value.NewStringGraphemeIterator(
+				value.String("🇵🇱🙏🏻"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("🇵🇱🙏🏻"),
+				"🙏🏻",
+				247,
+			),
+			want: value.Ref(value.String("🇵🇱")),
+		},
+		"with two-byte unicode chars offset 0": {
+			s: value.NewStringGraphemeIterator(
+				value.String("śę"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("śę"),
+				"ę",
+				0,
+			),
+			want: value.Ref(value.String("ś")),
+		},
+		"with three-byte unicode chars offset 0": {
+			s: value.NewStringGraphemeIterator(
+				value.String("≈∫"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("≈∫"),
+				"∫",
+				0,
+			),
+			want: value.Ref(value.String("≈")),
+		},
+		"with four-byte unicode chars offset 0": {
+			s: value.NewStringGraphemeIterator(
+				value.String("😀🔥"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("😀🔥"),
+				"🔥",
+				247,
+			),
+			want: value.Ref(value.String("😀")),
+		},
+		"with two chars offset 1": {
+			s: value.NewStringGraphemeIterator(
+				value.String("ab"),
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("ab"),
+				"b",
+				0,
+			),
+			want: value.Ref(value.String("a")),
+		},
+		"with two chars offset 2": {
+			s: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("ab"),
+				"",
+				0,
+			),
+			after: value.NewStringGraphemeIteratorWithRestAndState(
+				value.String("ab"),
+				"",
+				0,
+			),
+			err: value.ToSymbol("stop_iteration").ToValue(),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.Next()
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatal(diff)
+			}
+			if !tc.err.IsUndefined() {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatal(diff)
+			}
+			if diff := cmp.Diff(tc.after, tc.s, opts...); diff != "" {
+				t.Fatal(diff)
+			}
+		})
+	}
+}
+
 func TestStringCharIterator_Next(t *testing.T) {
 	tests := map[string]struct {
 		s     *value.StringCharIterator

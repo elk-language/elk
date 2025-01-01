@@ -234,6 +234,15 @@ func initString() {
 			return value.Ref(iterator), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"grapheme_iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(value.String)
+			iterator := value.NewStringGraphemeIterator(self)
+			return value.Ref(iterator), value.Undefined
+		},
+	)
 
 }
 
@@ -268,6 +277,28 @@ func initStringByteIterator() {
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.StringByteIterator)
+			return self.Next()
+		},
+	)
+	Def(
+		c,
+		"iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+
+}
+
+// ::Std::String::GraphemeIterator
+func initStringGraphemeIterator() {
+	// Instance methods
+	c := &value.StringGraphemeIteratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.StringGraphemeIterator)
 			return self.Next()
 		},
 	)

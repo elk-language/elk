@@ -48,6 +48,7 @@ func InitGlobalEnvironment() {
 	initString()
 	initStringCharIterator()
 	initStringByteIterator()
+	initStringGraphemeIterator()
 	initSymbol()
 	initDuration()
 	initTimezone()

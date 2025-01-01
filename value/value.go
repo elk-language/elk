@@ -3289,6 +3289,62 @@ func BitwiseXor(left, right Value) (result, err Value) {
 	}
 }
 
+// Call `next`
+func Next(val Value) (result, err Value) {
+	if !val.IsReference() {
+		return Undefined, Undefined
+	}
+
+	switch v := val.AsReference().(type) {
+	case *ArrayListIterator:
+		return v.Next()
+	case *ArrayTupleIterator:
+		return v.Next()
+	case *HashMapIterator:
+		return v.Next()
+	case *HashRecordIterator:
+		return v.Next()
+	case *HashSetIterator:
+		return v.Next()
+	case *StringCharIterator:
+		return v.Next()
+	case *StringByteIterator:
+		return v.Next()
+	case *StringGraphemeIterator:
+		return v.Next()
+	default:
+		return Undefined, Undefined
+	}
+}
+
+// Get the iterator of the value
+func Iter(val Value) Value {
+	if !val.IsReference() {
+		return Undefined
+	}
+
+	switch v := val.AsReference().(type) {
+	case *ArrayListIterator, *ArrayTupleIterator, *HashMapIterator,
+		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
+		*StringByteIterator, *StringGraphemeIterator:
+		return val
+	case String:
+		return Ref(NewStringCharIterator(v))
+	case *ArrayList:
+		return Ref(NewArrayListIterator(v))
+	case *ArrayTuple:
+		return Ref(NewArrayTupleIterator(v))
+	case *HashMap:
+		return Ref(NewHashMapIterator(v))
+	case *HashRecord:
+		return Ref(NewHashRecordIterator(v))
+	case *HashSet:
+		return Ref(NewHashSetIterator(v))
+	default:
+		return Undefined
+	}
+}
+
 func NewReferenceComparer() cmp.Option {
 	filter := func(x Value, y Value) bool { return x.IsReference() && y.IsReference() }
 	transformer := cmp.Transformer("ValueToReference", func(val Value) Reference { return val.AsReference() })
