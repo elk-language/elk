@@ -509,8 +509,6 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opInstanceOf())
 		case bytecode.IS_A:
 			vm.throwIfErr(vm.opIsA())
-		case bytecode.ROOT:
-			vm.push(value.Ref(value.RootModule))
 		case bytecode.UNDEFINED:
 			vm.push(value.Undefined)
 		case bytecode.LOAD_VALUE8:
@@ -565,8 +563,6 @@ func (vm *VM) run() {
 			vm.push(value.Nil)
 		case bytecode.POP:
 			vm.pop()
-		case bytecode.POP_ALL:
-			vm.popAll()
 		case bytecode.POP_2:
 			vm.popN(2)
 		case bytecode.POP_2_SKIP_ONE:
@@ -621,6 +617,15 @@ func (vm *VM) run() {
 			vm.opSetUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
 			vm.opSetUpvalue(int(vm.readUint16()))
+		case bytecode.CLOSE_UPVALUE_1:
+			last := vm.fpAddRaw(1)
+			vm.opCloseUpvalues(last)
+		case bytecode.CLOSE_UPVALUE_2:
+			last := vm.fpAddRaw(2)
+			vm.opCloseUpvalues(last)
+		case bytecode.CLOSE_UPVALUE_3:
+			last := vm.fpAddRaw(3)
+			vm.opCloseUpvalues(last)
 		case bytecode.CLOSE_UPVALUE8:
 			last := vm.fpAddRaw(uintptr(vm.readByte()))
 			vm.opCloseUpvalues(last)
@@ -726,6 +731,13 @@ func (vm *VM) run() {
 				break
 			}
 			vm.ipIncrementBy(2)
+		case bytecode.JUMP_UNLESS_UNDEF:
+			if !vm.popGet().IsUndefined() {
+				jump := vm.readUint16()
+				vm.ipIncrementBy(uintptr(jump))
+				break
+			}
+			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_LE:
 			right := vm.popGet()
 			left := vm.popGet()
@@ -743,7 +755,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_LT:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			result, err := value.LessThanBool(left, right)
 			if !err.IsUndefined() {
@@ -758,7 +770,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_GE:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			result, err := value.GreaterThanEqualBool(left, right)
 			if !err.IsUndefined() {
@@ -773,7 +785,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_GT:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			result, err := value.GreaterThanBool(left, right)
 			if !err.IsUndefined() {
@@ -788,7 +800,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_EQ:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			result := value.EqualBool(left, right)
 			if !result {
@@ -799,7 +811,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_EQ:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			result := value.EqualBool(left, right)
 			if result {
@@ -828,7 +840,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_ILT:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			var result bool
 			if left.IsSmallInt() {
@@ -846,7 +858,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_IGE:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			var result bool
 			if left.IsSmallInt() {
@@ -864,7 +876,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_IGT:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			var result bool
 			if left.IsSmallInt() {
@@ -882,7 +894,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_UNLESS_IEQ:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			var result bool
 			if left.IsSmallInt() {
@@ -900,7 +912,7 @@ func (vm *VM) run() {
 			vm.ipIncrementBy(2)
 		case bytecode.JUMP_IF_IEQ:
 			right := vm.popGet()
-			left := vm.peek()
+			left := vm.popGet()
 
 			var result bool
 			if left.IsSmallInt() {

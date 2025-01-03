@@ -99,6 +99,7 @@ const (
 	JUMP_UNLESS_NIL                 // Jump n bytes forward if the value on the stack is not nil
 	JUMP_UNLESS_NNP                 // Jump n bytes forward if the value on the stack is not nil, does not pop the value
 	JUMP_UNLESS_UNP                 // Jump n bytes forward unless the value on the stack is undefined, does not pop the value
+	JUMP_UNLESS_UNDEF               // Jump n bytes forward unless the value on the stack is undefined
 	JUMP_UNLESS                     // Jump n bytes forward if the value on the stack is falsy
 	JUMP_UNLESS_NP                  // Jump n bytes forward if the value on the stack is falsy, does not pop the value
 	JUMP                            // Jump n bytes forward
@@ -140,7 +141,6 @@ const (
 	LESS_EQUAL                      // Take two values from the stack, check if the first value is less than or equal to the second and push the result
 	LESS_EQUAL_INT                  // Take an Int and another value from the stack, check if the first value is less than or equal to the second and push the result
 	LESS_EQUAL_FLOAT                // Take a Float and another value from the stack, check if the first value is less than or equal to the second and push the result
-	ROOT                            // Push `Std::Root` onto the stack.
 	NOT_EQUAL                       // Take two values from the stack, check if they're not equal and push the result
 	NOT_EQUAL_INT                   // Take an Int and another value from the stack, check if they're not equal and push the result
 	NOT_EQUAL_FLOAT                 // Take a Float and another value from the stack, check if they're not equal and push the result
@@ -217,7 +217,6 @@ const (
 	NEW_HASH_SET16                  // Create a new hashset (16 bit operand)
 	THROW                           // Throw a value/error
 	RETHROW                         // Rethrow a value/error
-	POP_ALL                         // Pop all values on the stack, leaving only the slots reserved for locals
 	RETURN_FINALLY                  // Execute all finally blocks this line is nested in and return from the current frame
 	JUMP_TO_FINALLY                 // Jump to the specified instruction after executing finally blocks
 	CLOSURE                         // Wrap the function on top of the stack in a closure
@@ -231,8 +230,11 @@ const (
 	GET_UPVALUE_1                   // Push the value of the upvalue with index 1
 	GET_UPVALUE8                    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
 	GET_UPVALUE16                   // Push the value of the upvalue with the given index onto the stack (16 bit operand)
-	CLOSE_UPVALUE8                  // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
-	CLOSE_UPVALUE16                 // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
+	CLOSE_UPVALUE_1                 // Close upvalues up to index 1
+	CLOSE_UPVALUE_2                 // Close upvalues up to index 2
+	CLOSE_UPVALUE_3                 // Close upvalues up to index 3
+	CLOSE_UPVALUE8                  // Close upvalues up to the given index, moving them from the stack to the heap (8 bit operand)
+	CLOSE_UPVALUE16                 // Close upvalues up to the given index, moving them from the stack to the heap (16 bit operand)
 	DEF_NAMESPACE                   // Define a new namespace
 	DEF_METHOD_ALIAS                // Define a new method alias
 	GET_CONST8                      // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
@@ -320,6 +322,7 @@ var opCodeNames = [...]string{
 	JUMP_UNLESS_NIL:   "JUMP_UNLESS_NIL",
 	JUMP_UNLESS_NNP:   "JUMP_UNLESS_NNP",
 	JUMP_UNLESS_UNP:   "JUMP_UNLESS_UNP",
+	JUMP_UNLESS_UNDEF: "JUMP_UNLESS_UNDEF",
 	JUMP_UNLESS:       "JUMP_UNLESS",
 	JUMP_UNLESS_NP:    "JUMP_UNLESS_NP",
 	JUMP:              "JUMP",
@@ -361,7 +364,6 @@ var opCodeNames = [...]string{
 	LESS_EQUAL:        "LESS_EQUAL",
 	LESS_EQUAL_INT:    "LESS_EQUAL_INT",
 	LESS_EQUAL_FLOAT:  "LESS_EQUAL_FLOAT",
-	ROOT:              "ROOT",
 	NOT_EQUAL:         "NOT_EQUAL",
 	NOT_EQUAL_INT:     "NOT_EQUAL_INT",
 	NOT_EQUAL_FLOAT:   "NOT_EQUAL_FLOAT",
@@ -438,7 +440,6 @@ var opCodeNames = [...]string{
 	NEW_HASH_SET16:    "NEW_HASH_SET16",
 	THROW:             "THROW",
 	RETHROW:           "RETHROW",
-	POP_ALL:           "POP_ALL",
 	RETURN_FINALLY:    "RETURN_FINALLY",
 	JUMP_TO_FINALLY:   "JUMP_TO_FINALLY",
 	CLOSURE:           "CLOSURE",
@@ -452,6 +453,9 @@ var opCodeNames = [...]string{
 	GET_UPVALUE_1:     "GET_UPVALUE_1",
 	GET_UPVALUE8:      "GET_UPVALUE8",
 	GET_UPVALUE16:     "GET_UPVALUE16",
+	CLOSE_UPVALUE_1:   "CLOSE_UPVALUE_1",
+	CLOSE_UPVALUE_2:   "CLOSE_UPVALUE_2",
+	CLOSE_UPVALUE_3:   "CLOSE_UPVALUE_3",
 	CLOSE_UPVALUE8:    "CLOSE_UPVALUE8",
 	CLOSE_UPVALUE16:   "CLOSE_UPVALUE16",
 	DEF_NAMESPACE:     "DEF_NAMESPACE",

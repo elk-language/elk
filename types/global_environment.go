@@ -307,6 +307,20 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinNumeric, BuiltinNumeric)
 
+	BuiltinIncrementable := NewUnion(
+		Int,
+		Int64,
+		Int32,
+		Int16,
+		Int8,
+		UInt64,
+		UInt32,
+		UInt16,
+		UInt8,
+		Char,
+	)
+	stdModule.DefineSubtype(symbol.S_BuiltinIncrementable, BuiltinIncrementable)
+
 	BuiltinInt := NewUnion(
 		Int,
 		Int64,

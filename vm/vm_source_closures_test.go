@@ -77,7 +77,7 @@ func TestVMSource_Closure(t *testing.T) {
 				closures[0].()
 				closures[1].()
 			`,
-			wantStdout:   "3\n3\n",
+			wantStdout:   "1\n2\n",
 			wantStackTop: value.Nil,
 		},
 		"upvalue in body of fornum loop": {

@@ -339,16 +339,12 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
-			c.emit(pSpan.StartPos.Line, bytecode.POP)
 			c.compileNode(p.Initialiser, false)
-			c.emitSetLocalNoPop(pSpan.StartPos.Line, local.index)
+			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
 
 			c.patchJump(jump, pSpan)
-			// pops the value after SET_LOCAL when the argument was missing
-			// or pops the condition value used for jump when the argument was present
-			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 	}
 	c.compileStatements(body, span, false)
@@ -554,16 +550,12 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNP)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
-			c.emit(pSpan.StartPos.Line, bytecode.POP)
 			c.compileNode(p.Initialiser, false)
-			c.emitSetLocalNoPop(pSpan.StartPos.Line, local.index)
+			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
 
 			c.patchJump(jump, pSpan)
-			// pops the value after SET_LOCAL when the argument was missing
-			// or pops the condition value used for jump when the argument was present
-			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 
 		if p.SetInstanceVariable {
@@ -850,7 +842,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.VariablePatternDeclarationNode:
 		c.compilerVariablePatternDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
-		c.compileVariableDeclarationNode(node)
+		return c.compileVariableDeclarationNode(node, valueIsIgnored)
 	case *ast.ValuePatternDeclarationNode:
 		c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
@@ -1448,21 +1440,25 @@ func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpre
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
-	c.enterScope("", defaultScopeType)
 	start := c.nextInstructionOffset()
 	var loopBodyOffset int
 
-	// loop condition eg. `i < 5`
-	c.compileNode(node.Condition, false)
-	// jump past the loop if the condition is falsy
-	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, node.Condition, span); optimisedCond != nil {
+		optimisedCond()
+		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+	} else {
+		// loop condition eg. `i < 5`
+		c.compileNodeWithResult(node.Condition)
+		// jump past the loop if the condition is falsy
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	}
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	// loop body
 	c.compileStatementsWithResult(node.ThenBody, span)
 
-	c.leaveScope(span.EndPos.Line)
+	c.closeUpvaluesInCurrentScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -1512,10 +1508,15 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 		return
 	}
 
-	// loop condition eg. `i < 5`
-	c.compileNode(condition, false)
-	// jump past the loop if the condition is falsy
-	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, condition, span); optimisedCond != nil {
+		optimisedCond()
+		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+	} else {
+		// loop condition eg. `i < 5`
+		c.compileNodeWithResult(condition)
+		// jump past the loop if the condition is falsy
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	}
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -1569,10 +1570,15 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 		return
 	}
 
-	// loop condition eg. `i > 5`
-	c.compileNodeWithResult(condition)
-	// jump past the loop if the condition is truthy
-	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, condition, span); optimisedCond != nil {
+		optimisedCond()
+		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+	} else {
+		// loop condition eg. `i > 5`
+		c.compileNodeWithResult(condition)
+		// jump past the loop if the condition is truthy
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	}
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -1612,10 +1618,15 @@ func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpre
 	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
-	// loop condition eg. `i > 5`
-	c.compileNode(node.Condition, false)
-	// jump past the loop if the condition is truthy
-	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, node.Condition, span); optimisedCond != nil {
+		optimisedCond()
+		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+	} else {
+		// loop condition eg. `i > 5`
+		c.compileNodeWithResult(node.Condition)
+		// jump past the loop if the condition is truthy
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	}
 	// pop the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -1689,6 +1700,70 @@ func (c *Compiler) compileModifierForInNode(label string, node *ast.ModifierForI
 	)
 }
 
+func (c *Compiler) compileForInAsNumericFor(
+	label string,
+	param ast.PatternNode,
+	inExpression ast.ExpressionNode,
+	then func(),
+	span *position.Span,
+	collectionLiteral bool,
+) bool {
+	var paramExpr ast.ExpressionNode
+	var paramName string
+	switch p := param.(type) {
+	case *ast.PublicIdentifierNode:
+		paramExpr = p
+		paramName = p.Value
+	case *ast.PrivateIdentifierNode:
+		paramExpr = p
+		paramName = p.Value
+	default:
+		return false
+	}
+
+	inRange, ok := inExpression.(*ast.RangeLiteralNode)
+	if !ok {
+		return false
+	}
+
+	switch inRange.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		init := ast.NewVariableDeclarationNode(
+			param.Span(),
+			"",
+			paramName,
+			nil,
+			inRange.Start,
+		)
+		cond := ast.NewBinaryExpressionNode(
+			inRange.End.Span(),
+			token.New(inRange.Op.Span(), token.LESS_EQUAL),
+			paramExpr,
+			inRange.End,
+		)
+		increment := ast.NewPostfixExpressionNode(
+			inRange.Op.Span(),
+			token.New(inRange.Op.Span(), token.PLUS_PLUS),
+			paramExpr,
+		)
+		c.compileNumericFor(
+			label,
+			init,
+			cond,
+			increment,
+			then,
+			span,
+		)
+		if !collectionLiteral {
+			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(span.StartPos.Line, bytecode.NIL)
+		}
+		return true
+	}
+
+	return false
+}
+
 func (c *Compiler) compileForIn(
 	label string,
 	param ast.PatternNode,
@@ -1697,6 +1772,10 @@ func (c *Compiler) compileForIn(
 	span *position.Span,
 	collectionLiteral bool,
 ) {
+	if c.compileForInAsNumericFor(label, param, inExpression, then, span, collectionLiteral) {
+		return
+	}
+
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, false)
 
@@ -1784,45 +1863,62 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 		return
 	}
 
+	c.compileNumericFor(
+		label,
+		node.Initialiser,
+		node.Condition,
+		node.Increment,
+		func() {
+			c.compileStatementsWithResult(node.ThenBody, span)
+		},
+		span,
+	)
+}
+
+func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), span *position.Span) {
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, true)
 
 	// loop initialiser eg. `i := 0`
-	if node.Initialiser != nil {
-		c.compileNodeWithoutResult(node.Initialiser)
+	if init != nil {
+		c.compileNodeWithoutResult(init)
 	}
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
-	c.enterScope("", defaultScopeType)
 	start := c.nextInstructionOffset()
 	continueOffset := start
 
 	var loopBodyOffset int
 	// loop condition eg. `i < 5`
-	if node.Condition != nil {
-		c.compileNodeWithResult(node.Condition)
+	if cond != nil {
 		// jump past the loop if the condition is falsy
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, cond, span); optimisedCond != nil {
+			optimisedCond()
+			loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+		} else {
+			c.compileNodeWithResult(cond)
+			loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		}
 	}
 	// pop the return value of the last iteration
 	c.emit(span.EndPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatementsWithResult(node.ThenBody, span)
+	then()
 
-	if node.Increment != nil {
+	c.closeUpvaluesInCurrentScope(span.EndPos.Line)
+	if increment != nil {
 		continueOffset = c.nextInstructionOffset()
 		// increment step eg. `i += 1`
-		c.compileNodeWithoutResult(node.Increment)
+		c.compileNodeWithoutResult(increment)
 	}
 
-	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
 	// after loop
-	if node.Condition != nil {
+	if cond != nil {
 		c.patchJump(loopBodyOffset, span)
 	}
 
@@ -1842,6 +1938,32 @@ func (c *Compiler) emitGetterCall(name string, span *position.Span) {
 	c.emitCallMethod(callInfo, span)
 }
 
+func (c *Compiler) compileIncrement(typ types.Type, span *position.Span) {
+	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+		c.emit(span.EndPos.Line, bytecode.INCREMENT_INT)
+		return
+	}
+	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinIncrementable)) {
+		c.emit(span.EndPos.Line, bytecode.INCREMENT)
+		return
+	}
+
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpIncrement, 0), span)
+}
+
+func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
+	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+		c.emit(span.EndPos.Line, bytecode.DECREMENT_INT)
+		return
+	}
+	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinIncrementable)) {
+		c.emit(span.EndPos.Line, bytecode.DECREMENT)
+		return
+	}
+
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), span)
+}
+
 func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
@@ -1850,9 +1972,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.typeOf(n), node.Span())
 		case token.MINUS_MINUS:
-			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+			c.compileDecrement(c.typeOf(n), node.Span())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
@@ -1865,9 +1987,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.typeOf(n), node.Span())
 		case token.MINUS_MINUS:
-			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+			c.compileDecrement(c.typeOf(n), node.Span())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
@@ -1883,9 +2005,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.typeOf(n), node.Span())
 		case token.MINUS_MINUS:
-			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+			c.compileDecrement(c.typeOf(n), node.Span())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
@@ -1906,9 +2028,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.typeOf(n), node.Span())
 		case token.MINUS_MINUS:
-			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+			c.compileDecrement(c.typeOf(n), node.Span())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
@@ -1925,9 +2047,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.typeOf(n), node.Span())
 		case token.MINUS_MINUS:
-			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+			c.compileDecrement(c.typeOf(n), node.Span())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
@@ -2537,15 +2659,17 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 		return valueIgnoredToResult(valueIsIgnored)
 	}
 
-	if c.optimiseIf(jumpOp, condition, then, els, span, valueIsIgnored) {
-		return valueIgnoredToResult(valueIsIgnored)
+	cond := func() {
+		c.compileNodeWithResult(condition)
+	}
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(jumpOp, condition, span); optimisedCond != nil {
+		jumpOp = optimisedJumpOp
+		cond = optimisedCond
 	}
 
 	return c.compileIf(
 		jumpOp,
-		func() {
-			c.compileNodeWithResult(condition)
-		},
+		cond,
 		then,
 		els,
 		span,
@@ -2553,485 +2677,246 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 	)
 }
 
-func (c *Compiler) optimiseIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseCondition(jumpOp bytecode.OpCode, condition ast.ExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	cond, ok := condition.(*ast.BinaryExpressionNode)
 	if !ok {
-		return false
+		return 0, nil
 	}
 
 	switch cond.Op.Type {
 	case token.LESS_EQUAL:
-		return c.optimiseIfLessEqual(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfLessEqual(jumpOp, cond, span)
 	case token.LESS:
-		return c.optimiseIfLess(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfLess(jumpOp, cond, span)
 	case token.GREATER_EQUAL:
-		return c.optimiseIfGreaterEqual(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfGreaterEqual(jumpOp, cond, span)
 	case token.GREATER:
-		return c.optimiseIfGreater(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfGreater(jumpOp, cond, span)
 	case token.EQUAL_EQUAL:
-		return c.optimiseIfEqual(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfEqual(jumpOp, cond, span)
 	case token.NOT_EQUAL:
-		return c.optimiseIfNotEqual(jumpOp, cond, then, els, span, valueIsIgnored)
+		return c.optimiseIfNotEqual(jumpOp, cond, span)
 	}
 
-	return false
+	return 0, nil
 }
 
-func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_IF_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_NIL, func() { c.compileNodeWithResult(condition.Right) }
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_IF_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_NIL, func() { c.compileNodeWithResult(condition.Left) }
 		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_IF_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_IEQ, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_IF_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_IEQ, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
+		}
+	}
+
+	if jumpOp == bytecode.JUMP_IF {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			return bytecode.JUMP_UNLESS_NIL, func() { c.compileNodeWithResult(condition.Right) }
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			return bytecode.JUMP_UNLESS_NIL, func() { c.compileNodeWithResult(condition.Left) }
+		}
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			return bytecode.JUMP_UNLESS_IEQ, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			return bytecode.JUMP_UNLESS_IEQ, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
+		}
+	}
+
+	return 0, nil
+}
+
+func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+	leftType := c.typeOf(condition.Left)
+	rightType := c.typeOf(condition.Right)
+
+	if jumpOp == bytecode.JUMP_UNLESS {
+		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
+			return bytecode.JUMP_UNLESS_NIL, func() { c.compileNodeWithResult(condition.Right) }
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
+			return bytecode.JUMP_UNLESS_NIL, func() { c.compileNodeWithResult(condition.Left) }
+		}
+		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
+			return bytecode.JUMP_UNLESS_IEQ, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			return bytecode.JUMP_UNLESS_IEQ, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
 		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_NIL, func() { c.compileNodeWithResult(condition.Right) }
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_NIL, func() { c.compileNodeWithResult(condition.Left) }
 		}
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_IEQ, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_IF_IEQ, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 
-	return false
+	return 0, nil
 }
 
-func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
-	leftType := c.typeOf(condition.Left)
-	rightType := c.typeOf(condition.Right)
-
-	if jumpOp == bytecode.JUMP_UNLESS {
-		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-	}
-	if jumpOp == bytecode.JUMP_IF {
-		if c.checker.IsSubtype(leftType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_IF_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(rightType, c.checker.StdNil()) {
-			c.compileIf(
-				bytecode.JUMP_IF_NIL,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_IF_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_IF_IEQ,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
-		}
-	}
-
-	return false
-}
-
-func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGT,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGT, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILT,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILT, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILE,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILE, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 	}
 
-	return false
+	return 0, nil
 }
 
-func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGE,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGE, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		// Reverse only when leftType is subtype of BuiltinComparable
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILE,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILE, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILT,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILT, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 	}
 
-	return false
+	return 0, nil
 }
 
-func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILT,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILT, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGT,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGT, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGE,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGE, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 	}
 
-	return false
+	return 0, nil
 }
 
-func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) bool {
+func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
 	if jumpOp == bytecode.JUMP_UNLESS {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_ILE,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_ILE, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGE,
-				func() {
-					c.compileNodeWithResult(condition.Right)
-					c.compileNodeWithResult(condition.Left)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGE, func() {
+				c.compileNodeWithResult(condition.Right)
+				c.compileNodeWithResult(condition.Left)
+			}
 		}
 	}
 	if jumpOp == bytecode.JUMP_IF {
 		if c.checker.IsSubtype(leftType, c.checker.StdInt()) {
-			c.compileIf(
-				bytecode.JUMP_UNLESS_IGT,
-				func() {
-					c.compileNodeWithResult(condition.Left)
-					c.compileNodeWithResult(condition.Right)
-				},
-				then,
-				els,
-				span,
-				valueIsIgnored,
-			)
-			return true
+			return bytecode.JUMP_UNLESS_IGT, func() {
+				c.compileNodeWithResult(condition.Left)
+				c.compileNodeWithResult(condition.Right)
+			}
 		}
 	}
 
-	return false
+	return 0, nil
 }
 
 func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, valueIsIgnored bool) expressionResult {
@@ -3601,11 +3486,11 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 
 	if elementBeforeRestCount == -1 {
 		c.emitValue(value.SmallInt(len(elements)).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.EQUAL)
+		c.emit(span.StartPos.Line, bytecode.EQUAL_INT)
 	} else {
 		staticElementCount := elementBeforeRestCount + elementAfterRestCount
 		c.emitValue(value.SmallInt(staticElementCount).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
+		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL_I)
 	}
 
 	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
@@ -3654,8 +3539,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			loopStartOffset := c.nextInstructionOffset()
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 			c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-			c.emit(span.StartPos.Line, bytecode.LESS)
-			loopEndJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			loopEndJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_ILT)
 
 			// loop body
 			c.emit(span.StartPos.Line, bytecode.DUP)
@@ -3667,7 +3551,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			c.emit(span.StartPos.Line, bytecode.POP)
 			// i++
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.INCREMENT)
+			c.compileIncrement(c.checker.StdInt(), span)
 			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -3705,9 +3589,8 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 
 			// i++
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.INCREMENT)
-			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.compileIncrement(c.checker.StdInt(), span)
+			c.emitSetLocalPop(span.StartPos.Line, iteratorVar.index)
 		}
 	}
 
@@ -4179,7 +4062,7 @@ func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatt
 	c.patchJump(jumpOverErrorOffset, span)
 }
 
-func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) {
+func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
 	if initialised {
@@ -4187,13 +4070,19 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 	}
 	local := c.defineLocal(node.Name, node.Span())
 	if local == nil {
-		return
+		return valueIgnoredToResult(valueIsIgnored)
 	}
+
 	if initialised {
-		c.emitSetLocalNoPop(node.Span().StartPos.Line, local.index)
-	} else {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		return c.emitSetLocal(node.Span().StartPos.Line, local.index, valueIsIgnored)
 	}
+
+	if !valueIsIgnored {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		return expressionCompiled
+	}
+
+	return expressionCompiledWithoutResult
 }
 
 // Compile each element of a collection of statements.
@@ -6448,6 +6337,18 @@ func (c *Compiler) emitGetUpvalue(line int, index uint16) {
 
 // Emit an instruction that sets an upvalue.
 func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
+	switch index {
+	case 1:
+		c.emit(line, bytecode.CLOSE_UPVALUE_1)
+		return
+	case 2:
+		c.emit(line, bytecode.CLOSE_UPVALUE_2)
+		return
+	case 3:
+		c.emit(line, bytecode.CLOSE_UPVALUE_3)
+		return
+	}
+
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.CLOSE_UPVALUE16)
 		c.emitUint16(index)
@@ -6636,6 +6537,11 @@ func (c *Compiler) leaveScopeWithoutMutating(line int) int {
 	varsToPop := len(c.scopes[currentDepth].localTable)
 	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 	return varsToPop
+}
+
+func (c *Compiler) closeUpvaluesInCurrentScope(line int) {
+	currentDepth := len(c.scopes) - 1
+	c.closeUpvaluesInScope(line, c.scopes[currentDepth])
 }
 
 func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {

@@ -93,6 +93,7 @@ var (
 	S_BuiltinEquatable         = value.ToSymbol("#BuiltinEquatable")         // #BuiltinEquatable
 	S_BuiltinIterable          = value.ToSymbol("#BuiltinIterable")          // #BuiltinIterable
 	S_BuiltinIterator          = value.ToSymbol("#BuiltinIterator")          // #BuiltinIterator
+	S_BuiltinIncrementable     = value.ToSymbol("#BuiltinIncrementable")     // #BuiltinIncrementable
 )
 
 var (
