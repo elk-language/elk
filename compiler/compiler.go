@@ -1725,43 +1725,80 @@ func (c *Compiler) compileForInAsNumericFor(
 	if !ok {
 		return false
 	}
+	if inRange.Start == nil {
+		return false
+	}
+
+	var op token.Type
+	var initVal ast.ExpressionNode
 
 	switch inRange.Op.Type {
 	case token.CLOSED_RANGE_OP:
-		init := ast.NewVariableDeclarationNode(
-			param.Span(),
-			"",
-			paramName,
-			nil,
+		op = token.LESS_EQUAL
+		initVal = inRange.Start
+	case token.RIGHT_OPEN_RANGE_OP:
+		op = token.LESS
+		initVal = inRange.Start
+	case token.LEFT_OPEN_RANGE_OP:
+		op = token.LESS_EQUAL
+		initVal = ast.NewMethodCallNode(
+			inRange.Span(),
 			inRange.Start,
+			token.New(inRange.Op.Span(), token.DOT),
+			"++",
+			nil,
+			nil,
 		)
-		cond := ast.NewBinaryExpressionNode(
+	case token.OPEN_RANGE_OP:
+		op = token.LESS
+		initVal = ast.NewMethodCallNode(
+			inRange.Span(),
+			inRange.Start,
+			token.New(inRange.Op.Span(), token.DOT),
+			"++",
+			nil,
+			nil,
+		)
+	default:
+		return false
+	}
+
+	init := ast.NewVariableDeclarationNode(
+		param.Span(),
+		"",
+		paramName,
+		nil,
+		initVal,
+	)
+	increment := ast.NewPostfixExpressionNode(
+		inRange.Op.Span(),
+		token.New(inRange.Op.Span(), token.PLUS_PLUS),
+		paramExpr,
+	)
+
+	var cond ast.ExpressionNode
+	if inRange.End != nil {
+		cond = ast.NewBinaryExpressionNode(
 			inRange.End.Span(),
-			token.New(inRange.Op.Span(), token.LESS_EQUAL),
+			token.New(inRange.Op.Span(), op),
 			paramExpr,
 			inRange.End,
 		)
-		increment := ast.NewPostfixExpressionNode(
-			inRange.Op.Span(),
-			token.New(inRange.Op.Span(), token.PLUS_PLUS),
-			paramExpr,
-		)
-		c.compileNumericFor(
-			label,
-			init,
-			cond,
-			increment,
-			then,
-			span,
-		)
-		if !collectionLiteral {
-			c.emit(span.StartPos.Line, bytecode.POP)
-			c.emit(span.StartPos.Line, bytecode.NIL)
-		}
-		return true
+	}
+	c.compileNumericFor(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		span,
+	)
+	if !collectionLiteral {
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(span.StartPos.Line, bytecode.NIL)
 	}
 
-	return false
+	return true
 }
 
 func (c *Compiler) compileForIn(
@@ -3744,7 +3781,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(name, op, args, false, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, span)
 
 		// if nil
 		// leave nil on the stack
@@ -3756,7 +3793,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(name, op, args, false, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, span)
 
 		// if nil
 		// leave nil on the stack
@@ -3766,30 +3803,38 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 			c.compileNodeWithResult(receiver)
 		}
 		c.emit(span.EndPos.Line, bytecode.DUP)
-		c.compileInnerMethodCall(name, op, args, onSelf, span)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, span)
 	case token.DOT:
 		if !onSelf {
 			c.compileNodeWithResult(receiver)
 		}
-		c.compileInnerMethodCall(name, op, args, onSelf, span)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, span)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *Compiler) compileInnerMethodCall(name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, span *position.Span) {
+func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, span *position.Span) {
 	for _, posArg := range args {
 		c.compileNodeWithResult(posArg)
 	}
 
+	receiverType := c.typeOf(receiver)
 	nameSym := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSym, len(args))
 	if onSelf {
 		c.emitCallSelf(callInfo, span)
-	} else if name == "call" {
-		c.emitCall(callInfo, span)
 	} else {
-		c.emitCallMethod(callInfo, span)
+		switch name {
+		case "call":
+			c.emitCall(callInfo, span)
+		case "++":
+			c.compileIncrement(receiverType, span)
+		case "--":
+			c.compileDecrement(receiverType, span)
+		default:
+			c.emitCallMethod(callInfo, span)
+		}
 	}
 
 	switch op.Type {
