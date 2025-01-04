@@ -43,12 +43,13 @@ const (
 type VM struct {
 	bytecode        *BytecodeFunction
 	upvalues        []*Upvalue
-	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
-	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
-	sp              uintptr       // Stack pointer -- points to the offset where the next element will be pushed to
-	fp              uintptr       // Frame pointer -- points to the offset where the section of the stack for current frame starts
-	localCount      int           // the amount of registered locals
-	cfp             uintptr       // Call frame pointer
+	openUpvalueHead *Upvalue // linked list of open upvalues, living on the stack
+	ip              uintptr  // Instruction pointer -- points to the next bytecode instruction
+	sp              uintptr  // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              uintptr  // Frame pointer -- points to the offset where the section of the stack for current frame starts
+	localCount      int      // the amount of registered locals
+	cfp             uintptr  // Call frame pointer
+	tailCallCounter int
 	stack           []value.Value // Value stack
 	callFrames      []CallFrame   // Call stack
 	errStackTrace   string        // The most recent error stack trace
@@ -115,6 +116,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 	vm.ipSet(&fn.Instructions[0])
 	vm.push(value.Ref(value.GlobalObject))
 	vm.localCount = 1
+	vm.tailCallCounter = 0
 	vm.run()
 	err := vm.Err()
 	if !err.IsUndefined() {
@@ -127,6 +129,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
+	vm.tailCallCounter = 0
 	if vm.sp == uintptr(unsafe.Pointer(&vm.stack[0])) {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
@@ -1169,7 +1172,17 @@ func (vm *VM) ResetError() {
 	vm.errStackTrace = ""
 }
 
-func addStackTraceEntry(output io.Writer, id int, fileName string, lineNumber int, name string) {
+func addStackTraceEntry(
+	output io.Writer,
+	id int,
+	fileName string,
+	lineNumber int,
+	name string,
+	tailCallCounter int,
+) {
+	if tailCallCounter > 0 {
+		fmt.Fprintf(output, " ... %d optimised tail call(s)\n", tailCallCounter)
+	}
 	// "  %d: %s:%d, in `%s`\n"
 	fmt.Fprint(output, " ")
 	color.New(color.FgHiBlue).Fprintf(output, "%d", id)
@@ -1192,6 +1205,7 @@ func (vm *VM) BuildStackTrace() string {
 				callFrame.FileName(),
 				callFrame.LineNumber(),
 				callFrame.Name().String(),
+				callFrame.tailCallCounter,
 			)
 
 			i++
@@ -1207,6 +1221,7 @@ func (vm *VM) BuildStackTrace() string {
 		vm.bytecode.FileName(),
 		vm.bytecode.GetLineNumber(vm.ipOffset()-1),
 		vm.bytecode.Name().String(),
+		vm.tailCallCounter,
 	)
 	// Stack trace (the most recent call is last):
 	//   0: /tmp/test.elk:18, in `foo`
@@ -1760,6 +1775,7 @@ func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.
 	vm.localCount = localCount
 	vm.bytecode = method
 	vm.ipSet(&method.Instructions[0])
+	vm.tailCallCounter++
 }
 
 // set up the vm to execute a bytecode method
@@ -1875,17 +1891,19 @@ func (vm *VM) opDefSetter() {
 func (vm *VM) addCallFrame(cf CallFrame) {
 	*vm.cfpGet() = cf
 	vm.cfpIncrement()
+	vm.tailCallCounter = 0
 }
 
 // preserve the current state of the vm in a call frame
 func (vm *VM) createCurrentCallFrame(stopVM bool) {
 	vm.addCallFrame(
 		CallFrame{
-			bytecode:   vm.bytecode,
-			ip:         vm.ip,
-			fp:         vm.fp,
-			localCount: vm.localCount,
-			stopVM:     stopVM,
+			bytecode:        vm.bytecode,
+			ip:              vm.ip,
+			fp:              vm.fp,
+			localCount:      vm.localCount,
+			tailCallCounter: vm.tailCallCounter,
+			stopVM:          stopVM,
 		},
 	)
 }
