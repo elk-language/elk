@@ -461,9 +461,9 @@ func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *posit
 	var lastTypeSpan *position.Span
 	var seenNever bool
 	var unreachableCodeErrorReported bool
-	for _, statement := range stmts {
+	for i, statement := range stmts {
 		var t types.Type
-		t, span := c.checkStatement(statement)
+		t, span := c.checkStatement(statement, i == len(stmts)-1)
 		if t == nil {
 			continue
 		}
@@ -490,12 +490,12 @@ func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *posit
 	}
 }
 
-func (c *Checker) checkStatement(node ast.Node) (types.Type, *position.Span) {
+func (c *Checker) checkStatement(node ast.Node, tailPosition bool) (types.Type, *position.Span) {
 	switch node := node.(type) {
 	case *ast.EmptyStatementNode:
 		return nil, nil
 	case *ast.ExpressionStatementNode:
-		node.Expression = c.checkExpression(node.Expression)
+		node.Expression = c.checkExpressionWithTailPosition(node.Expression, tailPosition)
 		return c.TypeOf(node.Expression), node.Expression.Span()
 	case *ast.ImportStatementNode:
 		return nil, nil
@@ -697,6 +697,10 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	return c.checkExpressionWithTailPosition(node, false)
+}
+
+func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailPosition bool) ast.ExpressionNode {
 	if node == nil {
 		return nil
 	}
@@ -890,15 +894,15 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.AssignmentExpressionNode:
 		return c.checkAssignmentExpressionNode(n)
 	case *ast.ReceiverlessMethodCallNode:
-		return c.checkReceiverlessMethodCallNode(n)
+		return c.checkReceiverlessMethodCallNode(n, tailPosition)
 	case *ast.GenericReceiverlessMethodCallNode:
-		return c.checkGenericReceiverlessMethodCallNode(n)
+		return c.checkGenericReceiverlessMethodCallNode(n, tailPosition)
 	case *ast.MethodCallNode:
-		return c.checkMethodCallNode(n)
+		return c.checkMethodCallNode(n, tailPosition)
 	case *ast.GenericMethodCallNode:
-		return c.checkGenericMethodCallNode(n)
+		return c.checkGenericMethodCallNode(n, tailPosition)
 	case *ast.CallNode:
-		return c.checkCallNode(n)
+		return c.checkCallNode(n, tailPosition)
 	case *ast.ClosureLiteralNode:
 		return c.checkClosureLiteralNode(n)
 	case *ast.NewExpressionNode:
@@ -2092,7 +2096,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 		if node.Value == nil {
 			typ = types.Nil{}
 		} else {
-			node.Value = c.checkExpression(node.Value)
+			node.Value = c.checkExpressionWithTailPosition(node.Value, true)
 			typ = c.typeOfGuardVoid(node.Value)
 		}
 
@@ -2110,7 +2114,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 				node.Value.Span(),
 			)
 		}
-		node.Value = c.checkExpression(node.Value)
+		node.Value = c.checkExpressionWithTailPosition(node.Value, true)
 		typ = c.typeOfGuardVoid(node.Value)
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
@@ -3791,7 +3795,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 	return typ
 }
 
-func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
@@ -3850,13 +3854,14 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		typedPositionalArguments,
 		nil,
 	)
+	newNode.TailCall = tailPosition
 	c.checkCalledMethodThrowType(method, node.Span())
 
 	newNode.SetType(method.ReturnType)
 	return newNode
 }
 
-func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	methodName := value.ToSymbol(node.MethodName)
 	method, fromLocal := c.getReceiverlessMethod(methodName, node.Span())
 	if method == nil || method.IsPlaceholder() {
@@ -3929,6 +3934,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		typedPositionalArguments,
 		nil,
 	)
+	newNode.TailCall = tailPosition
 	c.checkCalledMethodThrowType(method, node.Span())
 
 	newNode.SetType(method.ReturnType)
@@ -4291,7 +4297,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	return node
 }
 
-func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
+func (c *Checker) checkCallNode(node *ast.CallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
 	var op token.Type
 	if node.NilSafe {
@@ -4308,11 +4314,12 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 		node.NamedArguments,
 		node.Span(),
 	)
+	node.TailCall = tailPosition
 	node.SetType(typ)
 	return node
 }
 
-func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
@@ -4323,11 +4330,12 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) ast.ExpressionNo
 		node.NamedArguments,
 		node.Span(),
 	)
+	node.TailCall = tailPosition
 	node.SetType(typ)
 	return node
 }
 
-func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
@@ -4338,6 +4346,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) as
 		node.NamedArguments,
 		node.Span(),
 	)
+	node.TailCall = tailPosition
 	node.SetType(typ)
 	return node
 }
