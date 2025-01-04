@@ -564,7 +564,9 @@ func (c *Checker) checkMethod(
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 	}
-	c.pushCatchScope(makeCatchScope(throwType))
+	if !types.IsNever(throwType) {
+		c.pushCatchScope(makeCatchScope(throwType, false))
+	}
 
 	if len(body) > 0 && checkedMethod.IsAbstract() {
 		c.addFailure(
@@ -586,7 +588,7 @@ func (c *Checker) checkMethod(
 		}
 		c.returnType = returnType
 		c.throwType = throwType
-		bodyReturnType, returnSpan := c.checkStatements(body)
+		bodyReturnType, returnSpan := c.checkStatements(body, true)
 		if !checkedMethod.IsAbstract() && !c.IsHeader {
 			if c.mode == closureInferReturnTypeMode {
 				c.addToReturnType(bodyReturnType)

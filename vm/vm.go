@@ -43,12 +43,13 @@ const (
 type VM struct {
 	bytecode        *BytecodeFunction
 	upvalues        []*Upvalue
-	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
-	ip              uintptr       // Instruction pointer -- points to the next bytecode instruction
-	sp              uintptr       // Stack pointer -- points to the offset where the next element will be pushed to
-	fp              uintptr       // Frame pointer -- points to the offset where the section of the stack for current frame starts
-	localCount      int           // the amount of registered locals
-	cfp             uintptr       // Call frame pointer
+	openUpvalueHead *Upvalue // linked list of open upvalues, living on the stack
+	ip              uintptr  // Instruction pointer -- points to the next bytecode instruction
+	sp              uintptr  // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              uintptr  // Frame pointer -- points to the offset where the section of the stack for current frame starts
+	localCount      int      // the amount of registered locals
+	cfp             uintptr  // Call frame pointer
+	tailCallCounter int
 	stack           []value.Value // Value stack
 	callFrames      []CallFrame   // Call stack
 	errStackTrace   string        // The most recent error stack trace
@@ -115,6 +116,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 	vm.ipSet(&fn.Instructions[0])
 	vm.push(value.Ref(value.GlobalObject))
 	vm.localCount = 1
+	vm.tailCallCounter = 0
 	vm.run()
 	err := vm.Err()
 	if !err.IsUndefined() {
@@ -127,6 +129,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
+	vm.tailCallCounter = 0
 	if vm.sp == uintptr(unsafe.Pointer(&vm.stack[0])) {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
@@ -487,6 +490,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readUint16())),
 			)
+		case bytecode.CALL_METHOD_TCO8:
+			vm.throwIfErr(
+				vm.opCallMethodTCO(int(vm.readByte())),
+			)
+		case bytecode.CALL_METHOD_TCO16:
+			vm.throwIfErr(
+				vm.opCallMethodTCO(int(vm.readUint16())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readByte())),
@@ -502,6 +513,14 @@ func (vm *VM) run() {
 		case bytecode.CALL16:
 			vm.throwIfErr(
 				vm.opCall(int(vm.readUint16())),
+			)
+		case bytecode.CALL_SELF_TCO8:
+			vm.throwIfErr(
+				vm.opCallSelfTCO(int(vm.readByte())),
+			)
+		case bytecode.CALL_SELF_TCO16:
+			vm.throwIfErr(
+				vm.opCallSelfTCO(int(vm.readUint16())),
 			)
 		case bytecode.CALL_SELF8:
 			vm.throwIfErr(
@@ -1153,7 +1172,17 @@ func (vm *VM) ResetError() {
 	vm.errStackTrace = ""
 }
 
-func addStackTraceEntry(output io.Writer, id int, fileName string, lineNumber int, name string) {
+func addStackTraceEntry(
+	output io.Writer,
+	id int,
+	fileName string,
+	lineNumber int,
+	name string,
+	tailCallCounter int,
+) {
+	if tailCallCounter > 0 {
+		fmt.Fprintf(output, " ... %d optimised tail call(s)\n", tailCallCounter)
+	}
 	// "  %d: %s:%d, in `%s`\n"
 	fmt.Fprint(output, " ")
 	color.New(color.FgHiBlue).Fprintf(output, "%d", id)
@@ -1176,6 +1205,7 @@ func (vm *VM) BuildStackTrace() string {
 				callFrame.FileName(),
 				callFrame.LineNumber(),
 				callFrame.Name().String(),
+				callFrame.tailCallCounter,
 			)
 
 			i++
@@ -1187,10 +1217,11 @@ func (vm *VM) BuildStackTrace() string {
 	}
 	addStackTraceEntry(
 		&buffer,
-		i+1,
+		i,
 		vm.bytecode.FileName(),
 		vm.bytecode.GetLineNumber(vm.ipOffset()-1),
 		vm.bytecode.Name().String(),
+		vm.tailCallCounter,
 	)
 	// Stack trace (the most recent call is last):
 	//   0: /tmp/test.elk:18, in `foo`
@@ -1449,6 +1480,36 @@ func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, ind
 }
 
 // Call a method with an implicit receiver
+func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+
+	self := vm.selfValue()
+	class := self.DirectClass()
+
+	// shift all arguments one slot forward to make room for self
+	for i := 0; i < callInfo.ArgumentCount; i++ {
+		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
+	}
+	*vm.spAdd(-callInfo.ArgumentCount) = self
+	vm.spIncrement()
+
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunctionTCO(m, callInfo)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	}
+
+	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+// Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
@@ -1638,6 +1699,30 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	return value.Undefined
 }
 
+// Call a method with an explicit receiver with tail call optimisation
+func (vm *VM) opCallMethodTCO(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+
+	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	self := *selfPtr
+	class := self.DirectClass()
+
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunctionTCO(m, callInfo)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
+	}
+}
+
 // Call a method with an explicit receiver
 func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
@@ -1675,6 +1760,22 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 	}
 	vm.push(returnVal)
 	return value.Undefined
+}
+
+// set up the vm to execute a bytecode method with tail call optimisation
+func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
+	vm.prepareArguments(method.parameterCount, callInfo)
+
+	localCount := method.parameterCount + 1
+	for i := range localCount {
+		*vm.fpAdd(i) = *vm.spAdd(-localCount + i)
+	}
+	vm.popN(vm.localCount)
+
+	vm.localCount = localCount
+	vm.bytecode = method
+	vm.ipSet(&method.Instructions[0])
+	vm.tailCallCounter++
 }
 
 // set up the vm to execute a bytecode method
@@ -1790,17 +1891,19 @@ func (vm *VM) opDefSetter() {
 func (vm *VM) addCallFrame(cf CallFrame) {
 	*vm.cfpGet() = cf
 	vm.cfpIncrement()
+	vm.tailCallCounter = 0
 }
 
 // preserve the current state of the vm in a call frame
 func (vm *VM) createCurrentCallFrame(stopVM bool) {
 	vm.addCallFrame(
 		CallFrame{
-			bytecode:   vm.bytecode,
-			ip:         vm.ip,
-			fp:         vm.fp,
-			localCount: vm.localCount,
-			stopVM:     stopVM,
+			bytecode:        vm.bytecode,
+			ip:              vm.ip,
+			fp:              vm.fp,
+			localCount:      vm.localCount,
+			tailCallCounter: vm.tailCallCounter,
+			stopVM:          stopVM,
 		},
 	)
 }

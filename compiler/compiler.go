@@ -1821,7 +1821,7 @@ func (c *Compiler) compileForIn(
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.S_BuiltinIterable)) {
 		c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
 	} else {
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.L_iter, 0), inExpression.Span())
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.L_iter, 0), inExpression.Span(), false)
 	}
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
@@ -1966,13 +1966,13 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 func (c *Compiler) emitSetterCall(name string, span *position.Span) {
 	nameSymbol := value.ToSymbol(name + "=")
 	callInfo := value.NewCallSiteInfo(nameSymbol, 1)
-	c.emitCallMethod(callInfo, span)
+	c.emitCallMethod(callInfo, span, false)
 }
 
 func (c *Compiler) emitGetterCall(name string, span *position.Span) {
 	nameSymbol := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
-	c.emitCallMethod(callInfo, span)
+	c.emitCallMethod(callInfo, span, false)
 }
 
 func (c *Compiler) compileIncrement(typ types.Type, span *position.Span) {
@@ -1985,7 +1985,7 @@ func (c *Compiler) compileIncrement(typ types.Type, span *position.Span) {
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpIncrement, 0), span)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpIncrement, 0), span, false)
 }
 
 func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
@@ -1998,7 +1998,7 @@ func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), span)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), span, false)
 }
 
 func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) expressionResult {
@@ -2080,7 +2080,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		c.compileNodeWithResult(n.Receiver)
 		name := value.ToSymbol(n.AttributeName)
 		callInfo := value.NewCallSiteInfo(name, 0)
-		c.emitCallMethod(callInfo, node.Span())
+		c.emitCallMethod(callInfo, node.Span(), false)
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
@@ -3061,7 +3061,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		c.compileRangeLiteralNode(pat)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(symbol.S_contains, 1)
-		c.emitCallMethod(callInfo, span)
+		c.emitCallMethod(callInfo, span, false)
 	case *ast.PublicIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:
@@ -3089,7 +3089,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		c.compileNode(pat, false)
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
-		c.emitCallMethod(callInfo, span)
+		c.emitCallMethod(callInfo, span, false)
 	case *ast.UnaryExpressionNode:
 		c.unaryPattern(pat)
 	case *ast.BinaryPatternNode:
@@ -3224,7 +3224,7 @@ func (c *Compiler) asPattern(node *ast.AsPatternNode) {
 func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.Span) {
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(value.ToSymbol(name), 0)
-	c.emitCallMethod(callInfo, span)
+	c.emitCallMethod(callInfo, span, false)
 
 	var identVar *local
 	switch c.mode {
@@ -3255,7 +3255,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 		case *ast.SymbolKeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			callInfo := value.NewCallSiteInfo(value.ToSymbol(e.Key), 0)
-			c.emitCallMethod(callInfo, span)
+			c.emitCallMethod(callInfo, span, false)
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3420,7 +3420,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(symbol.L_length, 0)
-	c.emitCallMethod(callInfo, span)
+	c.emitCallMethod(callInfo, span, false)
 
 	if !restElementIsPresent {
 		c.emitValue(value.SmallInt(len(subPatternElements)).ToValue(), span)
@@ -3445,7 +3445,7 @@ subPatternLoop:
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNodeWithResult(element)
 		callInfo := value.NewCallSiteInfo(symbol.L_contains, 1)
-		c.emitCallMethod(callInfo, span)
+		c.emitCallMethod(callInfo, span, false)
 
 		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		jumpsToPatch = append(jumpsToPatch, jmp)
@@ -3514,7 +3514,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(symbol.L_length, 0)
-	c.emitCallMethod(callInfo, span)
+	c.emitCallMethod(callInfo, span, false)
 	var lengthVar *local
 	if elementBeforeRestCount != -1 {
 		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), span)
@@ -3709,7 +3709,7 @@ func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	if node.AttributeName == "call" {
 		c.emitCall(callInfo, node.Span())
 	} else {
-		c.emitCallMethod(callInfo, node.Span())
+		c.emitCallMethod(callInfo, node.Span(), false)
 	}
 }
 
@@ -3758,6 +3758,7 @@ func (c *Compiler) compileMethodCallNode(node *ast.MethodCallNode) {
 		node.Op,
 		node.MethodName,
 		node.PositionalArguments,
+		node.TailCall,
 		node.Span(),
 	)
 }
@@ -3767,11 +3768,12 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 		node.Op,
 		node.MethodName,
 		node.PositionalArguments,
+		node.TailCall,
 		node.Span(),
 	)
 }
 
-func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, tailCall bool, span *position.Span) {
 	_, onSelf := receiver.(*ast.SelfLiteralNode)
 
 	switch op.Type {
@@ -3781,7 +3783,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, span)
 
 		// if nil
 		// leave nil on the stack
@@ -3793,7 +3795,7 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, span)
 
 		// if nil
 		// leave nil on the stack
@@ -3803,18 +3805,18 @@ func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Toke
 			c.compileNodeWithResult(receiver)
 		}
 		c.emit(span.EndPos.Line, bytecode.DUP)
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, span)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, span)
 	case token.DOT:
 		if !onSelf {
 			c.compileNodeWithResult(receiver)
 		}
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, span)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, span)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, span *position.Span) {
+func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, tailCall bool, span *position.Span) {
 	for _, posArg := range args {
 		c.compileNodeWithResult(posArg)
 	}
@@ -3823,7 +3825,7 @@ func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name stri
 	nameSym := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSym, len(args))
 	if onSelf {
-		c.emitCallSelf(callInfo, span)
+		c.emitCallSelf(callInfo, span, tailCall)
 	} else {
 		switch name {
 		case "call":
@@ -3833,7 +3835,7 @@ func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name stri
 		case "--":
 			c.compileDecrement(receiverType, span)
 		default:
-			c.emitCallMethod(callInfo, span)
+			c.emitCallMethod(callInfo, span, tailCall)
 		}
 	}
 
@@ -5418,7 +5420,7 @@ func (c *Compiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedSt
 		case *ast.StringInspectInterpolationNode:
 			c.compileNodeWithResult(element.Expression)
 			callInfo := value.NewCallSiteInfo(inspectSymbol, 0)
-			c.emitCallMethod(callInfo, element.Span())
+			c.emitCallMethod(callInfo, element.Span(), false)
 		}
 	}
 
@@ -5567,7 +5569,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.ADD)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span, false)
 	case token.MINUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.SUBTRACT_INT)
@@ -5581,7 +5583,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.SUBTRACT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubtract, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubtract, 1), span, false)
 	case token.STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.MULTIPLY_INT)
@@ -5595,7 +5597,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.MULTIPLY)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpMultiply, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpMultiply, 1), span, false)
 	case token.SLASH:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.DIVIDE_INT)
@@ -5609,7 +5611,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.DIVIDE)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDivide, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDivide, 1), span, false)
 	case token.STAR_STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.EXPONENTIATE_INT)
@@ -5619,7 +5621,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.EXPONENTIATE)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpExponentiate, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpExponentiate, 1), span, false)
 	case token.LBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LBITSHIFT_INT)
@@ -5629,13 +5631,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1), span, false)
 	case token.LTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
 			c.emit(line, bytecode.LOGIC_LBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1), span, false)
 	case token.RBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.RBITSHIFT_INT)
@@ -5645,13 +5647,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.RBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpRightBitshift, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpRightBitshift, 1), span, false)
 	case token.RTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
 			c.emit(line, bytecode.LOGIC_RBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1), span, false)
 	case token.AND:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_AND_INT)
@@ -5661,13 +5663,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_AND)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAnd, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAnd, 1), span, false)
 	case token.AND_TILDE:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
 			c.emit(line, bytecode.BITWISE_AND_NOT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), span, false)
 	case token.OR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_OR_INT)
@@ -5677,7 +5679,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_OR)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), span, false)
 	case token.XOR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_XOR_INT)
@@ -5687,7 +5689,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_XOR)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), span, false)
 	case token.PERCENT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.MODULO_INT)
@@ -5697,32 +5699,32 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.MODULO)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), span, false)
 	case token.LAX_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.LAX_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span, false)
 	case token.LAX_NOT_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.LAX_NOT_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span, false)
 		c.emit(line, bytecode.NOT)
 	case token.EQUAL_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span, false)
 	case token.NOT_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.NOT_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span, false)
 		c.emit(line, bytecode.NOT)
 	case token.STRICT_EQUAL:
 		c.emit(line, bytecode.STRICT_EQUAL)
@@ -5741,7 +5743,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.GREATER)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), span, false)
 	case token.GREATER_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.GREATER_EQUAL_I)
@@ -5755,7 +5757,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.GREATER_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), span, false)
 	case token.LESS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LESS_INT)
@@ -5769,7 +5771,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LESS)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), span, false)
 	case token.LESS_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LESS_EQUAL_INT)
@@ -5783,7 +5785,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LESS_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1), span)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1), span, false)
 	case token.SPACESHIP_OP:
 		c.emit(line, bytecode.COMPARE)
 	case token.INSTANCE_OF_OP:
@@ -6499,7 +6501,16 @@ func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Spa
 }
 
 // Emit an instruction that calls a method on self
-func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, span *position.Span) int {
+func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, span *position.Span, tailCall bool) int {
+	if tailCall {
+		return c.emitAddValue(
+			value.Ref(callInfo),
+			span,
+			bytecode.CALL_SELF_TCO8,
+			bytecode.CALL_SELF_TCO16,
+		)
+	}
+
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		span,
@@ -6519,7 +6530,16 @@ func (c *Compiler) emitCall(callInfo *value.CallSiteInfo, span *position.Span) i
 }
 
 // Emit an instruction that calls a method
-func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span) int {
+func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span, tailCall bool) int {
+	if tailCall {
+		return c.emitAddValue(
+			value.Ref(callInfo),
+			span,
+			bytecode.CALL_METHOD_TCO8,
+			bytecode.CALL_METHOD_TCO16,
+		)
+	}
+
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		span,

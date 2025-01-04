@@ -147,13 +147,19 @@ const (
 	STRICT_NOT_EQUAL                // Take two values from the stack, check if they're strictly not equal and push the result
 	INIT_NAMESPACE                  // Initialise a namespace
 	SELF                            // Push `self` onto the stack
-	CALL_METHOD8                    // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
-	CALL_METHOD16                   // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
 	DEF_METHOD                      // Define a new method
 	UNDEFINED                       // Push the undefined value onto the stack
 	GET_CLASS                       // Pop one value off the stack push its class
+	CALL_METHOD_TCO8                // Call a method with an explicit receiver with tail call optimisation eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD_TCO16               // Call a method with an explicit receiver with tail call optimisation eg. `foo.bar(2)` (16 bit operand)
+	CALL_METHOD8                    // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD16                   // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
+	CALL_SELF_TCO8                  // Call a method with an implicit receiver with tail call optimisation eg. `bar(2)` (8 bit operand)
+	CALL_SELF_TCO16                 // Call a method with an implicit receiver with tail call optimisation eg. `bar(2)` (16 bit operand)
 	CALL_SELF8                      // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_SELF16                     // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
+	CALL8                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
+	CALL16                          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
 	INCLUDE                         // Include a mixin in a class/mixin
 	GET_SINGLETON                   // Pop one value off the stack push its singleton class
 	COMPARE                         // Pop two values, compare them using `<=>` and push the result
@@ -220,8 +226,6 @@ const (
 	RETURN_FINALLY                  // Execute all finally blocks this line is nested in and return from the current frame
 	JUMP_TO_FINALLY                 // Jump to the specified instruction after executing finally blocks
 	CLOSURE                         // Wrap the function on top of the stack in a closure
-	CALL8                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
-	CALL16                          // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
 	SET_UPVALUE_0                   // Assign the value on top of the stack to the upvalue with index 0
 	SET_UPVALUE_1                   // Assign the value on top of the stack to the upvalue with index 1
 	SET_UPVALUE8                    // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
@@ -370,13 +374,19 @@ var opCodeNames = [...]string{
 	STRICT_NOT_EQUAL:  "STRICT_NOT_EQUAL",
 	INIT_NAMESPACE:    "INIT_NAMESPACE",
 	SELF:              "SELF",
-	CALL_METHOD8:      "CALL_METHOD8",
-	CALL_METHOD16:     "CALL_METHOD16",
 	DEF_METHOD:        "DEF_METHOD",
 	UNDEFINED:         "UNDEFINED",
 	GET_CLASS:         "GET_CLASS",
+	CALL_METHOD_TCO8:  "CALL_METHOD_TCO8",
+	CALL_METHOD_TCO16: "CALL_METHOD_TCO16",
+	CALL_METHOD8:      "CALL_METHOD8",
+	CALL_METHOD16:     "CALL_METHOD16",
+	CALL_SELF_TCO8:    "CALL_SELF_TCO8",
+	CALL_SELF_TCO16:   "CALL_SELF_TCO16",
 	CALL_SELF8:        "CALL_SELF8",
 	CALL_SELF16:       "CALL_SELF16",
+	CALL8:             "CALL8",
+	CALL16:            "CALL16",
 	INCLUDE:           "INCLUDE",
 	GET_SINGLETON:     "GET_SINGLETON",
 	COMPARE:           "COMPARE",
@@ -443,8 +453,6 @@ var opCodeNames = [...]string{
 	RETURN_FINALLY:    "RETURN_FINALLY",
 	JUMP_TO_FINALLY:   "JUMP_TO_FINALLY",
 	CLOSURE:           "CLOSURE",
-	CALL8:             "CALL8",
-	CALL16:            "CALL16",
 	SET_UPVALUE_0:     "SET_UPVALUE_0",
 	SET_UPVALUE_1:     "SET_UPVALUE_1",
 	SET_UPVALUE8:      "SET_UPVALUE8",

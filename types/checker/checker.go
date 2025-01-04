@@ -393,7 +393,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 
 	prevFilename := c.Filename
 	c.Filename = filename
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.Filename = prevFilename
 
 	node.State = ast.CHECKED_EXPRESSIONS
@@ -456,14 +456,14 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 	return position.NewLocationWithSpan(c.Filename, span)
 }
 
-func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *position.Span) {
+func (c *Checker) checkStatements(stmts []ast.StatementNode, tailPosition bool) (types.Type, *position.Span) {
 	var lastType types.Type
 	var lastTypeSpan *position.Span
 	var seenNever bool
 	var unreachableCodeErrorReported bool
-	for _, statement := range stmts {
+	for i, statement := range stmts {
 		var t types.Type
-		t, span := c.checkStatement(statement)
+		t, span := c.checkStatement(statement, tailPosition && i == len(stmts)-1)
 		if t == nil {
 			continue
 		}
@@ -490,12 +490,12 @@ func (c *Checker) checkStatements(stmts []ast.StatementNode) (types.Type, *posit
 	}
 }
 
-func (c *Checker) checkStatement(node ast.Node) (types.Type, *position.Span) {
+func (c *Checker) checkStatement(node ast.Node, tailPosition bool) (types.Type, *position.Span) {
 	switch node := node.(type) {
 	case *ast.EmptyStatementNode:
 		return nil, nil
 	case *ast.ExpressionStatementNode:
-		node.Expression = c.checkExpression(node.Expression)
+		node.Expression = c.checkExpressionWithTailPosition(node.Expression, tailPosition)
 		return c.TypeOf(node.Expression), node.Expression.Span()
 	case *ast.ImportStatementNode:
 		return nil, nil
@@ -530,7 +530,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 		)
 	}
 
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.selfType = previousSelf
 
 	if ok {
@@ -557,7 +557,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		)
 	}
 
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.selfType = previousSelf
 
 	if ok {
@@ -584,7 +584,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		)
 	}
 
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.selfType = previousSelf
 
 	if ok {
@@ -610,7 +610,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 		)
 	}
 
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.selfType = previousSelf
 
 	if ok {
@@ -636,7 +636,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		)
 	}
 
-	c.checkStatements(node.Body)
+	c.checkStatements(node.Body, false)
 	c.selfType = previousSelf
 
 	if ok {
@@ -697,6 +697,10 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	return c.checkExpressionWithTailPosition(node, false)
+}
+
+func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailPosition bool) ast.ExpressionNode {
 	if node == nil {
 		return nil
 	}
@@ -854,7 +858,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ValuePatternDeclarationNode:
 		return c.checkValuePatternDeclarationNode(n)
 	case *ast.SwitchExpressionNode:
-		return c.checkSwitchExpressionNode(n)
+		return c.checkSwitchExpressionNode(n, tailPosition)
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
 		return n
@@ -890,13 +894,13 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.AssignmentExpressionNode:
 		return c.checkAssignmentExpressionNode(n)
 	case *ast.ReceiverlessMethodCallNode:
-		return c.checkReceiverlessMethodCallNode(n)
+		return c.checkReceiverlessMethodCallNode(n, tailPosition)
 	case *ast.GenericReceiverlessMethodCallNode:
-		return c.checkGenericReceiverlessMethodCallNode(n)
+		return c.checkGenericReceiverlessMethodCallNode(n, tailPosition)
 	case *ast.MethodCallNode:
-		return c.checkMethodCallNode(n)
+		return c.checkMethodCallNode(n, tailPosition)
 	case *ast.GenericMethodCallNode:
-		return c.checkGenericMethodCallNode(n)
+		return c.checkGenericMethodCallNode(n, tailPosition)
 	case *ast.CallNode:
 		return c.checkCallNode(n)
 	case *ast.ClosureLiteralNode:
@@ -926,13 +930,13 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.TypeofExpressionNode:
 		return c.checkTypeofExpressionNode(n)
 	case *ast.IfExpressionNode:
-		return c.checkIfExpressionNode(n)
+		return c.checkIfExpressionNode(n, tailPosition)
 	case *ast.ModifierIfElseNode:
-		return c.checkModifierIfElseNode(n)
+		return c.checkModifierIfElseNode(n, tailPosition)
 	case *ast.ModifierNode:
-		return c.checkModifierNode(n)
+		return c.checkModifierNode(n, tailPosition)
 	case *ast.UnlessExpressionNode:
-		return c.checkUnlessExpressionNode(n)
+		return c.checkUnlessExpressionNode(n, tailPosition)
 	case *ast.WhileExpressionNode:
 		return c.checkWhileExpressionNode("", n)
 	case *ast.UntilExpressionNode:
@@ -2092,7 +2096,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 		if node.Value == nil {
 			typ = types.Nil{}
 		} else {
-			node.Value = c.checkExpression(node.Value)
+			node.Value = c.checkExpressionWithTailPosition(node.Value, true)
 			typ = c.typeOfGuardVoid(node.Value)
 		}
 
@@ -2110,7 +2114,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 				node.Value.Span(),
 			)
 		}
-		node.Value = c.checkExpression(node.Value)
+		node.Value = c.checkExpressionWithTailPosition(node.Value, true)
 		typ = c.typeOfGuardVoid(node.Value)
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
@@ -2193,7 +2197,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 
 	node.Increment = c.checkExpression(node.Increment)
 
-	thenType, _ := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2299,7 +2303,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
 
 	c.pushNestedLocalEnv()
-	c.checkStatements(node.ThenBody)
+	c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 
 	c.popLoop()
@@ -2354,7 +2358,7 @@ func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) ty
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {
 	loop := c.registerLoop(label, true)
 	c.pushNestedLocalEnv()
-	c.checkStatements(node.ThenBody)
+	c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 	c.popLoop()
 
@@ -2403,7 +2407,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
-	thenType, _ := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2503,7 +2507,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	thenType, _ := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2573,14 +2577,14 @@ func (c *Checker) checkTypeofExpressionNode(node *ast.TypeofExpressionNode) ast.
 	return node
 }
 
-func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tailPosition bool) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionFalsy)
-	thenType, _ := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
@@ -2594,7 +2598,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 		c.mode = prevMode
 	}
 
-	elseType, _ := c.checkStatements(node.ElseBody)
+	elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2632,7 +2636,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode) ast.
 	return node
 }
 
-func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
+func (c *Checker) checkModifierNode(node *ast.ModifierNode, tailPosition bool) ast.ExpressionNode {
 	switch node.Modifier.Type {
 	case token.IF:
 		return c.checkIfExpressionNode(
@@ -2642,6 +2646,7 @@ func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
 				ast.ExpressionToStatements(node.Left),
 				nil,
 			),
+			tailPosition,
 		)
 	case token.UNLESS:
 		return c.checkUnlessExpressionNode(
@@ -2651,6 +2656,7 @@ func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
 				ast.ExpressionToStatements(node.Left),
 				nil,
 			),
+			tailPosition,
 		)
 	case token.WHILE:
 		return c.checkWhileModifierNode("", node)
@@ -2665,7 +2671,7 @@ func (c *Checker) checkModifierNode(node *ast.ModifierNode) ast.ExpressionNode {
 	}
 }
 
-func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode) ast.ExpressionNode {
+func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode, tailPosition bool) ast.ExpressionNode {
 	return c.checkIfExpressionNode(
 		ast.NewIfExpressionNode(
 			node.Span(),
@@ -2673,17 +2679,18 @@ func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode) ast.Expr
 			ast.ExpressionToStatements(node.ThenExpression),
 			ast.ExpressionToStatements(node.ElseExpression),
 		),
+		tailPosition,
 	)
 }
 
-func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition bool) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
 	c.narrowCondition(node.Condition, assumptionTruthy)
-	thenType, _ := c.checkStatements(node.ThenBody)
+	thenType, _ := c.checkStatements(node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
 	c.pushNestedLocalEnv()
@@ -2697,7 +2704,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode) ast.Expressi
 		c.mode = prevMode
 	}
 
-	elseType, _ := c.checkStatements(node.ElseBody)
+	elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2970,6 +2977,7 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.ExpressionNode {
 	var resultType types.Type
 
+	hasFinally := len(node.Finally) > 0
 	if len(node.Catches) > 0 {
 		fullyCaughtTypes := make([]types.Type, 0, len(node.Catches))
 		catchResultTypes := make([]types.Type, 0, len(node.Catches))
@@ -2980,25 +2988,28 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
 			fullyCaughtTypes = append(fullyCaughtTypes, fullyCaughtType)
 
-			catchResultType, _ := c.checkStatements(catchNode.Body)
+			catchResultType, _ := c.checkStatements(catchNode.Body, false)
 			catchResultTypes = append(catchResultTypes, catchResultType)
 
 			c.popLocalEnv()
 		}
 		resultType = c.NewNormalisedUnion(catchResultTypes...)
 		fullyCaughtType := c.NewNormalisedUnion(fullyCaughtTypes...)
-		c.pushCatchScope(makeCatchScope(fullyCaughtType))
+		c.pushCatchScope(makeCatchScope(fullyCaughtType, hasFinally))
+		defer c.popCatchScope()
+	} else if hasFinally {
+		c.pushCatchScope(makeCatchScope(types.Never{}, true))
 		defer c.popCatchScope()
 	}
 
-	if len(node.Finally) > 0 {
+	if hasFinally {
 		c.pushNestedLocalEnv()
-		c.checkStatements(node.Finally)
+		c.checkStatements(node.Finally, false)
 		c.popLocalEnv()
 	}
 
 	c.pushNestedLocalEnv()
-	bodyResultType, _ := c.checkStatements(node.Body)
+	bodyResultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	if resultType == nil {
@@ -3791,7 +3802,7 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 	return typ
 }
 
-func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
@@ -3850,13 +3861,16 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		typedPositionalArguments,
 		nil,
 	)
+	if len(c.catchScopes) < 1 {
+		newNode.TailCall = tailPosition
+	}
 	c.checkCalledMethodThrowType(method, node.Span())
 
 	newNode.SetType(method.ReturnType)
 	return newNode
 }
 
-func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	methodName := value.ToSymbol(node.MethodName)
 	method, fromLocal := c.getReceiverlessMethod(methodName, node.Span())
 	if method == nil || method.IsPlaceholder() {
@@ -3929,6 +3943,9 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		typedPositionalArguments,
 		nil,
 	)
+	if len(c.catchScopes) < 1 {
+		newNode.TailCall = tailPosition
+	}
 	c.checkCalledMethodThrowType(method, node.Span())
 
 	newNode.SetType(method.ReturnType)
@@ -4312,7 +4329,7 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 	return node
 }
 
-func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
@@ -4323,11 +4340,14 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode) ast.ExpressionNo
 		node.NamedArguments,
 		node.Span(),
 	)
+	if len(c.catchScopes) < 1 {
+		node.TailCall = tailPosition
+	}
 	node.SetType(typ)
 	return node
 }
 
-func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) ast.ExpressionNode {
+func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
@@ -4338,6 +4358,9 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode) as
 		node.NamedArguments,
 		node.Span(),
 	)
+	if len(c.catchScopes) < 1 {
+		node.TailCall = tailPosition
+	}
 	node.SetType(typ)
 	return node
 }
@@ -6052,7 +6075,7 @@ func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclara
 	return node
 }
 
-func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast.SwitchExpressionNode {
+func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tailPosition bool) *ast.SwitchExpressionNode {
 	node.Value = c.checkExpression(node.Value)
 	valueType := c.typeOfGuardVoid(node.Value)
 
@@ -6062,7 +6085,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
 		c.narrowToType(node.Value, patternType)
-		caseType, _ := c.checkStatements(caseNode.Body)
+		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
 		c.popLocalEnv()
 	}
@@ -6070,7 +6093,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode) *ast
 	if len(node.ElseBody) > 0 {
 		c.pushNestedLocalEnv()
 		c.narrowToType(node.Value, types.Any{})
-		elseType, _ := c.checkStatements(node.ElseBody)
+		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
 		c.popLocalEnv()
 	}

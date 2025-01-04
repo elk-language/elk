@@ -11,12 +11,14 @@ import (
 )
 
 type catchScope struct {
-	typ types.Type
+	typ        types.Type
+	hasFinally bool
 }
 
-func makeCatchScope(typ types.Type) catchScope {
+func makeCatchScope(typ types.Type, hasFinally bool) catchScope {
 	return catchScope{
-		typ: typ,
+		typ:        typ,
+		hasFinally: hasFinally,
 	}
 }
 

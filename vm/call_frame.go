@@ -23,13 +23,14 @@ const CallFrameSize = unsafe.Sizeof(CallFrame{})
 
 // Contains the data of a single function call.
 type CallFrame struct {
-	upvalues   []*Upvalue
-	bytecode   *BytecodeFunction
-	ip         uintptr // Instruction pointer - points to the next bytecode instruction for this frame
-	fp         uintptr // Frame pointer -- points to the offset on the value stack where the current frame start
-	localCount int
-	stopVM     bool
-	sentinel   bool
+	upvalues        []*Upvalue
+	bytecode        *BytecodeFunction
+	ip              uintptr // Instruction pointer - points to the next bytecode instruction for this frame
+	fp              uintptr // Frame pointer -- points to the offset on the value stack where the current frame start
+	localCount      int
+	tailCallCounter int
+	stopVM          bool
+	sentinel        bool
 }
 
 func makeSentinelCallFrame() CallFrame {

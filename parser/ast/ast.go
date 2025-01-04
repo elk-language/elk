@@ -4217,6 +4217,7 @@ type GenericMethodCallNode struct {
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+	TailCall            bool
 }
 
 func (*GenericMethodCallNode) IsStatic() bool {
@@ -4244,6 +4245,7 @@ type MethodCallNode struct {
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+	TailCall            bool
 }
 
 func (*MethodCallNode) IsStatic() bool {
@@ -4268,6 +4270,7 @@ type ReceiverlessMethodCallNode struct {
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+	TailCall            bool
 }
 
 func (*ReceiverlessMethodCallNode) IsStatic() bool {
@@ -4291,6 +4294,7 @@ type GenericReceiverlessMethodCallNode struct {
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+	TailCall            bool
 }
 
 func (*GenericReceiverlessMethodCallNode) IsStatic() bool {
