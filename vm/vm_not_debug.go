@@ -15,11 +15,23 @@ func (vm *VM) ipDecrementBy(n uintptr) {
 }
 
 // Add n to the stack pointer
-func (vm *VM) spIncrementBy(n int) {
-	vm.sp = vm.sp + uintptr(n)*value.ValueSize
+func (vm *VM) spIncrementBy(n uintptr) {
+	vm.sp = vm.sp + n*value.ValueSize
+	if vm.spGet().ValueFlag() == value.SENTINEL_FLAG {
+		panic("value stack overflow")
+	}
+}
+
+// Subtract n from the stack pointer
+func (vm *VM) spDecrementBy(n uintptr) {
+	vm.sp = vm.sp - n*value.ValueSize
 }
 
 // Add n to the call frame pointer
 func (vm *VM) cfpIncrementBy(n int) {
-	vm.cfpSet(vm.cfpAdd(n))
+	ptr := vm.cfpAdd(n)
+	if ptr.sentinel {
+		panic("call stack overflow")
+	}
+	vm.cfpSet(ptr)
 }

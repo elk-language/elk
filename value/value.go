@@ -25,6 +25,10 @@ type Value struct {
 	flag uint8
 }
 
+func MakeSentinelValue() Value {
+	return Value{flag: SENTINEL_FLAG}
+}
+
 const (
 	UNDEFINED_FLAG = iota
 	TRUE_FLAG
@@ -48,6 +52,8 @@ const (
 	FLOAT64_FLAG
 	DURATION_FLAG
 	REFERENCE_FLAG
+
+	SENTINEL_FLAG = 0xFF
 )
 
 // Convert a Reference to a Value

@@ -84,7 +84,13 @@ func WithStderr(stderr io.Writer) Option {
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	stack := make([]value.Value, VALUE_STACK_SIZE)
+	// mark the end of the value stack with a sentinel value
+	stack[len(stack)-1] = value.MakeSentinelValue()
+
 	callFrames := make([]CallFrame, CALL_STACK_SIZE)
+	// mark the end of the call stack with a sentinel value
+	callFrames[len(callFrames)-1] = makeSentinelCallFrame()
+
 	vm := &VM{
 		stack:      stack,
 		sp:         uintptr(unsafe.Pointer(&stack[0])),
@@ -637,9 +643,9 @@ func (vm *VM) run() {
 		case bytecode.LEAVE_SCOPE32:
 			vm.opLeaveScope(int(vm.readUint16()), int(vm.readUint16()))
 		case bytecode.PREP_LOCALS8:
-			vm.opPrepLocals(int(vm.readByte()))
+			vm.opPrepLocals(uintptr(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
-			vm.opPrepLocals(int(vm.readUint16()))
+			vm.opPrepLocals(uintptr(vm.readUint16()))
 		case bytecode.SET_SUPERCLASS:
 			vm.opSetSuperclass()
 		case bytecode.GET_CONST8:
@@ -2058,7 +2064,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 		}
 	}
 
-	vm.spIncrementBy(-dynamicElements)
+	vm.spDecrementBy(uintptr(dynamicElements))
 	vm.push(value.Ref(value.String(buffer.String())))
 
 	return value.Undefined
@@ -2159,7 +2165,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 		}
 	}
 
-	vm.spIncrementBy(-dynamicElements)
+	vm.spDecrementBy(uintptr(dynamicElements))
 	vm.push(value.ToSymbol(buffer.String()).ToValue())
 
 	return value.Undefined
@@ -2260,7 +2266,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			buffer.WriteString(string(str))
 		}
 	}
-	vm.spIncrementBy(-dynamicElements)
+	vm.spDecrementBy(uintptr(dynamicElements))
 	re, err := value.CompileRegex(buffer.String(), flags)
 	if err != nil {
 		return value.Ref(value.NewError(value.RegexCompileErrorClass, err.Error()))
@@ -2545,9 +2551,9 @@ func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 }
 
 // Register slots for local variables and values.
-func (vm *VM) opPrepLocals(count int) {
+func (vm *VM) opPrepLocals(count uintptr) {
 	vm.spIncrementBy(count)
-	vm.localCount += count
+	vm.localCount += int(count)
 }
 
 // Push an element on top of the value stack.
@@ -2567,13 +2573,13 @@ func (vm *VM) swap() {
 
 // Pop an element off the value stack.
 func (vm *VM) pop() {
-	vm.spIncrementBy(-1)
+	vm.spDecrementBy(1)
 	*vm.spGet() = value.Undefined
 }
 
 // Pop an element off the value stack.
 func (vm *VM) popGet() value.Value {
-	vm.spIncrementBy(-1)
+	vm.spDecrementBy(1)
 	val := *vm.spGet()
 	*vm.spGet() = value.Undefined
 	return val
@@ -2590,12 +2596,12 @@ func (vm *VM) popN(n int) {
 	for i := spOffset - 1; i >= spOffset; i-- {
 		vm.stack[i] = value.Undefined
 	}
-	vm.spIncrementBy(-n)
+	vm.spDecrementBy(uintptr(n))
 }
 
 // Pop one element off the value stack skipping the first one.
 func (vm *VM) popSkipOne() {
-	vm.spIncrementBy(-1)
+	vm.spDecrementBy(1)
 	*vm.spAdd(-1) = *vm.spGet()
 }
 
@@ -2605,7 +2611,7 @@ func (vm *VM) popNSkipOne(n int) {
 	for i := vm.spOffset() - 1; i >= vm.spOffset()-n; i-- {
 		*vm.spAdd(i) = value.Undefined
 	}
-	vm.spIncrementBy(-n)
+	vm.spDecrementBy(uintptr(n))
 }
 
 // Replaces the value on top of the stack without popping it.

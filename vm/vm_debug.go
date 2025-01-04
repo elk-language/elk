@@ -6,7 +6,7 @@ import "github.com/elk-language/elk/value"
 
 // Add n to the instruction pointer
 func (vm *VM) ipIncrementBy(n uintptr) {
-	if vm.ipOffset()+int(n) >= len(vm.bytecode.Instructions) {
+	if vm.ipOffset()+int(n) > len(vm.bytecode.Instructions) {
 		panic("ip overflow")
 	}
 	vm.ip = vm.ip + n
@@ -21,11 +21,19 @@ func (vm *VM) ipDecrementBy(n uintptr) {
 }
 
 // Add n to the stack pointer
-func (vm *VM) spIncrementBy(n int) {
+func (vm *VM) spIncrementBy(n uintptr) {
 	if vm.spOffset()+n >= VALUE_STACK_SIZE {
 		panic("value stack overflow")
 	}
-	vm.sp = vm.sp + uintptr(n)*value.ValueSize
+	vm.sp = vm.sp + n*value.ValueSize
+}
+
+// Subtract n from the stack pointer
+func (vm *VM) spDecrementBy(n uintptr) {
+	if vm.spOffset()-n < 0 {
+		panic("value stack underflow")
+	}
+	vm.sp = vm.sp - n*value.ValueSize
 }
 
 // Add n to the call frame pointer
