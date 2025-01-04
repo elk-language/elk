@@ -4191,7 +4191,6 @@ type CallNode struct {
 	NilSafe             bool
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
-	TailCall            bool
 }
 
 func (*CallNode) IsStatic() bool {

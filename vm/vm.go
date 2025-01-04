@@ -487,6 +487,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opSetIvar(int(vm.readUint16())),
 			)
+		case bytecode.CALL_METHOD_TCO8:
+			vm.throwIfErr(
+				vm.opCallMethodTCO(int(vm.readByte())),
+			)
+		case bytecode.CALL_METHOD_TCO16:
+			vm.throwIfErr(
+				vm.opCallMethodTCO(int(vm.readUint16())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readByte())),
@@ -502,6 +510,14 @@ func (vm *VM) run() {
 		case bytecode.CALL16:
 			vm.throwIfErr(
 				vm.opCall(int(vm.readUint16())),
+			)
+		case bytecode.CALL_SELF_TCO8:
+			vm.throwIfErr(
+				vm.opCallSelfTCO(int(vm.readByte())),
+			)
+		case bytecode.CALL_SELF_TCO16:
+			vm.throwIfErr(
+				vm.opCallSelfTCO(int(vm.readUint16())),
 			)
 		case bytecode.CALL_SELF8:
 			vm.throwIfErr(
@@ -1187,7 +1203,7 @@ func (vm *VM) BuildStackTrace() string {
 	}
 	addStackTraceEntry(
 		&buffer,
-		i+1,
+		i,
 		vm.bytecode.FileName(),
 		vm.bytecode.GetLineNumber(vm.ipOffset()-1),
 		vm.bytecode.Name().String(),
@@ -1449,6 +1465,36 @@ func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, ind
 }
 
 // Call a method with an implicit receiver
+func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+
+	self := vm.selfValue()
+	class := self.DirectClass()
+
+	// shift all arguments one slot forward to make room for self
+	for i := 0; i < callInfo.ArgumentCount; i++ {
+		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
+	}
+	*vm.spAdd(-callInfo.ArgumentCount) = self
+	vm.spIncrement()
+
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunctionTCO(m, callInfo)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	}
+
+	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+// Call a method with an implicit receiver
 func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
@@ -1638,6 +1684,30 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	return value.Undefined
 }
 
+// Call a method with an explicit receiver with tail call optimisation
+func (vm *VM) opCallMethodTCO(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+
+	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	self := *selfPtr
+	class := self.DirectClass()
+
+	method := vm.lookupMethod(class, callInfo, callInfoIndex)
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunctionTCO(m, callInfo)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
+	}
+}
+
 // Call a method with an explicit receiver
 func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
@@ -1675,6 +1745,21 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 	}
 	vm.push(returnVal)
 	return value.Undefined
+}
+
+// set up the vm to execute a bytecode method with tail call optimisation
+func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
+	vm.prepareArguments(method.parameterCount, callInfo)
+
+	localCount := method.parameterCount + 1
+	for i := range localCount {
+		*vm.fpAdd(i) = *vm.spAdd(-localCount + i)
+	}
+	vm.popN(vm.localCount)
+
+	vm.localCount = localCount
+	vm.bytecode = method
+	vm.ipSet(&method.Instructions[0])
 }
 
 // set up the vm to execute a bytecode method
