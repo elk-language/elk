@@ -2678,7 +2678,7 @@ func (vm *VM) opDefConst() {
 func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
 	firstLocalIndex := lastLocalIndex - varsToPop
 	for i := lastLocalIndex; i > firstLocalIndex; i-- {
-		vm.stack[i] = value.Undefined
+		*vm.fpAdd(i) = value.Undefined
 	}
 }
 

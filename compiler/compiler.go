@@ -1721,10 +1721,131 @@ func (c *Compiler) compileForInAsNumericFor(
 		return false
 	}
 
-	inRange, ok := inExpression.(*ast.RangeLiteralNode)
-	if !ok {
+	if inRange, ok := inExpression.(*ast.RangeLiteralNode); ok {
+		return c.compileForInRangeLiteralAsNumericFor(label, inRange, then, paramExpr, paramName, collectionLiteral, span)
+	}
+
+	inExpressionType := c.typeOf(inExpression)
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
+		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, span)
+
+	}
+
+	return false
+}
+
+func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+	inExpressionType := c.typeOf(inExpression).(*types.Generic)
+
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessClosedRange)) ||
+		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessOpenRange)) {
 		return false
 	}
+
+	c.enterScope("", defaultScopeType)
+
+	rangeVarName := fmt.Sprintf("#!forRange%d", len(c.scopes))
+	rangeEndVarName := fmt.Sprintf("#!forRangeEnd%d", len(c.scopes))
+
+	initVal := ast.NewMethodCallNode(
+		span,
+		ast.NewPublicIdentifierNode(inExpression.Span(), rangeVarName),
+		token.New(span, token.DOT),
+		"start",
+		nil,
+		nil,
+	)
+	rangeElementType := inExpressionType.Get(0).Type
+	initVal.SetType(rangeElementType)
+
+	var cmpOp token.Type
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.ClosedRange)) {
+		cmpOp = token.LESS_EQUAL
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessClosedRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.RightOpenRange)) {
+		cmpOp = token.LESS
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) {
+		cmpOp = token.LESS
+		initVal = ast.NewMethodCallNode(
+			span,
+			initVal,
+			token.New(span, token.DOT),
+			"++",
+			nil,
+			nil,
+		)
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) {
+		cmpOp = token.LESS_EQUAL
+		initVal = ast.NewMethodCallNode(
+			span,
+			initVal,
+			token.New(span, token.DOT),
+			"++",
+			nil,
+			nil,
+		)
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessOpenRange)) {
+		initVal = ast.NewMethodCallNode(
+			span,
+			initVal,
+			token.New(span, token.DOT),
+			"++",
+			nil,
+			nil,
+		)
+	}
+
+	c.compileNodeWithResult(inExpression)
+	rangeVar := c.defineLocal(rangeVarName, span)
+	if cmpOp != token.ZERO_VALUE {
+		c.emitSetLocalNoPop(span.StartPos.Line, rangeVar.index)
+
+		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("end"), 0), span, false)
+		rangeEndVar := c.defineLocal(rangeEndVarName, span)
+		c.emitSetLocalPop(span.StartPos.Line, rangeEndVar.index)
+	} else {
+		c.emitSetLocalPop(span.StartPos.Line, rangeVar.index)
+	}
+
+	init := ast.NewVariableDeclarationNode(
+		paramExpr.Span(),
+		"",
+		paramName,
+		nil,
+		initVal,
+	)
+	increment := ast.NewPostfixExpressionNode(
+		span,
+		token.New(span, token.PLUS_PLUS),
+		paramExpr,
+	)
+	var cond ast.ExpressionNode
+	if cmpOp != token.ZERO_VALUE {
+		cond = ast.NewBinaryExpressionNode(
+			span,
+			token.New(span, cmpOp),
+			paramExpr,
+			ast.NewPublicIdentifierNode(inExpression.Span(), rangeEndVarName),
+		)
+	}
+	c.compileNumericFor(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		span,
+	)
+	if !collectionLiteral {
+		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(span.EndPos.Line, bytecode.NIL)
+	}
+
+	c.leaveScope(span.EndPos.Line)
+	return true
+}
+
+func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *ast.RangeLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
 	if inRange.Start == nil {
 		return false
 	}
@@ -1764,7 +1885,7 @@ func (c *Compiler) compileForInAsNumericFor(
 	}
 
 	init := ast.NewVariableDeclarationNode(
-		param.Span(),
+		paramExpr.Span(),
 		"",
 		paramName,
 		nil,
@@ -1794,8 +1915,8 @@ func (c *Compiler) compileForInAsNumericFor(
 		span,
 	)
 	if !collectionLiteral {
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(span.EndPos.Line, bytecode.NIL)
 	}
 
 	return true
@@ -1826,8 +1947,7 @@ func (c *Compiler) compileForIn(
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
 	iteratorVar := c.defineLocal(iteratorVarName, span)
-	c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-	c.emit(span.EndPos.Line, bytecode.POP)
+	c.emitSetLocalPop(span.StartPos.Line, iteratorVar.index)
 
 	// loop start
 	start := c.nextInstructionOffset()
@@ -2248,17 +2368,6 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 	}
 
 	return expressionCompiled
-}
-
-func (c *Compiler) complexSubscriptAssignment(subscript *ast.SubscriptExpressionNode, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	c.compileNodeWithResult(subscript.Receiver)
-	c.compileNodeWithResult(subscript.Key)
-	c.emit(span.EndPos.Line, bytecode.DUP_2)
-	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
-
-	c.compileNodeWithResult(valueNode)
-	c.emit(span.StartPos.Line, opcode)
-	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
 }
 
 func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subscript *ast.SubscriptExpressionNode, valueIsIgnored bool) expressionResult {
