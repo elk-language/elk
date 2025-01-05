@@ -61,6 +61,8 @@ func (l *ArrayList) Error() string {
 	return l.Inspect()
 }
 
+const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 50
+
 func (l *ArrayList) Inspect() string {
 	var builder strings.Builder
 
@@ -72,6 +74,11 @@ func (l *ArrayList) Inspect() string {
 		}
 
 		builder.WriteString(element.Inspect())
+
+		if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
+			builder.WriteString(", ...")
+			break
+		}
 	}
 
 	builder.WriteString("]")

@@ -60,6 +60,8 @@ func (t *ArrayTuple) Append(element Value) {
 	*t = append(*t, element)
 }
 
+const MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT = 50
+
 func (t *ArrayTuple) Inspect() string {
 	var builder strings.Builder
 
@@ -71,6 +73,10 @@ func (t *ArrayTuple) Inspect() string {
 		}
 
 		builder.WriteString(element.Inspect())
+		if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
+			builder.WriteString(", ...")
+			break
+		}
 	}
 
 	builder.WriteString("]")

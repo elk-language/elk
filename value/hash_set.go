@@ -48,11 +48,14 @@ func (h *HashSet) Error() string {
 	return h.Inspect()
 }
 
+const MAX_HASH_SET_ELEMENTS_IN_INSPECT = 50
+
 func (h *HashSet) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteString("^[")
 
 	first := true
+	i := 0
 	for _, entry := range h.Table {
 		if entry.IsUndefined() {
 			continue
@@ -63,6 +66,12 @@ func (h *HashSet) Inspect() string {
 			buffer.WriteString(", ")
 		}
 		buffer.WriteString(entry.Inspect())
+
+		if i >= MAX_HASH_SET_ELEMENTS_IN_INSPECT-1 {
+			buffer.WriteString(", ...")
+			break
+		}
+		i++
 	}
 	buffer.WriteRune(']')
 

@@ -36,11 +36,14 @@ func (h *HashRecord) Error() string {
 	return h.Inspect()
 }
 
+const MAX_HASH_RECORD_ELEMENTS_IN_INSPECT = 50
+
 func (h *HashRecord) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteString("%{")
 
 	first := true
+	i := 0
 	for _, entry := range h.Table {
 		if entry.Key.IsUndefined() {
 			continue
@@ -53,6 +56,12 @@ func (h *HashRecord) Inspect() string {
 		buffer.WriteString(entry.Key.Inspect())
 		buffer.WriteString("=>")
 		buffer.WriteString(entry.Value.Inspect())
+
+		if i >= MAX_HASH_RECORD_ELEMENTS_IN_INSPECT-1 {
+			buffer.WriteString(", ...")
+			break
+		}
+		i++
 	}
 	buffer.WriteRune('}')
 

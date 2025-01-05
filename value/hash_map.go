@@ -52,11 +52,14 @@ func (h *HashMap) Error() string {
 	return h.Inspect()
 }
 
+const MAX_HASH_MAP_ELEMENTS_IN_INSPECT = 50
+
 func (h *HashMap) Inspect() string {
 	var buffer strings.Builder
 	buffer.WriteRune('{')
 
 	first := true
+	i := 0
 	for _, entry := range h.Table {
 		if entry.Key.IsUndefined() {
 			continue
@@ -69,6 +72,12 @@ func (h *HashMap) Inspect() string {
 		buffer.WriteString(entry.Key.Inspect())
 		buffer.WriteString("=>")
 		buffer.WriteString(entry.Value.Inspect())
+
+		if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+			buffer.WriteString(", ...")
+			break
+		}
+		i++
 	}
 	buffer.WriteRune('}')
 
