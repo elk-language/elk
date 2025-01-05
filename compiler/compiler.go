@@ -1957,7 +1957,7 @@ func (c *Compiler) compileForIn(
 
 	var loopBodyOffset int
 
-	nextType := c.checker.GetIteratorElementType(inExpressionType)
+	nextType := c.checker.GetIteratorType(inExpressionType)
 	if c.checker.IsSubtype(nextType, c.checker.Std(symbol.S_BuiltinIterator)) {
 		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {

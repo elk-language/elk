@@ -2341,6 +2341,19 @@ func (c *Checker) GetIteratorElementType(typ types.Type) types.Type {
 	return c.getIteratorElementType(typ, nil)
 }
 
+func (c *Checker) GetIteratorType(typ types.Type) types.Type {
+	return c.getIteratorType(typ, nil)
+}
+
+func (c *Checker) getIteratorType(typ types.Type, span *position.Span) types.Type {
+	iterMethod := c.getMethod(typ, symbol.L_iter, span)
+	if iterMethod == nil {
+		return types.Untyped{}
+	}
+
+	return iterMethod.ReturnType
+}
+
 func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) types.Type {
 	iterMethod := c.getMethod(typ, symbol.L_iter, span)
 	if iterMethod == nil {
