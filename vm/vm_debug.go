@@ -20,26 +20,10 @@ func (vm *VM) ipDecrementBy(n uintptr) {
 	vm.ip = vm.ip - n
 }
 
-// Add n to the stack pointer
-func (vm *VM) spIncrementBy(n uintptr) {
-	if vm.spOffset()+n >= VALUE_STACK_SIZE {
-		panic("value stack overflow")
-	}
-	vm.sp = vm.sp + n*value.ValueSize
-}
-
 // Subtract n from the stack pointer
 func (vm *VM) spDecrementBy(n uintptr) {
 	if vm.spOffset()-n < 0 {
 		panic("value stack underflow")
 	}
 	vm.sp = vm.sp - n*value.ValueSize
-}
-
-// Add n to the call frame pointer
-func (vm *VM) cfpIncrementBy(n int) {
-	if vm.cfpOffset()+n >= VALUE_STACK_SIZE {
-		panic("call stack overflow")
-	}
-	vm.cfpSet(vm.cfpAdd(n))
 }

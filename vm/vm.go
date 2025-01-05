@@ -1158,7 +1158,7 @@ func (vm *VM) restoreLastFrame() bool {
 	returnValue := vm.peek()
 	vm.ip = cf.ip
 	vm.opCloseUpvalues(vm.fp)
-	vm.popN(vm.spOffsetFrom(vm.fpGet()) - 1)
+	vm.popN(vm.spOffsetTo(vm.fpGet()) - 1)
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
@@ -1253,6 +1253,14 @@ func (vm *VM) spIncrement() {
 	vm.spIncrementBy(1)
 }
 
+// Add n to the stack pointer
+func (vm *VM) spIncrementBy(n uintptr) {
+	vm.sp = vm.sp + n*value.ValueSize
+	if vm.spGet().ValueFlag() == value.SENTINEL_FLAG {
+		panic("value stack overflow")
+	}
+}
+
 func (vm *VM) spSet(ptr *value.Value) {
 	vm.sp = uintptr(unsafe.Pointer(ptr))
 }
@@ -1261,12 +1269,12 @@ func (vm *VM) spGet() *value.Value {
 	return (*value.Value)(unsafe.Pointer(vm.sp))
 }
 
-func (vm *VM) spOffsetFrom(ptr *value.Value) int {
+func (vm *VM) spOffsetTo(ptr *value.Value) int {
 	return int(uintptr(unsafe.Pointer(vm.sp))-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
 }
 
 func (vm *VM) spOffset() int {
-	return vm.spOffsetFrom(&vm.stack[0])
+	return vm.spOffsetTo(&vm.stack[0])
 }
 
 func (vm *VM) spAdd(n int) *value.Value {
@@ -1283,6 +1291,18 @@ func (vm *VM) spSubtractRaw(n uintptr) uintptr {
 
 func (vm *VM) stackAdd(ptr *value.Value, n int) *value.Value {
 	return (*value.Value)(unsafe.Add(unsafe.Pointer(ptr), n*int(value.ValueSize)))
+}
+
+func (vm *VM) stackAddRaw(ptr uintptr, n uintptr) uintptr {
+	return ptr + n*value.ValueSize
+}
+
+func (vm *VM) stackOffsetFromTo(from *value.Value, to *value.Value) int {
+	return int(uintptr(unsafe.Pointer(from))-uintptr(unsafe.Pointer(to))) / int(value.ValueSize)
+}
+
+func (vm *VM) stackOffsetFromToRaw(from, to uintptr) int {
+	return int(from-to) / int(value.ValueSize)
 }
 
 func (vm *VM) fpOffset() int {
@@ -1334,6 +1354,15 @@ func (vm *VM) ipIncrement() {
 // Increment the call frame pointer
 func (vm *VM) cfpIncrement() {
 	vm.cfpIncrementBy(1)
+}
+
+// Add n to the call frame pointer
+func (vm *VM) cfpIncrementBy(n int) {
+	ptr := vm.cfpAdd(n)
+	if ptr.sentinel {
+		panic("call stack overflow")
+	}
+	vm.cfpSet(ptr)
 }
 
 func (vm *VM) cfpAdd(n int) *CallFrame {
