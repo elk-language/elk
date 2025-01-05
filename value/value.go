@@ -1043,39 +1043,31 @@ func Subscript(collection, key Value) (result, err Value) {
 
 	switch l := collection.AsReference().(type) {
 	case *ArrayTuple:
-		result, err = l.Subscript(key)
+		return l.Subscript(key)
 	case *ArrayList:
-		result, err = l.Subscript(key)
+		return l.Subscript(key)
 	default:
 		return Undefined, Undefined
 	}
-
-	if !err.IsUndefined() {
-		return Undefined, err
-	}
-	return result, Undefined
 }
 
 // Set an element under the given key.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
 // When there are no builtin addition functions for the given type returns (undefined, undefined).
-func SubscriptSet(collection, key, val Value) (result, err Value) {
+func SubscriptSet(collection, key, val Value) (err Value) {
 	if !collection.IsReference() {
-		return Undefined, Undefined
+		return Undefined
 	}
 
 	switch l := collection.AsReference().(type) {
 	case *ArrayList:
-		err = l.SubscriptSet(key, val)
+		return l.SubscriptSet(key, val)
+	case *ArrayTuple:
+		return l.SubscriptSet(key, val)
 	default:
-		return Undefined, Undefined
+		return Undefined
 	}
-
-	if !err.IsUndefined() {
-		return Undefined, err
-	}
-	return val, Undefined
 }
 
 // Calculate the hash of the value.

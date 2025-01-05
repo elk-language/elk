@@ -157,41 +157,10 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 
 func setupHelperTypes(env *GlobalEnvironment) {
 	ArrayList := env.StdSubtypeClass(symbol.ArrayList)
-	BivariantArrayList := NewGenericWithVariance(
-		ArrayList,
-		BIVARIANT,
-		Any{},
-	)
-
 	ArrayTuple := env.StdSubtypeClass(symbol.ArrayTuple)
-	BivariantArrayTuple := NewGenericWithVariance(
-		ArrayTuple,
-		BIVARIANT,
-		Any{},
-	)
-
 	HashSet := env.StdSubtypeClass(symbol.HashSet)
-	BivariantHashSet := NewGenericWithVariance(
-		HashSet,
-		BIVARIANT,
-		Any{},
-	)
-
 	HashMap := env.StdSubtypeClass(symbol.HashMap)
-	BivariantHashMap := NewGenericWithVariance(
-		HashMap,
-		BIVARIANT,
-		Any{},
-		Any{},
-	)
-
 	HashRecord := env.StdSubtypeClass(symbol.HashRecord)
-	BivariantHashRecord := NewGenericWithVariance(
-		HashRecord,
-		BIVARIANT,
-		Any{},
-		Any{},
-	)
 
 	Int := env.StdSubtypeClass(symbol.Int)
 	Int64 := env.StdSubtypeClass(symbol.Int64)
@@ -209,6 +178,10 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	String := env.StdSubtypeClass(symbol.String)
 	Char := env.StdSubtypeClass(symbol.Char)
 	Regex := env.StdSubtypeClass(symbol.Regex)
+	ClosedRange := env.StdSubtypeClass(symbol.ClosedRange)
+	OpenRange := env.StdSubtypeClass(symbol.OpenRange)
+	LeftOpenRange := env.StdSubtypeClass(symbol.LeftOpenRange)
+	RightOpenRange := env.StdSubtypeClass(symbol.RightOpenRange)
 
 	BuiltinAddable := NewUnion(
 		Int,
@@ -227,8 +200,8 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		String,
 		Char,
 		Regex,
-		BivariantArrayList,
-		BivariantArrayTuple,
+		ArrayList,
+		ArrayTuple,
 	)
 	stdModule := env.Std()
 	stdModule.DefineSubtype(symbol.S_BuiltinAddable, BuiltinAddable)
@@ -268,8 +241,8 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		String,
 		Char,
 		Regex,
-		BivariantArrayList,
-		BivariantArrayTuple,
+		ArrayList,
+		ArrayTuple,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinMultipliable, BuiltinMultipliable)
 
@@ -371,15 +344,15 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		String.MustSubtype("ByteIterator"),
 		String.MustSubtype("CharIterator"),
 		String.MustSubtype("GraphemeIterator"),
-		BivariantArrayList,
+		ArrayList,
 		ArrayList.MustSubtype("Iterator"),
-		BivariantArrayTuple,
+		ArrayTuple,
 		ArrayTuple.MustSubtype("Iterator"),
-		BivariantHashMap,
+		HashMap,
 		HashMap.MustSubtype("Iterator"),
-		BivariantHashRecord,
+		HashRecord,
 		HashRecord.MustSubtype("Iterator"),
-		BivariantHashSet,
+		HashSet,
 		HashSet.MustSubtype("Iterator"),
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinIterable, BuiltinIterable)
@@ -393,8 +366,20 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		HashMap.MustSubtype("Iterator"),
 		HashRecord.MustSubtype("Iterator"),
 		HashSet.MustSubtype("Iterator"),
+		ClosedRange.MustSubtype("Iterator"),
+		OpenRange.MustSubtype("Iterator"),
+		LeftOpenRange.MustSubtype("Iterator"),
+		RightOpenRange.MustSubtype("Iterator"),
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinIterator, BuiltinIterator)
+
+	BuiltinSubscriptable := NewUnion(
+		ArrayList,
+		ArrayTuple,
+		HashMap,
+		HashRecord,
+	)
+	stdModule.DefineSubtype(symbol.S_BuiltinSubscriptable, BuiltinSubscriptable)
 
 }
 

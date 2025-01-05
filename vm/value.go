@@ -274,3 +274,77 @@ func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
 	}
 	return result, value.Undefined
 }
+
+// Call `next`
+func NextBuiltin(vm *VM, val value.Value) (result, err value.Value) {
+	if !val.IsReference() {
+		return value.Undefined, value.Undefined
+	}
+
+	switch v := val.AsReference().(type) {
+	case *value.ArrayListIterator:
+		return v.Next()
+	case *value.ArrayTupleIterator:
+		return v.Next()
+	case *value.HashMapIterator:
+		return v.Next()
+	case *value.HashRecordIterator:
+		return v.Next()
+	case *value.HashSetIterator:
+		return v.Next()
+	case *value.StringCharIterator:
+		return v.Next()
+	case *value.StringByteIterator:
+		return v.Next()
+	case *value.StringGraphemeIterator:
+		return v.Next()
+	case *value.ClosedRangeIterator:
+		return ClosedRangeIteratorNext(vm, v)
+	case *value.OpenRangeIterator:
+		return OpenRangeIteratorNext(vm, v)
+	case *value.LeftOpenRangeIterator:
+		return LeftOpenRangeIteratorNext(vm, v)
+	case *value.RightOpenRangeIterator:
+		return RightOpenRangeIteratorNext(vm, v)
+	default:
+		return value.Undefined, value.Undefined
+	}
+}
+
+func SubscriptBuiltin(vm *VM, collection, key value.Value) (result, err value.Value) {
+	if !collection.IsReference() {
+		return value.Undefined, value.Undefined
+	}
+
+	switch c := collection.AsReference().(type) {
+	case *value.ArrayTuple:
+		return c.Subscript(key)
+	case *value.ArrayList:
+		return c.Subscript(key)
+	case *value.HashMap:
+		return HashMapGet(vm, c, key)
+	case *value.HashRecord:
+		return HashRecordGet(vm, c, key)
+	default:
+		return value.Undefined, value.Undefined
+	}
+}
+
+func SubscriptSetBuiltin(vm *VM, collection, key, val value.Value) (err value.Value) {
+	if !collection.IsReference() {
+		return value.Undefined
+	}
+
+	switch l := collection.AsReference().(type) {
+	case *value.ArrayList:
+		return l.SubscriptSet(key, val)
+	case *value.ArrayTuple:
+		return l.SubscriptSet(key, val)
+	case *value.HashMap:
+		return HashMapSet(vm, l, key, val)
+	case *value.HashRecord:
+		return HashRecordSet(vm, l, key, val)
+	default:
+		return value.Undefined
+	}
+}

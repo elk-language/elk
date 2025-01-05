@@ -2088,7 +2088,7 @@ func (vm *VM) opForIn() {
 // Drives the for..in loop for builtin iterable types
 func (vm *VM) opForInBuiltin() {
 	iterator := vm.peek()
-	result, err := value.Next(iterator)
+	result, err := NextBuiltin(vm, iterator)
 	if !err.IsUndefined() {
 		vm.pop()
 		vm.ipIncrementBy(uintptr(vm.readUint16()))
@@ -2907,24 +2907,15 @@ func (vm *VM) opAppendAt() value.Value {
 }
 
 func (vm *VM) opSubscriptSet() value.Value {
-	val := vm.peek()
-	key := vm.peekAt(1)
-	collection := vm.peekAt(2)
+	val := vm.popGet()
+	key := vm.popGet()
+	collection := vm.peek()
 
-	result, err := value.SubscriptSet(collection, key, val)
+	err := SubscriptSetBuiltin(vm, collection, key, val)
 	if !err.IsUndefined() {
 		return err
 	}
-	if !result.IsUndefined() {
-		vm.popN(2)
-		vm.replace(result)
-		return value.Undefined
-	}
-
-	er := vm.callMethodOnStackByName(symbol.OpSubscriptSet, 2)
-	if !er.IsUndefined() {
-		return er
-	}
+	vm.replace(val)
 	return value.Undefined
 }
 
@@ -3033,7 +3024,16 @@ func (vm *VM) opBitwiseAndNot() (err value.Value) {
 
 // Get the value under the given key and push the result to the stack.
 func (vm *VM) opSubscript() (err value.Value) {
-	return vm.binaryOperation(value.Subscript, symbol.OpSubscript)
+	right := vm.peek()
+	left := vm.peekAt(1)
+
+	result, err := SubscriptBuiltin(vm, left, right)
+	if !err.IsUndefined() {
+		return err
+	}
+	vm.pop()
+	vm.replace(result)
+	return value.Undefined
 }
 
 // Perform a bitwise OR and push the result to the stack.

@@ -24,6 +24,7 @@ func InitGlobalEnvironment() {
 	initEndlessClosedRangeIterator()
 	initEndlessOpenRange()
 	initEndlessOpenRangeIterator()
+	initNil()
 	initFloat()
 	initHashMap()
 	initHashMapIterator()

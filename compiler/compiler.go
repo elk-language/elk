@@ -2121,6 +2121,22 @@ func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), span, false)
 }
 
+func (c *Compiler) compileSubscript(typ types.Type, span *position.Span) {
+	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
+		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
+	}
+
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+}
+
+func (c *Compiler) compileSubscriptSet(typ types.Type, span *position.Span) {
+	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
+		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
+	}
+
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2), span, false)
+}
+
 func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
@@ -2158,7 +2174,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		c.compileNodeWithResult(n.Receiver)
 		c.compileNodeWithResult(n.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+		receiverType := c.typeOf(n.Receiver)
+		c.compileSubscript(receiverType, node.Span())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
@@ -2170,7 +2188,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		}
 
 		// set value
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.compileSubscriptSet(receiverType, node.Span())
 	case *ast.InstanceVariableNode:
 		switch c.mode {
 		case topLevelMode:
@@ -2371,19 +2389,22 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 }
 
 func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subscript *ast.SubscriptExpressionNode, valueIsIgnored bool) expressionResult {
+	receiverType := c.typeOf(subscript.Receiver)
+
 	switch node.Op.Type {
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
 		c.compileNodeWithResult(node.Right)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+
+		c.compileSubscriptSet(receiverType, node.Span())
 	case token.OR_OR_EQUAL:
 		span := node.Span()
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+		c.compileSubscript(receiverType, node.Span())
 
 		var jump int
 		if valueIsIgnored {
@@ -2397,7 +2418,8 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.compileSubscriptSet(receiverType, node.Span())
+
 		if valueIsIgnored {
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
@@ -2416,7 +2438,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+		c.compileSubscript(receiverType, node.Span())
 
 		var jump int
 		if valueIsIgnored {
@@ -2430,7 +2452,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.compileSubscriptSet(receiverType, node.Span())
 
 		// if falsy
 		c.patchJump(jump, span)
@@ -2446,7 +2468,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
 		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+		c.compileSubscript(receiverType, node.Span())
 
 		var jump int
 		if valueIsIgnored {
@@ -2460,7 +2482,7 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 			c.emit(span.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.compileSubscriptSet(receiverType, node.Span())
 
 		// if not nil
 		c.patchJump(jump, span)
@@ -3109,7 +3131,9 @@ func (c *Compiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscr
 		func() {
 			c.compileNodeWithResult(node.Receiver)
 			c.compileNodeWithResult(node.Key)
-			c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+			receiverType := c.typeOf(node.Receiver)
+			c.compileSubscript(receiverType, node.Span())
 		},
 		func() {},
 		node.Span(),
@@ -3422,7 +3446,8 @@ func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 func (c *Compiler) identifierMapPatternElement(name string, span *position.Span) {
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.emitValue(value.ToSymbol(name).ToValue(), span)
-	c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+
 	var identVar *local
 	switch c.mode {
 	case valuePatternDeclarationNode:
@@ -3459,7 +3484,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.SymbolKeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitValue(value.ToSymbol(e.Key).ToValue(), span)
-			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3469,7 +3494,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.KeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.compileNodeWithResult(e.Key)
-			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3651,7 +3676,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		span := element.Span()
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.emitValue(value.SmallInt(i).ToValue(), element.Span())
-		c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
 
 		c.pattern(element)
 		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3669,7 +3694,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			if elementAfterRestCount != 0 {
 				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
 				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
-				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
+				c.emit(span.StartPos.Line, bytecode.SUBTRACT_INT)
 				c.emitSetLocalNoPop(span.StartPos.Line, lengthVar.index)
 				c.emit(span.StartPos.Line, bytecode.POP)
 			}
@@ -3690,7 +3715,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			// loop body
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
 			c.emitGetLocal(span.StartPos.Line, restListVar.index)
 			c.emit(span.StartPos.Line, bytecode.SWAP)
 			c.emit(span.StartPos.Line, bytecode.APPEND) // append to the list
@@ -3714,7 +3739,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			} else {
 				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
 				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
-				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
+				c.emit(span.StartPos.Line, bytecode.SUBTRACT_INT)
 				c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
 				c.emit(span.StartPos.Line, bytecode.POP)
 			}
@@ -3725,7 +3750,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			span := element.Span()
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
 
 			c.pattern(element)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3807,7 +3832,9 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 
 	c.compileNodeWithResult(node.Receiver)
 	c.compileNodeWithResult(node.Key)
-	c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+	receiverType := c.typeOf(node.Receiver)
+	c.compileSubscript(receiverType, node.Span())
 }
 
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
