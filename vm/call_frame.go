@@ -12,11 +12,11 @@ var CALL_STACK_SIZE int
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_CALL_STACK_SIZE")
 	if !ok {
-		CALL_STACK_SIZE = 1024 // 1024 frames by default
+		CALL_STACK_SIZE = 74_000 / int(CallFrameSize) // 74KB by default
 		return
 	}
 
-	CALL_STACK_SIZE = val
+	CALL_STACK_SIZE = val / int(CallFrameSize)
 }
 
 const CallFrameSize = unsafe.Sizeof(CallFrame{})

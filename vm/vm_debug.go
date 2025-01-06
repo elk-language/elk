@@ -27,3 +27,19 @@ func (vm *VM) spDecrementBy(n uintptr) {
 	}
 	vm.sp = vm.sp - n*value.ValueSize
 }
+
+// Add n to the stack pointer
+func (vm *VM) spIncrementBy(n uintptr) {
+	if vm.spOffset()+n > len(vm.stack) {
+		panic("value stack overflow")
+	}
+	vm.sp = vm.sp + n*value.ValueSize
+}
+
+// Subtract n from the call frame pointer
+func (vm *VM) cfpDecrementBy(n uintptr) {
+	if vm.cfpOffset()-n < 0 {
+		panic("call stack underflow")
+	}
+	vm.cfp = vm.cfpSubtractRaw(n)
+}

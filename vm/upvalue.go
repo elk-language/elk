@@ -17,10 +17,14 @@ type Upvalue struct {
 	// In a closed upvalue location points to the `closed` field
 	// within the upvalue.
 	location *value.Value
-	// Nil in open upvalues, contains the variable's value in closed upvalues.
+	// Undefined in open upvalues, contains the variable's value in closed upvalues.
 	closed value.Value
 	// Points to the next upvalue on the stack creating a linked list
 	next *Upvalue
+}
+
+func (u *Upvalue) IsClosed() bool {
+	return u.location == &u.closed
 }
 
 func NewUpvalue(loc *value.Value) *Upvalue {

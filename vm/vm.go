@@ -20,14 +20,22 @@ import (
 	"github.com/fatih/color"
 )
 
-var VALUE_STACK_SIZE int
+var INIT_VALUE_STACK_SIZE int
+var MAX_VALUE_STACK_SIZE int
 
 func init() {
-	val, ok := config.IntFromEnvVar("ELK_VALUE_STACK_SIZE")
+	val, ok := config.IntFromEnvVar("ELK_INIT_VALUE_STACK_SIZE")
 	if ok {
-		VALUE_STACK_SIZE = val
+		INIT_VALUE_STACK_SIZE = val / int(value.ValueSize)
 	} else {
-		VALUE_STACK_SIZE = 2048 // 2KB by default
+		INIT_VALUE_STACK_SIZE = 24_000 / int(value.ValueSize) // 24KB by default
+	}
+
+	val, ok = config.IntFromEnvVar("ELK_MAX_VALUE_STACK_SIZE")
+	if ok {
+		MAX_VALUE_STACK_SIZE = val / int(value.ValueSize)
+	} else {
+		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
 }
 
@@ -84,7 +92,7 @@ func WithStderr(stderr io.Writer) Option {
 
 // Create a new VM instance.
 func New(opts ...Option) *VM {
-	stack := make([]value.Value, VALUE_STACK_SIZE)
+	stack := make([]value.Value, INIT_VALUE_STACK_SIZE)
 	// mark the end of the value stack with a sentinel value
 	stack[len(stack)-1] = value.MakeSentinelValue()
 
@@ -1152,7 +1160,7 @@ func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
 //
 //go:inline
 func (vm *VM) restoreLastFrame() bool {
-	vm.cfpIncrementBy(-1)
+	vm.cfpDecrementBy(1)
 	cf := vm.cfpGet()
 
 	returnValue := vm.peek()
@@ -1251,14 +1259,6 @@ func (vm *VM) readValue32() value.Value {
 // Increment the stack pointer
 func (vm *VM) spIncrement() {
 	vm.spIncrementBy(1)
-}
-
-// Add n to the stack pointer
-func (vm *VM) spIncrementBy(n uintptr) {
-	vm.sp = vm.sp + n*value.ValueSize
-	if vm.spGet().ValueFlag() == value.SENTINEL_FLAG {
-		panic("value stack overflow")
-	}
 }
 
 func (vm *VM) spSet(ptr *value.Value) {
@@ -1369,6 +1369,14 @@ func (vm *VM) cfpAdd(n int) *CallFrame {
 	return vm.callFrameAdd(vm.cfpGet(), n)
 }
 
+func (vm *VM) cfpAddRaw(n uintptr) uintptr {
+	return vm.cfp + n*CallFrameSize
+}
+
+func (vm *VM) cfpSubtractRaw(n uintptr) uintptr {
+	return vm.cfp - n*CallFrameSize
+}
+
 func (vm *VM) cfpGet() *CallFrame {
 	return (*CallFrame)(unsafe.Pointer(vm.cfp))
 }
@@ -1380,6 +1388,10 @@ func (vm *VM) cfpSet(ptr *CallFrame) {
 
 func (vm *VM) callFrameAdd(ptr *CallFrame, n int) *CallFrame {
 	return (*CallFrame)(unsafe.Add(unsafe.Pointer(ptr), n*int(CallFrameSize)))
+}
+
+func (vm *VM) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
+	return ptr + n*CallFrameSize
 }
 
 func (vm *VM) cfpOffset() int {
@@ -1716,7 +1728,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	function := closure.Bytecode
-	vm.prepareArguments(function.parameterCount, callInfo)
+	vm.populateMissingParameters(function.parameterCount, callInfo.ArgumentCount)
 	vm.createCurrentCallFrame(false)
 
 	vm.localCount = function.parameterCount + 1
@@ -1778,7 +1790,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	vm.prepareArguments(method.parameterCount, callInfo)
+	vm.populateMissingParameters(method.parameterCount, callInfo.ArgumentCount)
 
 	paramCount := method.ParameterCount()
 	args := unsafe.Slice(vm.spAdd(-paramCount-1), paramCount+1)
@@ -1793,7 +1805,7 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 
 // set up the vm to execute a bytecode method with tail call optimisation
 func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
-	vm.prepareArguments(method.parameterCount, callInfo)
+	vm.populateMissingParameters(method.parameterCount, callInfo.ArgumentCount)
 
 	localCount := method.parameterCount + 1
 	for i := range localCount {
@@ -1809,19 +1821,64 @@ func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
-	vm.prepareArguments(method.parameterCount, callInfo)
+	vm.populateMissingParameters(method.parameterCount, callInfo.ArgumentCount)
 	vm.createCurrentCallFrame(false)
-
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
 	vm.fp = vm.spSubtractRaw(uintptr(method.parameterCount + 1))
 	vm.ipSet(&method.Instructions[0])
+
+	if float64(vm.spOffset()) > 0.7*float64(len(vm.stack)) {
+		vm.growValueStack()
+	}
 }
 
-func (vm *VM) prepareArguments(paramCount int, callInfo *value.CallSiteInfo) {
+func (vm *VM) growValueStack() {
+	newSize := len(vm.stack) * 2
+	if newSize >= MAX_VALUE_STACK_SIZE {
+		panic("maximum value stack size exceeded")
+	}
+	newStack := make([]value.Value, newSize)
+	copy(newStack, vm.stack)
+	newStack[len(newStack)-1] = value.MakeSentinelValue()
+	oldStackPtr := uintptr(unsafe.Pointer(&vm.stack[0]))
+	newStackPtr := uintptr(unsafe.Pointer(&newStack[0]))
+	fpOffset := uintptr(vm.fpOffset())
+	spOffset := uintptr(vm.spOffset())
+
+	for i := range vm.callFrames {
+		cf := &vm.callFrames[i]
+		offset := uintptr(vm.stackOffsetFromToRaw(oldStackPtr, cf.fp))
+		cf.fp = vm.stackAddRaw(newStackPtr, offset)
+		for _, upvalue := range cf.upvalues {
+			if upvalue.IsClosed() {
+				continue
+			}
+
+			offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.location)
+			upvalue.location = vm.stackAdd(&newStack[0], offset)
+		}
+	}
+
+	for _, upvalue := range vm.upvalues {
+		if upvalue.IsClosed() {
+			continue
+		}
+
+		offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.location)
+		upvalue.location = vm.stackAdd(&newStack[0], offset)
+	}
+
+	vm.fp = vm.stackAddRaw(newStackPtr, fpOffset)
+	vm.sp = vm.stackAddRaw(newStackPtr, spOffset)
+	vm.stack = newStack
+}
+
+func (vm *VM) populateMissingParameters(paramCount, argumentCount int) {
 	// populate missing optional arguments with undefined
-	for range paramCount - callInfo.ArgumentCount {
-		vm.push(value.Undefined)
+	missingParams := uintptr(paramCount - argumentCount)
+	if missingParams > 0 {
+		vm.spIncrementBy(missingParams)
 	}
 }
 
