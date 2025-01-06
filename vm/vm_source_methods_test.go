@@ -194,7 +194,7 @@ func TestVMSource_Alias(t *testing.T) {
 	tests := sourceTestTable{
 		"add an alias to a builtin method in Std::Int": {
 			source: `
-				sealed primitive class ::Std::Int < Value
+				sealed primitive noinit class ::Std::Int < Value
 					alias add +
 				end
 

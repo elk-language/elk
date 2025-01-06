@@ -285,7 +285,7 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				sealed primitive class ::Std::Int < Value
+				sealed primitive noinit class ::Std::Int < Value
 					include ::Bar
 				end
 
@@ -513,7 +513,7 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 		"Set constant under nested modules": {
 			source: `
 				module ::Std
-					sealed primitive class Int < Value
+					sealed primitive noinit class Int < Value
 						const Foo = 3i64
 					end
 				end
