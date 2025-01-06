@@ -19,6 +19,10 @@ var ArrayTupleIteratorClass *Class
 // Elk's ArrayTuple value
 type ArrayTuple []Value
 
+func ArrayTupleConstructor(class *Class) Value {
+	return Ref(&ArrayTuple{})
+}
+
 func NewArrayTuple(capacity int) *ArrayTuple {
 	l := make(ArrayTuple, 0, capacity)
 	return &l
@@ -278,7 +282,7 @@ func (t *ArrayTupleIterator) Next() (Value, Value) {
 }
 
 func initArrayTuple() {
-	ArrayTupleClass = NewClass()
+	ArrayTupleClass = NewClassWithOptions(ClassWithConstructor(ArrayTupleConstructor))
 	ArrayTupleClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("ArrayTuple", Ref(ArrayTupleClass))
 

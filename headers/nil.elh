@@ -1,7 +1,7 @@
 ##[
 	Represents an empty value.
 ]##
-sealed primitive class ::Std::Nil < Value
+sealed noinit primitive class ::Std::Nil < Value
 	implement Hashable
 
 	##[

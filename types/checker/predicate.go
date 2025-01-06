@@ -236,7 +236,7 @@ func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) boo
 		if classMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, false) {
+		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, true) {
 			return false
 		}
 	}
@@ -258,7 +258,7 @@ func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespa
 		if bMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, false) {
+		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, true) {
 			return false
 		}
 	}

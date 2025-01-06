@@ -14,7 +14,7 @@
 	correspond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.
 	Exponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.
 ]##
-sealed primitive class ::Std::BigFloat < Value
+sealed noinit primitive class ::Std::BigFloat < Value
 	implement Hashable
 
 	##[

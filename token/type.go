@@ -1,7 +1,7 @@
 package token
 
 // Represents the type of token
-type Type uint8
+type Type uint16
 
 // Name of the token.
 func (t Type) String() string {
@@ -446,6 +446,7 @@ const (
 	END               // Keyword `end`
 	THEN              // Keyword `then`
 	INIT              // Keyword `init`
+	NOINIT            // Keyword `noinit`
 	CLASS             // Keyword `class`
 	STRUCT            // Keyword `struct`
 	MODULE            // Keyword `module`
@@ -528,6 +529,7 @@ var Keywords = map[string]Type{
 	"end":        END,
 	"then":       THEN,
 	"init":       INIT,
+	"noinit":     NOINIT,
 	"class":      CLASS,
 	"struct":     STRUCT,
 	"module":     MODULE,
@@ -774,6 +776,7 @@ var tokenNames = [...]string{
 	END:        "end",
 	THEN:       "then",
 	INIT:       "init",
+	NOINIT:     "noinit",
 	CLASS:      "class",
 	STRUCT:     "struct",
 	MODULE:     "module",

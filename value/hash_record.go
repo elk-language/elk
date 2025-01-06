@@ -16,6 +16,10 @@ func NewHashRecord(capacity int) *HashRecord {
 	}
 }
 
+func HashRecordConstructor(class *Class) Value {
+	return Ref(&HashRecord{})
+}
+
 func (*HashRecord) Class() *Class {
 	return HashRecordClass
 }
@@ -140,7 +144,7 @@ func (h *HashRecordIterator) Next() (Value, Value) {
 }
 
 func initHashRecord() {
-	HashRecordClass = NewClass()
+	HashRecordClass = NewClassWithOptions(ClassWithConstructor(HashRecordConstructor))
 	HashRecordClass.IncludeMixin(RecordMixin)
 	StdModule.AddConstantString("HashRecord", Ref(HashRecordClass))
 

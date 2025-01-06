@@ -4131,7 +4131,11 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 }
 
 func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {
-	classType, _ := c.resolveConstantType(node.Class)
+	classType, className := c.resolveConstantType(node.Class)
+	node.Class = ast.NewPublicConstantNode(
+		node.Class.Span(),
+		className,
+	)
 	if classType == nil {
 		classType = types.Untyped{}
 	}
@@ -4177,6 +4181,9 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	generic := types.NewGeneric(class, typeArgs)
 	method := c.getMethod(generic, symbol.S_init, nil)
 	if method == nil {
+		if class.IsNoInit() {
+			c.addNoInitInstantiationError(class, node.Span())
+		}
 		method = types.NewMethod(
 			"",
 			false,
@@ -4246,6 +4253,9 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	if !class.IsGeneric() {
 		method := c.getMethod(class, symbol.S_init, nil)
 		if method == nil {
+			if class.IsNoInit() {
+				c.addNoInitInstantiationError(class, node.Span())
+			}
 			method = types.NewMethod(
 				"",
 				false,
@@ -4273,6 +4283,9 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 
 	method := c._getMethodInNamespace(class, class, symbol.S_init, nil, false)
 	if method == nil {
+		if class.IsNoInit() {
+			c.addNoInitInstantiationError(class, node.Span())
+		}
 		method = types.NewMethod(
 			"",
 			false,
@@ -4319,6 +4332,17 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	node.SetType(generic)
 	c.checkCalledMethodThrowType(method, node.Span())
 	return node
+}
+
+func (c *Checker) addNoInitInstantiationError(class *types.Class, span *position.Span) {
+	c.addFailure(
+		fmt.Sprintf(
+			"cannot instantiate class `%s` marked as `%s`",
+			types.InspectWithColor(class),
+			lexer.Colorize("noinit"),
+		),
+		span,
+	)
 }
 
 func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
@@ -6397,7 +6421,7 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Class {
+func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, noinit bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, span *position.Span) *types.Class {
 	if constantType != nil {
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
@@ -6408,6 +6432,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				abstract,
 				sealed,
 				primitive,
+				noinit,
 				fullConstantName,
 				nil,
 				c.env,
@@ -6424,6 +6449,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				abstract,
 				sealed,
 				primitive,
+				noinit,
 				fullConstantName,
 				nil,
 				c.env,
@@ -6432,13 +6458,13 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 
 		switch t := constantType.(type) {
 		case *types.Class:
-			if abstract != t.IsAbstract() || sealed != t.IsSealed() || primitive != t.IsPrimitive() {
+			if abstract != t.IsAbstract() || sealed != t.IsSealed() || primitive != t.IsPrimitive() || noinit != t.IsNoInit() {
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, sealed, primitive),
-						types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive()),
+						types.InspectModifier(abstract, sealed, primitive, noinit),
+						types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit()),
 					),
 					span,
 				)
@@ -6469,6 +6495,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 				abstract,
 				sealed,
 				primitive,
+				noinit,
 				fullConstantName,
 				nil,
 				c.env,
@@ -6482,6 +6509,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 			abstract,
 			sealed,
 			primitive,
+			noinit,
 			fullConstantName,
 			nil,
 			c.env,
@@ -6493,6 +6521,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive bo
 		abstract,
 		sealed,
 		primitive,
+		noinit,
 		constantName,
 		nil,
 		c.env,
@@ -6545,6 +6574,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
 		structNode.DocComment(),
+		false,
 		false,
 		false,
 		false,
@@ -6620,6 +6650,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		false,
 		false,
 		false,
+		false,
 		structNode.Constant,
 		nil,
 		nil,
@@ -6678,6 +6709,7 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		node.Abstract,
 		node.Sealed,
 		node.Primitive,
+		node.NoInit,
 		container,
 		constant,
 		fullConstantName,
@@ -7525,8 +7557,8 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, false, false),
-						types.InspectModifier(t.IsAbstract(), false, false),
+						types.InspectModifier(abstract, false, false, false),
+						types.InspectModifier(t.IsAbstract(), false, false, false),
 					),
 					span,
 				)

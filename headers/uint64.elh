@@ -1,7 +1,7 @@
 ##[
 	Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).
 ]##
-sealed primitive class ::Std::UInt64 < Value
+sealed noinit primitive class ::Std::UInt64 < Value
 	implement Hashable
 	implement Comparable[self]
 

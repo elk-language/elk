@@ -203,7 +203,7 @@ func (c *Closure) DefineInstanceVariable(name value.Symbol, val Type) {
 	panic("cannot define instance variables on closures")
 }
 
-func (c *Closure) DefineClass(docComment string, primitive, abstract, sealed bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *Closure) DefineClass(docComment string, primitive, abstract, sealed, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	panic("cannot define classes on closures")
 }
 

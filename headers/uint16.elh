@@ -1,7 +1,7 @@
 ##[
 	Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).
 ]##
-sealed primitive class ::Std::UInt16 < Value
+sealed noinit primitive class ::Std::UInt16 < Value
 	implement Hashable
 	implement Comparable[self]
 

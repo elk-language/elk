@@ -19,6 +19,10 @@ var ArrayListIteratorClass *Class
 // Elk's ArrayList value
 type ArrayList []Value
 
+func ArrayListConstructor(class *Class) Value {
+	return Ref(&ArrayList{})
+}
+
 func NewArrayList(capacity int) *ArrayList {
 	l := make(ArrayList, 0, capacity)
 	return &l
@@ -338,7 +342,7 @@ func (l *ArrayListIterator) Next() (Value, Value) {
 }
 
 func initArrayList() {
-	ArrayListClass = NewClass()
+	ArrayListClass = NewClassWithOptions(ClassWithConstructor(ArrayListConstructor))
 	ArrayListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("ArrayList", Ref(ArrayListClass))
 

@@ -1,7 +1,7 @@
 ##[
 	Represents a single Unicode code point.
 ]##
-sealed primitive class ::Std::Char < Value
+sealed noinit primitive class ::Std::Char < Value
 	implement Hashable
 	implement Comparable[self]
 

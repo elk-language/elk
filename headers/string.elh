@@ -1,4 +1,4 @@
-sealed primitive class ::Std::String < Value
+sealed noinit primitive class ::Std::String < Value
 	implement Hashable
 	implement Comparable[self]
 

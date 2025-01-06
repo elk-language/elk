@@ -20,37 +20,37 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))))
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, value.ToSymbol("ArrayList"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, value.ToSymbol("ArrayList"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, value.ToSymbol("ArrayTuple"), objectClass, env)
+			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, value.ToSymbol("ArrayTuple"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, false, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, value.ToSymbol("BigFloat"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Bool"), objectClass, env)
-		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, value.ToSymbol("Char"), objectClass, env)
-		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, value.ToSymbol("Class"), objectClass, env)
+		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, value.ToSymbol("Char"), objectClass, env)
+		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, false, value.ToSymbol("Class"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, value.ToSymbol("ClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, false, value.ToSymbol("ClosedRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -77,51 +77,51 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, value.ToSymbol("Duration"), objectClass, env)
+		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, false, value.ToSymbol("Duration"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, value.ToSymbol("EndlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, false, value.ToSymbol("EndlessClosedRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, value.ToSymbol("EndlessOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, false, value.ToSymbol("EndlessOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, value.ToSymbol("Error"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("False"), objectClass, env)
+		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
-		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, value.ToSymbol("Float"), objectClass, env)
-		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float32"), objectClass, env)
-		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, value.ToSymbol("Float64"), objectClass, env)
-		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
+		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, true, value.ToSymbol("Float"), objectClass, env)
+		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, value.ToSymbol("Float32"), objectClass, env)
+		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, value.ToSymbol("Float64"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, value.ToSymbol("HashMap"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, value.ToSymbol("HashMap"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, value.ToSymbol("HashRecord"), objectClass, env)
+			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, value.ToSymbol("HashRecord"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, value.ToSymbol("HashSet"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, value.ToSymbol("HashSet"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -144,12 +144,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
-		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, value.ToSymbol("Int"), objectClass, env)
-		namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, value.ToSymbol("Int16"), objectClass, env)
-		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, value.ToSymbol("Int32"), objectClass, env)
-		namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, value.ToSymbol("Int64"), objectClass, env)
-		namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, value.ToSymbol("Int8"), objectClass, env)
-		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, value.ToSymbol("Interface"), objectClass, env)
+		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, value.ToSymbol("Int"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, value.ToSymbol("Int16"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, value.ToSymbol("Int32"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, value.ToSymbol("Int64"), objectClass, env)
+		namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, true, value.ToSymbol("Int8"), objectClass, env)
+		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, value.ToSymbol("Interface"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop and implement\nmany useful methods.", value.ToSymbol("Iterable"), env)
 			{
@@ -160,7 +160,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.TryDefineMixin("Provides default implementations of most iterable methods\nfor finite iterables.", true, value.ToSymbol("FiniteBase"), env)
 				namespace.Name() // noop - avoid unused variable error
 			}
-			namespace.TryDefineClass("", false, false, false, value.ToSymbol("NotFoundError"), objectClass, env)
+			namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("NotFoundError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -177,9 +177,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", value.ToSymbol("Kernel"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, value.ToSymbol("LeftOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, false, value.ToSymbol("LeftOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -192,24 +192,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered mutable collection of key-value pairs.", true, value.ToSymbol("Map"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("Method"), objectClass, env)
-		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, value.ToSymbol("Mixin"), objectClass, env)
-		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, value.ToSymbol("Module"), objectClass, env)
-		namespace.TryDefineClass("Represents an empty value.", false, true, true, value.ToSymbol("Nil"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, value.ToSymbol("Object"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Method"), objectClass, env)
+		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, true, value.ToSymbol("Mixin"), objectClass, env)
+		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, value.ToSymbol("Module"), objectClass, env)
+		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, value.ToSymbol("Nil"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Object"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, value.ToSymbol("OpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, false, value.ToSymbol("OpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, value.ToSymbol("Pair"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, false, value.ToSymbol("Pair"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -226,11 +226,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered immutable collection of key-value pairs.\nA record is an immutable map.", true, value.ToSymbol("Record"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, value.ToSymbol("Regex"), objectClass, env)
+		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, value.ToSymbol("Regex"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, value.ToSymbol("RightOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, value.ToSymbol("RightOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -240,27 +240,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("", false, true, true, value.ToSymbol("String"), objectClass, env)
-			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, value.ToSymbol("ByteIterator"), objectClass, env)
-			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, value.ToSymbol("CharIterator"), objectClass, env)
-			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, value.ToSymbol("GraphemeIterator"), objectClass, env)
+			namespace := namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("String"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, false, value.ToSymbol("ByteIterator"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, false, value.ToSymbol("CharIterator"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, false, value.ToSymbol("GraphemeIterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
-		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, value.ToSymbol("Symbol"), objectClass, env)
-		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, value.ToSymbol("Time"), objectClass, env)
-		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, value.ToSymbol("Timezone"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, value.ToSymbol("True"), objectClass, env)
+		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, value.ToSymbol("Symbol"), objectClass, env)
+		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
+		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{
 			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, value.ToSymbol("Tuple"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, value.ToSymbol("UInt16"), objectClass, env)
-		namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, value.ToSymbol("UInt32"), objectClass, env)
-		namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, value.ToSymbol("UInt64"), objectClass, env)
-		namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, value.ToSymbol("UInt8"), objectClass, env)
-		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, value.ToSymbol("Value"), nil, env)
+		namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, value.ToSymbol("UInt16"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, true, value.ToSymbol("UInt32"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, value.ToSymbol("UInt64"), objectClass, env)
+		namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, value.ToSymbol("UInt8"), objectClass, env)
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, value.ToSymbol("Value"), nil, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 

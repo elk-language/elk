@@ -30,7 +30,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		for i := range pMethod.Params {
 			pParam := pMethod.Params[i]
 			gParam := gMethod.Params[i]
-			if pParam.Kind != gParam.Kind || pParam.Name != gParam.Name {
+			if pParam.Kind != gParam.Kind {
 				return p
 			}
 			result := c.inferTypeArguments(gParam.Type, pParam.Type, typeArgMap, errSpan)

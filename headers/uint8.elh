@@ -1,7 +1,7 @@
 ##[
 	Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).
 ]##
-sealed primitive class ::Std::UInt8 < Value
+sealed noinit primitive class ::Std::UInt8 < Value
 	implement Hashable
 	implement Comparable[self]
 

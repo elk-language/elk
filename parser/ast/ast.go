@@ -3416,6 +3416,7 @@ type ClassDeclarationNode struct {
 	Abstract       bool
 	Sealed         bool
 	Primitive      bool
+	NoInit         bool
 	Constant       ExpressionNode      // The constant that will hold the class value
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Superclass     ExpressionNode      // the super/parent class of this class
@@ -3438,6 +3439,7 @@ func NewClassDeclarationNode(
 	abstract bool,
 	sealed bool,
 	primitive bool,
+	noinit bool,
 	constant ExpressionNode,
 	typeParams []TypeParameterNode,
 	superclass ExpressionNode,
@@ -3452,6 +3454,7 @@ func NewClassDeclarationNode(
 		Abstract:       abstract,
 		Sealed:         sealed,
 		Primitive:      primitive,
+		NoInit:         noinit,
 		Constant:       constant,
 		TypeParameters: typeParams,
 		Superclass:     superclass,

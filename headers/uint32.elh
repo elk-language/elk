@@ -1,7 +1,7 @@
 ##[
 	Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).
 ]##
-sealed primitive class ::Std::UInt32 < Value
+sealed noinit primitive class ::Std::UInt32 < Value
 	implement Hashable
 	implement Comparable[self]
 

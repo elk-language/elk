@@ -332,8 +332,8 @@ func (c *Checker) checkMethodOverride(
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has a different modifier, is `%s`, should be `%s`",
-			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false),
-			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false),
+			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false, false),
+			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false, false),
 		)
 		areIncompatible = true
 	}
@@ -1603,8 +1603,8 @@ func (c *Checker) declareMethod(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name.String(),
-					types.InspectModifier(abstract, sealed, false),
-					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false),
+					types.InspectModifier(abstract, sealed, false, false),
+					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false, false),
 				),
 				span,
 			)
@@ -1938,7 +1938,7 @@ func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, o
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span, validateNames bool) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span, validateParamNames bool) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -1984,7 +1984,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			oldParam := baseMethod.Params[i]
 			newParam := overrideMethod.Params[i]
 
-			if oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+			if (validateParamNames && oldParam.Name != newParam.Name) || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",

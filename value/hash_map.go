@@ -17,6 +17,10 @@ type HashMap struct {
 	Elements      int
 }
 
+func HashMapConstructor(class *Class) Value {
+	return Ref(&HashMap{})
+}
+
 func NewHashMap(capacity int) *HashMap {
 	return &HashMap{
 		Table: make([]Pair, capacity),
@@ -168,7 +172,7 @@ func (h *HashMapIterator) Next() (Value, Value) {
 }
 
 func initHashMap() {
-	HashMapClass = NewClass()
+	HashMapClass = NewClassWithOptions(ClassWithConstructor(HashMapConstructor))
 	HashMapClass.IncludeMixin(MapMixin)
 	StdModule.AddConstantString("HashMap", Ref(HashMapClass))
 

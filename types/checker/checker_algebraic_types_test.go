@@ -75,14 +75,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 		"missing method on nilable type": {
 			input: `
 			  class Foo; end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 				  def foo; end
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(118, 7, 5), P(122, 7, 9)), "method `foo` is not defined on type `Foo`"),
+				error.NewFailure(L("<main>", P(125, 7, 5), P(129, 7, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"missing method on both types": {
@@ -101,14 +101,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int, b: String); end
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int); end
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(164, 9, 5), P(168, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(171, 9, 5), P(175, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
 			},
 		},
 		"method with different return types": {
@@ -116,14 +116,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int): Nil then nil
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -131,14 +131,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Float): Int then 5
 				end
 				var a: Foo? = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(169, 9, 5), P(173, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+				error.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -146,7 +146,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo? = nil
@@ -158,14 +158,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(182, 9, 5), P(194, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				error.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -173,14 +173,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, *b: Float): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(178, 9, 5), P(190, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(185, 9, 5), P(197, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -188,14 +188,14 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, **b: Float): Int then a
 				end
 				var a: Foo? = nil
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(179, 9, 5), P(194, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(186, 9, 5), P(201, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -483,15 +483,15 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int, b: String); end
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int); end
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+				error.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
 			},
 		},
 		"method with different return types": {
@@ -502,15 +502,15 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int): Nil then nil
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(239, 12, 5), P(243, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -521,15 +521,15 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Float): Int then 5
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
-				error.NewFailure(L("<main>", P(238, 12, 5), P(242, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
+				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with wider param type": {
@@ -594,7 +594,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
@@ -609,14 +609,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, b: Float = .2): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(265, 12, 5), P(277, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				error.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -627,14 +627,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, *b: Float): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(244, 12, 5), P(256, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(251, 12, 5), P(263, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -645,14 +645,14 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				class Foo
 					def foo(a: Int): Int then a
 				end
-				sealed primitive class Std::Nil < Value
+				sealed primitive noinit class Std::Nil < Value
 					def foo(a: Int, **b: Float): Int then a
 				end
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, a: 2.5)
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(245, 12, 5), P(260, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				error.NewFailure(L("<main>", P(252, 12, 5), P(267, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}

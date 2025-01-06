@@ -4,7 +4,7 @@
 	This integer type is automatically resized so
 	it can hold an arbitrarily large/small number.
 ]##
-sealed primitive class ::Std::Int < Value
+sealed noinit primitive class ::Std::Int < Value
 	implement Hashable
 
 	def times(fn: |i: Int|); end

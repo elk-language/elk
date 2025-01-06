@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/elk-language/elk/lexer"
 )
@@ -117,24 +118,25 @@ func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
 	}
 }
 
-func InspectModifier(abstract, sealed, primitive bool) string {
+func InspectModifier(abstract, sealed, primitive, noinit bool) string {
+	str := ""
 	if abstract {
-		if primitive {
-			return "abstract primitive"
-		}
-		return "abstract"
+		str += " abstract"
 	}
 	if sealed {
-		if primitive {
-			return "sealed primitive"
-		}
-		return "sealed"
+		str += " sealed"
 	}
-
 	if primitive {
-		return "primitive"
+		str += " primitive"
 	}
-	return "default"
+	if noinit {
+		str += " noinit"
+	}
+	str = strings.TrimSpace(str)
+	if len(str) == 0 {
+		return "default"
+	}
+	return str
 }
 
 func Inspect(typ Type) string {

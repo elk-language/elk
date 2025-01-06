@@ -7,6 +7,7 @@ import (
 
 type Class struct {
 	parent         Namespace
+	noinit         bool
 	abstract       bool
 	sealed         bool
 	primitive      bool
@@ -28,6 +29,15 @@ func (c *Class) TypeParameters() []*TypeParameter {
 
 func (c *Class) SetTypeParameters(t []*TypeParameter) {
 	c.typeParameters = t
+}
+
+func (c *Class) SetNoInit(noinit bool) *Class {
+	c.noinit = noinit
+	return c
+}
+
+func (c *Class) IsNoInit() bool {
+	return c.noinit
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {
@@ -116,7 +126,8 @@ func NewClass(
 	docComment string,
 	abstract,
 	sealed,
-	primitive bool,
+	primitive,
+	noinit bool,
 	name string,
 	parent Namespace,
 	env *GlobalEnvironment,
@@ -125,6 +136,7 @@ func NewClass(
 		primitive:     primitive,
 		sealed:        sealed,
 		abstract:      abstract,
+		noinit:        noinit,
 		defined:       env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}

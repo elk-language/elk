@@ -698,6 +698,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.includeExpression(allowed)
 	case token.IMPLEMENT:
 		return p.implementExpression(allowed)
+	case token.NOINIT:
+		return p.noinitModifier(allowed)
 	case token.ABSTRACT:
 		return p.abstractModifier(allowed)
 	case token.PRIMITIVE:
@@ -2069,6 +2071,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.forExpression()
 	case token.FORNUM:
 		return p.fornumExpression()
+	case token.NOINIT:
+		return p.noinitModifier(false)
 	case token.ABSTRACT:
 		return p.abstractModifier(false)
 	case token.PRIMITIVE:
@@ -3597,6 +3601,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 		false,
 		false,
 		false,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -4667,6 +4672,23 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	default:
 		p.errorMessageSpan("the abstract modifier can only be attached to classes, mixins and methods", node.Span())
+	}
+
+	return node
+}
+
+// noinitModifier = "noinit" declarationExpression
+func (p *Parser) noinitModifier(allowed bool) ast.ExpressionNode {
+	abstractTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		n.NoInit = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the noinit modifier can only be attached to classes", node.Span())
 	}
 
 	return node

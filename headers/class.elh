@@ -1,7 +1,7 @@
 ##[
 	`Class` is a metaclass, it's the class of all classes.
 ]##
-class ::Std::Class < Object
+noinit class ::Std::Class < Object
 	##[
 		Returns the superclass (parent class) of this class.
 		Returns `nil` when the class does not inherit from any class.

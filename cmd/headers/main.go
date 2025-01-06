@@ -450,12 +450,13 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, value.ToSymbol(%q), %s, env)
+		`namespace.TryDefineClass(%q, %t, %t, %t, %t, value.ToSymbol(%q), %s, env)
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
 		class.IsSealed(),
 		class.IsPrimitive(),
+		class.IsNoInit(),
 		constantName,
 		initialSuperclass,
 	)
