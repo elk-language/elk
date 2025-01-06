@@ -215,6 +215,57 @@ func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	}
 }
 
+func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) bool {
+	if c.phase == initPhase {
+		return true
+	}
+
+	if c.isSubtype(a, b, nil) {
+		return true
+	}
+
+	if types.NamespaceDeclaresInstanceVariables(b) && a.IsPrimitive() {
+		return false
+	}
+
+	for mixinMethodName, mixinMethod := range c.methodsInNamespace(b) {
+		classMethod := c.getMethod(a, mixinMethodName, nil)
+		if classMethod == nil && mixinMethod.IsAbstract() && !a.IsAbstract() {
+			return false
+		}
+		if classMethod == nil {
+			continue
+		}
+		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, false) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespace) bool {
+	if c.phase == initPhase {
+		return true
+	}
+
+	if c.isSubtype(a, b, nil) {
+		return true
+	}
+
+	for ifaceMethodName, ifaceMethod := range c.methodsInNamespace(b) {
+		bMethod := c.getMethod(a, ifaceMethodName, nil)
+		if bMethod == nil {
+			continue
+		}
+		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, false) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Check whether the two given types can potentially intersect.
 // Return true if they do, otherwise false.
 func (c *Checker) canIntersect(a, b types.Type) bool {
@@ -239,10 +290,21 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 			}
 		}
 		return false
-	case *types.Mixin, *types.Interface:
+	case *types.Interface:
 		switch narrowB := b.(type) {
 		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType, *types.TypeParameter:
-			return true
+			return c.canIntersectWithInterfaceOrMixin(b, a)
+		case *types.Generic:
+			return c._canIntersect(a, narrowB.Namespace)
+		default:
+			return false
+		}
+	case *types.Mixin:
+		switch narrowB := b.(type) {
+		case *types.Class:
+			return c.classCanIntersectWithMixin(narrowB, a)
+		case *types.Mixin, *types.Interface, *types.NamedType, *types.TypeParameter:
+			return c.canIntersectWithInterfaceOrMixin(b, a)
 		case *types.Generic:
 			return c._canIntersect(a, narrowB.Namespace)
 		default:

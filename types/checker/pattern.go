@@ -480,7 +480,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 	} else {
 		keyType = types.Any{}
 		valueType = types.Any{}
-		node.SetType(types.Never{})
+		node.SetType(types.Any{})
 	}
 
 	mapOfAny.FixVariance()
@@ -524,7 +524,7 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 	} else {
 		keyType = types.Any{}
 		valueType = types.Any{}
-		node.SetType(types.Never{})
+		node.SetType(types.Any{})
 	}
 
 	recordOfAny.FixVariance()
@@ -660,7 +660,7 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
-		node.SetType(types.Never{})
+		node.SetType(types.Any{})
 	}
 
 	for i, element := range node.Elements {
@@ -681,7 +681,7 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) (*as
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
-		node.SetType(types.Never{})
+		node.SetType(types.Any{})
 	}
 
 	for i, element := range node.Elements {
@@ -703,7 +703,7 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*
 		node.SetType(extractedCollection)
 	} else {
 		elementType = types.Any{}
-		node.SetType(types.Never{})
+		node.SetType(types.Any{})
 	}
 	listOfAny.FixVariance()
 

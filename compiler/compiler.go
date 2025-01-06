@@ -2124,6 +2124,7 @@ func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
 func (c *Compiler) compileSubscript(typ types.Type, span *position.Span) {
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
 		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
+		return
 	}
 
 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
@@ -2132,6 +2133,7 @@ func (c *Compiler) compileSubscript(typ types.Type, span *position.Span) {
 func (c *Compiler) compileSubscriptSet(typ types.Type, span *position.Span) {
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
 		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
+		return
 	}
 
 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2), span, false)
@@ -3228,15 +3230,15 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 	case *ast.BinaryPatternNode:
 		c.binaryPattern(pat)
 	case *ast.MapPatternNode:
-		c.mapOrRecordPattern(pat.Span(), pat.Elements, true)
+		c.mapOrRecordPattern(c.typeOf(pat), pat.Span(), pat.Elements, true)
 	case *ast.RecordPatternNode:
-		c.mapOrRecordPattern(pat.Span(), pat.Elements, false)
+		c.mapOrRecordPattern(c.typeOf(pat), pat.Span(), pat.Elements, false)
 	case *ast.SetPatternNode:
 		c.setPattern(pat.Span(), pat.Elements)
 	case *ast.ListPatternNode:
-		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
+		c.listOrTuplePattern(c.typeOf(pat), pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
-		c.listOrTuplePattern(pat.Span(), pat.Elements, false)
+		c.listOrTuplePattern(c.typeOf(pat), pat.Span(), pat.Elements, false)
 	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
 		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
 		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
@@ -3443,10 +3445,10 @@ func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 	c.patchJump(jmp, span)
 }
 
-func (c *Compiler) identifierMapPatternElement(name string, span *position.Span) {
+func (c *Compiler) identifierMapPatternElement(name string, collectionType types.Type, span *position.Span) {
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.emitValue(value.ToSymbol(name).ToValue(), span)
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+	c.compileSubscript(collectionType, span)
 
 	var identVar *local
 	switch c.mode {
@@ -3462,7 +3464,7 @@ func (c *Compiler) identifierMapPatternElement(name string, span *position.Span)
 	c.emit(span.StartPos.Line, bytecode.POP)
 }
 
-func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.PatternNode, isMap bool) {
+func (c *Compiler) mapOrRecordPattern(typ types.Type, span *position.Span, elements []ast.PatternNode, isMap bool) {
 	var jumpsToPatch []int
 	c.enterPattern()
 
@@ -3484,7 +3486,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.SymbolKeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitValue(value.ToSymbol(e.Key).ToValue(), span)
-			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+			c.compileSubscript(typ, span)
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3494,7 +3496,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.KeyValuePatternNode:
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.compileNodeWithResult(e.Key)
-			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+			c.compileSubscript(typ, span)
 
 			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3502,9 +3504,9 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 			jumpsToPatch = append(jumpsToPatch, jmp)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.PublicIdentifierNode:
-			c.identifierMapPatternElement(e.Value, span)
+			c.identifierMapPatternElement(e.Value, typ, span)
 		case *ast.PrivateIdentifierNode:
-			c.identifierMapPatternElement(e.Value, span)
+			c.identifierMapPatternElement(e.Value, typ, span)
 		default:
 			c.Errors.AddFailure(
 				fmt.Sprintf("invalid map pattern element: %T", element),
@@ -3596,7 +3598,7 @@ subPatternLoop:
 	c.leavePattern()
 }
 
-func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.PatternNode, isList bool) {
+func (c *Compiler) listOrTuplePattern(typ types.Type, span *position.Span, elements []ast.PatternNode, isList bool) {
 	var jumpsToPatch []int
 
 	var restVariableName string
@@ -3676,7 +3678,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		span := element.Span()
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.emitValue(value.SmallInt(i).ToValue(), element.Span())
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+		c.compileSubscript(typ, span)
 
 		c.pattern(element)
 		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
@@ -3715,7 +3717,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			// loop body
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+			c.compileSubscript(typ, span)
 			c.emitGetLocal(span.StartPos.Line, restListVar.index)
 			c.emit(span.StartPos.Line, bytecode.SWAP)
 			c.emit(span.StartPos.Line, bytecode.APPEND) // append to the list
@@ -3750,7 +3752,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			span := element.Span()
 			c.emit(span.StartPos.Line, bytecode.DUP)
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+			c.compileSubscript(typ, span)
 
 			c.pattern(element)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)

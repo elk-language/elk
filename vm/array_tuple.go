@@ -37,6 +37,21 @@ func initArrayTuple() {
 	)
 	Def(
 		c,
+		"[]=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.ArrayTuple)
+			key := args[1]
+			val := args[2]
+			err := self.SubscriptSet(key, val)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			return val, value.Undefined
+		},
+		DefWithParameters(2),
+	)
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
