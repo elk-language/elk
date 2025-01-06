@@ -2974,6 +2974,15 @@ func TestConstructorCall(t *testing.T) {
 				error.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "cannot instantiate abstract class `Foo`"),
 			},
 		},
+		"instantiate a noinit class": {
+			input: `
+				noinit class Foo; end
+				Foo()
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(31, 3, 5), P(35, 3, 9)), "cannot instantiate class `Foo` marked as `noinit`"),
+			},
+		},
 		"instantiate a class with a constructor": {
 			input: `
 				class Foo

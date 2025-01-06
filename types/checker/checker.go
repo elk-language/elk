@@ -4164,6 +4164,9 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 			node.Span(),
 		)
 	}
+	if class.IsNoInit() {
+		c.addNoInitInstantiationError(class, node.Span())
+	}
 
 	typeArgs, ok := c.checkTypeArguments(
 		class,
@@ -4181,9 +4184,6 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	generic := types.NewGeneric(class, typeArgs)
 	method := c.getMethod(generic, symbol.S_init, nil)
 	if method == nil {
-		if class.IsNoInit() {
-			c.addNoInitInstantiationError(class, node.Span())
-		}
 		method = types.NewMethod(
 			"",
 			false,
@@ -4249,13 +4249,13 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			node.Span(),
 		)
 	}
+	if class.IsNoInit() {
+		c.addNoInitInstantiationError(class, node.Span())
+	}
 
 	if !class.IsGeneric() {
 		method := c.getMethod(class, symbol.S_init, nil)
 		if method == nil {
-			if class.IsNoInit() {
-				c.addNoInitInstantiationError(class, node.Span())
-			}
 			method = types.NewMethod(
 				"",
 				false,
@@ -4283,9 +4283,6 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 
 	method := c._getMethodInNamespace(class, class, symbol.S_init, nil, false)
 	if method == nil {
-		if class.IsNoInit() {
-			c.addNoInitInstantiationError(class, node.Span())
-		}
 		method = types.NewMethod(
 			"",
 			false,
