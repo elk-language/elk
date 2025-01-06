@@ -2620,6 +2620,14 @@ func TestGenericMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
+		"infer type parameter from closure's return type with different param names": {
+			input: `
+				var a: 9 = HashMap::[String, Int]().map_pairs() |p| -> Pair(1u8, 1.2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(73, 2, 73)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 		"call a generic method with explicit type arguments": {
 			input: `
 				module Foo
