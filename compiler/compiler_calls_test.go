@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -254,7 +255,8 @@ func TestSubscript(t *testing.T) {
 				},
 			),
 		},
-		"subtract": {
+
+		"subtract Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] -= 2
@@ -265,23 +267,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.SUBTRACT),
+					byte(bytecode.INT_2),
+					byte(bytecode.SUBTRACT_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -289,12 +290,196 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
-		"multiply": {
+		"subtract Float": {
+			input: `
+				arr := [5.5, 3.9]
+				arr[1] -= 3.0
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SUBTRACT_FLOAT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.Float(5.5).ToValue(),
+						value.Float(3.9).ToValue(),
+					}),
+					value.Float(3.0).ToValue(),
+				},
+			),
+		},
+		"subtract builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] -= 3u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 3,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"subtract value": {
+			input: `
+				module Foo
+					def -(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] -= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpSubtract,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("-").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubtract, 1)),
+				},
+			),
+		},
+
+		"multiply Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] *= 3
@@ -305,23 +490,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.MULTIPLY),
+					byte(bytecode.INT_3),
+					byte(bytecode.MULTIPLY_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -329,12 +513,196 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
-		"divide": {
+		"multiply Float": {
+			input: `
+				arr := [5.5, 3.9]
+				arr[1] *= 3.0
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.MULTIPLY_FLOAT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.Float(5.5).ToValue(),
+						value.Float(3.9).ToValue(),
+					}),
+					value.Float(3.0).ToValue(),
+				},
+			),
+		},
+		"multiply builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] *= 3u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 3,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"multiply value": {
+			input: `
+				module Foo
+					def *(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] *= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpMultiply,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("*").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpMultiply, 1)),
+				},
+			),
+		},
+
+		"divide Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] /= 10
@@ -345,23 +713,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.DIVIDE),
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.DIVIDE_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -369,12 +736,196 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
-		"exponentiate": {
+		"divide Float": {
+			input: `
+				arr := [5.2, 3.0]
+				arr[1] /= 10.9
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DIVIDE_FLOAT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 3, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.Float(5.2).ToValue(),
+						value.Float(3.0).ToValue(),
+					}),
+					value.Float(10.9).ToValue(),
+				},
+			),
+		},
+		"divide builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] /= 10u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 10,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 3, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"divide value": {
+			input: `
+				module Foo
+					def /(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] /= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpDivide,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("/").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpDivide, 1)),
+				},
+			),
+		},
+
+		"exponentiate Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] **= 12
@@ -385,23 +936,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.LOAD_INT_8), 12,
+					byte(bytecode.EXPONENTIATE_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(36, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -409,13 +959,158 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(12).ToValue(),
+				},
+			),
+		},
+		"exponentiate builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] **= 2u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 2,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 3, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"exponentiate value": {
+			input: `
+				module Foo
+					def **(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] **= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(107, 9, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpExponentiate,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(63, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("**").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpExponentiate, 1)),
 				},
 			),
 		},
 
-		"modulo": {
+		"modulo Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] %= 2
@@ -426,23 +1121,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.MODULO),
+					byte(bytecode.INT_2),
+					byte(bytecode.MODULO_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -450,12 +1144,196 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
-		"bitwise AND": {
+		"modulo Float": {
+			input: `
+				arr := [5.5, 3.9]
+				arr[1] %= 2.5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.MODULO_FLOAT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.Float(5.5).ToValue(),
+						value.Float(3.9).ToValue(),
+					}),
+					value.Float(2.5).ToValue(),
+				},
+			),
+		},
+		"modulo builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] %= 2u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 2,
+					byte(bytecode.MODULO),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"modulo value": {
+			input: `
+				module Foo
+					def %(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] %= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpModulo,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("%").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpModulo, 1)),
+				},
+			),
+		},
+
+		"bitwise AND Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] &= 8
@@ -466,23 +1344,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.BITWISE_AND),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.BITWISE_AND_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -490,12 +1367,157 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
-		"bitwise OR": {
+		"bitwise AND builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] &= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"bitwise AND value": {
+			input: `
+				module Foo
+					def &(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] &= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpAnd,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("&").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpAnd, 1)),
+				},
+			),
+		},
+		"bitwise OR Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] |= 8
@@ -506,23 +1528,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.BITWISE_OR),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.BITWISE_OR_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -530,12 +1551,157 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
-		"bitwise XOR": {
+		"bitwise OR builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] |= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.SmallInt(5).ToValue(),
+						value.SmallInt(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"bitwise OR value": {
+			input: `
+				module Foo
+					def |(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] |= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpOr,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("|").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpOr, 1)),
+				},
+			),
+		},
+		"bitwise XOR Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] ^= 8
@@ -546,23 +1712,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.BITWISE_XOR_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -570,12 +1735,157 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
-		"left bitshift": {
+		"bitwise XOR builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] ^= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"bitwise XOR value": {
+			input: `
+				module Foo
+					def ^(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] ^= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(105, 9, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(105, 9, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpXor,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(62, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("^").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpXor, 1)),
+				},
+			),
+		},
+		"left bitshift Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] <<= 8
@@ -587,22 +1897,21 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.INT_1),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.LBITSHIFT),
+					byte(bytecode.LOAD_INT8), 8,
+					byte(bytecode.LBITSHIFT_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -610,12 +1919,157 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
-		"right bitshift": {
+		"left bitshift builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] <<= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 3, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"left bitshift value": {
+			input: `
+				module Foo
+					def <<(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] <<= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(107, 9, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpLeftBitshift,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(63, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("<<").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1)),
+				},
+			),
+		},
+		"right bitshift Int": {
 			input: `
 				arr := [5, 3]
 				arr[1] >>= 8
@@ -626,23 +2080,22 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.RBITSHIFT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.RBITSHIFT_INT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -650,13 +2103,158 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
+				},
+			),
+		},
+		"right bitshift builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] >>= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 3, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"right bitshift value": {
+			input: `
+				module Foo
+					def >>(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] >>= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(107, 9, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 9, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpRightBitshift,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(63, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol(">>").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpRightBitshift, 1)),
 				},
 			),
 		},
 
-		"left logical bitshift": {
+		"left logical bitshift Int": {
 			input: `
 				arr := [5u64, 3u64]
 				arr[1] <<<= 8
@@ -667,14 +2265,13 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_INT_8), 8,
 					byte(bytecode.LOGIC_LBITSHIFT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -682,8 +2279,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -691,12 +2288,157 @@ func TestSubscript(t *testing.T) {
 						value.UInt64(5).ToValue(),
 						value.UInt64(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
-		"right logical bitshift": {
+		"left logical bitshift builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] <<<= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(42, 3, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"left logical bitshift value": {
+			input: `
+				module Foo
+					def <<<(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] <<<= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(109, 9, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(109, 9, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(109, 9, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpLeftBitshift,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("<<<").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1)),
+				},
+			),
+		},
+		"right logical bitshift Int": {
 			input: `
 				arr := [5u64, 3u64]
 				arr[1] >>>= 8
@@ -707,14 +2449,13 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_INT_8), 8,
 					byte(bytecode.LOGIC_RBITSHIFT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -722,8 +2463,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 14),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -731,11 +2472,157 @@ func TestSubscript(t *testing.T) {
 						value.UInt64(5).ToValue(),
 						value.UInt64(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
 				},
 			),
 		},
+		"right logical bitshift builtin": {
+			input: `
+				arr := [5u8, 3u8]
+				arr[1] >>>= 8u8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_UINT8), 8,
+					byte(bytecode.LOGIC_RBITSHIFT),
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(42, 3, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(&value.ArrayList{
+						value.UInt8(5).ToValue(),
+						value.UInt8(3).ToValue(),
+					}),
+				},
+			),
+		},
+		"right logical bitshift value": {
+			input: `
+				module Foo
+					def >>>(other: Int): Foo
+						self
+					end
+				end
+
+				arr := [Foo]
+				arr[1] >>>= 8
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(109, 9, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 11),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(109, 9, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(109, 9, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(9, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpLogicalRightBitshift,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol(">>>").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1)),
+				},
+			),
+		},
+
 		"logic OR": {
 			input: `
 				var arr: List[Int?] = [5, 3]
@@ -747,24 +2634,23 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.JUMP_IF_NP), 0, 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.JUMP_IF), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 17),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -772,8 +2658,8 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscript, 1)),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2)),
 				},
 			),
 		},
@@ -788,24 +2674,23 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.JUMP_UNLESS_NP), 0, 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.JUMP_UNLESS), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 17),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -813,8 +2698,8 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscript, 1)),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2)),
 				},
 			),
 		},
@@ -829,25 +2714,23 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_1),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.JUMP_UNLESS_NNP), 0, 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.JUMP_IF_NIL), 0, 3,
-					byte(bytecode.JUMP), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.LOAD_INT_8), 8,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(3, 20),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -855,8 +2738,8 @@ func TestSubscript(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(8).ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscript, 1)),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2)),
 				},
 			),
 		},

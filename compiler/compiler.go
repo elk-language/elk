@@ -5833,6 +5833,10 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.MODULO_INT)
 			return
 		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.MODULO_FLOAT)
+			return
+		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
 			c.emit(line, bytecode.MODULO)
 			return
