@@ -5856,12 +5856,28 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span, false)
 		c.emit(line, bytecode.NOT)
 	case token.EQUAL_EQUAL:
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.EQUAL_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
+			c.emit(line, bytecode.EQUAL_INT)
+			return
+		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.EQUAL)
 			return
 		}
 		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span, false)
 	case token.NOT_EQUAL:
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.NOT_EQUAL_INT)
+			return
+		}
+		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
+			c.emit(line, bytecode.NOT_EQUAL_FLOAT)
+			return
+		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.NOT_EQUAL)
 			return

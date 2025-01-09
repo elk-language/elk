@@ -2803,7 +2803,7 @@ func StrictEqualBool(left, right Value) bool {
 func StrictNotEqual(left, right Value) Value {
 	val := StrictEqualBool(left, right)
 
-	return ToElkBool(val)
+	return ToElkBool(!val)
 }
 
 // Execute a right bit shift >>.
