@@ -939,28 +939,168 @@ func TestGreaterThanEqual(t *testing.T) {
 				[]value.Value{value.Undefined},
 			),
 		},
-		"compile runtime 24 >= 98": {
+		"compile runtime int": {
 			input: "a := 24; a >= 98",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.LOAD_INT_8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.GREATER_EQUAL_I),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(24).ToValue(),
-					value.SmallInt(98).ToValue(),
+				},
+			),
+		},
+		"compile runtime float": {
+			input: "a := 24.5; a >= 98.5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GREATER_EQUAL_F),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(24.5).ToValue(),
+					value.Float(98.5).ToValue(),
+				},
+			),
+		},
+		"compile runtime builtin": {
+			input: "a := 24i8; a >= 98i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 98,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"compile runtime value": {
+			input: `
+				module Foo
+					def >=(other: Foo | Int): bool
+						true
+					end
+				end
+
+				Foo >= 98
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(94, 8, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(8, 7),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpGreaterThanEqual,
+										[]byte{
+											byte(bytecode.TRUE),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(70, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol(">=").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1)),
 				},
 			),
 		},
@@ -1035,28 +1175,168 @@ func TestLessThan(t *testing.T) {
 				[]value.Value{value.Undefined},
 			),
 		},
-		"compile runtime 24 < 98": {
+		"compile runtime int": {
 			input: "a := 24; a < 98",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LESS),
+					byte(bytecode.LOAD_INT_8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.LESS_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(24).ToValue(),
-					value.SmallInt(98).ToValue(),
+				},
+			),
+		},
+		"compile runtime float": {
+			input: "a := 24.5; a < 98.5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LESS_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 1, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(24.5).ToValue(),
+					value.Float(98.5).ToValue(),
+				},
+			),
+		},
+		"compile runtime builtin": {
+			input: "a := 24i8; a < 98i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 98,
+					byte(bytecode.LESS),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 1, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"compile runtime value": {
+			input: `
+				module Foo
+					def <(other: Foo | Int): bool
+						true
+					end
+				end
+
+				Foo < 98
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(92, 8, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(8, 7),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(92, 8, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(92, 8, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpLessThan,
+										[]byte{
+											byte(bytecode.TRUE),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(69, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("<").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpLessThan, 1)),
 				},
 			),
 		},
@@ -1131,28 +1411,168 @@ func TestLessThanEqual(t *testing.T) {
 				[]value.Value{value.Undefined},
 			),
 		},
-		"compile runtime 24 <= 98": {
+		"compile runtime int": {
 			input: "a := 24; a <= 98",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LESS_EQUAL),
+					byte(bytecode.LOAD_INT_8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.LESS_EQUAL_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(24).ToValue(),
-					value.SmallInt(98).ToValue(),
+				},
+			),
+		},
+		"compile runtime float": {
+			input: "a := 24.5; a <= 98.5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LESS_EQUAL_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(24.5).ToValue(),
+					value.Float(98.5).ToValue(),
+				},
+			),
+		},
+		"compile runtime builtin": {
+			input: "a := 24i8; a <= 98i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 98,
+					byte(bytecode.LESS_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"compile runtime value": {
+			input: `
+				module Foo
+					def <=(other: Foo | Int): bool
+						true
+					end
+				end
+
+				Foo <= 98
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_INT_8), 98,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(94, 8, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(8, 7),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpLessThanEqual,
+										[]byte{
+											byte(bytecode.TRUE),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(70, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("<=").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1)),
 				},
 			),
 		},
