@@ -94,8 +94,8 @@ func TestGetConstant(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(2, 5),
 					bytecode.NewLineInfo(7, 1),
 				},
@@ -114,7 +114,7 @@ func TestGetConstant(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 12),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -138,7 +138,7 @@ func TestGetConstant(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(84, 7, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(4, 4),
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
@@ -196,7 +196,7 @@ func TestDefConstant(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(12, 1, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					value.Undefined,

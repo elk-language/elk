@@ -219,7 +219,7 @@ func TestEqual(t *testing.T) {
 				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
-		"compile runtime int 24 == 98": {
+		"compile runtime int": {
 			input: "a := 24; a == 98",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -241,7 +241,7 @@ func TestEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime float 24.5 == 98.0": {
+		"compile runtime float": {
 			input: "a := 24.5; a == 98.0",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -256,7 +256,7 @@ func TestEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -265,7 +265,7 @@ func TestEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime builtin 24i8 == 98i8": {
+		"compile runtime builtin": {
 			input: "var a: Int8 = 24i8; a == 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -287,7 +287,7 @@ func TestEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime value 24 == 98": {
+		"compile runtime value": {
 			input: "var a: any = 5; a == 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -372,7 +372,7 @@ func TestNotEqual(t *testing.T) {
 				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
-		"compile runtime int 24 != 98": {
+		"compile runtime int": {
 			input: "a := 24; a != 98",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -394,7 +394,7 @@ func TestNotEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime float 24.5 != 98.0": {
+		"compile runtime float": {
 			input: "a := 24.5; a != 98.0",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -409,7 +409,7 @@ func TestNotEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -418,7 +418,7 @@ func TestNotEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime builtin 24i8 != 98i8": {
+		"compile runtime builtin": {
 			input: "var a: Int8 = 24i8; a != 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -440,7 +440,7 @@ func TestNotEqual(t *testing.T) {
 				},
 			),
 		},
-		"compile runtime value 24 != 98": {
+		"compile runtime value": {
 			input: "var a: any = 5; a != 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -740,7 +740,7 @@ func TestGreaterThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -797,7 +797,7 @@ func TestGreaterThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(92, 8, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 7),
 				},
 				[]value.Value{
@@ -813,7 +813,7 @@ func TestGreaterThan(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(92, 8, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -837,7 +837,7 @@ func TestGreaterThan(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(92, 8, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -976,7 +976,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1033,7 +1033,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(94, 8, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 7),
 				},
 				[]value.Value{
@@ -1049,7 +1049,7 @@ func TestGreaterThanEqual(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(94, 8, 14)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -1073,7 +1073,7 @@ func TestGreaterThanEqual(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(94, 8, 14)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -1212,7 +1212,7 @@ func TestLessThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1269,7 +1269,7 @@ func TestLessThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(92, 8, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 7),
 				},
 				[]value.Value{
@@ -1285,7 +1285,7 @@ func TestLessThan(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(92, 8, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -1309,7 +1309,7 @@ func TestLessThan(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(92, 8, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -1448,7 +1448,7 @@ func TestLessThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1505,7 +1505,7 @@ func TestLessThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(94, 8, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 7),
 				},
 				[]value.Value{
@@ -1521,7 +1521,7 @@ func TestLessThanEqual(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(94, 8, 14)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
@@ -1545,7 +1545,7 @@ func TestLessThanEqual(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(94, 8, 14)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(8, 2),
 							},
 							[]value.Value{
