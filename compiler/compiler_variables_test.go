@@ -47,7 +47,7 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -62,7 +62,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -89,7 +89,7 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -104,7 +104,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 2,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -127,7 +127,7 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -142,7 +142,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -173,10 +173,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -192,7 +192,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -215,8 +215,8 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -232,7 +232,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -265,10 +265,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -284,7 +284,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 2,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -303,8 +303,8 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -320,7 +320,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -353,10 +353,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -372,7 +372,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -392,8 +392,8 @@ func TestInstanceVariables(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -409,7 +409,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -444,10 +444,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -463,7 +463,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -487,8 +487,8 @@ func TestInstanceVariables(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -504,7 +504,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -539,10 +539,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -558,7 +558,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 2,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -578,8 +578,8 @@ func TestInstanceVariables(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -595,7 +595,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -630,10 +630,10 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -649,7 +649,7 @@ func TestInstanceVariables(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 3,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -669,8 +669,8 @@ func TestInstanceVariables(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -686,7 +686,7 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.SET_IVAR8), 1,
 									byte(bytecode.RETURN),
 								},
@@ -718,11 +718,11 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.RETURN),
 				},
@@ -737,7 +737,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -761,7 +761,7 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<class: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE_0),
 							byte(bytecode.SET_IVAR8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -792,11 +792,11 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.RETURN),
 				},
@@ -811,7 +811,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 2,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -831,7 +831,7 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE_0),
 							byte(bytecode.SET_IVAR8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -862,11 +862,11 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.RETURN),
 				},
@@ -881,7 +881,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 3,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -901,7 +901,7 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<interface: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE_0),
 							byte(bytecode.SET_IVAR8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -930,11 +930,11 @@ func TestInstanceVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.RETURN),
 				},
@@ -949,7 +949,7 @@ func TestInstanceVariables(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -969,7 +969,7 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE_0),
 							byte(bytecode.SET_IVAR8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -1021,7 +1021,7 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1041,10 +1041,10 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS), 0, 37,
 					byte(bytecode.POP),
@@ -1118,7 +1118,7 @@ func TestLocalVariables(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(0, 1, 1)),
@@ -1144,7 +1144,7 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1169,10 +1169,10 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1201,7 +1201,7 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1229,11 +1229,11 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1261,11 +1261,11 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1295,11 +1295,11 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -1349,10 +1349,10 @@ func TestUpvalues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.RETURN),
 				},
@@ -1401,10 +1401,10 @@ func TestUpvalues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.CLOSE_UPVALUE8), 1,
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
@@ -1478,7 +1478,7 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1498,10 +1498,10 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS), 0, 37,
 					byte(bytecode.POP),
@@ -1569,13 +1569,13 @@ func TestLocalValues(t *testing.T) {
 						},
 						declareNVariables(253)...,
 					),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 254,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 255,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL16), 1, 0,
 					byte(bytecode.LEAVE_SCOPE32), 1, 0, 1, 0,
 					byte(bytecode.RETURN),
@@ -1603,7 +1603,7 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1647,11 +1647,11 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1679,11 +1679,11 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1713,11 +1713,11 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -1761,7 +1761,7 @@ func declareNVariables(n int) []byte {
 	for i := 0; i < n; i++ {
 		b = append(
 			b,
-			byte(bytecode.LOAD_VALUE8), 1,
+			byte(bytecode.LOAD_VALUE_1),
 			byte(bytecode.SET_LOCAL8), byte(i+1),
 			byte(bytecode.POP),
 		)

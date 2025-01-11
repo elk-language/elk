@@ -38,7 +38,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -49,7 +49,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(29, 3, 11)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
@@ -70,7 +70,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -84,7 +84,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(45, 3, 12)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -110,7 +110,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -122,7 +122,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
@@ -143,7 +143,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -155,7 +155,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(48, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -178,7 +178,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -192,7 +192,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(31, 3, 13)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -213,7 +213,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -227,7 +227,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 13)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -254,10 +254,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -275,7 +275,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(91, 9, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 8),
 				},
@@ -285,14 +285,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(91, 9, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -307,8 +307,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -316,7 +316,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(91, 9, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -357,7 +357,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -371,7 +371,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(31, 3, 13)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -392,7 +392,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -406,7 +406,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 13)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -433,10 +433,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -454,7 +454,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(91, 9, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 8),
 				},
@@ -464,14 +464,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(91, 9, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -486,8 +486,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -495,7 +495,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(91, 9, 13)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -536,7 +536,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -552,7 +552,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -573,7 +573,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -581,7 +581,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.ADD_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -589,8 +589,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -611,7 +611,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -627,7 +627,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -654,10 +654,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -677,7 +677,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -687,14 +687,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -709,8 +709,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -718,7 +718,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -759,7 +759,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -775,7 +775,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
@@ -796,7 +796,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -804,7 +804,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.SUBTRACT_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -812,8 +812,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -834,7 +834,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -850,7 +850,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -877,10 +877,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -900,7 +900,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -910,14 +910,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -932,8 +932,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -941,7 +941,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -982,7 +982,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -998,7 +998,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
@@ -1019,7 +1019,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1027,7 +1027,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MULTIPLY_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1035,8 +1035,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1057,7 +1057,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1073,7 +1073,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1100,10 +1100,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -1123,7 +1123,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -1133,14 +1133,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1155,8 +1155,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -1164,7 +1164,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1205,7 +1205,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1221,7 +1221,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1242,7 +1242,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1250,7 +1250,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.DIVIDE_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1258,8 +1258,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(41, 3, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1280,7 +1280,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1296,7 +1296,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(41, 3, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1323,10 +1323,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -1346,7 +1346,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -1356,14 +1356,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1378,8 +1378,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -1387,7 +1387,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1428,7 +1428,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1444,7 +1444,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(36, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1465,7 +1465,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1481,7 +1481,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(41, 3, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1508,10 +1508,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -1531,7 +1531,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 9, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -1541,14 +1541,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1563,8 +1563,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -1572,7 +1572,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1613,7 +1613,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1629,7 +1629,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
@@ -1650,7 +1650,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1658,7 +1658,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MODULO_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1666,8 +1666,8 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1688,7 +1688,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1704,7 +1704,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1731,10 +1731,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -1754,7 +1754,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -1764,14 +1764,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1786,8 +1786,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -1795,7 +1795,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1836,7 +1836,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1852,7 +1852,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1873,7 +1873,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1889,7 +1889,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -1916,10 +1916,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -1939,7 +1939,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -1949,14 +1949,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -1971,8 +1971,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -1980,7 +1980,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2020,7 +2020,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2036,7 +2036,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2057,7 +2057,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2073,7 +2073,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2100,10 +2100,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -2123,7 +2123,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -2133,14 +2133,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2155,8 +2155,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -2164,7 +2164,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2204,7 +2204,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2220,7 +2220,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(34, 3, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2241,7 +2241,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2257,7 +2257,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(40, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2284,10 +2284,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -2307,7 +2307,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(105, 9, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -2317,14 +2317,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2339,8 +2339,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -2348,7 +2348,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(105, 9, 16)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2388,7 +2388,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2404,7 +2404,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2425,7 +2425,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2441,7 +2441,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(41, 3, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2468,10 +2468,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -2491,7 +2491,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 9, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -2501,14 +2501,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2523,8 +2523,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -2532,7 +2532,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2572,7 +2572,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2588,7 +2588,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(35, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2609,7 +2609,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2625,7 +2625,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(41, 3, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2652,10 +2652,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -2675,7 +2675,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 9, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -2685,14 +2685,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2707,8 +2707,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -2716,7 +2716,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(107, 9, 17)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2757,7 +2757,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2773,7 +2773,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2794,7 +2794,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2810,7 +2810,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 20)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2837,10 +2837,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -2860,7 +2860,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(109, 9, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -2870,14 +2870,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(109, 9, 18)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2892,8 +2892,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -2901,7 +2901,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(109, 9, 18)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -2941,7 +2941,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2957,7 +2957,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2978,7 +2978,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2994,7 +2994,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(42, 3, 20)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -3021,10 +3021,10 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
@@ -3044,7 +3044,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(109, 9, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 				},
@@ -3054,14 +3054,14 @@ func TestSubscript(t *testing.T) {
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE8), 1,
+								byte(bytecode.LOAD_VALUE_1),
 								byte(bytecode.DEF_NAMESPACE), 0,
 								byte(bytecode.NIL),
 								byte(bytecode.RETURN),
 							},
 							L(P(0, 1, 1), P(109, 9, 18)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 6),
+								bytecode.NewLineInfo(1, 5),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -3076,8 +3076,8 @@ func TestSubscript(t *testing.T) {
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
 								byte(bytecode.GET_SINGLETON),
-								byte(bytecode.LOAD_VALUE8), 1,
-								byte(bytecode.LOAD_VALUE8), 2,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
 								byte(bytecode.DEF_METHOD),
 								byte(bytecode.POP),
 								byte(bytecode.NIL),
@@ -3085,7 +3085,7 @@ func TestSubscript(t *testing.T) {
 							},
 							L(P(0, 1, 1), P(109, 9, 18)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(1, 9),
+								bytecode.NewLineInfo(1, 7),
 								bytecode.NewLineInfo(9, 2),
 							},
 							[]value.Value{
@@ -3126,7 +3126,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -3143,7 +3143,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
@@ -3166,7 +3166,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -3183,7 +3183,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
@@ -3206,7 +3206,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -3223,7 +3223,7 @@ func TestSubscript(t *testing.T) {
 				L(P(0, 1, 1), P(50, 3, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
@@ -3256,7 +3256,7 @@ func TestInstantiate(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3265,7 +3265,7 @@ func TestInstantiate(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(31, 3, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -3273,7 +3273,7 @@ func TestInstantiate(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -3283,7 +3283,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(31, 3, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
@@ -3309,7 +3309,7 @@ func TestInstantiate(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3318,7 +3318,7 @@ func TestInstantiate(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(91, 7, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
@@ -3326,10 +3326,10 @@ func TestInstantiate(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.GET_CONST8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.GET_CONST8), 3,
 							byte(bytecode.LOAD_VALUE8), 4,
@@ -3342,7 +3342,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(91, 7, 22)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 23),
+							bytecode.NewLineInfo(1, 21),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3370,29 +3370,29 @@ func TestInstantiate(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INSTANTIATE8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(76, 5, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(5, 7),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -3402,7 +3402,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(76, 5, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3415,8 +3415,8 @@ func TestInstantiate(t *testing.T) {
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3424,7 +3424,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(76, 5, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3462,29 +3462,29 @@ func TestInstantiate(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INSTANTIATE8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(79, 5, 23)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(5, 7),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -3494,7 +3494,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(79, 5, 23)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3507,8 +3507,8 @@ func TestInstantiate(t *testing.T) {
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3516,7 +3516,7 @@ func TestInstantiate(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(79, 5, 23)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3579,10 +3579,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3591,7 +3591,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(53, 5, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
@@ -3599,14 +3599,14 @@ func TestCallMethod(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(53, 5, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3619,8 +3619,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3628,7 +3628,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(53, 5, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3663,10 +3663,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3675,7 +3675,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
@@ -3683,14 +3683,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(57, 5, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3703,8 +3703,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3712,7 +3712,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(57, 5, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3747,10 +3747,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3759,7 +3759,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(53, 5, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
@@ -3767,14 +3767,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(53, 5, 11)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3787,8 +3787,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3796,7 +3796,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(53, 5, 11)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3831,10 +3831,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3843,7 +3843,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
@@ -3851,14 +3851,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(55, 5, 13)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3871,8 +3871,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3880,7 +3880,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(55, 5, 13)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3915,10 +3915,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -3929,7 +3929,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(54, 5, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 7),
 				},
 				[]value.Value{
@@ -3937,14 +3937,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(54, 5, 13)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3957,8 +3957,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -3966,7 +3966,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(54, 5, 13)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -4003,10 +4003,10 @@ func TestCallMethod(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -4020,7 +4020,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(75, 6, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 2),
 					bytecode.NewLineInfo(6, 9),
 				},
@@ -4029,14 +4029,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(75, 6, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4049,8 +4049,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4058,7 +4058,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(75, 6, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4094,10 +4094,10 @@ func TestCallMethod(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -4109,7 +4109,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(74, 6, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 2),
 					bytecode.NewLineInfo(6, 7),
 				},
@@ -4118,14 +4118,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(74, 6, 11)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4138,8 +4138,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4147,7 +4147,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(74, 6, 11)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4181,10 +4181,10 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -4194,7 +4194,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(70, 5, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
@@ -4202,14 +4202,14 @@ func TestCallMethod(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(70, 5, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -4222,8 +4222,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4231,7 +4231,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(70, 5, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -4269,36 +4269,36 @@ func TestCallMethod(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(82, 5, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(5, 7),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(82, 5, 22)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -4311,8 +4311,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4320,7 +4320,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 5, 22)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -4360,40 +4360,40 @@ func TestCallMethod(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+					byte(bytecode.JUMP_IF_NIL_NP), 0, 4,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(103, 6, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 2),
-					bytecode.NewLineInfo(6, 10),
+					bytecode.NewLineInfo(6, 9),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(103, 6, 21)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4406,8 +4406,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4415,7 +4415,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(103, 6, 21)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4454,39 +4454,39 @@ func TestCallMethod(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(93, 6, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 7),
+					bytecode.NewLineInfo(6, 6),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(93, 6, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4499,8 +4499,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4508,7 +4508,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(93, 6, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4548,39 +4548,39 @@ func TestCallMethod(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(96, 6, 23)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 7),
+					bytecode.NewLineInfo(6, 6),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(96, 6, 23)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4593,8 +4593,8 @@ func TestCallMethod(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4602,7 +4602,7 @@ func TestCallMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(96, 6, 23)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4668,10 +4668,10 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -4680,7 +4680,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(92, 8, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 5),
 				},
 				[]value.Value{
@@ -4688,7 +4688,7 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -4698,7 +4698,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(92, 8, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -4712,8 +4712,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4721,7 +4721,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(92, 8, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -4757,10 +4757,10 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -4769,7 +4769,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(68, 6, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(6, 5),
 				},
 				[]value.Value{
@@ -4777,14 +4777,14 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(68, 6, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4797,8 +4797,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4806,7 +4806,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4843,10 +4843,10 @@ func TestCallFunction(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -4857,7 +4857,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(63, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 4),
 				},
@@ -4866,14 +4866,14 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(63, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4886,8 +4886,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -4895,7 +4895,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(63, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -4933,10 +4933,10 @@ func TestCallFunction(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -4947,7 +4947,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(78, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 4),
 				},
@@ -4956,14 +4956,14 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(78, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -4976,8 +4976,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.GET_CONST8), 3,
@@ -4991,7 +4991,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(78, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 18),
+							bytecode.NewLineInfo(1, 16),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5041,10 +5041,10 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5053,7 +5053,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(70, 6, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(6, 5),
 				},
 				[]value.Value{
@@ -5061,14 +5061,14 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(70, 6, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -5081,8 +5081,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5090,7 +5090,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(70, 6, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -5128,10 +5128,10 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5140,7 +5140,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(94, 8, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 5),
 				},
 				[]value.Value{
@@ -5148,7 +5148,7 @@ func TestCallFunction(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 1,
 							byte(bytecode.GET_CONST8), 1,
 							byte(bytecode.GET_CONST8), 2,
@@ -5158,7 +5158,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(94, 8, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -5172,8 +5172,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5181,7 +5181,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(94, 8, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -5214,7 +5214,7 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
@@ -5223,7 +5223,7 @@ func TestCallFunction(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(27, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -5232,8 +5232,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5241,7 +5241,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(27, 3, 10)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
@@ -5274,19 +5274,19 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(54, 3, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -5294,8 +5294,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5303,7 +5303,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(54, 3, 18)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
@@ -5339,19 +5339,19 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(57, 3, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -5359,8 +5359,8 @@ func TestCallFunction(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5368,7 +5368,7 @@ func TestCallFunction(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(57, 3, 21)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(3, 2),
 						},
 						[]value.Value{
@@ -5431,10 +5431,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5446,7 +5446,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(81, 6, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 5),
 				},
@@ -5455,14 +5455,14 @@ func TestCallSetter(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(81, 6, 14)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -5475,8 +5475,8 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5484,7 +5484,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 6, 14)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -5525,10 +5525,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5541,7 +5541,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(104, 7, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 8),
 				},
@@ -5550,14 +5550,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(104, 7, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5570,10 +5570,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -5582,7 +5582,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(104, 7, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5640,10 +5640,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5656,7 +5656,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(104, 7, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 8),
 				},
@@ -5665,14 +5665,14 @@ func TestCallSetter(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(104, 7, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5685,10 +5685,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -5697,7 +5697,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(104, 7, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5755,10 +5755,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5773,23 +5773,23 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
+						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5798,14 +5798,14 @@ func TestCallSetter(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
+						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -5814,7 +5814,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5871,10 +5871,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -5889,7 +5889,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -5898,14 +5898,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5918,10 +5918,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -5930,7 +5930,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -5987,10 +5987,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6005,7 +6005,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6014,14 +6014,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6034,10 +6034,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6046,7 +6046,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6103,10 +6103,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6121,7 +6121,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6130,14 +6130,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6150,10 +6150,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6162,7 +6162,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6219,10 +6219,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6237,7 +6237,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(108, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6246,14 +6246,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6266,10 +6266,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6278,7 +6278,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6335,10 +6335,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6353,7 +6353,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6362,14 +6362,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6382,10 +6382,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6394,7 +6394,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6451,10 +6451,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6469,7 +6469,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(108, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6478,14 +6478,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6498,10 +6498,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6510,7 +6510,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6567,10 +6567,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6585,7 +6585,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(119, 7, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 10),
 				},
@@ -6594,14 +6594,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(119, 7, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6614,10 +6614,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6626,7 +6626,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(119, 7, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6683,10 +6683,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6701,7 +6701,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(108, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6710,14 +6710,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6730,10 +6730,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6742,7 +6742,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(108, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6799,10 +6799,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6817,7 +6817,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(119, 7, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 10),
 				},
@@ -6826,14 +6826,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(119, 7, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6846,10 +6846,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6858,7 +6858,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(119, 7, 20)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6915,10 +6915,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -6933,7 +6933,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -6942,14 +6942,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -6962,10 +6962,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -6974,7 +6974,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7031,10 +7031,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -7049,7 +7049,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -7058,14 +7058,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7078,10 +7078,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -7090,7 +7090,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7147,10 +7147,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -7165,7 +7165,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(107, 7, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 9),
 				},
@@ -7174,14 +7174,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7194,10 +7194,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -7206,7 +7206,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(107, 7, 15)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7263,10 +7263,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -7282,7 +7282,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(110, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 12),
 				},
@@ -7291,14 +7291,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7311,10 +7311,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -7323,7 +7323,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7380,10 +7380,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -7399,7 +7399,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(110, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 12),
 				},
@@ -7408,14 +7408,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7428,10 +7428,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -7440,7 +7440,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7497,10 +7497,10 @@ func TestCallSetter(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
@@ -7516,7 +7516,7 @@ func TestCallSetter(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(110, 7, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(7, 12),
 				},
@@ -7525,14 +7525,14 @@ func TestCallSetter(t *testing.T) {
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -7545,10 +7545,10 @@ func TestCallSetter(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 3,
+							byte(bytecode.LOAD_VALUE_3),
 							byte(bytecode.LOAD_VALUE8), 4,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
@@ -7557,7 +7557,7 @@ func TestCallSetter(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(110, 7, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 14),
+							bytecode.NewLineInfo(1, 11),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{

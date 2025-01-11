@@ -80,11 +80,11 @@ func TestGetConstant(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INT_3),
 					byte(bytecode.DEF_CONST),
 					byte(bytecode.GET_CONST8), 2,
@@ -104,10 +104,10 @@ func TestGetConstant(t *testing.T) {
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.GET_CONST8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_NAMESPACE), 0,
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -130,7 +130,7 @@ func TestGetConstant(t *testing.T) {
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOAD_VALUE_1),
 							byte(bytecode.INIT_NAMESPACE),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -188,7 +188,7 @@ func TestDefConstant(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.INT_3),
 					byte(bytecode.DEF_CONST),
 					byte(bytecode.NIL),

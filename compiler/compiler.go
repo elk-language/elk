@@ -375,7 +375,7 @@ func (c *Compiler) CompileMethods(span *position.Span, execOffset int) {
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeBytes(execOffset, 4)
+	c.Parent.removeBytes(execOffset, 3)
 	c.Parent.removeMethodDefinitionsBytecodeFunction()
 }
 
@@ -6596,12 +6596,39 @@ func (c *Compiler) emitGetConst(val value.Symbol, span *position.Span) int {
 
 // Add a value to the value pool and emit appropriate bytecode.
 func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
-	return c.emitAddValue(
-		val,
-		span,
-		bytecode.LOAD_VALUE8,
-		bytecode.LOAD_VALUE16,
-	)
+	id, size := c.Bytecode.AddValue(val)
+
+	switch id {
+	case 0:
+		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_0)
+		return id
+	case 1:
+		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_1)
+		return id
+	case 2:
+		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_2)
+		return id
+	case 3:
+		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_3)
+		return id
+	}
+
+	switch size {
+	case bytecode.UINT8_SIZE:
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
+	case bytecode.UINT16_SIZE:
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
+			c.newLocation(span),
+		)
+		return -1
+	}
+
+	return id
 }
 
 // Emit an instruction that instantiates an object

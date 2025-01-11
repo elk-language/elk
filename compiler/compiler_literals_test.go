@@ -20,7 +20,7 @@ func TestStringLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
@@ -43,13 +43,13 @@ func TestStringLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.ADD),
@@ -85,13 +85,13 @@ func TestStringLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.ADD),
@@ -137,7 +137,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -155,7 +155,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -173,7 +173,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -191,7 +191,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -209,7 +209,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -227,7 +227,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -245,7 +245,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -263,7 +263,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -285,11 +285,11 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG,
 					byte(bytecode.RETURN),
 				},
@@ -315,11 +315,11 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_RANGE), bytecode.OPEN_RANGE_FLAG,
 					byte(bytecode.RETURN),
 				},
@@ -345,11 +345,11 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_RANGE), bytecode.LEFT_OPEN_RANGE_FLAG,
 					byte(bytecode.RETURN),
 				},
@@ -375,11 +375,11 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_RANGE), bytecode.RIGHT_OPEN_RANGE_FLAG,
 					byte(bytecode.RETURN),
 				},
@@ -405,7 +405,7 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
@@ -433,7 +433,7 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
@@ -461,7 +461,7 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
@@ -489,7 +489,7 @@ func TestRangeLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
@@ -524,7 +524,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -542,7 +542,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -560,7 +560,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -578,7 +578,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -596,7 +596,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -614,7 +614,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -632,7 +632,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -650,7 +650,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -668,7 +668,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -686,7 +686,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(
@@ -711,7 +711,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -729,7 +729,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -747,7 +747,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -765,7 +765,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -783,7 +783,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -801,7 +801,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -819,7 +819,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -882,7 +882,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -926,7 +926,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -944,7 +944,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
@@ -967,7 +967,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
@@ -993,7 +993,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(21, 1, 22)),
@@ -1019,9 +1019,9 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -1050,7 +1050,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
@@ -1083,10 +1083,10 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INSTANTIATE8), 0,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
@@ -1118,8 +1118,8 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -1150,12 +1150,12 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -1195,16 +1195,16 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_IF), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -1234,9 +1234,9 @@ func TestArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL8), 1,
@@ -1246,7 +1246,7 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.APPEND),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
@@ -1297,7 +1297,7 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -1333,8 +1333,8 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.LOAD_VALUE8), 4,
@@ -1376,8 +1376,8 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -1402,7 +1402,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(30, 1, 31)),
@@ -1428,7 +1428,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1455,7 +1455,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
@@ -1483,7 +1483,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(39, 1, 40)),
@@ -1513,7 +1513,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -1535,7 +1535,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -1557,7 +1557,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(11, 1, 12)),
@@ -1579,7 +1579,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(12, 1, 13)),
@@ -1612,7 +1612,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1631,7 +1631,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1655,8 +1655,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1686,11 +1686,11 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1717,7 +1717,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1740,8 +1740,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1765,7 +1765,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1789,8 +1789,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1814,7 +1814,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1837,8 +1837,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1862,7 +1862,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1885,8 +1885,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1911,7 +1911,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1938,8 +1938,8 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1967,7 +1967,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1994,7 +1994,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2024,10 +2024,10 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_ARRAY_LIST8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -2060,10 +2060,10 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -2096,11 +2096,11 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
@@ -2134,11 +2134,11 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
@@ -2173,13 +2173,13 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
@@ -2214,14 +2214,14 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
@@ -2256,16 +2256,16 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2313,16 +2313,16 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_IF), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2354,9 +2354,9 @@ func TestArrayLists(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL8), 1,
@@ -2366,7 +2366,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.APPEND),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
@@ -2418,11 +2418,11 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2457,10 +2457,10 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.LOAD_VALUE8), 4,
@@ -2496,11 +2496,11 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.LOAD_VALUE8), 5,
@@ -2508,7 +2508,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.APPEND_AT),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE8), 7,
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.RETURN),
@@ -2549,8 +2549,8 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -2585,7 +2585,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2604,7 +2604,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2629,8 +2629,8 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2662,11 +2662,11 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2697,7 +2697,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2721,8 +2721,8 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2747,7 +2747,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2771,8 +2771,8 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2797,7 +2797,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2821,8 +2821,8 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2848,7 +2848,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2872,8 +2872,8 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2906,9 +2906,9 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -2944,9 +2944,9 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_SET8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -2979,12 +2979,12 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3032,12 +3032,12 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_IF), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3069,9 +3069,9 @@ func TestHashSet(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_SET8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL8), 1,
@@ -3081,13 +3081,13 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.APPEND),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.LOOP), 0, 20,
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -3126,14 +3126,14 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.NEW_HASH_SET8), 1,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3172,7 +3172,7 @@ func TestHashMap(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -3195,12 +3195,12 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_HASH_MAP8), 1,
 					byte(bytecode.RETURN),
@@ -3228,12 +3228,12 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_HASH_MAP8), 1,
 					byte(bytecode.RETURN),
@@ -3257,7 +3257,7 @@ func TestHashMap(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -3292,9 +3292,9 @@ func TestHashMap(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_MAP8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL8), 1,
@@ -3305,13 +3305,13 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.LOOP), 0, 22,
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3345,8 +3345,8 @@ func TestHashMap(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -3384,11 +3384,11 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -3425,10 +3425,10 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.LOAD_VALUE8), 5,
 					byte(bytecode.COPY),
@@ -3461,15 +3461,15 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_HASH_MAP8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -3509,13 +3509,13 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3575,13 +3575,13 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_IF), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3622,14 +3622,14 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 11,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.INSTANTIATE8), 0,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3673,7 +3673,7 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -3695,11 +3695,11 @@ func TestHashRecord(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3726,11 +3726,11 @@ func TestHashRecord(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3753,7 +3753,7 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(36, 1, 37)),
@@ -3786,9 +3786,9 @@ func TestHashRecord(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_RECORD8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL8), 1,
@@ -3799,13 +3799,13 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.LOOP), 0, 22,
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3839,9 +3839,9 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.LOAD_VALUE8), 5,
 					byte(bytecode.COPY),
@@ -3881,11 +3881,11 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_HASH_RECORD8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -3924,13 +3924,13 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_RECORD8), 0,
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
@@ -3982,12 +3982,12 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.JUMP_IF), 0, 9,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
@@ -4029,11 +4029,11 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
@@ -4072,7 +4072,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -4090,7 +4090,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(5, 1, 6)),
@@ -4108,7 +4108,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -4130,12 +4130,12 @@ func TestRegex(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_REGEX8), byte(flag.CaseInsensitiveFlag), 3,
 					byte(bytecode.RETURN),
 				},

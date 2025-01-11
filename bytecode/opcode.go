@@ -44,6 +44,10 @@ func (o OpCode) String() string {
 const (
 	NOOP              OpCode = iota // Does not perform any operation, placeholder.
 	RETURN                          // Return from the current frame
+	LOAD_VALUE_0                    // Push a value with index 0 onto the value stack
+	LOAD_VALUE_1                    // Push a value with index 1 onto the value stack
+	LOAD_VALUE_2                    // Push a value with index 2 onto the value stack
+	LOAD_VALUE_3                    // Push a value with index 3 onto the value stack
 	LOAD_VALUE8                     // Push a value with a single byte index onto the value stack
 	LOAD_VALUE16                    // Push a value with a two byte index onto the value stack
 	ADD                             // Take two values from the stack, add them together (or call the + method) and push the result
@@ -271,6 +275,10 @@ const (
 var opCodeNames = [...]string{
 	NOOP:              "NOOP",
 	RETURN:            "RETURN",
+	LOAD_VALUE_0:      "LOAD_VALUE_0",
+	LOAD_VALUE_1:      "LOAD_VALUE_1",
+	LOAD_VALUE_2:      "LOAD_VALUE_2",
+	LOAD_VALUE_3:      "LOAD_VALUE_3",
 	LOAD_VALUE8:       "LOAD_VALUE8",
 	LOAD_VALUE16:      "LOAD_VALUE16",
 	ADD:               "ADD",

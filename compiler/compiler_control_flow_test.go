@@ -21,7 +21,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -73,13 +73,13 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 60,
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
@@ -173,7 +173,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -238,7 +238,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -304,7 +304,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -369,7 +369,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -430,7 +430,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -493,7 +493,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -502,7 +502,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -580,7 +580,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -589,7 +589,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -667,7 +667,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -676,7 +676,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -752,7 +752,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -761,7 +761,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -873,7 +873,7 @@ func TestModifierForIn(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -918,13 +918,13 @@ func TestModifierForIn(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 60,
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
@@ -1235,7 +1235,7 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_2),
@@ -1487,7 +1487,7 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 5,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_2),
@@ -1715,7 +1715,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 7,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 18,
@@ -1763,7 +1763,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 7,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 18,
@@ -2217,7 +2217,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
 					// falsy
 					byte(bytecode.POP),
@@ -2247,7 +2247,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
 					// falsy 1
 					byte(bytecode.POP),
@@ -2295,7 +2295,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					// truthy
 					byte(bytecode.POP),
@@ -2324,7 +2324,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					// truthy 1
 					byte(bytecode.POP),
@@ -2370,7 +2370,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
@@ -2398,7 +2398,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
@@ -3458,7 +3458,7 @@ func TestModifierWhile(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 10,
@@ -3494,7 +3494,7 @@ func TestModifierWhile(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -4027,7 +4027,7 @@ func TestWhile(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 10,
@@ -4424,7 +4424,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(4, 4),
 					bytecode.NewLineInfo(5, 2),
-					bytecode.NewLineInfo(7, 13),
+					bytecode.NewLineInfo(7, 16),
 					bytecode.NewLineInfo(8, 5),
 					bytecode.NewLineInfo(9, 2),
 					bytecode.NewLineInfo(6, 4),
@@ -4589,7 +4589,7 @@ func TestModifierUntil(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 10,
@@ -4625,7 +4625,7 @@ func TestModifierUntil(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -5157,7 +5157,7 @@ func TestUntil(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 10,
@@ -5301,7 +5301,7 @@ func TestThrow(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.THROW),
 					byte(bytecode.RETURN),
 				},
@@ -5346,12 +5346,12 @@ func TestCatch(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.THROW),
 
 					byte(bytecode.JUMP), 0, 32,
 					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.DUP),
 					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.IS_A),
@@ -5359,11 +5359,11 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.POP_2_SKIP_ONE),
 					byte(bytecode.JUMP), 0, 13,
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					byte(bytecode.INT_3),
@@ -5408,7 +5408,7 @@ func TestCatch(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 4,
@@ -5488,13 +5488,13 @@ func TestCatch(t *testing.T) {
 			want: vm.NewBytecodeFunctionWithCatchEntries(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.POP),
 					byte(bytecode.JUMP), 0, 56,
@@ -5551,8 +5551,8 @@ func TestCatch(t *testing.T) {
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -5568,10 +5568,10 @@ func TestCatch(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.CALL_SELF8), 1,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE8), 2,
+									byte(bytecode.LOAD_VALUE_2),
 									byte(bytecode.THROW),
 									byte(bytecode.RETURN),
 								},

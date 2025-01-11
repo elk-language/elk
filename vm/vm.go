@@ -544,6 +544,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.opIsA())
 		case bytecode.UNDEFINED:
 			vm.push(value.Undefined)
+		case bytecode.LOAD_VALUE_0:
+			vm.push(vm.readValue(0))
+		case bytecode.LOAD_VALUE_1:
+			vm.push(vm.readValue(1))
+		case bytecode.LOAD_VALUE_2:
+			vm.push(vm.readValue(2))
+		case bytecode.LOAD_VALUE_3:
+			vm.push(vm.readValue(3))
 		case bytecode.LOAD_VALUE8:
 			vm.push(vm.readValue8())
 		case bytecode.LOAD_VALUE16:
@@ -1236,6 +1244,12 @@ func (vm *VM) BuildStackTrace() string {
 	//   1: /tmp/test.elk:11, in `bar`
 
 	return buffer.String()
+}
+
+// Treat the next 8 bits of bytecode as an index
+// of a value and retrieve the value.
+func (vm *VM) readValue(i int) value.Value {
+	return vm.bytecode.Values[i]
 }
 
 // Treat the next 8 bits of bytecode as an index
