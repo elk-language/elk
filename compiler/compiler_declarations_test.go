@@ -1784,7 +1784,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(22, 2, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(2, 2),
 				},
 				[]value.Value{
@@ -1802,7 +1802,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(22, 2, 22)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(2, 2),
 						},
 						[]value.Value{
@@ -1815,7 +1815,7 @@ func TestDefMethod(t *testing.T) {
 								},
 								L(P(5, 2, 5), P(21, 2, 21)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(2, 3),
+									bytecode.NewLineInfo(2, 2),
 								},
 								[]value.Value{
 									value.ToSymbol("bar").ToValue(),
@@ -1844,7 +1844,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(49, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(4, 2),
 				},
 				[]value.Value{
@@ -1862,7 +1862,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(49, 4, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(4, 2),
 						},
 						[]value.Value{
@@ -1871,7 +1871,7 @@ func TestDefMethod(t *testing.T) {
 								value.ToSymbol("foo="),
 								[]byte{
 									byte(bytecode.UNDEFINED),
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
 									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
@@ -1917,7 +1917,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(69, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
@@ -1935,7 +1935,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(69, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -1957,7 +1957,7 @@ func TestDefMethod(t *testing.T) {
 								L(P(5, 2, 5), P(68, 5, 7)),
 								bytecode.LineInfoList{
 									bytecode.NewLineInfo(3, 9),
-									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(4, 3),
 								},
 								1,
 								0,
@@ -1996,7 +1996,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(63, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
@@ -2014,7 +2014,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(63, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -2073,7 +2073,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(115, 9, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(9, 2),
 				},
 				[]value.Value{
@@ -2091,7 +2091,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(115, 9, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(9, 2),
 						},
 						[]value.Value{
@@ -2116,7 +2116,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(115, 9, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(9, 2),
 						},
 						[]value.Value{
@@ -2214,7 +2214,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(136, 9, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(9, 2),
 				},
 				[]value.Value{
@@ -2232,7 +2232,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(136, 9, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(9, 2),
 						},
 						[]value.Value{
@@ -2254,7 +2254,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(136, 9, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(9, 2),
 						},
 						[]value.Value{
@@ -2288,15 +2288,15 @@ func TestDefMethod(t *testing.T) {
 									byte(bytecode.ADD_INT),
 									byte(bytecode.RETURN),
 								},
-								L(P(54, 5, 6), P(106, 8, 8)),
+								L(P(56, 5, 6), P(127, 8, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(5, 18),
+									bytecode.NewLineInfo(5, 25),
 									bytecode.NewLineInfo(6, 2),
 									bytecode.NewLineInfo(7, 5),
 									bytecode.NewLineInfo(8, 1),
 								},
 								2,
-								0,
+								2,
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
 									value.ToSymbol("b").ToValue(),
@@ -2326,7 +2326,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(88, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
@@ -2344,7 +2344,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(88, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -2353,46 +2353,36 @@ func TestDefMethod(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-
-									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.JUMP_UNLESS_UNP), 0, 5,
-									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
 									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_LOCAL8), 2,
-									byte(bytecode.POP),
-
-									byte(bytecode.GET_LOCAL8), 3,
-									byte(bytecode.JUMP_UNLESS_UNP), 0, 5,
-									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.SET_LOCAL8), 3,
-									byte(bytecode.POP),
-
-									byte(bytecode.LOAD_VALUE_2),
-									byte(bytecode.SET_LOCAL8), 4,
-									byte(bytecode.POP),
-									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.ADD),
-									byte(bytecode.GET_LOCAL8), 3,
-									byte(bytecode.ADD),
-									byte(bytecode.GET_LOCAL8), 4,
-									byte(bytecode.ADD),
+									byte(bytecode.SET_LOCAL_2),
+									byte(bytecode.GET_LOCAL_3),
+									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
+									byte(bytecode.LOAD_INT_8), 10,
+									byte(bytecode.SET_LOCAL_3),
+									byte(bytecode.INT_5),
+									byte(bytecode.SET_LOCAL_4),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.GET_LOCAL_3),
+									byte(bytecode.ADD_FLOAT),
+									byte(bytecode.GET_LOCAL_4),
+									byte(bytecode.ADD_FLOAT),
 									byte(bytecode.RETURN),
 								},
 								L(P(5, 2, 5), P(87, 5, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(2, 24),
-									bytecode.NewLineInfo(3, 5),
-									bytecode.NewLineInfo(4, 11),
+									bytecode.NewLineInfo(2, 15),
+									bytecode.NewLineInfo(3, 2),
+									bytecode.NewLineInfo(4, 7),
 									bytecode.NewLineInfo(5, 1),
 								},
 								3,
 								2,
 								[]value.Value{
 									value.Float(5.2).ToValue(),
-									value.SmallInt(10).ToValue(),
-									value.SmallInt(5).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2424,7 +2414,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(89, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2442,7 +2432,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(89, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2464,7 +2454,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(89, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2521,7 +2511,7 @@ func TestDefMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(90, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2536,7 +2526,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(90, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2558,7 +2548,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(90, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2567,27 +2557,24 @@ func TestDefMethod(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_LOCAL8), 3,
-									byte(bytecode.POP),
-									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.ADD),
-									byte(bytecode.GET_LOCAL8), 3,
-									byte(bytecode.ADD),
+									byte(bytecode.INT_5),
+									byte(bytecode.SET_LOCAL_3),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.GET_LOCAL_3),
+									byte(bytecode.ADD_INT),
 									byte(bytecode.RETURN),
 								},
 								L(P(21, 3, 6), P(81, 6, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 7),
-									bytecode.NewLineInfo(5, 8),
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
 									bytecode.NewLineInfo(6, 1),
 								},
 								2,
 								0,
-								[]value.Value{
-									value.SmallInt(5).ToValue(),
-								},
+								nil,
 							)),
 							value.ToSymbol("foo").ToValue(),
 						},
@@ -2690,7 +2677,7 @@ func TestDefInit(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(86, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2708,7 +2695,7 @@ func TestDefInit(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2730,7 +2717,7 @@ func TestDefInit(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2739,28 +2726,25 @@ func TestDefInit(t *testing.T) {
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_LOCAL8), 3,
-									byte(bytecode.POP),
-									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.ADD),
-									byte(bytecode.GET_LOCAL8), 3,
-									byte(bytecode.ADD),
+									byte(bytecode.INT_5),
+									byte(bytecode.SET_LOCAL_3),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.GET_LOCAL_3),
+									byte(bytecode.ADD_INT),
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(77, 6, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 7),
-									bytecode.NewLineInfo(5, 8),
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
 									bytecode.NewLineInfo(6, 2),
 								},
 								2,
 								0,
-								[]value.Value{
-									value.SmallInt(5).ToValue(),
-								},
+								nil,
 							)),
 							value.ToSymbol("#init").ToValue(),
 						},
@@ -2792,7 +2776,7 @@ func TestDefMixin(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -2806,7 +2790,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(13, 1, 14)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 7),
 						},
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
@@ -2830,7 +2814,7 @@ func TestDefMixin(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -2844,7 +2828,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(15, 1, 16)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 7),
 						},
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
@@ -2878,7 +2862,7 @@ func TestDefMixin(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(25, 1, 26)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -2892,7 +2876,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(25, 1, 26)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 7),
 						},
 						[]value.Value{
 							value.ToSymbol("Std::Int").ToValue(),
@@ -2923,8 +2907,8 @@ func TestDefMixin(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(45, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
@@ -2939,7 +2923,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(45, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -2953,26 +2937,22 @@ func TestDefMixin(t *testing.T) {
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE_0),
-							byte(bytecode.SET_LOCAL8), 1,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 1,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.ADD),
+							byte(bytecode.INT_1),
+							byte(bytecode.SET_LOCAL_1),
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.INT_2),
+							byte(bytecode.ADD_INT),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
 						},
 						L(P(5, 2, 5), P(44, 5, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
 							bytecode.NewLineInfo(5, 3),
 						},
-						[]value.Value{
-							value.SmallInt(1).ToValue(),
-							value.SmallInt(2).ToValue(),
-						},
+						nil,
 					)),
 				},
 			),
@@ -2999,8 +2979,8 @@ func TestDefMixin(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(71, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
@@ -3018,7 +2998,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(71, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 12),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3041,7 +3021,7 @@ func TestDefMixin(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(70, 7, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 5),
+							bytecode.NewLineInfo(3, 4),
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
@@ -3050,26 +3030,22 @@ func TestDefMixin(t *testing.T) {
 								value.ToSymbol("<mixin: Foo::Bar>"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_LOCAL8), 1,
-									byte(bytecode.POP),
-									byte(bytecode.GET_LOCAL8), 1,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.ADD),
+									byte(bytecode.INT_1),
+									byte(bytecode.SET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.INT_2),
+									byte(bytecode.ADD_INT),
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
 								},
 								L(P(20, 3, 6), P(62, 6, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 7),
-									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 3),
 									bytecode.NewLineInfo(6, 3),
 								},
-								[]value.Value{
-									value.SmallInt(1).ToValue(),
-									value.SmallInt(2).ToValue(),
-								},
+								nil,
 							)),
 						},
 					)),
@@ -3105,7 +3081,7 @@ func TestInclude(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(60, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
@@ -3129,7 +3105,7 @@ func TestInclude(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(60, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 22),
+							bytecode.NewLineInfo(1, 20),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3161,7 +3137,7 @@ func TestInclude(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(60, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
@@ -3182,7 +3158,7 @@ func TestInclude(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(60, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 17),
+							bytecode.NewLineInfo(1, 15),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -3214,7 +3190,7 @@ func TestInclude(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(86, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 3),
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
@@ -3244,7 +3220,7 @@ func TestInclude(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 33),
+							bytecode.NewLineInfo(1, 30),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
