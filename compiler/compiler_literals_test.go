@@ -2363,7 +2363,6 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.POP),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2718,7 +2717,7 @@ func TestHashSet(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2809,7 +2808,7 @@ func TestHashSet(t *testing.T) {
 					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
-						2,
+						5,
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(1).ToValue(),

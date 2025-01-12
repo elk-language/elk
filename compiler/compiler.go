@@ -6296,17 +6296,42 @@ func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {
 		return
 	}
 	c.compileNodeWithResult(node.Right)
+	rightType := c.typeOf(node.Right)
+
 	switch node.Op.Type {
 	case token.PLUS:
-		c.emit(node.Span().StartPos.Line, bytecode.UNARY_PLUS)
+		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(node.Span().StartPos.Line, bytecode.UNARY_PLUS)
+			return
+		}
+
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpUnaryPlus, 0), node.Span(), false)
 	case token.MINUS:
-		c.emit(node.Span().StartPos.Line, bytecode.NEGATE)
+		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
+			c.emit(node.Span().StartPos.Line, bytecode.NEGATE_INT)
+			return
+		}
+		if c.checker.IsSubtype(rightType, c.checker.StdFloat()) {
+			c.emit(node.Span().StartPos.Line, bytecode.NEGATE_FLOAT)
+			return
+		}
+		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(node.Span().StartPos.Line, bytecode.NEGATE)
+			return
+		}
+
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpNegate, 0), node.Span(), false)
 	case token.BANG:
 		// logical not
 		c.emit(node.Span().StartPos.Line, bytecode.NOT)
 	case token.TILDE:
 		// binary negation
-		c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
+		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+			c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
+			return
+		}
+
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpBitwiseNot, 0), node.Span(), false)
 	case token.AND:
 		// get singleton class
 		c.emit(node.Span().StartPos.Line, bytecode.GET_SINGLETON)

@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -16,18 +17,17 @@ func TestBinaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_3),
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.IS_A),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(3).ToValue(),
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
@@ -40,18 +40,17 @@ func TestBinaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_3),
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANCE_OF),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(3).ToValue(),
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
@@ -64,7 +63,7 @@ func TestBinaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT8), 6,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
@@ -73,41 +72,180 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.Int8(6).ToValue(),
 				},
 			),
 		},
-		"add": {
-			input: "a := 1i8; a + 5i8",
+		"add int": {
+			input: "a := 1; a + 5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.ADD_INT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"add float": {
+			input: "a := 1.2; a + 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.ADD_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(1.2).ToValue(),
+					value.Float(5.0).ToValue(),
+				},
+			),
+		},
+		"add builtin": {
+			input: "a := 1i8; a + 5i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 5,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.Int8(1).ToValue(),
-					value.Int8(5).ToValue(),
 				},
 			),
 		},
+		"add value": {
+			input: `
+				module Foo
+					def +(other: Int): Int
+					  other
+					end
+				end
+				Foo + 5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 7, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 6),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpAdd,
+										[]byte{
+											byte(bytecode.GET_LOCAL_1),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("+").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpAdd, 1)),
+				},
+			),
+		},
+
 		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT32_8), 0x79,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(20, 1, 21)),
@@ -116,38 +254,177 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.Int32(121).ToValue(),
 				},
 			),
 		},
-		"subtract": {
+		"subtract int": {
+			input: "a := 1; a - 5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.SUBTRACT_INT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"subtract float": {
+			input: "a := 1.2; a - 5.0",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.SUBTRACT_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(1.2).ToValue(),
+					value.Float(5.0).ToValue(),
+				},
+			),
+		},
+		"subtract builtin": {
 			input: "a := 151i32; a - 25i32 - 5i32",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT32_8), 25,
 					byte(bytecode.SUBTRACT),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_INT32_8), 5,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 12),
 				},
 				[]value.Value{
 					value.Undefined,
 					value.Int32(151).ToValue(),
-					value.Int32(25).ToValue(),
-					value.Int32(5).ToValue(),
 				},
 			),
 		},
+		"subtract value": {
+			input: `
+				module Foo
+					def -(other: Int): Int
+					  other
+					end
+				end
+				Foo - 5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 7, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 6),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpSubtract,
+										[]byte{
+											byte(bytecode.GET_LOCAL_1),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("-").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpSubtract, 1)),
+				},
+			),
+		},
+
 		"resolve static multiply": {
 			input: "45.5 * 2.5",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -158,7 +435,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -166,31 +443,171 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"multiply": {
-			input: "a := 45.5; a * 2.5",
+		"multiply int": {
+			input: "a := 1; a * 5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.MULTIPLY_INT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"multiply float": {
+			input: "a := 1.2; a * 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.MULTIPLY_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(1.2).ToValue(),
+					value.Float(5.0).ToValue(),
+				},
+			),
+		},
+		"multiply builtin": {
+			input: "a := 45i8; a * 2i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 45,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 2,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.Float(45.5).ToValue(),
-					value.Float(2.5).ToValue(),
 				},
 			),
 		},
+		"multiply value": {
+			input: `
+				module Foo
+					def *(other: Int): Int
+					  other
+					end
+				end
+				Foo * 5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 7, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 6),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpMultiply,
+										[]byte{
+											byte(bytecode.GET_LOCAL_1),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("*").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpMultiply, 1)),
+				},
+			),
+		},
+
 		"resolve static divide": {
 			input: "45.5 / .5",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -201,7 +618,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -209,23 +626,44 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"divide": {
+		"divide int": {
+			input: "a := 1; a / 5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.DIVIDE_INT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"divide float": {
 			input: "a := 45.5; a / .5",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.DIVIDE),
+					byte(bytecode.DIVIDE_FLOAT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -234,12 +672,131 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 			),
 		},
+		"divide builtin": {
+			input: "a := 1i8; a / 5i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 5,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"divide value": {
+			input: `
+				module Foo
+					def /(other: Int): Int
+					  other
+					end
+				end
+				Foo / 5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 7, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 6),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(85, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpDivide,
+										[]byte{
+											byte(bytecode.GET_LOCAL_1),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(64, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("/").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpDivide, 1)),
+				},
+			),
+		},
+
 		"resolve static exponentiate": {
 			input: "-2 ** 2",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0xFC,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -248,32 +805,170 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(-4).ToValue(),
 				},
 			),
 		},
-		"exponentiate": {
+		"exponentiate int": {
 			input: "a := -2; a ** 2",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.LOAD_INT_8), 0xFE,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_2),
+					byte(bytecode.EXPONENTIATE_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(-2).ToValue(),
-					value.SmallInt(2).ToValue(),
+				},
+			),
+		},
+		"exponentiate float": {
+			input: "a := 1.2; a + 5.0",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.ADD_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(1.2).ToValue(),
+					value.Float(5.0).ToValue(),
+				},
+			),
+		},
+		"exponentiate builtin": {
+			input: "a := 1i8; a ** 5i8",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT8), 5,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(17, 1, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"exponentiate value": {
+			input: `
+				module Foo
+					def **(other: Int): Int
+					  other
+					end
+				end
+				Foo ** 5
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(87, 7, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 6),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(87, 7, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(87, 7, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpExponentiate,
+										[]byte{
+											byte(bytecode.GET_LOCAL_1),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(65, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										1,
+										0,
+										nil,
+									),
+								),
+								value.ToSymbol("**").ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpExponentiate, 1)),
 				},
 			),
 		},
@@ -293,7 +988,7 @@ func TestUnaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0xfb,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(1, 1, 2)),
@@ -302,57 +997,175 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(-5).ToValue(),
 				},
 			),
 		},
-		"resolve static plus": {
-			input: "+5",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(1, 1, 2)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-				},
-				[]value.Value{
-					value.Undefined,
-					value.SmallInt(5).ToValue(),
-				},
-			),
-		},
-		"negate": {
+		"negate int": {
 			input: "a := 5; -a",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.NEGATE),
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.NEGATE_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
 				},
 			),
 		},
+		"negate float": {
+			input: "a := 5.2; -a",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.NEGATE_FLOAT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Float(5.2).ToValue(),
+				},
+			),
+		},
+		"negate builtin": {
+			input: "a := 5i8; -a",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_INT8), 5,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.NEGATE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"negate value": {
+			input: `
+				module Foo
+					def -@: Foo
+					  self
+					end
+				end
+				-Foo
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(70, 7, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(7, 5),
+				},
+				[]value.Value{
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 7, 9)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						),
+					),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 7, 9)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(
+									vm.NewBytecodeFunction(
+										symbol.OpNegate,
+										[]byte{
+											byte(bytecode.SELF),
+											byte(bytecode.RETURN),
+										},
+										L(P(21, 3, 6), P(52, 5, 8)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 1),
+											bytecode.NewLineInfo(5, 1),
+										},
+										0,
+										0,
+										nil,
+									),
+								),
+								symbol.OpNegate.ToValue(),
+							},
+						),
+					),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(symbol.OpNegate, 0)),
+				},
+			),
+		},
+
 		"resolve static bitwise not": {
 			input: "~10",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0xf5,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -361,7 +1174,6 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(-11).ToValue(),
 				},
 			),
 		},
@@ -388,20 +1200,18 @@ func TestUnaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
@@ -411,20 +1221,36 @@ func TestUnaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.BITWISE_NOT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(10).ToValue(),
+				},
+			),
+		},
+
+		"resolve static plus": {
+			input: "+5",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.INT_5),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(1, 1, 2)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Undefined,
 				},
 			),
 		},
@@ -434,20 +1260,18 @@ func TestUnaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.UNARY_PLUS),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(10).ToValue(),
 				},
 			),
 		},
@@ -516,23 +1340,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.ADD_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -646,23 +1468,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.MODULO),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.MODULO_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -698,23 +1518,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_OR),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.BITWISE_OR_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -908,25 +1726,22 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.JUMP_IF_NIL), 0, 3,
-					byte(bytecode.JUMP), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_3),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(23, 1, 24)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 21),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
