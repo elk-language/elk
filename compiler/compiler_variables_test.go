@@ -55,7 +55,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(29, 1, 30)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -72,7 +72,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(29, 1, 30)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 12),
 						},
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
@@ -97,7 +97,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -111,7 +111,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(28, 1, 29)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 7),
 						},
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
@@ -135,7 +135,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(30, 1, 31)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -149,7 +149,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(30, 1, 31)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 7),
 						},
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
@@ -184,7 +184,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(81, 8, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
@@ -202,7 +202,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -224,7 +224,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -232,8 +232,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(41, 5, 6), P(72, 7, 8)),
@@ -242,7 +243,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(7, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -276,7 +276,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(81, 8, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
@@ -291,7 +291,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -312,7 +312,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -320,8 +320,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(41, 5, 6), P(72, 7, 8)),
@@ -330,7 +331,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(7, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -364,7 +364,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(82, 8, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
@@ -379,7 +379,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -401,7 +401,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 8, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(8, 2),
 						},
 						[]value.Value{
@@ -409,8 +409,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(42, 5, 6), P(73, 7, 8)),
@@ -419,7 +420,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(7, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -455,7 +455,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(109, 10, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(10, 2),
 				},
 				[]value.Value{
@@ -473,7 +473,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(109, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -496,7 +496,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(109, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -504,8 +504,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(58, 6, 7), P(91, 8, 9)),
@@ -514,7 +515,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(8, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -550,7 +550,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(109, 10, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(10, 2),
 				},
 				[]value.Value{
@@ -565,7 +565,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(109, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -587,7 +587,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(109, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -595,8 +595,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(58, 6, 7), P(91, 8, 9)),
@@ -605,7 +606,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(8, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -641,7 +641,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(113, 10, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(10, 2),
 				},
 				[]value.Value{
@@ -656,7 +656,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(113, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -678,7 +678,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(113, 10, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 9),
+							bytecode.NewLineInfo(1, 7),
 							bytecode.NewLineInfo(10, 2),
 						},
 						[]value.Value{
@@ -686,8 +686,9 @@ func TestInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("foo"),
 								[]byte{
-									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.SET_IVAR8), 1,
+									byte(bytecode.INT_2),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(62, 6, 7), P(95, 8, 9)),
@@ -696,7 +697,6 @@ func TestInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(8, 1),
 								},
 								[]value.Value{
-									value.SmallInt(2).ToValue(),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -728,8 +728,8 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(77, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
@@ -747,7 +747,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(77, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -761,8 +761,9 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<class: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE_0),
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.INT_2),
+							byte(bytecode.DUP),
+							byte(bytecode.SET_IVAR8), 0,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -773,7 +774,6 @@ func TestInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
-							value.SmallInt(2).ToValue(),
 							value.ToSymbol("a").ToValue(),
 						},
 					)),
@@ -802,8 +802,8 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(77, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
@@ -818,7 +818,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(77, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -831,8 +831,9 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE_0),
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.INT_2),
+							byte(bytecode.DUP),
+							byte(bytecode.SET_IVAR8), 0,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -843,7 +844,6 @@ func TestInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
-							value.SmallInt(2).ToValue(),
 							value.ToSymbol("a").ToValue(),
 						},
 					)),
@@ -872,8 +872,8 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(81, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
@@ -888,7 +888,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(81, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -901,8 +901,9 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<interface: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE_0),
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.INT_2),
+							byte(bytecode.DUP),
+							byte(bytecode.SET_IVAR8), 0,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -913,7 +914,6 @@ func TestInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						[]value.Value{
-							value.SmallInt(2).ToValue(),
 							value.ToSymbol("a").ToValue(),
 						},
 					)),
@@ -940,8 +940,8 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(53, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
@@ -956,7 +956,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(53, 5, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(1, 5),
 							bytecode.NewLineInfo(5, 2),
 						},
 						[]value.Value{
@@ -969,8 +969,9 @@ func TestInstanceVariables(t *testing.T) {
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
-							byte(bytecode.LOAD_VALUE_0),
-							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.INT_2),
+							byte(bytecode.DUP),
+							byte(bytecode.SET_IVAR8), 0,
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
 							byte(bytecode.RETURN),
@@ -981,7 +982,6 @@ func TestInstanceVariables(t *testing.T) {
 							bytecode.NewLineInfo(5, 3),
 						},
 						[]value.Value{
-							value.SmallInt(2).ToValue(),
 							value.ToSymbol("a").ToValue(),
 						},
 					)),
@@ -1021,17 +1021,17 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_3),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 7),
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1046,51 +1046,47 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.IS_A),
-					byte(bytecode.JUMP_UNLESS), 0, 37,
+					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
 					byte(bytecode.DUP),
 					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.INT_2),
+					byte(bytecode.EQUAL_INT),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.INT_0),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.INT_1),
+					byte(bytecode.EQUAL),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.INT_1),
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_IF), 0, 3,
 					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.EQUAL),
-					byte(bytecode.JUMP_UNLESS), 0, 27,
-					byte(bytecode.POP),
-					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 6,
-					byte(bytecode.EQUAL),
-					byte(bytecode.POP_SKIP_ONE),
-					byte(bytecode.JUMP_UNLESS), 0, 14,
-					byte(bytecode.POP),
-					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 6,
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.TRUE),
-					byte(bytecode.POP_SKIP_ONE),
-					byte(bytecode.JUMP_UNLESS), 0, 2,
-					byte(bytecode.POP),
-					byte(bytecode.TRUE),
-					byte(bytecode.JUMP_IF), 0, 4,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 7,
 					byte(bytecode.THROW),
-					byte(bytecode.POP),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 58),
+					bytecode.NewLineInfo(1, 50),
 				},
 				[]value.Value{
 					value.Undefined,
 					value.Ref(&value.ArrayList{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-					value.SmallInt(2).ToValue(),
-					value.SmallInt(0).ToValue(),
-					value.SmallInt(1).ToValue(),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
 				},
 			),
@@ -1142,17 +1138,15 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.NIL),
-					byte(bytecode.POP),
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(32, 3, 14)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1170,17 +1164,17 @@ func TestLocalVariables(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(32, 3, 14)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 5),
-					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -1229,24 +1223,21 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.ADD),
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_2),
+					byte(bytecode.ADD_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(24, 3, 10)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 5),
-					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
-					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
@@ -1261,25 +1252,22 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.ADD),
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_2),
+					byte(bytecode.ADD_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(40, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 5),
-					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(4, 3),
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
-					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
@@ -1295,37 +1283,31 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.SET_LOCAL8), 2,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.ADD),
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.INT_2),
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.LOAD_INT_8), 12,
+					byte(bytecode.ADD_INT),
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
-					byte(bytecode.ADD),
+					byte(bytecode.ADD_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(61, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 5),
-					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(4, 5),
-					bytecode.NewLineInfo(5, 5),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(5, 4),
 					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(6, 1),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
-					value.SmallInt(2).ToValue(),
-					value.SmallInt(10).ToValue(),
-					value.SmallInt(12).ToValue(),
 				},
 			),
 		},
@@ -1349,30 +1331,28 @@ func TestUpvalues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(40, 3, 23)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 5),
-					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.UNDEFINED),
-							byte(bytecode.GET_UPVALUE8), 0,
+							byte(bytecode.GET_UPVALUE_0),
 							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-							byte(bytecode.CALL_METHOD8), 1,
+							byte(bytecode.CALL_METHOD_TCO8), 1,
 							byte(bytecode.RETURN),
 						},
 						L(P(22, 3, 5), P(39, 3, 22)),
@@ -1401,33 +1381,31 @@ func TestUpvalues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
-					byte(bytecode.CLOSE_UPVALUE8), 1,
+					byte(bytecode.CLOSE_UPVALUE_1),
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(3, 5),
-					bytecode.NewLineInfo(4, 6),
-					bytecode.NewLineInfo(5, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(5).ToValue(),
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.UNDEFINED),
-							byte(bytecode.GET_UPVALUE8), 0,
+							byte(bytecode.GET_UPVALUE_0),
 							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-							byte(bytecode.CALL_METHOD8), 1,
+							byte(bytecode.CALL_METHOD_TCO8), 1,
 							byte(bytecode.RETURN),
 						},
 						L(P(31, 4, 6), P(48, 4, 23)),
