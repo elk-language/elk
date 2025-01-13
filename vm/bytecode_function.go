@@ -435,8 +435,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_XOR_INT, bytecode.MODULO_INT, bytecode.MODULO_FLOAT, bytecode.EQUAL_INT, bytecode.EQUAL_FLOAT,
 		bytecode.GREATER_INT, bytecode.GREATER_FLOAT, bytecode.GREATER_EQUAL_I, bytecode.GREATER_EQUAL_F,
 		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
-		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUE_1, bytecode.CLOSE_UPVALUE_2, bytecode.CLOSE_UPVALUE_3,
-		bytecode.LOAD_VALUE_0, bytecode.LOAD_VALUE_1, bytecode.LOAD_VALUE_2, bytecode.LOAD_VALUE_3:
+		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUE_1, bytecode.CLOSE_UPVALUE_2, bytecode.CLOSE_UPVALUE_3:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -483,6 +482,14 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
 		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8:
 		return f.disassembleValue(output, 2, offset)
+	case bytecode.LOAD_VALUE_0:
+		return f._disassembleValue(output, 1, 0, offset)
+	case bytecode.LOAD_VALUE_1:
+		return f._disassembleValue(output, 1, 1, offset)
+	case bytecode.LOAD_VALUE_2:
+		return f._disassembleValue(output, 1, 2, offset)
+	case bytecode.LOAD_VALUE_3:
+		return f._disassembleValue(output, 1, 3, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16,
 		bytecode.CALL_SELF16, bytecode.CALL_SELF_TCO16,
 		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
@@ -799,20 +806,25 @@ func readInt8(b []byte) int64 {
 }
 
 func (f *BytecodeFunction) disassembleValue(output io.Writer, byteLength, offset int) (int, error) {
+	return f._disassembleValue(output, byteLength, -1, offset)
+}
+
+func (f *BytecodeFunction) _disassembleValue(output io.Writer, byteLength, constantIndex, offset int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
 	if result, err := f.checkBytes(output, offset, byteLength); err != nil {
 		return result, err
 	}
 
-	var constantIndex int
-	if byteLength == 2 {
+	switch byteLength {
+	case 1:
+	case 2:
 		constantIndex = int(f.Instructions[offset+1])
-	} else if byteLength == 3 {
+	case 3:
 		constantIndex = int(binary.BigEndian.Uint16(f.Instructions[offset+1 : offset+3]))
-	} else if byteLength == 5 {
+	case 5:
 		constantIndex = int(binary.BigEndian.Uint32(f.Instructions[offset+1 : offset+5]))
-	} else {
+	default:
 		panic(fmt.Sprintf("%d is not a valid byteLength for a value opcode!", byteLength))
 	}
 

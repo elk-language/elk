@@ -3775,16 +3775,15 @@ func TestBitwiseAnd(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.INT_2),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(2).ToValue(),
 				},
 			),
 		},
@@ -3793,7 +3792,7 @@ func TestBitwiseAnd(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 6,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(11, 1, 12)),
@@ -3802,7 +3801,6 @@ func TestBitwiseAnd(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(6).ToValue(),
 				},
 			),
 		},
@@ -3812,25 +3810,21 @@ func TestBitwiseAnd(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_AND),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.BITWISE_AND),
+					byte(bytecode.LOAD_INT_8), 0x17,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 0x0F,
+					byte(bytecode.BITWISE_AND_INT),
+					byte(bytecode.LOAD_INT_8), 0x2E,
+					byte(bytecode.BITWISE_AND_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(23).ToValue(),
-					value.SmallInt(15).ToValue(),
-					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3850,7 +3844,7 @@ func TestBitwiseAndNot(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x15,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(7, 1, 8)),
@@ -3859,7 +3853,6 @@ func TestBitwiseAndNot(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(21).ToValue(),
 				},
 			),
 		},
@@ -3868,7 +3861,7 @@ func TestBitwiseAndNot(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x10,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
@@ -3877,7 +3870,6 @@ func TestBitwiseAndNot(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(16).ToValue(),
 				},
 			),
 		},
@@ -3887,25 +3879,21 @@ func TestBitwiseAndNot(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_INT_8), 0x17,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 0x0F,
 					byte(bytecode.BITWISE_AND_NOT),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_INT_8), 0x2E,
 					byte(bytecode.BITWISE_AND_NOT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(21, 1, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(23).ToValue(),
-					value.SmallInt(15).ToValue(),
-					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -3925,7 +3913,7 @@ func TestBitwiseOr(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x1F,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -3934,7 +3922,6 @@ func TestBitwiseOr(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(31).ToValue(),
 				},
 			),
 		},
@@ -3943,7 +3930,7 @@ func TestBitwiseOr(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x3F,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(11, 1, 12)),
@@ -3952,7 +3939,6 @@ func TestBitwiseOr(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(63).ToValue(),
 				},
 			),
 		},
@@ -3962,25 +3948,21 @@ func TestBitwiseOr(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_OR),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.BITWISE_OR),
+					byte(bytecode.LOAD_INT_8), 0x17,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 0x0F,
+					byte(bytecode.BITWISE_OR_INT),
+					byte(bytecode.LOAD_INT_8), 0x2E,
+					byte(bytecode.BITWISE_OR_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(23).ToValue(),
-					value.SmallInt(15).ToValue(),
-					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -4000,7 +3982,7 @@ func TestBitwiseXor(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x1D,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -4009,7 +3991,6 @@ func TestBitwiseXor(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(29).ToValue(),
 				},
 			),
 		},
@@ -4018,7 +3999,7 @@ func TestBitwiseXor(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_INT_8), 0x36,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(11, 1, 12)),
@@ -4027,7 +4008,6 @@ func TestBitwiseXor(t *testing.T) {
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(54).ToValue(),
 				},
 			),
 		},
@@ -4037,25 +4017,21 @@ func TestBitwiseXor(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_XOR),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.LOAD_INT_8), 23,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 15,
+					byte(bytecode.BITWISE_XOR_INT),
+					byte(bytecode.LOAD_INT_8), 46,
+					byte(bytecode.BITWISE_XOR_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(23).ToValue(),
-					value.SmallInt(15).ToValue(),
-					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
@@ -4075,16 +4051,15 @@ func TestModulo(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.INT_3),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -4093,16 +4068,15 @@ func TestModulo(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.INT_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -4112,25 +4086,21 @@ func TestModulo(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.MODULO),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.MODULO),
+					byte(bytecode.LOAD_INT_8), 24,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 15,
+					byte(bytecode.MODULO_INT),
+					byte(bytecode.LOAD_INT_8), 46,
+					byte(bytecode.MODULO_INT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 16),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(24).ToValue(),
-					value.SmallInt(15).ToValue(),
-					value.SmallInt(46).ToValue(),
 				},
 			),
 		},
