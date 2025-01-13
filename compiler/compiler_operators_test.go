@@ -1292,21 +1292,20 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.INCREMENT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -1316,21 +1315,20 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.DECREMENT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.DECREMENT_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 13),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
 				},
 			),
 		},
@@ -1364,23 +1362,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.SUBTRACT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.SUBTRACT_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1390,23 +1386,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.MULTIPLY_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1416,23 +1410,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.DIVIDE),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.DIVIDE_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1442,23 +1434,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.EXPONENTIATE),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.EXPONENTIATE_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1492,23 +1482,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_AND),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.BITWISE_AND_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1542,23 +1530,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.BITWISE_XOR),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.BITWISE_XOR_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1568,23 +1554,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.LBITSHIFT_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1594,23 +1578,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_UINT64_8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
 					byte(bytecode.LOGIC_LBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.UInt64(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1620,23 +1602,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.RBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.RBITSHIFT_INT),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1646,23 +1626,21 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_UINT64_8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
 					byte(bytecode.LOGIC_RBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.UInt64(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1672,24 +1650,22 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.JUMP_IF_NP), 0, 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.JUMP_IF), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_3),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(23, 1, 24)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 18),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1699,24 +1675,22 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
-					byte(bytecode.JUMP_UNLESS), 0, 3,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.INT_3),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(23, 1, 24)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 18),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Undefined,
-					value.SmallInt(1).ToValue(),
-					value.SmallInt(3).ToValue(),
 				},
 			),
 		},
@@ -1779,7 +1753,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(82, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -1797,7 +1771,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -1822,7 +1796,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -1830,7 +1804,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -1852,13 +1827,14 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.INCREMENT),
+									byte(bytecode.INCREMENT_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(57, 6, 6), P(73, 6, 22)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(6, 6),
+									bytecode.NewLineInfo(6, 7),
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
@@ -1893,7 +1869,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(82, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -1911,7 +1887,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -1936,7 +1912,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(82, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -1944,7 +1920,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -1966,13 +1943,14 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.DECREMENT),
+									byte(bytecode.DECREMENT_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(57, 6, 6), P(73, 6, 22)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(6, 6),
+									bytecode.NewLineInfo(6, 7),
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
@@ -2007,7 +1985,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2025,7 +2003,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2050,7 +2028,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2058,7 +2036,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2080,8 +2059,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.ADD),
+									byte(bytecode.INT_3),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2091,7 +2071,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2123,7 +2102,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2141,7 +2120,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2166,7 +2145,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2174,7 +2153,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2196,8 +2176,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.SUBTRACT),
+									byte(bytecode.INT_3),
+									byte(bytecode.SUBTRACT_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2207,7 +2188,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2239,7 +2219,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2257,7 +2237,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2282,7 +2262,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2290,7 +2270,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2312,8 +2293,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.MULTIPLY),
+									byte(bytecode.INT_3),
+									byte(bytecode.MULTIPLY_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2323,7 +2305,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2355,7 +2336,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2373,7 +2354,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2398,7 +2379,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2406,7 +2387,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2428,8 +2410,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.DIVIDE),
+									byte(bytecode.INT_3),
+									byte(bytecode.DIVIDE_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2439,7 +2422,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2471,7 +2453,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(86, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2489,7 +2471,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2514,7 +2496,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2522,7 +2504,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2544,8 +2527,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.EXPONENTIATE),
+									byte(bytecode.INT_3),
+									byte(bytecode.EXPONENTIATE_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2555,7 +2539,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2587,7 +2570,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2605,7 +2588,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2630,7 +2613,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2638,7 +2621,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2660,8 +2644,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.MODULO),
+									byte(bytecode.INT_3),
+									byte(bytecode.MODULO_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2671,7 +2656,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2703,7 +2687,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2721,7 +2705,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2746,7 +2730,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2754,7 +2738,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2776,8 +2761,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.BITWISE_AND),
+									byte(bytecode.INT_3),
+									byte(bytecode.BITWISE_AND_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2787,7 +2773,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2819,7 +2804,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2837,7 +2822,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2862,7 +2847,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2870,7 +2855,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -2892,8 +2878,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.BITWISE_OR),
+									byte(bytecode.INT_3),
+									byte(bytecode.BITWISE_OR_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -2903,7 +2890,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -2935,7 +2921,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -2953,7 +2939,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2978,7 +2964,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(85, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -2986,7 +2972,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -3008,8 +2995,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.BITWISE_XOR),
+									byte(bytecode.INT_3),
+									byte(bytecode.BITWISE_XOR_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3019,7 +3007,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3051,7 +3038,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(86, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -3069,7 +3056,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3094,7 +3081,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3102,7 +3089,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -3124,8 +3112,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.LBITSHIFT),
+									byte(bytecode.INT_3),
+									byte(bytecode.LBITSHIFT_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3135,7 +3124,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3167,7 +3155,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(90, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -3185,7 +3173,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(90, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3210,7 +3198,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(90, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3218,7 +3206,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -3240,8 +3229,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
+									byte(bytecode.INT_3),
 									byte(bytecode.LOGIC_LBITSHIFT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3251,7 +3241,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3283,7 +3272,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(86, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -3301,7 +3290,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3326,7 +3315,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(86, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3334,7 +3323,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -3356,8 +3346,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
-									byte(bytecode.RBITSHIFT),
+									byte(bytecode.INT_3),
+									byte(bytecode.RBITSHIFT_INT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3367,7 +3358,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3399,7 +3389,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(89, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(7, 2),
 				},
 				[]value.Value{
@@ -3417,7 +3407,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(89, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3442,7 +3432,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(89, 7, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 13),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
@@ -3450,7 +3440,8 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
-									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -3472,8 +3463,9 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.LOAD_VALUE_1),
+									byte(bytecode.INT_3),
 									byte(bytecode.LOGIC_RBITSHIFT),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3483,7 +3475,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3514,7 +3505,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(68, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
@@ -3532,7 +3523,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3554,7 +3545,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3563,9 +3554,10 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.JUMP_IF), 0, 3,
+									byte(bytecode.JUMP_IF_NP), 0, 2,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE_1),
+									byte(bytecode.INT_3),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3575,7 +3567,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3606,7 +3597,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(68, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
@@ -3624,7 +3615,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3646,7 +3637,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3655,20 +3646,19 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.JUMP_IF_NIL), 0, 3,
-									byte(bytecode.JUMP), 0, 3,
+									byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE_1),
+									byte(bytecode.INT_3),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
 								L(P(39, 5, 6), P(59, 5, 26)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(5, 14),
+									bytecode.NewLineInfo(5, 11),
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -3699,7 +3689,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(68, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(6, 2),
 				},
 				[]value.Value{
@@ -3717,7 +3707,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
+							bytecode.NewLineInfo(1, 10),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3739,7 +3729,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(68, 6, 8)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(1, 6),
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
@@ -3748,9 +3738,10 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR8), 0,
-									byte(bytecode.JUMP_UNLESS), 0, 3,
+									byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 									byte(bytecode.POP),
-									byte(bytecode.LOAD_VALUE_1),
+									byte(bytecode.INT_3),
+									byte(bytecode.DUP),
 									byte(bytecode.SET_IVAR8), 0,
 									byte(bytecode.RETURN),
 								},
@@ -3760,7 +3751,6 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("a").ToValue(),
-									value.SmallInt(3).ToValue(),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
