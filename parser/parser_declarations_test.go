@@ -444,6 +444,7 @@ func TestDocComment(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -474,6 +475,7 @@ func TestDocComment(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(39, 6, 5), P(50, 6, 16)),
 							"foo\nbar",
+							false,
 							false,
 							false,
 							"foo",
@@ -5838,6 +5840,7 @@ func TestMethodDefinition(t *testing.T) {
 								"",
 								false,
 								false,
+								false,
 								"foo",
 								nil,
 								nil,
@@ -5865,8 +5868,65 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a generator with a public identifier": {
+			input: "def* foo; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewMethodDefinitionNode(
+							L("<main>", P(0, 1, 1), P(12, 1, 13)),
+							"",
+							false,
+							false,
+							true,
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a generic generator": {
+			input: "def *foo[V]; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewMethodDefinitionNode(
+							L("<main>", P(0, 1, 1), P(15, 1, 16)),
+							"",
+							false,
+							false,
+							true,
+							"foo",
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(9, 1, 10), P(9, 1, 10)),
+									ast.INVARIANT,
+									"V",
+									nil,
+									nil,
+								),
+							},
 							nil,
 							nil,
 							nil,
@@ -5886,6 +5946,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(14, 1, 15)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -5919,6 +5980,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							true,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -5942,6 +6004,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							true,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -5968,6 +6031,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							true,
 							true,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -5994,6 +6058,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							true,
 							false,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -6016,6 +6081,7 @@ func TestMethodDefinition(t *testing.T) {
 							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
 							true,
+							false,
 							false,
 							"foo",
 							nil,
@@ -6043,6 +6109,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							true,
 							true,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -6067,6 +6134,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(15, 1, 16)),
 							"",
+							false,
 							false,
 							false,
 							"foo=",
@@ -6099,6 +6167,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(23, 1, 24)),
 							"",
+							false,
 							false,
 							false,
 							"foo=",
@@ -6137,6 +6206,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(21, 1, 22)),
 							"",
+							false,
 							false,
 							false,
 							"foo=",
@@ -6190,6 +6260,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"fo=",
 							nil,
 							nil,
@@ -6214,6 +6285,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(17, 1, 18)),
 							"",
+							false,
 							false,
 							false,
 							"[]=",
@@ -6254,6 +6326,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(22, 1, 23)),
 							"",
+							false,
 							false,
 							false,
 							"[]=",
@@ -6302,6 +6375,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"[]=",
 							nil,
 							[]ast.ParameterNode{
@@ -6325,6 +6399,30 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewFailure(L("<main>", P(8, 1, 9), P(8, 1, 9)), "subscript setter methods must have two parameters, got: 1"),
 			},
 		},
+		"can be a generator with private identifier": {
+			input: "def* _foo; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewMethodDefinitionNode(
+							L("<main>", P(0, 1, 1), P(13, 1, 14)),
+							"",
+							false,
+							false,
+							true,
+							"_foo",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a private identifier as a name": {
 			input: "def _foo; end",
 			want: ast.NewProgramNode(
@@ -6335,6 +6433,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(12, 1, 13)),
 							"",
+							false,
 							false,
 							false,
 							"_foo",
@@ -6360,6 +6459,31 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
+							"class",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a generator with a keyword": {
+			input: "def* class; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewMethodDefinitionNode(
+							L("<main>", P(0, 1, 1), P(14, 1, 15)),
+							"",
+							false,
+							false,
+							true,
 							"class",
 							nil,
 							nil,
@@ -6383,6 +6507,31 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
+							"+",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a generator with an overridable operator": {
+			input: "def* +; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewMethodDefinitionNode(
+							L("<main>", P(0, 1, 1), P(10, 1, 11)),
+							"",
+							false,
+							false,
+							true,
 							"+",
 							nil,
 							nil,
@@ -6406,6 +6555,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"[]",
 							nil,
 							nil,
@@ -6427,6 +6577,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(11, 1, 12)),
 							"",
+							false,
 							false,
 							false,
 							"Foo",
@@ -6455,6 +6606,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"&&",
 							nil,
 							nil,
@@ -6479,6 +6631,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(12, 1, 13)),
 							"",
+							false,
 							false,
 							false,
 							"_Foo",
@@ -6507,6 +6660,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -6528,6 +6682,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(20, 1, 21)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6556,6 +6711,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -6582,6 +6738,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(49, 1, 50)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6613,6 +6770,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(17, 1, 18)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6655,6 +6813,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -6693,6 +6852,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(19, 4, 6)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6735,6 +6895,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -6773,6 +6934,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(21, 1, 22)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6821,6 +6983,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6872,6 +7035,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(24, 1, 25)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6928,6 +7092,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(28, 1, 29)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -6989,6 +7154,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7048,6 +7214,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7096,6 +7263,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7142,6 +7310,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(26, 1, 27)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -7195,6 +7364,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7241,6 +7411,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(25, 1, 26)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -7302,6 +7473,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7356,6 +7528,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(29, 1, 30)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -7425,6 +7598,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7468,6 +7642,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7508,6 +7683,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(28, 1, 29)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -7555,6 +7731,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7595,6 +7772,7 @@ func TestMethodDefinition(t *testing.T) {
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							[]ast.ParameterNode{
@@ -7633,6 +7811,7 @@ func TestMethodDefinition(t *testing.T) {
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(43, 1, 44)),
 							"",
+							false,
 							false,
 							false,
 							"foo",
@@ -7698,6 +7877,7 @@ end`,
 							"",
 							false,
 							false,
+							false,
 							"foo",
 							nil,
 							nil,
@@ -7738,6 +7918,7 @@ end`,
 						ast.NewMethodDefinitionNode(
 							L("<main>", P(0, 1, 1), P(19, 1, 20)),
 							"",
+							false,
 							false,
 							false,
 							"foo",

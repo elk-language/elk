@@ -99,8 +99,8 @@ func (m *Module) inspect() string {
 	return m.Name()
 }
 
-func (m *Module) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, abstract, sealed, native, name, typeParams, params, returnType, throwType, m)
+func (m *Module) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, generator, name, typeParams, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
 }

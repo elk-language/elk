@@ -1,0 +1,10 @@
+##[
+  Implements a generator object that is iterable.
+]##
+class Std::Generator[+Element]
+  include Iterable::Base[Element]
+
+  def iter: self; end
+
+  def next: Element ! :stop_iteration; end
+end

@@ -85,6 +85,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		parent:        objectClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
 		defined:       true,
+		noinit:        true,
 	}
 	stdModule.DefineSubtype(symbol.Class, classClass)
 

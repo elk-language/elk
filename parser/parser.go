@@ -1963,6 +1963,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.breakExpression()
 	case token.RETURN:
 		return p.returnExpression()
+	case token.YIELD:
+		return p.yieldExpression()
 	case token.CONTINUE:
 		return p.continueExpression()
 	case token.THROW:
@@ -2932,7 +2934,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 	return methodName, span
 }
 
-// methodDefinition = "def" methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// methodDefinition = "def" ["*"] methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -2942,6 +2944,11 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 
 	defTok := p.advance()
 	span = defTok.Span()
+	var isGenerator bool
+	if p.accept(token.STAR) && p.secondLookahead.IsValidMethodName() {
+		p.advance() // swallow "*"
+		isGenerator = true
+	}
 	p.swallowNewlines()
 	methodName, methodNameSpan := p.methodName()
 	var isSetter bool
@@ -3056,6 +3063,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		"",
 		false,
 		false,
+		isGenerator,
 		methodName,
 		typeParams,
 		params,
@@ -4572,6 +4580,31 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 
 	return ast.NewReturnExpressionNode(
 		returnTok.Span().Join(expr.Span()),
+		expr,
+	)
+}
+
+// yieldExpression = "yield" ["*"] [expressionWithoutModifier]
+func (p *Parser) yieldExpression() *ast.YieldExpressionNode {
+	yieldTok := p.advance()
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
+		return ast.NewYieldExpressionNode(
+			yieldTok.Span(),
+			false,
+			nil,
+		)
+	}
+
+	var forward bool
+	if p.match(token.STAR) {
+		forward = true
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewYieldExpressionNode(
+		yieldTok.Span().Join(expr.Span()),
+		forward,
 		expr,
 	)
 }

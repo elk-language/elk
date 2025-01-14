@@ -368,6 +368,7 @@ func (*ForInExpressionNode) expressionNode()               {}
 func (*BreakExpressionNode) expressionNode()               {}
 func (*LabeledExpressionNode) expressionNode()             {}
 func (*ReturnExpressionNode) expressionNode()              {}
+func (*YieldExpressionNode) expressionNode()               {}
 func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*MustExpressionNode) expressionNode()                {}
@@ -2792,6 +2793,30 @@ func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExp
 	}
 }
 
+// Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`
+type YieldExpressionNode struct {
+	NodeBase
+	Value   ExpressionNode
+	Forward bool
+}
+
+func (*YieldExpressionNode) IsStatic() bool {
+	return false
+}
+
+func (*YieldExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+	return types.Never{}
+}
+
+// Create a new `yield` expression node eg. `yield`, `yield true`, `yield* foo()`
+func NewYieldExpressionNode(span *position.Span, forward bool, val ExpressionNode) *YieldExpressionNode {
+	return &YieldExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Forward:  forward,
+		Value:    val,
+	}
+}
+
 // Represents a `continue` expression eg. `continue`, `continue "foo"`
 type ContinueExpressionNode struct {
 	NodeBase
@@ -3696,6 +3721,7 @@ type MethodDefinitionNode struct {
 	Body           []StatementNode // body of the method
 	Sealed         bool
 	Abstract       bool
+	Generator      bool
 }
 
 func (*MethodDefinitionNode) IsStatic() bool {
@@ -3721,6 +3747,7 @@ func NewMethodDefinitionNode(
 	docComment string,
 	abstract bool,
 	sealed bool,
+	generator bool,
 	name string,
 	typeParams []TypeParameterNode,
 	params []ParameterNode,
@@ -3735,6 +3762,7 @@ func NewMethodDefinitionNode(
 		},
 		Abstract:       abstract,
 		Sealed:         sealed,
+		Generator:      generator,
 		Name:           name,
 		TypeParameters: typeParams,
 		Parameters:     params,

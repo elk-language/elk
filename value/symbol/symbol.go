@@ -62,6 +62,7 @@ var (
 	OpenRange            = value.ToSymbol("OpenRange")
 	RightOpenRange       = value.ToSymbol("RightOpenRange")
 	Comparable           = value.ToSymbol("Comparable")
+	Generator            = value.ToSymbol("Generator")
 	Iterable             = value.ToSymbol("Iterable")
 	PrimitiveIterable    = value.ToSymbol("PrimitiveIterable")
 	Error                = value.ToSymbol("Error")

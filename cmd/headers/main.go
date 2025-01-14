@@ -357,11 +357,12 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	for methodName, method := range types.SortedOwnMethods(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
+			"namespace.DefineMethod(%q, %t, %t, %t, %t, value.ToSymbol(%q), ",
 			method.DocComment,
 			method.IsAbstract(),
 			method.IsSealed(),
 			method.IsNative(),
+			method.IsGenerator(),
 			methodName.String(),
 		)
 
@@ -766,11 +767,12 @@ func typeToCode(typ types.Type, init bool) string {
 		buff := new(strings.Builder)
 		fmt.Fprintf(
 			buff,
-			"NewClosureWithMethod(%q, %t, %t, %t, value.ToSymbol(%q), ",
+			"NewClosureWithMethod(%q, %t, %t, %t, %t, value.ToSymbol(%q), ",
 			t.Body.DocComment,
 			t.Body.IsAbstract(),
 			t.Body.IsSealed(),
 			t.Body.IsNative(),
+			t.Body.IsGenerator(),
 			t.Body.Name.String(),
 		)
 		if len(t.Body.TypeParameters) > 0 {

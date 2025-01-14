@@ -178,7 +178,7 @@ func (t *TypeParamNamespace) MethodString(name string) *Method {
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (t *TypeParamNamespace) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on type param namespaces")
 }
 

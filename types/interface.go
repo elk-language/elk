@@ -97,8 +97,8 @@ func NewInterfaceWithDetails(
 	}
 }
 
-func (i *Interface) DefineMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, abstract, sealed, native, name, typeParams, params, returnType, throwType, i)
+func (i *Interface) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, abstract, sealed, native, generator, name, typeParams, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method
 }

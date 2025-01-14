@@ -2574,6 +2574,157 @@ func TestReturn(t *testing.T) {
 	}
 }
 
+func TestYield(t *testing.T) {
+	tests := testTable{
+		"can stand alone at the end": {
+			input: `yield`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewYieldExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), false, nil),
+					),
+				},
+			),
+		},
+		"cannot stand alone with forwarding": {
+			input: `yield*`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewYieldExpressionNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							true,
+							ast.NewInvalidNode(
+								S(P(6, 1, 7), P(5, 1, 6)),
+								T(S(P(6, 1, 7), P(5, 1, 6)), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected an expression"),
+			},
+		},
+		"can stand alone in the middle": {
+			input: "yield\n1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 2, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewYieldExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), false, nil),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 1), P(6, 2, 1)),
+						ast.NewIntLiteralNode(S(P(6, 2, 1), P(6, 2, 1)), "1"),
+					),
+				},
+			),
+		},
+		"can have a modifier if without an argument": {
+			input: `yield if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.IF),
+							ast.NewYieldExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), false, nil),
+							ast.NewTrueLiteralNode(S(P(9, 1, 10), P(12, 1, 13))),
+						),
+					),
+				},
+			),
+		},
+		"can have a modifier if with an argument": {
+			input: `yield :foo if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.IF),
+							ast.NewYieldExpressionNode(
+								S(P(0, 1, 1), P(9, 1, 10)),
+								false,
+								ast.NewSimpleSymbolLiteralNode(
+									S(P(6, 1, 7), P(9, 1, 10)),
+									"foo",
+								),
+							),
+							ast.NewTrueLiteralNode(S(P(14, 1, 15), P(17, 1, 18))),
+						),
+					),
+				},
+			),
+		},
+		"can have an argument with forwarding": {
+			input: `yield* 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewYieldExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							true,
+							ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can have an argument": {
+			input: `yield 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewYieldExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							false,
+							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && yield`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewLogicalExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewYieldExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), false, nil),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestContinue(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {

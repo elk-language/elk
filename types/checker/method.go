@@ -150,6 +150,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(node.Name),
 		nil,
 		nil,
@@ -180,6 +181,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 	methodNode := ast.NewMethodDefinitionNode(
 		c.newLocation(node.Span()),
 		"",
+		false,
 		false,
 		false,
 		node.Name,
@@ -262,6 +264,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(setterName),
 		nil,
 		params,
@@ -274,6 +277,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	methodNode := ast.NewMethodDefinitionNode(
 		c.newLocation(node.Span()),
 		docComment,
+		false,
 		false,
 		false,
 		setterName,
@@ -557,12 +561,14 @@ func (c *Checker) checkMethod(
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
+		returnType = c.TypeOf(typedReturnTypeNode)
 	}
 
 	throwType := checkedMethod.ThrowType
 	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
+		throwType = c.TypeOf(typedThrowTypeNode)
 	}
 	if !types.IsNever(throwType) {
 		c.pushCatchScope(makeCatchScope(throwType, false))
@@ -1585,6 +1591,7 @@ func (c *Checker) declareMethod(
 	abstract bool,
 	sealed bool,
 	inferReturnType bool,
+	generator bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -1839,11 +1846,26 @@ func (c *Checker) declareMethod(
 		throwType = types.Never{}
 	}
 
+	if generator {
+		returnType = types.NewGenericWithTypeArgs(
+			c.env.StdSubtypeClass(symbol.Generator),
+			returnType,
+		)
+
+		if !types.IsNever(throwType) {
+			c.addFailure(
+				"generators cannot throw checked errors",
+				throwTypeNode.Span(),
+			)
+		}
+	}
+
 	newMethod := types.NewMethod(
 		docComment,
 		abstract,
 		sealed,
 		c.IsHeader,
+		generator,
 		name,
 		typeParams,
 		params,

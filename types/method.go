@@ -144,6 +144,7 @@ const (
 	METHOD_NAMED_REST_PARAM_FLAG
 	METHOD_INSTANCE_VARIABLES_CHECKED_FLAG
 	METHOD_ATTRIBUTE_FLAG
+	METHOD_GENERATOR_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
 	METHOD_CHECKED_FLAG
@@ -296,6 +297,15 @@ func (m *Method) SetPlaceholder(val bool) *Method {
 	return m
 }
 
+func (m *Method) IsGenerator() bool {
+	return m.flags.HasFlag(METHOD_GENERATOR_FLAG)
+}
+
+func (m *Method) SetGenerator(val bool) *Method {
+	m.SetFlag(METHOD_GENERATOR_FLAG, val)
+	return m
+}
+
 func (m *Method) IsReplaced() bool {
 	return m.flags.HasFlag(METHOD_REPLACED_FLAG)
 }
@@ -384,7 +394,7 @@ func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
 	}
 }
 
-func NewMethod(docComment string, abstract, sealed, native bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -429,6 +439,9 @@ func NewMethod(docComment string, abstract, sealed, native bool, name value.Symb
 	}
 	if native {
 		m.SetNative(true)
+	}
+	if generator {
+		m.SetGenerator(true)
 	}
 	if name == symbol.S_init {
 		m.InitialisedInstanceVariables = make(ds.Set[value.Symbol])
