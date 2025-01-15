@@ -1012,6 +1012,66 @@ func TestGenericClass(t *testing.T) {
 				error.NewFailure(L("<main>", P(25, 2, 25), P(27, 2, 27)), "undefined type `Bar`"),
 			},
 		},
+		"declare a generic class with invalid default": {
+			input: `
+				class Foo[V < String = Int]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type parameter `V` has an invalid default `Std::Int`, should be a subtype of `Std::String` and supertype of `never`"),
+			},
+		},
+		"declare a generic class with required type args after optionals": {
+			input: `
+				class Foo[V = Int, Y]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "required type parameter `Y` cannot appear after optional type parameters"),
+			},
+		},
+		"declare a generic class with type params as defaults": {
+			input: `
+				class Foo[V, Y = V]; end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(22, 2, 22), P(22, 2, 22)), "type parameter `Y` cannot have another type parameter as its default"),
+			},
+		},
+		"use a class without optional type parameters": {
+			input: `
+				class Foo[V, Y = Int]; end
+				var a: Foo[String] = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(57, 3, 26), P(59, 3, 28)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Int]`"),
+			},
+		},
+		"use a class overriding optional type parameters": {
+			input: `
+				class Foo[V, Y = Int]; end
+				var a: Foo[String, Char] = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 3, 32), P(65, 3, 34)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Char]`"),
+			},
+		},
+		"use a class without required type parameters": {
+			input: `
+				class Foo[V, Y = Int]; end
+				var a: Foo = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 0"),
+			},
+		},
+		"use a class with too many": {
+			input: `
+				class Foo[V, Y = Int]; end
+				var a: Foo[Int, Char, String] = nil
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 3"),
+			},
+		},
 		"assign related generic class to its parent with the same type argument": {
 			input: `
 				class Foo[V]; end

@@ -196,10 +196,23 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name))
 	c.pushConstScope(makeConstantScope(typeParamMod))
+
+	var defaultSeen bool
 	for _, typeParamNode := range node.TypeParameters {
 		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
 			continue
+		}
+		if varNode.Default != nil {
+			defaultSeen = true
+		} else if defaultSeen {
+			c.addFailure(
+				fmt.Sprintf(
+					"required type parameter `%s` cannot appear after optional type parameters",
+					lexer.Colorize(varNode.Name),
+				),
+				varNode.Span(),
+			)
 		}
 
 		t := c.checkTypeParameterNode(varNode, typeParamMod, false)
@@ -486,10 +499,22 @@ func (c *Checker) checkNamespaceTypeParameters(
 	if !checked {
 		if len(typeParamNodes) > 0 {
 			typeParams := make([]*types.TypeParameter, 0, len(typeParamNodes))
+			var defaultSeen bool
 			for _, typeParamNode := range typeParamNodes {
 				varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 				if !ok {
 					continue
+				}
+				if varNode.Default != nil {
+					defaultSeen = true
+				} else if defaultSeen {
+					c.addFailure(
+						fmt.Sprintf(
+							"required type parameter `%s` cannot appear after optional type parameters",
+							lexer.Colorize(varNode.Name),
+						),
+						varNode.Span(),
+					)
 				}
 
 				t := c.initTypeParameterNode(varNode, namespace)
@@ -798,11 +823,32 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		upperType = types.Any{}
 	}
 
+	var def types.Type
+	if node.Default != nil {
+		node.Default = c.checkTypeNode(node.Default)
+		def = c.TypeOf(node.Default)
+
+		if lowerType != nil && !c.isSubtype(lowerType, def, node.Span()) ||
+			upperType != nil && !c.isSubtype(def, upperType, node.Span()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"type parameter `%s` has an invalid default `%s`, should be a subtype of `%s` and supertype of `%s`",
+					lexer.Colorize(node.Name),
+					types.InspectWithColor(def),
+					types.InspectWithColor(upperType),
+					types.InspectWithColor(lowerType),
+				),
+				node.Default.Span(),
+			)
+		}
+	}
+
 	return types.NewTypeParameter(
 		value.ToSymbol(node.Name),
 		namespace,
 		lowerType,
 		upperType,
+		def,
 		variance,
 	)
 }
@@ -821,6 +867,7 @@ func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, name
 	return types.NewTypeParameter(
 		value.ToSymbol(node.Name),
 		namespace,
+		nil,
 		nil,
 		nil,
 		variance,
@@ -844,6 +891,36 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 		upperType = types.Any{}
 	}
 
+	var def types.Type
+	if node.Default != nil {
+		node.Default = c.checkTypeNode(node.Default)
+		def = c.TypeOf(node.Default)
+
+		if _, ok := def.(*types.TypeParameter); ok {
+			c.addFailure(
+				fmt.Sprintf(
+					"type parameter `%s` cannot have another type parameter as its default",
+					lexer.Colorize(node.Name),
+				),
+				node.Default.Span(),
+			)
+		}
+		if lowerType != nil && !c.isSubtype(lowerType, def, node.Span()) ||
+			upperType != nil && !c.isSubtype(def, upperType, node.Span()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"type parameter `%s` has an invalid default `%s`, should be a subtype of `%s` and supertype of `%s`",
+					lexer.Colorize(node.Name),
+					types.InspectWithColor(def),
+					types.InspectWithColor(upperType),
+					types.InspectWithColor(lowerType),
+				),
+				node.Default.Span(),
+			)
+		}
+	}
+
 	typ.LowerBound = lowerType
 	typ.UpperBound = upperType
+	typ.Default = def
 }

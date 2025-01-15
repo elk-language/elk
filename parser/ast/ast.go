@@ -3652,6 +3652,7 @@ type VariantTypeParameterNode struct {
 	Name       string   // Name of the type parameter eg. `T`
 	LowerBound TypeNode
 	UpperBound TypeNode
+	Default    TypeNode
 }
 
 func (*VariantTypeParameterNode) IsStatic() bool {
@@ -3659,13 +3660,14 @@ func (*VariantTypeParameterNode) IsStatic() bool {
 }
 
 // Create a new type variable node eg. `+V`
-func NewVariantTypeParameterNode(span *position.Span, variance Variance, name string, lower, upper TypeNode) *VariantTypeParameterNode {
+func NewVariantTypeParameterNode(span *position.Span, variance Variance, name string, lower, upper, def TypeNode) *VariantTypeParameterNode {
 	return &VariantTypeParameterNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Variance:      variance,
 		Name:          name,
 		LowerBound:    lower,
 		UpperBound:    upper,
+		Default:       def,
 	}
 }
 

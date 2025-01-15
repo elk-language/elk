@@ -3826,26 +3826,20 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 	c.addToMethodCache(method)
 
-	if len(node.TypeArguments) > 0 {
-		typeArgs, ok := c.checkTypeArguments(
-			method,
-			node.TypeArguments,
-			method.TypeParameters,
-			node.Span(),
-		)
-		if !ok {
-			c.checkExpressions(node.PositionalArguments)
-			c.checkNamedArguments(node.NamedArguments)
-			node.SetType(types.Untyped{})
-			return node
-		}
-
-		method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
-	} else if len(method.TypeParameters) > 0 {
-		c.addTypeArgumentCountError(types.InspectWithColor(method), len(method.TypeParameters), len(node.TypeArguments), node.Span())
+	typeArgs, ok := c.checkTypeArguments(
+		method,
+		node.TypeArguments,
+		method.TypeParameters,
+		node.Span(),
+	)
+	if !ok {
+		c.checkExpressions(node.PositionalArguments)
+		c.checkNamedArguments(node.NamedArguments)
 		node.SetType(types.Untyped{})
 		return node
 	}
+
+	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
 
 	var receiver ast.ExpressionNode
 	if fromLocal {
@@ -3997,15 +3991,16 @@ func (c *Checker) addLowerBoundError(arg, bound types.Type, span *position.Span)
 }
 
 func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []*types.TypeParameter, span *position.Span) (*types.TypeArguments, bool) {
-	if len(typeArgs) != len(typeParams) {
-		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(typeParams), len(typeArgs), span)
+	reqParamCount := types.RequiredTypeParameters(typeParams)
+	if len(typeArgs) < reqParamCount || len(typeArgs) > len(typeParams) {
+		c.addTypeArgumentCountError(types.InspectWithColor(typ), reqParamCount, len(typeParams), len(typeArgs), span)
 		return nil, false
 	}
 
 	typeArgumentMap := make(types.TypeArgumentMap, len(typeParams))
 	typeArgumentOrder := make([]value.Symbol, 0, len(typeParams))
 	var fail bool
-	for i := range len(typeParams) {
+	for i := range len(typeArgs) {
 		typeParameter := typeParams[i]
 
 		typeArgs[i] = c.checkTypeNode(typeArgs[i])
@@ -4017,7 +4012,19 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		)
 		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
 	}
-	for i := range len(typeParams) {
+
+	// Fill missing type args with defaults
+	for i := len(typeArgs); i < len(typeParams); i++ {
+		typeParameter := typeParams[i]
+
+		typeArgumentMap[typeParameter.Name] = types.NewTypeArgument(
+			typeParameter.Default,
+			typeParameter.Variance,
+		)
+		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
+	}
+
+	for i := range len(typeArgs) {
 		typeParameter := typeParams[i]
 		typeArgumentNode := typeArgs[i]
 		typeArgument := c.TypeOf(typeArgumentNode)
@@ -5395,11 +5402,18 @@ func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ComplexC
 	}
 }
 
-func (c *Checker) addTypeArgumentCountError(name string, paramCount, argCount int, span *position.Span) {
-	c.addFailure(
-		fmt.Sprintf("`%s` requires %d type argument(s), got: %d", name, paramCount, argCount),
-		span,
-	)
+func (c *Checker) addTypeArgumentCountError(name string, reqParamCount, paramCount, argCount int, span *position.Span) {
+	if reqParamCount != paramCount {
+		c.addFailure(
+			fmt.Sprintf("`%s` requires %d...%d type argument(s), got: %d", name, reqParamCount, paramCount, argCount),
+			span,
+		)
+	} else {
+		c.addFailure(
+			fmt.Sprintf("`%s` requires %d type argument(s), got: %d", name, paramCount, argCount),
+			span,
+		)
+	}
 }
 
 func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.TypeNode, string) {
@@ -5482,31 +5496,75 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 	}
 }
 
-func (c *Checker) checkSimpleConstantType(name string, span *position.Span) types.Type {
-	typ, _ := c.resolveType(name, span)
+func (c *Checker) resolveGenericType(typ types.Type, span *position.Span) types.Type {
 	switch t := typ.(type) {
 	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, span)
-		typ = types.Untyped{}
+		typeArgumentMap, ok := c.checkTypeArguments(
+			typ,
+			nil,
+			t.TypeParameters,
+			span,
+		)
+		if !ok {
+			return types.Untyped{}
+		}
+
+		return c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap)
 	case *types.Class:
-		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Untyped{}
+		if !t.IsGeneric() {
+			return typ
 		}
+		typeArgumentMap, ok := c.checkTypeArguments(
+			typ,
+			nil,
+			t.TypeParameters(),
+			span,
+		)
+		if !ok {
+			return types.Untyped{}
+		}
+
+		return types.NewGeneric(t, typeArgumentMap)
 	case *types.Mixin:
-		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Untyped{}
+		if !t.IsGeneric() {
+			return typ
 		}
+		typeArgumentMap, ok := c.checkTypeArguments(
+			typ,
+			nil,
+			t.TypeParameters(),
+			span,
+		)
+		if !ok {
+			return types.Untyped{}
+		}
+
+		return types.NewGeneric(t, typeArgumentMap)
 	case *types.Interface:
-		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, span)
-			typ = types.Untyped{}
+		if !t.IsGeneric() {
+			return typ
 		}
+		typeArgumentMap, ok := c.checkTypeArguments(
+			typ,
+			nil,
+			t.TypeParameters(),
+			span,
+		)
+		if !ok {
+			return types.Untyped{}
+		}
+
+		return types.NewGeneric(t, typeArgumentMap)
 	case nil:
-		typ = types.Untyped{}
+		return types.Untyped{}
+	default:
+		return typ
 	}
-	return typ
+}
+
+func (c *Checker) checkSimpleConstantType(name string, span *position.Span) types.Type {
+	typ, _ := c.resolveType(name, span)
+	return c.resolveGenericType(typ, span)
 }
 
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) *ast.PublicConstantNode {

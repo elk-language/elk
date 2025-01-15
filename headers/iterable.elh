@@ -26,7 +26,7 @@ interface ::Std::Iterable[+Element]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig contains[E = Element](value: E): bool
+	sig contains[E := Element](value: E): bool
 
 	##[
 		Checks whether the iterable is empty.
@@ -148,7 +148,7 @@ interface ::Std::Iterable[+Element]
 
 		May never return if the iterable is infinite.
 	]##
-	sig index_of[E = Element](element: E): Int
+	sig index_of[E := Element](element: E): Int
 
 	##[
 		Returns a new iterable containing all elements except first `n` elements.
@@ -227,7 +227,7 @@ interface ::Std::Iterable[+Element]
 	abstract mixin FiniteBase[+Element]
 		implement Iterable[Element]
 
-		def contains[E = Element](value: E): bool; end
+		def contains[E := Element](value: E): bool; end
 		def is_empty: bool; end
 		def first: Element; end
 		def try_first: Element?; end
@@ -243,7 +243,7 @@ interface ::Std::Iterable[+Element]
 		def every(fn: |element: Element|: bool): bool; end
 		def find(fn: |element: Element|: bool): Element?; end
 		def find_err(fn: |element: Element|: bool): Element ! NotFoundError; end
-		def index_of[E = Element](element: E): Int; end
+		def index_of[E := Element](element: E): Int; end
 		def drop(n: Int): self; end
 		def drop_while(fn: |element: Element|: bool): self; end
 		def take(n: Int): self; end

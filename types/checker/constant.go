@@ -234,18 +234,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 
 func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookupType(node)
-	switch t := typ.(type) {
-	case *types.GenericNamedType:
-		c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters), 0, node.Span())
-		typ = types.Untyped{}
-	case *types.Class:
-		if t.IsGeneric() {
-			c.addTypeArgumentCountError(types.InspectWithColor(typ), len(t.TypeParameters()), 0, node.Span())
-			typ = types.Untyped{}
-		}
-	case nil:
-		typ = types.Untyped{}
-	}
+	typ = c.resolveGenericType(typ, node.Span())
 
 	newNode := ast.NewPublicConstantNode(
 		node.Span(),

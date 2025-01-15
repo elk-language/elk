@@ -47,6 +47,7 @@ type TypeParameter struct {
 	Namespace  Namespace
 	LowerBound Type
 	UpperBound Type
+	Default    Type
 	Variance   Variance
 }
 
@@ -67,15 +68,17 @@ func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypePara
 	}
 	newTypeParam.LowerBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
 	newTypeParam.UpperBound = DeepCopyEnv(t.UpperBound, oldEnv, newEnv)
+	newTypeParam.Default = DeepCopyEnv(t.Default, oldEnv, newEnv)
 	return newTypeParam
 }
 
-func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound Type, variance Variance) *TypeParameter {
+func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
 	return &TypeParameter{
 		Name:       name,
 		Namespace:  namespace,
 		LowerBound: lowerBound,
 		UpperBound: upperBound,
+		Default:    def,
 		Variance:   variance,
 	}
 }
@@ -119,4 +122,16 @@ func (t *TypeParameter) InspectSignature() string {
 
 func (t *TypeParameter) InspectSignatureWithColor() string {
 	return lexer.Colorize(t.InspectSignature())
+}
+
+func RequiredTypeParameters(typeParams []*TypeParameter) int {
+	var counter int
+	for _, typeParam := range typeParams {
+		if typeParam.Default != nil {
+			return counter
+		}
+		counter++
+	}
+
+	return counter
 }

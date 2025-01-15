@@ -3138,13 +3138,14 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
-// typeParameter = ["+" | "-"] constant ("=" TypeNode | [">" TypeNode] ["<" TypeNode])
+// typeParameter = ["+" | "-"] constant (":=" TypeNode | [">" TypeNode] ["<" TypeNode] ["=" TypeNode])
 func (p *Parser) typeParameter() ast.TypeParameterNode {
 	variance := ast.INVARIANT
 	var firstSpan *position.Span
 	var lastSpan *position.Span
 	var lowerBound ast.TypeNode
 	var upperBound ast.TypeNode
+	var def ast.TypeNode
 
 	switch p.lookahead.Type {
 	case token.PLUS:
@@ -3178,9 +3179,10 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 	}
 	lastSpan = nameTok.Span()
 
-	if p.match(token.EQUAL_OP) {
+	if p.match(token.COLON_EQUAL) {
 		lowerBound = p.typeAnnotation()
 		upperBound = lowerBound
+		def = lowerBound
 		lastSpan = lowerBound.Span()
 	} else {
 		if p.match(token.GREATER) {
@@ -3192,6 +3194,11 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 			upperBound = p.typeAnnotation()
 			lastSpan = upperBound.Span()
 		}
+
+		if p.match(token.EQUAL_OP) {
+			def = p.typeAnnotation()
+			lastSpan = def.Span()
+		}
 	}
 
 	return ast.NewVariantTypeParameterNode(
@@ -3200,6 +3207,7 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 		nameTok.Value,
 		lowerBound,
 		upperBound,
+		def,
 	)
 }
 

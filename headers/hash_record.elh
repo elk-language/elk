@@ -27,7 +27,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains[E = Pair[Key, Value]](value: E): bool; end
+	def contains[E := Pair[Key, Value]](value: E): bool; end
 
 	##[
 		Check whether the given `key` is present in this record.

@@ -36,7 +36,7 @@ abstract mixin ::Std::Set[Element]
 	##[
 		Check whether the given `value` is present in this set.
 	]##
-	sig contains[E = Element](value: E): bool
+	sig contains[E := Element](value: E): bool
 
 	##[
 		Adds the given values to the set.

@@ -7,5 +7,5 @@ interface ::Std::Container[+Element]
 	##[
 		Check whether the given `value` is present in this container.
 	]##
-	sig contains[E = Element](value: E): bool
+	sig contains[E := Element](value: E): bool
 end

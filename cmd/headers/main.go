@@ -246,7 +246,7 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			`
-				typeParam = NewTypeParameter(value.ToSymbol(%[1]q), namespace, Never{}, Any{}, %[2]s)
+				typeParam = NewTypeParameter(value.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s)
 				typeParams[%[3]d] = typeParam
 				namespace.DefineSubtype(value.ToSymbol(%[1]q), typeParam)
 				namespace.DefineConstant(value.ToSymbol(%[1]q), NoValue{})
@@ -270,6 +270,13 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 				typeToCode(param.UpperBound, false),
 			)
 		}
+		if param.Default != nil {
+			fmt.Fprintf(
+				buffer,
+				"typeParam.Default = %s\n",
+				typeToCode(param.Default, false),
+			)
+		}
 	}
 
 	buffer.WriteString("\nnamespace.SetTypeParameters(typeParams)\n\n")
@@ -280,10 +287,11 @@ func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*t
 	for _, param := range typeParams {
 		fmt.Fprintf(
 			buffer,
-			"NewTypeParameter(value.ToSymbol(%q), mixin, %s, %s, %s)",
+			"NewTypeParameter(value.ToSymbol(%q), mixin, %s, %s, %s, %s)",
 			param.Name.String(),
 			typeToCode(param.LowerBound, false),
 			typeToCode(param.UpperBound, false),
+			typeToCode(param.Default, false),
 			param.Variance.String(),
 		)
 	}
@@ -631,11 +639,12 @@ func typeToCode(typ types.Type, init bool) string {
 		namespaceName := t.Namespace.Name()
 		if init || len(namespaceName) == 0 {
 			return fmt.Sprintf(
-				"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s)",
+				"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s, %s)",
 				t.Name.String(),
 				namespaceToCode(t.Namespace),
 				typeToCode(t.LowerBound, false),
 				typeToCode(t.UpperBound, false),
+				typeToCode(t.Default, false),
 				t.Variance.String(),
 			)
 		}

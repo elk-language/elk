@@ -256,6 +256,7 @@ end
 									"T",
 									nil,
 									ast.NewPublicConstantNode(S(P(18, 2, 18), P(23, 2, 23)), "String"),
+									nil,
 								),
 							},
 						),
@@ -284,6 +285,7 @@ end
 									"T",
 									ast.NewPublicConstantNode(S(P(18, 2, 18), P(22, 2, 22)), "Float"),
 									nil,
+									nil,
 								),
 							},
 						),
@@ -293,17 +295,17 @@ end
 		},
 		"can have multiple type parameters": {
 			input: `
-extend where T > Float, Y > String, Z = Int
+extend where T > Float, Y > String, Z := Int
 end
 `,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(48, 3, 4)),
+				S(P(0, 1, 1), P(49, 3, 4)),
 				[]ast.StatementNode{
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						S(P(1, 2, 1), P(48, 3, 4)),
+						S(P(1, 2, 1), P(49, 3, 4)),
 						ast.NewExtendWhereBlockExpressionNode(
-							S(P(1, 2, 1), P(47, 3, 3)),
+							S(P(1, 2, 1), P(48, 3, 3)),
 							nil,
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -312,6 +314,7 @@ end
 									"T",
 									ast.NewPublicConstantNode(S(P(18, 2, 18), P(22, 2, 22)), "Float"),
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(25, 2, 25), P(34, 2, 34)),
@@ -319,13 +322,15 @@ end
 									"Y",
 									ast.NewPublicConstantNode(S(P(29, 2, 29), P(34, 2, 34)), "String"),
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
-									S(P(37, 2, 37), P(43, 2, 43)),
+									S(P(37, 2, 37), P(44, 2, 44)),
 									ast.INVARIANT,
 									"Z",
-									ast.NewPublicConstantNode(S(P(41, 2, 41), P(43, 2, 43)), "Int"),
-									ast.NewPublicConstantNode(S(P(41, 2, 41), P(43, 2, 43)), "Int"),
+									ast.NewPublicConstantNode(S(P(42, 2, 42), P(44, 2, 44)), "Int"),
+									ast.NewPublicConstantNode(S(P(42, 2, 42), P(44, 2, 44)), "Int"),
+									ast.NewPublicConstantNode(S(P(42, 2, 42), P(44, 2, 44)), "Int"),
 								),
 							},
 						),
@@ -370,6 +375,7 @@ nil
 										ast.INVARIANT,
 										"T",
 										ast.NewPublicConstantNode(S(P(25, 3, 19), P(29, 3, 23)), "Float"),
+										nil,
 										nil,
 									),
 								},
@@ -2803,6 +2809,7 @@ func TestTypeDefinition(t *testing.T) {
 										"Bar",
 									),
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(22, 1, 23), P(29, 1, 30)),
@@ -2813,6 +2820,7 @@ func TestTypeDefinition(t *testing.T) {
 										S(P(27, 1, 28), P(29, 1, 30)),
 										"Baz",
 									),
+									nil,
 								),
 							},
 							ast.NewBinaryTypeExpressionNode(
@@ -3838,6 +3846,7 @@ func TestClassDeclaration(t *testing.T) {
 									"V",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(13, 1, 14), P(14, 1, 15)),
@@ -3845,11 +3854,13 @@ func TestClassDeclaration(t *testing.T) {
 									"T",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(17, 1, 18), P(18, 1, 19)),
 									ast.CONTRAVARIANT,
 									"Z",
+									nil,
 									nil,
 									nil,
 								),
@@ -3887,6 +3898,7 @@ func TestClassDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Std"),
 										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(27, 1, 28), P(34, 1, 35)),
@@ -3894,6 +3906,7 @@ func TestClassDeclaration(t *testing.T) {
 									"T",
 									nil,
 									ast.NewPublicConstantNode(S(P(32, 1, 33), P(34, 1, 35)), "Foo"),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(37, 1, 38), P(45, 1, 46)),
@@ -3901,6 +3914,7 @@ func TestClassDeclaration(t *testing.T) {
 									"Z",
 									nil,
 									ast.NewPrivateConstantNode(S(P(42, 1, 43), P(45, 1, 46)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -4817,6 +4831,7 @@ func TestMixinDeclaration(t *testing.T) {
 									"V",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(13, 1, 14), P(14, 1, 15)),
@@ -4824,11 +4839,13 @@ func TestMixinDeclaration(t *testing.T) {
 									"T",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(17, 1, 18), P(18, 1, 19)),
 									ast.CONTRAVARIANT,
 									"Z",
+									nil,
 									nil,
 									nil,
 								),
@@ -4862,6 +4879,7 @@ func TestMixinDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Std"),
 										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(27, 1, 28), P(34, 1, 35)),
@@ -4869,6 +4887,7 @@ func TestMixinDeclaration(t *testing.T) {
 									"T",
 									nil,
 									ast.NewPublicConstantNode(S(P(32, 1, 33), P(34, 1, 35)), "Foo"),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(37, 1, 38), P(45, 1, 46)),
@@ -4876,6 +4895,7 @@ func TestMixinDeclaration(t *testing.T) {
 									"Z",
 									nil,
 									ast.NewPrivateConstantNode(S(P(42, 1, 43), P(45, 1, 46)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -5172,6 +5192,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 									"V",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(17, 1, 18), P(18, 1, 19)),
@@ -5179,11 +5200,13 @@ func TestInterfaceDeclaration(t *testing.T) {
 									"T",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(21, 1, 22), P(22, 1, 23)),
 									ast.CONTRAVARIANT,
 									"Z",
+									nil,
 									nil,
 									nil,
 								),
@@ -5216,6 +5239,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
 										ast.NewPublicConstantNode(S(P(23, 1, 24), P(28, 1, 29)), "String"),
 									),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(31, 1, 32), P(38, 1, 39)),
@@ -5223,6 +5247,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 									"T",
 									nil,
 									ast.NewPublicConstantNode(S(P(36, 1, 37), P(38, 1, 39)), "Foo"),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(41, 1, 42), P(49, 1, 50)),
@@ -5230,6 +5255,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 									"Z",
 									nil,
 									ast.NewPrivateConstantNode(S(P(46, 1, 47), P(49, 1, 50)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -5478,6 +5504,7 @@ func TestStructDeclaration(t *testing.T) {
 									"V",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(14, 1, 15), P(15, 1, 16)),
@@ -5485,11 +5512,13 @@ func TestStructDeclaration(t *testing.T) {
 									"T",
 									nil,
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(18, 1, 19), P(19, 1, 20)),
 									ast.CONTRAVARIANT,
 									"Z",
+									nil,
 									nil,
 									nil,
 								),
@@ -5522,6 +5551,7 @@ func TestStructDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
 										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
 									),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(28, 1, 29), P(35, 1, 36)),
@@ -5529,6 +5559,7 @@ func TestStructDeclaration(t *testing.T) {
 									"T",
 									nil,
 									ast.NewPublicConstantNode(S(P(33, 1, 34), P(35, 1, 36)), "Foo"),
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(38, 1, 39), P(46, 1, 47)),
@@ -5536,6 +5567,7 @@ func TestStructDeclaration(t *testing.T) {
 									"Z",
 									nil,
 									ast.NewPrivateConstantNode(S(P(43, 1, 44), P(46, 1, 47)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -5566,6 +5598,7 @@ func TestStructDeclaration(t *testing.T) {
 										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
 									),
 									nil,
+									nil,
 								),
 								ast.NewVariantTypeParameterNode(
 									S(P(28, 1, 29), P(42, 1, 43)),
@@ -5573,6 +5606,7 @@ func TestStructDeclaration(t *testing.T) {
 									"T",
 									ast.NewPublicConstantNode(S(P(33, 1, 34), P(35, 1, 36)), "Foo"),
 									ast.NewPrivateConstantNode(S(P(39, 1, 40), P(42, 1, 43)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -5582,6 +5616,53 @@ func TestStructDeclaration(t *testing.T) {
 			),
 		},
 		"can have type variables with fixed bounds": {
+			input: `struct Foo[V := Std::String, +T > Foo < _Bar]; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(49, 1, 50)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(49, 1, 50)),
+						ast.NewStructDeclarationNode(
+							S(P(0, 1, 1), P(49, 1, 50)),
+							"",
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
+							[]ast.TypeParameterNode{
+								ast.NewVariantTypeParameterNode(
+									S(P(11, 1, 12), P(26, 1, 27)),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Std"),
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
+									),
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Std"),
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
+									),
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Std"),
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
+									),
+								),
+								ast.NewVariantTypeParameterNode(
+									S(P(29, 1, 30), P(43, 1, 44)),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(S(P(34, 1, 35), P(36, 1, 37)), "Foo"),
+									ast.NewPrivateConstantNode(S(P(40, 1, 41), P(43, 1, 44)), "_Bar"),
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with default values": {
 			input: `struct Foo[V = Std::String, +T > Foo < _Bar]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(48, 1, 49)),
@@ -5597,11 +5678,8 @@ func TestStructDeclaration(t *testing.T) {
 									S(P(11, 1, 12), P(25, 1, 26)),
 									ast.INVARIANT,
 									"V",
-									ast.NewConstantLookupNode(
-										S(P(15, 1, 16), P(25, 1, 26)),
-										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
-										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
-									),
+									nil,
+									nil,
 									ast.NewConstantLookupNode(
 										S(P(15, 1, 16), P(25, 1, 26)),
 										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
@@ -5614,6 +5692,7 @@ func TestStructDeclaration(t *testing.T) {
 									"T",
 									ast.NewPublicConstantNode(S(P(33, 1, 34), P(35, 1, 36)), "Foo"),
 									ast.NewPrivateConstantNode(S(P(39, 1, 40), P(42, 1, 43)), "_Bar"),
+									nil,
 								),
 							},
 							nil,
@@ -5925,6 +6004,7 @@ func TestMethodDefinition(t *testing.T) {
 									"V",
 									nil,
 									nil,
+									nil,
 								),
 							},
 							nil,
@@ -5955,6 +6035,7 @@ func TestMethodDefinition(t *testing.T) {
 									S(P(8, 1, 9), P(8, 1, 9)),
 									ast.INVARIANT,
 									"V",
+									nil,
 									nil,
 									nil,
 								),
@@ -8754,6 +8835,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 									S(P(8, 1, 9), P(8, 1, 9)),
 									ast.INVARIANT,
 									"V",
+									nil,
 									nil,
 									nil,
 								),
