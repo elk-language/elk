@@ -896,15 +896,6 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 		node.Default = c.checkTypeNode(node.Default)
 		def = c.TypeOf(node.Default)
 
-		if _, ok := def.(*types.TypeParameter); ok {
-			c.addFailure(
-				fmt.Sprintf(
-					"type parameter `%s` cannot have another type parameter as its default",
-					lexer.Colorize(node.Name),
-				),
-				node.Default.Span(),
-			)
-		}
 		if lowerType != nil && !c.isSubtype(lowerType, def, node.Span()) ||
 			upperType != nil && !c.isSubtype(def, upperType, node.Span()) {
 			c.addFailure(

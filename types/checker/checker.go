@@ -4024,6 +4024,12 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		typeArgumentOrder = append(typeArgumentOrder, typeParameter.Name)
 	}
 
+	for i := len(typeArgs); i < len(typeParams); i++ {
+		typeParameter := typeParams[i]
+		typeArgument := typeArgumentMap[typeParameter.Name]
+		typeArgument.Type = c.replaceTypeParameters(typeArgument.Type, typeArgumentMap)
+	}
+
 	for i := range len(typeArgs) {
 		typeParameter := typeParams[i]
 		typeArgumentNode := typeArgs[i]
@@ -4054,6 +4060,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 			}
 		}
 	}
+
 	if fail {
 		return nil, false
 	}

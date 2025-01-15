@@ -1032,8 +1032,14 @@ func TestGenericClass(t *testing.T) {
 			input: `
 				class Foo[V, Y = V]; end
 			`,
+		},
+		"use a generic class with type params as defaults": {
+			input: `
+				class Foo[V, Y = V]; end
+				var a: Foo[String] = 5
+			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(22, 2, 22)), "type parameter `Y` cannot have another type parameter as its default"),
+				error.NewFailure(L("<main>", P(55, 3, 26), P(55, 3, 26)), "type `5` cannot be assigned to type `Foo[Std::String, Std::String]`"),
 			},
 		},
 		"use a class without optional type parameters": {
