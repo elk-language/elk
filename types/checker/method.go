@@ -823,23 +823,21 @@ func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMetho
 }
 
 func (c *Checker) addToReturnType(typ types.Type) {
-	t := c.ToNonLiteral(typ, false)
 	if c.returnType == nil {
-		c.returnType = t
+		c.returnType = typ
 		return
 	}
 
-	c.returnType = c.NewNormalisedUnion(c.returnType, t)
+	c.returnType = c.NewNormalisedUnion(c.returnType, typ)
 }
 
 func (c *Checker) addToThrowType(typ types.Type) {
-	t := c.ToNonLiteral(typ, false)
 	if c.throwType == nil {
-		c.throwType = t
+		c.throwType = typ
 		return
 	}
 
-	c.throwType = c.NewNormalisedUnion(c.throwType, t)
+	c.throwType = c.NewNormalisedUnion(c.throwType, typ)
 }
 
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
