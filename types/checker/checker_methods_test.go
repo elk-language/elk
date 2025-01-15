@@ -3977,7 +3977,19 @@ func TestClosureLiteral(t *testing.T) {
 				var a: 8 = |a: Int| -> 9.2
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(30, 2, 30)), "type `|a: Std::Int|: 9.2` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(16, 2, 16), P(30, 2, 30)), "type `|a: Std::Int|: Std::Float` cannot be assigned to type `8`"),
+			},
+		},
+		"infer throw type": {
+			input: `
+				var a: 8 = |a: Int| ->
+					throw "dupa" if a == 5
+
+					a * 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(16, 2, 16), P(74, 6, 7)), "type `|a: Std::Int|: Std::Int ! Std::String` cannot be assigned to type `8`"),
 			},
 		},
 		"infer return type in multiline closure": {
@@ -3989,7 +4001,7 @@ func TestClosureLiteral(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(70, 6, 7)), "type `|a: Std::Int|: 9.2 | nil` cannot be assigned to type `8`"),
+				error.NewFailure(L("<main>", P(16, 2, 16), P(70, 6, 7)), "type `|a: Std::Int|: Std::Float | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"invalid parameter default value and return value": {
@@ -3999,6 +4011,14 @@ func TestClosureLiteral(t *testing.T) {
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(20, 2, 20), P(22, 2, 22)), "type `2.3` cannot be assigned to type `Std::Int`"),
 				error.NewFailure(L("<main>", P(36, 2, 36), P(36, 2, 36)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"invalid return value": {
+			input: `
+				a := |a: Int = 2|: String -> 5
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(34, 2, 34), P(34, 2, 34)), "type `5` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"without param type": {
@@ -4053,8 +4073,8 @@ func TestClosureLiteral(t *testing.T) {
 				foo() |i| -> 2.5
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: 2.5` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): 2.5`\n      should be: `def call(a: Std::String): Std::Int`\n"),
-				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: 2.5`"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: Std::Float` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): Std::Float`\n      should be: `def call(a: Std::String): Std::Int`\n"),
+				error.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: Std::Float`"),
 			},
 		},
 		"accept closure argument with different param names": {

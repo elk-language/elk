@@ -1,8 +1,8 @@
 ##[
 	Represents an open range from a given value to +∞ *(start, +∞)*
 ]##
-sealed primitive class ::Std::EndlessOpenRange[Element < Comparable[Element]] < Value
-	include Range[Element]
+sealed primitive class ::Std::EndlessOpenRange[Val < Comparable[Val]] < Value
+	include Range[Val]
 
 	def is_left_closed: false; end
 	def is_right_closed: false; end
@@ -10,30 +10,30 @@ sealed primitive class ::Std::EndlessOpenRange[Element < Comparable[Element]] < 
 	##[
 		Check whether the given `value` is present in this range.
 	]##
-	def contains[E := Element](value: E): bool; end
+	def contains[V := Val](value: V): bool; end
 
 	##[
 		Returns the lower bound of the range.
 	]##
-	def start: Element; end
+	def start: Val; end
 
-	extend where Element < Incrementable[Element] & Comparable[Element]
+	extend where Val < Incrementable[Val] & Comparable[Val]
 		##[
 			Returns the iterator for this range.
 			Only ranges of incrementable values can be iterated over.
 		]##
-		def iter: Iterator[Element]; end
+		def iter: Iterator[Val]; end
 	end
 
-	sealed primitive class Iterator[Element < Incrementable[Element] & Comparable[Element]]
-		include ::Std::Iterator::Base[Element]
+	sealed primitive class Iterator[Val < Incrementable[Val] & Comparable[Val]]
+		include ::Std::Iterator::Base[Val]
 
-		init(range: EndlessOpenRange[Element]); end
+		init(range: EndlessOpenRange[Val]); end
 
 		##[
 			Get the next element of the list.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
-		def next: Element ! :stop_iteration; end
+		def next: Val ! :stop_iteration; end
 	end
 end

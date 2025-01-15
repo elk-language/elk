@@ -20,7 +20,7 @@ abstract mixin ::Std::Record[Key, Value]
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains[E := Pair[Key, Value]](value: E): bool; end
+	def contains[V := Pair[Key, Value]](value: V): bool; end
 
 	##[
 		Check whether the given `key` is present in this record.
@@ -51,7 +51,7 @@ abstract mixin ::Std::Record[Key, Value]
 		Returns a new list that consists of the values returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Pair[Key, Value]|: E): List[E]; end
+	def map[V, E](fn: |element: Pair[Key, Value]|: V ! E): List[V] ! E; end
 
 	##[
 		Iterates over the key value pairs of this record,
@@ -60,7 +60,7 @@ abstract mixin ::Std::Record[Key, Value]
 		Returns a new record that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): Record[K, V]; end
+	def map_pairs[K, V, E](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): Record[K, V] ! E; end
 
 	##[
 		Iterates over the values of this record,
@@ -69,5 +69,5 @@ abstract mixin ::Std::Record[Key, Value]
 		Returns a new record that consists of the values returned
 		by the given closure.
 	]##
-	def map_values[V](fn: |value: Value|: V): Record[Key, V]; end
+	def map_values[V, E](fn: |value: Value|: V ! E): Record[Key, V] ! E; end
 end

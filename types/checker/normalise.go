@@ -88,20 +88,23 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return typeArg.Type
 		}
 
-		nonLiteral := c.ToNonLiteral(givenType, false)
+		inferredType := c.ToNonLiteral(givenType, false)
 		if !c.isSubtype(givenType, p.UpperBound, nil) {
 			c.addUpperBoundError(givenType, p.UpperBound, errSpan)
 			return nil
 		}
-		if !c.isSubtype(p.LowerBound, nonLiteral, nil) {
-			c.addLowerBoundError(givenType, p.LowerBound, errSpan)
-			return nil
+		if !c.isSubtype(p.LowerBound, inferredType, nil) {
+			if !c.isSubtype(inferredType, p.LowerBound, nil) {
+				c.addLowerBoundError(givenType, p.LowerBound, errSpan)
+				return nil
+			}
+			inferredType = p.LowerBound
 		}
 		typeArgMap[p.Name] = types.NewTypeArgument(
-			nonLiteral,
+			inferredType,
 			p.Variance,
 		)
-		return nonLiteral
+		return inferredType
 	case *types.Generic:
 		g, ok := givenType.(*types.Generic)
 		if !ok {
@@ -118,6 +121,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		for _, argName := range p.ArgumentOrder {
 			pArg := p.ArgumentMap[argName]
 			gArg := g.ArgumentMap[argName]
+			if gArg == nil || pArg == nil {
+				return nil
+			}
 			result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap, errSpan)
 			if result == nil {
 				return nil

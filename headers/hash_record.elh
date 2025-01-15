@@ -27,7 +27,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	##[
 		Check whether the given `pair` is present in this record.
 	]##
-	def contains[E := Pair[Key, Value]](value: E): bool; end
+	def contains[V := Pair[Key, Value]](value: V): bool; end
 
 	##[
 		Check whether the given `key` is present in this record.
@@ -58,7 +58,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Returns a new ArrayList that consists of the values returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Pair[Key, Value]|: E): ArrayList[E]; end
+	def map[V, E](fn: |element: Pair[Key, Value]|: V ! E): ArrayList[V] ! E; end
 
 	##[
 		Iterates over the key value pairs of this record,
@@ -67,7 +67,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Returns a new HashRecord that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashRecord[K, V]; end
+	def map_pairs[K, V, E](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): HashRecord[K, V] ! E; end
 
 	##[
 		Iterates over the values of this record,
@@ -76,7 +76,7 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 		Returns a new HashRecord that consists of the values returned
 		by the given closure.
 	]##
-	def map_values[V](fn: |value: Value|: V): HashRecord[Key, V]; end
+	def map_values[V, E](fn: |value: Value|: V ! E): HashRecord[Key, V] ! E; end
 
 	##[
 		Returns an iterator that iterates

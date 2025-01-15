@@ -74,6 +74,8 @@ func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
 	}
 
 	switch c.mode {
+	case closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode:
+		c.addToThrowType(throwType)
 	case methodMode, closureInferReturnTypeMode, initMode:
 		expectedThrowType := c.NewNormalisedUnion(c.throwType, throwType)
 		c.addFailure(

@@ -2,8 +2,8 @@
 	Represents an unordered, immutable collection
 	of unique elements.
 ]##
-abstract mixin ::Std::ImmutableSet[+Element]
-	include ImmutableCollection::Base[Element]
+abstract mixin ::Std::ImmutableSet[+Val]
+	include ImmutableCollection::Base[Val]
 
 	# Base methods
 
@@ -13,7 +13,7 @@ abstract mixin ::Std::ImmutableSet[+Element]
 		Create a new set containing all the elements
 		present in `self` and `other`.
 	]##
-	def +[E](other: ImmutableSet[E]): ImmutableSet[Element | E]; end
+	def +[V](other: ImmutableSet[V]): ImmutableSet[Val | V]; end
 	alias | +
 
 	##[
@@ -22,7 +22,7 @@ abstract mixin ::Std::ImmutableSet[+Element]
 		Create a new set containing only the elements
 		present both in `self` and `other`.
 	]##
-	def &[E](other: ImmutableSet[E]): ImmutableSet[Element & E]; end
+	def &[V](other: ImmutableSet[V]): ImmutableSet[Val & V]; end
 
 	##[
 		Iterates over the elements of this set,
@@ -31,5 +31,5 @@ abstract mixin ::Std::ImmutableSet[+Element]
 		Returns a new ImmutableSet that consists of the elements returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Element|: E): ImmutableSet[E]; end
+	def map[V, E](fn: |element: Val|: V ! E): ImmutableSet[V] ! E; end
 end

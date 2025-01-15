@@ -62,7 +62,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 	##[
 		Check whether the given `pair` is present in this map.
 	]##
-	def contains[E := Pair[Key, Value]](value: E): bool; end
+	def contains[V := Pair[Key, Value]](value: V): bool; end
 
 	##[
 		Check whether the given `key` is present in this map.
@@ -93,7 +93,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 		Returns a new ArrayList that consists of the values returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Pair[Key, Value]|: E): ArrayList[E]; end
+	def map[V, E](fn: |element: Pair[Key, Value]|: V ! E): ArrayList[V] ! E; end
 
 	##[
 		Iterates over the key value pairs of this map,
@@ -102,7 +102,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 		Returns a new HashMap that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map_pairs[K, V](fn: |pair: Pair[Key, Value]|: Pair[K, V]): HashMap[K, V]; end
+	def map_pairs[K, V, E](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): HashMap[K, V] ! E; end
 
 	##[
 		Iterates over the values of this map,
@@ -111,7 +111,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 		Returns a new HashMap that consists of the values returned
 		by the given closure.
 	]##
-	def map_values[V](fn: |value: Value|: V): HashMap[Key, V]; end
+	def map_values[V, E](fn: |value: Value|: V ! E): HashMap[Key, V] ! E; end
 
 	##[
 		Iterates over the values of this map,
@@ -120,7 +120,7 @@ sealed primitive class ::Std::HashMap[Key, Value] < ::Std::Value
 		Mutates the map in place replacing the values with the ones
 		returned by the given closure.
 	]##
-	def map_values_mut(fn: |value: Value|: Value): self; end
+	def map_values_mut[E](fn: |value: Value|: Value ! E): self ! E; end
 
 	##[
 		Returns an iterator that iterates

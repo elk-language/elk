@@ -4,8 +4,8 @@
 
 	It is an unordered collection of unique values.
 ]##
-sealed primitive class ::Std::HashSet[Element] < Value
-	include Set[Element]
+sealed primitive class ::Std::HashSet[Val] < Value
+	include Set[Val]
 
 	##[
 		Removes the element from the set.
@@ -13,7 +13,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Returns `true` if the element has been removed,
 		otherwise returns `false.
 	]##
-	def remove(value: Element): bool; end
+	def remove(value: Val): bool; end
 
 	##[
 		Removes all elements from the set.
@@ -61,7 +61,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Create a new `HashSet` containing all the elements
 		present in `self` and `other`.
 	]##
-	sealed def +[E](other: ImmutableSet[E]): HashSet[Element | E]; end
+	sealed def +[V](other: ImmutableSet[V]): HashSet[Val | V]; end
 	alias | +
 
 	##[
@@ -69,12 +69,12 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Create a new `HashSet` containing only the elements
 		present both in `self` and `other`.
 	]##
-	sealed def &[E](other: ImmutableSet[E]): HashSet[Element & E]; end
+	sealed def &[V](other: ImmutableSet[V]): HashSet[Val & V]; end
 
 	##[
 		Check whether the given `value` is present in this set.
 	]##
-	def contains[E := Element](value: E): bool; end
+	def contains[V := Val](value: V): bool; end
 
 	##[
 		Check whether the given value is a `HashSet`
@@ -91,7 +91,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Reallocates the underlying array if it is
 		too small to hold them.
 	]##
-	def append(*values: Element): self; end
+	def append(*values: Val): self; end
 
 	##[
 		Adds the given value to the set.
@@ -101,7 +101,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def <<(value: Element): self; end
+	def <<(value: Val): self; end
 
 	##[
 		Adds the given value to the set.
@@ -112,7 +112,7 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def push(value: Element): bool; end
+	def push(value: Val): bool; end
 
 	##[
 		Iterates over the elements of this set,
@@ -121,21 +121,21 @@ sealed primitive class ::Std::HashSet[Element] < Value
 		Returns a new HashSet that consists of the elements returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Element|: E): HashSet[E]; end
+	def map[V, E](fn: |element: Val|: V ! E): HashSet[V] ! E; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the set.
 	]##
-	def iter: Iterator[Element]; end
+	def iter: Iterator[Val]; end
 
-	sealed primitive class Iterator[Element]
-		include ::Std::Iterator::Base[Element]
+	sealed primitive class Iterator[Val]
+		include ::Std::Iterator::Base[Val]
 
 		##[
 			Get the next element of the set.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
-		def next: Element ! :stop_iteration; end
+		def next: Val ! :stop_iteration; end
 	end
 end

@@ -1,9 +1,9 @@
 ##[
 	Represents a `Range` that can be iterated over.
 ]##
-interface ::Std::IterableRange[Element < Incrementable[Element] & Comparable[Element]]
-	implement Container[Element]
-	implement PrimitiveIterable[Element]
+interface ::Std::IterableRange[Val < Incrementable[Val] & Comparable[Val]]
+	implement Container[Val]
+	implement PrimitiveIterable[Val]
 
 	##[
 		Returns `true` when the range is left-open.
@@ -33,11 +33,11 @@ interface ::Std::IterableRange[Element < Incrementable[Element] & Comparable[Ele
 		Returns the lower bound of the range.
 		Returns `nil` if the Range is beginless.
 	]##
-	sig start: Element?
+	sig start: Val?
 
 	##[
 		Returns the upper bound of the range.
 		Returns `nil` if the range is endless.
 	]##
-	sig end: Element?
+	sig end: Val?
 end

@@ -68,6 +68,8 @@ const (
 	initMode
 	implicitInterfaceSubtypeMode
 	closureInferReturnTypeMode
+	closureInferThrowTypeMode
+	closureInferReturnAndThrowTypeMode
 	namedGenericTypeDefinitionMode
 	outputPositionTypeMode
 	inputPositionTypeMode
@@ -2091,7 +2093,8 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 }
 
 func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
-	if c.mode == closureInferReturnTypeMode {
+	switch c.mode {
+	case closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode:
 		var typ types.Type
 		if node.Value == nil {
 			typ = types.Nil{}
@@ -3546,7 +3549,7 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 
 func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiteralNode {
 	switch c.mode {
-	case methodMode, closureInferReturnTypeMode:
+	case methodMode, closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode:
 		node.SetType(types.Self{})
 	case initMode:
 		c.checkNonNilableInstanceVariablesForSelf(node.Span())
@@ -3950,6 +3953,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		typedPositionalArguments,
 		nil,
 	)
+
 	if len(c.catchScopes) < 1 {
 		newNode.TailCall = tailPosition
 	}
@@ -4471,6 +4475,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		node.ThrowType,
 		node.Span(),
 	)
+
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
 		method,
@@ -5165,7 +5170,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			)
 			return false
 		}
-	case methodMode, closureInferReturnTypeMode, initMode:
+	case methodMode, closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode, initMode:
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
 			if _, ok := e.Subtype(t.Name); ok {
@@ -5661,7 +5666,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, methodMode, initMode, outputPositionTypeMode, inheritanceMode:
+		case closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode, methodMode, initMode, outputPositionTypeMode, inheritanceMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(

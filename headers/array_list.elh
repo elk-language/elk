@@ -4,8 +4,8 @@
 
 	It is an ordered collection of integer indexed values.
 ]##
-sealed primitive class ::Std::ArrayList[Element] < Value
-	include List[Element]
+sealed primitive class ::Std::ArrayList[Val] < Value
+	include List[Val]
 
 	##[
 		Removes the element from the list.
@@ -13,12 +13,12 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Returns `true` if the element has been removed,
 		otherwise returns `false.
 	]##
-	def remove(value: Element): bool; end
+	def remove(value: Val): bool; end
 
 	##[
 		Adds the given value to the list.
 	]##
-	def push(value: Element); end
+	def push(value: Val); end
 
 	##[
 		Removes all elements from the list.
@@ -66,7 +66,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def [](index: AnyInt): Element; end
+	def [](index: AnyInt): Val; end
 
 	##[
 		Set the element under the given index to the given value.
@@ -74,13 +74,13 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def []=(index: AnyInt, value: Element); end
+	def []=(index: AnyInt, value: Val); end
 
 	##[
 		Create a new `ArrayList` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[E](other: Tuple[E]): ArrayList[Element | E]; end
+	sealed def +[V](other: Tuple[V]): ArrayList[Val | V]; end
 
 	##[
 		Create a new `ArrayList` containing the elements of `self`
@@ -91,7 +91,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 	##[
 		Check whether the given `value` is present in this list.
 	]##
-	def contains[E := Element](value: E): bool; end
+	def contains[V := Val](value: V): bool; end
 
 	##[
 		Check whether the given value is an `ArrayList`
@@ -111,7 +111,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Reallocates the underlying array if it is
 		too small to hold them.
 	]##
-	def append(*values: Element): self; end
+	def append(*values: Val): self; end
 
 	##[
 		Adds the given value to the list.
@@ -119,7 +119,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Reallocates the underlying array if it is
 		too small to hold it.
 	]##
-	def <<(value: Element): self; end
+	def <<(value: Val): self; end
 
 	##[
 		Iterates over the elements of this list,
@@ -128,7 +128,7 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Mutates the list in place replacing the elements with the ones
 		returned by the given closure.
 	]##
-	def map_mut(fn: |element: Element|: Element): self; end
+	def map_mut[E](fn: |element: Val|: Val ! E): self ! E; end
 
 	##[
 		Iterates over the elements of this list,
@@ -137,21 +137,21 @@ sealed primitive class ::Std::ArrayList[Element] < Value
 		Returns a new List that consists of the elements returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Element|: E): ArrayList[E]; end
+	def map[V, E](fn: |element: Val|: V ! E): ArrayList[V] ! E; end
 
 	##[
 		Returns an iterator that iterates
 		over each element of the list.
 	]##
-	def iter: Iterator[Element]; end
+	def iter: Iterator[Val]; end
 
-	sealed primitive class Iterator[Element]
-		include ::Std::Iterator::Base[Element]
+	sealed primitive class Iterator[Val]
+		include ::Std::Iterator::Base[Val]
 
 		##[
 			Get the next element of the list.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
-		def next: Element ! :stop_iteration; end
+		def next: Val ! :stop_iteration; end
 	end
 end

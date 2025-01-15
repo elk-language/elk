@@ -1,8 +1,8 @@
 ##[
 	Represents a closed range from -∞ to a given value *(-∞, end]*
 ]##
-sealed primitive class ::Std::BeginlessClosedRange[Element < Comparable[Element]] < Value
-	include Range[Element]
+sealed primitive class ::Std::BeginlessClosedRange[Val < Comparable[Val]] < Value
+	include Range[Val]
 
 	def is_left_closed: false; end
 	def is_right_closed: true; end
@@ -10,10 +10,10 @@ sealed primitive class ::Std::BeginlessClosedRange[Element < Comparable[Element]
 	##[
 		Check whether the given `value` is present in this range.
 	]##
-	def contains[E := Element](value: E): bool; end
+	def contains[V := Val](value: V): bool; end
 
 	##[
 		Returns the upper bound of the range.
 	]##
-	def end: Element; end
+	def end: Val; end
 end

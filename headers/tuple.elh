@@ -38,11 +38,11 @@ abstract mixin ::Std::Tuple[+Element]
 		Returns a new tuple that consists of the elements returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Element|: E): Tuple[E]; end
+	def map[V, E](fn: |element: Element|: V ! E): Tuple[V] ! E; end
 
 	##[
 		Create a new `Tuple` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[E](other: Tuple[E]): Tuple[Element | E]; end
+	sealed def +[V](other: Tuple[V]): Tuple[Element | V]; end
 end

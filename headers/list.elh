@@ -2,9 +2,9 @@
 	Represents an ordered, mutable collection
 	of elements indexed by integers starting at `0`.
 ]##
-abstract mixin ::Std::List[Element]
-	include Tuple[Element]
-	include Collection::Base[Element]
+abstract mixin ::Std::List[Val]
+	include Tuple[Val]
+	include Collection::Base[Val]
 
 	##[
 		Set the element under the given index to the given value.
@@ -12,7 +12,7 @@ abstract mixin ::Std::List[Element]
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	sig []=(index: AnyInt, value: Element)
+	sig []=(index: AnyInt, value: Val)
 
 	# Base methods
 
@@ -20,7 +20,7 @@ abstract mixin ::Std::List[Element]
 		Create a new `List` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[E](other: Tuple[E]): List[Element | E]; end
+	sealed def +[V](other: Tuple[V]): List[Val | V]; end
 
 	##[
 		Iterates over the elements of this collection,
@@ -29,7 +29,7 @@ abstract mixin ::Std::List[Element]
 		Mutates the collection in place replacing the elements with the ones
 		returned by the given closure.
 	]##
-	def map_mut(fn: |element: Element|: Element): self; end
+	def map_mut[E](fn: |element: Val|: Val ! E): self ! E; end
 
 	##[
 		Iterates over the elements of this list,
@@ -38,5 +38,5 @@ abstract mixin ::Std::List[Element]
 		Returns a new list that consists of the elements returned
 		by the given closure.
 	]##
-	def map[E](fn: |element: Element|: E): List[E]; end
+	def map[V, E](fn: |element: Val|: V ! E): List[V] ! E; end
 end

@@ -570,7 +570,7 @@ func (c *Checker) checkMethod(
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
 	}
-	if !types.IsNever(throwType) {
+	if !types.IsNever(throwType) && throwType != nil {
 		c.pushCatchScope(makeCatchScope(throwType, false))
 	}
 
@@ -585,21 +585,43 @@ func (c *Checker) checkMethod(
 	}
 
 	if !c.IsHeader {
-		if isClosure && returnType == nil {
+		if isClosure && returnType == nil && throwType == nil {
+			c.mode = closureInferReturnAndThrowTypeMode
+		} else if isClosure && returnType == nil {
 			c.mode = closureInferReturnTypeMode
+		} else if isClosure && throwType == nil {
+			c.mode = closureInferThrowTypeMode
 		} else if checkedMethod.IsInit() {
 			c.mode = initMode
 		} else {
 			c.mode = methodMode
 		}
+
 		c.returnType = returnType
 		c.throwType = throwType
 		bodyReturnType, returnSpan := c.checkStatements(body, true)
 		if !checkedMethod.IsAbstract() && !c.IsHeader {
-			if c.mode == closureInferReturnTypeMode {
+			switch c.mode {
+			case closureInferReturnTypeMode:
 				c.addToReturnType(bodyReturnType)
 				checkedMethod.ReturnType = c.returnType
-			} else {
+			case closureInferReturnAndThrowTypeMode:
+				c.addToReturnType(bodyReturnType)
+				checkedMethod.ReturnType = c.returnType
+
+				if c.throwType == nil {
+					checkedMethod.ThrowType = types.Never{}
+				} else {
+					checkedMethod.ThrowType = c.throwType
+				}
+			case closureInferThrowTypeMode:
+				if c.throwType == nil {
+					checkedMethod.ThrowType = types.Never{}
+				} else {
+					checkedMethod.ThrowType = c.throwType
+				}
+				fallthrough
+			default:
 				if returnSpan == nil {
 					returnSpan = span
 				}
@@ -801,12 +823,23 @@ func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMetho
 }
 
 func (c *Checker) addToReturnType(typ types.Type) {
+	t := c.ToNonLiteral(typ, false)
 	if c.returnType == nil {
-		c.returnType = typ
+		c.returnType = t
 		return
 	}
 
-	c.returnType = c.NewNormalisedUnion(c.returnType, typ)
+	c.returnType = c.NewNormalisedUnion(c.returnType, t)
+}
+
+func (c *Checker) addToThrowType(typ types.Type) {
+	t := c.ToNonLiteral(typ, false)
+	if c.throwType == nil {
+		c.throwType = t
+		return
+	}
+
+	c.throwType = c.NewNormalisedUnion(c.throwType, t)
 }
 
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
@@ -1840,6 +1873,7 @@ func (c *Checker) declareMethod(
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
+	} else if inferReturnType {
 	} else if baseMethod != nil && baseMethod.ThrowType != nil {
 		throwType = baseMethod.ThrowType
 	} else {

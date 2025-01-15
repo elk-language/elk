@@ -3,9 +3,9 @@
 	can be used to check if it contains
 	a value.
 ]##
-interface ::Std::Container[+Element]
+interface ::Std::Container[+Val]
 	##[
 		Check whether the given `value` is present in this container.
 	]##
-	sig contains[E := Element](value: E): bool
+	sig contains[V := Val](value: V): bool
 end
