@@ -245,11 +245,17 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	}
 	newMethod.Params = newParameters
 
+	newTypeParameters := make([]*TypeParameter, len(m.TypeParameters))
+	for i, typeParam := range m.TypeParameters {
+		newTypeParameters[i] = typeParam.DeepCopyEnv(oldEnv, newEnv)
+	}
+	newMethod.TypeParameters = newTypeParameters
+
 	newCalledMethods := make([]*Method, len(m.CalledMethods))
 	for i, calledMethod := range m.CalledMethods {
 		newCalledMethods[i] = calledMethod.DeepCopyEnv(oldEnv, newEnv)
 	}
-	newMethod.Params = newParameters
+	newMethod.CalledMethods = newCalledMethods
 
 	return newMethod
 }
