@@ -87,6 +87,7 @@ const (
 	headerFlag bitfield.BitFlag8 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
+	generatorFlag
 )
 
 type phase uint8
@@ -175,6 +176,18 @@ func (c *Checker) SetHeader(val bool) {
 		c.flags.SetFlag(headerFlag)
 	} else {
 		c.flags.UnsetFlag(headerFlag)
+	}
+}
+
+func (c *Checker) isGenerator() bool {
+	return c.flags.HasFlag(generatorFlag)
+}
+
+func (c *Checker) setGenerator(val bool) {
+	if val {
+		c.flags.SetFlag(generatorFlag)
+	} else {
+		c.flags.UnsetFlag(generatorFlag)
 	}
 }
 
@@ -997,6 +1010,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkLabeledExpressionNode(n)
 	case *ast.ReturnExpressionNode:
 		return c.checkReturnExpressionNode(n)
+	case *ast.YieldExpressionNode:
+		return c.checkYieldExpressionNode(n)
 	case *ast.BreakExpressionNode:
 		return c.checkBreakExpressionNode(n)
 	case *ast.ContinueExpressionNode:
@@ -2135,31 +2150,60 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 }
 
 func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
-	if c.shouldInferClosureReturnType() {
-		var typ types.Type
-		if node.Value == nil {
-			typ = types.Nil{}
-		} else {
-			node.Value = c.checkExpressionWithTailPosition(node.Value, true)
-			typ = c.typeOfGuardVoid(node.Value)
-		}
+	var typ types.Type
+	if node.Value == nil {
+		typ = types.Nil{}
+	} else {
+		node.Value = c.checkExpressionWithTailPosition(node.Value, true)
+		typ = c.typeOfGuardVoid(node.Value)
+	}
 
+	if c.shouldInferClosureReturnType() {
 		c.addToReturnType(typ)
 		return node
+	}
+
+	if node.Value != nil && types.IsVoid(c.returnType) {
+		c.addWarning(
+			"values returned in void context will be ignored",
+			node.Value.Span(),
+		)
+	}
+	c.checkCanAssign(typ, c.returnType, node.Span())
+
+	return node
+}
+
+func (c *Checker) checkYieldExpressionNode(node *ast.YieldExpressionNode) ast.ExpressionNode {
+	if !c.isGenerator() {
+		c.addFailure(
+			"yield cannot be used outside of generators",
+			node.Span(),
+		)
 	}
 
 	var typ types.Type
 	if node.Value == nil {
 		typ = types.Nil{}
 	} else {
-		if types.IsVoid(c.returnType) {
-			c.addWarning(
-				"values returned in void context will be ignored",
-				node.Value.Span(),
-			)
-		}
 		node.Value = c.checkExpressionWithTailPosition(node.Value, true)
 		typ = c.typeOfGuardVoid(node.Value)
+	}
+
+	if node.Forward {
+		typ = c.checkIsIterable(typ, node.Value.Span())
+	}
+
+	if c.shouldInferClosureReturnType() {
+		c.addToReturnType(typ)
+		return node
+	}
+
+	if node.Value != nil && types.IsVoid(c.returnType) {
+		c.addWarning(
+			"values yielded in void context will be ignored",
+			node.Value.Span(),
+		)
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
 

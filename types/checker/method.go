@@ -594,6 +594,9 @@ func (c *Checker) checkMethod(
 				c.setInferClosureThrowType(true)
 			}
 		}
+		if checkedMethod.IsGenerator() {
+			c.setGenerator(true)
+		}
 		if checkedMethod.IsInit() {
 			c.mode = initMode
 		} else {
