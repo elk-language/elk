@@ -1,10 +1,13 @@
 ##[
   Implements a generator object that is iterable.
 ]##
-class Std::Generator[+Element]
-  include Iterable::Base[Element]
+noinit class Std::Generator[+Val, +Err]
+  include Iterator::Base[Val, Err]
 
-  def iter: self; end
+  def next: Val ! :stop_iteration | Err; end
 
-  def next: Element ! :stop_iteration; end
+  ##[
+    Resets the state of the generator.
+  ]##
+  def reset; end
 end

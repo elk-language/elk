@@ -499,8 +499,10 @@ func (c *Checker) checkMethod(
 	}
 	defer c.popLocalEnv()
 
-	c.mode = prevMode
-	c.setInputPositionTypeMode()
+	if !checkedMethod.IsInit() {
+		c.mode = prevMode
+		c.setInputPositionTypeMode()
+	}
 	for _, param := range paramNodes {
 		switch p := param.(type) {
 		case *ast.MethodParameterNode:
@@ -1690,6 +1692,7 @@ func (c *Checker) declareMethod(
 	} else {
 		c.mode = methodMode
 	}
+
 	var typeParams []*types.TypeParameter
 	var typeParamMod *types.TypeParamNamespace
 	if len(typeParamNodes) > 0 {
@@ -1710,8 +1713,10 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	c.mode = prevMode
-	c.setInputPositionTypeMode()
+	if name != symbol.S_init {
+		c.mode = prevMode
+		c.setInputPositionTypeMode()
+	}
 	var params []*types.Parameter
 	for i, paramNode := range paramNodes {
 		switch p := paramNode.(type) {

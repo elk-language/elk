@@ -2,7 +2,7 @@
 	A `Pair` represents a 2-element tuple,
 	or a key-value pair.
 ]##
-sealed primitive class ::Std::Pair[Key, Value] < ::Std::Value
+sealed primitive class ::Std::Pair[+Key, +Value] < ::Std::Value
 	include Tuple[Key | Value]
 
 	##[
@@ -47,10 +47,17 @@ sealed primitive class ::Std::Pair[Key, Value] < ::Std::Value
 	sealed primitive class Iterator[+Key, +Value]
 		include ::Std::Iterator::Base[Key | Value]
 
+		init(pair: Pair[Key, Value]); end
+
 		##[
 			Get the next element of the pair.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Key | Value ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

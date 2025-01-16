@@ -87,10 +87,17 @@ sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::Iterator::Base[Pair[Key, Value]]
 
+		init(record: HashRecord[Key, Value]); end
+
 		##[
 			Get the next pair of the record.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Pair[Key, Value] ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

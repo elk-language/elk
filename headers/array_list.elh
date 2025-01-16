@@ -148,10 +148,17 @@ sealed primitive class ::Std::ArrayList[Val] < Value
 	sealed primitive class Iterator[Val]
 		include ::Std::Iterator::Base[Val]
 
+		init(list: ArrayList[Val]); end
+
 		##[
 			Get the next element of the list.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Val ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

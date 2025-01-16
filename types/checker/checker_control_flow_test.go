@@ -1210,7 +1210,7 @@ func TestForInExpression(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 14), P(35, 3, 18)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any]`"),
+				error.NewFailure(L("<main>", P(31, 3, 14), P(35, 3, 18)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
 			},
 		},
 
@@ -1389,7 +1389,7 @@ func TestModifierForInExpression(t *testing.T) {
 				println(i) for i in foo()
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 25), P(46, 3, 29)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any]`"),
+				error.NewFailure(L("<main>", P(42, 3, 25), P(46, 3, 29)), "type `void` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
 			},
 		},
 

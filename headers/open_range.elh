@@ -40,5 +40,10 @@ sealed primitive class ::Std::OpenRange[Val < Comparable[Val]] < Value
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Val ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

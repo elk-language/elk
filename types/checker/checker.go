@@ -2191,7 +2191,9 @@ func (c *Checker) checkYieldExpressionNode(node *ast.YieldExpressionNode) ast.Ex
 	}
 
 	if node.Forward {
-		typ = c.checkIsIterable(typ, node.Value.Span())
+		var throwType types.Type
+		typ, throwType = c.checkIsIterable(typ, node.Value.Span())
+		c.checkThrowType(throwType, node.Span())
 	}
 
 	if c.shouldInferClosureReturnType() {
@@ -2310,9 +2312,10 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
-	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Span())
+	c.checkThrowType(throwType, node.Span())
 
-	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
 	c.pushNestedLocalEnv()
 	node.ThenExpression = c.checkExpression(node.ThenExpression)
@@ -2335,9 +2338,10 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
-	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Span())
+	c.checkThrowType(throwType, node.Span())
 
-	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
 	c.pushNestedLocalEnv()
 	switch then := node.ThenExpression.(type) {
@@ -2366,9 +2370,10 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn C
 	c.pushNestedLocalEnv()
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
-	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Span())
+	c.checkThrowType(throwType, node.Span())
 
-	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
 	c.pushNestedLocalEnv()
 	node.ThenExpression = fn(node.ThenExpression)
@@ -2386,9 +2391,10 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
-	elementType := c.checkIsIterable(inType, node.InExpression.Span())
+	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Span())
+	c.checkThrowType(throwType, node.Span())
 
-	node.Pattern, _ = c.checkPattern(node.Pattern, elementType)
+	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
 	c.pushNestedLocalEnv()
 	c.checkStatements(node.ThenBody, false)
@@ -2406,7 +2412,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	return node
 }
 
-func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Type {
+func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) (types.Type, types.Type) {
 	iterable := c.StdPrimitiveIterable()
 	iterableOfAny := types.NewGenericWithUpperBoundTypeArgs(iterable)
 
@@ -2422,10 +2428,10 @@ func (c *Checker) checkIsIterable(typ types.Type, span *position.Span) types.Typ
 		),
 		span,
 	)
-	return types.Untyped{}
+	return types.Untyped{}, types.Untyped{}
 }
 
-func (c *Checker) GetIteratorElementType(typ types.Type) types.Type {
+func (c *Checker) GetIteratorElementType(typ types.Type) (types.Type, types.Type) {
 	return c.getIteratorElementType(typ, nil)
 }
 
@@ -2442,18 +2448,19 @@ func (c *Checker) getIteratorType(typ types.Type, span *position.Span) types.Typ
 	return iterMethod.ReturnType
 }
 
-func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) types.Type {
+func (c *Checker) getIteratorElementType(typ types.Type, span *position.Span) (types.Type, types.Type) {
 	iterMethod := c.getMethod(typ, symbol.L_iter, span)
 	if iterMethod == nil {
-		return types.Untyped{}
+		return types.Untyped{}, types.Untyped{}
 	}
 
 	nextMethod := c.getMethod(iterMethod.ReturnType, symbol.L_next, span)
 	if nextMethod == nil {
-		return types.Untyped{}
+		return types.Untyped{}, types.Untyped{}
 	}
 
-	return nextMethod.ReturnType
+	throwType := c.differenceType(nextMethod.ThrowType, types.NewSymbolLiteral("stop_iteration"))
+	return nextMethod.ReturnType, throwType
 }
 
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {

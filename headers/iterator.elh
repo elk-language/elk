@@ -2,14 +2,31 @@
 	An interface that represents objects
 	that allow for external iteration.
 ]##
-interface ::Std::Iterator[+Element]
-	implement Iterable[Element]
+interface ::Std::Iterator[+Val, +Err = never]
+	implement Iterable[Val, Err]
 
 	##[
 		Returns the next element.
 		Throws `:stop_iteration` when no more elements are available.
 	]##
-	def next: Element ! :stop_iteration; end
+	def next: Val ! :stop_iteration | Err; end
+
+	##[
+		Resets the state of the iterator.
+	]##
+	def reset; end
+
+	##[
+		Returns a copy of the iterator.
+
+		The state of the new iterator cannot be
+		associated with the old iterator.
+
+		Resetting the new iterator or getting
+		its next element should not mutate
+		the original iterator.
+	]##
+  def copy: self; end
 
 	# Base methods
 
@@ -18,9 +35,9 @@ interface ::Std::Iterator[+Element]
 	##[
 		Provides default implementations of most iterable methods.
 	]##
-	abstract mixin Base[+Element]
-		implement Iterator[Element]
-		include Iterable::Base[Element]
+	abstract mixin Base[+Val, +Err = never]
+		implement Iterator[Val, Err]
+		include Iterable::Base[Val, Err]
 
 		def iter: self; end
 	end

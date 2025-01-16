@@ -1,19 +1,19 @@
 ##[
 	Represents a value that can be iterated over in a `for` loop.
 ]##
-interface ::Std::PrimitiveIterable[+Val]
+interface ::Std::PrimitiveIterable[+Val, +Err = never]
 	##[
 		Returns an iterator for this structure.
 	]##
-	sig iter: Iterator[Val]
+	sig iter: Iterator[Val, Err]
 end
 
 ##[
 	Represents a value that can be iterated over in a `for` loop and implement
 	many useful methods.
 ]##
-interface ::Std::Iterable[+Val]
-	implement PrimitiveIterable[Val]
+interface ::Std::Iterable[+Val, +Err = never]
+	implement PrimitiveIterable[Val, Err]
 	implement Inspectable
 
 	class NotFoundError < Error; end
@@ -26,37 +26,37 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig contains[V := Val](value: V): bool
+	sig contains[V := Val](value: V): bool ! Err
 
 	##[
 		Checks whether the iterable is empty.
 	]##
-	sig is_empty: bool
+	sig is_empty: bool ! Err
 
 	##[
 		Returns the number of elements present in the iterable.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig length: Int
+	sig length: Int ! Err
 
 	##[
 		Returns the first element.
 		Throws an unchecked error when the iterable is empty.
 	]##
-	sig first: Val
+	sig first: Val ! Err
 
 	##[
 		Returns the first element.
 		Returns `nil` when the iterable is empty.
 	]##
-	sig try_first: Val?
+	sig try_first: Val? ! Err
 
 	##[
 		Returns the first element.
 		Throws an error when the iterable is empty.
 	]##
-	sig first_err: Val ! NotFoundError
+	sig first_err: Val ! NotFoundError | Err
 
 	##[
 		Returns the first element.
@@ -64,7 +64,7 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig last: Val
+	sig last: Val ! Err
 
 	##[
 		Returns the first element.
@@ -72,7 +72,7 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig try_last: Val?
+	sig try_last: Val? ! Err
 
 	##[
 		Returns the last element.
@@ -80,7 +80,7 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig last_err: Val ! NotFoundError
+	sig last_err: Val ! NotFoundError | Err
 
 	##[
 		Iterates over the elements of this iterable,
@@ -91,41 +91,41 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig map[V, E](fn: |element: Val|: V ! E): Iterable[V] ! E
+	sig map[V, E](fn: |element: Val|: V ! E): Iterable[V] ! E | Err
 
 	##[
 		Returns a new iterable containing only elements matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig filter[E](fn: |element: Val|: bool ! E): self ! E
+	sig filter[E](fn: |element: Val|: bool ! E): self ! E | Err
 
 	##[
 		Returns the number of elements matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig count[E](fn: |element: Val|: bool ! E): Int ! E
+	sig count[E](fn: |element: Val|: bool ! E): Int ! E | Err
 
 	##[
 		Returns a new iterable containing only elements not matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig reject[E](fn: |element: Val|: bool ! E): self ! E
+	sig reject[E](fn: |element: Val|: bool ! E): self ! E | Err
 
 	##[
 		Checks whether any element of this iterable satisfies the given predicate.
 
 		May never return if the iterable is infinite.
 	]##
-	sig any[E](fn: |element: Val|: bool ! E): bool ! E
+	sig any[E](fn: |element: Val|: bool ! E): bool ! E | Err
 
 	##[
 		Checks whether every element of this iterable satisfies the given predicate.
 		Never returns if the iterable is infinite.
 	]##
-	sig every[E](fn: |element: Val|: bool ! E): bool ! E
+	sig every[E](fn: |element: Val|: bool ! E): bool ! E | Err
 
 	##[
 		Returns the first element matching the given predicate.
@@ -133,7 +133,7 @@ interface ::Std::Iterable[+Val]
 
 		May never return if the iterable is infinite.
 	]##
-	sig find[E](fn: |element: Val|: bool ! E): Val? ! E
+	sig find[E](fn: |element: Val|: bool ! E): Val? ! E | Err
 
 	##[
 		Returns the first element matching the given predicate.
@@ -141,40 +141,40 @@ interface ::Std::Iterable[+Val]
 
 		May never return if the iterable is infinite.
 	]##
-	sig find_err[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E
+	sig find_err[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err
 
 	##[
 		Returns the first index of element, or -1 if it could not be found.
 
 		May never return if the iterable is infinite.
 	]##
-	sig index_of[V := Val](element: V): Int
+	sig index_of[V := Val](element: V): Int ! Err
 
 	##[
 		Returns a new iterable containing all elements except first `n` elements.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig drop(n: Int): self
+	sig drop(n: Int): self ! Err
 
 	##[
 		Returns a new iterable containing all elements except first elements that satisfy the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig drop_while[E](fn: |element: Val|: bool ! E): self ! E
+	sig drop_while[E](fn: |element: Val|: bool ! E): self ! E | Err
 
 	##[
 		Returns a new iterable containing only the first `n` elements.
 	]##
-	sig take(n: Int): self
+	sig take(n: Int): self ! Err
 
 	##[
 		Returns a new iterable containing first elements satisfying the given predicate.
 
 		May never return if the iterable is infinite.
 	]##
-	sig take_while[E](fn: |element: Val|: bool ! E): self ! E
+	sig take_while[E](fn: |element: Val|: bool ! E): self ! E | Err
 
 	##[
 		Reduces the elements of this iterable to a single value by
@@ -182,7 +182,7 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E
+	sig reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E | Err
 
 	##[
 		Reduces the elements of this iterable to a single value by
@@ -190,78 +190,78 @@ interface ::Std::Iterable[+Val]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E
+	sig fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err
 
 	##[
 		Creates a new list that contains the elements of this iterable.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_list[T > Val]: List[T]
+	sig to_list[T > Val]: List[T] ! Err
 
 	##[
 		Creates a new tuple that contains the elements of this iterable.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_tuple: Tuple[Val]
+	sig to_tuple: Tuple[Val] ! Err
 
 	##[
 		Creates a new immutable collection that contains the elements of this iterable.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_immutable_collection: ImmutableCollection[Val]
+	sig to_immutable_collection: ImmutableCollection[Val] ! Err
 
 	##[
 		Creates a new collection that contains the elements of this iterable.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig to_collection[T > Val]: Collection[T]
+	sig to_collection[T > Val]: Collection[T] ! Err
 
 	##[
 		Provides default implementations of most iterable methods
 		for finite iterables.
 	]##
-	abstract mixin FiniteBase[+Val]
-		implement Iterable[Val]
+	abstract mixin FiniteBase[+Val, +Err = never]
+		implement Iterable[Val, Err]
 
-		def contains[V := Val](value: V): bool; end
-		def is_empty: bool; end
-		def first: Val; end
-		def try_first: Val?; end
-		def first_err: Val ! NotFoundError; end
-		def last: Val; end
-		def try_last: Val?; end
-		def last_err: Val ! NotFoundError; end
-		def map[V, E](fn: |element: Val|: V ! E): Iterable[V] ! E; end
-		def filter[E](fn: |element: Val|: bool ! E): self ! E; end
-		def count[E](fn: |element: Val|: bool ! E): Int ! E; end
-		def reject[E](fn: |element: Val|: bool ! E): self ! E; end
-		def any[E](fn: |element: Val|: bool ! E): bool ! E; end
-		def every[E](fn: |element: Val|: bool ! E): bool ! E; end
-		def find[E](fn: |element: Val|: bool ! E): Val? ! E; end
-		def find_err[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E; end
-		def index_of[V := Val](element: V): Int; end
-		def drop(n: Int): self; end
-		def drop_while[E](fn: |element: Val|: bool ! E): self ! E; end
-		def take(n: Int): self; end
-		def take_while[E](fn: |element: Val|: bool ! E): self ! E; end
-		def reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E; end
-		def fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E; end
-		def to_list[T > Val]: List[T]; end
-		def to_tuple: Tuple[Val]; end
-		def to_immutable_collection: ImmutableCollection[Val]; end
-		def to_collection[T > Val]: Collection[T]; end
+		def contains[V := Val](value: V): bool ! Err; end
+		def is_empty: bool ! Err; end
+		def first: Val ! Err; end
+		def try_first: Val? ! Err; end
+		def first_err: Val ! NotFoundError | Err; end
+		def last: Val ! Err; end
+		def try_last: Val? ! Err; end
+		def last_err: Val ! NotFoundError | Err; end
+		def map[V, E](fn: |element: Val|: V ! E): Iterable[V] ! E | Err; end
+		def filter[E](fn: |element: Val|: bool ! E): self ! E | Err; end
+		def count[E](fn: |element: Val|: bool ! E): Int ! E | Err; end
+		def reject[E](fn: |element: Val|: bool ! E): self ! E | Err; end
+		def any[E](fn: |element: Val|: bool ! E): bool ! E | Err; end
+		def every[E](fn: |element: Val|: bool ! E): bool ! E | Err; end
+		def find[E](fn: |element: Val|: bool ! E): Val? ! E | Err; end
+		def find_err[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err; end
+		def index_of[V := Val](element: V): Int ! Err; end
+		def drop(n: Int): self ! Err; end
+		def drop_while[E](fn: |element: Val|: bool ! E): self ! E | Err; end
+		def take(n: Int): self ! Err; end
+		def take_while[E](fn: |element: Val|: bool ! E): self ! E | Err; end
+		def reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E | Err; end
+		def fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err; end
+		def to_list[T > Val]: List[T] ! Err; end
+		def to_tuple: Tuple[Val] ! Err; end
+		def to_immutable_collection: ImmutableCollection[Val] ! Err; end
+		def to_collection[T > Val]: Collection[T] ! Err; end
 	end
 
 	##[
 		Provides default implementations of most iterable methods.
 	]##
-	abstract mixin Base[+Val]
-		include FiniteBase[Val]
+	abstract mixin Base[+Val, +Err = never]
+		include FiniteBase[Val, Err]
 
-		def length: Int; end
+		def length: Int ! Err; end
 	end
 end

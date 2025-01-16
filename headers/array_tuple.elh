@@ -62,10 +62,17 @@ sealed primitive class ::Std::ArrayTuple[+Val] < Value
 	sealed primitive class Iterator[+Val]
 		include ::Std::Iterator::Base[Val]
 
+		init(tuple: ArrayTuple[Val]); end
+
 		##[
 			Get the next element of the tuple.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Val ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

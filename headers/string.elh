@@ -140,6 +140,8 @@ sealed noinit primitive class ::Std::String < Value
 	sealed primitive class CharIterator
 		include Std::Iterator::Base[Char]
 
+		init(string: String); end
+
 		##[
 			Get the next character.
 			Throws `:stop_iteration` when no more characters are available.
@@ -150,6 +152,11 @@ sealed noinit primitive class ::Std::String < Value
 			Returns itself.
 		]##
 		def iter: CharIterator; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 
 	##[
@@ -157,6 +164,8 @@ sealed noinit primitive class ::Std::String < Value
 	]##
 	sealed primitive class ByteIterator
 		include Std::Iterator::Base[UInt8]
+
+		init(string: String); end
 
 		##[
 			Get the next byte.
@@ -168,6 +177,11 @@ sealed noinit primitive class ::Std::String < Value
 			Returns itself.
 		]##
 		def iter: ByteIterator; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 
 	##[
@@ -175,6 +189,8 @@ sealed noinit primitive class ::Std::String < Value
 	]##
 	sealed primitive class GraphemeIterator
 		include Std::Iterator::Base[String]
+
+		init(string: String); end
 
 		##[
 			Get the next grapheme.
@@ -186,5 +202,10 @@ sealed noinit primitive class ::Std::String < Value
 			Returns itself.
 		]##
 		def iter: GraphemeIterator; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end

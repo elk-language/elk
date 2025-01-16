@@ -132,10 +132,17 @@ sealed primitive class ::Std::HashSet[Val] < Value
 	sealed primitive class Iterator[Val]
 		include ::Std::Iterator::Base[Val]
 
+		init(set: HashSet[Val]); end
+
 		##[
 			Get the next element of the set.
 			Throws `:stop_iteration` when there are no more elements.
 		]##
 		def next: Val ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
 	end
 end
