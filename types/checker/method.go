@@ -38,7 +38,7 @@ func (c *Checker) newMethodChecker(
 		constantScopes: constScopes,
 		methodScopes:   methodScopes,
 		Errors:         c.Errors,
-		IsHeader:       c.IsHeader,
+		flags:          c.flags,
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
@@ -324,7 +324,7 @@ func (c *Checker) checkMethodOverride(
 	var areIncompatible bool
 	errDetailsBuff := new(strings.Builder)
 
-	if !c.IsHeader && baseMethod.IsSealed() {
+	if !c.IsHeader() && baseMethod.IsSealed() {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` is sealed and cannot be overridden",
@@ -469,6 +469,7 @@ func (c *Checker) checkMethod(
 
 	name := checkedMethod.Name
 	prevMode := c.mode
+	prevFlags := c.flags
 	isClosure := types.IsClosure(methodNamespace)
 
 	if methodNamespace != nil {
@@ -584,14 +585,16 @@ func (c *Checker) checkMethod(
 		)
 	}
 
-	if !c.IsHeader {
-		if isClosure && returnType == nil && throwType == nil {
-			c.mode = closureInferReturnAndThrowTypeMode
-		} else if isClosure && returnType == nil {
-			c.mode = closureInferReturnTypeMode
-		} else if isClosure && throwType == nil {
-			c.mode = closureInferThrowTypeMode
-		} else if checkedMethod.IsInit() {
+	if !c.IsHeader() {
+		if isClosure {
+			if returnType == nil {
+				c.setInferClosureReturnType(true)
+			}
+			if throwType == nil {
+				c.setInferClosureThrowType(true)
+			}
+		}
+		if checkedMethod.IsInit() {
 			c.mode = initMode
 		} else {
 			c.mode = methodMode
@@ -600,38 +603,32 @@ func (c *Checker) checkMethod(
 		c.returnType = returnType
 		c.throwType = throwType
 		bodyReturnType, returnSpan := c.checkStatements(body, true)
-		if !checkedMethod.IsAbstract() && !c.IsHeader {
-			switch c.mode {
-			case closureInferReturnTypeMode:
-				c.addToReturnType(bodyReturnType)
-				checkedMethod.ReturnType = c.returnType
-			case closureInferReturnAndThrowTypeMode:
-				c.addToReturnType(bodyReturnType)
-				checkedMethod.ReturnType = c.returnType
 
-				if c.throwType == nil {
-					checkedMethod.ThrowType = types.Never{}
-				} else {
-					checkedMethod.ThrowType = c.throwType
-				}
-			case closureInferThrowTypeMode:
-				if c.throwType == nil {
-					checkedMethod.ThrowType = types.Never{}
-				} else {
-					checkedMethod.ThrowType = c.throwType
-				}
-				fallthrough
-			default:
+		if !checkedMethod.IsAbstract() && !c.IsHeader() {
+			if c.shouldInferClosureReturnType() {
+				c.addToReturnType(bodyReturnType)
+				checkedMethod.ReturnType = c.returnType
+			} else {
 				if returnSpan == nil {
 					returnSpan = span
 				}
 				c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 			}
+
+			if c.shouldInferClosureThrowType() {
+				if c.throwType == nil {
+					checkedMethod.ThrowType = types.Never{}
+				} else {
+					checkedMethod.ThrowType = c.throwType
+				}
+			}
 		}
 	}
+
 	c.returnType = nil
 	c.throwType = nil
 	c.mode = prevMode
+	c.flags = prevFlags
 	c.catchScopes = prevCatchScopes
 	return typedReturnTypeNode, typedThrowTypeNode
 }
@@ -1896,7 +1893,7 @@ func (c *Checker) declareMethod(
 		docComment,
 		abstract,
 		sealed,
-		c.IsHeader,
+		c.IsHeader(),
 		generator,
 		name,
 		typeParams,

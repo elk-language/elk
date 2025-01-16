@@ -115,7 +115,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	}
 
 	if node.Initialiser == nil {
-		if !c.IsHeader {
+		if !c.IsHeader() {
 			c.addFailure(
 				"constants must be initialised",
 				node.Span(),

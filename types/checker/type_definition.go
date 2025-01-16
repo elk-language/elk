@@ -631,7 +631,7 @@ superclassSwitch:
 			break superclassSwitch
 		}
 
-		if superclass.IsSealed() && !c.IsHeader {
+		if superclass.IsSealed() && !c.IsHeader() {
 			c.addFailure(
 				fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
 				node.Superclass.Span(),

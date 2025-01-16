@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
@@ -67,9 +68,6 @@ const (
 	methodMode
 	initMode
 	implicitInterfaceSubtypeMode
-	closureInferReturnTypeMode
-	closureInferThrowTypeMode
-	closureInferReturnAndThrowTypeMode
 	namedGenericTypeDefinitionMode
 	outputPositionTypeMode
 	inputPositionTypeMode
@@ -83,6 +81,12 @@ const (
 	mutateLocalsInNarrowing // mutate local variables when doing narrowing, instead of creating shadow locals
 	tryMode
 	validTryMode
+)
+
+const (
+	headerFlag bitfield.BitFlag8 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	inferClosureReturnTypeFlag
+	inferClosureThrowTypeFlag
 )
 
 type phase uint8
@@ -99,7 +103,7 @@ type Checker struct {
 	Filename                string               // name of the current source file
 	Errors                  *error.SyncErrorList // list of typechecking errors
 	env                     *types.GlobalEnvironment
-	IsHeader                bool // whether the currently checked file is an Elk header file `.elh`
+	flags                   bitfield.BitField8
 	phase                   phase
 	mode                    mode
 	returnType              types.Type
@@ -129,7 +133,6 @@ type Checker struct {
 func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
 	c := &Checker{
 		Filename:   filename,
-		IsHeader:   headerMode,
 		returnType: types.Void{},
 		throwType:  types.Never{},
 		mode:       topLevelMode,
@@ -141,6 +144,9 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		constantChecks:       newConstantDefinitionChecks(),
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+	}
+	if headerMode {
+		c.SetHeader(headerMode)
 	}
 	if globalEnv == nil {
 		globalEnv = types.NewGlobalEnvironment()
@@ -158,6 +164,42 @@ func New() *Checker {
 // Instantiate a new Checker instance.
 func NewWithEnv(env *types.GlobalEnvironment) *Checker {
 	return newChecker("", env, false)
+}
+
+func (c *Checker) IsHeader() bool {
+	return c.flags.HasFlag(headerFlag)
+}
+
+func (c *Checker) SetHeader(val bool) {
+	if val {
+		c.flags.SetFlag(headerFlag)
+	} else {
+		c.flags.UnsetFlag(headerFlag)
+	}
+}
+
+func (c *Checker) shouldInferClosureReturnType() bool {
+	return c.flags.HasFlag(inferClosureReturnTypeFlag)
+}
+
+func (c *Checker) setInferClosureReturnType(val bool) {
+	if val {
+		c.flags.SetFlag(inferClosureReturnTypeFlag)
+	} else {
+		c.flags.UnsetFlag(inferClosureReturnTypeFlag)
+	}
+}
+
+func (c *Checker) shouldInferClosureThrowType() bool {
+	return c.flags.HasFlag(inferClosureThrowTypeFlag)
+}
+
+func (c *Checker) setInferClosureThrowType(val bool) {
+	if val {
+		c.flags.SetFlag(inferClosureThrowTypeFlag)
+	} else {
+		c.flags.UnsetFlag(inferClosureThrowTypeFlag)
+	}
 }
 
 // Used in the REPL to typecheck and compile the input
@@ -267,7 +309,7 @@ func (c *Checker) shouldCompile() bool {
 
 // Create a new compiler that will define all methods
 func (c *Checker) initMethodCompiler(span *position.Span) (*compiler.Compiler, int) {
-	if c.IsHeader || c.Errors.IsFailure() {
+	if c.IsHeader() || c.Errors.IsFailure() {
 		return nil, 0
 	}
 	return c.compiler.InitMethodCompiler(span)
@@ -288,7 +330,7 @@ func (c *Checker) switchToMainCompiler() {
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initCompiler(span *position.Span) {
-	if c.IsHeader {
+	if c.IsHeader() {
 		return
 	}
 
@@ -2093,8 +2135,7 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 }
 
 func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.ExpressionNode {
-	switch c.mode {
-	case closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode:
+	if c.shouldInferClosureReturnType() {
 		var typ types.Type
 		if node.Value == nil {
 			typ = types.Nil{}
@@ -3549,7 +3590,7 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 
 func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiteralNode {
 	switch c.mode {
-	case methodMode, closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode:
+	case methodMode:
 		node.SetType(types.Self{})
 	case initMode:
 		c.checkNonNilableInstanceVariablesForSelf(node.Span())
@@ -5170,7 +5211,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, span *position.S
 			)
 			return false
 		}
-	case methodMode, closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode, initMode:
+	case methodMode, initMode:
 		enclosingScope := c.enclosingConstScope().container
 		if e, ok := enclosingScope.(*types.TypeParamNamespace); ok {
 			if _, ok := e.Subtype(t.Name); ok {
@@ -5666,7 +5707,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.SelfLiteralNode:
 		switch c.mode {
-		case closureInferReturnTypeMode, closureInferReturnAndThrowTypeMode, closureInferThrowTypeMode, methodMode, initMode, outputPositionTypeMode, inheritanceMode:
+		case methodMode, initMode, outputPositionTypeMode, inheritanceMode:
 			n.SetType(types.Self{})
 		default:
 			c.addFailure(
