@@ -55,6 +55,7 @@ func InitGlobalEnvironment() {
 	initTimezone()
 	initTime()
 	initValue()
+	initGenerator()
 }
 
 func init() {

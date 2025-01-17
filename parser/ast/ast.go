@@ -2804,10 +2804,6 @@ func (*YieldExpressionNode) IsStatic() bool {
 	return false
 }
 
-func (*YieldExpressionNode) Type(*types.GlobalEnvironment) types.Type {
-	return types.Never{}
-}
-
 // Create a new `yield` expression node eg. `yield`, `yield true`, `yield* foo()`
 func NewYieldExpressionNode(span *position.Span, forward bool, val ExpressionNode) *YieldExpressionNode {
 	return &YieldExpressionNode{

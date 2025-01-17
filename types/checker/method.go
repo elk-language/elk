@@ -1887,6 +1887,7 @@ func (c *Checker) declareMethod(
 		returnType = types.NewGenericWithTypeArgs(
 			c.env.StdSubtypeClass(symbol.Generator),
 			returnType,
+			throwType,
 		)
 
 		if !types.IsNever(throwType) {

@@ -192,6 +192,19 @@ func (vm *VM) Stack() []value.Value {
 	return vm.stack[:spIndex]
 }
 
+func (vm *VM) stackFrame() []value.Value {
+	spIndex := vm.spOffset()
+	fpIndex := vm.fpOffset()
+	return vm.stack[fpIndex:spIndex]
+}
+
+func (vm *VM) stackFrameCopy() []value.Value {
+	stack := vm.stackFrame()
+	stackCopy := make([]value.Value, len(stack))
+	copy(stackCopy, stack)
+	return stackCopy
+}
+
 func (vm *VM) InspectStack() {
 	fmt.Println("stack:")
 	for i, value := range vm.Stack() {
@@ -203,6 +216,29 @@ func (vm *VM) throwIfErr(err value.Value) {
 	if !err.IsUndefined() {
 		vm.throw(err)
 	}
+}
+
+func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
+	vm.createCurrentCallFrame(true)
+	vm.bytecode = generator.Bytecode
+	vm.fp = vm.sp
+	vm.ip = generator.ip
+	vm.localCount = generator.Bytecode.parameterCount + 1
+	vm.upvalues = generator.upvalues
+
+	baseStack := &generator.stack[0]
+	stackLen := len(generator.stack)
+	for i := range stackLen {
+		*vm.spAdd(i) = *vm.stackAdd(baseStack, i)
+	}
+	vm.spIncrementBy(uintptr(stackLen))
+
+	vm.run()
+	if vm.mode == errorMode {
+		vm.mode = normalMode
+		return value.Undefined, vm.popGet()
+	}
+	return vm.popGet(), value.Undefined
 }
 
 var callSymbol = value.ToSymbol("call")
@@ -337,8 +373,17 @@ func (vm *VM) run() {
 
 	for {
 		instruction := bytecode.OpCode(vm.readByte())
-		// BENCHMARK: replace with a jump table
 		switch instruction {
+		case bytecode.GENERATOR:
+			generator := newGenerator(
+				vm.bytecode,
+				vm.upvalues,
+				vm.stackFrameCopy(),
+				vm.ip+1,
+			)
+			vm.push(value.Ref(generator))
+		case bytecode.YIELD:
+			return
 		case bytecode.RETURN_FINALLY:
 			if vm.jumpToFinallyForReturn() {
 				continue
@@ -1798,7 +1843,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
+		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s", method, class.Name))
 	}
 }
 

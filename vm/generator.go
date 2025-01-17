@@ -10,25 +10,27 @@ import (
 // for pausing and resuming execution
 type Generator struct {
 	Bytecode *BytecodeFunction
-	Upvalues []*Upvalue
+	upvalues []*Upvalue
 	stack    []value.Value
 	ip       uintptr
 }
 
 // Create a new generator
-func NewGenerator(bytecode *BytecodeFunction) *Generator {
+func newGenerator(bytecode *BytecodeFunction, upvalues []*Upvalue, stack []value.Value, ip uintptr) *Generator {
 	return &Generator{
 		Bytecode: bytecode,
-		Upvalues: make([]*Upvalue, bytecode.UpvalueCount),
+		upvalues: upvalues,
+		stack:    stack,
+		ip:       ip,
 	}
 }
 
 func (*Generator) Class() *value.Class {
-	return value.FunctionClass
+	return value.GeneratorClass
 }
 
 func (*Generator) DirectClass() *value.Class {
-	return value.FunctionClass
+	return value.GeneratorClass
 }
 
 func (*Generator) SingletonClass() *value.Class {
@@ -49,4 +51,24 @@ func (c *Generator) Error() string {
 
 func (*Generator) InstanceVariables() value.SymbolMap {
 	return nil
+}
+
+func initGenerator() {
+	// Instance methods
+	c := &value.GeneratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*Generator)(args[0].Pointer())
+			return vm.CallGeneratorNext(self)
+		},
+	)
+	Def(
+		c,
+		"iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
 }
