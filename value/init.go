@@ -58,6 +58,8 @@ func InitGlobalEnvironment() {
 	initUndefined()
 	initFunction()
 	initMethod()
+	initClosure()
+	initGenerator()
 	initMixin()
 	initComparable()
 	initBool()

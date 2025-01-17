@@ -153,6 +153,7 @@ type Compiler struct {
 	maxLocalIndex      int   // max index of a local variable
 	predefinedLocals   int
 	mode               mode
+	isGenerator        bool
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
@@ -526,6 +527,9 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	}
 
 	methodCompiler := New(name.String(), mode, c.newLocation(node.Span()), c.checker)
+	if node.Generator {
+		methodCompiler.isGenerator = true
+	}
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
 
@@ -838,6 +842,9 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileCallNode(node)
 	case *ast.ReturnExpressionNode:
 		c.compileReturnExpressionNode(node)
+		return expressionCompiledWithoutResult
+	case *ast.YieldExpressionNode:
+		c.compileYieldExpressionNode(node)
 		return expressionCompiledWithoutResult
 	case *ast.VariablePatternDeclarationNode:
 		c.compilerVariablePatternDeclarationNode(node)
@@ -3119,6 +3126,16 @@ func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {
 	} else {
 		c.emit(span.StartPos.Line, bytecode.NIL)
 		c.emitReturn(span, nil)
+	}
+}
+
+func (c *Compiler) compileYieldExpressionNode(node *ast.YieldExpressionNode) {
+	span := node.Span()
+	if node.Value != nil {
+		c.emitYield(span, node.Value)
+	} else {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emitYield(span, nil)
 	}
 }
 
@@ -6347,6 +6364,17 @@ func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 	return c.nextInstructionOffset() - 2
 }
 
+// Emit an instruction that yields a value.
+// Provide `nil` as the value when the yielded value is already
+// on the stack.
+func (c *Compiler) emitYield(span *position.Span, value ast.Node) {
+	if value != nil {
+		c.compileNodeWithResult(value)
+	}
+
+	c.emit(span.EndPos.Line, bytecode.YIELD)
+}
+
 // Emit an instruction that returns a value.
 // Provide `nil` as the value when the returned value is already
 // on the stack.
@@ -6354,6 +6382,13 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 	switch c.lastOpCode {
 	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.RETURN_FINALLY:
+		return
+	}
+
+	if c.isGenerator {
+		c.emitYield(span, value)
+		c.emitValue(symbol.L_stop_iteration.ToValue(), span)
+		c.emit(span.EndPos.Line, bytecode.THROW)
 		return
 	}
 

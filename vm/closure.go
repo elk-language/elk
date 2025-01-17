@@ -26,11 +26,11 @@ func NewClosure(bytecode *BytecodeFunction, self value.Value) *Closure {
 }
 
 func (*Closure) Class() *value.Class {
-	return value.FunctionClass
+	return value.ClosureClass
 }
 
 func (*Closure) DirectClass() *value.Class {
-	return value.FunctionClass
+	return value.ClosureClass
 }
 
 func (*Closure) SingletonClass() *value.Class {
@@ -42,7 +42,7 @@ func (c *Closure) Copy() value.Reference {
 }
 
 func (c *Closure) Inspect() string {
-	return fmt.Sprintf("Function{location: %s}", c.Bytecode.Location.String())
+	return fmt.Sprintf("Std::Closure{location: %s}", c.Bytecode.Location.String())
 }
 
 func (c *Closure) Error() string {

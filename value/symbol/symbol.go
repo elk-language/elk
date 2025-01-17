@@ -70,13 +70,14 @@ var (
 
 // lowercase symbols
 var (
-	L_call     = value.ToSymbol("call")
-	L_self     = value.ToSymbol("self")
-	L_contains = value.ToSymbol("contains")
-	L_length   = value.ToSymbol("length")
-	L_hash     = value.ToSymbol("hash")
-	L_iter     = value.ToSymbol("iter")
-	L_next     = value.ToSymbol("next")
+	L_call           = value.ToSymbol("call")
+	L_self           = value.ToSymbol("self")
+	L_contains       = value.ToSymbol("contains")
+	L_length         = value.ToSymbol("length")
+	L_hash           = value.ToSymbol("hash")
+	L_iter           = value.ToSymbol("iter")
+	L_next           = value.ToSymbol("next")
+	L_stop_iteration = value.ToSymbol("stop_iteration")
 )
 
 // special symbols

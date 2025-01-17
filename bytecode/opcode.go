@@ -270,6 +270,8 @@ const (
 	FLOAT_0                         // Push 0.0 onto the stack
 	FLOAT_1                         // Push 1.0 onto the stack
 	FLOAT_2                         // Push 2.0 onto the stack
+	GENERATOR                       // Create a new generator from the current function and push it onto the stack
+	YIELD                           // Yield a value from a generator
 )
 
 var opCodeNames = [...]string{
@@ -501,4 +503,6 @@ var opCodeNames = [...]string{
 	FLOAT_0:           "FLOAT_0",
 	FLOAT_1:           "FLOAT_1",
 	FLOAT_2:           "FLOAT_2",
+	GENERATOR:         "GENERATOR",
+	YIELD:             "YIELD",
 }
