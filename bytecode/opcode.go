@@ -272,6 +272,7 @@ const (
 	FLOAT_2                         // Push 2.0 onto the stack
 	GENERATOR                       // Create a new generator from the current function and push it onto the stack
 	YIELD                           // Yield a value from a generator
+	STOP_ITERATION                  // Throw `:stop_iteration` in a generator
 )
 
 var opCodeNames = [...]string{
@@ -505,4 +506,5 @@ var opCodeNames = [...]string{
 	FLOAT_2:           "FLOAT_2",
 	GENERATOR:         "GENERATOR",
 	YIELD:             "YIELD",
+	STOP_ITERATION:    "STOP_ITERATION",
 }

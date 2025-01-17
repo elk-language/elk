@@ -234,10 +234,21 @@ func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value)
 	vm.spIncrementBy(uintptr(stackLen))
 
 	vm.run()
+
+	stack := vm.stack[vm.fpOffset() : vm.spOffset()-1]
+	stackCopy := make([]value.Value, len(stack))
+	copy(stackCopy, stack)
+	generator.stack = stackCopy
+	generator.ip = vm.ip
+
 	if vm.mode == errorMode {
 		vm.mode = normalMode
-		return value.Undefined, vm.popGet()
+		vm.restoreLastFrame()
+		vm.InspectStack()
+		return value.Undefined, vm.peek()
 	}
+
+	vm.restoreLastFrame()
 	return vm.popGet(), value.Undefined
 }
 
@@ -382,6 +393,10 @@ func (vm *VM) run() {
 				vm.ip+1,
 			)
 			vm.push(value.Ref(generator))
+		case bytecode.STOP_ITERATION:
+			vm.mode = errorMode
+			vm.push(symbol.L_stop_iteration.ToValue())
+			return
 		case bytecode.YIELD:
 			return
 		case bytecode.RETURN_FINALLY:

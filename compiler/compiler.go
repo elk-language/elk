@@ -572,12 +572,13 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 
 	if c.isGenerator {
 		c.emit(span.StartPos.Line, bytecode.GENERATOR)
-		c.emitYield(span, nil)
+		c.emit(span.EndPos.Line, bytecode.RETURN)
 	}
 
 	c.compileStatements(body, span, false)
 
 	c.emitReturn(span, nil)
+	c.emitFinalReturn(span, nil)
 	c.prepLocals()
 }
 
@@ -6393,8 +6394,7 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 
 	if c.isGenerator {
 		c.emitYield(span, value)
-		c.emitValue(symbol.L_stop_iteration.ToValue(), span)
-		c.emit(span.EndPos.Line, bytecode.THROW)
+		c.emit(span.EndPos.Line, bytecode.STOP_ITERATION)
 		return
 	}
 
@@ -6444,6 +6444,23 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 			c.emit(span.EndPos.Line, bytecode.RETURN)
 		}
 	}
+}
+
+func (c *Compiler) emitFinalReturn(span *position.Span, value ast.Node) {
+	if !c.isGenerator {
+		c.emitReturn(span, value)
+		return
+	}
+
+	if c.lastOpCode == bytecode.STOP_ITERATION {
+		c.emit(span.StartPos.Line, bytecode.LOOP, 0, 4) // 3 bytes for LOOP + 1 byte for STOP_ITERATION
+		return
+	}
+
+	c.emitYield(span, value)
+	start := c.nextInstructionOffset()
+	c.emit(span.EndPos.Line, bytecode.STOP_ITERATION)
+	c.emitLoop(span, start)
 }
 
 // Emit an instruction that jumps back to the given Bytecode offset.
