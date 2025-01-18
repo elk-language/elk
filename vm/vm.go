@@ -244,7 +244,10 @@ func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value)
 	if vm.mode == errorMode {
 		vm.mode = normalMode
 		vm.restoreLastFrame()
-		vm.InspectStack()
+		inst := generator.Bytecode.Instructions
+		// jump to the STOP_ITERATION at the end of the generator's bytecode
+		// 1 byte for STOP_ITERATION, 3 bytes for LOOP
+		generator.ip = uintptr(unsafe.Pointer(&inst[len(inst)-4]))
 		return value.Undefined, vm.peek()
 	}
 
@@ -395,6 +398,7 @@ func (vm *VM) run() {
 			vm.push(value.Ref(generator))
 		case bytecode.STOP_ITERATION:
 			vm.mode = errorMode
+			vm.errStackTrace = vm.buildStackTrace()
 			vm.push(symbol.L_stop_iteration.ToValue())
 			return
 		case bytecode.YIELD:
@@ -1267,7 +1271,15 @@ func addStackTraceEntry(
 	fmt.Fprintln(output)
 }
 
-func (vm *VM) BuildStackTrace() string {
+func (vm *VM) getStackTrace() string {
+	if vm.errStackTrace != "" {
+		return vm.errStackTrace
+	}
+
+	return vm.buildStackTrace()
+}
+
+func (vm *VM) buildStackTrace() string {
 	var buffer strings.Builder
 	buffer.WriteString("Stack trace (the most recent call is last)\n")
 
@@ -1437,6 +1449,10 @@ func (vm *VM) cfpIncrementBy(n int) {
 		panic("call stack overflow")
 	}
 	vm.cfpSet(ptr)
+}
+
+func (vm *VM) lastCallFrame() *CallFrame {
+	return vm.cfpAdd(-1)
 }
 
 func (vm *VM) cfpAdd(n int) *CallFrame {
@@ -3726,7 +3742,7 @@ func (vm *VM) opAs() {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.rethrow(err, value.String(vm.BuildStackTrace()))
+	vm.rethrow(err, value.String(vm.getStackTrace()))
 }
 
 func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
@@ -3748,12 +3764,14 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 			return
 		}
 
-		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.restoreLastFrame() {
+		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.lastCallFrame().stopVM {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
 			vm.replace(err)
 			panic(stopVM{})
 		}
+
+		vm.restoreLastFrame()
 	}
 }
 

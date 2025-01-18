@@ -1890,12 +1890,7 @@ func (c *Checker) declareMethod(
 			throwType,
 		)
 
-		if !types.IsNever(throwType) {
-			c.addFailure(
-				"generators cannot throw checked errors",
-				throwTypeNode.Span(),
-			)
-		}
+		throwType = types.Never{}
 	}
 
 	newMethod := types.NewMethod(
