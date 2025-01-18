@@ -264,6 +264,20 @@ func TestVMSource_DefineMethod(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(8).ToValue(),
 		},
+		"define a generator": {
+			source: `
+				module Bar
+					def *foo(a: Int, b: Int): Int
+						c := 5
+						a + b + c
+					end
+				end
+
+				println Bar.foo(1, 2).inspect
+			`,
+			wantStdout:   "Std::Generator{location: sourceName:3:6}\n",
+			wantStackTop: value.Nil,
+		},
 	}
 
 	for name, tc := range tests {
@@ -290,6 +304,125 @@ func TestVMSource_CallClosure(t *testing.T) {
 			wantCompileErr: error.ErrorList{
 				error.NewFailure(L(P(36, 3, 5), P(50, 3, 19)), "expected 1 arguments in call to `call`, got 2"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_Generator(t *testing.T) {
+	tests := sourceTestTable{
+		"call a generator": {
+			source: `
+				def *foo(a: Int, b: Int = 9): Int
+					yield a + b
+					yield 6
+
+					0
+				end
+
+				g := foo(3)
+				println(try g.next)
+				println(try g.next)
+				println(try g.next)
+			`,
+			wantStdout:   "12\n6\n0\n",
+			wantStackTop: value.Nil,
+		},
+		"throws :stop_iteration after the last yield": {
+			source: `
+				def *foo(): Int
+					5
+				end
+
+				g := foo()
+				println(try g.next)
+				for i in 1...3
+					do
+						g.next
+					catch :stop_iteration
+						println "caught"
+					end
+				end
+			`,
+			wantStdout:   "5\ncaught\ncaught\ncaught\n",
+			wantStackTop: value.Nil,
+		},
+		"can throw custom errors": {
+			source: `
+				def *foo(): Int ! String
+					yield 5
+					throw "bar"
+				end
+
+				g := foo()
+				println(try g.next)
+				println(try g.next)
+			`,
+			wantStdout:     "5\n",
+			wantRuntimeErr: value.Ref(value.String("bar")),
+		},
+		"throws stop_iteration after a custom error had been thrown": {
+			source: `
+				def *foo(): Int ! String
+					throw "bar"
+				end
+
+				g := foo()
+				do
+					try g.next
+				catch String() as str
+					println "caught custom"
+				end
+
+				for i in 1...3
+					do
+						try g.next
+					catch :stop_iteration
+						println "caught stop"
+					end
+				end
+			`,
+			wantStdout:   "caught custom\ncaught stop\ncaught stop\ncaught stop\n",
+			wantStackTop: value.Nil,
+		},
+		"can be used in for loops": {
+			source: `
+				def *foo(a: Int, b: Int = 9): Int
+					yield a + b
+					yield 6
+
+					0
+				end
+
+				for i in foo(3)
+					println i
+				end
+			`,
+			wantStdout:   "12\n6\n0\n",
+			wantStackTop: value.Nil,
+		},
+		"can be reset": {
+			source: `
+				def *foo(a: Int, b: Int = 9): Int
+					yield a + b
+					yield 6
+
+					0
+				end
+
+				g := foo(3)
+				println(try g.next)
+				println(try g.next)
+				g.reset
+				println(try g.next)
+			`,
+			wantStdout:   "12\n6\n12\n",
+			wantStackTop: value.Nil,
 		},
 	}
 

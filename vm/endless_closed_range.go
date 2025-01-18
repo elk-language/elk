@@ -121,7 +121,7 @@ func initEndlessClosedRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.EndlessClosedRangeIterator)
+			self := (*value.EndlessClosedRangeIterator)(args[0].Pointer())
 			return EndlessClosedRangeIteratorNext(vm, self)
 		},
 	)
@@ -129,6 +129,15 @@ func initEndlessClosedRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.EndlessClosedRangeIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

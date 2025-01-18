@@ -41,7 +41,7 @@ func initDebug() {
 		c,
 		"inspect_stack",
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
-			v.InspectStack()
+			v.InspectValueStack()
 			return value.Nil, value.Undefined
 		},
 	)

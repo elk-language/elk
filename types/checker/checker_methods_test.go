@@ -1493,6 +1493,31 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 		},
+		"declare a generator": {
+			input: `
+				def *foo: String
+					"lol"
+				end
+			`,
+		},
+		"declare a generator with a throw type": {
+			input: `
+				def *foo: String ! Int
+					"lol"
+				end
+			`,
+		},
+		"parameters are values in generators": {
+			input: `
+				def *foo(a: Int): String ! Int
+					a = 5
+					"lol"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(41, 3, 6), P(41, 3, 6)), "local value `a` cannot be reassigned"),
+			},
+		},
 		"redeclare the method in the same class with incompatible signature": {
 			input: `
 				class Foo
@@ -1758,6 +1783,36 @@ func TestMethodCalls(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(16, 3, 5), P(19, 3, 8)), "method `call` is not defined on type `Std::Int`"),
+			},
+		},
+		"call to a generator returns a generator": {
+			input: `
+				module Foo
+					def* baz(a: Int): Int
+						yield 5
+
+						10
+					end
+				end
+				var a: nil = Foo.baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(101, 9, 18), P(110, 9, 27)), "type `Std::Generator[Std::Int, never]` cannot be assigned to type `nil`"),
+			},
+		},
+		"call to a generator returns a generator that throws": {
+			input: `
+				module Foo
+					def* baz(a: Int): Int ! Error
+						yield 5
+
+						10
+					end
+				end
+				var a: nil = Foo.baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(109, 9, 18), P(118, 9, 27)), "type `Std::Generator[Std::Int, Std::Error]` cannot be assigned to type `nil`"),
 			},
 		},
 		"call has the same return type as the method": {

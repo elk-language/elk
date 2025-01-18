@@ -360,7 +360,7 @@ func initHashMapIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.HashMapIterator)
+			self := (*value.HashMapIterator)(args[0].Pointer())
 			return self.Next()
 		},
 	)
@@ -368,6 +368,15 @@ func initHashMapIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.HashMapIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

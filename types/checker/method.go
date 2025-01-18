@@ -527,7 +527,7 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Span())
 			}
-			c.addLocal(p.Name, newLocal(declaredType, true, false))
+			c.addLocal(p.Name, newLocal(declaredType, true, checkedMethod.IsGenerator()))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		case *ast.FormalParameterNode:
@@ -564,7 +564,11 @@ func (c *Checker) checkMethod(
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
-		returnType = c.TypeOf(typedReturnTypeNode)
+	}
+
+	origReturnType := returnType
+	if checkedMethod.IsGenerator() {
+		returnType = origReturnType.(*types.Generic).Get(0).Type
 	}
 
 	throwType := checkedMethod.ThrowType
@@ -572,6 +576,9 @@ func (c *Checker) checkMethod(
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
+	}
+	if checkedMethod.IsGenerator() {
+		throwType = origReturnType.(*types.Generic).Get(1).Type
 	}
 	if !types.IsNever(throwType) && throwType != nil {
 		c.pushCatchScope(makeCatchScope(throwType, false))

@@ -254,7 +254,7 @@ func initStringCharIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.StringCharIterator)
+			self := (*value.StringCharIterator)(args[0].Pointer())
 			return self.Next()
 		},
 	)
@@ -262,6 +262,15 @@ func initStringCharIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.StringCharIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)
@@ -276,7 +285,7 @@ func initStringByteIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.StringByteIterator)
+			self := (*value.StringByteIterator)(args[0].Pointer())
 			return self.Next()
 		},
 	)
@@ -284,6 +293,15 @@ func initStringByteIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.StringByteIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)
@@ -298,7 +316,7 @@ func initStringGraphemeIterator() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.StringGraphemeIterator)
+			self := (*value.StringGraphemeIterator)(args[0].Pointer())
 			return self.Next()
 		},
 	)
@@ -306,6 +324,15 @@ func initStringGraphemeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.StringGraphemeIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

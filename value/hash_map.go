@@ -171,6 +171,10 @@ func (h *HashMapIterator) Next() (Value, Value) {
 	}
 }
 
+func (h *HashMapIterator) Reset() {
+	h.Index = 0
+}
+
 func initHashMap() {
 	HashMapClass = NewClassWithOptions(ClassWithConstructor(HashMapConstructor))
 	HashMapClass.IncludeMixin(MapMixin)

@@ -828,6 +828,73 @@ func TestReturnExpression(t *testing.T) {
 				error.NewFailure(L("<main>", P(26, 3, 6), P(33, 3, 13)), "type `2` cannot be assigned to type `Std::String`"),
 			},
 		},
+		"accept matching return type in a generator": {
+			input: `
+				def *foo: String
+					return "foo"
+				end
+			`,
+		},
+		"invalid return type in a generator": {
+			input: `
+				def *foo: String
+					return 2
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 6), P(34, 3, 13)), "type `2` cannot be assigned to type `Std::String`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestYieldExpression(t *testing.T) {
+	tests := testTable{
+		"cannot yield in the top level": {
+			input: `
+				yield 4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(11, 2, 11)), "yield cannot be used outside of generators"),
+				error.NewWarning(L("<main>", P(11, 2, 11), P(11, 2, 11)), "values yielded in void context will be ignored"),
+			},
+		},
+		"warn about values yielded in void methods": {
+			input: `
+				def *foo
+					yield 4
+				end
+			`,
+			err: error.ErrorList{
+				error.NewWarning(L("<main>", P(25, 3, 12), P(25, 3, 12)), "values yielded in void context will be ignored"),
+			},
+		},
+		"accept matching yield type": {
+			input: `
+				def *foo: String
+					yield "foo"
+					"bar"
+				end
+			`,
+		},
+		"invalid yield type": {
+			input: `
+				def *foo: String
+					yield 2
+
+					"bar"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(27, 3, 6), P(33, 3, 12)), "type `2` cannot be assigned to type `Std::String`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

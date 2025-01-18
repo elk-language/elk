@@ -642,6 +642,10 @@ func (s *StringCharIterator) Next() (Value, Value) {
 	return Char(run).ToValue(), Undefined
 }
 
+func (s *StringCharIterator) Reset() {
+	s.ByteOffset = 0
+}
+
 type StringByteIterator struct {
 	String     String
 	ByteOffset int
@@ -698,6 +702,10 @@ func (s *StringByteIterator) Next() (Value, Value) {
 	result := UInt8(s.String[s.ByteOffset])
 	s.ByteOffset += 1
 	return result.ToValue(), Undefined
+}
+
+func (s *StringByteIterator) Reset() {
+	s.ByteOffset = 0
 }
 
 type StringGraphemeIterator struct {
@@ -762,6 +770,11 @@ func (s *StringGraphemeIterator) Next() (Value, Value) {
 	var grapheme string
 	grapheme, s.Rest, _, s.State = uniseg.FirstGraphemeClusterInString(s.Rest, s.State)
 	return Ref(String(grapheme)), Undefined
+}
+
+func (s *StringGraphemeIterator) Reset() {
+	s.Rest = string(s.String)
+	s.State = -1
 }
 
 func initString() {

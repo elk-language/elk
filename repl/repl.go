@@ -67,7 +67,7 @@ func (e *evaluator) evaluate(input string) {
 	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
 
 	if e.inspectStack {
-		e.vm.InspectStack()
+		e.vm.InspectValueStack()
 	}
 }
 

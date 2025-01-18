@@ -281,6 +281,10 @@ func (t *ArrayTupleIterator) Next() (Value, Value) {
 	return next, Undefined
 }
 
+func (t *ArrayTupleIterator) Reset() {
+	t.Index = 0
+}
+
 func initArrayTuple() {
 	ArrayTupleClass = NewClassWithOptions(ClassWithConstructor(ArrayTupleConstructor))
 	ArrayTupleClass.IncludeMixin(TupleMixin)

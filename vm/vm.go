@@ -187,9 +187,14 @@ func (vm *VM) StackTop() value.Value {
 	return vm.peek()
 }
 
-func (vm *VM) Stack() []value.Value {
+func (vm *VM) ValueStack() []value.Value {
 	spIndex := vm.spOffset()
 	return vm.stack[:spIndex]
+}
+
+func (vm *VM) callStack() []CallFrame {
+	cfIndex := vm.cfpOffset()
+	return vm.callFrames[:cfIndex]
 }
 
 func (vm *VM) stackFrame() []value.Value {
@@ -205,10 +210,17 @@ func (vm *VM) stackFrameCopy() []value.Value {
 	return stackCopy
 }
 
-func (vm *VM) InspectStack() {
-	fmt.Println("stack:")
-	for i, value := range vm.Stack() {
+func (vm *VM) InspectValueStack() {
+	fmt.Println("value stack:")
+	for i, value := range vm.ValueStack() {
 		fmt.Printf("%d => %s\n", i, value.Inspect())
+	}
+}
+
+func (vm *VM) InspectCallStack() {
+	fmt.Println("call stack:")
+	for i, frame := range vm.callStack() {
+		fmt.Printf("%d => %#v\n", i, frame)
 	}
 }
 
@@ -248,7 +260,7 @@ func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value)
 		// jump to the STOP_ITERATION at the end of the generator's bytecode
 		// 1 byte for STOP_ITERATION, 3 bytes for LOOP
 		generator.ip = uintptr(unsafe.Pointer(&inst[len(inst)-4]))
-		return value.Undefined, vm.peek()
+		return value.Undefined, vm.popGet()
 	}
 
 	vm.restoreLastFrame()
@@ -291,6 +303,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	}
 	vm.run()
 	if vm.mode == errorMode {
+		vm.restoreLastFrame()
 		vm.mode = normalMode
 		return value.Undefined, vm.popGet()
 	}
@@ -1170,7 +1183,7 @@ func (vm *VM) run() {
 		case bytecode.LESS_EQUAL_FLOAT:
 			vm.opLessThanEqualFloat()
 		case bytecode.INSPECT_STACK:
-			vm.InspectStack()
+			vm.InspectValueStack()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -3767,7 +3780,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.lastCallFrame().stopVM {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
-			vm.replace(err)
+			vm.push(err)
 			panic(stopVM{})
 		}
 

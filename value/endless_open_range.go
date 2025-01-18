@@ -75,6 +75,10 @@ func NewEndlessOpenRangeIteratorWithCurrentElement(r *EndlessOpenRange, currentE
 	}
 }
 
+func (r *EndlessOpenRangeIterator) Reset() {
+	r.CurrentElement = r.Range.Start
+}
+
 func (*EndlessOpenRangeIterator) Class() *Class {
 	return EndlessOpenRangeIteratorClass
 }

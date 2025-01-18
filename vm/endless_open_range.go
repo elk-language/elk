@@ -121,7 +121,7 @@ func initEndlessOpenRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.EndlessOpenRangeIterator)
+			self := (*value.EndlessOpenRangeIterator)(args[0].Pointer())
 			return EndlessOpenRangeIteratorNext(vm, self)
 		},
 	)
@@ -129,6 +129,15 @@ func initEndlessOpenRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.EndlessOpenRangeIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

@@ -78,6 +78,10 @@ func NewRightOpenRangeIteratorWithCurrentElement(r *RightOpenRange, currentEleme
 	}
 }
 
+func (r *RightOpenRangeIterator) Reset() {
+	r.CurrentElement = r.Range.Start
+}
+
 func (*RightOpenRangeIterator) Class() *Class {
 	return RightOpenRangeIteratorClass
 }

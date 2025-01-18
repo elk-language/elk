@@ -75,6 +75,10 @@ func NewEndlessClosedRangeIteratorWithCurrentElement(r *EndlessClosedRange, curr
 	}
 }
 
+func (r *EndlessClosedRangeIterator) Reset() {
+	r.CurrentElement = r.Range.Start
+}
+
 func (*EndlessClosedRangeIterator) Class() *Class {
 	return EndlessClosedRangeIteratorClass
 }

@@ -71,4 +71,14 @@ func initGenerator() {
 			return args[0], value.Undefined
 		},
 	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*Generator)(args[0].Pointer())
+			catch := self.Bytecode.CatchEntries[0]
+			self.ip = self.Bytecode.ipAddRaw(uintptr(catch.JumpAddress))
+			return args[0], value.Undefined
+		},
+	)
 }

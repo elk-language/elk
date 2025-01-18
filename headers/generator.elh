@@ -1,7 +1,7 @@
 ##[
   Implements a generator object that is iterable.
 ]##
-noinit class Std::Generator[+Val, +Err]
+noinit class Std::Generator[+Val, +Err = never]
   include Iterator::Base[Val, Err]
 
   def next: Val ! :stop_iteration | Err; end

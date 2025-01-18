@@ -1263,6 +1263,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[1] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Err"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Err"), NoValue{})
+				typeParam.Default = Never{}
 
 				namespace.SetTypeParameters(typeParams)
 

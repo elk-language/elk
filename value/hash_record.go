@@ -143,6 +143,10 @@ func (h *HashRecordIterator) Next() (Value, Value) {
 	}
 }
 
+func (h *HashRecordIterator) Reset() {
+	h.Index = 0
+}
+
 func initHashRecord() {
 	HashRecordClass = NewClassWithOptions(ClassWithConstructor(HashRecordConstructor))
 	HashRecordClass.IncludeMixin(RecordMixin)

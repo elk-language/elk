@@ -573,6 +573,7 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 	if c.isGenerator {
 		c.emit(span.StartPos.Line, bytecode.GENERATOR)
 		c.emit(span.EndPos.Line, bytecode.RETURN)
+		c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
 	}
 
 	c.compileStatements(body, span, false)

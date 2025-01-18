@@ -1978,6 +1978,99 @@ func TestDefMethod(t *testing.T) {
 				error.NewWarning(L(P(54, 4, 13), P(60, 4, 19)), "values returned in void context will be ignored"),
 			},
 		},
+		"define generator": {
+			input: `
+				def *foo(a: Int, b: Int = 2): Int ! String
+					yield a + b
+					throw "lol"
+					return 10
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(104, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(104, 6, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionWithCatchEntries(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
+									byte(bytecode.INT_2),
+									byte(bytecode.SET_LOCAL_2),
+									byte(bytecode.GENERATOR),
+									byte(bytecode.RETURN),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.YIELD),
+									byte(bytecode.LOAD_VALUE_0),
+									byte(bytecode.THROW),
+									byte(bytecode.POP),
+									byte(bytecode.LOAD_INT_8), 10,
+									byte(bytecode.YIELD),
+									byte(bytecode.STOP_ITERATION),
+									byte(bytecode.YIELD),
+									byte(bytecode.STOP_ITERATION),
+									byte(bytecode.LOOP), 0, 4,
+								},
+								L(P(5, 2, 5), P(103, 6, 7)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(2, 7),
+									bytecode.NewLineInfo(6, 1),
+									bytecode.NewLineInfo(3, 4),
+									bytecode.NewLineInfo(4, 3),
+									bytecode.NewLineInfo(5, 4),
+									bytecode.NewLineInfo(6, 2),
+									bytecode.NewLineInfo(2, 3),
+								},
+								2,
+								1,
+								[]value.Value{
+									value.Ref(value.String("lol")),
+								},
+								[]*vm.CatchEntry{
+									{From: -1, To: -1, JumpAddress: 8},
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+			err: error.ErrorList{
+				error.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
+			},
+		},
 		"define method with required parameters in top level": {
 			input: `
 				def foo(a: Int, b: Int)

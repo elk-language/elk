@@ -122,7 +122,7 @@ func initOpenRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.OpenRangeIterator)
+			self := (*value.OpenRangeIterator)(args[0].Pointer())
 			return OpenRangeIteratorNext(vm, self)
 		},
 	)
@@ -130,6 +130,15 @@ func initOpenRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.OpenRangeIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

@@ -122,7 +122,7 @@ func initClosedRangeIterator() {
 		c,
 		"next",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ClosedRangeIterator)
+			self := (*value.ClosedRangeIterator)(args[0].Pointer())
 			return ClosedRangeIteratorNext(vm, self)
 		},
 	)
@@ -130,6 +130,15 @@ func initClosedRangeIterator() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.ClosedRangeIterator)(args[0].Pointer())
+			self.Reset()
 			return args[0], value.Undefined
 		},
 	)

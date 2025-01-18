@@ -9,6 +9,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
@@ -30,6 +31,11 @@ type BytecodeFunction struct {
 	name                   value.Symbol
 	parameterCount         int
 	optionalParameterCount int
+}
+
+func (b *BytecodeFunction) ipAddRaw(n uintptr) uintptr {
+	inst := b.Instructions
+	return uintptr(unsafe.Pointer(&inst[0])) + n
 }
 
 func (b *BytecodeFunction) Name() value.Symbol {

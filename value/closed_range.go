@@ -78,6 +78,10 @@ func NewClosedRangeIteratorWithCurrentElement(r *ClosedRange, currentElement Val
 	}
 }
 
+func (r *ClosedRangeIterator) Reset() {
+	r.CurrentElement = r.Range.Start
+}
+
 func (*ClosedRangeIterator) Class() *Class {
 	return ClosedRangeIteratorClass
 }

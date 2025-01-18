@@ -161,6 +161,10 @@ func (h *HashSetIterator) Next() (Value, Value) {
 	}
 }
 
+func (h *HashSetIterator) Reset() {
+	h.Index = 0
+}
+
 func initHashSet() {
 	HashSetClass = NewClass()
 	HashSetClass.IncludeMixin(SetMixin)

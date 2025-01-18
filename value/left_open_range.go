@@ -78,6 +78,10 @@ func NewLeftOpenRangeIteratorWithCurrentElement(r *LeftOpenRange, currentElement
 	}
 }
 
+func (r *LeftOpenRangeIterator) Reset() {
+	r.CurrentElement = r.Range.Start
+}
+
 func (*LeftOpenRangeIterator) Class() *Class {
 	return LeftOpenRangeIteratorClass
 }
