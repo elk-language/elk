@@ -305,6 +305,23 @@ func TestVMSource_CallClosure(t *testing.T) {
 				error.NewFailure(L(P(36, 3, 5), P(50, 3, 19)), "expected 1 arguments in call to `call`, got 2"),
 			},
 		},
+		"call closure in a native method": {
+			source: `
+				5.times |i| ->
+					println i
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "0\n1\n2\n3\n4\n",
+		},
+		"call closure that throws in a native method": {
+			source: `
+				5.times |i| ->
+					throw unchecked i
+				end
+			`,
+			wantRuntimeErr: value.SmallInt(0).ToValue(),
+		},
 	}
 
 	for name, tc := range tests {
