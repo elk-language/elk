@@ -468,6 +468,8 @@ func (vm *VM) run() {
 			if vm.restoreLastFrame() {
 				return
 			}
+		case bytecode.GO:
+			vm.opGo()
 		case bytecode.CLOSURE:
 			vm.closure()
 		case bytecode.JUMP_TO_FINALLY:
@@ -1205,6 +1207,21 @@ func (vm *VM) run() {
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
 	}
+}
+
+// Creates a new VM instance.
+// Spins up a new goroutine and executes the closure on top of the stack in it.
+func (vm *VM) opGo() {
+	closure := (*Closure)(vm.peek().Pointer())
+	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr))
+
+	go func(closure *Closure, thread *VM) {
+		thread.state = runningState
+		thread.CallClosure(closure)
+		thread.state = terminatedState
+	}(closure, thread)
+
+	vm.replace(value.Ref(thread))
 }
 
 func (vm *VM) closure() {

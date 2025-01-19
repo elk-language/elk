@@ -9,6 +9,124 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestGoExpression(t *testing.T) {
+	tests := testTable{
+		"with a single expression": {
+			input: "go println('foo')",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CLOSURE),
+					vm.ClosureTerminatorFlag,
+					byte(bytecode.GO),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<closure>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.CALL_METHOD8), 2,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(16, 1, 17)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+							value.Ref(value.NewCallSiteInfo(
+								value.ToSymbol("println"),
+								1,
+							)),
+						},
+					)),
+				},
+			),
+		},
+		"with outer variables": {
+			input: `
+				a := 5
+				go
+					println("foo")
+					println(a)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CLOSURE), 2, 1, 0xff,
+					byte(bytecode.GO),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(62, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(6, 1),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						value.ToSymbol("<closure>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.CALL_METHOD8), 2,
+							byte(bytecode.POP),
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.UNDEFINED),
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+							byte(bytecode.CALL_METHOD8), 3,
+							byte(bytecode.RETURN),
+						},
+						L(P(16, 3, 5), P(54, 5, 16)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(4, 6),
+							bytecode.NewLineInfo(5, 9),
+						},
+						0,
+						0,
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+							value.Ref(value.NewCallSiteInfo(
+								value.ToSymbol("println"),
+								1,
+							)),
+							value.Ref(value.NewCallSiteInfo(
+								value.ToSymbol("println"),
+								1,
+							)),
+						},
+						1,
+					)),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestForInExpression(t *testing.T) {
 	tests := testTable{
 		"iterate": {

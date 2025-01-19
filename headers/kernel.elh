@@ -14,4 +14,10 @@ module Std::Kernel
   ]##
   def println(*values: StringConvertible); end
   alias puts println
+
+  ##[
+    Pauses the execution of the current thread for the amount
+    of time represented by the passed `Duration`.
+  ]##
+  def sleep(dur: Duration); end
 end

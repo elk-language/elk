@@ -826,6 +826,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		return c.compileMixinDeclarationNode(node)
 	case *ast.SingletonBlockExpressionNode:
 		return c.compileSingletonBlockExpressionNode(node)
+	case *ast.GoExpressionNode:
+		c.compileGoExpressionNode(node)
 	case *ast.ClosureLiteralNode:
 		c.compileClosureLiteralNode(node)
 	case *ast.SwitchExpressionNode:
@@ -4071,6 +4073,39 @@ func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockE
 	c.emitValue(value.Ref(node.Bytecode), span)
 	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
+}
+
+func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
+	closureCompiler := New("<closure>", methodMode, c.newLocation(node.Span()), c.checker)
+	closureCompiler.Parent = c
+	closureCompiler.Errors = c.Errors
+	closureCompiler.compileFunction(node.Span(), nil, node.Body)
+
+	result := closureCompiler.Bytecode
+	c.emitValue(value.Ref(result), node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+
+	for _, upvalue := range closureCompiler.upvalues {
+		var flags bitfield.BitField8
+		if upvalue.isLocal {
+			flags.SetFlag(vm.UpvalueLocalFlag)
+		}
+		if upvalue.upIndex > math.MaxUint8 {
+			flags.SetFlag(vm.UpvalueLongIndexFlag)
+		}
+		c.emitByte(flags.Byte())
+
+		if flags.HasFlag(vm.UpvalueLongIndexFlag) {
+			c.emitUint16(upvalue.upIndex)
+		} else {
+			c.emitByte(byte(upvalue.upIndex))
+		}
+	}
+
+	c.emitByte(vm.ClosureTerminatorFlag)
+
+	c.emit(node.Span().StartPos.Line, bytecode.GO)
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {

@@ -2229,6 +2229,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout.", false, false, true, false, value.ToSymbol("print"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout with a newline.", false, false, true, false, value.ToSymbol("println"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Converts the values to `String`\nand prints them to stdout with a newline.", false, false, true, false, value.ToSymbol("puts"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::StringConvertible", env), PositionalRestParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Pauses the execution of the current thread for the amount\nof time represented by the passed `Duration`.", false, false, true, false, value.ToSymbol("sleep"), nil, []*Parameter{NewParameter(value.ToSymbol("dur"), NameToType("Std::Duration", env), NormalParameterKind, false)}, Void{}, Never{})
 
 				// Define constants
 
