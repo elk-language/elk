@@ -19,6 +19,7 @@ type sourceTestCase struct {
 	source         string
 	wantStackTop   value.Value
 	wantStdout     string
+	wantStderr     string
 	wantRuntimeErr value.Value
 	wantCompileErr error.ErrorList
 }
@@ -59,18 +60,26 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 
 	var stdout strings.Builder
-	v := vm.New(vm.WithStdout(&stdout))
+	var stderr strings.Builder
+	v := vm.New(vm.WithStdout(&stdout), vm.WithStderr(&stderr))
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
+	gotStderr := stderr.String()
 	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotRuntimeErr))
-		t.Fatal(diff)
+		t.Log(diff)
+		t.Fail()
 	}
 	if !tc.wantRuntimeErr.IsUndefined() {
 		return
 	}
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
-		t.Fatal(diff)
+		t.Log(diff)
+		t.Fail()
+	}
+	if diff := cmp.Diff(tc.wantStderr, gotStderr, comparer.Options()...); diff != "" {
+		t.Log(diff)
+		t.Fail()
 	}
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)

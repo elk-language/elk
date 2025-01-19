@@ -165,12 +165,12 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 }
 
 func (vm *VM) PrintError() {
-	fmt.Print(vm.ErrStackTrace())
+	fmt.Fprint(vm.Stderr, vm.ErrStackTrace())
 	c := color.New(color.FgRed, color.Bold)
-	c.Print("Error! Uncaught thrown value:")
-	fmt.Print(" ")
-	fmt.Println(lexer.Colorize(vm.Err().Inspect()))
-	fmt.Println()
+	c.Fprint(vm.Stderr, "Error! Uncaught thrown value:")
+	fmt.Fprint(vm.Stderr, " ")
+	fmt.Fprintln(vm.Stderr, lexer.Colorize(vm.Err().Inspect()))
+	fmt.Fprintln(vm.Stderr)
 }
 
 func (vm *VM) runWithState() {
@@ -297,6 +297,17 @@ func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	}
 }
 
+func (vm *VM) callGo(closure *Closure) {
+	vm.bytecode = closure.Bytecode
+	vm.fp = vm.sp
+	vm.ipSet(&closure.Bytecode.Instructions[0])
+	vm.localCount = 0
+	vm.upvalues = closure.Upvalues
+	// push `self`
+	vm.push(closure.Self)
+	vm.run()
+}
+
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	if closure.Bytecode.ParameterCount() != len(args) {
@@ -307,6 +318,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 		))
 	}
 
+	initialState := vm.state
 	vm.createCurrentCallFrame(true)
 	vm.bytecode = closure.Bytecode
 	vm.fp = vm.sp
@@ -321,7 +333,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	vm.run()
 	if vm.state == errorState {
 		vm.restoreLastFrame()
-		vm.state = runningState
+		vm.state = initialState
 		return value.Undefined, vm.popGet()
 	}
 	return vm.popGet(), value.Undefined
@@ -1217,8 +1229,13 @@ func (vm *VM) opGo() {
 
 	go func(closure *Closure, thread *VM) {
 		thread.state = runningState
-		thread.CallClosure(closure)
-		thread.state = terminatedState
+		thread.callGo(closure)
+		if thread.state != errorState {
+			thread.state = terminatedState
+			return
+		}
+
+		thread.PrintError()
 	}(closure, thread)
 
 	vm.replace(value.Ref(thread))

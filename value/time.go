@@ -17,7 +17,8 @@ type Time struct {
 }
 
 func (t *Time) Copy() Reference {
-	return t
+	newT := *t
+	return &newT
 }
 
 func (*Time) Class() *Class {

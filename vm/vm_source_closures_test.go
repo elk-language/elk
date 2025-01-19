@@ -177,3 +177,22 @@ func TestVMSource_Closure(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_Go(t *testing.T) {
+	tests := sourceTestTable{
+		"handle an error thrown in a separate coroutine": {
+			source: `
+				go throw unchecked 5
+				sleep 0.5.seconds
+			`,
+			wantStderr:   "Stack trace (the most recent call is last)\n 0: sourceName:2, in `<closure>`\nError! Uncaught thrown value: 5\n\n",
+			wantStackTop: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
