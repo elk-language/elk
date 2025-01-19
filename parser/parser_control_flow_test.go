@@ -8,6 +8,99 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestGoExpression(t *testing.T) {
+	tests := testTable{
+		"can be single line": {
+			input: "go println('foo')",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewGoExpressionNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(3, 1, 4), P(16, 1, 17)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(3, 1, 4), P(16, 1, 17)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewRawStringLiteralNode(
+												S(P(11, 1, 12), P(15, 1, 16)),
+												"foo",
+											),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be multi line": {
+			input: `
+				go
+					a := bar()
+					println('foo')
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(51, 5, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(51, 5, 8)),
+						ast.NewGoExpressionNode(
+							S(P(5, 2, 5), P(43, 4, 20)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(13, 3, 6), P(23, 3, 16)),
+									ast.NewAssignmentExpressionNode(
+										S(P(13, 3, 6), P(22, 3, 15)),
+										T(S(P(15, 3, 8), P(16, 3, 9)), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(13, 3, 6), P(13, 3, 6)), "a"),
+										ast.NewReceiverlessMethodCallNode(
+											S(P(18, 3, 11), P(22, 3, 15)),
+											"bar",
+											nil,
+											nil,
+										),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(29, 4, 6), P(43, 4, 20)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(29, 4, 6), P(42, 4, 19)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewRawStringLiteralNode(
+												S(P(37, 4, 14), P(41, 4, 18)),
+												"foo",
+											),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestModifierExpression(t *testing.T) {
 	tests := testTable{
 		"has lower precedence than assignment": {

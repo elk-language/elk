@@ -367,6 +367,7 @@ func (*NumericForExpressionNode) expressionNode()          {}
 func (*ForInExpressionNode) expressionNode()               {}
 func (*BreakExpressionNode) expressionNode()               {}
 func (*LabeledExpressionNode) expressionNode()             {}
+func (*GoExpressionNode) expressionNode()                  {}
 func (*ReturnExpressionNode) expressionNode()              {}
 func (*YieldExpressionNode) expressionNode()               {}
 func (*ContinueExpressionNode) expressionNode()            {}
@@ -2768,6 +2769,24 @@ func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNod
 		NodeBase: NodeBase{span: span},
 		Label:    label,
 		Value:    val,
+	}
+}
+
+// Represents a `go` expression eg. `go foo()`, `go; foo(); end`
+type GoExpressionNode struct {
+	TypedNodeBase
+	Body []StatementNode
+}
+
+func (*GoExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `go` expression node eg. `go foo()`, `go; foo(); end`
+func NewGoExpressionNode(span *position.Span, body []StatementNode) *GoExpressionNode {
+	return &GoExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Body:          body,
 	}
 }
 

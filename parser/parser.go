@@ -1961,6 +1961,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.selfLiteral()
 	case token.BREAK:
 		return p.breakExpression()
+	case token.GO:
+		return p.goExpression()
 	case token.RETURN:
 		return p.returnExpression()
 	case token.YIELD:
@@ -4571,6 +4573,37 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 		span.Join(expr.Span()),
 		label,
 		expr,
+	)
+}
+
+// goExpression = "go" expressionWithoutModifier
+func (p *Parser) goExpression() *ast.GoExpressionNode {
+	goTok := p.advance()
+	lastSpan, body, multiline := p.statementBlock(token.END)
+
+	var span *position.Span
+	if lastSpan != nil {
+		span = goTok.Span().Join(lastSpan)
+	} else {
+		span = goTok.Span()
+	}
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			span.Join(endTok.Span())
+		}
+	}
+
+	return ast.NewGoExpressionNode(
+		span,
+		body,
 	)
 }
 
