@@ -6,6 +6,39 @@ import (
 	"github.com/elk-language/elk/position/error"
 )
 
+func TestGoExpression(t *testing.T) {
+	tests := testTable{
+		"has its own scope": {
+			input: `
+				a := 5
+				go
+					a + "foo"
+					b := 5
+				end
+				b
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				error.NewFailure(L("<main>", P(58, 7, 5), P(58, 7, 5)), "undefined local `b`"),
+			},
+		},
+		"returns a Thread": {
+			input: `
+				var a: nil = go println("foo")
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(18, 2, 18), P(34, 2, 34)), "type `Std::Thread` cannot be assigned to type `nil`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestDoCatchExpression(t *testing.T) {
 	tests := testTable{
 		"do and finally have their own scopes": {

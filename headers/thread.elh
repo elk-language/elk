@@ -1,0 +1,9 @@
+##[
+	Represents a single Elk thread of execution.
+]##
+sealed noinit primitive class ::Std::Thread
+	##[
+		Returns the current state of the thread.
+	]##
+	def state: Symbol; end
+end

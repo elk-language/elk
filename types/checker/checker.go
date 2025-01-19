@@ -962,6 +962,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkCallNode(n)
 	case *ast.ClosureLiteralNode:
 		return c.checkClosureLiteralNode(n)
+	case *ast.GoExpressionNode:
+		return c.checkGoExpressionNode(n)
 	case *ast.NewExpressionNode:
 		return c.checkNewExpressionNode(n)
 	case *ast.ConstructorCallNode:
@@ -4547,6 +4549,15 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 	if mod != nil {
 		c.popConstScope()
 	}
+	return node
+}
+
+func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	c.checkStatements(node.Body, false)
+	c.popLocalEnv()
+
+	node.SetType(c.Std(symbol.Thread))
 	return node
 }
 

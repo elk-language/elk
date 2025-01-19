@@ -1,13 +1,13 @@
 ##[
   Implements a generator object that is iterable.
 ]##
-noinit class Std::Generator[+Val, +Err = never]
+sealed primitive noinit class Std::Generator[+Val, +Err = never]
   include Iterator::Base[Val, Err]
 
-  def next: Val ! :stop_iteration | Err; end
+  sealed def next: Val ! :stop_iteration | Err; end
 
   ##[
     Resets the state of the generator.
   ]##
-  def reset; end
+  sealed def reset; end
 end

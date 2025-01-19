@@ -103,7 +103,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, value.ToSymbol("Float64"), objectClass, env)
 		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Implements a generator object that is iterable.", false, false, false, true, value.ToSymbol("Generator"), objectClass, env)
+			namespace := namespace.TryDefineClass("Implements a generator object that is iterable.", false, true, true, true, value.ToSymbol("Generator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -252,6 +252,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, value.ToSymbol("Symbol"), objectClass, env)
+		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
 		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
@@ -1271,8 +1272,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Generator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Generator::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 				// Define methods
-				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("next"), nil, nil, NameToType("Std::Generator::Val", env), NewUnion(NewSymbolLiteral("stop_iteration"), NameToType("Std::Generator::Err", env)))
-				namespace.DefineMethod("Resets the state of the generator.", false, false, true, false, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, true, true, false, value.ToSymbol("next"), nil, nil, NameToType("Std::Generator::Val", env), NewUnion(NewSymbolLiteral("stop_iteration"), NameToType("Std::Generator::Err", env)))
+				namespace.DefineMethod("Resets the state of the generator.", false, true, true, false, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
 
 				// Define constants
 
@@ -2982,6 +2983,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the string associated with this symbol.", false, false, true, false, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the string associated with this symbol.", false, false, true, false, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns itself.", false, false, true, false, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Thread").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the current state of the thread.", false, false, true, false, value.ToSymbol("state"), nil, nil, NameToType("Std::Symbol", env), Never{})
 
 				// Define constants
 

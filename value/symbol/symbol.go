@@ -66,6 +66,7 @@ var (
 	Iterable             = value.ToSymbol("Iterable")
 	PrimitiveIterable    = value.ToSymbol("PrimitiveIterable")
 	Error                = value.ToSymbol("Error")
+	Thread               = value.ToSymbol("Thread")
 )
 
 // lowercase symbols
