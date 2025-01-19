@@ -108,6 +108,7 @@ func InitGlobalEnvironment() {
 	initDuration()
 	initTimezone()
 	initTime()
+	initThread()
 }
 
 func init() {

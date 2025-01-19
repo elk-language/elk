@@ -273,6 +273,7 @@ const (
 	GENERATOR                       // Create a new generator from the current function and push it onto the stack
 	YIELD                           // Yield a value from a generator
 	STOP_ITERATION                  // Throw `:stop_iteration` in a generator
+	GO                              // Start a new thread
 )
 
 var opCodeNames = [...]string{
@@ -507,4 +508,5 @@ var opCodeNames = [...]string{
 	GENERATOR:         "GENERATOR",
 	YIELD:             "YIELD",
 	STOP_ITERATION:    "STOP_ITERATION",
+	GO:                "GO",
 }

@@ -56,6 +56,7 @@ func InitGlobalEnvironment() {
 	initTime()
 	initValue()
 	initGenerator()
+	initThread()
 }
 
 func init() {

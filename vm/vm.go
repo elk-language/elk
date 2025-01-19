@@ -39,13 +39,22 @@ func init() {
 	}
 }
 
-// VM mode
-type mode uint8
+// VM state
+type state uint8
 
 const (
-	normalMode mode = iota
-	errorMode       // the VM stopped after encountering an uncaught error
+	idleState state = iota
+	runningState
+	errorState // the VM stopped after encountering an uncaught error
+	terminatedState
 )
+
+var stateSymbols = [...]value.Symbol{
+	idleState:       value.ToSymbol("idle"),
+	runningState:    value.ToSymbol("running"),
+	errorState:      value.ToSymbol("error"),
+	terminatedState: value.ToSymbol("terminated"),
+}
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
@@ -64,7 +73,7 @@ type VM struct {
 	Stdin           io.Reader     // standard output used by the VM
 	Stdout          io.Writer     // standard input used by the VM
 	Stderr          io.Writer     // standard error used by the VM
-	mode            mode
+	state           state
 }
 
 type Option func(*VM) // constructor option function
@@ -125,7 +134,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 	vm.push(value.Ref(value.GlobalObject))
 	vm.localCount = 1
 	vm.tailCallCounter = 0
-	vm.run()
+	vm.runWithState()
 	err := vm.Err()
 	if !err.IsUndefined() {
 		return value.Undefined, err
@@ -146,7 +155,7 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 		// pop the return value of the last run
 		vm.pop()
 	}
-	vm.run()
+	vm.runWithState()
 
 	err := vm.Err()
 	if !err.IsUndefined() {
@@ -164,9 +173,17 @@ func (vm *VM) PrintError() {
 	fmt.Println()
 }
 
+func (vm *VM) runWithState() {
+	vm.state = runningState
+	vm.run()
+	if vm.state != errorState {
+		vm.state = terminatedState
+	}
+}
+
 // Get the stored error.
 func (vm *VM) Err() value.Value {
-	if vm.mode == errorMode {
+	if vm.state == errorState {
 		return vm.peek()
 	}
 
@@ -175,7 +192,7 @@ func (vm *VM) Err() value.Value {
 
 // Get the stored error stack trace.
 func (vm *VM) ErrStackTrace() string {
-	if vm.mode == errorMode {
+	if vm.state == errorState {
 		return vm.errStackTrace
 	}
 
@@ -253,8 +270,8 @@ func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value)
 	generator.stack = stackCopy
 	generator.ip = vm.ip
 
-	if vm.mode == errorMode {
-		vm.mode = normalMode
+	if vm.state == errorState {
+		vm.state = runningState
 		vm.restoreLastFrame()
 		inst := generator.Bytecode.Instructions
 		// jump to the STOP_ITERATION at the end of the generator's bytecode
@@ -302,9 +319,9 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 		vm.push(arg)
 	}
 	vm.run()
-	if vm.mode == errorMode {
+	if vm.state == errorState {
 		vm.restoreLastFrame()
-		vm.mode = normalMode
+		vm.state = runningState
 		return value.Undefined, vm.popGet()
 	}
 	return vm.popGet(), value.Undefined
@@ -339,8 +356,8 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 			vm.push(arg)
 		}
 		vm.run()
-		if vm.mode == errorMode {
-			vm.mode = normalMode
+		if vm.state == errorState {
+			vm.state = runningState
 			return value.Undefined, vm.popGet()
 		}
 		return vm.popGet(), value.Undefined
@@ -410,7 +427,7 @@ func (vm *VM) run() {
 			)
 			vm.push(value.Ref(generator))
 		case bytecode.STOP_ITERATION:
-			vm.mode = errorMode
+			vm.state = errorState
 			vm.errStackTrace = vm.buildStackTrace()
 			vm.push(symbol.L_stop_iteration.ToValue())
 			return
@@ -1188,7 +1205,6 @@ func (vm *VM) run() {
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
 	}
-
 }
 
 func (vm *VM) closure() {
@@ -1261,7 +1277,7 @@ func (vm *VM) restoreLastFrame() bool {
 }
 
 func (vm *VM) ResetError() {
-	vm.mode = normalMode
+	vm.state = runningState
 	vm.errStackTrace = ""
 }
 
@@ -3778,7 +3794,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 		}
 
 		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.lastCallFrame().stopVM {
-			vm.mode = errorMode
+			vm.state = errorState
 			vm.errStackTrace = string(stackTrace)
 			vm.push(err)
 			panic(stopVM{})
