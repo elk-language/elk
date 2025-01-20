@@ -266,6 +266,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, value.ToSymbol("UInt64"), objectClass, env)
 		namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, value.ToSymbol("UInt8"), objectClass, env)
 		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, value.ToSymbol("Value"), nil, env)
+		namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, value.ToSymbol("WaitGroup"), objectClass, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 
@@ -3411,6 +3412,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns a shallow copy of the value.", false, false, true, false, value.ToSymbol("copy"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("Returns a hash of the value,\n  that is used to calculate the slot\n  in a HashMap, HashRecord or HashSet\n  where the value will be stored.", false, false, true, false, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
 				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", false, false, true, false, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("WaitGroup").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Initialises the counter with `n` elements.\n`0` is the default value.", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Adds n elements to the counter, which may be negative.\nIf the counter becomes zero, all threads blocked on `wait` are released.\nIf the counter goes negative an unchecked error gets thrown.", false, false, true, false, value.ToSymbol("add"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Decrements the counter by one.\nIf the counter becomes zero, all threads blocked on `wait` are released.\nIf the counter goes negative an unchecked error gets thrown.", false, false, true, false, value.ToSymbol("end"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Decrements the counter by `n`.\nIf the counter becomes zero, all threads blocked on `wait` are released.\nIf the counter goes negative an unchecked error gets thrown.", false, false, true, false, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Increments the counter by one.\nIf the counter becomes zero, all threads blocked on `wait` are released.\nIf the counter goes negative an unchecked error gets thrown.", false, false, true, false, value.ToSymbol("start"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Blocks the current thread until the internal counter of the `WaitGroup` reaches zero.", false, false, true, false, value.ToSymbol("wait"), nil, nil, Void{}, Never{})
 
 				// Define constants
 

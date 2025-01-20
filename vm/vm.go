@@ -2137,6 +2137,7 @@ func (vm *VM) addCallFrame(cf CallFrame) {
 func (vm *VM) createCurrentCallFrame(stopVM bool) {
 	vm.addCallFrame(
 		CallFrame{
+			upvalues:        vm.upvalues,
 			bytecode:        vm.bytecode,
 			ip:              vm.ip,
 			fp:              vm.fp,

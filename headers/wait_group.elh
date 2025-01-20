@@ -1,0 +1,47 @@
+##[
+	A `WaitGroup` waits for threads to finish.
+
+	You can use the `add` method to specify the amount of threads to wait for.
+	Afterwards each thread should call `end` when finished
+	The `wait` method can be used to block until all threads have finished.
+]##
+sealed primitive class ::Std::WaitGroup
+	##[
+		Initialises the counter with `n` elements.
+		`0` is the default value.
+	]##
+	init(n: Int = 0); end
+
+	##[
+		Adds n elements to the counter, which may be negative.
+		If the counter becomes zero, all threads blocked on `wait` are released.
+		If the counter goes negative an unchecked error gets thrown.
+	]##
+	def add(n: Int); end
+
+	##[
+		Decrements the counter by `n`.
+		If the counter becomes zero, all threads blocked on `wait` are released.
+		If the counter goes negative an unchecked error gets thrown.
+	]##
+	def remove(n: Int); end
+
+	##[
+		Increments the counter by one.
+		If the counter becomes zero, all threads blocked on `wait` are released.
+		If the counter goes negative an unchecked error gets thrown.
+	]##
+	def start; end
+
+	##[
+		Decrements the counter by one.
+		If the counter becomes zero, all threads blocked on `wait` are released.
+		If the counter goes negative an unchecked error gets thrown.
+	]##
+	def end; end
+
+	##[
+		Blocks the current thread until the internal counter of the `WaitGroup` reaches zero.
+	]##
+	def wait; end
+end
