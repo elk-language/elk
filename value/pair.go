@@ -152,7 +152,7 @@ func (l *PairIterator) Copy() Reference {
 }
 
 func (l *PairIterator) Inspect() string {
-	return fmt.Sprintf("Std::Pair::Iterator{pair: %s, index: %d}", l.Pair.Inspect(), l.Index)
+	return fmt.Sprintf("Std::Pair::Iterator{&: %p, pair: %s, index: %d}", l, l.Pair.Inspect(), l.Index)
 }
 
 func (l *PairIterator) Error() string {

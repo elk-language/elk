@@ -1,0 +1,4 @@
+##[
+	`Sync` provides synchronisation utilities like mutexes.
+]##
+module ::Std::Sync; end

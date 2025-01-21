@@ -18,6 +18,8 @@ func TestVMSource_Go(t *testing.T) {
 		},
 		"wait for a thread with a WaitGroup": {
 			source: `
+				using Std::Sync::WaitGroup
+
 				def print_numbers(name: String)
 					for i in 1...5
 						println "$name: $i"

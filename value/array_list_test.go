@@ -1,6 +1,7 @@
 package value_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
@@ -440,29 +441,30 @@ func TestArrayListIterator_Inspect(t *testing.T) {
 				&value.ArrayList{},
 				0,
 			),
-			want: "Std::ArrayList::Iterator{list: [], index: 0}",
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[\], index: 0\}`,
 		},
 		"with one element": {
 			l: value.NewArrayListIteratorWithIndex(
 				&value.ArrayList{value.SmallInt(3).ToValue()},
 				0,
 			),
-			want: `Std::ArrayList::Iterator{list: [3], index: 0}`,
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3\], index: 0\}`,
 		},
 		"with elements": {
 			l: value.NewArrayListIteratorWithIndex(
 				&value.ArrayList{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 				1,
 			),
-			want: `Std::ArrayList::Iterator{list: [3, "foo"], index: 1}`,
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3, "foo"\], index: 1\}`,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Inspect()
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatal(diff)
+			ok, _ := regexp.MatchString(tc.want, got)
+			if !ok {
+				t.Fatalf("got %q, expected to match pattern %q", got, tc.want)
 			}
 		})
 	}

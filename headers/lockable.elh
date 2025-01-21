@@ -1,0 +1,7 @@
+##[
+	Represents a resource that can be locked and unlocked.
+]##
+interface ::Std::Lockable
+	sig lock
+	sig unlock
+end

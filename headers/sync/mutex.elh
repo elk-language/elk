@@ -1,0 +1,18 @@
+##[
+	A `Mutex` is a mutual exclusion lock.
+	It can be used to synchronise operations in multiple threads.
+]##
+sealed primitive class ::Std::Sync::Mutex
+	##[
+		Locks the mutex.
+		If the mutex is already locked it blocks the current thread
+		until the mutex becomes available.
+	]##
+	sealed def lock; end
+
+	##[
+		Unlocks the mutex.
+		If the mutex is already unlocked an unchecked error gets thrown.
+	]##
+	sealed def unlock; end
+end

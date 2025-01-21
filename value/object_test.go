@@ -1,10 +1,10 @@
 package value_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/elk-language/elk/value"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestObjectInspect(t *testing.T) {
@@ -14,11 +14,11 @@ func TestObjectInspect(t *testing.T) {
 	}{
 		"anonymous class and empty ivars": {
 			obj:  value.NewObject(value.ObjectWithClass(value.NewClass())),
-			want: `<anonymous>{}`,
+			want: `<anonymous>\{&: 0x[[:xdigit:]]{4,12}\}`,
 		},
 		"named class and empty ivars": {
 			obj:  value.NewObject(value.ObjectWithClass(value.ErrorClass)),
-			want: `Std::Error{}`,
+			want: `Std::Error\{&: 0x[[:xdigit:]]{4,12}\}`,
 		},
 		"named class and ivars": {
 			obj: value.NewObject(
@@ -29,7 +29,7 @@ func TestObjectInspect(t *testing.T) {
 					},
 				),
 			),
-			want: `Std::Error{message: "foo bar!"}`,
+			want: `Std::Error\{&: 0x[[:xdigit:]]{4,12}, message: "foo bar!"\}`,
 		},
 		"anonymous class and ivars": {
 			obj: value.NewObject(
@@ -40,15 +40,16 @@ func TestObjectInspect(t *testing.T) {
 					},
 				),
 			),
-			want: `<anonymous>{message: "foo bar!"}`,
+			want: `<anonymous>\{&: 0x[[:xdigit:]]{4,12}, message: "foo bar!"\}`,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.obj.Inspect()
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+			ok, _ := regexp.MatchString(tc.want, got)
+			if !ok {
+				t.Fatalf("got %q, expected to match pattern %q", got, tc.want)
 			}
 		})
 	}

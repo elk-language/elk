@@ -80,5 +80,13 @@ func initWaitGroup() {
 			return value.Nil, value.Undefined
 		},
 	)
+	Def(
+		c,
+		"inspect",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.WaitGroup)(args[0].Pointer())
+			return value.Ref(value.String(self.Inspect())), value.Undefined
+		},
+	)
 
 }

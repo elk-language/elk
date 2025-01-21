@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
@@ -7272,7 +7273,9 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		path = filepath.Join(dirPath, path)
 	}
 
-	filePaths, err := filepath.Glob(path)
+	base, pattern := doublestar.SplitPattern(path)
+	fsys := os.DirFS(base)
+	filePaths, err := doublestar.Glob(fsys, pattern)
 	if err != nil {
 		c.addFailure(
 			fmt.Sprintf(
@@ -7285,27 +7288,31 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		return
 	}
 
-	for _, filePath := range filePaths {
-		if !fileExists(filePath) {
+	for _, filename := range filePaths {
+		filename := filepath.Join(base, filename)
+		info, err := os.Stat(filename)
+		if os.IsNotExist(err) {
 			c.addFailure(
 				fmt.Sprintf(
-					"cannot find file: %s",
-					path,
+					"tried to import a file that does not exist: %s",
+					filename,
 				),
 				node.Span(),
 			)
 			continue
 		}
-		node.FsPaths = append(node.FsPaths, filePath)
+		if info.IsDir() {
+			c.addFailure(
+				fmt.Sprintf(
+					"tried to import a directory: %s",
+					filename,
+				),
+				node.Span(),
+			)
+			continue
+		}
+		node.FsPaths = append(node.FsPaths, filename)
 	}
-}
-
-func fileExists(fileName string) bool {
-	info, err := os.Stat(fileName)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
 }
 
 func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {

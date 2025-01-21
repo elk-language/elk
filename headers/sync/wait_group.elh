@@ -5,7 +5,7 @@
 	Afterwards each thread should call `end` when finished
 	The `wait` method can be used to block until all threads have finished.
 ]##
-sealed primitive class ::Std::WaitGroup
+sealed primitive class ::Std::Sync::WaitGroup
 	##[
 		Initialises the counter with `n` elements.
 		`0` is the default value.

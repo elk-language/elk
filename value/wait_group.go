@@ -1,8 +1,11 @@
 package value
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
-var WaitGroupClass *Class // ::Std::WaitGroup
+var WaitGroupClass *Class // ::Std::Sync::WaitGroup
 
 type WaitGroup struct {
 	Native sync.WaitGroup
@@ -29,7 +32,7 @@ func (*WaitGroup) SingletonClass() *Class {
 }
 
 func (w *WaitGroup) Inspect() string {
-	return "Std::WaitGroup{}"
+	return fmt.Sprintf("Std::Sync::WaitGroup{&: %p}", w)
 }
 
 func (w *WaitGroup) Error() string {
@@ -64,5 +67,5 @@ func (w *WaitGroup) Wait() {
 
 func initWaitGroup() {
 	WaitGroupClass = NewClassWithOptions(ClassWithConstructor(WaitGroupConstructor))
-	StdModule.AddConstantString("WaitGroup", Ref(WaitGroupClass))
+	SyncModule.AddConstantString("WaitGroup", Ref(WaitGroupClass))
 }

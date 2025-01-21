@@ -1,1 +1,1 @@
-import "./*.elh"
+import "./**/*.elh"

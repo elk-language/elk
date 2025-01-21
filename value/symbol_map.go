@@ -43,18 +43,18 @@ func (s SymbolMap) Inspect() string {
 	}
 
 	var buff strings.Builder
-	buff.WriteString("{")
+	buff.WriteRune('{')
 	firstIteration := true
 
 	for symbol, val := range s {
 		if !firstIteration {
 			buff.WriteString(", ")
 		}
-		buff.WriteString(fmt.Sprintf("%s: %s", symbol.InspectContent(), val.Inspect()))
+		fmt.Fprintf(&buff, "%s: %s", symbol.InspectContent(), val.Inspect())
 		firstIteration = false
 	}
 
-	buff.WriteString("}")
+	buff.WriteRune('}')
 	return buff.String()
 }
 

@@ -95,7 +95,7 @@ func InitGlobalEnvironment() {
 	initSet()
 	initHashSet()
 	initSymbolMap()
-	initException()
+	initError()
 	initRange()
 	initClosedRange()
 	initOpenRange()
@@ -109,8 +109,11 @@ func InitGlobalEnvironment() {
 	initTimezone()
 	initTime()
 	initThread()
-	initWaitGroup()
 	initChannel()
+	initLockable()
+	initSync()
+	initWaitGroup()
+	initMutex()
 }
 
 func init() {

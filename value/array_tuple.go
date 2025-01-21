@@ -260,7 +260,7 @@ func (t *ArrayTupleIterator) Copy() Reference {
 }
 
 func (t *ArrayTupleIterator) Inspect() string {
-	return fmt.Sprintf("Std::ArrayTuple::Iterator{arrayTuple: %s, index: %d}", t.ArrayTuple.Inspect(), t.Index)
+	return fmt.Sprintf("Std::ArrayTuple::Iterator{&: %p, tuple: %s, index: %d}", t, t.ArrayTuple.Inspect(), t.Index)
 }
 
 func (t *ArrayTupleIterator) Error() string {

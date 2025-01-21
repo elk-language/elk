@@ -47,7 +47,8 @@ func (c *CallSiteInfo) Copy() Reference {
 
 func (c *CallSiteInfo) Inspect() string {
 	return fmt.Sprintf(
-		"CallSiteInfo{name: %s, argument_count: %d}",
+		"CallSiteInfo{&: %p, name: %s, argument_count: %d}",
+		c,
 		c.Name.Inspect(),
 		c.ArgumentCount,
 	)

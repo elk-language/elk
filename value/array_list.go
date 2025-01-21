@@ -318,7 +318,7 @@ func (l *ArrayListIterator) Copy() Reference {
 }
 
 func (l *ArrayListIterator) Inspect() string {
-	return fmt.Sprintf("Std::ArrayList::Iterator{list: %s, index: %d}", l.ArrayList.Inspect(), l.Index)
+	return fmt.Sprintf("Std::ArrayList::Iterator{&: %p, list: %s, index: %d}", l, l.ArrayList.Inspect(), l.Index)
 }
 
 func (l *ArrayListIterator) Error() string {

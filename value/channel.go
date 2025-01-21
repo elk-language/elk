@@ -4,7 +4,8 @@ import (
 	"fmt"
 )
 
-var ChannelClass *Class // ::Std::Channel
+var ChannelClass *Class            // ::Std::Channel
+var ChannelClosedErrorClass *Class // ::Std::Channel::ClosedError
 
 type Channel struct {
 	Native chan Value
@@ -37,7 +38,7 @@ func (*Channel) SingletonClass() *Class {
 }
 
 func (ch *Channel) Inspect() string {
-	return fmt.Sprintf("Std::Channel{length: %d, capacity: %d}", ch.Length(), ch.Capacity())
+	return fmt.Sprintf("Std::Channel{&: %p, length: %d, capacity: %d}", ch, ch.Length(), ch.Capacity())
 }
 
 func (ch *Channel) Error() string {
@@ -99,4 +100,7 @@ func (ch *Channel) Close() (err Value) {
 func initChannel() {
 	ChannelClass = NewClassWithOptions(ClassWithConstructor(ChannelConstructor))
 	StdModule.AddConstantString("Channel", Ref(ChannelClass))
+
+	ChannelClosedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	ChannelClass.AddConstantString("ClosedError", Ref(ChannelClosedErrorClass))
 }

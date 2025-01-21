@@ -5,6 +5,7 @@ package value
 import (
 	"fmt"
 	"maps"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -116,9 +117,13 @@ func (o *Object) SingletonClass() *Class {
 }
 
 func (o *Object) Inspect() string {
-	return fmt.Sprintf(
-		"%s%s",
-		o.class.PrintableName(),
-		o.instanceVariables.Inspect(),
-	)
+	var buff strings.Builder
+	fmt.Fprintf(&buff, "%s{&: %p", o.class.PrintableName(), o)
+
+	for symbol, val := range o.instanceVariables {
+		fmt.Fprintf(&buff, ", %s: %s", symbol.InspectContent(), val.Inspect())
+	}
+
+	buff.WriteRune('}')
+	return buff.String()
 }
