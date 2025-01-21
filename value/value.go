@@ -3310,6 +3310,8 @@ func Next(val Value) (result, err Value) {
 		return v.Next()
 	case *StringGraphemeIterator:
 		return v.Next()
+	case *Channel:
+		return v.Next()
 	default:
 		return Undefined, Undefined
 	}

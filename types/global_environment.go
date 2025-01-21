@@ -183,6 +183,7 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	OpenRange := env.StdSubtypeClass(symbol.OpenRange)
 	LeftOpenRange := env.StdSubtypeClass(symbol.LeftOpenRange)
 	RightOpenRange := env.StdSubtypeClass(symbol.RightOpenRange)
+	Channel := env.StdSubtypeClass(symbol.Channel)
 
 	BuiltinAddable := NewUnion(
 		Int,
@@ -355,6 +356,7 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		HashRecord.MustSubtype("Iterator"),
 		HashSet,
 		HashSet.MustSubtype("Iterator"),
+		Channel,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinIterable, BuiltinIterable)
 
@@ -371,6 +373,7 @@ func setupHelperTypes(env *GlobalEnvironment) {
 		OpenRange.MustSubtype("Iterator"),
 		LeftOpenRange.MustSubtype("Iterator"),
 		RightOpenRange.MustSubtype("Iterator"),
+		Channel,
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinIterator, BuiltinIterator)
 

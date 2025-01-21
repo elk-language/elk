@@ -100,5 +100,5 @@ sealed primitive class ::Std::Channel[V]
 
 	def next: V ! :stop_iteration; end
 
-	def iter: Std::Iterator[V, never]; end
+	def iter: self; end
 end
