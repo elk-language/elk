@@ -45,6 +45,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nv := try ch.pop # pop `5` from the channel\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, value.ToSymbol("Char"), objectClass, env)
 		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, value.ToSymbol("Class"), objectClass, env)
 		{
@@ -174,7 +178,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents objects\nthat allow for external iteration.", value.ToSymbol("Iterator"), env)
 			{
-				namespace := namespace.TryDefineMixin("Provides default implementations of most iterable methods.", true, value.ToSymbol("Base"), env)
+				namespace := namespace.TryDefineMixin("Provides default implementations of most iterator methods.", true, value.ToSymbol("Base"), env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -231,6 +235,14 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, value.ToSymbol("Regex"), objectClass, env)
+		{
+			namespace := namespace.TryDefineInterface("An interface that represents iterators that can be reset.", value.ToSymbol("ResettableIterator"), env)
+			{
+				namespace := namespace.TryDefineMixin("Provides default implementations of most resettable iterator methods.", true, value.ToSymbol("Base"), env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.Name() // noop - avoid unused variable error
+		}
 		{
 			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, value.ToSymbol("RightOpenRange"), objectClass, env)
 			{
@@ -361,7 +373,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("list"), NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -425,7 +437,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayTuple::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayTuple::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("tuple"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayTuple::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -562,6 +574,40 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("Channel").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("V"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("V"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("V"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Channel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+				// Define methods
+				namespace.DefineMethod("Create a new `Channel` with the given capacity.\nDefault capacity is `0`.", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("capacity"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error.", false, false, true, false, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", false, false, true, false, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Closes the channel, preventing any more values from being pushed or popped.\n\nClosing a closed channel results in an unchecked error.", false, false, true, false, value.ToSymbol("close"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Channel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
+				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", false, false, true, false, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of elements present in the buffer.", false, false, true, false, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("next"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("stop_iteration"))
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `:closed_channel`.", false, false, true, false, value.ToSymbol("pop"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("closed_channel"))
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -678,7 +724,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::ClosedRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -964,7 +1010,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::EndlessClosedRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -1038,7 +1084,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::EndlessOpenRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -1351,7 +1397,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("map"), NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -1429,7 +1475,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("record"), NewGeneric(NameToType("Std::HashRecord", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Iterator::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -1502,7 +1548,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::HashSet::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::HashSet::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("set"), NewGeneric(NameToType("Std::HashSet", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::HashSet::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -2176,10 +2222,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Iterator::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 				// Define methods
-				namespace.DefineMethod("Returns a copy of the iterator.\n\nThe state of the new iterator cannot be\nassociated with the old iterator.\n\nResetting the new iterator or getting\nits next element should not mutate\nthe original iterator.", true, false, true, false, value.ToSymbol("copy"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("", true, false, true, false, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("Returns the next element.\nThrows `:stop_iteration` when no more elements are available.", true, false, true, false, value.ToSymbol("next"), nil, nil, NameToType("Std::Iterator::Val", env), NewUnion(NewSymbolLiteral("stop_iteration"), NameToType("Std::Iterator::Err", env)))
-				namespace.DefineMethod("Resets the state of the iterator.", true, false, true, false, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
 
 				// Define constants
 
@@ -2299,7 +2343,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::LeftOpenRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -2525,7 +2569,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::OpenRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -2612,7 +2656,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Iterator::Key", env), NameToType("Std::Pair::Iterator::Value", env)), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Iterator::Key", env), NameToType("Std::Pair::Iterator::Value", env)), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pair"), NewGeneric(NameToType("Std::Pair", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::Pair::Iterator::Key", env), COVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::Pair::Iterator::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})), NormalParameterKind, false)}, Void{}, Never{})
@@ -2746,6 +2790,71 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("ResettableIterator").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Err"), namespace, Never{}, Any{}, nil, COVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Err"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Err"), NoValue{})
+				typeParam.Default = Never{}
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+				// Define methods
+				namespace.DefineMethod("Resets the state of the iterator.", true, false, true, false, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Base").(*Mixin)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Set up type parameters
+					var typeParam *TypeParameter
+					typeParams := make([]*TypeParameter, 2)
+
+					typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, COVARIANT)
+					typeParams[0] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+					typeParam = NewTypeParameter(value.ToSymbol("Err"), namespace, Never{}, Any{}, nil, COVARIANT)
+					typeParams[1] = typeParam
+					namespace.DefineSubtype(value.ToSymbol("Err"), typeParam)
+					namespace.DefineConstant(value.ToSymbol("Err"), NoValue{})
+					typeParam.Default = Never{}
+
+					namespace.SetTypeParameters(typeParams)
+
+					// Include mixins and implement interfaces
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ResettableIterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtype("RightOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -2808,7 +2917,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::RightOpenRange", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})

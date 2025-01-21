@@ -11,34 +11,37 @@ interface ::Std::Iterator[+Val, +Err = never]
 	]##
 	def next: Val ! :stop_iteration | Err; end
 
-	##[
-		Resets the state of the iterator.
-	]##
-	def reset; end
-
-	##[
-		Returns a copy of the iterator.
-
-		The state of the new iterator cannot be
-		associated with the old iterator.
-
-		Resetting the new iterator or getting
-		its next element should not mutate
-		the original iterator.
-	]##
-  def copy: self; end
-
 	# Base methods
 
 	def iter: self; end
 
 	##[
-		Provides default implementations of most iterable methods.
+		Provides default implementations of most iterator methods.
 	]##
 	abstract mixin Base[+Val, +Err = never]
 		implement Iterator[Val, Err]
 		include Iterable::Base[Val, Err]
 
 		def iter: self; end
+	end
+end
+
+##[
+	An interface that represents iterators that can be reset.
+]##
+interface ::Std::ResettableIterator[+Val, +Err = never]
+	implement Iterator[Val, Err]
+
+	##[
+		Resets the state of the iterator.
+	]##
+	def reset; end
+
+	##[
+		Provides default implementations of most resettable iterator methods.
+	]##
+	abstract mixin Base[+Val, +Err = never]
+		implement ResettableIterator[Val, Err]
+		include Iterator::Base[Val, Err]
 	end
 end

@@ -58,6 +58,7 @@ func InitGlobalEnvironment() {
 	initGenerator()
 	initThread()
 	initWaitGroup()
+	initChannel()
 }
 
 func init() {

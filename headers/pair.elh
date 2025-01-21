@@ -45,7 +45,7 @@ sealed primitive class ::Std::Pair[+Key, +Value] < ::Std::Value
 	def iter: Iterator[Key, Value]; end
 
 	sealed primitive class Iterator[+Key, +Value]
-		include ::Std::Iterator::Base[Key | Value]
+		include ::Std::ResettableIterator::Base[Key | Value]
 
 		init(pair: Pair[Key, Value]); end
 

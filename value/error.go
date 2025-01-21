@@ -109,6 +109,9 @@ var NotBuiltinErrorClass *Class
 // ::Std::FileSystemError
 var FileSystemErrorClass *Class
 
+// ::Std::ChannelClosedError
+var ChannelClosedErrorClass *Class
+
 var NotBuiltinError *Object
 
 // Create a new Elk error.
@@ -531,4 +534,7 @@ func initException() {
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))
 	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
+
+	ChannelClosedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ChannelClosedError", Ref(ChannelClosedErrorClass))
 }

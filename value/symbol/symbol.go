@@ -79,6 +79,7 @@ var (
 	L_iter           = value.ToSymbol("iter")
 	L_next           = value.ToSymbol("next")
 	L_stop_iteration = value.ToSymbol("stop_iteration")
+	L_channel_closed = value.ToSymbol("channel_closed")
 )
 
 // special symbols

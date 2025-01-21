@@ -31,7 +31,7 @@ sealed primitive class ::Std::LeftOpenRange[Val < Comparable[Val]] < Value
 	end
 
 	sealed primitive class Iterator[Val < Incrementable[Val] & Comparable[Val]]
-		include ::Std::Iterator::Base[Val]
+		include ::Std::ResettableIterator::Base[Val]
 
 		init(range: LeftOpenRange[Val]); end
 

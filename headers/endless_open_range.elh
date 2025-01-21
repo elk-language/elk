@@ -26,7 +26,7 @@ sealed primitive class ::Std::EndlessOpenRange[Val < Comparable[Val]] < Value
 	end
 
 	sealed primitive class Iterator[Val < Incrementable[Val] & Comparable[Val]]
-		include ::Std::Iterator::Base[Val]
+		include ::Std::ResettableIterator::Base[Val]
 
 		init(range: EndlessOpenRange[Val]); end
 

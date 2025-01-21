@@ -340,6 +340,7 @@ func (l *ArrayListIterator) Next() (Value, Value) {
 	l.Index++
 	return next, Undefined
 }
+
 func (l *ArrayListIterator) Reset() {
 	l.Index = 0
 }

@@ -184,6 +184,7 @@ func initArrayList() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "push", "<<")
 
 	Def(
 		c,

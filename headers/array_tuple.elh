@@ -60,7 +60,7 @@ sealed primitive class ::Std::ArrayTuple[+Val] < Value
 	def iter: Iterator[Val]; end
 
 	sealed primitive class Iterator[+Val]
-		include ::Std::Iterator::Base[Val]
+		include ::Std::ResettableIterator::Base[Val]
 
 		init(tuple: ArrayTuple[Val]); end
 
