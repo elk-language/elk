@@ -194,7 +194,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	namedType := c.TypeOf(node).(*types.GenericNamedType)
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
-	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name))
+	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name), false)
 	c.pushConstScope(makeConstantScope(typeParamMod))
 
 	var defaultSeen bool

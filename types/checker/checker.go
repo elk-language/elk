@@ -3936,7 +3936,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
-	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap)
+	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap, true)
 
 	var receiver ast.ExpressionNode
 	if fromLocal {
@@ -4005,8 +4005,8 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			node.SetType(types.Untyped{})
 			return node
 		}
-		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
-		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
+		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
+		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
 	} else {
 		typedPositionalArguments = c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	}
@@ -4125,7 +4125,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	for i := len(typeArgs); i < len(typeParams); i++ {
 		typeParameter := typeParams[i]
 		typeArgument := typeArgumentMap[typeParameter.Name]
-		typeArgument.Type = c.replaceTypeParameters(typeArgument.Type, typeArgumentMap)
+		typeArgument.Type = c.replaceTypeParameters(typeArgument.Type, typeArgumentMap, true)
 	}
 
 	for i := range len(typeArgs) {
@@ -4133,12 +4133,12 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 		typeArgumentNode := typeArgs[i]
 		typeArgument := c.TypeOf(typeArgumentNode)
 
-		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap)
+		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap, true)
 		if !c.isSubtype(typeArgument, upperBound, typeArgumentNode.Span()) {
 			c.addUpperBoundError(typeArgument, upperBound, typeArgumentNode.Span())
 			fail = true
 		}
-		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap)
+		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap, true)
 		if !c.isSubtype(lowerBound, typeArgument, typeArgumentNode.Span()) {
 			c.addLowerBoundError(typeArgument, lowerBound, typeArgumentNode.Span())
 			fail = true
@@ -4427,8 +4427,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Untyped{})
 		return node
 	}
-	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap)
-	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap)
+	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
+	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
 	typeArgOrder := make([]value.Symbol, len(class.TypeParameters()))
 	for i, param := range class.TypeParameters() {
 		typeArgOrder[i] = param.Name
@@ -5362,7 +5362,7 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 
 		for i := len(generics) - 1; i >= 0; i-- {
 			generic := generics[i]
-			ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
+			ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap, false)
 		}
 		return ivar, parent
 	}
@@ -5394,7 +5394,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 
 				for i := len(generics) - 1; i >= 0; i-- {
 					generic := generics[i]
-					ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap)
+					ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap, false)
 				}
 				ivarStruct := types.InstanceVariable{Type: ivar, Namespace: parent}
 				if !yield(name, ivarStruct) {
@@ -5551,7 +5551,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			return node, fullName
 		}
 
-		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap))
+		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap, false))
 		return node, fullName
 	case *types.Class:
 		typeArgumentMap, ok := c.checkTypeArguments(
@@ -5624,7 +5624,7 @@ func (c *Checker) resolveGenericType(typ types.Type, span *position.Span) types.
 			return types.Untyped{}
 		}
 
-		return c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap)
+		return c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap, false)
 	case *types.Class:
 		if !t.IsGeneric() {
 			return typ

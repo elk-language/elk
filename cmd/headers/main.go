@@ -584,7 +584,7 @@ func namespaceToCode(typ types.Namespace) string {
 	case *types.Generic:
 		return typeToCode(typ, false)
 	case *types.TypeParamNamespace:
-		return "nil"
+		return fmt.Sprintf("NewTypeParamNamespace(%q, %t)", t.DocComment(), t.ForMethod)
 	case *types.Closure:
 		return typeToCode(typ, false)
 	default:
@@ -771,7 +771,7 @@ func typeToCode(typ types.Type, init bool) string {
 
 		return buff.String()
 	case *types.TypeParamNamespace:
-		return "nil"
+		return fmt.Sprintf("NewTypeParamNamespace(%q, %t)", t.DocComment(), t.ForMethod)
 	case *types.Closure:
 		buff := new(strings.Builder)
 		fmt.Fprintf(

@@ -2,6 +2,8 @@
 package checker
 
 import (
+	"slices"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -26,8 +28,8 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		gMethod := g.Body
 		pMethod := p.Body
 		var isDifferent bool
-		newParams := make([]*types.Parameter, len(pMethod.Params))
-		for i := range pMethod.Params {
+		newParams := slices.Clone(pMethod.Params)
+		for i := range min(len(pMethod.Params), len(gMethod.Params)) {
 			pParam := pMethod.Params[i]
 			gParam := gMethod.Params[i]
 			if pParam.Kind != gParam.Kind {
@@ -42,8 +44,6 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 				newParam := pParam.Copy()
 				newParam.Type = result
 				newParams[i] = newParam
-			} else {
-				newParams[i] = pParam
 			}
 		}
 
@@ -602,11 +602,11 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 	}
 }
 
-func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
-	return c.NormaliseType(c._replaceTypeParameters(typ, typeArgMap))
+func (c *Checker) replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap, replaceMethodTypeParams bool) types.Type {
+	return c.NormaliseType(c._replaceTypeParameters(typ, typeArgMap, replaceMethodTypeParams))
 }
 
-func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap) types.Type {
+func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeArgumentMap, replaceMethodTypeParams bool) types.Type {
 	switch t := typ.(type) {
 	case types.Self:
 		arg := typeArgMap[symbol.L_self]
@@ -615,7 +615,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		}
 		return arg.Type
 	case *types.SingletonOf:
-		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
 		if result == t.Type {
 			return t
 		}
@@ -623,7 +623,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 			result,
 		)
 	case *types.InstanceOf:
-		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
 		if result == t.Type {
 			return t
 		}
@@ -634,7 +634,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		newParams := make([]*types.Parameter, len(t.Body.Params))
 		var isDifferent bool
 		for i, param := range t.Body.Params {
-			result := c._replaceTypeParameters(param.Type, typeArgMap)
+			result := c._replaceTypeParameters(param.Type, typeArgMap, replaceMethodTypeParams)
 			if result == param.Type {
 				newParams[i] = param
 				continue
@@ -646,11 +646,11 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 			isDifferent = true
 		}
 
-		returnType := c._replaceTypeParameters(t.Body.ReturnType, typeArgMap)
+		returnType := c._replaceTypeParameters(t.Body.ReturnType, typeArgMap, replaceMethodTypeParams)
 		if returnType != t.Body.ReturnType {
 			isDifferent = true
 		}
-		throwType := c._replaceTypeParameters(t.Body.ThrowType, typeArgMap)
+		throwType := c._replaceTypeParameters(t.Body.ThrowType, typeArgMap, replaceMethodTypeParams)
 		if throwType != t.Body.ThrowType {
 			isDifferent = true
 		}
@@ -667,21 +667,25 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
-		return c.replaceTypeParametersInGeneric(t, typeArgMap)
+		return c.replaceTypeParametersInGeneric(t, typeArgMap, replaceMethodTypeParams)
 	case *types.TypeParameter:
+		// do not replace type parameters of methods when the `replaceMethodTypeParams` flag is false
+		if n, ok := t.Namespace.(*types.TypeParamNamespace); ok && n.ForMethod && !replaceMethodTypeParams {
+			return t
+		}
 		arg := typeArgMap[t.Name]
 		if arg == nil {
 			return t
 		}
 		return arg.Type
 	case *types.Nilable:
-		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
 		if result == t.Type {
 			return t
 		}
 		return types.NewNilable(result)
 	case *types.Not:
-		result := c._replaceTypeParameters(t.Type, typeArgMap)
+		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
 		if result == t.Type {
 			return t
 		}
@@ -690,7 +694,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		newElements := make([]types.Type, len(t.Elements))
 		var isDifferent bool
 		for i, element := range t.Elements {
-			result := c._replaceTypeParameters(element, typeArgMap)
+			result := c._replaceTypeParameters(element, typeArgMap, replaceMethodTypeParams)
 			if result != element {
 				isDifferent = true
 			}
@@ -704,7 +708,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		newElements := make([]types.Type, len(t.Elements))
 		var isDifferent bool
 		for i, element := range t.Elements {
-			result := c._replaceTypeParameters(element, typeArgMap)
+			result := c._replaceTypeParameters(element, typeArgMap, replaceMethodTypeParams)
 			if result != element {
 				isDifferent = true
 			}
@@ -719,11 +723,11 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 	}
 }
 
-func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap types.TypeArgumentMap) *types.Generic {
+func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap types.TypeArgumentMap, replaceMethodTypeParams bool) *types.Generic {
 	newMap := make(types.TypeArgumentMap, len(t.ArgumentMap))
 	var isDifferent bool
 	for key, arg := range t.AllArguments() {
-		result := c._replaceTypeParameters(arg.Type, typeArgMap)
+		result := c._replaceTypeParameters(arg.Type, typeArgMap, replaceMethodTypeParams)
 		if result == arg.Type {
 			newMap[key] = arg
 			continue
@@ -734,7 +738,7 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 		)
 		isDifferent = true
 	}
-	result := c._replaceTypeParameters(t.Namespace, typeArgMap)
+	result := c._replaceTypeParameters(t.Namespace, typeArgMap, replaceMethodTypeParams)
 	if result != t.Namespace {
 		isDifferent = true
 	}

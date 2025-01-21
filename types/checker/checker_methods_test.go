@@ -2956,6 +2956,16 @@ func TestGenericMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(103, 5, 17), P(108, 5, 22)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
 			},
 		},
+		"infer type arguments for a method with a closure param with more params": {
+			input: `
+				c := Channel::[String]()
+				c.map -> {}
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "type `||: nil` does not implement closure `|element: Std::String|: nil`:\n\n  - incorrect implementation of `call`\n      is:        `def call(): nil`\n      should be: `def call(element: Std::String): nil`\n"),
+				error.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "expected type `|element: Std::String|: nil` for parameter `fn` in call to `map`, got type `||: nil`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

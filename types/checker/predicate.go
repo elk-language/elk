@@ -129,7 +129,7 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.Typ
 
 			for i := len(genericParents) - 1; i >= 0; i-- {
 				g := genericParents[i]
-				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap)
+				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap, false)
 			}
 
 			for name, argA := range genericParent.AllArguments() {
@@ -342,7 +342,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 
 			for i := len(genericParents) - 1; i >= 0; i-- {
 				g := genericParents[i]
-				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap)
+				genericParent = c.replaceTypeParametersInGeneric(genericParent, g.ArgumentMap, false)
 			}
 
 			for name, argA := range genericParent.AllArguments() {
@@ -937,7 +937,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 				}
 			}
 			m := c.createTypeArgumentMapWithSelf(a)
-			target = c.replaceTypeParameters(target, m)
+			target = c.replaceTypeParameters(target, m, false)
 			targetGeneric := target.(*types.Generic)
 
 			return c.typeArgsAreSubtype(targetGeneric.TypeArguments, b.TypeArguments, errSpan), false

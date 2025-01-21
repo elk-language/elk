@@ -6,13 +6,15 @@ import (
 
 type TypeParamNamespace struct {
 	docComment string
+	ForMethod  bool
 	constants  ConstantMap
 	subtypes   ConstantMap
 }
 
-func NewTypeParamNamespace(docComment string) *TypeParamNamespace {
+func NewTypeParamNamespace(docComment string, forMethod bool) *TypeParamNamespace {
 	return &TypeParamNamespace{
 		docComment: docComment,
+		ForMethod:  forMethod,
 		constants:  make(ConstantMap),
 		subtypes:   make(ConstantMap),
 	}
@@ -21,6 +23,7 @@ func NewTypeParamNamespace(docComment string) *TypeParamNamespace {
 func (t *TypeParamNamespace) Copy() *TypeParamNamespace {
 	return &TypeParamNamespace{
 		docComment: t.docComment,
+		ForMethod:  t.ForMethod,
 		constants:  t.constants,
 		subtypes:   t.subtypes,
 	}
