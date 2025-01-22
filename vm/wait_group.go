@@ -24,6 +24,7 @@ func initWaitGroup() {
 			return args[0], value.Undefined
 		},
 		DefWithParameters(1),
+		DefWithOptionalParameters(1),
 	)
 	Def(
 		c,

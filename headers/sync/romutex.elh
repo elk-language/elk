@@ -1,0 +1,23 @@
+##[
+	Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`
+	methods as `lock` and `unlock` respectively.
+]##
+sealed primitive class ::Std::Sync::ROMutex
+	init(rwmutex: Sync::RWMutex = loop; end); end
+
+	##[
+		Locks the mutex for reading.
+	]##
+	sealed def lock; end
+
+	##[
+		Unlocks the mutex for reading.
+		If the mutex is already unlocked for reading an unchecked error gets thrown.
+	]##
+	sealed def unlock; end
+
+	##[
+		Returns the underlying RWMutex.
+	]##
+	sealed def rwmutex: Sync::RWMutex; end
+end

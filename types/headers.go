@@ -268,6 +268,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", value.ToSymbol("Sync"), env)
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, value.ToSymbol("Mutex"), objectClass, env)
+			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, value.ToSymbol("ROMutex"), objectClass, env)
+			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock that allows many readers or a single writer\nto hold the lock.", false, true, true, false, value.ToSymbol("RWMutex"), objectClass, env)
 			namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, value.ToSymbol("WaitGroup"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
@@ -3143,6 +3145,41 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define methods
 					namespace.DefineMethod("Locks the mutex.\nIf the mutex is already locked it blocks the current thread\nuntil the mutex becomes available.", false, true, true, false, value.ToSymbol("lock"), nil, nil, Void{}, Never{})
 					namespace.DefineMethod("Unlocks the mutex.\nIf the mutex is already unlocked an unchecked error gets thrown.", false, true, true, false, value.ToSymbol("unlock"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("ROMutex").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("rwmutex"), NameToType("Std::Sync::RWMutex", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Locks the mutex for reading.", false, true, true, false, value.ToSymbol("lock"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Returns the underlying RWMutex.", false, true, true, false, value.ToSymbol("rwmutex"), nil, nil, NameToType("Std::Sync::RWMutex", env), Never{})
+					namespace.DefineMethod("Unlocks the mutex for reading.\nIf the mutex is already unlocked for reading an unchecked error gets thrown.", false, true, true, false, value.ToSymbol("unlock"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("RWMutex").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Locks the mutex for writing.\nIf the mutex is already locked for writing it blocks the current thread\nuntil the mutex becomes available.", false, true, true, false, value.ToSymbol("lock"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Locks the mutex for reading.", false, true, true, false, value.ToSymbol("read_lock"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Unlocks the mutex for reading.\nIf the mutex is already unlocked for reading an unchecked error gets thrown.", false, true, true, false, value.ToSymbol("read_unlock"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Creates a read only wrapper around this mutex\nthat exposes `read_lock` and `read_unlock` methods as `lock` and `unlock`.", false, true, true, false, value.ToSymbol("to_read_only"), nil, nil, NameToType("Std::Sync::ROMutex", env), Never{})
+					namespace.DefineMethod("Unlocks the mutex for writing.\nIf the mutex is already unlocked for writing an unchecked error gets thrown.", false, true, true, false, value.ToSymbol("unlock"), nil, nil, Void{}, Never{})
 
 					// Define constants
 

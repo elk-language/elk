@@ -114,6 +114,8 @@ func InitGlobalEnvironment() {
 	initSync()
 	initWaitGroup()
 	initMutex()
+	initRWMutex()
+	initROMutex()
 }
 
 func init() {

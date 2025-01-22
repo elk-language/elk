@@ -1,0 +1,35 @@
+##[
+	A `Mutex` is a mutual exclusion lock that allows many readers or a single writer
+	to hold the lock.
+]##
+sealed primitive class ::Std::Sync::RWMutex
+	##[
+		Locks the mutex for writing.
+		If the mutex is already locked for writing it blocks the current thread
+		until the mutex becomes available.
+	]##
+	sealed def lock; end
+
+	##[
+		Locks the mutex for reading.
+	]##
+	sealed def read_lock; end
+
+	##[
+		Unlocks the mutex for writing.
+		If the mutex is already unlocked for writing an unchecked error gets thrown.
+	]##
+	sealed def unlock; end
+
+	##[
+		Unlocks the mutex for reading.
+		If the mutex is already unlocked for reading an unchecked error gets thrown.
+	]##
+	sealed def read_unlock; end
+
+	##[
+		Creates a read only wrapper around this mutex
+		that exposes `read_lock` and `read_unlock` methods as `lock` and `unlock`.
+	]##
+	sealed def to_read_only: Sync::ROMutex; end
+end

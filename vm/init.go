@@ -58,8 +58,10 @@ func InitGlobalEnvironment() {
 	initGenerator()
 	initThread()
 	initChannel()
-	initMutex()
 	initWaitGroup()
+	initMutex()
+	initRWMutex()
+	initROMutex()
 }
 
 func init() {

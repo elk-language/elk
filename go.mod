@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/ALTree/bigfloat v0.2.0
+	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/elk-language/go-prompt v1.1.4
 	github.com/fatih/color v1.15.0
@@ -13,8 +14,6 @@ require (
 )
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.8.0 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
