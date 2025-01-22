@@ -1,0 +1,12 @@
+##[
+	`Once` is a kind of lock ensuring that a piece of
+	code will be executed exactly one time.
+]##
+sealed primitive class ::Std::Sync::Once
+	##[
+		Executes the given function if it is the first call
+		for this instance of `Once`.
+		Otherwise it's a noop.
+	]##
+	sealed def call[E](fn: ||! E) ! E; end
+end

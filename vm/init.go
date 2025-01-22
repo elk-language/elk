@@ -62,6 +62,7 @@ func InitGlobalEnvironment() {
 	initMutex()
 	initRWMutex()
 	initROMutex()
+	initOnce()
 }
 
 func init() {

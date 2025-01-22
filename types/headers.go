@@ -268,6 +268,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", value.ToSymbol("Sync"), env)
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, value.ToSymbol("Mutex"), objectClass, env)
+			namespace.TryDefineClass("`Once` is a kind of lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, value.ToSymbol("Once"), objectClass, env)
 			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, value.ToSymbol("ROMutex"), objectClass, env)
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock that allows many readers or a single writer\nto hold the lock.", false, true, true, false, value.ToSymbol("RWMutex"), objectClass, env)
 			namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, value.ToSymbol("WaitGroup"), objectClass, env)
@@ -3145,6 +3146,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define methods
 					namespace.DefineMethod("Locks the mutex.\nIf the mutex is already locked it blocks the current thread\nuntil the mutex becomes available.", false, true, true, false, value.ToSymbol("lock"), nil, nil, Void{}, Never{})
 					namespace.DefineMethod("Unlocks the mutex.\nIf the mutex is already unlocked an unchecked error gets thrown.", false, true, true, false, value.ToSymbol("unlock"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("Once").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Executes the given function if it is the first call\nfor this instance of `Once`.\nOtherwise it's a noop.", false, true, true, false, value.ToSymbol("call"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :call", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", false, false, true, false, value.ToSymbol("call"), nil, nil, Void{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :call", true), Never{}, Any{}, nil, INVARIANT)), NormalParameterKind, false)}, Void{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :call", true), Never{}, Any{}, nil, INVARIANT))
 
 					// Define constants
 
