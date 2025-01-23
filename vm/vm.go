@@ -67,12 +67,12 @@ type VM struct {
 	localCount      int      // the amount of registered locals
 	cfp             uintptr  // Call frame pointer
 	tailCallCounter int
-	stack           []value.Value // Value stack
-	callFrames      []CallFrame   // Call stack
-	errStackTrace   string        // The most recent error stack trace
-	Stdin           io.Reader     // standard output used by the VM
-	Stdout          io.Writer     // standard input used by the VM
-	Stderr          io.Writer     // standard error used by the VM
+	stack           []value.Value     // Value stack
+	callFrames      []CallFrame       // Call stack
+	errStackTrace   *value.StackTrace // The most recent error stack trace
+	Stdin           io.Reader         // standard output used by the VM
+	Stdout          io.Writer         // standard input used by the VM
+	Stderr          io.Writer         // standard error used by the VM
 	state           state
 }
 
@@ -165,7 +165,7 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 }
 
 func (vm *VM) PrintError() {
-	fmt.Fprint(vm.Stderr, vm.ErrStackTrace())
+	fmt.Fprint(vm.Stderr, vm.ErrStackTrace().String())
 	c := color.New(color.FgRed, color.Bold)
 	c.Fprint(vm.Stderr, "Error! Uncaught thrown value:")
 	fmt.Fprint(vm.Stderr, " ")
@@ -191,12 +191,12 @@ func (vm *VM) Err() value.Value {
 }
 
 // Get the stored error stack trace.
-func (vm *VM) ErrStackTrace() string {
+func (vm *VM) ErrStackTrace() *value.StackTrace {
 	if vm.state == errorState {
 		return vm.errStackTrace
 	}
 
-	return ""
+	return nil
 }
 
 // Get the value on top of the value stack.
@@ -440,7 +440,7 @@ func (vm *VM) run() {
 			vm.push(value.Ref(generator))
 		case bytecode.STOP_ITERATION:
 			vm.state = errorState
-			vm.errStackTrace = vm.buildStackTrace()
+			vm.errStackTrace = vm.BuildStackTrace()
 			vm.push(symbol.L_stop_iteration.ToValue())
 			return
 		case bytecode.YIELD:
@@ -1133,7 +1133,7 @@ func (vm *VM) run() {
 			vm.opAs()
 		case bytecode.RETHROW:
 			err := vm.popGet()
-			stackTrace := vm.popGet().AsReference().(value.String)
+			stackTrace := vm.popGet().AsReference().(*value.StackTrace)
 			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.opLeftBitshift())
@@ -1312,73 +1312,37 @@ func (vm *VM) restoreLastFrame() bool {
 
 func (vm *VM) ResetError() {
 	vm.state = runningState
-	vm.errStackTrace = ""
+	vm.errStackTrace = nil
 }
 
-func addStackTraceEntry(
-	output io.Writer,
-	id int,
-	fileName string,
-	lineNumber int,
-	name string,
-	tailCallCounter int,
-) {
-	if tailCallCounter > 0 {
-		fmt.Fprintf(output, " ... %d optimised tail call(s)\n", tailCallCounter)
-	}
-	// "  %d: %s:%d, in `%s`\n"
-	fmt.Fprint(output, " ")
-	color.New(color.FgHiBlue).Fprintf(output, "%d", id)
-	fmt.Fprintf(output, ": %s:%d, in ", fileName, lineNumber)
-	color.New(color.FgHiYellow).Fprintf(output, "`%s`", name)
-	fmt.Fprintln(output)
-}
-
-func (vm *VM) getStackTrace() string {
-	if vm.errStackTrace != "" {
+func (vm *VM) getStackTrace() *value.StackTrace {
+	if vm.errStackTrace != nil {
 		return vm.errStackTrace
 	}
 
-	return vm.buildStackTrace()
+	return vm.BuildStackTrace()
 }
 
-func (vm *VM) buildStackTrace() string {
-	var buffer strings.Builder
-	buffer.WriteString("Stack trace (the most recent call is last)\n")
-
-	var i int
-	if vm.cfp != uintptr(unsafe.Pointer(&vm.callFrames[0])) {
-		callFrame := &vm.callFrames[0]
-		for {
-			addStackTraceEntry(
-				&buffer,
-				i,
-				callFrame.FileName(),
-				callFrame.LineNumber(),
-				callFrame.Name().String(),
-				callFrame.tailCallCounter,
-			)
-
-			i++
-			callFrame = vm.callFrameAdd(callFrame, 1)
-			if uintptr(unsafe.Pointer(callFrame)) == vm.cfp {
-				break
-			}
-		}
+func (vm *VM) makeCallFrameObject() value.CallFrame {
+	return value.CallFrame{
+		LineNumber:      vm.bytecode.GetLineNumber(vm.ipOffset() - 1),
+		FileName:        vm.bytecode.FileName(),
+		FuncName:        vm.bytecode.Name().String(),
+		TailCallCounter: vm.tailCallCounter,
 	}
-	addStackTraceEntry(
-		&buffer,
-		i,
-		vm.bytecode.FileName(),
-		vm.bytecode.GetLineNumber(vm.ipOffset()-1),
-		vm.bytecode.Name().String(),
-		vm.tailCallCounter,
-	)
-	// Stack trace (the most recent call is last):
-	//   0: /tmp/test.elk:18, in `foo`
-	//   1: /tmp/test.elk:11, in `bar`
+}
 
-	return buffer.String()
+func (vm *VM) BuildStackTrace() *value.StackTrace {
+	callStack := vm.callStack()
+
+	stackTraceSlice := make([]value.CallFrame, len(callStack)+1)
+	i := 0
+	for ; i < len(callStack); i++ {
+		stackTraceSlice[i] = callStack[i].ToCallFrameObject()
+	}
+	stackTraceSlice[i] = vm.makeCallFrameObject()
+
+	return (*value.StackTrace)(&stackTraceSlice)
 }
 
 // Treat the next 8 bits of bytecode as an index
@@ -3806,10 +3770,10 @@ func (vm *VM) opAs() {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.rethrow(err, value.String(vm.getStackTrace()))
+	vm.rethrow(err, vm.getStackTrace())
 }
 
-func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
+func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
 	for {
 		var foundCatch *CatchEntry
 
@@ -3830,7 +3794,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 
 		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.lastCallFrame().stopVM {
 			vm.state = errorState
-			vm.errStackTrace = string(stackTrace)
+			vm.errStackTrace = stackTrace
 			vm.push(err)
 			panic(stopVM{})
 		}

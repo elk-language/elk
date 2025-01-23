@@ -39,8 +39,17 @@ func makeSentinelCallFrame() CallFrame {
 	}
 }
 
-func (c CallFrame) Name() value.Symbol {
+func (c *CallFrame) Name() value.Symbol {
 	return c.bytecode.Name()
+}
+
+func (cf *CallFrame) ToCallFrameObject() value.CallFrame {
+	return value.CallFrame{
+		LineNumber:      cf.LineNumber(),
+		FileName:        cf.FileName(),
+		FuncName:        cf.Name().String(),
+		TailCallCounter: cf.tailCallCounter,
+	}
 }
 
 func (c *CallFrame) ipIndex() int {
@@ -50,10 +59,65 @@ func (c *CallFrame) ipIndex() int {
 	)
 }
 
-func (c CallFrame) LineNumber() int {
+func (c *CallFrame) LineNumber() int {
 	return c.bytecode.GetLineNumber(c.ipIndex() - 1)
 }
 
-func (c CallFrame) FileName() string {
+func (c *CallFrame) FileName() string {
 	return c.bytecode.FileName()
+}
+
+// Std::CallFrame
+func initCallFrame() {
+	// Instance methods
+	c := &value.CallFrameClass.MethodContainer
+	Def(
+		c,
+		"to_string",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"func_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.Ref(value.String(self.FuncName)), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"file_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.Ref(value.String(self.FileName)), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"line_number",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.SmallInt(self.LineNumber).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"tail_calls",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.SmallInt(self.TailCallCounter).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"inspect",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.CallFrame)(args[0].Pointer())
+			return value.Ref(value.String(self.Inspect())), value.Undefined
+		},
+	)
+
 }

@@ -63,6 +63,9 @@ func InitGlobalEnvironment() {
 	initRWMutex()
 	initROMutex()
 	initOnce()
+	initStackTrace()
+	initStackTraceIterator()
+	initCallFrame()
 }
 
 func init() {

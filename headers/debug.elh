@@ -4,5 +4,10 @@
 module Std::Debug
   def start_cpu_profile(file_path: String)! FileSystemError; end
   def stop_cpu_profile; end
-  def inspect_stack; end
+
+  def inspect_value_stack; end
+
+  def inspect_call_stack; end
+
+  def stack_trace: StackTrace; end
 end

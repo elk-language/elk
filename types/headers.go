@@ -45,6 +45,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nv := try ch.pop # pop `5` from the channel\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
@@ -254,6 +255,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		{
 			namespace := namespace.TryDefineMixin("Represents an unordered, mutable collection\nof unique elements.", true, value.ToSymbol("Set"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, value.ToSymbol("StackTrace"), objectClass, env)
+			namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -583,6 +589,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("CallFrame").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Name of the source file where the called function\nis defined.", false, true, true, false, value.ToSymbol("file_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Name of the called function.", false, true, true, false, value.ToSymbol("func_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Number of the line in the source file\nwhere the definition of the called function starts.", false, true, true, false, value.ToSymbol("line_number"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Number of optimised tail calls before this call.", false, true, true, false, value.ToSymbol("tail_calls"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the call frame.", false, true, true, false, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Channel").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -871,7 +895,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("inspect_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("inspect_call_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("inspect_value_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(value.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("stop_cpu_profile"), nil, nil, Void{}, Never{})
 
@@ -2986,6 +3012,42 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("StackTrace").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::CallFrame", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
+
+				// Define methods
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::CallFrame", env), Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each call frame of the stack trace.", false, false, true, false, value.ToSymbol("iter"), nil, nil, NameToType("Std::StackTrace::Iterator", env), Never{})
+				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the stack trace.", false, true, true, false, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::CallFrame", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+					// Define methods
+					namespace.DefineMethod("", false, false, true, false, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("stack_trace"), NameToType("Std::StackTrace", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", false, false, true, false, value.ToSymbol("next"), nil, nil, NameToType("Std::CallFrame", env), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Resets the state of the iterator.", false, false, true, false, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("String").(*Class)

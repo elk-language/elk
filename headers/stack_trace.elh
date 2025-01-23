@@ -1,0 +1,38 @@
+##[
+	Represents the state of the call stack at some point in time.
+]##
+sealed noinit primitive class ::Std::StackTrace
+	include ImmutableCollection::Base[CallFrame]
+
+	##[
+		Returns the string representation of the stack trace.
+	]##
+	sealed def to_string: String; end
+
+	def [](index: Int): CallFrame; end
+
+	def length: Int; end
+
+	##[
+		Returns an iterator that iterates
+		over each call frame of the stack trace.
+	]##
+	def iter: Iterator; end
+
+	sealed noinit primitive class Iterator
+		include ::Std::ResettableIterator::Base[CallFrame]
+
+		init(stack_trace: StackTrace); end
+
+		##[
+			Get the next element of the list.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: CallFrame ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
+	end
+end

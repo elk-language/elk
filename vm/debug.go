@@ -39,10 +39,25 @@ func initDebug() {
 	)
 	Def(
 		c,
-		"inspect_stack",
+		"inspect_value_stack",
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
 			v.InspectValueStack()
 			return value.Nil, value.Undefined
+		},
+	)
+	Def(
+		c,
+		"inspect_call_stack",
+		func(v *VM, args []value.Value) (value.Value, value.Value) {
+			v.InspectCallStack()
+			return value.Nil, value.Undefined
+		},
+	)
+	Def(
+		c,
+		"stack_trace",
+		func(v *VM, args []value.Value) (value.Value, value.Value) {
+			return value.Ref(v.BuildStackTrace()), value.Undefined
 		},
 	)
 }
