@@ -17,8 +17,7 @@ func TestGoExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CLOSURE),
-					vm.ClosureTerminatorFlag,
+					byte(bytecode.CLOSURE), 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -5467,7 +5466,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.THROW),
 
-					byte(bytecode.JUMP), 0, 31,
+					byte(bytecode.JUMP), 0, 34,
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.DUP),
@@ -5488,7 +5487,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.POP_2_SKIP_ONE),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.RETHROW),
-
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(88, 8, 8)),
@@ -5500,7 +5499,73 @@ func TestCatch(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 					bytecode.NewLineInfo(6, 6),
 					bytecode.NewLineInfo(7, 5),
-					bytecode.NewLineInfo(8, 2),
+					bytecode.NewLineInfo(8, 5),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.Undefined,
+					value.ToSymbol("foo").ToValue(),
+					value.ToSymbol("Std::String").ToValue(),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(2, 4, 7, false),
+				},
+			),
+		},
+		"catch with stack trace": {
+			input: `
+				do
+					throw :foo
+				catch String() as str, stack_trace
+					str
+				catch :foo
+					3
+				end
+			`,
+			want: vm.NewBytecodeFunctionWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.THROW),
+					byte(bytecode.JUMP), 0, 36,
+					byte(bytecode.DUP_SECOND),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.POP_2_SKIP_ONE),
+					byte(bytecode.JUMP), 0, 12,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.INT_3),
+					byte(bytecode.POP_2_SKIP_ONE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.RETHROW),
+					byte(bytecode.LEAVE_SCOPE16), 2, 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(101, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 15),
+					bytecode.NewLineInfo(5, 5),
+					bytecode.NewLineInfo(6, 6),
+					bytecode.NewLineInfo(7, 5),
+					bytecode.NewLineInfo(8, 5),
 				},
 				0,
 				0,

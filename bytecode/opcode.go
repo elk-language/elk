@@ -211,6 +211,7 @@ const (
 	DECREMENT_INT                   // Decrement the Int on top of the stack
 	DUP                             // Duplicate the value on top of the stack
 	DUP_2                           // Duplicate the top 2 values on top of the stack
+	DUP_SECOND                      // Duplicate the second value on the stack (from the top)
 	POP_2_SKIP_ONE                  // Pop the top 2 values on top of the stack skipping the first one
 	NEW_SYMBOL8                     // Create a new symbol (8 bit operand)
 	NEW_SYMBOL16                    // Create a new symbol (16 bit operand)
@@ -446,6 +447,7 @@ var opCodeNames = [...]string{
 	DECREMENT_INT:     "DECREMENT_INT",
 	DUP:               "DUP",
 	DUP_2:             "DUP_2",
+	DUP_SECOND:        "DUP_SECOND",
 	POP_2_SKIP_ONE:    "POP_2_SKIP_ONE",
 	NEW_SYMBOL8:       "NEW_SYMBOL8",
 	NEW_SYMBOL16:      "NEW_SYMBOL16",

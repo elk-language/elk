@@ -116,6 +116,28 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
 			},
 		},
+		"throw and catch with stack trace": {
+			source: `
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :foo, trace
+					println "4"
+					println trace
+					2
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n2\n4\nStack trace (the most recent call is last)\n 0: sourceName:5, in `sourceName`\n\n5\n",
+			wantStackTop: value.SmallInt(2).ToValue(),
+			wantCompileErr: error.ErrorList{
+				error.NewWarning(L(P(67, 6, 6), P(77, 6, 16)), "unreachable code"),
+			},
+		},
 		"throw and catch in second branch": {
 			source: `
 				println "1"

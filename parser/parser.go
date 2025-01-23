@@ -5046,6 +5046,10 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 			break
 		}
 		pattern := p.pattern()
+		var stackTraceVar ast.IdentifierNode
+		if p.match(token.COMMA) {
+			stackTraceVar = p.identifier()
+		}
 
 		lastSpan, body, multiline = p.statementBlockWithThen(token.END, token.CATCH, token.FINALLY)
 		if lastSpan != nil {
@@ -5057,6 +5061,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 		catch := ast.NewCatchNode(
 			span,
 			pattern,
+			stackTraceVar,
 			body,
 		)
 

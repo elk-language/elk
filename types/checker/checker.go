@@ -3095,6 +3095,19 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 
 		for _, catchNode := range node.Catches {
 			c.pushNestedLocalEnv()
+			if catchNode.StackTraceVar != nil {
+				var stackTraceVarName string
+				switch s := catchNode.StackTraceVar.(type) {
+				case *ast.PublicIdentifierNode:
+					stackTraceVarName = s.Value
+				case *ast.PrivateIdentifierNode:
+					stackTraceVarName = s.Value
+				default:
+					panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+				}
+
+				c.addLocal(stackTraceVarName, newLocal(c.Std(symbol.StackTrace), true, true))
+			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
 			fullyCaughtTypes = append(fullyCaughtTypes, fullyCaughtType)

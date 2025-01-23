@@ -102,6 +102,19 @@ func TestDoCatchExpression(t *testing.T) {
 				end
 			`,
 		},
+		"catch with stack trace": {
+			input: `
+				do
+					throw :foo
+				catch Symbol(), st
+					println "lol"
+					var a: nil = st
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 6, 19), P(85, 6, 20)), "type `Std::StackTrace` cannot be assigned to type `nil`"),
+			},
+		},
 		"method call with wider catch": {
 			input: `
 				def foo! :foo

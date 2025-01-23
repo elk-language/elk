@@ -1177,8 +1177,30 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
 
+	c.enterScope("", defaultScopeType)
+
 	for _, catchNode := range node.Catches {
 		span := catchNode.Span()
+
+		if catchNode.StackTraceVar != nil {
+			c.emit(span.EndPos.Line, bytecode.DUP_SECOND)
+
+			var stackTraceVarName string
+			switch s := catchNode.StackTraceVar.(type) {
+			case *ast.PublicIdentifierNode:
+				stackTraceVarName = s.Value
+			case *ast.PrivateIdentifierNode:
+				stackTraceVarName = s.Value
+			default:
+				panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+			}
+
+			stackTraceVar := c.defineLocal(stackTraceVarName, span)
+			if stackTraceVar != nil {
+				c.emitSetLocalPop(span.StartPos.Line, stackTraceVar.index)
+			}
+		}
+
 		c.pattern(catchNode.Pattern)
 		jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 
@@ -1252,6 +1274,8 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 		c.patchJump(jumpToEndOffset, span)
 	}
+
+	c.leaveScope(span.EndPos.Line)
 
 	c.patchJump(jumpOverCatchOffset, span)
 }

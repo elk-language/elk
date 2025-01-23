@@ -2105,8 +2105,9 @@ func NewAsExpressionNode(span *position.Span, val ExpressionNode, runtimeType Co
 //	end
 type CatchNode struct {
 	NodeBase
-	Pattern PatternNode
-	Body    []StatementNode // do expression body
+	Pattern       PatternNode
+	StackTraceVar IdentifierNode
+	Body          []StatementNode // do expression body
 }
 
 func (*CatchNode) IsStatic() bool {
@@ -2118,11 +2119,12 @@ func (*CatchNode) IsStatic() bool {
 //	catch SomeError(message)
 //		print("awesome!")
 //	end
-func NewCatchNode(span *position.Span, pattern PatternNode, body []StatementNode) *CatchNode {
+func NewCatchNode(span *position.Span, pattern PatternNode, stackTraceVar IdentifierNode, body []StatementNode) *CatchNode {
 	return &CatchNode{
-		NodeBase: NodeBase{span: span},
-		Pattern:  pattern,
-		Body:     body,
+		NodeBase:      NodeBase{span: span},
+		Pattern:       pattern,
+		StackTraceVar: stackTraceVar,
+		Body:          body,
 	}
 }
 

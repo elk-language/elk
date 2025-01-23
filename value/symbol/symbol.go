@@ -68,6 +68,8 @@ var (
 	Error                = value.ToSymbol("Error")
 	Thread               = value.ToSymbol("Thread")
 	Channel              = value.ToSymbol("Channel")
+	StackTrace           = value.ToSymbol("StackTrace")
+	CallFrame            = value.ToSymbol("CallFrame")
 )
 
 // lowercase symbols

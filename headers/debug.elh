@@ -9,5 +9,8 @@ module Std::Debug
 
   def inspect_call_stack; end
 
+  ##[
+    Returns the current stack trace.
+  ]##
   def stack_trace: StackTrace; end
 end

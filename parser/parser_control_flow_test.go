@@ -2238,18 +2238,18 @@ do
 	nil
 catch Error() as e
 	println(e)
-catch Symbol() as s
+catch Symbol() as s, stack_trace
 	println(s)
 end
 `,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(85, 9, 4)),
+				S(P(0, 1, 1), P(98, 9, 4)),
 				[]ast.StatementNode{
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						S(P(1, 2, 1), P(85, 9, 4)),
+						S(P(1, 2, 1), P(98, 9, 4)),
 						ast.NewDoExpressionNode(
-							S(P(1, 2, 1), P(84, 9, 3)),
+							S(P(1, 2, 1), P(97, 9, 3)),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(5, 3, 2), P(13, 3, 10)),
@@ -2277,6 +2277,7 @@ end
 										),
 										ast.NewPublicIdentifierNode(S(P(36, 5, 18), P(36, 5, 18)), "e"),
 									),
+									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											S(P(39, 6, 2), P(49, 6, 12)),
@@ -2292,7 +2293,7 @@ end
 									},
 								),
 								ast.NewCatchNode(
-									S(P(50, 7, 1), P(81, 8, 12)),
+									S(P(50, 7, 1), P(94, 8, 12)),
 									ast.NewAsPatternNode(
 										S(P(56, 7, 7), P(68, 7, 19)),
 										ast.NewObjectPatternNode(
@@ -2302,14 +2303,15 @@ end
 										),
 										ast.NewPublicIdentifierNode(S(P(68, 7, 19), P(68, 7, 19)), "s"),
 									),
+									ast.NewPublicIdentifierNode(S(P(71, 7, 22), P(81, 7, 32)), "stack_trace"),
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
-											S(P(71, 8, 2), P(81, 8, 12)),
+											S(P(84, 8, 2), P(94, 8, 12)),
 											ast.NewReceiverlessMethodCallNode(
-												S(P(71, 8, 2), P(80, 8, 11)),
+												S(P(84, 8, 2), P(93, 8, 11)),
 												"println",
 												[]ast.ExpressionNode{
-													ast.NewPublicIdentifierNode(S(P(79, 8, 10), P(79, 8, 10)), "s"),
+													ast.NewPublicIdentifierNode(S(P(92, 8, 10), P(92, 8, 10)), "s"),
 												},
 												nil,
 											),

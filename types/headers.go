@@ -259,7 +259,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		{
 			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, value.ToSymbol("StackTrace"), objectClass, env)
-			namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+			namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -895,9 +895,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				namespace.DefineMethod("Returns the stack trace of a recently thrown error.", false, false, true, false, value.ToSymbol("err_stack_trace"), nil, nil, NewNilable(NameToType("Std::StackTrace", env)), Never{})
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("inspect_call_stack"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("inspect_value_stack"), nil, nil, Void{}, Never{})
-				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
+				namespace.DefineMethod("Returns the current stack trace.", false, false, true, false, value.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(value.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))
 				namespace.DefineMethod("", false, false, true, false, value.ToSymbol("stop_cpu_profile"), nil, nil, Void{}, Never{})
 

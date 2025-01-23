@@ -501,6 +501,8 @@ func (vm *VM) run() {
 		case bytecode.NOOP:
 		case bytecode.DUP:
 			vm.push(vm.peek())
+		case bytecode.DUP_SECOND:
+			vm.push(vm.peekAt(1))
 		case bytecode.SWAP:
 			vm.swap()
 		case bytecode.DUP_2:
