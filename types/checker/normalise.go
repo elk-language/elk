@@ -67,10 +67,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			closure := types.NewClosure(nil)
 			newMethod := types.NewMethod(
 				pMethod.DocComment,
-				pMethod.IsAbstract(),
-				pMethod.IsSealed(),
-				pMethod.IsNative(),
-				pMethod.IsGenerator(),
+				pMethod.Flags.ToBitFlag(),
 				pMethod.Name,
 				pMethod.TypeParameters,
 				newParams,

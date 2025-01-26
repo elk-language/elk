@@ -70,6 +70,7 @@ var (
 	Channel              = value.ToSymbol("Channel")
 	StackTrace           = value.ToSymbol("StackTrace")
 	CallFrame            = value.ToSymbol("CallFrame")
+	Promise              = value.ToSymbol("Promise")
 )
 
 // lowercase symbols

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -151,6 +152,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(node.Name),
 		nil,
 		nil,
@@ -181,9 +183,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 	methodNode := ast.NewMethodDefinitionNode(
 		c.newLocation(node.Span()),
 		"",
-		false,
-		false,
-		false,
+		0,
 		node.Name,
 		nil,
 		nil,
@@ -265,6 +265,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(setterName),
 		nil,
 		params,
@@ -277,9 +278,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	methodNode := ast.NewMethodDefinitionNode(
 		c.newLocation(node.Span()),
 		docComment,
-		false,
-		false,
-		false,
+		0,
 		setterName,
 		nil,
 		params,
@@ -567,7 +566,7 @@ func (c *Checker) checkMethod(
 	}
 
 	origReturnType := returnType
-	if checkedMethod.IsGenerator() {
+	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
 		returnType = origReturnType.(*types.Generic).Get(0).Type
 	}
 
@@ -577,7 +576,7 @@ func (c *Checker) checkMethod(
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
 	}
-	if checkedMethod.IsGenerator() {
+	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
 		throwType = origReturnType.(*types.Generic).Get(1).Type
 	}
 	if !types.IsNever(throwType) && throwType != nil {
@@ -1632,6 +1631,7 @@ func (c *Checker) declareMethod(
 	sealed bool,
 	inferReturnType bool,
 	generator bool,
+	async bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -1890,6 +1890,13 @@ func (c *Checker) declareMethod(
 		throwType = types.Never{}
 	}
 
+	if async && generator {
+		c.addFailure(
+			"async generators are illegal",
+			span,
+		)
+	}
+
 	if generator {
 		returnType = types.NewGenericWithTypeArgs(
 			c.env.StdSubtypeClass(symbol.Generator),
@@ -1898,14 +1905,35 @@ func (c *Checker) declareMethod(
 		)
 
 		throwType = types.Never{}
+	} else if async {
+		returnType = types.NewGenericWithTypeArgs(
+			c.env.StdSubtypeClass(symbol.Promise),
+			returnType,
+			throwType,
+		)
+
+		throwType = types.Never{}
 	}
 
+	var flags bitfield.BitFlag16
+	if abstract {
+		flags |= types.METHOD_ABSTRACT_FLAG
+	}
+	if sealed {
+		flags |= types.METHOD_SEALED_FLAG
+	}
+	if c.IsHeader() {
+		flags |= types.METHOD_NATIVE_FLAG
+	}
+	if generator {
+		flags |= types.METHOD_GENERATOR_FLAG
+	}
+	if async {
+		flags |= types.METHOD_ASYNC_FLAG
+	}
 	newMethod := types.NewMethod(
 		docComment,
-		abstract,
-		sealed,
-		c.IsHeader(),
-		generator,
+		flags,
 		name,
 		typeParams,
 		params,

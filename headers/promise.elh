@@ -1,0 +1,7 @@
+##[
+  A promise is the return type of a asynchronous function.
+  It is a placeholder for a value that will be available at some point
+  in the future.
+]##
+sealed primitive noinit class Std::Promise[+Val, +Err = never]
+end

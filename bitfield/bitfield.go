@@ -93,6 +93,9 @@ func (b *BitField16) UnsetFlag(flag BitFlag16) {
 	b.bitfield = b.bitfield &^ flag
 }
 
-func (b BitField16) Byte() byte {
-	return byte(b.bitfield)
+func (b BitField16) ToBitFlag() BitFlag16 {
+	return b.bitfield
+}
+func (b BitField16) Uint16() uint16 {
+	return uint16(b.bitfield)
 }

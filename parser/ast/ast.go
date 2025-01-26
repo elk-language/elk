@@ -3738,9 +3738,7 @@ type MethodDefinitionNode struct {
 	ReturnType     TypeNode
 	ThrowType      TypeNode
 	Body           []StatementNode // body of the method
-	Sealed         bool
-	Abstract       bool
-	Generator      bool
+	Flags          bitfield.BitField8
 }
 
 func (*MethodDefinitionNode) IsStatic() bool {
@@ -3760,13 +3758,50 @@ func (m *MethodDefinitionNode) IsSetter() bool {
 	return false
 }
 
+func (m *MethodDefinitionNode) IsAbstract() bool {
+	return m.Flags.HasFlag(METHOD_ABSTRACT_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetAbstract() {
+	m.Flags.SetFlag(METHOD_ABSTRACT_FLAG)
+}
+
+func (m *MethodDefinitionNode) IsSealed() bool {
+	return m.Flags.HasFlag(METHOD_SEALED_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetSealed() {
+	m.Flags.SetFlag(METHOD_SEALED_FLAG)
+}
+
+func (m *MethodDefinitionNode) IsGenerator() bool {
+	return m.Flags.HasFlag(METHOD_GENERATOR_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetGenerator() {
+	m.Flags.SetFlag(METHOD_GENERATOR_FLAG)
+}
+
+func (m *MethodDefinitionNode) IsAsync() bool {
+	return m.Flags.HasFlag(METHOD_ASYNC_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetAsync() {
+	m.Flags.SetFlag(METHOD_ASYNC_FLAG)
+}
+
+const (
+	METHOD_ABSTRACT_FLAG bitfield.BitFlag8 = 1 << iota
+	METHOD_SEALED_FLAG
+	METHOD_GENERATOR_FLAG
+	METHOD_ASYNC_FLAG
+)
+
 // Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(
 	loc *position.Location,
 	docComment string,
-	abstract bool,
-	sealed bool,
-	generator bool,
+	flags bitfield.BitFlag8,
 	name string,
 	typeParams []TypeParameterNode,
 	params []ParameterNode,
@@ -3779,9 +3814,7 @@ func NewMethodDefinitionNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
-		Abstract:       abstract,
-		Sealed:         sealed,
-		Generator:      generator,
+		Flags:          bitfield.BitField8FromBitFlag(flags),
 		Name:           name,
 		TypeParameters: typeParams,
 		Parameters:     params,

@@ -527,9 +527,7 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	}
 
 	methodCompiler := New(name.String(), mode, c.newLocation(node.Span()), c.checker)
-	if node.Generator {
-		methodCompiler.isGenerator = true
-	}
+	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
 

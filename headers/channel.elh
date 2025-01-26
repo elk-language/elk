@@ -52,6 +52,7 @@
 ]##
 sealed primitive class ::Std::Channel[V]
 	include Iterable::FiniteBase[V]
+	implement Closable
 
 	##[
 		Create a new `Channel` with the given capacity.

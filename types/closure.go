@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -17,14 +18,11 @@ func NewClosure(method *Method) *Closure {
 	}
 }
 
-func NewClosureWithMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type) *Closure {
+func NewClosureWithMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type) *Closure {
 	closure := NewClosure(nil)
 	method := NewMethod(
 		docComment,
-		abstract,
-		sealed,
-		native,
-		generator,
+		flags,
 		name,
 		typeParams,
 		params,
@@ -181,7 +179,7 @@ func (c *Closure) MethodString(name string) *Method {
 	return nil
 }
 
-func (c *Closure) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Closure) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on closures")
 }
 

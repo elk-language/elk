@@ -706,6 +706,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.primitiveModifier(allowed)
 	case token.SEALED:
 		return p.sealedModifier(allowed)
+	case token.ASYNC:
+		return p.asyncModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -2083,6 +2085,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.primitiveModifier(false)
 	case token.SEALED:
 		return p.sealedModifier(false)
+	case token.ASYNC:
+		return p.asyncModifier(false)
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -3060,12 +3064,14 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		)
 	}
 
+	var flags bitfield.BitFlag8
+	if isGenerator {
+		flags |= ast.METHOD_GENERATOR_FLAG
+	}
 	return ast.NewMethodDefinitionNode(
 		p.newLocation(span),
 		"",
-		false,
-		false,
-		isGenerator,
+		flags,
 		methodName,
 		typeParams,
 		params,
@@ -4681,6 +4687,26 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	)
 }
 
+// asyncModifier = "async" declarationExpression
+func (p *Parser) asyncModifier(allowed bool) ast.ExpressionNode {
+	asyncTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		if n.IsAsync() {
+			p.errorMessageSpan("the async modifier can only be attached once", asyncTok.Span())
+		}
+		n.SetAsync()
+		n.SetSpan(asyncTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the async modifier can only be attached to methods", node.Span())
+	}
+
+	return node
+}
+
 // sealedModifier = "sealed" declarationExpression
 func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 	sealedTok := p.advance()
@@ -4698,13 +4724,13 @@ func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 		n.Sealed = true
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	case *ast.MethodDefinitionNode:
-		if n.Sealed {
+		if n.IsSealed() {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
 		}
-		if n.Abstract {
+		if n.IsAbstract() {
 			p.errorMessageSpan("the sealed modifier cannot be attached to abstract methods", sealedTok.Span())
 		}
-		n.Sealed = true
+		n.SetSealed()
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	default:
 		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
@@ -4730,13 +4756,13 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 		n.Abstract = true
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	case *ast.MethodDefinitionNode:
-		if n.Abstract {
+		if n.IsAbstract() {
 			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
-		if n.Sealed {
+		if n.IsSealed() {
 			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
 		}
-		n.Abstract = true
+		n.SetAbstract()
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	case *ast.MixinDeclarationNode:
 		if n.Abstract {

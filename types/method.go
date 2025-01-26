@@ -145,6 +145,7 @@ const (
 	METHOD_INSTANCE_VARIABLES_CHECKED_FLAG
 	METHOD_ATTRIBUTE_FLAG
 	METHOD_GENERATOR_FLAG
+	METHOD_ASYNC_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
 	METHOD_CHECKED_FLAG
@@ -157,7 +158,7 @@ type Method struct {
 	Name               value.Symbol
 	OptionalParamCount int
 	PostParamCount     int
-	flags              bitfield.BitField16
+	Flags              bitfield.BitField16
 
 	Params         []*Parameter
 	TypeParameters []*TypeParameter
@@ -193,7 +194,7 @@ func (m *Method) Copy() *Method {
 		Params:                       m.Params,
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
-		flags:                        m.flags,
+		Flags:                        m.Flags,
 		TypeParameters:               m.TypeParameters,
 		ReturnType:                   m.ReturnType,
 		ThrowType:                    m.ThrowType,
@@ -224,7 +225,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		DocComment:                   m.DocComment,
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
-		flags:                        m.flags,
+		Flags:                        m.Flags,
 		Bytecode:                     m.Bytecode,
 		location:                     m.location,
 		UsedInConstants:              m.UsedInConstants,
@@ -277,7 +278,7 @@ func (m *Method) IsGeneric() bool {
 }
 
 func (m *Method) AreInstanceVariablesChecked() bool {
-	return m.flags.HasFlag(METHOD_INSTANCE_VARIABLES_CHECKED_FLAG)
+	return m.Flags.HasFlag(METHOD_INSTANCE_VARIABLES_CHECKED_FLAG)
 }
 
 func (m *Method) SetInstanceVariablesChecked(val bool) *Method {
@@ -286,7 +287,7 @@ func (m *Method) SetInstanceVariablesChecked(val bool) *Method {
 }
 
 func (m *Method) HasNamedRestParam() bool {
-	return m.flags.HasFlag(METHOD_NAMED_REST_PARAM_FLAG)
+	return m.Flags.HasFlag(METHOD_NAMED_REST_PARAM_FLAG)
 }
 
 func (m *Method) SetNamedRestParam(val bool) *Method {
@@ -295,7 +296,7 @@ func (m *Method) SetNamedRestParam(val bool) *Method {
 }
 
 func (m *Method) IsPlaceholder() bool {
-	return m.flags.HasFlag(METHOD_PLACEHOLDER_FLAG)
+	return m.Flags.HasFlag(METHOD_PLACEHOLDER_FLAG)
 }
 
 func (m *Method) SetPlaceholder(val bool) *Method {
@@ -304,7 +305,7 @@ func (m *Method) SetPlaceholder(val bool) *Method {
 }
 
 func (m *Method) IsGenerator() bool {
-	return m.flags.HasFlag(METHOD_GENERATOR_FLAG)
+	return m.Flags.HasFlag(METHOD_GENERATOR_FLAG)
 }
 
 func (m *Method) SetGenerator(val bool) *Method {
@@ -312,8 +313,17 @@ func (m *Method) SetGenerator(val bool) *Method {
 	return m
 }
 
+func (m *Method) IsAsync() bool {
+	return m.Flags.HasFlag(METHOD_ASYNC_FLAG)
+}
+
+func (m *Method) SetAsync(val bool) *Method {
+	m.SetFlag(METHOD_ASYNC_FLAG, val)
+	return m
+}
+
 func (m *Method) IsReplaced() bool {
-	return m.flags.HasFlag(METHOD_REPLACED_FLAG)
+	return m.Flags.HasFlag(METHOD_REPLACED_FLAG)
 }
 
 func (m *Method) SetReplaced(val bool) *Method {
@@ -322,7 +332,7 @@ func (m *Method) SetReplaced(val bool) *Method {
 }
 
 func (m *Method) IsChecked() bool {
-	return m.flags.HasFlag(METHOD_CHECKED_FLAG)
+	return m.Flags.HasFlag(METHOD_CHECKED_FLAG)
 }
 
 func (m *Method) SetChecked(val bool) *Method {
@@ -331,7 +341,7 @@ func (m *Method) SetChecked(val bool) *Method {
 }
 
 func (m *Method) IsAbstract() bool {
-	return m.flags.HasFlag(METHOD_ABSTRACT_FLAG)
+	return m.Flags.HasFlag(METHOD_ABSTRACT_FLAG)
 }
 
 func (m *Method) SetAbstract(abstract bool) *Method {
@@ -357,7 +367,7 @@ func (m *Method) IsCompilable() bool {
 }
 
 func (m *Method) IsCompiled() bool {
-	return m.flags.HasFlag(METHOD_COMPILED_FLAG)
+	return m.Flags.HasFlag(METHOD_COMPILED_FLAG)
 }
 
 func (m *Method) SetCompiled(compiled bool) *Method {
@@ -366,7 +376,7 @@ func (m *Method) SetCompiled(compiled bool) *Method {
 }
 
 func (m *Method) IsSealed() bool {
-	return m.flags.HasFlag(METHOD_SEALED_FLAG)
+	return m.Flags.HasFlag(METHOD_SEALED_FLAG)
 }
 
 func (m *Method) SetSealed(sealed bool) *Method {
@@ -375,7 +385,7 @@ func (m *Method) SetSealed(sealed bool) *Method {
 }
 
 func (m *Method) IsNative() bool {
-	return m.flags.HasFlag(METHOD_NATIVE_FLAG)
+	return m.Flags.HasFlag(METHOD_NATIVE_FLAG)
 }
 
 func (m *Method) SetNative(native bool) *Method {
@@ -384,7 +394,7 @@ func (m *Method) SetNative(native bool) *Method {
 }
 
 func (m *Method) IsAttribute() bool {
-	return m.flags.HasFlag(METHOD_ATTRIBUTE_FLAG)
+	return m.Flags.HasFlag(METHOD_ATTRIBUTE_FLAG)
 }
 
 func (m *Method) SetAttribute(val bool) *Method {
@@ -394,13 +404,13 @@ func (m *Method) SetAttribute(val bool) *Method {
 
 func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
 	if val {
-		m.flags.SetFlag(flag)
+		m.Flags.SetFlag(flag)
 	} else {
-		m.flags.UnsetFlag(flag)
+		m.Flags.UnsetFlag(flag)
 	}
 }
 
-func NewMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -433,21 +443,10 @@ func NewMethod(docComment string, abstract, sealed, native, generator bool, name
 		PostParamCount:     postParamCount,
 		UsedInConstants:    make(ds.Set[value.Symbol]),
 		UsedConstants:      make(ds.Set[value.Symbol]),
+		Flags:              bitfield.BitField16FromBitFlag(flags),
 	}
 	if hasNamedRestParam {
 		m.SetNamedRestParam(true)
-	}
-	if abstract {
-		m.SetAbstract(true)
-	}
-	if sealed {
-		m.SetSealed(true)
-	}
-	if native {
-		m.SetNative(true)
-	}
-	if generator {
-		m.SetGenerator(true)
 	}
 	if name == symbol.S_init {
 		m.InitialisedInstanceVariables = make(ds.Set[value.Symbol])

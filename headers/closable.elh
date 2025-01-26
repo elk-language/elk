@@ -1,0 +1,6 @@
+##[
+	Represents a resource that can be closed.
+]##
+interface ::Std::Closable
+	sig close
+end

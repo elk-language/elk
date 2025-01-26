@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 )
 
@@ -181,7 +182,7 @@ func (t *TypeParamNamespace) MethodString(name string) *Method {
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on type param namespaces")
 }
 
