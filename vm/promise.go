@@ -8,21 +8,26 @@ import (
 )
 
 type Promise struct {
-	Generator    *Generator
+	*Generator
+	ThreadPool   *ThreadPool
 	Continuation *Promise
 	result       value.Value
 	err          value.Value
-	ch           chan struct{}
+	ch           chan struct{} // the channel gets closed when the promise is resolved, used for waiting for a promise
 	m            sync.Mutex
 }
 
 // Create a new promise
-func newPromise(generator *Generator, continuation *Promise) *Promise {
-	return &Promise{
+func newPromise(threadPool *ThreadPool, generator *Generator, continuation *Promise) *Promise {
+	p := &Promise{
+		ThreadPool:   threadPool,
 		Generator:    generator,
 		Continuation: continuation,
 		ch:           make(chan struct{}),
 	}
+
+	threadPool.AddTask(p)
+	return p
 }
 
 func (*Promise) Class() *value.Class {
@@ -37,52 +42,68 @@ func (*Promise) SingletonClass() *value.Class {
 	return nil
 }
 
-func (c *Promise) Copy() value.Reference {
-	return c
+func (p *Promise) Copy() value.Reference {
+	return p
 }
 
-func (c *Promise) Inspect() string {
-	return fmt.Sprintf("Std::Promise{&: %p, resolved: %t}", c, c.IsResolved())
+func (p *Promise) Inspect() string {
+	return fmt.Sprintf("Std::Promise{&: %p, resolved: %t}", p, p.IsResolved())
 }
 
-func (c *Promise) Error() string {
-	return c.Inspect()
+func (p *Promise) Error() string {
+	return p.Inspect()
 }
 
 func (*Promise) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
-func (c *Promise) IsResolved() bool {
-	return c.Generator == nil
+func (p *Promise) IsResolved() bool {
+	return p.Generator == nil
+}
+
+func (p *Promise) AwaitSync() (value.Value, value.Value) {
+	<-p.ch
+	return p.result, p.err
+}
+
+func (p *Promise) resolve(result value.Value) {
+	p.m.Lock()
+
+	p.Generator = nil
+	p.result = result
+	close(p.ch)
+
+	p.m.Unlock()
+}
+
+func (p *Promise) reject(err value.Value) {
+	p.m.Lock()
+
+	p.Generator = nil
+	p.err = err
+	close(p.ch)
+
+	p.m.Unlock()
 }
 
 func initPromise() {
 	// Instance methods
-	// c := &value.PromiseClass.MethodContainer
-	// Def(
-	// 	c,
-	// 	"next",
-	// 	func(vm *VM, args []value.Value) (value.Value, value.Value) {
-	// 		self := (*Generator)(args[0].Pointer())
-	// 		return vm.CallGeneratorNext(self)
-	// 	},
-	// )
-	// Def(
-	// 	c,
-	// 	"iter",
-	// 	func(_ *VM, args []value.Value) (value.Value, value.Value) {
-	// 		return args[0], value.Undefined
-	// 	},
-	// )
-	// Def(
-	// 	c,
-	// 	"reset",
-	// 	func(_ *VM, args []value.Value) (value.Value, value.Value) {
-	// 		self := (*Generator)(args[0].Pointer())
-	// 		catch := self.Bytecode.CatchEntries[0]
-	// 		self.ip = self.Bytecode.ipAddRaw(uintptr(catch.JumpAddress))
-	// 		return args[0], value.Undefined
-	// 	},
-	// )
+	c := &value.PromiseClass.MethodContainer
+	Def(
+		c,
+		"await_sync",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*Promise)(args[0].Pointer())
+			return self.AwaitSync()
+		},
+	)
+	Def(
+		c,
+		"is_resolved",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*Promise)(args[0].Pointer())
+			return value.ToElkBool(self.IsResolved()), value.Undefined
+		},
+	)
 }

@@ -286,6 +286,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
+		namespace.TryDefineClass("A pool of threads.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
 		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
@@ -2794,6 +2795,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				namespace.DefineMethod("Blocks the current thread until the promise\ngets resolved.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("await_sync"), nil, nil, NameToType("Std::Promise::Val", env), NameToType("Std::Promise::Err", env))
+				namespace.DefineMethod("Check whether the promise is done.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_resolved"), nil, nil, Bool{}, Never{})
 
 				// Define constants
 

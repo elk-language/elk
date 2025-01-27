@@ -20,6 +20,7 @@ import (
 	"github.com/fatih/color"
 )
 
+var DefaultThreadPool *ThreadPool
 var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
 
@@ -37,6 +38,8 @@ func init() {
 	} else {
 		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
+
+	DefaultThreadPool = NewThreadPool(4, 256)
 }
 
 // VM state
@@ -46,6 +49,7 @@ const (
 	idleState state = iota
 	runningState
 	errorState // the VM stopped after encountering an uncaught error
+	awaitState
 	terminatedState
 )
 
@@ -70,9 +74,10 @@ type VM struct {
 	stack           []value.Value     // Value stack
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
-	Stdin           io.Reader         // standard output used by the VM
-	Stdout          io.Writer         // standard input used by the VM
-	Stderr          io.Writer         // standard error used by the VM
+	threadPool      *ThreadPool
+	Stdin           io.Reader // standard output used by the VM
+	Stdout          io.Writer // standard input used by the VM
+	Stderr          io.Writer // standard error used by the VM
 	state           state
 }
 
@@ -245,6 +250,37 @@ func (vm *VM) throwIfErr(err value.Value) {
 	if !err.IsUndefined() {
 		vm.throw(err)
 	}
+}
+
+func (vm *VM) callPromise(promise *Promise) {
+	vm.createCurrentCallFrame(true)
+	vm.bytecode = promise.Bytecode
+	vm.fp = vm.sp
+	vm.ip = promise.ip
+	vm.localCount = promise.Bytecode.parameterCount + 1
+	vm.upvalues = promise.upvalues
+
+	baseStack := &promise.stack[0]
+	stackLen := len(promise.stack)
+	for i := range stackLen {
+		*vm.spAdd(i) = *vm.stackAdd(baseStack, i)
+	}
+	vm.spIncrementBy(uintptr(stackLen))
+
+	vm.run()
+
+	if vm.state == awaitState {
+		vm.restoreLastFrame()
+		return
+	}
+
+	stack := vm.stack[vm.fpOffset() : vm.spOffset()-1]
+	stackCopy := make([]value.Value, len(stack))
+	copy(stackCopy, stack)
+	promise.stack = stackCopy
+	promise.ip = vm.ip
+
+	vm.restoreLastFrame()
 }
 
 func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
@@ -438,6 +474,28 @@ func (vm *VM) run() {
 				vm.ip+1,
 			)
 			vm.push(value.Ref(generator))
+		case bytecode.PROMISE:
+			generator := newGenerator(
+				vm.bytecode,
+				vm.upvalues,
+				vm.stackFrameCopy(),
+				vm.ip+1,
+			)
+
+			arg := vm.popGet()
+			var threadPool *ThreadPool
+			if arg.IsUndefined() {
+				if vm.threadPool == nil {
+					threadPool = DefaultThreadPool
+				} else {
+					threadPool = vm.threadPool
+				}
+			} else {
+				threadPool = (*ThreadPool)(arg.Pointer())
+			}
+
+			promise := newPromise(threadPool, generator, nil)
+			vm.push(value.Ref(promise))
 		case bytecode.STOP_ITERATION:
 			vm.state = errorState
 			vm.errStackTrace = vm.BuildStackTrace()

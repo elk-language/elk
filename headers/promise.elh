@@ -4,4 +4,14 @@
   in the future.
 ]##
 sealed primitive noinit class Std::Promise[+Val, +Err = never]
+  ##[
+    Blocks the current thread until the promise
+    gets resolved.
+  ]##
+  def await_sync: Val ! Err; end
+
+  ##[
+    Check whether the promise is done.
+  ]##
+  def is_resolved: bool; end
 end

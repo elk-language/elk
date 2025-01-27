@@ -1862,6 +1862,15 @@ func (c *Checker) declareMethod(
 			)
 		}
 	}
+	if async {
+		paramType := types.NewParameter(
+			value.ToSymbol("_pool"),
+			c.Std(symbol.ThreadPool),
+			types.DefaultValueParameterKind,
+			false,
+		)
+		params = append(params, paramType)
+	}
 
 	c.mode = prevMode
 	c.setOutputPositionTypeMode()

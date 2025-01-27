@@ -1,0 +1,5 @@
+##[
+	A pool of threads.
+]##
+sealed noinit primitive class ::Std::ThreadPool
+end

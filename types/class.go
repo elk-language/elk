@@ -199,6 +199,7 @@ func (*Class) IsLiteral() bool {
 func (c *Class) Copy() *Class {
 	return &Class{
 		parent:         c.parent,
+		noinit:         c.noinit,
 		primitive:      c.primitive,
 		sealed:         c.sealed,
 		abstract:       c.abstract,
@@ -225,9 +226,10 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	}
 
 	newClass := &Class{
-		primitive:     c.primitive,
-		sealed:        c.sealed,
+		noinit:        c.noinit,
 		abstract:      c.abstract,
+		sealed:        c.sealed,
+		primitive:     c.primitive,
 		defined:       c.defined,
 		compiled:      c.compiled,
 		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),

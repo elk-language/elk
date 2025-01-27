@@ -7,20 +7,20 @@ import (
 )
 
 type ThreadPool struct {
-	Threads []*VM
-	Queue   chan *Promise
+	Threads   []*VM
+	TaskQueue chan *Promise
 }
 
 func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 	tp := &ThreadPool{
-		Queue: make(chan *Promise, queueSize),
+		TaskQueue: make(chan *Promise, queueSize),
 	}
 
 	threads := make([]*VM, threadCount)
 	for i := range threads {
 		thread := New(opts...)
 		threads[i] = thread
-		go threadWorker(thread, tp.Queue)
+		go threadWorker(thread, tp.TaskQueue)
 	}
 	tp.Threads = threads
 
@@ -28,14 +28,24 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 }
 
 func threadWorker(thread *VM, queue <-chan *Promise) {
-	// for {
-	// 	task, ok := <-queue
-	// 	if !ok {
-	// 		break
-	// 	}
+	for {
+		task, ok := <-queue
+		if !ok {
+			break
+		}
 
-	// 	// TODO
-	// }
+		thread.callPromise(task)
+		switch thread.state {
+		case awaitState:
+			// TODO
+		case errorState:
+			err := thread.popGet()
+			task.reject(err)
+		default:
+			result := thread.popGet()
+			task.resolve(result)
+		}
+	}
 }
 
 func (*ThreadPool) Class() *value.Class {
@@ -55,7 +65,7 @@ func (t *ThreadPool) Copy() value.Reference {
 }
 
 func (t *ThreadPool) Inspect() string {
-	return fmt.Sprintf("Std::ThreadPool{thread_count: %d, queue_size: %d}", t.ThreadSize(), t.QueueSize())
+	return fmt.Sprintf("Std::ThreadPool{thread_count: %d, task_queue_size: %d}", t.ThreadCount(), t.TaskQueueSize())
 }
 
 func (t *ThreadPool) Error() string {
@@ -66,15 +76,21 @@ func (*ThreadPool) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
-func (t *ThreadPool) QueueSize() int {
-	return cap(t.Queue)
+func (t *ThreadPool) TaskQueueSize() int {
+	return cap(t.TaskQueue)
 }
 
-func (t *ThreadPool) ThreadSize() int {
-	return len(t.Queue)
+func (t *ThreadPool) ThreadCount() int {
+	return len(t.Threads)
+}
+
+func (t *ThreadPool) AddTask(promise *Promise) {
+	t.TaskQueue <- promise
 }
 
 func initThreadPool() {
+	value.ThreadPoolClass.AddConstantString("DEFAULT", value.Ref(DefaultThreadPool))
+
 	// Instance methods
 	// c := &value.ThreadPoolClass.MethodContainer
 	// Def(
