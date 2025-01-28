@@ -374,6 +374,7 @@ func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*MustExpressionNode) expressionNode()                {}
 func (*TryExpressionNode) expressionNode()                 {}
+func (*AwaitExpressionNode) expressionNode()               {}
 func (*TypeofExpressionNode) expressionNode()              {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
@@ -2789,6 +2790,24 @@ func NewGoExpressionNode(span *position.Span, body []StatementNode) *GoExpressio
 	return &GoExpressionNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Body:          body,
+	}
+}
+
+// Represents an `await` expression eg. `await foo()`
+type AwaitExpressionNode struct {
+	TypedNodeBase
+	Value ExpressionNode
+}
+
+func (*AwaitExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `await` expression node eg. `await foo()`
+func NewAwaitExpressionNode(span *position.Span, val ExpressionNode) *AwaitExpressionNode {
+	return &AwaitExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
 	}
 }
 

@@ -1,5 +1,24 @@
 ##[
-	A pool of threads.
+	A pool of thread workers with a task queue.
 ]##
 sealed noinit primitive class ::Std::ThreadPool
+	##[
+		Returns the count of thread workers available in the pool.
+	]##
+	def thread_count: Int; end
+
+	##[
+		Returns the number of available slots in the task
+		queue.
+	]##
+	def task_queue_size: Int; end
+
+	##[
+		Closes the thread pool, shuts down all thread workers.
+
+		A thread pool has to be closed when its no longer needed
+		otherwise it will never get garbage collected and the threads
+		will keep on waiting for work indefinitely.
+	]##
+	def close; end
 end

@@ -1610,6 +1610,17 @@ methodCallLoop:
 		methodName := methodNameTok.StringValue()
 		span := receiver.Span().Join(methodNameTok.Span())
 
+		if methodNameTok.Type == token.AWAIT {
+			if opToken.Type != token.DOT {
+				p.errorMessageSpan("invalid await operator", opToken.Span())
+			}
+			receiver = ast.NewAwaitExpressionNode(
+				span,
+				receiver,
+			)
+			continue
+		}
+
 		var typeArgs []ast.TypeNode
 		if p.match(token.COLON_COLON_LBRACKET) {
 			p.swallowNewlines()
@@ -1963,6 +1974,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.selfLiteral()
 	case token.BREAK:
 		return p.breakExpression()
+	case token.AWAIT:
+		return p.awaitExpression()
 	case token.GO:
 		return p.goExpression()
 	case token.RETURN:
@@ -4610,6 +4623,17 @@ func (p *Parser) goExpression() *ast.GoExpressionNode {
 	return ast.NewGoExpressionNode(
 		span,
 		body,
+	)
+}
+
+// awaitExpression = "await" expressionWithoutModifier
+func (p *Parser) awaitExpression() *ast.AwaitExpressionNode {
+	awaitTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewAwaitExpressionNode(
+		awaitTok.Span().Join(expr.Span()),
+		expr,
 	)
 }
 

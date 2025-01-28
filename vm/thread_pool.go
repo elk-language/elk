@@ -31,7 +31,7 @@ func threadWorker(thread *VM, queue <-chan *Promise) {
 	for {
 		task, ok := <-queue
 		if !ok {
-			break
+			return
 		}
 
 		thread.callPromise(task)
@@ -88,34 +88,38 @@ func (t *ThreadPool) AddTask(promise *Promise) {
 	t.TaskQueue <- promise
 }
 
+func (t *ThreadPool) Close() {
+	close(t.TaskQueue)
+}
+
 func initThreadPool() {
 	value.ThreadPoolClass.AddConstantString("DEFAULT", value.Ref(DefaultThreadPool))
 
 	// Instance methods
-	// c := &value.ThreadPoolClass.MethodContainer
-	// Def(
-	// 	c,
-	// 	"next",
-	// 	func(vm *VM, args []value.Value) (value.Value, value.Value) {
-	// 		self := (*Generator)(args[0].Pointer())
-	// 		return vm.CallGeneratorNext(self)
-	// 	},
-	// )
-	// Def(
-	// 	c,
-	// 	"iter",
-	// 	func(_ *VM, args []value.Value) (value.Value, value.Value) {
-	// 		return args[0], value.Undefined
-	// 	},
-	// )
-	// Def(
-	// 	c,
-	// 	"reset",
-	// 	func(_ *VM, args []value.Value) (value.Value, value.Value) {
-	// 		self := (*Generator)(args[0].Pointer())
-	// 		catch := self.Bytecode.CatchEntries[0]
-	// 		self.ip = self.Bytecode.ipAddRaw(uintptr(catch.JumpAddress))
-	// 		return args[0], value.Undefined
-	// 	},
-	// )
+	c := &value.ThreadPoolClass.MethodContainer
+	Def(
+		c,
+		"thread_count",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*ThreadPool)(args[0].Pointer())
+			return value.SmallInt(self.ThreadCount()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"task_queue_size",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*ThreadPool)(args[0].Pointer())
+			return value.SmallInt(self.TaskQueueSize()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"close",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*ThreadPool)(args[0].Pointer())
+			self.Close()
+			return value.Nil, value.Undefined
+		},
+	)
 }

@@ -2558,6 +2558,149 @@ func TestBreak(t *testing.T) {
 	}
 }
 
+func TestAwait(t *testing.T) {
+	tests := testTable{
+		"cannot stand alone": {
+			input: `await`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							ast.NewInvalidNode(
+								S(P(5, 1, 6), P(4, 1, 5)),
+								T(S(P(5, 1, 6), P(4, 1, 5)), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected an expression"),
+			},
+		},
+		"can have an argument": {
+			input: `await 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && await foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewLogicalExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewAwaitExpressionNode(
+								S(P(7, 1, 8), P(15, 1, 16)),
+								ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(15, 1, 16)), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can resemble a method call": {
+			input: `foo.await`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+						),
+					),
+				},
+			),
+		},
+		"cannot have arguments": {
+			input: `foo.await(2)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(9, 1, 10), P(9, 1, 10)), "unexpected (, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can be chained": {
+			input: `foo.await.elo().await`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewMethodCallNode(
+								S(P(0, 1, 1), P(14, 1, 15)),
+								ast.NewAwaitExpressionNode(
+									S(P(0, 1, 1), P(8, 1, 9)),
+									ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								),
+								T(S(P(9, 1, 10), P(9, 1, 10)), token.DOT),
+								"elo",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"invalid operator": {
+			input: `foo..await`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewAwaitExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(3, 1, 4), P(4, 1, 5)), "invalid await operator"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestReturn(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {
