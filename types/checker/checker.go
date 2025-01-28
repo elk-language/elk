@@ -1011,6 +1011,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkModifierForInExpressionNode("", n)
 	case *ast.LabeledExpressionNode:
 		return c.checkLabeledExpressionNode(n)
+	case *ast.AwaitExpressionNode:
+		return c.checkAwaitExpressionNode(n)
 	case *ast.ReturnExpressionNode:
 		return c.checkReturnExpressionNode(n)
 	case *ast.YieldExpressionNode:
@@ -2174,6 +2176,33 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
 
+	return node
+}
+func (c *Checker) checkAwaitExpressionNode(node *ast.AwaitExpressionNode) ast.ExpressionNode {
+	var typ types.Type
+
+	node.Value = c.checkExpression(node.Value)
+	typ = c.typeOfGuardVoid(node.Value)
+
+	if !c.IsSubtype(typ, c.Std(symbol.Promise)) {
+		c.addFailure(
+			"only promises can be awaited",
+			node.Value.Span(),
+		)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	promiseType, ok := typ.(*types.Generic)
+	if !ok {
+		node.SetType(types.Untyped{})
+		return node
+	}
+	returnType := promiseType.Get(0).Type
+	throwType := promiseType.Get(1).Type
+
+	c.checkThrowType(throwType, node.Span())
+	node.SetType(returnType)
 	return node
 }
 
