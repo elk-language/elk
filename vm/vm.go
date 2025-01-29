@@ -253,6 +253,7 @@ func (vm *VM) throwIfErr(err value.Value) {
 }
 
 func (vm *VM) callPromise(promise *Promise) {
+	vm.state = runningState
 	vm.createCurrentCallFrame(true)
 	vm.bytecode = promise.Bytecode
 	vm.fp = vm.sp
@@ -269,12 +270,12 @@ func (vm *VM) callPromise(promise *Promise) {
 
 	vm.run()
 
-	if vm.state == awaitState {
+	if vm.state != awaitState {
 		vm.restoreLastFrame()
 		return
 	}
 
-	stack := vm.stack[vm.fpOffset() : vm.spOffset()-1]
+	stack := vm.stack[vm.fpOffset():vm.spOffset()]
 	stackCopy := make([]value.Value, len(stack))
 	copy(stackCopy, stack)
 	promise.stack = stackCopy
@@ -466,36 +467,6 @@ func (vm *VM) run() {
 	for {
 		instruction := bytecode.OpCode(vm.readByte())
 		switch instruction {
-		case bytecode.GENERATOR:
-			generator := newGenerator(
-				vm.bytecode,
-				vm.upvalues,
-				vm.stackFrameCopy(),
-				vm.ip+1,
-			)
-			vm.push(value.Ref(generator))
-		case bytecode.PROMISE:
-			generator := newGenerator(
-				vm.bytecode,
-				vm.upvalues,
-				vm.stackFrameCopy(),
-				vm.ip+1,
-			)
-
-			arg := vm.popGet()
-			var threadPool *ThreadPool
-			if arg.IsUndefined() {
-				if vm.threadPool == nil {
-					threadPool = DefaultThreadPool
-				} else {
-					threadPool = vm.threadPool
-				}
-			} else {
-				threadPool = (*ThreadPool)(arg.Pointer())
-			}
-
-			promise := newPromise(threadPool, generator, nil)
-			vm.push(value.Ref(promise))
 		case bytecode.STOP_ITERATION:
 			vm.state = errorState
 			vm.errStackTrace = vm.BuildStackTrace()
@@ -556,6 +527,49 @@ func (vm *VM) run() {
 
 			vm.popN(2)
 			vm.ipSetOffset(int(jumpOffset))
+		case bytecode.GENERATOR:
+			vm.opGenerator()
+		case bytecode.PROMISE:
+			vm.opPromise()
+		case bytecode.AWAIT:
+			promise := (*Promise)(vm.peek().Pointer())
+			promise.m.Lock()
+
+			if !promise.IsResolved() {
+				// promise is not resolved, switching contexts
+				vm.state = awaitState
+				return
+			}
+
+			// promise is already resolved, no need to switch contexts
+			err := promise.err
+			result := promise.result
+			promise.m.Unlock()
+
+			if !err.IsUndefined() {
+				vm.pop()
+				vm.throw(err)
+				return
+			}
+
+			vm.replace(result)
+			vm.ipIncrement() // skip over AWAIT_RESULT
+		case bytecode.AWAIT_RESULT:
+			promise := (*Promise)(vm.peek().Pointer())
+
+			if !promise.IsResolved() {
+				panic("promise is still unresolved after await")
+			}
+
+			result := promise.result
+			err := promise.err
+			if !err.IsUndefined() {
+				vm.pop()
+				vm.throw(err)
+				return
+			}
+
+			vm.replace(result)
 		case bytecode.NOOP:
 		case bytecode.DUP:
 			vm.push(vm.peek())
@@ -1811,6 +1825,42 @@ func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	}
 
 	return value.Undefined
+}
+
+// Create a new generator
+func (vm *VM) opGenerator() {
+	generator := newGenerator(
+		vm.bytecode,
+		vm.upvalues,
+		vm.stackFrameCopy(),
+		vm.ip+1,
+	)
+	vm.push(value.Ref(generator))
+}
+
+// Create a new promise
+func (vm *VM) opPromise() {
+	arg := vm.popGet()
+	generator := newGenerator(
+		vm.bytecode,
+		vm.upvalues,
+		vm.stackFrameCopy(),
+		vm.ip+1,
+	)
+
+	var threadPool *ThreadPool
+	if arg.IsUndefined() {
+		if vm.threadPool == nil {
+			threadPool = DefaultThreadPool
+		} else {
+			threadPool = vm.threadPool
+		}
+	} else {
+		threadPool = (*ThreadPool)(arg.Pointer())
+	}
+
+	promise := newPromise(threadPool, generator, nil)
+	vm.push(value.Ref(promise))
 }
 
 // Pop the value on top of the stack and push its opCopy.

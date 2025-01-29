@@ -27,24 +27,44 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 	return tp
 }
 
-func threadWorker(thread *VM, queue <-chan *Promise) {
-	for {
-		task, ok := <-queue
-		if !ok {
-			return
-		}
-
+func threadWorker(thread *VM, queue chan *Promise) {
+	for task := range queue {
 		thread.callPromise(task)
+
 		switch thread.state {
 		case awaitState:
-			// TODO
+			awaitedPromise := (*Promise)(thread.peek().Pointer())
+			awaitedPromise.Continuation = task
+
+			// promise has been locked in the VM
+			awaitedPromise.m.Unlock()
 		case errorState:
 			err := thread.popGet()
-			task.reject(err)
+			task.m.Lock()
+
+			task.Generator = nil
+			task.err = err
+			close(task.ch)
+			if task.Continuation != nil {
+				queue <- task.Continuation
+			}
+
+			task.m.Unlock()
 		default:
 			result := thread.popGet()
-			task.resolve(result)
+			task.m.Lock()
+
+			task.Generator = nil
+			task.result = result
+			close(task.ch)
+			if task.Continuation != nil {
+				queue <- task.Continuation
+			}
+
+			task.m.Unlock()
 		}
+
+		thread.state = idleState
 	}
 }
 

@@ -862,6 +862,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.ReturnExpressionNode:
 		c.compileReturnExpressionNode(node)
 		return expressionCompiledWithoutResult
+	case *ast.AwaitExpressionNode:
+		c.compileAwaitExpressionNode(node)
 	case *ast.YieldExpressionNode:
 		c.compileYieldExpressionNode(node)
 		return expressionCompiledWithoutResult
@@ -3160,6 +3162,18 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 	}
 
 	return expressionCompiledWithoutResult
+}
+
+func (c *Compiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
+	span := node.Span()
+	c.compileNodeWithResult(node.Value)
+	if !c.isAsync {
+		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Span(), false)
+		return
+	}
+
+	c.emit(span.StartPos.Line, bytecode.AWAIT)
+	c.emit(span.StartPos.Line, bytecode.AWAIT_RESULT)
 }
 
 func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {

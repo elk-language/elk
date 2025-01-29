@@ -2178,6 +2178,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 
 	return node
 }
+
 func (c *Checker) checkAwaitExpressionNode(node *ast.AwaitExpressionNode) ast.ExpressionNode {
 	var typ types.Type
 

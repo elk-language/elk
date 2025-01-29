@@ -30,6 +30,26 @@ func newPromise(threadPool *ThreadPool, generator *Generator, continuation *Prom
 	return p
 }
 
+func NewResolvedPromise(result value.Value) *Promise {
+	ch := make(chan struct{})
+	close(ch)
+
+	return &Promise{
+		result: result,
+		ch:     ch,
+	}
+}
+
+func NewRejectedPromise(err value.Value) *Promise {
+	ch := make(chan struct{})
+	close(ch)
+
+	return &Promise{
+		err: err,
+		ch:  ch,
+	}
+}
+
 func (*Promise) Class() *value.Class {
 	return value.PromiseClass
 }
@@ -67,29 +87,30 @@ func (p *Promise) AwaitSync() (value.Value, value.Value) {
 	return p.result, p.err
 }
 
-func (p *Promise) resolve(result value.Value) {
-	p.m.Lock()
-
-	p.Generator = nil
-	p.result = result
-	close(p.ch)
-
-	p.m.Unlock()
-}
-
-func (p *Promise) reject(err value.Value) {
-	p.m.Lock()
-
-	p.Generator = nil
-	p.err = err
-	close(p.ch)
-
-	p.m.Unlock()
-}
-
 func initPromise() {
+	// Singleton methods
+	c := &value.PromiseClass.SingletonClass().MethodContainer
+	Def(
+		c,
+		"resolved",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			result := args[1]
+			return value.Ref(NewResolvedPromise(result)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"rejected",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			err := args[1]
+			return value.Ref(NewRejectedPromise(err)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	// Instance methods
-	c := &value.PromiseClass.MethodContainer
+	c = &value.PromiseClass.MethodContainer
 	Def(
 		c,
 		"await_sync",

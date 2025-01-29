@@ -4,6 +4,18 @@
   in the future.
 ]##
 sealed primitive noinit class Std::Promise[+Val, +Err = never]
+  singleton
+    ##[
+      Creates a new promise that is immediately resolved with the given result.
+    ]##
+    def resolved[V](result: V): Promise[V]; end
+
+    ##[
+      Creates a new promise that is immediately rejected with the given error.
+    ]##
+    def rejected[E](err: E): Promise[never, E]; end
+  end
+
   ##[
     Blocks the current thread until the promise
     gets resolved.
