@@ -9,44 +9,44 @@ import (
 
 type Promise struct {
 	*Generator
-	ThreadPool   *ThreadPool
-	Continuation *Promise
-	result       value.Value
-	err          value.Value
-	ch           chan struct{} // the channel gets closed when the promise is resolved, used for waiting for a promise
-	m            sync.Mutex
+	ThreadPool    *ThreadPool
+	continuations []*Promise
+	result        value.Value
+	err           value.Value
+	wg            sync.WaitGroup // the wait group hits 0 when the promise is resolved, used for waiting for a promise
+	m             sync.Mutex
 }
 
-// Create a new promise
-func newPromise(threadPool *ThreadPool, generator *Generator, continuation *Promise) *Promise {
+// Create a new promise executed by the VM
+func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 	p := &Promise{
-		ThreadPool:   threadPool,
-		Generator:    generator,
-		Continuation: continuation,
-		ch:           make(chan struct{}),
+		ThreadPool: threadPool,
+		Generator:  generator,
 	}
+	p.wg.Add(1)
 
 	threadPool.AddTask(p)
 	return p
 }
 
-func NewResolvedPromise(result value.Value) *Promise {
-	ch := make(chan struct{})
-	close(ch)
+// Returns a new native promise handled by Go code instead of the VM
+func newNativePromise(threadPool *ThreadPool) *Promise {
+	p := &Promise{
+		ThreadPool: threadPool,
+	}
+	p.wg.Add(1)
+	return p
+}
 
+func NewResolvedPromise(result value.Value) *Promise {
 	return &Promise{
 		result: result,
-		ch:     ch,
 	}
 }
 
 func NewRejectedPromise(err value.Value) *Promise {
-	ch := make(chan struct{})
-	close(ch)
-
 	return &Promise{
 		err: err,
-		ch:  ch,
 	}
 }
 
@@ -67,7 +67,15 @@ func (p *Promise) Copy() value.Reference {
 }
 
 func (p *Promise) Inspect() string {
-	return fmt.Sprintf("Std::Promise{&: %p, resolved: %t}", p, p.IsResolved())
+	if p.IsResolved() {
+		if !p.err.IsUndefined() {
+			return fmt.Sprintf("Std::Promise{&: %p, resolved: true, err: %s}", p, p.err.Inspect())
+		}
+
+		return fmt.Sprintf("Std::Promise{&: %p, resolved: true, result: %s}", p, p.result.Inspect())
+	}
+
+	return fmt.Sprintf("Std::Promise{&: %p, resolved: false}", p)
 }
 
 func (p *Promise) Error() string {
@@ -79,12 +87,29 @@ func (*Promise) InstanceVariables() value.SymbolMap {
 }
 
 func (p *Promise) IsResolved() bool {
-	return p.Generator == nil
+	return p.ThreadPool == nil
 }
 
 func (p *Promise) AwaitSync() (value.Value, value.Value) {
-	<-p.ch
+	p.wg.Wait()
 	return p.result, p.err
+}
+
+func (p *Promise) RegisterContinuation(continuation *Promise) {
+	p.m.Lock()
+	p.continuations = append(p.continuations, continuation)
+	p.m.Unlock()
+}
+
+func (p *Promise) RegisterContinuationUnsafe(continuation *Promise) {
+	p.continuations = append(p.continuations, continuation)
+}
+
+func (p *Promise) enqueueContinuations(queue chan *Promise) {
+	for _, cont := range p.continuations {
+		queue <- cont
+	}
+	p.continuations = nil
 }
 
 func initPromise() {

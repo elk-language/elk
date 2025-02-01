@@ -20,7 +20,7 @@ import (
 	"github.com/fatih/color"
 )
 
-var DefaultThreadPool *ThreadPool
+var DefaultThreadPool = &ThreadPool{}
 var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
 
@@ -39,7 +39,7 @@ func init() {
 		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
 
-	DefaultThreadPool = NewThreadPool(4, 256)
+	DefaultThreadPool.initThreadPool(4, 256)
 }
 
 // VM state
@@ -122,6 +122,7 @@ func New(opts ...Option) *VM {
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
+		threadPool: DefaultThreadPool,
 	}
 	vm.cfpSet(&callFrames[0])
 
@@ -1850,16 +1851,12 @@ func (vm *VM) opPromise() {
 
 	var threadPool *ThreadPool
 	if arg.IsUndefined() {
-		if vm.threadPool == nil {
-			threadPool = DefaultThreadPool
-		} else {
-			threadPool = vm.threadPool
-		}
+		threadPool = vm.threadPool
 	} else {
 		threadPool = (*ThreadPool)(arg.Pointer())
 	}
 
-	promise := newPromise(threadPool, generator, nil)
+	promise := newPromise(threadPool, generator)
 	vm.push(value.Ref(promise))
 }
 

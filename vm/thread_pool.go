@@ -12,9 +12,13 @@ type ThreadPool struct {
 }
 
 func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
-	tp := &ThreadPool{
-		TaskQueue: make(chan *Promise, queueSize),
-	}
+	tp := &ThreadPool{}
+	tp.initThreadPool(threadCount, queueSize, opts...)
+	return tp
+}
+
+func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option) {
+	tp.TaskQueue = make(chan *Promise, queueSize)
 
 	threads := make([]*VM, threadCount)
 	for i := range threads {
@@ -23,8 +27,6 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 		go threadWorker(thread, tp.TaskQueue)
 	}
 	tp.Threads = threads
-
-	return tp
 }
 
 func threadWorker(thread *VM, queue chan *Promise) {
@@ -34,7 +36,7 @@ func threadWorker(thread *VM, queue chan *Promise) {
 		switch thread.state {
 		case awaitState:
 			awaitedPromise := (*Promise)(thread.peek().Pointer())
-			awaitedPromise.Continuation = task
+			awaitedPromise.RegisterContinuationUnsafe(task)
 
 			// promise has been locked in the VM
 			awaitedPromise.m.Unlock()
@@ -43,11 +45,10 @@ func threadWorker(thread *VM, queue chan *Promise) {
 			task.m.Lock()
 
 			task.Generator = nil
+			task.ThreadPool = nil
 			task.err = err
-			close(task.ch)
-			if task.Continuation != nil {
-				queue <- task.Continuation
-			}
+			task.wg.Done()
+			task.enqueueContinuations(queue)
 
 			task.m.Unlock()
 		default:
@@ -55,11 +56,10 @@ func threadWorker(thread *VM, queue chan *Promise) {
 			task.m.Lock()
 
 			task.Generator = nil
+			task.ThreadPool = nil
 			task.result = result
-			close(task.ch)
-			if task.Continuation != nil {
-				queue <- task.Continuation
-			}
+			task.wg.Done()
+			task.enqueueContinuations(queue)
 
 			task.m.Unlock()
 		}

@@ -66,4 +66,36 @@ func initKernel() {
 		},
 		DefWithParameters(1),
 	)
+
+	Def(
+		c,
+		"timeout",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			durationVal := args[1]
+			var duration value.Duration
+			if durationVal.IsReference() {
+				duration = durationVal.AsReference().(value.Duration)
+			} else {
+				duration = durationVal.AsDuration()
+			}
+
+			p := newNativePromise(vm.threadPool)
+
+			go func(p *Promise, d time.Duration) {
+				<-time.After(d)
+				p.m.Lock()
+
+				queue := p.ThreadPool.TaskQueue
+				p.ThreadPool = nil
+				p.result = value.Nil
+				p.wg.Done()
+				p.enqueueContinuations(queue)
+
+				p.m.Unlock()
+			}(p, duration.Go())
+
+			return value.Ref(p), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 }
