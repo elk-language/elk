@@ -646,6 +646,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `Channel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::Channel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("Char").(*Class)
@@ -2813,6 +2828,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define methods
 					namespace.DefineMethod("Creates a new promise that is immediately rejected with the given error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("rejected"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :rejected", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("err"), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :rejected", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Promise", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(Never{}, COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :rejected", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 					namespace.DefineMethod("Creates a new promise that is immediately resolved with the given result.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("resolved"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :resolved", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("result"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :resolved", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Promise", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :resolved", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
+					namespace.DefineMethod("Returns a new promise that gets resolved when all given promises are resolved.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("wait"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("promises"), NewGeneric(NameToType("Std::Promise", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), PositionalRestParameterKind, false)}, NewGeneric(NameToType("Std::Promise", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :wait", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 
 					// Define constants
 

@@ -14,6 +14,11 @@ sealed primitive noinit class Std::Promise[+Val, +Err = never]
       Creates a new promise that is immediately rejected with the given error.
     ]##
     def rejected[E](err: E): Promise[never, E]; end
+
+    ##[
+      Returns a new promise that gets resolved when all given promises are resolved.
+    ]##
+    def wait[V, E](*promises: Promise[V, E]): Promise[V, E]; end
   end
 
   ##[

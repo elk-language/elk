@@ -30,7 +30,7 @@ func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 }
 
 // Returns a new native promise handled by Go code instead of the VM
-func newNativePromise(threadPool *ThreadPool) *Promise {
+func NewNativePromise(threadPool *ThreadPool) *Promise {
 	p := &Promise{
 		ThreadPool: threadPool,
 	}
@@ -105,6 +105,46 @@ func (p *Promise) RegisterContinuationUnsafe(continuation *Promise) {
 	p.continuations = append(p.continuations, continuation)
 }
 
+func (p *Promise) ResolveReject(result, err value.Value) {
+	p.m.Lock()
+
+	queue := p.ThreadPool.TaskQueue
+	p.Generator = nil
+	p.ThreadPool = nil
+	p.result = result
+	p.err = err
+	p.wg.Done()
+	p.enqueueContinuations(queue)
+
+	p.m.Unlock()
+}
+
+func (p *Promise) Resolve(result value.Value) {
+	p.m.Lock()
+
+	queue := p.ThreadPool.TaskQueue
+	p.Generator = nil
+	p.ThreadPool = nil
+	p.result = result
+	p.wg.Done()
+	p.enqueueContinuations(queue)
+
+	p.m.Unlock()
+}
+
+func (p *Promise) Reject(err value.Value) {
+	p.m.Lock()
+
+	queue := p.ThreadPool.TaskQueue
+	p.Generator = nil
+	p.ThreadPool = nil
+	p.err = err
+	p.wg.Done()
+	p.enqueueContinuations(queue)
+
+	p.m.Unlock()
+}
+
 func (p *Promise) enqueueContinuations(queue chan *Promise) {
 	for _, cont := range p.continuations {
 		queue <- cont
@@ -130,6 +170,34 @@ func initPromise() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			err := args[1]
 			return value.Ref(NewRejectedPromise(err)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"wait",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			collectionValue := args[1]
+
+			p := NewNativePromise(vm.threadPool)
+			go func(vm *VM, p *Promise, collection value.Value) {
+				for val, err := range Iterate(vm, collection) {
+					promise := (*Promise)(val.Pointer())
+					if !err.IsUndefined() {
+						p.Reject(err)
+						return
+					}
+					_, err = promise.AwaitSync()
+					if !err.IsUndefined() {
+						p.Reject(err)
+						return
+					}
+				}
+
+				p.Resolve(value.Nil)
+			}(vm, p, collectionValue)
+
+			return value.Ref(p), value.Undefined
 		},
 		DefWithParameters(1),
 	)
