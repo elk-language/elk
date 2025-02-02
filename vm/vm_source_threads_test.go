@@ -39,6 +39,46 @@ func TestVMSource_Go(t *testing.T) {
 			wantStdout:   "go1: 1\ngo1: 2\ngo1: 3\ngo1: 4\ngo1: 5\nmain1: 1\nmain1: 2\nmain1: 3\nmain1: 4\nmain1: 5\n",
 			wantStackTop: value.Nil,
 		},
+		"synchronise threads with a mutex": {
+			source: `
+				using Std::Sync::{Mutex, WaitGroup}
+
+				class Counter
+					attr n: Int, m: Mutex
+
+					init
+						@n = 0
+						@m = Mutex()
+					end
+
+					def incr
+						@m.lock
+						@n++
+						@m.unlock
+					end
+				end
+
+				def work(c: Counter, wg: WaitGroup)
+					for i in 1...50
+						c.incr
+					end
+
+					wg.end
+				end
+
+				c := Counter()
+				wg := WaitGroup(5)
+
+				for i in 1...5
+					go work(c, wg)
+				end
+
+				wg.wait
+				println "counter: ${c.n}"
+			`,
+			wantStdout:   "counter: 250\n",
+			wantStackTop: value.Nil,
+		},
 	}
 
 	for name, tc := range tests {
