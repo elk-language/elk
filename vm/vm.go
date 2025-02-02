@@ -104,6 +104,12 @@ func WithStderr(stderr io.Writer) Option {
 	}
 }
 
+func WithThreadPool(tp *ThreadPool) Option {
+	return func(vm *VM) {
+		vm.threadPool = tp
+	}
+}
+
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	stack := make([]value.Value, INIT_VALUE_STACK_SIZE)

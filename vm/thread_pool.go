@@ -22,6 +22,7 @@ func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option)
 
 	threads := make([]*VM, threadCount)
 	for i := range threads {
+		opts = append(opts, WithThreadPool(tp))
 		thread := New(opts...)
 		threads[i] = thread
 		go threadWorker(thread, tp.TaskQueue)

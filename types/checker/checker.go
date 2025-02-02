@@ -3410,7 +3410,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
-		left, _, typ := c.checkSimpleMethodCall(
+		left, args, typ := c.checkSimpleMethodCall(
 			node.Left,
 			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
@@ -3420,6 +3420,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 			node.Span(),
 		)
 		node.Left = left
+		node.Right = args[0]
 		node.SetType(typ)
 	default:
 		node.Left = c.checkExpression(node.Left)
