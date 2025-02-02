@@ -2071,6 +2071,90 @@ func TestDefMethod(t *testing.T) {
 				error.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
 			},
 		},
+		"define an async method": {
+			input: `
+				async def foo(a: Int, b: Int = 2): Int ! String
+					await timeout(5.seconds)
+					return a + b
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(108, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(108, 5, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionWithCatchEntries(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
+									byte(bytecode.INT_2),
+									byte(bytecode.SET_LOCAL_2),
+									byte(bytecode.GET_LOCAL_3),
+									byte(bytecode.PROMISE),
+									byte(bytecode.RETURN),
+									byte(bytecode.INT_5),
+									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.UNDEFINED),
+									byte(bytecode.CALL_SELF8), 1,
+									byte(bytecode.AWAIT),
+									byte(bytecode.AWAIT_RESULT),
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.GET_LOCAL_2),
+									byte(bytecode.ADD_INT),
+									byte(bytecode.RETURN),
+								},
+								L(P(5, 2, 5), P(107, 5, 7)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(2, 8),
+									bytecode.NewLineInfo(5, 1),
+									bytecode.NewLineInfo(3, 9),
+									bytecode.NewLineInfo(4, 4),
+								},
+								3,
+								2,
+								[]value.Value{
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+								},
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
 		"define method with required parameters in top level": {
 			input: `
 				def foo(a: Int, b: Int)
