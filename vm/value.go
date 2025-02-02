@@ -298,6 +298,8 @@ func NextBuiltin(vm *VM, val value.Value) (result, err value.Value) {
 		return v.Next()
 	case *value.StringGraphemeIterator:
 		return v.Next()
+	case *value.Channel:
+		return v.Next()
 	case *value.ClosedRangeIterator:
 		return ClosedRangeIteratorNext(vm, v)
 	case *value.OpenRangeIterator:
