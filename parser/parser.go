@@ -2047,7 +2047,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.LBRACE:
 		return p.hashMapLiteral()
 	case token.RECORD_LITERAL_BEG:
-		return p.recordLiteral()
+		return p.hashRecordLiteral()
 	case token.CHAR_LITERAL:
 		return p.charLiteral()
 	case token.RAW_CHAR_LITERAL:
@@ -2543,14 +2543,14 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
-// "{" [hashMapLiteralElements] "}" [":" primaryExpression]
+// "{" [recordLiteralElements] "}" [":" primaryExpression]
 func (p *Parser) hashMapLiteral() ast.ExpressionNode {
-	return p.collectionLiteralWithCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
+	return p.collectionLiteralWithCapacity(token.RBRACE, p.recordLiteralElements, ast.NewHashMapLiteralNodeI)
 }
 
-// "%{" [hashMapLiteralElements] "}"
-func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.hashMapLiteralElements, ast.NewHashRecordLiteralNodeI)
+// "%{" [recordLiteralElements] "}"
+func (p *Parser) hashRecordLiteral() ast.ExpressionNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.recordLiteralElements, ast.NewHashRecordLiteralNodeI)
 }
 
 // arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" primaryExpression]
@@ -2568,24 +2568,63 @@ func (p *Parser) listLikeLiteralElements(stopTokens ...token.Type) []ast.Express
 	return commaSeparatedList(p, p.listLikeLiteralElement, stopTokens...)
 }
 
-// listLikeLiteralElement = keyValueExpression |
+// listLikeLiteralElement = "*" expressionWithoutModifier |
+// keyValueExpression |
 // keyValueExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // keyValueExpression "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR_STAR) {
+		p.errorMessage("double splats cannot appear in list, tuple nor set literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.keyValueExpression)
 }
 
-// hashMapLiteralElements = hashMapLiteralElement ("," hashMapLiteralElement)*
-func (p *Parser) hashMapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.hashMapLiteralElement, stopTokens...)
+// recordLiteralElements = recordLiteralElement ("," recordLiteralElement)*
+func (p *Parser) recordLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.recordLiteralElement, stopTokens...)
 }
 
-// hashMapLiteralElement = keyValueMapExpression |
+// recordLiteralElement = "**" expressionWithoutModifier |
+// keyValueMapExpression |
 // keyValueMapExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueMapExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // keyValueMapExpression "for" identifierList "in" expressionWithoutModifier
-func (p *Parser) hashMapLiteralElement() ast.ExpressionNode {
+func (p *Parser) recordLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR_STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR) {
+		p.errorMessage("splats cannot appear in record nor map literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.keyValueMapExpression)
 }
 
@@ -2659,11 +2698,29 @@ func (p *Parser) hashSetLiteralElements(stopTokens ...token.Type) []ast.Expressi
 	return commaSeparatedList(p, p.hashSetLiteralElement, stopTokens...)
 }
 
-// hashSetLiteralElement = expressionWithoutModifier |
+// hashSetLiteralElement = ["*"] expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR_STAR) {
+		p.errorMessage("double splats cannot appear in list, tuple nor set literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
 

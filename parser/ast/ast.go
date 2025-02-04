@@ -412,6 +412,8 @@ func (*MethodCallNode) expressionNode()                    {}
 func (*GenericReceiverlessMethodCallNode) expressionNode() {}
 func (*ReceiverlessMethodCallNode) expressionNode()        {}
 func (*AttributeAccessNode) expressionNode()               {}
+func (*DoubleSplatExpressionNode) expressionNode()         {}
+func (*SplatExpressionNode) expressionNode()               {}
 func (*KeyValueExpressionNode) expressionNode()            {}
 func (*SymbolKeyValueExpressionNode) expressionNode()      {}
 func (*ArrayListLiteralNode) expressionNode()              {}
@@ -4453,6 +4455,42 @@ func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *Ke
 		Key:           key,
 		Value:         val,
 		static:        areExpressionsStatic(key, val),
+	}
+}
+
+// Represents a splat expression eg. `*foo`
+type SplatExpressionNode struct {
+	TypedNodeBase
+	Value ExpressionNode
+}
+
+func (*SplatExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a splat expression node eg. `*foo`
+func NewSplatExpressionNode(span *position.Span, val ExpressionNode) *SplatExpressionNode {
+	return &SplatExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
+	}
+}
+
+// Represents a double splat expression eg. `**foo`
+type DoubleSplatExpressionNode struct {
+	TypedNodeBase
+	Value ExpressionNode
+}
+
+func (*DoubleSplatExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a double splat expression node eg. `**foo`
+func NewDoubleSplatExpressionNode(span *position.Span, val ExpressionNode) *DoubleSplatExpressionNode {
+	return &DoubleSplatExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Value:         val,
 	}
 }
 
