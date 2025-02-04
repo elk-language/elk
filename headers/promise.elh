@@ -1,0 +1,34 @@
+##[
+  A promise is the return type of a asynchronous function.
+  It is a placeholder for a value that will be available at some point
+  in the future.
+]##
+sealed primitive noinit class Std::Promise[+Val, +Err = never]
+  singleton
+    ##[
+      Creates a new promise that is immediately resolved with the given result.
+    ]##
+    def resolved[V](result: V): Promise[V]; end
+
+    ##[
+      Creates a new promise that is immediately rejected with the given error.
+    ]##
+    def rejected[E](err: E): Promise[never, E]; end
+
+    ##[
+      Returns a new promise that gets resolved when all given promises are resolved.
+    ]##
+    def wait[V, E](*promises: Promise[V, E]): Promise[V, E]; end
+  end
+
+  ##[
+    Blocks the current thread until the promise
+    gets resolved.
+  ]##
+  def await_sync: Val ! Err; end
+
+  ##[
+    Check whether the promise is done.
+  ]##
+  def is_resolved: bool; end
+end

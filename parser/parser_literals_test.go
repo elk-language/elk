@@ -2203,6 +2203,67 @@ func TestArrayListLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have splats": {
+			input: "[.1, 'foo', *bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewArrayListLiteralNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(5, 1, 6), P(9, 1, 10)), "foo"),
+								ast.NewSplatExpressionNode(
+									S(P(12, 1, 13), P(15, 1, 16)),
+									ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(15, 1, 16)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(18, 1, 19), P(24, 1, 25)),
+									T(S(P(22, 1, 23), P(22, 1, 23)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot have double splats": {
+			input: "[.1, 'foo', **bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewArrayListLiteralNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(5, 1, 6), P(9, 1, 10)), "foo"),
+								ast.NewDoubleSplatExpressionNode(
+									S(P(12, 1, 13), P(16, 1, 17)),
+									ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(12, 1, 13), P(13, 1, 14)), "double splats cannot appear in list, tuple nor set literals"),
+			},
+		},
 		"can have elements and capacity": {
 			input: "[.1, 'foo', :bar, baz + 5]:n",
 			want: ast.NewProgramNode(
@@ -3032,6 +3093,65 @@ func TestArrayTupleLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have splats": {
+			input: "%[.1, 'foo', *bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewArrayTupleLiteralNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSplatExpressionNode(
+									S(P(13, 1, 14), P(16, 1, 17)),
+									ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have double splats": {
+			input: "%[.1, 'foo', **bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewArrayTupleLiteralNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewDoubleSplatExpressionNode(
+									S(P(13, 1, 14), P(17, 1, 18)),
+									ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(17, 1, 18)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(20, 1, 21), P(26, 1, 27)),
+									T(S(P(24, 1, 25), P(24, 1, 25)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(20, 1, 21), P(22, 1, 23)), "baz"),
+									ast.NewIntLiteralNode(S(P(26, 1, 27), P(26, 1, 27)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 1, 14), P(14, 1, 15)), "double splats cannot appear in list, tuple nor set literals"),
+			},
+		},
 		"can have a trailing comma": {
 			input: "%[.1, 'foo', :bar, baz + 5,]",
 			want: ast.NewProgramNode(
@@ -3712,6 +3832,67 @@ func TestHashSetLiteral(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can have splats": {
+			input: "^[.1, 'foo', *bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewHashSetLiteralNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSplatExpressionNode(
+									S(P(13, 1, 14), P(16, 1, 17)),
+									ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot have double splats": {
+			input: "^[.1, 'foo', **bar, baz + 5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewHashSetLiteralNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewDoubleSplatExpressionNode(
+									S(P(13, 1, 14), P(17, 1, 18)),
+									ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(17, 1, 18)), "bar"),
+								),
+								ast.NewBinaryExpressionNode(
+									S(P(20, 1, 21), P(26, 1, 27)),
+									T(S(P(24, 1, 25), P(24, 1, 25)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(20, 1, 21), P(22, 1, 23)), "baz"),
+									ast.NewIntLiteralNode(S(P(26, 1, 27), P(26, 1, 27)), "5"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(13, 1, 14), P(14, 1, 15)), "double splats cannot appear in list, tuple nor set literals"),
+			},
 		},
 		"can have elements and capacity": {
 			input: "^[.1, 'foo', :bar, baz + 5]:n",
@@ -4642,6 +4823,79 @@ func TestHashMapLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have double splats": {
+			input: "{**bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewHashMapLiteralNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							[]ast.ExpressionNode{
+								ast.NewDoubleSplatExpressionNode(
+									S(P(1, 1, 2), P(5, 1, 6)),
+									ast.NewPublicIdentifierNode(S(P(3, 1, 4), P(5, 1, 6)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(8, 1, 9), P(31, 1, 32)),
+									T(S(P(26, 1, 27), P(27, 1, 28)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(8, 1, 9), P(24, 1, 25)),
+										ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(10, 1, 11)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(15, 1, 16), P(24, 1, 25)),
+											ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(17, 1, 18)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(29, 1, 30), P(31, 1, 32)), "baz"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot have splats": {
+			input: "{*bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewHashMapLiteralNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							[]ast.ExpressionNode{
+								ast.NewSplatExpressionNode(
+									S(P(1, 1, 2), P(4, 1, 5)),
+									ast.NewPublicIdentifierNode(S(P(2, 1, 3), P(4, 1, 5)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(7, 1, 8), P(30, 1, 31)),
+									T(S(P(25, 1, 26), P(26, 1, 27)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(7, 1, 8), P(23, 1, 24)),
+										ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(14, 1, 15), P(23, 1, 24)),
+											ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(28, 1, 29), P(30, 1, 31)), "baz"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(1, 1, 2), P(1, 1, 2)), "splats cannot appear in record nor map literals"),
+			},
+		},
 		"can span multiple lines": {
 			input: "{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz\n}",
 			want: ast.NewProgramNode(
@@ -4723,7 +4977,7 @@ func TestHashMapLiteral(t *testing.T) {
 	}
 }
 
-func TestRecordLiteral(t *testing.T) {
+func TestHashRecordLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "%{}",
@@ -4983,6 +5237,77 @@ func TestRecordLiteral(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can have double splats": {
+			input: "%{**bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(34, 1, 35)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(34, 1, 35)),
+						ast.NewHashRecordLiteralNode(
+							S(P(0, 1, 1), P(34, 1, 35)),
+							[]ast.ExpressionNode{
+								ast.NewDoubleSplatExpressionNode(
+									S(P(2, 1, 3), P(6, 1, 7)),
+									ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(6, 1, 7)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(9, 1, 10), P(32, 1, 33)),
+									T(S(P(27, 1, 28), P(28, 1, 29)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(9, 1, 10), P(25, 1, 26)),
+										ast.NewPublicIdentifierNode(S(P(9, 1, 10), P(11, 1, 12)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(16, 1, 17), P(25, 1, 26)),
+											ast.NewPublicIdentifierNode(S(P(16, 1, 17), P(18, 1, 19)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(30, 1, 31), P(32, 1, 33)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have splats": {
+			input: "%{*bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewHashRecordLiteralNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							[]ast.ExpressionNode{
+								ast.NewSplatExpressionNode(
+									S(P(2, 1, 3), P(5, 1, 6)),
+									ast.NewPublicIdentifierNode(S(P(3, 1, 4), P(5, 1, 6)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(8, 1, 9), P(31, 1, 32)),
+									T(S(P(26, 1, 27), P(27, 1, 28)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(8, 1, 9), P(24, 1, 25)),
+										ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(10, 1, 11)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(15, 1, 16), P(24, 1, 25)),
+											ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(17, 1, 18)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(29, 1, 30), P(31, 1, 32)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(2, 1, 3), P(2, 1, 3)), "splats cannot appear in record nor map literals"),
+			},
 		},
 		"can span multiple lines": {
 			input: "%{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz\n}",

@@ -706,6 +706,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.primitiveModifier(allowed)
 	case token.SEALED:
 		return p.sealedModifier(allowed)
+	case token.ASYNC:
+		return p.asyncModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -1608,6 +1610,17 @@ methodCallLoop:
 		methodName := methodNameTok.StringValue()
 		span := receiver.Span().Join(methodNameTok.Span())
 
+		if methodNameTok.Type == token.AWAIT {
+			if opToken.Type != token.DOT {
+				p.errorMessageSpan("invalid await operator", opToken.Span())
+			}
+			receiver = ast.NewAwaitExpressionNode(
+				span,
+				receiver,
+			)
+			continue
+		}
+
 		var typeArgs []ast.TypeNode
 		if p.match(token.COLON_COLON_LBRACKET) {
 			p.swallowNewlines()
@@ -1961,6 +1974,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.selfLiteral()
 	case token.BREAK:
 		return p.breakExpression()
+	case token.AWAIT:
+		return p.awaitExpression()
 	case token.GO:
 		return p.goExpression()
 	case token.RETURN:
@@ -2032,7 +2047,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.LBRACE:
 		return p.hashMapLiteral()
 	case token.RECORD_LITERAL_BEG:
-		return p.recordLiteral()
+		return p.hashRecordLiteral()
 	case token.CHAR_LITERAL:
 		return p.charLiteral()
 	case token.RAW_CHAR_LITERAL:
@@ -2083,6 +2098,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.primitiveModifier(false)
 	case token.SEALED:
 		return p.sealedModifier(false)
+	case token.ASYNC:
+		return p.asyncModifier(false)
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -2526,14 +2543,14 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
-// "{" [hashMapLiteralElements] "}" [":" primaryExpression]
+// "{" [recordLiteralElements] "}" [":" primaryExpression]
 func (p *Parser) hashMapLiteral() ast.ExpressionNode {
-	return p.collectionLiteralWithCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
+	return p.collectionLiteralWithCapacity(token.RBRACE, p.recordLiteralElements, ast.NewHashMapLiteralNodeI)
 }
 
-// "%{" [hashMapLiteralElements] "}"
-func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.hashMapLiteralElements, ast.NewHashRecordLiteralNodeI)
+// "%{" [recordLiteralElements] "}"
+func (p *Parser) hashRecordLiteral() ast.ExpressionNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.recordLiteralElements, ast.NewHashRecordLiteralNodeI)
 }
 
 // arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" primaryExpression]
@@ -2551,24 +2568,63 @@ func (p *Parser) listLikeLiteralElements(stopTokens ...token.Type) []ast.Express
 	return commaSeparatedList(p, p.listLikeLiteralElement, stopTokens...)
 }
 
-// listLikeLiteralElement = keyValueExpression |
+// listLikeLiteralElement = "*" expressionWithoutModifier |
+// keyValueExpression |
 // keyValueExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // keyValueExpression "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR_STAR) {
+		p.errorMessage("double splats cannot appear in list, tuple nor set literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.keyValueExpression)
 }
 
-// hashMapLiteralElements = hashMapLiteralElement ("," hashMapLiteralElement)*
-func (p *Parser) hashMapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.hashMapLiteralElement, stopTokens...)
+// recordLiteralElements = recordLiteralElement ("," recordLiteralElement)*
+func (p *Parser) recordLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.recordLiteralElement, stopTokens...)
 }
 
-// hashMapLiteralElement = keyValueMapExpression |
+// recordLiteralElement = "**" expressionWithoutModifier |
+// keyValueMapExpression |
 // keyValueMapExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueMapExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // keyValueMapExpression "for" identifierList "in" expressionWithoutModifier
-func (p *Parser) hashMapLiteralElement() ast.ExpressionNode {
+func (p *Parser) recordLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR_STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR) {
+		p.errorMessage("splats cannot appear in record nor map literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.keyValueMapExpression)
 }
 
@@ -2642,11 +2698,29 @@ func (p *Parser) hashSetLiteralElements(stopTokens ...token.Type) []ast.Expressi
 	return commaSeparatedList(p, p.hashSetLiteralElement, stopTokens...)
 }
 
-// hashSetLiteralElement = expressionWithoutModifier |
+// hashSetLiteralElement = ["*"] expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
+	if p.accept(token.STAR) {
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+	if p.accept(token.STAR_STAR) {
+		p.errorMessage("double splats cannot appear in list, tuple nor set literals")
+		starTok := p.advance()
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
 
@@ -3060,12 +3134,14 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		)
 	}
 
+	var flags bitfield.BitFlag8
+	if isGenerator {
+		flags |= ast.METHOD_GENERATOR_FLAG
+	}
 	return ast.NewMethodDefinitionNode(
 		p.newLocation(span),
 		"",
-		false,
-		false,
-		isGenerator,
+		flags,
 		methodName,
 		typeParams,
 		params,
@@ -4607,6 +4683,17 @@ func (p *Parser) goExpression() *ast.GoExpressionNode {
 	)
 }
 
+// awaitExpression = "await" expressionWithoutModifier
+func (p *Parser) awaitExpression() *ast.AwaitExpressionNode {
+	awaitTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewAwaitExpressionNode(
+		awaitTok.Span().Join(expr.Span()),
+		expr,
+	)
+}
+
 // returnExpression = "return" [expressionWithoutModifier]
 func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
@@ -4681,6 +4768,26 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	)
 }
 
+// asyncModifier = "async" declarationExpression
+func (p *Parser) asyncModifier(allowed bool) ast.ExpressionNode {
+	asyncTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		if n.IsAsync() {
+			p.errorMessageSpan("the async modifier can only be attached once", asyncTok.Span())
+		}
+		n.SetAsync()
+		n.SetSpan(asyncTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the async modifier can only be attached to methods", node.Span())
+	}
+
+	return node
+}
+
 // sealedModifier = "sealed" declarationExpression
 func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 	sealedTok := p.advance()
@@ -4698,13 +4805,13 @@ func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 		n.Sealed = true
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	case *ast.MethodDefinitionNode:
-		if n.Sealed {
+		if n.IsSealed() {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
 		}
-		if n.Abstract {
+		if n.IsAbstract() {
 			p.errorMessageSpan("the sealed modifier cannot be attached to abstract methods", sealedTok.Span())
 		}
-		n.Sealed = true
+		n.SetSealed()
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	default:
 		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
@@ -4730,13 +4837,13 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 		n.Abstract = true
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	case *ast.MethodDefinitionNode:
-		if n.Abstract {
+		if n.IsAbstract() {
 			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
-		if n.Sealed {
+		if n.IsSealed() {
 			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
 		}
-		n.Abstract = true
+		n.SetAbstract()
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	case *ast.MixinDeclarationNode:
 		if n.Abstract {

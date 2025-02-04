@@ -950,6 +950,45 @@ func TestYieldExpression(t *testing.T) {
 	}
 }
 
+func TestAwaitExpression(t *testing.T) {
+	tests := testTable{
+		"cannot await non-promise": {
+			input: `
+				await 4
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "only promises can be awaited"),
+			},
+		},
+		"await returns the result type of the promise": {
+			input: `
+				var a: Promise[Int] = loop; end
+				var b: nil = a.await
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(54, 3, 18), P(60, 3, 24)), "type `Std::Int` cannot be assigned to type `nil`"),
+				error.NewWarning(L("<main>", P(41, 3, 5), P(60, 3, 24)), "unreachable code"),
+			},
+		},
+		"await throws if the promise has a throw type": {
+			input: `
+				var a: Promise[Int, String] = loop; end
+				a.await
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(49, 3, 5), P(55, 3, 11)), "thrown value of type `Std::String` must be caught"),
+				error.NewWarning(L("<main>", P(49, 3, 5), P(55, 3, 11)), "unreachable code"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestDoExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {

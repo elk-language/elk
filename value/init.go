@@ -119,6 +119,8 @@ func InitGlobalEnvironment() {
 	initOnce()
 	initStackTrace()
 	initCallFrame()
+	initPromise()
+	initThreadPool()
 }
 
 func init() {

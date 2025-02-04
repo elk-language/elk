@@ -52,6 +52,14 @@
 ]##
 sealed primitive class ::Std::Channel[V]
 	include Iterable::FiniteBase[V]
+	implement Closable
+
+	singleton
+		##[
+			Create a new `Channel` that is closed.
+		]##
+		def closed[V]: Channel[V]; end
+	end
 
 	##[
 		Create a new `Channel` with the given capacity.

@@ -67,9 +67,11 @@ var (
 	PrimitiveIterable    = value.ToSymbol("PrimitiveIterable")
 	Error                = value.ToSymbol("Error")
 	Thread               = value.ToSymbol("Thread")
+	ThreadPool           = value.ToSymbol("ThreadPool")
 	Channel              = value.ToSymbol("Channel")
 	StackTrace           = value.ToSymbol("StackTrace")
 	CallFrame            = value.ToSymbol("CallFrame")
+	Promise              = value.ToSymbol("Promise")
 )
 
 // lowercase symbols

@@ -1493,6 +1493,30 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 		},
+		"declare a async generator": {
+			input: `
+				async def* foo: String
+					"lol"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(5, 2, 5), P(45, 4, 7)), "async generators are illegal"),
+			},
+		},
+		"declare a async method": {
+			input: `
+				async def foo: String
+					"lol"
+				end
+			`,
+		},
+		"declare a async method with a throw type": {
+			input: `
+				async def foo: String ! Int
+					"lol"
+				end
+			`,
+		},
 		"declare a generator": {
 			input: `
 				def *foo: String
@@ -1783,6 +1807,32 @@ func TestMethodCalls(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(16, 3, 5), P(19, 3, 8)), "method `call` is not defined on type `Std::Int`"),
+			},
+		},
+		"call to a async method returns a promise": {
+			input: `
+				module Foo
+					async def baz(a: Int): Int
+						10
+					end
+				end
+				var a: nil = Foo.baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(91, 7, 18), P(100, 7, 27)), "type `Std::Promise[Std::Int, never]` cannot be assigned to type `nil`"),
+			},
+		},
+		"call to a async method returns a promise that throws": {
+			input: `
+				module Foo
+					async def baz(a: Int): Int ! Error
+						10
+					end
+				end
+				var a: nil = Foo.baz(5)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(99, 7, 18), P(108, 7, 27)), "type `Std::Promise[Std::Int, Std::Error]` cannot be assigned to type `nil`"),
 			},
 		},
 		"call to a generator returns a generator": {

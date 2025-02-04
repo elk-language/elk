@@ -14,8 +14,11 @@ func initKernel() {
 		c,
 		"print",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].MustReference().(*value.ArrayTuple)
-			for _, val := range *values {
+			for val, err := range Iterate(vm, args[1]) {
+				if !err.IsUndefined() {
+					return value.Undefined, err
+				}
+
 				result, err := vm.CallMethodByName(toStringSymbol, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -32,8 +35,11 @@ func initKernel() {
 		c,
 		"println",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].MustReference().(*value.ArrayTuple)
-			for _, val := range *values {
+			for val, err := range Iterate(vm, args[1]) {
+				if !err.IsUndefined() {
+					return value.Undefined, err
+				}
+
 				result, err := vm.CallMethodByName(toStringSymbol, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -63,6 +69,30 @@ func initKernel() {
 			time.Sleep(duration.Go())
 
 			return value.Nil, value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"timeout",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			durationVal := args[1]
+			var duration value.Duration
+			if durationVal.IsReference() {
+				duration = durationVal.AsReference().(value.Duration)
+			} else {
+				duration = durationVal.AsDuration()
+			}
+
+			p := NewNativePromise(vm.threadPool)
+
+			go func(p *Promise, d time.Duration) {
+				<-time.After(d)
+				p.Resolve(value.Nil)
+			}(p, duration.Go())
+
+			return value.Ref(p), value.Undefined
 		},
 		DefWithParameters(1),
 	)

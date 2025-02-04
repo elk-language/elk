@@ -1011,6 +1011,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkModifierForInExpressionNode("", n)
 	case *ast.LabeledExpressionNode:
 		return c.checkLabeledExpressionNode(n)
+	case *ast.AwaitExpressionNode:
+		return c.checkAwaitExpressionNode(n)
 	case *ast.ReturnExpressionNode:
 		return c.checkReturnExpressionNode(n)
 	case *ast.YieldExpressionNode:
@@ -2174,6 +2176,34 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 	}
 	c.checkCanAssign(typ, c.returnType, node.Span())
 
+	return node
+}
+
+func (c *Checker) checkAwaitExpressionNode(node *ast.AwaitExpressionNode) ast.ExpressionNode {
+	var typ types.Type
+
+	node.Value = c.checkExpression(node.Value)
+	typ = c.typeOfGuardVoid(node.Value)
+
+	if !c.IsSubtype(typ, c.Std(symbol.Promise)) {
+		c.addFailure(
+			"only promises can be awaited",
+			node.Value.Span(),
+		)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	promiseType, ok := typ.(*types.Generic)
+	if !ok {
+		node.SetType(types.Untyped{})
+		return node
+	}
+	returnType := promiseType.Get(0).Type
+	throwType := promiseType.Get(1).Type
+
+	c.checkThrowType(throwType, node.Span())
+	node.SetType(returnType)
 	return node
 }
 
@@ -3380,7 +3410,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
-		left, _, typ := c.checkSimpleMethodCall(
+		left, args, typ := c.checkSimpleMethodCall(
 			node.Left,
 			token.DOT,
 			value.ToSymbol(node.Op.StringValue()),
@@ -3390,6 +3420,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 			node.Span(),
 		)
 		node.Left = left
+		node.Right = args[0]
 		node.SetType(typ)
 	default:
 		node.Left = c.checkExpression(node.Left)
@@ -4232,10 +4263,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			false,
-			false,
-			true,
-			false,
+			types.METHOD_NATIVE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -4313,10 +4341,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			false,
-			false,
-			true,
-			false,
+			types.METHOD_NATIVE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -4386,10 +4411,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		if method == nil {
 			method = types.NewMethod(
 				"",
-				false,
-				false,
-				true,
-				false,
+				types.METHOD_NATIVE_FLAG,
 				symbol.S_init,
 				nil,
 				nil,
@@ -4414,10 +4436,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			false,
-			false,
-			true,
-			false,
+			types.METHOD_NATIVE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -4540,6 +4559,7 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 		false,
 		true,
 		false,
+		false,
 		symbol.L_call,
 		nil,
 		node.Parameters,
@@ -4584,6 +4604,7 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 		false,
 		false,
 		true,
+		false,
 		false,
 		symbol.L_call,
 		nil,
@@ -6008,6 +6029,7 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 		false,
 		false,
 		false,
+		false,
 		symbol.L_call,
 		nil,
 		node.Parameters,
@@ -7345,6 +7367,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		false,
 		false,
 		false,
+		false,
 		symbol.S_init,
 		nil,
 		initNode.Parameters,
@@ -7356,9 +7379,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	newNode := ast.NewMethodDefinitionNode(
 		initNode.Location(),
 		initNode.DocComment(),
-		false,
-		false,
-		false,
+		0,
 		"#init",
 		nil,
 		initNode.Parameters,
@@ -7402,10 +7423,11 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		nil,
 		definedUnder,
 		node.DocComment(),
-		node.Abstract,
-		node.Sealed,
+		node.IsAbstract(),
+		node.IsSealed(),
 		false,
-		node.Generator,
+		node.IsGenerator(),
+		node.IsAsync(),
 		value.ToSymbol(node.Name),
 		node.TypeParameters,
 		node.Parameters,
@@ -7427,6 +7449,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
+		false,
 		false,
 		false,
 		false,

@@ -61,7 +61,8 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	var stdout strings.Builder
 	var stderr strings.Builder
-	v := vm.New(vm.WithStdout(&stdout), vm.WithStderr(&stderr))
+	tp := vm.NewThreadPool(2, 50, vm.WithStdout(&stdout), vm.WithStderr(&stderr))
+	v := vm.New(vm.WithStdout(&stdout), vm.WithStderr(&stderr), vm.WithThreadPool(tp))
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
 	gotStderr := stderr.String()

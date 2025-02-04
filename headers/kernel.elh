@@ -20,4 +20,10 @@ module Std::Kernel
     of time represented by the passed `Duration`.
   ]##
   def sleep(dur: Duration); end
+
+  ##[
+    The asynchronous version of `sleep`.
+    Returns a promise that gets resolved after the given amount of time.
+  ]##
+  async def timeout(dur: Duration); end
 end

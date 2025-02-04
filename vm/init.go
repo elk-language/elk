@@ -57,6 +57,7 @@ func InitGlobalEnvironment() {
 	initValue()
 	initGenerator()
 	initThread()
+	initThreadPool()
 	initChannel()
 	initWaitGroup()
 	initMutex()
@@ -66,6 +67,7 @@ func InitGlobalEnvironment() {
 	initStackTrace()
 	initStackTraceIterator()
 	initCallFrame()
+	initPromise()
 }
 
 func init() {

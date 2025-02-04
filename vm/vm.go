@@ -20,6 +20,7 @@ import (
 	"github.com/fatih/color"
 )
 
+var DefaultThreadPool = &ThreadPool{}
 var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
 
@@ -37,6 +38,8 @@ func init() {
 	} else {
 		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
+
+	DefaultThreadPool.initThreadPool(4, 256)
 }
 
 // VM state
@@ -46,6 +49,7 @@ const (
 	idleState state = iota
 	runningState
 	errorState // the VM stopped after encountering an uncaught error
+	awaitState
 	terminatedState
 )
 
@@ -70,9 +74,10 @@ type VM struct {
 	stack           []value.Value     // Value stack
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
-	Stdin           io.Reader         // standard output used by the VM
-	Stdout          io.Writer         // standard input used by the VM
-	Stderr          io.Writer         // standard error used by the VM
+	threadPool      *ThreadPool
+	Stdin           io.Reader // standard output used by the VM
+	Stdout          io.Writer // standard input used by the VM
+	Stderr          io.Writer // standard error used by the VM
 	state           state
 }
 
@@ -99,6 +104,12 @@ func WithStderr(stderr io.Writer) Option {
 	}
 }
 
+func WithThreadPool(tp *ThreadPool) Option {
+	return func(vm *VM) {
+		vm.threadPool = tp
+	}
+}
+
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	stack := make([]value.Value, INIT_VALUE_STACK_SIZE)
@@ -117,6 +128,7 @@ func New(opts ...Option) *VM {
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
+		threadPool: DefaultThreadPool,
 	}
 	vm.cfpSet(&callFrames[0])
 
@@ -245,6 +257,38 @@ func (vm *VM) throwIfErr(err value.Value) {
 	if !err.IsUndefined() {
 		vm.throw(err)
 	}
+}
+
+func (vm *VM) callPromise(promise *Promise) {
+	vm.state = runningState
+	vm.createCurrentCallFrame(true)
+	vm.bytecode = promise.Bytecode
+	vm.fp = vm.sp
+	vm.ip = promise.ip
+	vm.localCount = promise.Bytecode.parameterCount + 1
+	vm.upvalues = promise.upvalues
+
+	baseStack := &promise.stack[0]
+	stackLen := len(promise.stack)
+	for i := range stackLen {
+		*vm.spAdd(i) = *vm.stackAdd(baseStack, i)
+	}
+	vm.spIncrementBy(uintptr(stackLen))
+
+	vm.run()
+
+	if vm.state != awaitState {
+		vm.restoreLastFrame()
+		return
+	}
+
+	stack := vm.stack[vm.fpOffset():vm.spOffset()]
+	stackCopy := make([]value.Value, len(stack))
+	copy(stackCopy, stack)
+	promise.stack = stackCopy
+	promise.ip = vm.ip
+
+	vm.restoreLastFrame()
 }
 
 func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
@@ -430,14 +474,6 @@ func (vm *VM) run() {
 	for {
 		instruction := bytecode.OpCode(vm.readByte())
 		switch instruction {
-		case bytecode.GENERATOR:
-			generator := newGenerator(
-				vm.bytecode,
-				vm.upvalues,
-				vm.stackFrameCopy(),
-				vm.ip+1,
-			)
-			vm.push(value.Ref(generator))
 		case bytecode.STOP_ITERATION:
 			vm.state = errorState
 			vm.errStackTrace = vm.BuildStackTrace()
@@ -498,6 +534,49 @@ func (vm *VM) run() {
 
 			vm.popN(2)
 			vm.ipSetOffset(int(jumpOffset))
+		case bytecode.GENERATOR:
+			vm.opGenerator()
+		case bytecode.PROMISE:
+			vm.opPromise()
+		case bytecode.AWAIT:
+			promise := (*Promise)(vm.peek().Pointer())
+			promise.m.Lock()
+
+			if !promise.IsResolved() {
+				// promise is not resolved, switching contexts
+				vm.state = awaitState
+				return
+			}
+
+			// promise is already resolved, no need to switch contexts
+			err := promise.err
+			result := promise.result
+			promise.m.Unlock()
+
+			if !err.IsUndefined() {
+				vm.pop()
+				vm.throw(err)
+				return
+			}
+
+			vm.replace(result)
+			vm.ipIncrement() // skip over AWAIT_RESULT
+		case bytecode.AWAIT_RESULT:
+			promise := (*Promise)(vm.peek().Pointer())
+
+			if !promise.IsResolved() {
+				panic("promise is still unresolved after await")
+			}
+
+			result := promise.result
+			err := promise.err
+			if !err.IsUndefined() {
+				vm.pop()
+				vm.throw(err)
+				return
+			}
+
+			vm.replace(result)
 		case bytecode.NOOP:
 		case bytecode.DUP:
 			vm.push(vm.peek())
@@ -1753,6 +1832,38 @@ func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	}
 
 	return value.Undefined
+}
+
+// Create a new generator
+func (vm *VM) opGenerator() {
+	generator := newGenerator(
+		vm.bytecode,
+		vm.upvalues,
+		vm.stackFrameCopy(),
+		vm.ip+1,
+	)
+	vm.push(value.Ref(generator))
+}
+
+// Create a new promise
+func (vm *VM) opPromise() {
+	arg := vm.popGet()
+	generator := newGenerator(
+		vm.bytecode,
+		vm.upvalues,
+		vm.stackFrameCopy(),
+		vm.ip+1,
+	)
+
+	var threadPool *ThreadPool
+	if arg.IsUndefined() {
+		threadPool = vm.threadPool
+	} else {
+		threadPool = (*ThreadPool)(arg.Pointer())
+	}
+
+	promise := newPromise(threadPool, generator)
+	vm.push(value.Ref(promise))
 }
 
 // Pop the value on top of the stack and push its opCopy.

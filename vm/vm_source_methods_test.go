@@ -331,6 +331,34 @@ func TestVMSource_CallClosure(t *testing.T) {
 	}
 }
 
+func TestVMSource_Async(t *testing.T) {
+	tests := sourceTestTable{
+		"start 8 promises and await them": {
+			source: `
+				async def foo: Int
+					println "START"
+					await timeout(10.millisecond)
+					println "STOP"
+
+					10
+				end
+
+				var promises: List[Promise[Int]] = []
+				for i in 1...8 then promises << foo()
+				for p in promises then await p
+			`,
+			wantStdout:   "START\nSTART\nSTART\nSTART\nSTART\nSTART\nSTART\nSTART\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\n",
+			wantStackTop: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_Generator(t *testing.T) {
 	tests := sourceTestTable{
 		"call a generator": {

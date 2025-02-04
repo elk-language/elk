@@ -275,6 +275,9 @@ const (
 	YIELD                           // Yield a value from a generator
 	STOP_ITERATION                  // Throw `:stop_iteration` in a generator
 	GO                              // Start a new thread
+	PROMISE                         // Create a new promise from the current function and push it onto the stack
+	AWAIT                           // Await the promise on top of the stack
+	AWAIT_RESULT                    // Handle the result of an awaited promise
 )
 
 var opCodeNames = [...]string{
@@ -511,4 +514,7 @@ var opCodeNames = [...]string{
 	YIELD:             "YIELD",
 	STOP_ITERATION:    "STOP_ITERATION",
 	GO:                "GO",
+	PROMISE:           "PROMISE",
+	AWAIT:             "AWAIT",
+	AWAIT_RESULT:      "AWAIT_RESULT",
 }

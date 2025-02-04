@@ -365,12 +365,29 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	for methodName, method := range types.SortedOwnMethods(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineMethod(%q, %t, %t, %t, %t, value.ToSymbol(%q), ",
+			"namespace.DefineMethod(%q, 0",
 			method.DocComment,
-			method.IsAbstract(),
-			method.IsSealed(),
-			method.IsNative(),
-			method.IsGenerator(),
+		)
+
+		if method.IsAbstract() {
+			buffer.WriteString("| METHOD_ABSTRACT_FLAG")
+		}
+		if method.IsSealed() {
+			buffer.WriteString("| METHOD_SEALED_FLAG")
+		}
+		if method.IsNative() {
+			buffer.WriteString("| METHOD_NATIVE_FLAG")
+		}
+		if method.IsGenerator() {
+			buffer.WriteString("| METHOD_GENERATOR_FLAG")
+		}
+		if method.IsAsync() {
+			buffer.WriteString("| METHOD_ASYNC_FLAG")
+		}
+
+		fmt.Fprintf(
+			buffer,
+			", value.ToSymbol(%q), ",
 			methodName.String(),
 		)
 
@@ -776,14 +793,32 @@ func typeToCode(typ types.Type, init bool) string {
 		buff := new(strings.Builder)
 		fmt.Fprintf(
 			buff,
-			"NewClosureWithMethod(%q, %t, %t, %t, %t, value.ToSymbol(%q), ",
+			"NewClosureWithMethod(%q, 0",
 			t.Body.DocComment,
-			t.Body.IsAbstract(),
-			t.Body.IsSealed(),
-			t.Body.IsNative(),
-			t.Body.IsGenerator(),
+		)
+
+		if t.Body.IsAbstract() {
+			buff.WriteString("| METHOD_ABSTRACT_FLAG")
+		}
+		if t.Body.IsSealed() {
+			buff.WriteString("| METHOD_SEALED_FLAG")
+		}
+		if t.Body.IsNative() {
+			buff.WriteString("| METHOD_NATIVE_FLAG")
+		}
+		if t.Body.IsGenerator() {
+			buff.WriteString("| METHOD_GENERATOR_FLAG")
+		}
+		if t.Body.IsAsync() {
+			buff.WriteString("| METHOD_ASYNC_FLAG")
+		}
+
+		fmt.Fprintf(
+			buff,
+			", value.ToSymbol(%q), ",
 			t.Body.Name.String(),
 		)
+
 		if len(t.Body.TypeParameters) > 0 {
 			buff.WriteString("[]*TypeParameter{")
 			for _, param := range t.Body.TypeParameters {

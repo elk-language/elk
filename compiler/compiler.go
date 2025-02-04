@@ -154,6 +154,7 @@ type Compiler struct {
 	predefinedLocals   int
 	mode               mode
 	isGenerator        bool
+	isAsync            bool
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
@@ -527,9 +528,8 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	}
 
 	methodCompiler := New(name.String(), mode, c.newLocation(node.Span()), c.checker)
-	if node.Generator {
-		methodCompiler.isGenerator = true
-	}
+	methodCompiler.isGenerator = node.IsGenerator()
+	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
 
@@ -538,8 +538,6 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 
 // Entry point for compiling the body of a method.
 func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
-	c.Bytecode.SetParameterCount(len(parameters))
-
 	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Span()
@@ -570,11 +568,22 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 		}
 	}
 
+	paramCount := len(parameters)
 	if c.isGenerator {
 		c.emit(span.StartPos.Line, bytecode.GENERATOR)
 		c.emit(span.EndPos.Line, bytecode.RETURN)
 		c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
+	} else if c.isAsync {
+		poolVar := c.defineLocal("_pool", span)
+		paramCount++
+		c.predefinedLocals++
+		c.Bytecode.IncrementOptionalParameterCount()
+
+		c.emitGetLocal(span.StartPos.Line, poolVar.index)
+		c.emit(span.StartPos.Line, bytecode.PROMISE)
+		c.emit(span.EndPos.Line, bytecode.RETURN)
 	}
+	c.Bytecode.SetParameterCount(paramCount)
 
 	c.compileStatements(body, span, false)
 
@@ -853,6 +862,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.ReturnExpressionNode:
 		c.compileReturnExpressionNode(node)
 		return expressionCompiledWithoutResult
+	case *ast.AwaitExpressionNode:
+		c.compileAwaitExpressionNode(node)
 	case *ast.YieldExpressionNode:
 		c.compileYieldExpressionNode(node)
 		return expressionCompiledWithoutResult
@@ -3151,6 +3162,18 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 	}
 
 	return expressionCompiledWithoutResult
+}
+
+func (c *Compiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
+	span := node.Span()
+	c.compileNodeWithResult(node.Value)
+	if !c.isAsync {
+		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Span(), false)
+		return
+	}
+
+	c.emit(span.StartPos.Line, bytecode.AWAIT)
+	c.emit(span.StartPos.Line, bytecode.AWAIT_RESULT)
 }
 
 func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {

@@ -3326,7 +3326,7 @@ func Iter(val Value) Value {
 	switch v := val.AsReference().(type) {
 	case *ArrayListIterator, *ArrayTupleIterator, *HashMapIterator,
 		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
-		*StringByteIterator, *StringGraphemeIterator:
+		*StringByteIterator, *StringGraphemeIterator, *Channel:
 		return val
 	case String:
 		return Ref(NewStringCharIterator(v))

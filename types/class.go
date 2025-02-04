@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -177,8 +178,8 @@ func NewClassWithDetails(
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, abstract, sealed, native, generator bool, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(docComment, abstract, sealed, native, generator, name, typeParams, params, returnType, throwType, c)
+func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
 }
@@ -198,6 +199,7 @@ func (*Class) IsLiteral() bool {
 func (c *Class) Copy() *Class {
 	return &Class{
 		parent:         c.parent,
+		noinit:         c.noinit,
 		primitive:      c.primitive,
 		sealed:         c.sealed,
 		abstract:       c.abstract,
@@ -224,9 +226,10 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	}
 
 	newClass := &Class{
-		primitive:     c.primitive,
-		sealed:        c.sealed,
+		noinit:        c.noinit,
 		abstract:      c.abstract,
+		sealed:        c.sealed,
+		primitive:     c.primitive,
 		defined:       c.defined,
 		compiled:      c.compiled,
 		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
