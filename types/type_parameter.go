@@ -62,10 +62,20 @@ func (t *TypeParameter) Copy() *TypeParameter {
 }
 
 func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeParameter {
-	newTypeParam := t.Copy()
-	if t.Namespace != nil {
-		newTypeParam.Namespace = DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace)
+	var namespace Namespace
+
+	if t.Namespace != nil && t.Namespace.Name() != "" {
+		namespace = DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace)
+		if subtype, ok := namespace.Subtype(t.Name); ok {
+			return subtype.Type.(*TypeParameter)
+		}
 	}
+
+	newTypeParam := t.Copy()
+	if namespace != nil {
+		namespace.DefineSubtype(t.Name, newTypeParam)
+	}
+	newTypeParam.Namespace = namespace
 	newTypeParam.LowerBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
 	newTypeParam.UpperBound = DeepCopyEnv(t.UpperBound, oldEnv, newEnv)
 	newTypeParam.Default = DeepCopyEnv(t.Default, oldEnv, newEnv)

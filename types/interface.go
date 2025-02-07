@@ -145,24 +145,20 @@ func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
 		Checked:       i.Checked,
 		NamespaceBase: MakeNamespaceBase(i.docComment, i.name),
 	}
-	parentNamespace.DefineSubtype(value.ToSymbol(ifaceConstantPath[len(ifaceConstantPath)-1]), newIface)
+	constName := ifaceConstantPath[len(ifaceConstantPath)-1]
+	parentNamespace.DefineSubtype(value.ToSymbol(constName), newIface)
 
+	newIface.singleton = nil
+	newIface.singleton = DeepCopyEnv(i.singleton, oldEnv, newEnv).(*SingletonClass)
+
+	newIface.typeParameters = TypeParametersDeepCopyEnv(i.typeParameters, oldEnv, newEnv)
 	newIface.methods = MethodsDeepCopyEnv(i.methods, oldEnv, newEnv)
 	newIface.instanceVariables = TypesDeepCopyEnv(i.instanceVariables, oldEnv, newEnv)
 	newIface.subtypes = ConstantsDeepCopyEnv(i.subtypes, oldEnv, newEnv)
 	newIface.constants = ConstantsDeepCopyEnv(i.constants, oldEnv, newEnv)
-	newIface.typeParameters = TypeParametersDeepCopyEnv(i.typeParameters, oldEnv, newEnv)
 
 	if i.parent != nil {
 		newIface.parent = DeepCopyEnv(i.parent, oldEnv, newEnv).(Namespace)
 	}
-	var singletonParent Namespace
-	if i.singleton.parent != nil {
-		singletonParent = DeepCopyEnv(i.singleton.parent, oldEnv, newEnv).(Namespace)
-	}
-	newIface.singleton = NewSingletonClass(
-		newIface,
-		singletonParent,
-	)
 	return newIface
 }

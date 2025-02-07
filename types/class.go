@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -240,14 +242,43 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 	newClass.singleton = nil
 	newClass.singleton = DeepCopyEnv(c.singleton, oldEnv, newEnv).(*SingletonClass)
 
+	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
 	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
 	newClass.instanceVariables = TypesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
 	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
 	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
-	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
 
 	if c.parent != nil {
 		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
 	}
 	return newClass
+}
+
+// Used for debugging deep copies of types
+func (c *Class) inspectInheritance() {
+	fmt.Printf("Inheritance: ")
+	for p := range Parents(c) {
+		fmt.Printf(" -> %s(%T:%p", I(p), p, p)
+		switch p := p.(type) {
+		case *Generic:
+			fmt.Printf(" %T:%p", p.Namespace, p.Namespace)
+			fmt.Printf("[&:%p", p.ArgumentMap)
+			for _, val := range p.ArgumentMap {
+				switch t := val.Type.(type) {
+				case *TypeParameter:
+					fmt.Printf(" %s:%p", t.InspectSignatureWithColor(), t)
+				}
+			}
+			fmt.Print("]")
+			switch n := p.Namespace.(type) {
+			case *InterfaceProxy:
+				fmt.Printf(" %T:%p", n.Interface, n.Interface)
+			case *MixinProxy:
+				fmt.Printf(" %T:%p", n.Mixin, n.Mixin)
+			}
+		}
+
+		fmt.Print(")")
+	}
+	fmt.Println()
 }

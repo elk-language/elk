@@ -24,7 +24,8 @@ func (t *TypeArgument) Copy() *TypeArgument {
 
 func (t *TypeArgument) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArgument {
 	newTypeArg := t.Copy()
-	newTypeArg.Type = DeepCopyEnv(t.Type, oldEnv, newEnv)
+	newType := DeepCopyEnv(t.Type, oldEnv, newEnv)
+	newTypeArg.Type = newType
 	return newTypeArg
 }
 
@@ -95,7 +96,8 @@ func (t *TypeArguments) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArgu
 		if key == symbol.L_self {
 			continue
 		}
-		newMap[key] = val.DeepCopyEnv(oldEnv, newEnv)
+		newVal := val.DeepCopyEnv(oldEnv, newEnv)
+		newMap[key] = newVal
 	}
 	return &TypeArguments{
 		ArgumentMap:   newMap,
