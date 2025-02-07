@@ -279,6 +279,21 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				}),
 			}),
 		},
+		"with splats": {
+			source: `
+			  arr := [5, 6, 7]
+				%[1, *arr, %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayTuple{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
 		"with dynamic indices": {
 			source: `
 			  foo := 3
@@ -542,6 +557,21 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				}),
 			}),
 		},
+		"with splats": {
+			source: `
+			  arr := [5, 6, 7]
+				[1, *arr, %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
 		"with dynamic indices": {
 			source: `
 			  foo := 3
@@ -800,6 +830,21 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				value.SmallInt(10).ToValue(),
 				value.SmallInt(12).ToValue(),
 				value.SmallInt(14).ToValue(),
+				value.SmallInt(2).ToValue(),
+			)),
+		},
+		"with splats": {
+			source: `
+			  arr := [5, 6, 7]
+				^[1, *arr, 2]
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				6,
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
 				value.SmallInt(2).ToValue(),
 			)),
 		},

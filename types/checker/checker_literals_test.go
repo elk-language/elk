@@ -46,6 +46,16 @@ func TestArrayTupleLiteral(t *testing.T) {
 				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::ArrayTuple[1 | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
+		"splat": {
+			input: `
+				a := [1.2, 5.9]
+				var foo = %[1, *a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 16), P(61, 4, 18)), "type `Std::ArrayTuple[1 | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier if else": {
 			input: `
 				var a: bool = false
@@ -355,6 +365,38 @@ func TestHashSetLiteral(t *testing.T) {
 			},
 		},
 
+		"modifier for in": {
+			input: `
+				var foo = ^[1, i.to_float for i in 5...20]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"splat": {
+			input: `
+				a := [1.2, 5.9]
+				var foo = ^[1, *a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(59, 4, 16), P(61, 4, 18)), "type `Std::HashSet[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"splat with invalid iterable": {
+			input: `
+				a := 5
+				var foo = ^[1, *a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(32, 3, 21), P(32, 3, 21)), "type `Std::Int` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
+				error.NewFailure(L("<main>", P(32, 3, 21), P(32, 3, 21)), "type `Std::Int` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+
 		"infer array list": {
 			input: `
 				var foo = ^[1, 2]
@@ -606,6 +648,28 @@ func TestArrayListLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(62, 3, 16), P(64, 3, 18)), "type `Std::ArrayList[Std::Int | Std::Float]` cannot be assigned to type `9`"),
+			},
+		},
+		"splat": {
+			input: `
+				a := %[8, 10, 45]
+				var foo = [1, *a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(60, 4, 16), P(62, 4, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"splat with invalid iterable": {
+			input: `
+				a := 1.5
+				var foo = [1, *a]
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(33, 3, 20), P(33, 3, 20)), "type `Std::Float` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
+				error.NewFailure(L("<main>", P(33, 3, 20), P(33, 3, 20)), "type `Std::Float` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				error.NewFailure(L("<main>", P(51, 4, 16), P(53, 4, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if else": {

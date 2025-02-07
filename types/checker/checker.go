@@ -1752,9 +1752,23 @@ func (c *Checker) checkArrayListElement(node ast.ExpressionNode) ast.ExpressionN
 		return c.checkCollectionForInModifier(e, c.checkArrayListElement)
 	case *ast.KeyValueExpressionNode:
 		return c.checkArrayListKeyValueExpression(e)
+	case *ast.SplatExpressionNode:
+		return c.checkCollectionSplatExpression(e)
 	default:
 		return c.checkExpression(node)
 	}
+}
+
+func (c *Checker) checkCollectionSplatExpression(node *ast.SplatExpressionNode) ast.ExpressionNode {
+	// transform `[1, *foo, 2]` into `[1, #e for #e in foo, 2]`
+	elementIdentNode := ast.NewPublicIdentifierNode(node.Span(), "#e")
+	newNode := ast.NewModifierForInNode(
+		node.Span(),
+		elementIdentNode,
+		elementIdentNode,
+		node.Value,
+	)
+	return c.checkArrayListElement(newNode)
 }
 
 func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
@@ -1796,6 +1810,8 @@ func (c *Checker) checkHashSetElement(node ast.ExpressionNode) ast.ExpressionNod
 		return c.checkCollectionIfElseModifier(e, c.checkHashSetElement)
 	case *ast.ModifierForInNode:
 		return c.checkCollectionForInModifier(e, c.checkHashSetElement)
+	case *ast.SplatExpressionNode:
+		return c.checkCollectionSplatExpression(e)
 	default:
 		return c.checkExpression(node)
 	}
@@ -1822,6 +1838,8 @@ func (c *Checker) checkArrayTupleElement(node ast.ExpressionNode) ast.Expression
 		return c.checkCollectionForInModifier(e, c.checkArrayTupleElement)
 	case *ast.KeyValueExpressionNode:
 		return c.checkArrayTupleKeyValueExpression(e)
+	case *ast.SplatExpressionNode:
+		return c.checkCollectionSplatExpression(e)
 	default:
 		return c.checkExpression(node)
 	}
