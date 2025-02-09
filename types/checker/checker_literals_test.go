@@ -979,6 +979,49 @@ func TestArrayListLiteral(t *testing.T) {
 
 func TestHashMapLiteral(t *testing.T) {
 	tests := testTable{
+		"double splat": {
+			input: `
+				a := { 5 => 10 }
+				var foo = { foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(68, 4, 16), P(70, 4, 18)), "type `Std::HashMap[Std::Symbol | Std::Int, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat non-iterable": {
+			input: `
+				a := 5.5
+				var foo = { foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(40, 3, 27), P(40, 3, 27)), "type `Std::Float` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
+				error.NewFailure(L("<main>", P(40, 3, 27), P(40, 3, 27)), "type `Std::Float` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				error.NewFailure(L("<main>", P(60, 4, 16), P(62, 4, 18)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat non-record iterable": {
+			input: `
+				a := [5, 10]
+				var foo = { foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(42, 3, 25), P(44, 3, 27)), "type `Std::Int` cannot ever match type `Std::Pair`"),
+				error.NewFailure(L("<main>", P(64, 4, 16), P(66, 4, 18)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat list of pairs": {
+			input: `
+				a := [Pair(5, 10), Pair(10, 20)]
+				var foo = { foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(84, 4, 16), P(86, 4, 18)), "type `Std::HashMap[Std::Symbol | Std::Int, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier for in": {
 			input: `
 				var a: bool = false
@@ -1129,6 +1172,49 @@ func TestHashMapLiteral(t *testing.T) {
 
 func TestHashRecordLiteral(t *testing.T) {
 	tests := testTable{
+		"double splat": {
+			input: `
+				a := { 5 => 10 }
+				var foo = %{ foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(69, 4, 16), P(71, 4, 18)), "type `Std::HashRecord[Std::Symbol | Std::Int, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat non-iterable": {
+			input: `
+				a := 5.5
+				var foo = %{ foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(41, 3, 28), P(41, 3, 28)), "type `Std::Float` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
+				error.NewFailure(L("<main>", P(41, 3, 28), P(41, 3, 28)), "type `Std::Float` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				error.NewFailure(L("<main>", P(61, 4, 16), P(63, 4, 18)), "type `Std::HashRecord[any, any]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat non-record iterable": {
+			input: `
+				a := [5, 10]
+				var foo = %{ foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(43, 3, 26), P(45, 3, 28)), "type `Std::Int` cannot ever match type `Std::Pair`"),
+				error.NewFailure(L("<main>", P(65, 4, 16), P(67, 4, 18)), "type `Std::HashRecord[any, any]` cannot be assigned to type `9`"),
+			},
+		},
+		"double splat list of pairs": {
+			input: `
+				a := [Pair(5, 10), Pair(10, 20)]
+				var foo = %{ foo: 1, **a  }
+				var b: 9 = foo
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(85, 4, 16), P(87, 4, 18)), "type `Std::HashRecord[Std::Symbol | Std::Int, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
 		"modifier for in": {
 			input: `
 				var a: bool = false

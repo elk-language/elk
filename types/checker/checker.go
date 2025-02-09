@@ -1477,50 +1477,113 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 }
 
 func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
-	for _, pairNode := range pairs {
-		switch p := pairNode.(type) {
-		case *ast.KeyValueExpressionNode:
-			p.Key = c.checkExpression(p.Key)
-			keyTypes = append(keyTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Key), false))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false))
-		case *ast.SymbolKeyValueExpressionNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false))
-		case *ast.PublicIdentifierNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p), false))
-		case *ast.PrivateIdentifierNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.ToNonLiteral(c.typeOfGuardVoid(p), false))
-		case *ast.ModifierNode:
-			keyType, valueType := c.checkModifierInRecord(p)
-			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
-
-			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
-		case *ast.ModifierIfElseNode:
-			keyType, valueType := c.checkRecordIfElseModifier(p)
-
-			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
-			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
-		case *ast.ModifierForInNode:
-			keyType, valueType := c.checkRecordForInModifier(p)
-
-			keyTypes = append(keyTypes, c.ToNonLiteral(keyType, false))
-			valueTypes = append(valueTypes, c.ToNonLiteral(valueType, false))
-		default:
-			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
-		}
+	for i, pairNode := range pairs {
+		node, keyType, valueType := c.checkRecordPair(pairNode)
+		pairs[i] = node
+		keyTypes = append(keyTypes, keyType)
+		valueTypes = append(valueTypes, valueType)
 	}
 
 	return keyTypes, valueTypes
+}
+
+func (c *Checker) checkRecordPair(node ast.ExpressionNode) (n ast.ExpressionNode, keyType, valueType types.Type) {
+	switch p := node.(type) {
+	case *ast.KeyValueExpressionNode:
+		p.Key = c.checkExpression(p.Key)
+		keyType = c.ToNonLiteral(c.typeOfGuardVoid(p.Key), false)
+
+		p.Value = c.checkExpression(p.Value)
+		valueType = c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false)
+
+		return p, keyType, valueType
+	case *ast.SymbolKeyValueExpressionNode:
+		keyType = c.Std(symbol.Symbol)
+
+		p.Value = c.checkExpression(p.Value)
+		valueType = c.ToNonLiteral(c.typeOfGuardVoid(p.Value), false)
+
+		return p, keyType, valueType
+	case *ast.PublicIdentifierNode:
+		keyType = c.Std(symbol.Symbol)
+
+		c.checkExpression(p)
+		valueType = c.ToNonLiteral(c.typeOfGuardVoid(p), false)
+
+		return p, keyType, valueType
+	case *ast.PrivateIdentifierNode:
+		keyType = c.Std(symbol.Symbol)
+
+		c.checkExpression(p)
+		valueType = c.ToNonLiteral(c.typeOfGuardVoid(p), false)
+
+		return p, keyType, valueType
+	case *ast.ModifierNode:
+		keyType, valueType := c.checkModifierInRecord(p)
+		keyType = c.ToNonLiteral(keyType, false)
+
+		valueType = c.ToNonLiteral(valueType, false)
+
+		return p, keyType, valueType
+	case *ast.ModifierIfElseNode:
+		keyType, valueType := c.checkRecordIfElseModifier(p)
+
+		keyType = c.ToNonLiteral(keyType, false)
+		valueType = c.ToNonLiteral(valueType, false)
+
+		return p, keyType, valueType
+	case *ast.ModifierForInNode:
+		keyType, valueType := c.checkRecordForInModifier(p)
+
+		keyType = c.ToNonLiteral(keyType, false)
+		valueType = c.ToNonLiteral(valueType, false)
+
+		return p, keyType, valueType
+	case *ast.DoubleSplatExpressionNode:
+		return c.checkRecordDoubleSplatExpression(p)
+	default:
+		panic(fmt.Sprintf("invalid map element node: %#v", node))
+	}
+}
+
+func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressionNode) (n ast.ExpressionNode, keyType, valueType types.Type) {
+	// transform `{ baz: 1, **foo, bar: 2 }` into `{ baz: 1, #key => #val for Pair(key: #key, value: #val) in foo, bar: 2 }`
+	keyIdentNode := ast.NewPublicIdentifierNode(node.Span(), "#key")
+	valIdentNode := ast.NewPublicIdentifierNode(node.Span(), "#val")
+
+	// #key => #val
+	thenNode := ast.NewKeyValueExpressionNode(
+		node.Span(),
+		keyIdentNode,
+		valIdentNode,
+	)
+
+	// Pair(key: #key, value: #val)
+	patternNode := ast.NewObjectPatternNode(
+		node.Span(),
+		ast.NewPublicConstantNode(node.Span(), "Pair"),
+		[]ast.PatternNode{
+			ast.NewSymbolKeyValuePatternNode(
+				node.Span(),
+				"key",
+				keyIdentNode,
+			),
+			ast.NewSymbolKeyValuePatternNode(
+				node.Span(),
+				"value",
+				valIdentNode,
+			),
+		},
+	)
+
+	// #key => #val for Pair(key: #key, value: #val) in foo
+	newNode := ast.NewModifierForInNode(
+		node.Span(),
+		thenNode,
+		patternNode,
+		node.Value,
+	)
+	return c.checkRecordPair(newNode)
 }
 
 func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
