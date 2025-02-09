@@ -154,7 +154,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
-		namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, value.ToSymbol("Int"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, value.ToSymbol("Int"), objectClass, env)
+			namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Iterator"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, value.ToSymbol("Int16"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, value.ToSymbol("Int32"), objectClass, env)
 		namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, value.ToSymbol("Int64"), objectClass, env)
@@ -1804,6 +1808,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the duration equivalent to `self` hours.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour"), nil, nil, NameToType("Std::Duration", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` hours.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Duration", env), Never{})
 				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns an iterator that\niterates over every integer from `0` to `self`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NameToType("Std::Int::Iterator", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` microseconds.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Duration", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` microseconds.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Duration", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` milliseconds.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("millisecond"), nil, nil, NameToType("Std::Duration", env), Never{})
@@ -1838,6 +1843,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Int", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Int", env), NewSymbolLiteral("stop_iteration"))
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("Int16").(*Class)

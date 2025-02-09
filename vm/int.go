@@ -828,4 +828,65 @@ func initInt() {
 		},
 	)
 	Alias(c, "year", "years")
+
+	Def(
+		c,
+		"iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return value.Ref(value.NewSmallIntIterator(self.AsSmallInt())), value.Undefined
+			}
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return value.Ref(value.NewBigIntIterator(s)), value.Undefined
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+}
+
+// ::Std::Int::Iterator
+func initIntIterator() {
+	// Instance methods
+	c := &value.IntIteratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch self := self.SafeAsReference().(type) {
+			case *value.SmallIntIterator:
+				return self.Next()
+			case *value.BigIntIterator:
+				return self.Next()
+			default:
+				panic(fmt.Sprintf("expected SmallIntIterator or BigIntIterator, got: %s", self.Inspect()))
+			}
+		},
+	)
+	Def(
+		c,
+		"iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"reset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch self := self.SafeAsReference().(type) {
+			case *value.SmallIntIterator:
+				self.Reset()
+				return args[0], value.Undefined
+			case *value.BigIntIterator:
+				self.Reset()
+				return args[0], value.Undefined
+			default:
+				panic(fmt.Sprintf("expected SmallIntIterator or BigIntIterator, got: %s", self.Inspect()))
+			}
+		},
+	)
 }

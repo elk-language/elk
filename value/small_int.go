@@ -2,6 +2,7 @@ package value
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
 	"math/big"
 	"strconv"
@@ -1039,4 +1040,67 @@ func (i SmallInt) Weeks() Duration {
 
 func (i SmallInt) Years() Duration {
 	return Duration(i) * Year
+}
+
+type SmallIntIterator struct {
+	Int     SmallInt
+	Counter SmallInt
+}
+
+func NewSmallIntIterator(i SmallInt) *SmallIntIterator {
+	return &SmallIntIterator{
+		Int: i,
+	}
+}
+
+func NewSmallIntIteratorWithCounter(i SmallInt, index SmallInt) *SmallIntIterator {
+	return &SmallIntIterator{
+		Int:     i,
+		Counter: index,
+	}
+}
+
+func (*SmallIntIterator) Class() *Class {
+	return IntIteratorClass
+}
+
+func (*SmallIntIterator) DirectClass() *Class {
+	return IntIteratorClass
+}
+
+func (*SmallIntIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (l *SmallIntIterator) Copy() Reference {
+	return &SmallIntIterator{
+		Int:     l.Int,
+		Counter: l.Counter,
+	}
+}
+
+func (l *SmallIntIterator) Inspect() string {
+	return fmt.Sprintf("Std::Int::Iterator{&: %p, int: %s, index: %d}", l, l.Int.Inspect(), l.Counter)
+}
+
+func (l *SmallIntIterator) Error() string {
+	return l.Inspect()
+}
+
+func (*SmallIntIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (l *SmallIntIterator) Next() (Value, Value) {
+	if l.Counter >= l.Int {
+		return Undefined, stopIterationSymbol.ToValue()
+	}
+
+	next := l.Counter
+	l.Counter++
+	return next.ToValue(), Undefined
+}
+
+func (l *SmallIntIterator) Reset() {
+	l.Counter = 0
 }

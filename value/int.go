@@ -1,6 +1,7 @@
 package value
 
-var IntClass *Class // ::Std::Int
+var IntClass *Class         // ::Std::Int
+var IntIteratorClass *Class // ::Std::Int::Iterator
 
 // All simple Elk integer types (without BigInt)
 type SimpleInt interface {
@@ -18,4 +19,7 @@ type UnsignedInt interface {
 func initInt() {
 	IntClass = NewClass()
 	StdModule.AddConstantString("Int", Ref(IntClass))
+
+	IntIteratorClass = NewClass()
+	IntClass.AddConstantString("Iterator", Ref(IntIteratorClass))
 }

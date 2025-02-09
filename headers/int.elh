@@ -261,4 +261,15 @@ sealed noinit primitive class ::Std::Int < Value
 	def years: Duration; end
 	alias year years
 
+	##[
+		Returns an iterator that
+		iterates over every integer from `0` to `self`.
+	]##
+	def iter: Iterator; end
+
+	class Iterator
+		include ::Std::Iterator::Base[Int]
+
+		def next: Int ! :stop_iteration; end
+	end
 end

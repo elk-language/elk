@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 
@@ -1126,4 +1127,72 @@ func (i *BigInt) Years() Duration {
 	oBigInt := big.NewInt(int64(Year))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
 	return Duration(i.ToSmallInt())
+}
+
+type BigIntIterator struct {
+	Int     *BigInt
+	Counter Value
+}
+
+func NewBigIntIterator(i *BigInt) *BigIntIterator {
+	return &BigIntIterator{
+		Int:     i,
+		Counter: SmallInt(0).ToValue(),
+	}
+}
+
+func NewBigIntIteratorWithCounter(i *BigInt, counter Value) *BigIntIterator {
+	return &BigIntIterator{
+		Int:     i,
+		Counter: counter,
+	}
+}
+
+func (*BigIntIterator) Class() *Class {
+	return IntIteratorClass
+}
+
+func (*BigIntIterator) DirectClass() *Class {
+	return IntIteratorClass
+}
+
+func (*BigIntIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (l *BigIntIterator) Copy() Reference {
+	return &BigIntIterator{
+		Int:     l.Int,
+		Counter: l.Counter,
+	}
+}
+
+func (l *BigIntIterator) Inspect() string {
+	return fmt.Sprintf("Std::Int::Iterator{&: %p, int: %s, counter: %s}", l, l.Int.Inspect(), l.Counter.Inspect())
+}
+
+func (l *BigIntIterator) Error() string {
+	return l.Inspect()
+}
+
+func (*BigIntIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (l *BigIntIterator) Next() (Value, Value) {
+	stop, err := l.Int.LessThanBool(l.Counter)
+	if !err.IsUndefined() {
+		return Undefined, err
+	}
+	if stop {
+		return Undefined, stopIterationSymbol.ToValue()
+	}
+
+	next := l.Counter
+	l.Counter = Increment(l.Counter)
+	return next, Undefined
+}
+
+func (l *BigIntIterator) Reset() {
+	l.Counter = SmallInt(0).ToValue()
 }
