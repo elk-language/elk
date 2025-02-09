@@ -1476,7 +1476,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	return c.NewNormalisedUnion(thenKeyType, elseKeyType), c.NewNormalisedUnion(thenValueType, elseValueType)
 }
 
-func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
+func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
 	for _, pairNode := range pairs {
 		switch p := pairNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -1523,59 +1523,12 @@ func (c *Checker) checkMapPairs(pairs []ast.ExpressionNode) (keyTypes []types.Ty
 	return keyTypes, valueTypes
 }
 
-func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
-	for _, pairNode := range pairs {
-		switch p := pairNode.(type) {
-		case *ast.KeyValueExpressionNode:
-			p.Key = c.checkExpression(p.Key)
-			keyTypes = append(keyTypes, c.typeOfGuardVoid(p.Key))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
-		case *ast.SymbolKeyValueExpressionNode:
-			keyTypes = append(keyTypes, types.NewSymbolLiteral(p.Key))
-
-			p.Value = c.checkExpression(p.Value)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p.Value))
-		case *ast.PublicIdentifierNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p))
-		case *ast.PrivateIdentifierNode:
-			keyTypes = append(keyTypes, c.Std(symbol.Symbol))
-
-			c.checkExpression(p)
-			valueTypes = append(valueTypes, c.typeOfGuardVoid(p))
-		case *ast.ModifierNode:
-			keyType, valueType := c.checkModifierInRecord(p)
-
-			keyTypes = append(keyTypes, keyType)
-			valueTypes = append(valueTypes, valueType)
-		case *ast.ModifierIfElseNode:
-			keyType, valueType := c.checkRecordIfElseModifier(p)
-
-			keyTypes = append(keyTypes, keyType)
-			valueTypes = append(valueTypes, valueType)
-		case *ast.ModifierForInNode:
-			keyType, valueType := c.checkRecordForInModifier(p)
-
-			keyTypes = append(keyTypes, keyType)
-			valueTypes = append(valueTypes, valueType)
-		default:
-			panic(fmt.Sprintf("invalid map element node: %#v", pairNode))
-		}
-	}
-
-	return keyTypes, valueTypes
-}
-
 func (c *Checker) checkHashMapLiteralNode(node *ast.HashMapLiteralNode) ast.ExpressionNode {
 	return c.checkHashMapLiteralNodeWithType(node, nil)
 }
 
 func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	keyTypes, valueTypes := c.checkMapPairs(node.Elements)
+	keyTypes, valueTypes := c.checkRecordPairs(node.Elements)
 	keyType := c.NewNormalisedUnion(keyTypes...)
 	valueType := c.NewNormalisedUnion(valueTypes...)
 
@@ -1731,10 +1684,10 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode, fn CheckExpr
 	}
 }
 
-func (c *Checker) checkArrayListElements(elements []ast.ExpressionNode) []types.Type {
+func (c *Checker) checkTupleElements(elements []ast.ExpressionNode) []types.Type {
 	var elementTypes []types.Type
 	for i, elementNode := range elements {
-		elementNode = c.checkArrayListElement(elementNode)
+		elementNode = c.checkTupleElement(elementNode)
 		elements[i] = elementNode
 		elementTypes = append(elementTypes, c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false))
 	}
@@ -1742,14 +1695,14 @@ func (c *Checker) checkArrayListElements(elements []ast.ExpressionNode) []types.
 	return elementTypes
 }
 
-func (c *Checker) checkArrayListElement(node ast.ExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkTupleElement(node ast.ExpressionNode) ast.ExpressionNode {
 	switch e := node.(type) {
 	case *ast.ModifierNode:
-		return c.checkModifierInCollection(e, c.checkArrayListElement)
+		return c.checkModifierInCollection(e, c.checkTupleElement)
 	case *ast.ModifierIfElseNode:
-		return c.checkCollectionIfElseModifier(e, c.checkArrayListElement)
+		return c.checkCollectionIfElseModifier(e, c.checkTupleElement)
 	case *ast.ModifierForInNode:
-		return c.checkCollectionForInModifier(e, c.checkArrayListElement)
+		return c.checkCollectionForInModifier(e, c.checkTupleElement)
 	case *ast.KeyValueExpressionNode:
 		return c.checkArrayListKeyValueExpression(e)
 	case *ast.SplatExpressionNode:
@@ -1768,7 +1721,7 @@ func (c *Checker) checkCollectionSplatExpression(node *ast.SplatExpressionNode) 
 		elementIdentNode,
 		node.Value,
 	)
-	return c.checkArrayListElement(newNode)
+	return c.checkTupleElement(newNode)
 }
 
 func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
@@ -1817,60 +1770,12 @@ func (c *Checker) checkHashSetElement(node ast.ExpressionNode) ast.ExpressionNod
 	}
 }
 
-func (c *Checker) checkArrayTupleElements(elements []ast.ExpressionNode) []types.Type {
-	var elementTypes []types.Type
-	for i, elementNode := range elements {
-		elementNode = c.checkArrayTupleElement(elementNode)
-		elements[i] = elementNode
-		elementTypes = append(elementTypes, c.typeOfGuardVoid(elementNode))
-	}
-
-	return elementTypes
-}
-
-func (c *Checker) checkArrayTupleElement(node ast.ExpressionNode) ast.ExpressionNode {
-	switch e := node.(type) {
-	case *ast.ModifierNode:
-		return c.checkModifierInCollection(e, c.checkArrayTupleElement)
-	case *ast.ModifierIfElseNode:
-		return c.checkCollectionIfElseModifier(e, c.checkArrayTupleElement)
-	case *ast.ModifierForInNode:
-		return c.checkCollectionForInModifier(e, c.checkArrayTupleElement)
-	case *ast.KeyValueExpressionNode:
-		return c.checkArrayTupleKeyValueExpression(e)
-	case *ast.SplatExpressionNode:
-		return c.checkCollectionSplatExpression(e)
-	default:
-		return c.checkExpression(node)
-	}
-}
-
-func (c *Checker) checkArrayTupleKeyValueExpression(node *ast.KeyValueExpressionNode) *ast.KeyValueExpressionNode {
-	node.Key = c.checkExpression(node.Key)
-	keyType := c.typeOfGuardVoid(node.Key)
-	if !c.isSubtype(keyType, c.StdAnyInt(), node.Key.Span()) {
-		c.addFailure(
-			fmt.Sprintf(
-				"index must be an integer, got type `%s`",
-				types.InspectWithColor(keyType),
-			),
-			node.Key.Span(),
-		)
-	}
-
-	node.Value = c.checkExpression(node.Value)
-	node.SetType(
-		types.NewNilable(c.TypeOf(node.Value)),
-	)
-	return node
-}
-
 func (c *Checker) checkArrayListLiteralNode(node *ast.ArrayListLiteralNode) ast.ExpressionNode {
 	return c.checkArrayListLiteralNodeWithType(node, nil)
 }
 
 func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	elementTypes := c.checkArrayListElements(node.Elements)
+	elementTypes := c.checkTupleElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
 	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
@@ -2116,7 +2021,7 @@ func (c *Checker) checkArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) as
 }
 
 func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	elementTypes := c.checkArrayTupleElements(node.Elements)
+	elementTypes := c.checkTupleElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
 	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {

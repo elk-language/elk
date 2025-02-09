@@ -1201,7 +1201,7 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %w[foo bar] as a = %[1, 2]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[1 | 2]` cannot ever match type `Std::Tuple[Std::String]`"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::Int]` cannot ever match type `Std::Tuple[Std::String]`"),
 			},
 		},
 		"pattern with binary tuple literal and tuple type": {
@@ -1215,7 +1215,7 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %b[1010 1100] as a = %["foo", "bar"]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Int]`"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
 			},
 		},
 		"pattern with hex tuple literal and tuple type": {
@@ -1229,7 +1229,7 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %x[A B] as a = %["foo", "bar"]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Int]`"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
 			},
 		},
 		"pattern with symbol tuple literal and tuple type": {
@@ -1243,7 +1243,7 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %s[foo bar] as a = %["foo", "bar"]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[\"foo\" | \"bar\"]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
+				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
 			},
 		},
 	}

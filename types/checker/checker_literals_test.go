@@ -15,7 +15,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 4, 16), P(56, 4, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(54, 4, 16), P(56, 4, 18)), "type `Std::ArrayTuple[Std::Symbol | nil]` cannot be assigned to type `9`"),
 			},
 		},
 		"with explicit int indices": {
@@ -24,7 +24,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 16), P(45, 3, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(43, 3, 16), P(45, 3, 18)), "type `Std::ArrayTuple[Std::Symbol | nil]` cannot be assigned to type `9`"),
 			},
 		},
 		"with explicit invalid indices": {
@@ -34,7 +34,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewFailure(L("<main>", P(17, 2, 17), P(21, 2, 21)), "index must be an integer, got type `\"lol\"`"),
-				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[:bar | nil]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[Std::Symbol | nil]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier for in": {
@@ -43,7 +43,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::ArrayTuple[1 | Std::Float]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"splat": {
@@ -53,7 +53,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 16), P(61, 4, 18)), "type `Std::ArrayTuple[1 | Std::Float]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(59, 4, 16), P(61, 4, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if else": {
@@ -63,7 +63,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::ArrayTuple[1 | 2.5 | \"bar\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(80, 4, 16), P(82, 4, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if": {
@@ -73,7 +73,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(69, 4, 16), P(71, 4, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(69, 4, 16), P(71, 4, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if with narrowing": {
@@ -92,7 +92,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(28, 2, 28), P(28, 2, 28)), "this condition will always have the same result since type `5` is truthy"),
-				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(46, 3, 16), P(48, 3, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"falsy modifier if": {
@@ -103,7 +103,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(27, 2, 27), P(29, 2, 29)), "this condition will always have the same result since type `nil` is falsy"),
 				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
-				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[1]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(47, 3, 16), P(49, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -114,7 +114,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(73, 4, 16), P(75, 4, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(73, 4, 16), P(75, 4, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier unless with narrowing": {
@@ -134,7 +134,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(31, 2, 31), P(31, 2, 31)), "this condition will always have the same result since type `5` is truthy"),
 				error.NewWarning(L("<main>", P(20, 2, 20), P(22, 2, 22)), "unreachable code"),
-				error.NewFailure(L("<main>", P(49, 3, 16), P(51, 3, 18)), "type `Std::ArrayTuple[1]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(49, 3, 16), P(51, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"falsy modifier unless": {
@@ -144,7 +144,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(31, 2, 31), P(33, 2, 33)), "this condition will always have the same result since type `nil` is falsy"),
-				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::ArrayTuple[1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(51, 3, 16), P(53, 3, 18)), "type `Std::ArrayTuple[Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -160,7 +160,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayTuple[1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayTuple[Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer empty array tuple": {
@@ -195,7 +195,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var foo: Tuple[Int] = %["", 2.2]
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(36, 2, 36)), "type `Std::ArrayTuple[\"\" | 2.2]` cannot be assigned to type `Std::Tuple[Std::Int]`"),
+				error.NewFailure(L("<main>", P(27, 2, 27), P(36, 2, 36)), "type `Std::ArrayTuple[Std::String | Std::Float]` cannot be assigned to type `Std::Tuple[Std::Int]`"),
 			},
 		},
 
@@ -1136,7 +1136,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[:foo | Std::Int, 1 | Std::String]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[Std::Symbol | Std::Int, Std::Int | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier for in with symbol key": {
@@ -1146,7 +1146,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[:foo | :elo, 1 | Std::String]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(107, 4, 16), P(109, 4, 18)), "type `Std::HashRecord[Std::Symbol, Std::Int | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if else": {
@@ -1156,7 +1156,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(101, 4, 16), P(103, 4, 18)), "type `Std::HashRecord[:foo | \"bar\" | 1, 1 | 2.5 | \"lol\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(101, 4, 16), P(103, 4, 18)), "type `Std::HashRecord[Std::Symbol | Std::String | Std::Int, Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if": {
@@ -1166,7 +1166,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(85, 4, 16), P(87, 4, 18)), "type `Std::HashRecord[:foo | \"bar\", 1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(85, 4, 16), P(87, 4, 18)), "type `Std::HashRecord[Std::Symbol | Std::String, Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"modifier if with narrowing": {
@@ -1185,7 +1185,7 @@ func TestHashRecordLiteral(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(42, 2, 42), P(42, 2, 42)), "this condition will always have the same result since type `5` is truthy"),
-				error.NewFailure(L("<main>", P(61, 3, 16), P(63, 3, 18)), "type `Std::HashRecord[:foo | \"bar\", 1 | 2.5]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(61, 3, 16), P(63, 3, 18)), "type `Std::HashRecord[Std::Symbol | Std::String, Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"falsy modifier if": {
@@ -1196,7 +1196,7 @@ func TestHashRecordLiteral(t *testing.T) {
 			err: error.ErrorList{
 				error.NewWarning(L("<main>", P(42, 2, 42), P(44, 2, 44)), "this condition will always have the same result since type `nil` is falsy"),
 				error.NewWarning(L("<main>", P(26, 2, 26), P(37, 2, 37)), "unreachable code"),
-				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::HashRecord[:foo, 1]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(63, 3, 16), P(65, 3, 18)), "type `Std::HashRecord[Std::Symbol, Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -1223,13 +1223,13 @@ func TestHashRecordLiteral(t *testing.T) {
 				var foo: Record[Int, String] = %{ "" => 2.2 }
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `Std::HashRecord[\"\", 2.2]` cannot be assigned to type `Std::Record[Std::Int, Std::String]`"),
+				error.NewFailure(L("<main>", P(36, 2, 36), P(49, 2, 49)), "type `Std::HashRecord[Std::String, Std::Float]` cannot be assigned to type `Std::Record[Std::Int, Std::String]`"),
 			},
 		},
 		"infer hash record": {
 			input: `
 				var foo = %{ foo: 1, bar: 2 }
-				var a: HashRecord[:foo | :bar, 1 | 2] = foo
+				var a: Std::HashRecord[Std::Symbol, Std::Int] = foo
 			`,
 		},
 		"infer hash record with different key and value types": {
@@ -1238,7 +1238,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::HashRecord[:foo | \"bar\" | 1, 1 | 2.2 | \"foo\"]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(66, 3, 16), P(66, 3, 16)), "type `Std::HashRecord[Std::Symbol | Std::String | Std::Int, Std::Int | Std::Float | Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer empty hash record": {
