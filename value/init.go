@@ -83,6 +83,7 @@ func InitGlobalEnvironment() {
 	initChar()
 	initSymbol()
 	initRegex()
+	initIterator()
 	initTuple()
 	initList()
 	initArrayTuple()

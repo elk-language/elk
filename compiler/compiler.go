@@ -2020,12 +2020,10 @@ func (c *Compiler) compileForIn(
 	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
 		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocalNoPop(param.Span().StartPos.Line, paramVar.index)
-		c.emit(param.Span().EndPos.Line, bytecode.POP)
+		c.emitSetLocalPop(param.Span().StartPos.Line, paramVar.index)
 	case *ast.PublicIdentifierNode:
 		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocalNoPop(param.Span().StartPos.Line, paramVar.index)
-		c.emit(param.Span().EndPos.Line, bytecode.POP)
+		c.emitSetLocalPop(param.Span().StartPos.Line, paramVar.index)
 	default:
 		c.pattern(param)
 		jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
@@ -2040,6 +2038,7 @@ func (c *Compiler) compileForIn(
 		c.emit(span.EndPos.Line, bytecode.THROW)
 
 		c.patchJump(jumpOverErrorOffset, span)
+		c.emit(param.Span().EndPos.Line, bytecode.POP)
 	}
 
 	// loop body

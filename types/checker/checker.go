@@ -4788,6 +4788,7 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, ivarType, node.Right.Span())
 	c.registerInitialisedInstanceVariable(value.ToSymbol(name))
+	node.SetType(assignedType)
 	return node
 }
 

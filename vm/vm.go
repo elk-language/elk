@@ -403,6 +403,7 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
+		initialState := vm.state
 		vm.createCurrentCallFrame(true)
 		vm.bytecode = m
 		vm.fp = vm.sp
@@ -413,7 +414,8 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 		}
 		vm.run()
 		if vm.state == errorState {
-			vm.state = runningState
+			vm.restoreLastFrame()
+			vm.state = initialState
 			return value.Undefined, vm.popGet()
 		}
 		return vm.popGet(), value.Undefined

@@ -2524,7 +2524,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		param := p.identifier()
+		param := p.pattern()
 		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {

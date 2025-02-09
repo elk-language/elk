@@ -294,6 +294,57 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				}),
 			}),
 		},
+		"splat generator": {
+			source: `
+				def *gen: Int
+					yield 5
+					yield 6
+
+					7
+				end
+
+				%[1, *gen(), %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayTuple{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
+		"splat custom iterable": {
+			source: `
+				class Foo
+					include Iterator::Base[Int]
+
+					var @counter: Int
+					init
+						@counter = 4
+					end
+
+					def next: Int ! :stop_iteration
+						throw :stop_iteration if @counter >= 7
+
+						@counter++
+					end
+				end
+
+				f := Foo()
+				%[1, *f, %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayTuple{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
 		"with dynamic indices": {
 			source: `
 			  foo := 3
@@ -561,6 +612,57 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			source: `
 			  arr := [5, 6, 7]
 				[1, *arr, %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
+		"splat generator": {
+			source: `
+				def *gen: Int
+					yield 5
+					yield 6
+
+					7
+				end
+
+				[1, *gen(), %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayList{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
+		"splat custom iterable": {
+			source: `
+				class Foo
+					include Iterator::Base[Int]
+
+					var @counter: Int
+					init
+						@counter = 4
+					end
+
+					def next: Int ! :stop_iteration
+						throw :stop_iteration if @counter >= 7
+
+						@counter++
+					end
+				end
+
+				f := Foo()
+				[1, *f, %[:foo]]
 			`,
 			wantStackTop: value.Ref(&value.ArrayList{
 				value.SmallInt(1).ToValue(),
@@ -848,6 +950,57 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				value.SmallInt(2).ToValue(),
 			)),
 		},
+		"splat generator": {
+			source: `
+				def *gen: Int
+					yield 5
+					yield 6
+
+					7
+				end
+
+				^[1, *gen(), 2]
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				6,
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.SmallInt(2).ToValue(),
+			)),
+		},
+		"splat custom iterable": {
+			source: `
+				class Foo
+					include Iterator::Base[Int]
+
+					var @counter: Int
+					init
+						@counter = 4
+					end
+
+					def next: Int ! :stop_iteration
+						throw :stop_iteration if @counter >= 7
+
+						@counter++
+					end
+				end
+
+				f := Foo()
+				^[1, *f, 2]
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				6,
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(5).ToValue(),
+				value.SmallInt(6).ToValue(),
+				value.SmallInt(7).ToValue(),
+				value.SmallInt(2).ToValue(),
+			)),
+		},
 		"with initial modifier": {
 			source: `
 			  foo := true
@@ -886,6 +1039,104 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				value.Pair{
 					Key:   value.SmallInt(1).ToValue(),
 					Value: value.Float(2.5).ToValue(),
+				},
+			)),
+		},
+		"splat": {
+			source: `
+				a := { 1 => 1, 2 => 4, 3 => 9, 4 => 16 }
+				{ 1 => 'foo', **a, 2 => 5.6 }
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
+				},
+			)),
+		},
+		"splat generator": {
+			source: `
+				def *gen: Pair[Int, Int]
+					yield Pair(1, 1)
+					yield Pair(2, 4)
+					yield Pair(3, 9)
+
+					Pair(4, 16)
+				end
+
+				{ 1 => 'foo', **gen(), 2 => 5.6 }
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
+				},
+			)),
+		},
+		"splat custom iterable": {
+			source: `
+				class Foo
+					include Iterator::Base[Pair[Int, Int]]
+
+					var @counter: Int
+					init
+						@counter = 0
+					end
+
+					def next: Pair[Int, Int] ! :stop_iteration
+						throw :stop_iteration if @counter >= 4
+
+						@counter++
+						Pair(@counter, @counter ** 2)
+					end
+				end
+
+				f := Foo()
+				{ 1 => 'foo', **f, 2 => 5.6 }
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
 				},
 			)),
 		},
@@ -1148,6 +1399,104 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 		},
 		"static elements with for loops": {
 			source: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
+			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
+				},
+			)),
+		},
+		"splat": {
+			source: `
+				a := { 1 => 1, 2 => 4, 3 => 9, 4 => 16 }
+				%{ 1 => 'foo', **a, 2 => 5.6 }
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
+				},
+			)),
+		},
+		"splat generator": {
+			source: `
+				def *gen: Pair[Int, Int]
+					yield Pair(1, 1)
+					yield Pair(2, 4)
+					yield Pair(3, 9)
+
+					Pair(4, 16)
+				end
+
+				%{ 1 => 'foo', **gen(), 2 => 5.6 }
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1).ToValue(),
+					Value: value.SmallInt(1).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2).ToValue(),
+					Value: value.Float(5.6).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3).ToValue(),
+					Value: value.SmallInt(9).ToValue(),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4).ToValue(),
+					Value: value.SmallInt(16).ToValue(),
+				},
+			)),
+		},
+		"splat custom iterable": {
+			source: `
+				class Foo
+					include Iterator::Base[Pair[Int, Int]]
+
+					var @counter: Int
+					init
+						@counter = 0
+					end
+
+					def next: Pair[Int, Int] ! :stop_iteration
+						throw :stop_iteration if @counter >= 4
+
+						@counter++
+						Pair(@counter, @counter ** 2)
+					end
+				end
+
+				f := Foo()
+				%{ 1 => 'foo', **f, 2 => 5.6 }
+			`,
 			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
 				value.Pair{

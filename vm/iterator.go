@@ -49,3 +49,16 @@ func Iterate(vm *VM, collectionValue value.Value) iter.Seq2[value.Value, value.V
 		}
 	}
 }
+
+func initIterator() {
+	// ::Std::Iterator::Base
+	// Instance methods
+	c := &value.IteratorBaseMixin.MethodContainer
+	Def(
+		c,
+		"iter",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+}

@@ -5,6 +5,7 @@ import "github.com/elk-language/elk/value"
 func InitGlobalEnvironment() {
 	value.InitGlobalEnvironment()
 
+	initIterator()
 	initArrayList()
 	initArrayListIterator()
 	initArrayTuple()
