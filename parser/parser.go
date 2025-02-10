@@ -1365,13 +1365,13 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 
 // The boolean value indicates whether a comma was the last consumed token.
 //
-// positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
+// positionalArgumentList = positionalArgument ("," positionalArgument)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
 	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
 		return elements, false
 	}
-	elements = append(elements, p.expressionWithoutModifier())
+	elements = append(elements, p.positionalArgument())
 
 	for {
 		if p.accept(token.END_OF_FILE) {
@@ -1391,10 +1391,23 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
 			return elements, true
 		}
-		elements = append(elements, p.expressionWithoutModifier())
+		elements = append(elements, p.positionalArgument())
 	}
 
 	return elements, false
+}
+
+// positionalArgument = ["*"] expressionWithoutModifier
+func (p *Parser) positionalArgument() ast.ExpressionNode {
+	if starTok, ok := p.matchOk(token.STAR); ok {
+		expr := p.expressionWithoutModifier()
+		return ast.NewSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
+	return p.expressionWithoutModifier()
 }
 
 // namedArgument = identifier ":" expressionWithoutModifier

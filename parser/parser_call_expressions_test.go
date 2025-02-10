@@ -1860,6 +1860,39 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have splat arguments": {
+			input: "foo(*baz, 'foo', *bar)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewSplatExpressionNode(
+									S(P(4, 1, 5), P(7, 1, 8)),
+									ast.NewPublicIdentifierNode(
+										S(P(5, 1, 6), P(7, 1, 8)),
+										"baz",
+									),
+								),
+								ast.NewRawStringLiteralNode(S(P(10, 1, 11), P(14, 1, 15)), "foo"),
+								ast.NewSplatExpressionNode(
+									S(P(17, 1, 18), P(20, 1, 21)),
+									ast.NewPublicIdentifierNode(
+										S(P(18, 1, 19), P(20, 1, 21)),
+										"bar",
+									),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a trailing comma": {
 			input: "foo(.1, 'foo', :bar,)",
 			want: ast.NewProgramNode(
