@@ -128,6 +128,231 @@ func TestGoExpression(t *testing.T) {
 
 func TestForInExpression(t *testing.T) {
 	tests := testTable{
+		"int literal": {
+			input: `
+				for i in 20
+					println(i)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_0),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.NIL),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOOP), 0, 21,
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 4, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 9),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 9),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+					)),
+				},
+			),
+		},
+		"int value": {
+			input: `
+				j := 20
+				for i in j
+					println(i)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.INT_0),
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.NIL),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.LOOP), 0, 20,
+					byte(bytecode.LEAVE_SCOPE16), 3, 1,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(51, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 12),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+					)),
+				},
+			),
+		},
+		"range literal": {
+			input: `
+				for i in 5...20
+					println(i)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.NIL),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOOP), 0, 21,
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(44, 4, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 9),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 9),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+					)),
+				},
+			),
+		},
+		"range value": {
+			input: `
+				r := 5...20
+				for i in r
+					println(i)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 4,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SET_LOCAL_4),
+					byte(bytecode.NIL),
+					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 4,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.SET_LOCAL_4),
+					byte(bytecode.LOOP), 0, 20,
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 3, 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 16),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 12),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+					)),
+				},
+			),
+		},
 		"iterate": {
 			input: `
 				for i in [1, 2, 3]

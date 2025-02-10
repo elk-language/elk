@@ -337,7 +337,7 @@ func TestVMSource_Async(t *testing.T) {
 			source: `
 				async def foo: Int
 					println "START"
-					await timeout(100.millisecond)
+					await timeout(10.millisecond)
 					println "STOP"
 
 					10

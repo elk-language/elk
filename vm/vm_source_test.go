@@ -2,11 +2,12 @@ package vm_test
 
 import (
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	perror "github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -21,7 +22,7 @@ type sourceTestCase struct {
 	wantStdout     string
 	wantStderr     string
 	wantRuntimeErr value.Value
-	wantCompileErr error.ErrorList
+	wantCompileErr perror.ErrorList
 }
 
 // Type of the compiler test table.
@@ -43,6 +44,78 @@ func L(startPos, endPos *position.Position) *position.Location {
 	return position.NewLocation(testFileName, startPos, endPos)
 }
 
+type concurrentStringBuilder struct {
+	builder strings.Builder
+	m       sync.Mutex
+}
+
+func newConcurrentStringBuilder() *concurrentStringBuilder {
+	return &concurrentStringBuilder{}
+}
+
+func (b *concurrentStringBuilder) Cap() int {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.Cap()
+}
+
+func (b *concurrentStringBuilder) Grow(n int) {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	b.builder.Grow(n)
+}
+
+func (b *concurrentStringBuilder) Len() int {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.Len()
+}
+
+func (b *concurrentStringBuilder) Reset() {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	b.builder.Reset()
+}
+
+func (b *concurrentStringBuilder) String() string {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.String()
+}
+
+func (b *concurrentStringBuilder) Write(p []byte) (int, error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.Write(p)
+}
+
+func (b *concurrentStringBuilder) WriteByte(c byte) error {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.WriteByte(c)
+}
+
+func (b *concurrentStringBuilder) WriteRune(r rune) (int, error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.WriteRune(r)
+}
+
+func (b *concurrentStringBuilder) WriteString(s string) (int, error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+
+	return b.builder.WriteString(s)
+}
+
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
@@ -59,11 +132,12 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 		return
 	}
 
-	var stdout strings.Builder
-	var stderr strings.Builder
-	tp := vm.NewThreadPool(2, 50, vm.WithStdout(&stdout), vm.WithStderr(&stderr))
+	stdout := newConcurrentStringBuilder()
+	stderr := newConcurrentStringBuilder()
+	tp := vm.NewThreadPool(2, 50, vm.WithStdout(stdout), vm.WithStderr(stderr))
 	defer tp.Close()
-	v := vm.New(vm.WithStdout(&stdout), vm.WithStderr(&stderr), vm.WithThreadPool(tp))
+	v := vm.New(vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithThreadPool(tp))
+
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
 	gotStderr := stderr.String()

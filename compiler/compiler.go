@@ -1773,17 +1773,69 @@ func (c *Compiler) compileForInAsNumericFor(
 		return false
 	}
 
-	if inRange, ok := inExpression.(*ast.RangeLiteralNode); ok {
-		return c.compileForInRangeLiteralAsNumericFor(label, inRange, then, paramExpr, paramName, collectionLiteral, span)
+	switch in := inExpression.(type) {
+	case *ast.RangeLiteralNode:
+		return c.compileForInRangeLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, span)
+	case *ast.IntLiteralNode:
+		return c.compileForInIntLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, span)
 	}
 
 	inExpressionType := c.typeOf(inExpression)
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
 		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, span)
-
+	}
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Int)) {
+		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, span)
 	}
 
 	return false
+}
+
+func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+	c.enterScope("", defaultScopeType)
+
+	intVarName := fmt.Sprintf("#!forInt%d", len(c.scopes))
+
+	c.compileNodeWithResult(inExpression)
+	intVar := c.defineLocal(intVarName, span)
+
+	c.emitSetLocalPop(span.StartPos.Line, intVar.index)
+
+	init := ast.NewVariableDeclarationNode(
+		paramExpr.Span(),
+		"",
+		paramName,
+		nil,
+		ast.NewIntLiteralNode(span, "0"),
+	)
+	increment := ast.NewPostfixExpressionNode(
+		span,
+		token.New(span, token.PLUS_PLUS),
+		paramExpr,
+	)
+
+	cond := ast.NewBinaryExpressionNode(
+		span,
+		token.New(span, token.LESS),
+		paramExpr,
+		ast.NewPublicIdentifierNode(inExpression.Span(), intVarName),
+	)
+
+	c.compileNumericFor(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		span,
+	)
+	if !collectionLiteral {
+		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(span.EndPos.Line, bytecode.NIL)
+	}
+
+	c.leaveScope(span.EndPos.Line)
+	return true
 }
 
 func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
@@ -1894,6 +1946,42 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	}
 
 	c.leaveScope(span.EndPos.Line)
+	return true
+}
+
+func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.IntLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+	init := ast.NewVariableDeclarationNode(
+		paramExpr.Span(),
+		"",
+		paramName,
+		nil,
+		ast.NewIntLiteralNode(paramExpr.Span(), "0"),
+	)
+	increment := ast.NewPostfixExpressionNode(
+		paramExpr.Span(),
+		token.New(paramExpr.Span(), token.PLUS_PLUS),
+		paramExpr,
+	)
+
+	cond := ast.NewBinaryExpressionNode(
+		inInt.Span(),
+		token.New(inInt.Span(), token.LESS),
+		paramExpr,
+		inInt,
+	)
+	c.compileNumericFor(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		span,
+	)
+	if !collectionLiteral {
+		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(span.EndPos.Line, bytecode.NIL)
+	}
+
 	return true
 }
 

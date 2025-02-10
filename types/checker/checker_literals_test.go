@@ -386,14 +386,14 @@ func TestHashSetLiteral(t *testing.T) {
 		},
 		"splat with invalid iterable": {
 			input: `
-				a := 5
+				a := 5.2
 				var foo = ^[1, *a]
 				var b: 9 = foo
 			`,
 			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 21), P(32, 3, 21)), "type `Std::Int` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
-				error.NewFailure(L("<main>", P(32, 3, 21), P(32, 3, 21)), "type `Std::Int` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
-				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+				error.NewFailure(L("<main>", P(34, 3, 21), P(34, 3, 21)), "type `Std::Float` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
+				error.NewFailure(L("<main>", P(34, 3, 21), P(34, 3, 21)), "type `Std::Float` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				error.NewFailure(L("<main>", P(52, 4, 16), P(54, 4, 18)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 
