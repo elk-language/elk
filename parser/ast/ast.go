@@ -832,8 +832,9 @@ type NamedArgumentNode interface {
 	namedArgumentNode()
 }
 
-func (*InvalidNode) namedArgumentNode()           {}
-func (*NamedCallArgumentNode) namedArgumentNode() {}
+func (*InvalidNode) namedArgumentNode()               {}
+func (*NamedCallArgumentNode) namedArgumentNode()     {}
+func (*DoubleSplatExpressionNode) namedArgumentNode() {}
 
 type ProgramState uint8
 

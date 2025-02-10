@@ -1942,6 +1942,47 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have double splat arguments": {
+			input: "foo(**f, bar: :baz, **dupa(), elk: true)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							"foo",
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewDoubleSplatExpressionNode(
+									S(P(4, 1, 5), P(6, 1, 7)),
+									ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(6, 1, 7)), "f"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(9, 1, 10), P(17, 1, 18)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(14, 1, 15), P(17, 1, 18)), "baz"),
+								),
+								ast.NewDoubleSplatExpressionNode(
+									S(P(20, 1, 21), P(27, 1, 28)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(22, 1, 23), P(27, 1, 28)),
+										"dupa",
+										nil,
+										nil,
+									),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(30, 1, 31), P(38, 1, 39)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(35, 1, 36), P(38, 1, 39))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have positional and named arguments": {
 			input: "foo(.1, 'foo', :bar, bar: :baz, elk: true)",
 			want: ast.NewProgramNode(

@@ -1368,7 +1368,7 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 // positionalArgumentList = positionalArgument ("," positionalArgument)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
-	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
+	if p.accept(token.STAR_STAR) || p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
 		return elements, false
 	}
 	elements = append(elements, p.positionalArgument())
@@ -1410,8 +1410,16 @@ func (p *Parser) positionalArgument() ast.ExpressionNode {
 	return p.expressionWithoutModifier()
 }
 
-// namedArgument = identifier ":" expressionWithoutModifier
+// namedArgument = identifier ":" expressionWithoutModifier | "**" expressionWithoutModifier
 func (p *Parser) namedArgument() ast.NamedArgumentNode {
+	if starTok, ok := p.matchOk(token.STAR_STAR); ok {
+		expr := p.expressionWithoutModifier()
+		return ast.NewDoubleSplatExpressionNode(
+			starTok.Span().Join(expr.Span()),
+			expr,
+		)
+	}
+
 	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
 	if !ok {
 		p.errorExpected("an identifier")
