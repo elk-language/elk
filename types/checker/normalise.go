@@ -12,6 +12,10 @@ import (
 )
 
 func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap types.TypeArgumentMap, errSpan *position.Span) types.Type {
+	if typeArgMap == nil {
+		return paramType
+	}
+
 	switch p := paramType.(type) {
 	case types.Self:
 		arg := typeArgMap[symbol.L_self]

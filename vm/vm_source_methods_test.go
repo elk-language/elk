@@ -891,6 +891,38 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(value.String("%[]")),
 		},
+		"call a method with rest parameter and list splat argument": {
+			source: `
+				def foo(*b: Int): String
+					b.inspect
+				end
+
+				list := [5, 9, 2]
+				foo(*list)
+			`,
+			wantStackTop: value.Ref(value.String("[5, 9, 2]")),
+		},
+		"call a method with rest parameter and splat argument": {
+			source: `
+				def foo(*b: Int): String
+					b.inspect
+				end
+
+				foo(*3)
+			`,
+			wantStackTop: value.Ref(value.String("%[0, 1, 2]")),
+		},
+		"call a method with rest parameter and rest + splat arguments": {
+			source: `
+				def foo(*b: Int): String
+					b.inspect
+				end
+
+				list := [85, 22]
+				foo(20, *3, 9, *list, 17)
+			`,
+			wantStackTop: value.Ref(value.String("%[20, 0, 1, 2, 9, 85, 22, 17]")),
+		},
 		"call a method with rest parameters and arguments": {
 			source: `
 				def foo(*b: Int): String
@@ -911,10 +943,21 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(value.String("a: 1, b: %[]")),
 		},
+		"call a method with rest parameters and rest + splat arguments": {
+			source: `
+				def foo(a: Int, *b: Int): String
+					"a: #a, b: #b"
+				end
+
+				list := [85, 22]
+				foo(20, *3, 9, *list, 17)
+			`,
+			wantStackTop: value.Ref(value.String("a: 20, b: %[0, 1, 2, 9, 85, 22, 17]")),
+		},
 		"call a method with rest parameters and all arguments": {
 			source: `
 				def foo(a: Int, *b: Int): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+					"a: #a, b: #b"
 				end
 
 				foo(1, 2, 3, 4)
@@ -972,6 +1015,16 @@ func TestVMSource_CallMethod(t *testing.T) {
 				foo(1, 2, 3)
 			`,
 			wantStackTop: value.Ref(value.String("a: %[1, 2], b: 3")),
+		},
+		"call a method with post parameters and splat arguments": {
+			source: `
+				def foo(*a: Int, b: Int): String
+					"a: #a, b: #b"
+				end
+
+				foo(*3, 2, 3)
+			`,
+			wantStackTop: value.Ref(value.String("a: %[0, 1, 2, 2], b: 3")),
 		},
 		"call a method with multiple post arguments": {
 			source: `

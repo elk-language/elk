@@ -1827,6 +1827,7 @@ func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.Ex
 		cond,
 		increment,
 		then,
+		collectionLiteral,
 		span,
 	)
 	if !collectionLiteral {
@@ -1938,6 +1939,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 		cond,
 		increment,
 		then,
+		collectionLiteral,
 		span,
 	)
 	if !collectionLiteral {
@@ -1975,6 +1977,7 @@ func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.I
 		cond,
 		increment,
 		then,
+		collectionLiteral,
 		span,
 	)
 	if !collectionLiteral {
@@ -2052,6 +2055,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 		cond,
 		increment,
 		then,
+		collectionLiteral,
 		span,
 	)
 	if !collectionLiteral {
@@ -2167,11 +2171,12 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 		func() {
 			c.compileStatementsWithResult(node.ThenBody, span)
 		},
+		false,
 		span,
 	)
 }
 
-func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), span *position.Span) {
+func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), collectionLiteral bool, span *position.Span) {
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, true)
 
@@ -2180,7 +2185,9 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 		c.compileNodeWithoutResult(init)
 	}
 
-	c.emit(span.StartPos.Line, bytecode.NIL)
+	if !collectionLiteral {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	}
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
@@ -2197,8 +2204,10 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 			loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 		}
 	}
-	// pop the return value of the last iteration
-	c.emit(span.EndPos.Line, bytecode.POP)
+	if !collectionLiteral {
+		// pop the return value of the last iteration
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
 
 	// loop body
 	then()

@@ -1600,7 +1600,6 @@ func (vm *VM) cfpOffset() int {
 
 // Read the next byte of code
 func (vm *VM) readByte() byte {
-	// BENCHMARK: compare pointer arithmetic to offsets
 	byt := *vm.ipGet()
 	vm.ipIncrement()
 	return byt
@@ -1899,7 +1898,7 @@ func (vm *VM) opAppend() {
 		vm.replace(value.Ref(&value.ArrayTuple{element}))
 		return
 	}
-	switch c := collection.AsReference().(type) {
+	switch c := collection.SafeAsReference().(type) {
 	case *value.ArrayTuple:
 		c.Append(element)
 	case *value.ArrayList:

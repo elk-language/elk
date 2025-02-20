@@ -2062,6 +2062,48 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz 1.2, 56.9, .5
 			`,
 		},
+		"call with splat argument among rest arguments": {
+			input: `
+				module Foo
+					def baz(*b: Float); end
+				end
+				arr := [1.2, 2.6, 3.1]
+				Foo.baz 1.2, *arr, .5
+			`,
+		},
+		"call with splat argument": {
+			input: `
+				module Foo
+					def baz(*b: Float); end
+				end
+				arr := [1.2, 2.6, 3.1]
+				Foo.baz(*arr)
+			`,
+		},
+		"call with splat argument with wrong type": {
+			input: `
+				module Foo
+					def baz(*b: Float); end
+				end
+				arr := [1, 2, 3]
+				Foo.baz(*arr)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(86, 6, 13), P(89, 6, 16)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int`"),
+			},
+		},
+		"call with splat argument without rest param": {
+			input: `
+				module Foo
+					def baz(b: Float); end
+				end
+				arr := [1.2, 2.6, 3.1]
+				Foo.baz(*arr)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(91, 6, 13), P(94, 6, 16)), "splat arguments must appear after required arguments and before post arguments"),
+			},
+		},
 		"call with rest arguments with wrong type": {
 			input: `
 				module Foo
@@ -2092,6 +2134,28 @@ func TestMethodCalls(t *testing.T) {
 				end
 				Foo.baz("foo", 3)
 			`,
+		},
+		"call with splat and missing post arguments": {
+			input: `
+				module Foo
+					def baz(bar: String, *b: Float, c: Int); end
+				end
+				Foo.baz("foo", *2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(93, 5, 20), P(94, 5, 21)), "splat arguments must appear after required arguments and before post arguments"),
+			},
+		},
+		"call with splat and missing required arguments": {
+			input: `
+				module Foo
+					def baz(bar: String, *b: Float); end
+				end
+				Foo.baz(*2)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(78, 5, 13), P(79, 5, 14)), "splat arguments must appear after required arguments and before post arguments"),
+			},
 		},
 		"call with missing post argument": {
 			input: `

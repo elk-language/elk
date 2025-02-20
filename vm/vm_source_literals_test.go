@@ -294,6 +294,20 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				}),
 			}),
 		},
+		"with int splats": {
+			source: `
+				%[1, *3, %[:foo]]
+			`,
+			wantStackTop: value.Ref(&value.ArrayTuple{
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(0).ToValue(),
+				value.SmallInt(1).ToValue(),
+				value.SmallInt(2).ToValue(),
+				value.Ref(&value.ArrayTuple{
+					value.ToSymbol("foo").ToValue(),
+				}),
+			}),
+		},
 		"splat generator": {
 			source: `
 				def *gen: Int

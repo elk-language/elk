@@ -1065,6 +1065,13 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkTryExpressionNode(n)
 	case *ast.AsExpressionNode:
 		return c.checkAsExpressionNode(n)
+	case *ast.SplatExpressionNode:
+		c.addFailure(
+			"splat arguments must appear after required arguments and before post arguments",
+			node.Span(),
+		)
+		n.SetType(types.Untyped{})
+		return n
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
