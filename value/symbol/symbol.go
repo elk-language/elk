@@ -72,6 +72,7 @@ var (
 	StackTrace           = value.ToSymbol("StackTrace")
 	CallFrame            = value.ToSymbol("CallFrame")
 	Promise              = value.ToSymbol("Promise")
+	Key                  = value.ToSymbol("Key")
 )
 
 // lowercase symbols

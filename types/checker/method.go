@@ -888,6 +888,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	}
 
 	var currentParamIndex int
+	// check all positional argument before the rest parameter
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
 		posArg := positionalArguments[currentParamIndex]
 		if currentParamIndex == positionalRestParamIndex {
@@ -1033,7 +1034,17 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		var found bool
 
 		for namedArgIndex, namedArgI := range namedArguments {
-			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			var namedArg *ast.NamedCallArgumentNode
+			switch n := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				namedArg = n
+			case *ast.DoubleSplatExpressionNode:
+				definedNamedArgumentsSlice[namedArgIndex] = true
+				continue
+			default:
+				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
+			}
+
 			if namedArg.Name != paramName {
 				continue
 			}
@@ -1113,40 +1124,58 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			}
 
 			namedArgI := namedArguments[i]
-			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
-
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
-			posArgType := c.TypeOf(typedNamedArgValue)
-			inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Span())
-			if inferredParamType == nil {
-				namedRestParam.Type = types.Untyped{}
-			} else if inferredParamType != namedRestParam.Type {
-				namedRestParam.Type = inferredParamType
-			}
-			namedRestArgs.Elements = append(
-				namedRestArgs.Elements,
-				ast.NewSymbolKeyValueExpressionNode(
-					namedArg.Span(),
-					namedArg.Name,
-					typedNamedArgValue,
-				),
-			)
-			namedArgType := c.TypeOf(typedNamedArgValue)
-			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
-				c.addFailure(
-					fmt.Sprintf(
-						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(namedRestParam.Type),
-						namedRestParam.Name.String(),
-						lexer.Colorize(method.Name.String()),
-						types.InspectWithColor(namedArgType),
+			switch namedArg := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+				posArgType := c.TypeOf(typedNamedArgValue)
+				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Span())
+				if inferredParamType == nil {
+					namedRestParam.Type = types.Untyped{}
+				} else if inferredParamType != namedRestParam.Type {
+					namedRestParam.Type = inferredParamType
+				}
+				namedRestArgs.Elements = append(
+					namedRestArgs.Elements,
+					ast.NewSymbolKeyValueExpressionNode(
+						namedArg.Span(),
+						namedArg.Name,
+						typedNamedArgValue,
 					),
-					namedArg.Span(),
 				)
+				namedArgType := c.TypeOf(typedNamedArgValue)
+				if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
+					c.addFailure(
+						fmt.Sprintf(
+							"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
+							types.InspectWithColor(namedRestParam.Type),
+							namedRestParam.Name.String(),
+							lexer.Colorize(method.Name.String()),
+							types.InspectWithColor(namedArgType),
+						),
+						namedArg.Span(),
+					)
+				}
+			case *ast.DoubleSplatExpressionNode:
+				result := c.checkDoubleSplatArgument(namedArg, namedRestParam.Type)
+				namedRestArgs.Elements = append(
+					namedRestArgs.Elements,
+					result,
+				)
+			default:
+				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 		}
 
 		typedPositionalArguments = append(typedPositionalArguments, namedRestArgs)
+		if len(namedRestArgs.Elements) == 1 {
+			element := namedRestArgs.Elements[0]
+			if forIn, ok := element.(*ast.ModifierForInNode); ok {
+				inType := c.TypeOf(forIn.InExpression)
+				if c.IsSubtype(inType, c.Std(symbol.Record)) {
+					typedPositionalArguments[len(typedPositionalArguments)-1] = forIn.InExpression
+				}
+			}
+		}
 	} else {
 		for i, defined := range definedNamedArgumentsSlice {
 			if defined {
@@ -1198,6 +1227,16 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	}
 
 	return typedPositionalArguments, typeArgMap
+}
+
+func (c *Checker) checkDoubleSplatArgument(node *ast.DoubleSplatExpressionNode, namedRestParamType types.Type) ast.ExpressionNode {
+	result, keyType, valueType := c.checkRecordDoubleSplatExpression(node)
+	if !c.isSubtype(keyType, c.Std(symbol.Symbol), node.Span()) {
+		return result
+	}
+	c.isSubtype(valueType, namedRestParamType, node.Span())
+
+	return result
 }
 
 func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {

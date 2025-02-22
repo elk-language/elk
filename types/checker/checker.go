@@ -4097,12 +4097,14 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 
 func (c *Checker) checkNamedArguments(args []ast.NamedArgumentNode) {
 	for _, arg := range args {
-		arg, ok := arg.(*ast.NamedCallArgumentNode)
-		if !ok {
+		switch arg := arg.(type) {
+		case *ast.NamedCallArgumentNode:
+			c.checkExpression(arg.Value)
+		case *ast.DoubleSplatExpressionNode:
+			c.checkExpression(arg.Value)
+		default:
 			continue
 		}
-
-		c.checkExpression(arg.Value)
 	}
 }
 
