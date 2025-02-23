@@ -1368,7 +1368,7 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 // positionalArgumentList = positionalArgument ("," positionalArgument)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
-	if p.accept(token.STAR_STAR) || p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
+	if p.accept(token.STAR_STAR) || p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptSecond(token.COLON) {
 		return elements, false
 	}
 	elements = append(elements, p.positionalArgument())
@@ -1388,7 +1388,8 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 		if slices.Contains(stopTokens, p.lookahead.Type) {
 			break
 		}
-		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
+
+		if p.accept(token.STAR_STAR) || p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptSecond(token.COLON) {
 			return elements, true
 		}
 		elements = append(elements, p.positionalArgument())

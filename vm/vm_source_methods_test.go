@@ -664,6 +664,38 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("foo"))},
 			)),
 		},
+		"call a method with a named rest param and a double splat argument": {
+			source: `
+				def foo(**a: Int): Record[Symbol, Int]
+					a
+				end
+
+				map := { foo: 1, bar: 2 }
+				foo(**map)
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
+				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+			)),
+		},
+		"call a method with a named rest param, named and double splat arguments": {
+			source: `
+				def foo(**a: Int): Record[Symbol, Int]
+					a
+				end
+
+				map := { foo: 1, bar: 2 }
+				foo(a: 20, **map, b: 9)
+			`,
+			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.SmallInt(20).ToValue()},
+				value.Pair{Key: value.ToSymbol("b").ToValue(), Value: value.SmallInt(9).ToValue()},
+				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
+				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+			)),
+		},
 		"call a method with regular params, named rest param and a few named args": {
 			source: `
 				def foo(a: String, **b: String): Tuple[any]

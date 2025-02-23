@@ -4348,6 +4348,903 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"call a method with rest arguments": {
+			input: `
+				module Foo
+					def foo(*a: Int); end
+				end
+				Foo.foo(1, 2, 3)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(71, 5, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(5, 6),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(71, 5, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(71, 5, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(41, 3, 26)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(&value.ArrayTuple{
+						value.SmallInt(1).ToValue(),
+						value.SmallInt(2).ToValue(),
+						value.SmallInt(3).ToValue(),
+					}),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with a splat argument": {
+			input: `
+				module Foo
+					def foo(*a: Int); end
+				end
+				arr := [1, 2, 3]
+				Foo.foo(*arr)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(89, 6, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(6, 6),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(89, 6, 18)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(89, 6, 18)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(41, 3, 26)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.Ref(&value.ArrayList{
+						value.SmallInt(1).ToValue(),
+						value.SmallInt(2).ToValue(),
+						value.SmallInt(3).ToValue(),
+					}),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with a non-tuple splat argument": {
+			input: `
+				module Foo
+					def foo(*a: Int); end
+				end
+				Foo.foo(*3)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_ARRAY_TUPLE8), 0,
+					byte(bytecode.INT_0),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_3),
+					byte(bytecode.JUMP_UNLESS_ILT), 0, 8,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.APPEND),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INCREMENT_INT),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOOP), 0, 13,
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(66, 5, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 26),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(66, 5, 16)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(66, 5, 16)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(41, 3, 26)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with rest and splat arguments": {
+			input: `
+				module Foo
+					def foo(*a: Int); end
+				end
+				arr := [1, 2, 3]
+				Foo.foo(5, *arr, 10)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.COPY),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.FOR_IN_BUILTIN), 0, 6,
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.APPEND),
+					byte(bytecode.LOOP), 0, 10,
+					byte(bytecode.LEAVE_SCOPE16), 3, 2,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.APPEND),
+					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(96, 6, 25)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(6, 27),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(96, 6, 25)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(96, 6, 25)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(41, 3, 26)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.Ref(&value.ArrayList{
+						value.SmallInt(1).ToValue(),
+						value.SmallInt(2).ToValue(),
+						value.SmallInt(3).ToValue(),
+					}),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(&value.ArrayTuple{
+						value.SmallInt(5).ToValue(),
+					}),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+
+		"call a method with named rest arguments": {
+			input: `
+				module Foo
+					def foo(**a: Int); end
+				end
+				Foo.foo(foo: 1, bar: 2, baz: 3)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(87, 5, 36)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(5, 6),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(87, 5, 36)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(87, 5, 36)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(42, 3, 27)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(vm.MustNewHashRecordWithElements(
+						nil,
+						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
+						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
+					)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with a double splat argument": {
+			input: `
+				module Foo
+					def foo(**a: Int); end
+				end
+				map := { foo: 1, bar: 2, baz: 3 }
+				Foo.foo(**map)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(108, 6, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(6, 6),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(108, 6, 19)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(108, 6, 19)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(42, 3, 27)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.MustNewHashMapWithElements(
+						nil,
+						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
+						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with a non-record double splat argument": {
+			input: `
+				module Foo
+					def foo(**a: Int); end
+				end
+				arr := [Pair(:foo, 1), Pair(:bar, 2), Pair(:baz, 3)]
+				Foo.foo(**arr)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 4,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.INT_1),
+					byte(bytecode.INSTANTIATE8), 2,
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.INT_2),
+					byte(bytecode.INSTANTIATE8), 2,
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.INT_3),
+					byte(bytecode.INSTANTIATE8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 3,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 6,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.FOR_IN_BUILTIN), 0, 44,
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 8,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_4),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_IF), 0, 3,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.THROW),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.LOOP), 0, 48,
+					byte(bytecode.LEAVE_SCOPE16), 4, 3,
+					byte(bytecode.CALL_METHOD8), 10,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(127, 6, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 25),
+					bytecode.NewLineInfo(6, 62),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(127, 6, 19)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(127, 6, 19)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(42, 3, 27)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.ToSymbol("Std::Pair").ToValue(),
+					value.ToSymbol("foo").ToValue(),
+					value.ToSymbol("bar").ToValue(),
+					value.ToSymbol("baz").ToValue(),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("key"), 0)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("value"), 0)),
+					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+		"call a method with rest and double splat arguments": {
+			input: `
+				module Foo
+					def foo(**a: Int); end
+				end
+				map := { foo: 1, bar: 2, baz: 3 }
+				Foo.foo(elo: 5, **map, pipa: 10)
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 4,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.FOR_IN_BUILTIN), 0, 44,
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 5,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_4),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_IF), 0, 3,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.THROW),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.LOOP), 0, 48,
+					byte(bytecode.LEAVE_SCOPE16), 4, 3,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.CALL_METHOD8), 10,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(126, 6, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(6, 68),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(126, 6, 37)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(126, 6, 37)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.NIL),
+									byte(bytecode.RETURN),
+								},
+								L(P(21, 3, 6), P(42, 3, 27)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 2),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.MustNewHashMapWithElements(
+						nil,
+						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
+						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(vm.MustNewHashRecordWithElements(
+						nil,
+						value.Pair{Key: value.ToSymbol("elo").ToValue(), Value: value.SmallInt(5).ToValue()},
+					)),
+					value.ToSymbol("Std::Pair").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("key"), 0)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("value"), 0)),
+					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
+					value.ToSymbol("pipa").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+				},
+			),
+		},
+
 		"call a method with positional arguments nil safe": {
 			input: `
 				module Foo

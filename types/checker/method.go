@@ -1039,7 +1039,6 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			case *ast.NamedCallArgumentNode:
 				namedArg = n
 			case *ast.DoubleSplatExpressionNode:
-				definedNamedArgumentsSlice[namedArgIndex] = true
 				continue
 			default:
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
@@ -1143,20 +1142,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					),
 				)
 				namedArgType := c.TypeOf(typedNamedArgValue)
-				if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
-					c.addFailure(
-						fmt.Sprintf(
-							"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
-							types.InspectWithColor(namedRestParam.Type),
-							namedRestParam.Name.String(),
-							lexer.Colorize(method.Name.String()),
-							types.InspectWithColor(namedArgType),
-						),
-						namedArg.Span(),
-					)
-				}
+				c.checkNamedRestArgumentType(
+					method.Name.String(),
+					namedArgType,
+					namedRestParam,
+					namedArg.Span(),
+				)
 			case *ast.DoubleSplatExpressionNode:
-				result := c.checkDoubleSplatArgument(namedArg, namedRestParam.Type)
+				result := c.checkDoubleSplatArgument(method.Name.String(), namedArg, namedRestParam)
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,
 					result,
@@ -1183,15 +1176,25 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			}
 
 			namedArgI := namedArguments[i]
-			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
-			c.addFailure(
-				fmt.Sprintf(
-					"nonexistent parameter `%s` given in call to `%s`",
-					namedArg.Name,
-					lexer.Colorize(method.Name.String()),
-				),
-				namedArg.Span(),
-			)
+			switch namedArg := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				c.addFailure(
+					fmt.Sprintf(
+						"nonexistent parameter `%s` given in call to `%s`",
+						namedArg.Name,
+						lexer.Colorize(method.Name.String()),
+					),
+					namedArg.Span(),
+				)
+			case *ast.DoubleSplatExpressionNode:
+				c.addFailure(
+					fmt.Sprintf(
+						"double splat arguments cannot be present in calls to methods without a named rest parameter eg. `%s`",
+						lexer.Colorize("**foo: Int"),
+					),
+					namedArg.Span(),
+				)
+			}
 		}
 	}
 
@@ -1229,14 +1232,44 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	return typedPositionalArguments, typeArgMap
 }
 
-func (c *Checker) checkDoubleSplatArgument(node *ast.DoubleSplatExpressionNode, namedRestParamType types.Type) ast.ExpressionNode {
+func (c *Checker) checkDoubleSplatArgument(methodName string, node *ast.DoubleSplatExpressionNode, namedRestParam *types.Parameter) ast.ExpressionNode {
 	result, keyType, valueType := c.checkRecordDoubleSplatExpression(node)
 	if !c.isSubtype(keyType, c.Std(symbol.Symbol), node.Span()) {
-		return result
+		c.addFailure(
+			fmt.Sprintf(
+				"expected type `%s` for double splat argument keys, got `%s`",
+				lexer.Colorize("Std::Symbol"),
+				types.InspectWithColor(keyType),
+			),
+			node.Span(),
+		)
 	}
-	c.isSubtype(valueType, namedRestParamType, node.Span())
+
+	c.checkNamedRestArgumentType(
+		methodName,
+		valueType,
+		namedRestParam,
+		node.Span(),
+	)
 
 	return result
+}
+
+func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Type, param *types.Parameter, span *position.Span) {
+	if c.isSubtype(argType, param.Type, span) {
+		return
+	}
+
+	c.addFailure(
+		fmt.Sprintf(
+			"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
+			types.InspectWithColor(param.Type),
+			param.Name.String(),
+			lexer.Colorize(methodName),
+			types.InspectWithColor(argType),
+		),
+		span,
+	)
 }
 
 func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {

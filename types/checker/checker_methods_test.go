@@ -2257,6 +2257,49 @@ func TestMethodCalls(t *testing.T) {
 				error.NewFailure(L("<main>", P(108, 5, 33), P(112, 5, 37)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `0.1`"),
 			},
 		},
+		"call with double splat argument among named arguments": {
+			input: `
+				module Foo
+					def baz(**b: Float); end
+				end
+				map := { foo: 1.2, bar: 29.9 }
+				Foo.baz a: 1.2, **map, b: .5
+			`,
+		},
+		"call with double splat argument": {
+			input: `
+				module Foo
+					def baz(**b: Float); end
+				end
+				map := { foo: 1.2, bar: 29.9 }
+				Foo.baz(**map)
+			`,
+		},
+		"call with double splat argument with wrong value type": {
+			input: `
+				module Foo
+					def baz(**b: Float); end
+				end
+				map := { foo: 1, bar: "b" }
+				Foo.baz(**map)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(98, 6, 13), P(102, 6, 17)), "expected type `Std::Float` for named rest parameter `**b` in call to `baz`, got type `Std::Int | Std::String`"),
+			},
+		},
+		"call with double splat argument without rest param": {
+			input: `
+				module Foo
+					def baz(b: Float); end
+				end
+				map := { foo: 1.2, bar: 29.9 }
+				Foo.baz(**map)
+			`,
+			err: error.ErrorList{
+				error.NewFailure(L("<main>", P(91, 6, 5), P(104, 6, 18)), "argument `b` is missing in call to `baz`"),
+				error.NewFailure(L("<main>", P(99, 6, 13), P(103, 6, 17)), "double splat arguments cannot be present in calls to methods without a named rest parameter eg. `**foo: Int`"),
+			},
+		},
 
 		"call setter with matching argument": {
 			input: `
