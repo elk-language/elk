@@ -1,0 +1,38 @@
+##[
+	Represents a token produced by a lexer.
+
+	A token is a single lexical unit of text
+	with a particular meaning.
+]##
+sealed primitive class ::Std::Token < Value
+	init(typ: UInt16, span: String::Span, value: String = ""); end
+
+	##[
+		Returns an integer that represents the type of the token.
+	]##
+	def typ: UInt16; end
+
+	##[
+		Returns the span that represents the position of
+		the token in the source string.
+	]##
+	def span: String::Span; end
+
+	##[
+		Returns the lexeme, a piece of source text
+		that this token represents.
+
+		May return an empty string for simple tokens
+		like operators where the lexeme is obvious (it will always be the same).
+	]##
+	def value: String; end
+
+	##[
+		Returns the lexeme, a piece of source text
+		that this token represents.
+
+		Fetches the lexeme from a global map of lexemes
+		for Elk tokens if the value is an empty string.
+	]##
+	def fetch_value: String; end
+end

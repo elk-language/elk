@@ -70,6 +70,9 @@ func InitGlobalEnvironment() {
 	initStackTraceIterator()
 	initCallFrame()
 	initPromise()
+	initPosition()
+	initSpan()
+	initToken()
 }
 
 func init() {

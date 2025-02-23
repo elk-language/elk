@@ -1,0 +1,23 @@
+##[
+	Represents a position of a character in a string.
+]##
+sealed primitive class ::Std::String::Position < Value
+	init(byte_offset: Int, line: Int, column: Int); end
+
+	##[
+		Returns the offset of the first byte of the character in a string.
+	]##
+	def byte_offset: Int; end
+
+	##[
+		Returns the number of the line
+		where the character is located in a string.
+	]##
+	def line: Int; end
+
+	##[
+		Returns the number of the
+		column where the character is located.
+	]##
+	def column: Int; end
+end

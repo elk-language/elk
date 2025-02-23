@@ -2840,7 +2840,7 @@ func (c *Compiler) compileModifierExpressionNode(label string, node *ast.Modifie
 		c.modifierUntilExpression(label, node)
 	default:
 		c.Errors.AddFailure(
-			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -4024,7 +4024,7 @@ func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 func (c *Compiler) compileConstructorCallNode(node *ast.ConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNodeWithResult(node.Class)
+			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
 		node.Span(),
@@ -4044,7 +4044,7 @@ func (c *Compiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
 func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNodeWithResult(node.Class)
+			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
 		node.Span(),

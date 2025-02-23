@@ -1359,7 +1359,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
-			value.ToSymbol(node.Op.StringValue()),
+			value.ToSymbol(node.Op.FetchValue()),
 			nil,
 			nil,
 			nil,
@@ -2798,7 +2798,7 @@ func (c *Checker) checkModifierNode(node *ast.ModifierNode, tailPosition bool) a
 		return c.checkUntilModifierNode("", node)
 	default:
 		c.addFailure(
-			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
 			node.Span(),
 		)
 		return node
@@ -3406,7 +3406,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		left, args, typ := c.checkSimpleMethodCall(
 			node.Left,
 			token.DOT,
-			value.ToSymbol(node.Op.StringValue()),
+			value.ToSymbol(node.Op.FetchValue()),
 			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
@@ -4281,9 +4281,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 }
 
 func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {
-	classType, className := c.resolveConstantType(node.Class)
-	node.Class = ast.NewPublicConstantNode(
-		node.Class.Span(),
+	classType, className := c.resolveConstantType(node.ClassNode)
+	node.ClassNode = ast.NewPublicConstantNode(
+		node.ClassNode.Span(),
 		className,
 	)
 	if classType == nil {
@@ -4322,7 +4322,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		class,
 		node.TypeArguments,
 		class.TypeParameters(),
-		node.Class.Span(),
+		node.ClassNode.Span(),
 	)
 	if !ok {
 		c.checkExpressions(node.PositionalArguments)
@@ -4363,7 +4363,7 @@ func (c *Checker) addToMethodCache(method *types.Method) {
 }
 
 func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.ExpressionNode {
-	classType, fullName := c.resolveConstantType(node.Class)
+	classType, fullName := c.resolveConstantType(node.ClassNode)
 	if classType == nil {
 		classType = types.Untyped{}
 	}
@@ -4375,8 +4375,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		return node
 	}
 
-	node.Class = ast.NewPublicConstantNode(
-		node.Class.Span(),
+	node.ClassNode = ast.NewPublicConstantNode(
+		node.ClassNode.Span(),
 		fullName,
 	)
 	class, isClass := classType.(*types.Class)

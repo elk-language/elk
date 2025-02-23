@@ -50,7 +50,7 @@ func (e *evaluator) evaluate(input string) {
 
 	if err != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true))
+		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
 		isFailure := err.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
@@ -77,7 +77,7 @@ func (e *evaluator) parse(input string) {
 
 	if err != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true))
+		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
 		if err.IsFailure() {
 			return
 		}
@@ -94,7 +94,7 @@ func (e *evaluator) disassemble(input string) {
 
 	if err != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true))
+		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
 		isFailure := err.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
@@ -114,7 +114,7 @@ func (e *evaluator) typecheck(input string) {
 
 	if err != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true))
+		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
 		isFailure := err.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
@@ -175,7 +175,7 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 	currentLine := doc.CurrentLine()
 	lex := lexer.New(currentLine)
 	firstToken := lex.Next()
-	firstWord := firstToken.StringValue()
+	firstWord := firstToken.FetchValue()
 	isBlockEnd := blockEndKeywords.Contains(firstWord)
 	isBlockSeparator := blockSeparatorKeywords.Contains(firstWord)
 

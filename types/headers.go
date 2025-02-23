@@ -276,6 +276,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, false, value.ToSymbol("ByteIterator"), objectClass, env)
 			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, false, value.ToSymbol("CharIterator"), objectClass, env)
 			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, false, value.ToSymbol("GraphemeIterator"), objectClass, env)
+			namespace.TryDefineClass("Represents a position of a character in a string.", false, true, true, false, value.ToSymbol("Position"), objectClass, env)
+			namespace.TryDefineClass("Represents the position of a piece of text in a string.\n\nIt is made up of two positions, start position\n(position of the first character) and end position (position of the last character).", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("StringConvertible"), env)
@@ -293,6 +295,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
 		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
+		namespace.TryDefineClass("Represents a token produced by a lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{
@@ -3256,6 +3259,41 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+				{
+					namespace := namespace.MustSubtype("Position").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("byte_offset"), NameToType("Std::Int", env), NormalParameterKind, false), NewParameter(value.ToSymbol("line"), NameToType("Std::Int", env), NormalParameterKind, false), NewParameter(value.ToSymbol("column"), NameToType("Std::Int", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the offset of the first byte of the character in a string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("byte_offset"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the number of the\ncolumn where the character is located.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("column"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the number of the line\nwhere the character is located in a string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("line"), nil, nil, NameToType("Std::Int", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("Span").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("start_pos"), NameToType("Std::String::Position", env), NormalParameterKind, false), NewParameter(value.ToSymbol("end_pos"), NameToType("Std::String::Position", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the position of the last character\nof a piece of text in a string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("end_pos"), nil, nil, NameToType("Std::String::Position", env), Never{})
+					namespace.DefineMethod("Returns the position of the first character\nof a piece of text in a string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("start_pos"), nil, nil, NameToType("Std::String::Position", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("StringConvertible").(*Interface)
@@ -3550,6 +3588,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtype("Token").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("typ"), NameToType("Std::UInt16", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nFetches the lexeme from a global map of lexemes\nfor Elk tokens if the value is an empty string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("fetch_value"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the span that represents the position of\nthe token in the source string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+				namespace.DefineMethod("Returns an integer that represents the type of the token.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("typ"), nil, nil, NameToType("Std::UInt16", env), Never{})
+				namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nMay return an empty string for simple tokens\nlike operators where the lexeme is obvious (it will always be the same).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("True").(*Class)

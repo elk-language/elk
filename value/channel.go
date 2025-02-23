@@ -17,10 +17,6 @@ func NewChannel(size int) *Channel {
 	}
 }
 
-func ChannelConstructor(class *Class) Value {
-	return Undefined
-}
-
 func (ch *Channel) Copy() Reference {
 	return NewChannel(ch.Length())
 }
@@ -98,7 +94,7 @@ func (ch *Channel) Close() (err Value) {
 }
 
 func initChannel() {
-	ChannelClass = NewClassWithOptions(ClassWithConstructor(ChannelConstructor))
+	ChannelClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	StdModule.AddConstantString("Channel", Ref(ChannelClass))
 
 	ChannelClosedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))

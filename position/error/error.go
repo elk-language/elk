@@ -7,7 +7,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/lexer/colorizer"
 	"github.com/elk-language/elk/position"
 	"github.com/fatih/color"
 )
@@ -92,17 +92,17 @@ func (e *Error) String() string {
 
 // Return a string representation of this error
 // that can be presented to humans.
-func (e *Error) HumanString(style bool) (string, error) {
+func (e *Error) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
 	source, err := os.ReadFile(e.Location.Filename)
 	if err != nil {
 		return "", err
 	}
-	return e.HumanStringWithSource(string(source), style), nil
+	return e.HumanStringWithSource(string(source), style, colorizer), nil
 }
 
 // Return a string representation of this error
 // that can be presented to humans.
-func (e *Error) HumanStringWithSource(source string, style bool) string {
+func (e *Error) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) string {
 	var result strings.Builder
 	severityColor := color.New(color.Bold, e.Severity.color())
 	if !style {
@@ -217,7 +217,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	sourceFragment = sourceFragmentBuff.String()
 
 	if style {
-		sourceFragment = lexer.Colorize(sourceFragment)
+		sourceFragment = colorizer.Colorize(sourceFragment)
 	}
 	result.WriteString(sourceFragment)
 	if ellipsisEnd {
@@ -300,10 +300,10 @@ const (
 
 // Return a string representation of this error list
 // that can be presented to humans.
-func (el ErrorList) HumanString(style bool) (string, error) {
+func (el ErrorList) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
 	var result strings.Builder
 	for _, e := range el {
-		msg, err := e.HumanString(style)
+		msg, err := e.HumanString(style, colorizer)
 		if err != nil {
 			return "", err
 		}
@@ -315,10 +315,10 @@ func (el ErrorList) HumanString(style bool) (string, error) {
 
 // Return a string representation of this error list
 // that can be presented to humans.
-func (e ErrorList) HumanStringWithSource(source string, style bool) string {
+func (e ErrorList) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) string {
 	var result strings.Builder
 	for _, err := range e {
-		result.WriteString(err.HumanStringWithSource(source, style))
+		result.WriteString(err.HumanStringWithSource(source, style, colorizer))
 		result.WriteRune('\n')
 	}
 	return result.String()

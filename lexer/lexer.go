@@ -79,6 +79,13 @@ type Lexer struct {
 	modeStack []mode
 }
 
+// Implements the Colorizer interface
+type Colorizer struct{}
+
+func (c Colorizer) Colorize(source string) string {
+	return Colorize(source)
+}
+
 // Lex the given string and construct a new one colouring every token.
 func Colorize(source string) string {
 	l := New(source)

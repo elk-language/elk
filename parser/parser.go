@@ -1629,7 +1629,7 @@ methodCallLoop:
 		}
 
 		methodNameTok := p.advance()
-		methodName := methodNameTok.StringValue()
+		methodName := methodNameTok.FetchValue()
 		span := receiver.Span().Join(methodNameTok.Span())
 
 		if methodNameTok.Type == token.AWAIT {
@@ -3000,7 +3000,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
-		methodName = methodNameTok.StringValue()
+		methodName = methodNameTok.FetchValue()
 		span = methodNameTok.Span()
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
@@ -3025,7 +3025,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 			p.errorExpected("a method name (identifier, overridable operator)")
 		}
 		tok := p.advance()
-		methodName = tok.StringValue()
+		methodName = tok.FetchValue()
 		span = tok.Span()
 	}
 
@@ -6230,7 +6230,7 @@ func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNod
 		contTok := p.advance()
 		return ast.NewSimpleSymbolLiteralNode(
 			symbolBegTok.Span().Join(contTok.Span()),
-			contTok.StringValue(),
+			contTok.FetchValue(),
 		)
 	}
 

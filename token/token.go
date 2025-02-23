@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
 	"github.com/fatih/color"
@@ -15,6 +16,45 @@ type Token struct {
 	Type
 	Value string // Literal value of the token, will be empty for tokens with non-dynamic lexemes
 	span  *position.Span
+}
+
+func (*Token) Class() *value.Class {
+	return value.TokenClass
+}
+
+func (*Token) DirectClass() *value.Class {
+	return value.TokenClass
+}
+
+func (*Token) SingletonClass() *value.Class {
+	return nil
+}
+
+func (t *Token) Copy() value.Reference {
+	return t
+}
+
+func (t *Token) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (t *Token) Inspect() string {
+	return fmt.Sprintf(
+		"Std::Token{&: %p, value: %s, span: %s}",
+		t,
+		value.String(t.Value).Inspect(),
+		(*value.Span)(t.Span()).Inspect(),
+	)
+}
+
+func (t *Token) Error() string {
+	return t.Inspect()
+}
+
+func (t *Token) Equal(other *Token) bool {
+	return t.Type == other.Type &&
+		t.Value == other.Value &&
+		t.span.Equal(other.span)
 }
 
 // Index of the first byte of the lexeme.
@@ -145,7 +185,7 @@ func (t *Token) SetSpan(span *position.Span) {
 
 // When the Value field of the token is empty,
 // the string will be fetched from a global map.
-func (t *Token) StringValue() string {
+func (t *Token) FetchValue() string {
 	if t.Value == "" {
 		return t.Type.String()
 	}

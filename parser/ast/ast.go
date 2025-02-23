@@ -6,6 +6,7 @@
 package ast
 
 import (
+	"fmt"
 	"unicode"
 	"unicode/utf8"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
@@ -61,6 +63,7 @@ func ExpressionToStatements(expr ExpressionNode) []StatementNode {
 // Every node type implements this interface.
 type Node interface {
 	position.SpanInterface
+	value.Reference
 	IsStatic() bool // Value is known at compile-time
 	Type(*types.GlobalEnvironment) types.Type
 	SetType(types.Type)
@@ -110,6 +113,34 @@ func (t *TypedNodeBase) SetSpan(span *position.Span) {
 	t.span = span
 }
 
+func (t *TypedNodeBase) Class() *value.Class {
+	return value.NodeClass
+}
+
+func (t *TypedNodeBase) DirectClass() *value.Class {
+	return value.NodeClass
+}
+
+func (t *TypedNodeBase) SingletonClass() *value.Class {
+	return nil
+}
+
+func (t *TypedNodeBase) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (t *TypedNodeBase) Copy() value.Reference {
+	return t
+}
+
+func (t *TypedNodeBase) Inspect() string {
+	return fmt.Sprintf("Std::Node{&: %p}", t)
+}
+
+func (t *TypedNodeBase) Error() string {
+	return t.Inspect()
+}
+
 // Base typed AST node.
 type TypedNodeBaseWithLoc struct {
 	loc *position.Location
@@ -144,6 +175,34 @@ func (t *TypedNodeBaseWithLoc) SetLocation(loc *position.Location) {
 	t.loc = loc
 }
 
+func (t *TypedNodeBaseWithLoc) Class() *value.Class {
+	return value.NodeClass
+}
+
+func (t *TypedNodeBaseWithLoc) DirectClass() *value.Class {
+	return value.NodeClass
+}
+
+func (t *TypedNodeBaseWithLoc) SingletonClass() *value.Class {
+	return nil
+}
+
+func (t *TypedNodeBaseWithLoc) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (t *TypedNodeBaseWithLoc) Copy() value.Reference {
+	return t
+}
+
+func (t *TypedNodeBaseWithLoc) Inspect() string {
+	return fmt.Sprintf("Std::Node{&: %p}", t)
+}
+
+func (t *TypedNodeBaseWithLoc) Error() string {
+	return t.Inspect()
+}
+
 // Base AST node.
 type NodeBase struct {
 	span *position.Span
@@ -165,6 +224,34 @@ func (n *NodeBase) Span() *position.Span {
 
 func (n *NodeBase) SetSpan(span *position.Span) {
 	n.span = span
+}
+
+func (n *NodeBase) Class() *value.Class {
+	return value.NodeClass
+}
+
+func (n *NodeBase) DirectClass() *value.Class {
+	return value.NodeClass
+}
+
+func (n *NodeBase) SingletonClass() *value.Class {
+	return nil
+}
+
+func (n *NodeBase) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (n *NodeBase) Copy() value.Reference {
+	return n
+}
+
+func (n *NodeBase) Inspect() string {
+	return fmt.Sprintf("Std::Node{&: %p}", n)
+}
+
+func (n *NodeBase) Error() string {
+	return n.Inspect()
 }
 
 // Check whether the node can be used as a left value
@@ -237,19 +324,6 @@ func IsValidPipeExpressionTarget(node Node) bool {
 	}
 }
 
-// Represents a single statement, so for example
-// a single valid "line" of Elk code.
-// Usually its an expression optionally terminated with a newline ors semicolon.
-type StatementNode interface {
-	Node
-	statementNode()
-}
-
-func (*InvalidNode) statementNode()             {}
-func (*ExpressionStatementNode) statementNode() {}
-func (*EmptyStatementNode) statementNode()      {}
-func (*ImportStatementNode) statementNode()     {}
-
 // Represents a single statement of a struct body
 // optionally terminated with a newline or semicolon.
 type StructBodyStatementNode interface {
@@ -296,144 +370,6 @@ type IntCollectionContentNode interface {
 
 func (*InvalidNode) intCollectionContentNode()    {}
 func (*IntLiteralNode) intCollectionContentNode() {}
-
-// All expression nodes implement this interface.
-type ExpressionNode interface {
-	Node
-	expressionNode()
-}
-
-func (*InvalidNode) expressionNode()                       {}
-func (*TypeExpressionNode) expressionNode()                {}
-func (*InstanceVariableDeclarationNode) expressionNode()   {}
-func (*VariablePatternDeclarationNode) expressionNode()    {}
-func (*ValuePatternDeclarationNode) expressionNode()       {}
-func (*PostfixExpressionNode) expressionNode()             {}
-func (*ModifierNode) expressionNode()                      {}
-func (*ModifierIfElseNode) expressionNode()                {}
-func (*ModifierForInNode) expressionNode()                 {}
-func (*AssignmentExpressionNode) expressionNode()          {}
-func (*BinaryExpressionNode) expressionNode()              {}
-func (*LogicalExpressionNode) expressionNode()             {}
-func (*UnaryExpressionNode) expressionNode()               {}
-func (*TrueLiteralNode) expressionNode()                   {}
-func (*FalseLiteralNode) expressionNode()                  {}
-func (*NilLiteralNode) expressionNode()                    {}
-func (*UndefinedLiteralNode) expressionNode()              {}
-func (*InstanceVariableNode) expressionNode()              {}
-func (*SimpleSymbolLiteralNode) expressionNode()           {}
-func (*InterpolatedSymbolLiteralNode) expressionNode()     {}
-func (*IntLiteralNode) expressionNode()                    {}
-func (*Int64LiteralNode) expressionNode()                  {}
-func (*UInt64LiteralNode) expressionNode()                 {}
-func (*Int32LiteralNode) expressionNode()                  {}
-func (*UInt32LiteralNode) expressionNode()                 {}
-func (*Int16LiteralNode) expressionNode()                  {}
-func (*UInt16LiteralNode) expressionNode()                 {}
-func (*Int8LiteralNode) expressionNode()                   {}
-func (*UInt8LiteralNode) expressionNode()                  {}
-func (*FloatLiteralNode) expressionNode()                  {}
-func (*BigFloatLiteralNode) expressionNode()               {}
-func (*Float64LiteralNode) expressionNode()                {}
-func (*Float32LiteralNode) expressionNode()                {}
-func (*UninterpolatedRegexLiteralNode) expressionNode()    {}
-func (*InterpolatedRegexLiteralNode) expressionNode()      {}
-func (*RawStringLiteralNode) expressionNode()              {}
-func (*CharLiteralNode) expressionNode()                   {}
-func (*RawCharLiteralNode) expressionNode()                {}
-func (*DoubleQuotedStringLiteralNode) expressionNode()     {}
-func (*InterpolatedStringLiteralNode) expressionNode()     {}
-func (*VariableDeclarationNode) expressionNode()           {}
-func (*ValueDeclarationNode) expressionNode()              {}
-func (*ConstantAsNode) expressionNode()                    {}
-func (*MethodLookupAsNode) expressionNode()                {}
-func (*PublicIdentifierNode) expressionNode()              {}
-func (*PublicIdentifierAsNode) expressionNode()            {}
-func (*PrivateIdentifierNode) expressionNode()             {}
-func (*PublicConstantNode) expressionNode()                {}
-func (*PublicConstantAsNode) expressionNode()              {}
-func (*PrivateConstantNode) expressionNode()               {}
-func (*AsExpressionNode) expressionNode()                  {}
-func (*SelfLiteralNode) expressionNode()                   {}
-func (*DoExpressionNode) expressionNode()                  {}
-func (*SingletonBlockExpressionNode) expressionNode()      {}
-func (*SwitchExpressionNode) expressionNode()              {}
-func (*IfExpressionNode) expressionNode()                  {}
-func (*UnlessExpressionNode) expressionNode()              {}
-func (*WhileExpressionNode) expressionNode()               {}
-func (*UntilExpressionNode) expressionNode()               {}
-func (*LoopExpressionNode) expressionNode()                {}
-func (*NumericForExpressionNode) expressionNode()          {}
-func (*ForInExpressionNode) expressionNode()               {}
-func (*BreakExpressionNode) expressionNode()               {}
-func (*LabeledExpressionNode) expressionNode()             {}
-func (*GoExpressionNode) expressionNode()                  {}
-func (*ReturnExpressionNode) expressionNode()              {}
-func (*YieldExpressionNode) expressionNode()               {}
-func (*ContinueExpressionNode) expressionNode()            {}
-func (*ThrowExpressionNode) expressionNode()               {}
-func (*MustExpressionNode) expressionNode()                {}
-func (*TryExpressionNode) expressionNode()                 {}
-func (*AwaitExpressionNode) expressionNode()               {}
-func (*TypeofExpressionNode) expressionNode()              {}
-func (*ConstantDeclarationNode) expressionNode()           {}
-func (*ConstantLookupNode) expressionNode()                {}
-func (*MethodLookupNode) expressionNode()                  {}
-func (*UsingAllEntryNode) expressionNode()                 {}
-func (*UsingEntryWithSubentriesNode) expressionNode()      {}
-func (*ClosureLiteralNode) expressionNode()                {}
-func (*ClassDeclarationNode) expressionNode()              {}
-func (*ModuleDeclarationNode) expressionNode()             {}
-func (*MixinDeclarationNode) expressionNode()              {}
-func (*InterfaceDeclarationNode) expressionNode()          {}
-func (*StructDeclarationNode) expressionNode()             {}
-func (*MethodDefinitionNode) expressionNode()              {}
-func (*InitDefinitionNode) expressionNode()                {}
-func (*MethodSignatureDefinitionNode) expressionNode()     {}
-func (*GenericConstantNode) expressionNode()               {}
-func (*GenericTypeDefinitionNode) expressionNode()         {}
-func (*TypeDefinitionNode) expressionNode()                {}
-func (*AliasDeclarationNode) expressionNode()              {}
-func (*GetterDeclarationNode) expressionNode()             {}
-func (*SetterDeclarationNode) expressionNode()             {}
-func (*AttrDeclarationNode) expressionNode()               {}
-func (*UsingExpressionNode) expressionNode()               {}
-func (*IncludeExpressionNode) expressionNode()             {}
-func (*ExtendWhereBlockExpressionNode) expressionNode()    {}
-func (*ImplementExpressionNode) expressionNode()           {}
-func (*NewExpressionNode) expressionNode()                 {}
-func (*GenericConstructorCallNode) expressionNode()        {}
-func (*ConstructorCallNode) expressionNode()               {}
-func (*SubscriptExpressionNode) expressionNode()           {}
-func (*NilSafeSubscriptExpressionNode) expressionNode()    {}
-func (*CallNode) expressionNode()                          {}
-func (*GenericMethodCallNode) expressionNode()             {}
-func (*MethodCallNode) expressionNode()                    {}
-func (*GenericReceiverlessMethodCallNode) expressionNode() {}
-func (*ReceiverlessMethodCallNode) expressionNode()        {}
-func (*AttributeAccessNode) expressionNode()               {}
-func (*DoubleSplatExpressionNode) expressionNode()         {}
-func (*SplatExpressionNode) expressionNode()               {}
-func (*KeyValueExpressionNode) expressionNode()            {}
-func (*SymbolKeyValueExpressionNode) expressionNode()      {}
-func (*ArrayListLiteralNode) expressionNode()              {}
-func (*WordArrayListLiteralNode) expressionNode()          {}
-func (*WordArrayTupleLiteralNode) expressionNode()         {}
-func (*WordHashSetLiteralNode) expressionNode()            {}
-func (*SymbolArrayListLiteralNode) expressionNode()        {}
-func (*SymbolArrayTupleLiteralNode) expressionNode()       {}
-func (*SymbolHashSetLiteralNode) expressionNode()          {}
-func (*HexArrayListLiteralNode) expressionNode()           {}
-func (*HexArrayTupleLiteralNode) expressionNode()          {}
-func (*HexHashSetLiteralNode) expressionNode()             {}
-func (*BinArrayListLiteralNode) expressionNode()           {}
-func (*BinArrayTupleLiteralNode) expressionNode()          {}
-func (*BinHashSetLiteralNode) expressionNode()             {}
-func (*ArrayTupleLiteralNode) expressionNode()             {}
-func (*HashSetLiteralNode) expressionNode()                {}
-func (*HashMapLiteralNode) expressionNode()                {}
-func (*HashRecordLiteralNode) expressionNode()             {}
-func (*RangeLiteralNode) expressionNode()                  {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -849,87 +785,6 @@ const (
 	CHECKING_EXPRESSIONS
 	CHECKED_EXPRESSIONS
 )
-
-// Represents a single Elk program (usually a single file).
-type ProgramNode struct {
-	NodeBase
-	Body        []StatementNode
-	ImportPaths []string
-	State       ProgramState
-}
-
-func (*ProgramNode) IsStatic() bool {
-	return false
-}
-
-// Create a new program node.
-func NewProgramNode(span *position.Span, body []StatementNode) *ProgramNode {
-	return &ProgramNode{
-		NodeBase: NodeBase{span: span},
-		Body:     body,
-	}
-}
-
-// Represents an empty statement eg. a statement with only a semicolon or a newline.
-type EmptyStatementNode struct {
-	NodeBase
-}
-
-func (*EmptyStatementNode) IsStatic() bool {
-	return false
-}
-
-// Create a new empty statement node.
-func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
-	return &EmptyStatementNode{
-		NodeBase: NodeBase{span: span},
-	}
-}
-
-// Expression optionally terminated with a newline or a semicolon.
-type ImportStatementNode struct {
-	NodeBase
-	Path    StringLiteralNode
-	FsPaths []string // resolved file system paths
-}
-
-func (i *ImportStatementNode) IsStatic() bool {
-	return false
-}
-
-// Create a new import statement node eg. `import "foo"`
-func NewImportStatementNode(span *position.Span, path StringLiteralNode) *ImportStatementNode {
-	return &ImportStatementNode{
-		NodeBase: NodeBase{span: span},
-		Path:     path,
-	}
-}
-
-// Expression optionally terminated with a newline or a semicolon.
-type ExpressionStatementNode struct {
-	NodeBase
-	Expression ExpressionNode
-}
-
-func (e *ExpressionStatementNode) IsStatic() bool {
-	return e.Expression.IsStatic()
-}
-
-// Create a new expression statement node eg. `5 * 2\n`
-func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *ExpressionStatementNode {
-	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{span: span},
-		Expression: expr,
-	}
-}
-
-// Same as [NewExpressionStatementNode] but returns an interface
-func NewExpressionStatementNodeI(span *position.Span, expr ExpressionNode) StatementNode {
-	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{span: span},
-		Expression: expr,
-	}
-}
 
 // Formal parameter optionally terminated with a newline or a semicolon.
 type ParameterStatementNode struct {
@@ -1650,42 +1505,6 @@ func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode 
 		TypedNodeBase: TypedNodeBase{span: span},
 		Value:         val,
 	}
-}
-
-// Represents a syntax error.
-type InvalidNode struct {
-	NodeBase
-	Token *token.Token
-}
-
-func (*InvalidNode) SetType(types.Type) {}
-
-func (*InvalidNode) IsStatic() bool {
-	return false
-}
-
-func (*InvalidNode) IsOptional() bool {
-	return false
-}
-
-// Create a new invalid node.
-func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
-	return &InvalidNode{
-		NodeBase: NodeBase{span: span},
-		Token:    tok,
-	}
-}
-
-func NewInvalidExpressionNode(span *position.Span, tok *token.Token) ExpressionNode {
-	return NewInvalidNode(span, tok)
-}
-
-func NewInvalidPatternNode(span *position.Span, tok *token.Token) PatternNode {
-	return NewInvalidNode(span, tok)
-}
-
-func NewInvalidPatternExpressionNode(span *position.Span, tok *token.Token) PatternExpressionNode {
-	return NewInvalidNode(span, tok)
 }
 
 // Represents a single section of characters of a string literal eg. `foo` in `"foo${bar}"`.
@@ -4182,7 +4001,7 @@ func NewNewExpressionNode(span *position.Span, posArgs []ExpressionNode, namedAr
 // Represents a constructor call eg. `String(123)`
 type ConstructorCallNode struct {
 	TypedNodeBase
-	Class               ComplexConstantNode // class that is being instantiated
+	ClassNode           ComplexConstantNode // class that is being instantiated
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
@@ -4195,7 +4014,7 @@ func (*ConstructorCallNode) IsStatic() bool {
 func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
 	return &ConstructorCallNode{
 		TypedNodeBase:       TypedNodeBase{span: span},
-		Class:               class,
+		ClassNode:           class,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
 	}
@@ -4204,7 +4023,7 @@ func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posA
 // Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`
 type GenericConstructorCallNode struct {
 	TypedNodeBase
-	Class               ComplexConstantNode // class that is being instantiated
+	ClassNode           ComplexConstantNode // class that is being instantiated
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -4218,7 +4037,7 @@ func (*GenericConstructorCallNode) IsStatic() bool {
 func NewGenericConstructorCallNode(span *position.Span, class ComplexConstantNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericConstructorCallNode {
 	return &GenericConstructorCallNode{
 		TypedNodeBase:       TypedNodeBase{span: span},
-		Class:               class,
+		ClassNode:           class,
 		TypeArguments:       typeArgs,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

@@ -30,6 +30,14 @@ func NewSpanFromPosition(pos *Position) *Span {
 	}
 }
 
+func (s *Span) Equal(other *Span) bool {
+	if s == other {
+		return true
+	}
+	return s.StartPos.Equal(other.StartPos) &&
+		s.EndPos.Equal(other.EndPos)
+}
+
 func (s *Span) Span() *Span {
 	return s
 }
