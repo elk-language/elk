@@ -1,0 +1,7 @@
+##[
+	A mixin included in all Elk AST nodes
+	that can be treated as expressions.
+]##
+sealed abstract mixin ::Std::ElkAST::ExpressionNode
+	include ElkAST::Mixin
+end

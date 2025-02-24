@@ -9,7 +9,7 @@ import (
 // Std::Token
 func initToken() {
 	// Instance methods
-	c := &value.TokenClass.MethodContainer
+	c := &value.ElkTokenClass.MethodContainer
 
 	Def(
 		c,

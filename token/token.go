@@ -19,11 +19,11 @@ type Token struct {
 }
 
 func (*Token) Class() *value.Class {
-	return value.TokenClass
+	return value.ElkTokenClass
 }
 
 func (*Token) DirectClass() *value.Class {
-	return value.TokenClass
+	return value.ElkTokenClass
 }
 
 func (*Token) SingletonClass() *value.Class {

@@ -15,6 +15,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 	// Define all namespaces
 	namespace.DefineSubtype(value.ToSymbol("Byte"), NewNamedType("Byte", NameToType("Std::UInt8", env)))
+	namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Dupa"), objectClass, env)
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
@@ -84,6 +85,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, false, value.ToSymbol("Duration"), objectClass, env)
+		{
+			namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", value.ToSymbol("ElkAST"), env)
+			namespace.TryDefineClass("An", false, true, true, false, value.ToSymbol("Node"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		{
 			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, false, value.ToSymbol("EndlessClosedRange"), objectClass, env)
 			{
@@ -325,6 +331,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 		// Define instance variables
 
+		{
+			namespace := namespace.MustSubtype("Dupa").(*Class)
+
+			namespace.Name() // noop - avoid unused variable error
+			namespace.SetParent(NameToNamespace("Std::ElkAST::Node", env))
+
+			// Include mixins and implement interfaces
+
+			// Define methods
+
+			// Define constants
+
+			// Define instance variables
+		}
 		{
 			namespace := namespace.MustSubtype("Std").(*Module)
 
@@ -1020,6 +1040,35 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineMethod("Parses a duration string and creates a Duration value.\nA duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
 					namespace.DefineMethod("Returns the amount of elapsed since the given `Time`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("time"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
 					namespace.DefineMethod("Returns the amount of time that is left until the given `Time`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("time"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.MustSubtype("ElkAST").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Node").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns the span that represents\nthe position of this node in a source file/string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
 
 					// Define constants
 

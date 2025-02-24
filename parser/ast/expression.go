@@ -41,9 +41,9 @@ func (*Float64LiteralNode) expressionNode()                {}
 func (*Float32LiteralNode) expressionNode()                {}
 func (*UninterpolatedRegexLiteralNode) expressionNode()    {}
 func (*InterpolatedRegexLiteralNode) expressionNode()      {}
-func (*RawStringLiteralNode) expressionNode()              {}
 func (*CharLiteralNode) expressionNode()                   {}
 func (*RawCharLiteralNode) expressionNode()                {}
+func (*RawStringLiteralNode) expressionNode()              {}
 func (*DoubleQuotedStringLiteralNode) expressionNode()     {}
 func (*InterpolatedStringLiteralNode) expressionNode()     {}
 func (*VariableDeclarationNode) expressionNode()           {}

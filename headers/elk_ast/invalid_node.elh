@@ -1,0 +1,16 @@
+module ::Std::ElkAST
+	##[
+		A mixin included in all Elk AST nodes
+		that can be treated as symbol literals.
+	]##
+	sealed abstract class InvalidNode < Node
+		include ExpressionNode
+		include SymbolLiteralNode
+
+		##[
+			Returns the invalid token that
+			was unexpected during parsing.
+		]##
+		def token: Token; end
+	end
+end
