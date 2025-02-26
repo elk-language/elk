@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
@@ -82,11 +83,16 @@ func (*InterpolatedSymbolLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *InterpolatedSymbolLiteralNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::InterpolatedSymbolLiteralNode{&: %p, content: %s}",
-		n,
-		n.Content.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::InterpolatedSymbolLiteralNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  content: ")
+	indentStringFromSecondLine(&buff, n.Content.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *InterpolatedSymbolLiteralNode) Error() string {

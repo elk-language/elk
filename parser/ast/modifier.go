@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -28,14 +29,23 @@ func (*ModifierNode) DirectClass() *value.Class {
 	return value.ModifierNodeClass
 }
 
-func (m *ModifierNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::ModifierNode{&: %p, modifier: %s, left: %s, right: %s}",
-		m,
-		m.Modifier.Inspect(),
-		m.Left.Inspect(),
-		m.Right.Inspect(),
-	)
+func (n *ModifierNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ModifierNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  modifier: ")
+	indentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
+
+	buff.WriteString(",\n  left: ")
+	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+
+	buff.WriteString(",\n  right: ")
+	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (m *ModifierNode) Error() string {
@@ -72,14 +82,23 @@ func (*ModifierIfElseNode) DirectClass() *value.Class {
 	return value.ModifierIfElseNodeClass
 }
 
-func (m *ModifierIfElseNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::ModifierIfElseNode{&: %p, then_expression: %s, condition: %s, else_expression: %s}",
-		m,
-		m.ThenExpression.Inspect(),
-		m.Condition.Inspect(),
-		m.ElseExpression.Inspect(),
-	)
+func (n *ModifierIfElseNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ModifierIfElseNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  then_expression: ")
+	indentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
+
+	buff.WriteString(",\n  condition: ")
+	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
+
+	buff.WriteString(",\n  else_expression: ")
+	indentStringFromSecondLine(&buff, n.ElseExpression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (m *ModifierIfElseNode) Error() string {
@@ -116,14 +135,23 @@ func (*ModifierForInNode) DirectClass() *value.Class {
 	return value.ModifierForInNodeClass
 }
 
-func (m *ModifierForInNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::ModifierForInNode{&: %p, then_expression: %s, pattern: %s, in_expression: %s}",
-		m,
-		m.ThenExpression.Inspect(),
-		m.Pattern.Inspect(),
-		m.InExpression.Inspect(),
-	)
+func (n *ModifierForInNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ModifierForInNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  then_expression: ")
+	indentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
+
+	buff.WriteString(",\n  pattern: ")
+	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+
+	buff.WriteString(",\n  in_expression: ")
+	indentStringFromSecondLine(&buff, n.InExpression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (m *ModifierForInNode) Error() string {

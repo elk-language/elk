@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -26,13 +27,20 @@ func (*ValuePatternDeclarationNode) DirectClass() *value.Class {
 	return value.ValuePatternDeclarationNodeClass
 }
 
-func (v *ValuePatternDeclarationNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::ValuePatternDeclarationNode{&: %p, pattern: %s, initialiser: %s}",
-		v,
-		v.Pattern.Inspect(),
-		v.Initialiser.Inspect(),
-	)
+func (n *ValuePatternDeclarationNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ValuePatternDeclarationNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  pattern: ")
+	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+
+	buff.WriteString(",\n  initialiser: ")
+	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (v *ValuePatternDeclarationNode) Error() string {

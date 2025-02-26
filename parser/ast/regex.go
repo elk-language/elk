@@ -168,11 +168,16 @@ func (*RegexInterpolationNode) DirectClass() *value.Class {
 }
 
 func (n *RegexInterpolationNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::RegexInterpolationNode{&: %p, expression: %s}",
-		n,
-		n.Expression.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::RegexInterpolationNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  expression: ")
+	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *RegexInterpolationNode) Error() string {
@@ -267,15 +272,19 @@ func (*InterpolatedRegexLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedRegexLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InterpolatedRegexLiteralNode{&: %p, content: %%[", n)
-	for i, element := range n.Content {
-		if i != 0 {
-			buff.WriteString(", ")
-		}
+	fmt.Fprintf(&buff, "Std::AST::InterpolatedRegexLiteralNode{\n  &: %p", n)
 
-		buff.WriteString(element.Inspect())
+	buff.WriteString(",\n  content: %%[\n")
+	for i, stmt := range n.Content {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, stmt.Inspect(), 2)
 	}
-	buff.WriteString("]}")
+
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
 
 	return buff.String()
 }

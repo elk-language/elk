@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -26,7 +27,16 @@ func (*TypeExpressionNode) DirectClass() *value.Class {
 }
 
 func (n *TypeExpressionNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::TypeExpressionNode{&: %p, type_node: %s}", n, n.TypeNode.Inspect())
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::TypeExpressionNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  type_node: ")
+	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *TypeExpressionNode) Error() string {

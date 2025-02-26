@@ -105,11 +105,16 @@ func (*StringInspectInterpolationNode) DirectClass() *value.Class {
 }
 
 func (n *StringInspectInterpolationNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::StringInspectInterpolationNode{&: %p, expression: %s}",
-		n,
-		n.Expression.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::StringInspectInterpolationNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  expression: ")
+	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *StringInspectInterpolationNode) Error() string {
@@ -143,11 +148,16 @@ func (*StringInterpolationNode) DirectClass() *value.Class {
 }
 
 func (n *StringInterpolationNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::StringInspectInterpolationNode{&: %p, expression: %s}",
-		n,
-		n.Expression.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::StringInterpolationNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  expression: ")
+	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *StringInterpolationNode) Error() string {
@@ -187,15 +197,19 @@ func (*InterpolatedStringLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedStringLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InterpolatedStringLiteralNode{&: %p, content: %%[", n)
-	for i, element := range n.Content {
-		if i != 0 {
-			buff.WriteString(", ")
-		}
+	fmt.Fprintf(&buff, "Std::AST::InterpolatedStringLiteralNode{\n  &: %p", n)
 
-		buff.WriteString(element.Inspect())
+	buff.WriteString(",\n  content: %%[\n")
+	for i, stmt := range n.Content {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, stmt.Inspect(), 2)
 	}
-	buff.WriteString("]}")
+
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
 
 	return buff.String()
 }

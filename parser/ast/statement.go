@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -38,8 +39,17 @@ func (e *ExpressionStatementNode) DirectClass() *value.Class {
 	return value.ExpressionStatementNodeClass
 }
 
-func (e *ExpressionStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::ExpressionStatementNode{&: %p, expression: %s}", e, e.Expression.Inspect())
+func (n *ExpressionStatementNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ExpressionStatementNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  expression: ")
+	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (e *ExpressionStatementNode) Error() string {

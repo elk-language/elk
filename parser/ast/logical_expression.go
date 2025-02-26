@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -51,13 +52,22 @@ func (*LogicalExpressionNode) DirectClass() *value.Class {
 }
 
 func (n *LogicalExpressionNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::LogicalExpressionNode{&: %p, op: %s, left: %s, right: %s}",
-		n,
-		n.Op.Inspect(),
-		n.Left.Inspect(),
-		n.Right.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::LogicalExpressionNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  op: ")
+	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+
+	buff.WriteString(",\n  left: ")
+	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+
+	buff.WriteString(",\n  right: ")
+	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *LogicalExpressionNode) Error() string {

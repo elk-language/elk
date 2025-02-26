@@ -28,18 +28,23 @@ func (*ProgramNode) DirectClass() *value.Class {
 	return value.ProgramNodeClass
 }
 
-func (p *ProgramNode) Inspect() string {
+func (n *ProgramNode) Inspect() string {
 	var buff strings.Builder
-	fmt.Fprintf(&buff, "Std::AST::ProgramNode{&: %p, body: %%[", p)
 
-	for i, stmt := range p.Body {
+	fmt.Fprintf(&buff, "Std::AST::ProgramNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  body: %%[\n")
+	for i, stmt := range n.Body {
 		if i != 0 {
-			buff.WriteString(", ")
+			buff.WriteString(",\n")
 		}
-		buff.WriteString(stmt.Inspect())
+		indentString(&buff, stmt.Inspect(), 2)
 	}
 
-	buff.WriteString("]}")
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
 	return buff.String()
 }
 

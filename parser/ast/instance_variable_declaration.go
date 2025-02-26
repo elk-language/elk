@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -27,8 +28,20 @@ func (*InstanceVariableDeclarationNode) DirectClass() *value.Class {
 	return value.InstanceVariableDeclarationNodeClass
 }
 
-func (i *InstanceVariableDeclarationNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::InstanceVariableDeclarationNode{&: %p, name: %s, type_node: %s}", i, i.Name, i.TypeNode.Inspect())
+func (n *InstanceVariableDeclarationNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::InstanceVariableDeclarationNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  name: ")
+	buff.WriteString(n.Name)
+
+	buff.WriteString(",\n  type_node: ")
+	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (p *InstanceVariableDeclarationNode) Error() string {

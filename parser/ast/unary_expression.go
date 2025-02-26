@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -37,12 +38,19 @@ func (*UnaryExpressionNode) DirectClass() *value.Class {
 }
 
 func (n *UnaryExpressionNode) Inspect() string {
-	return fmt.Sprintf(
-		"Std::AST::UnaryExpressionNode{&: %p, op: %s, right: %s}",
-		n,
-		n.Op.Inspect(),
-		n.Right.Inspect(),
-	)
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::UnaryExpressionNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  op: ")
+	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+
+	buff.WriteString(",\n  right: ")
+	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
 }
 
 func (n *UnaryExpressionNode) Error() string {
