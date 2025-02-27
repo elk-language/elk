@@ -57,6 +57,45 @@ var StringInspectInterpolationNodeClass *Class  // Std::ElkAST::StringInspectInt
 var StringInterpolationNodeClass *Class         // Std::ElkAST::StringInterpolationNode
 var InterpolatedStringLiteralNodeClass *Class   // Std::ElkAST::InterpolatedStringLiteralNode
 var DoubleQuotedStringLiteralNodeClass *Class   // Std::ElkAST::DoubleQuotedStringLiteralNode
+var ConstantAsNodeClass *Class                  // Std::ElkAST::ConstantAsNode
+var MethodLookupAsNodeClass *Class              // Std::ElkAST::MethodLookupAsNode
+var PublicIdentifierNodeClass *Class            // Std::ElkAST::PublicIdentifierNode
+var PublicIdentifierAsNodeClass *Class          // Std::ElkAST::PublicIdentifierAsNode
+var PrivateIdentifierNodeClass *Class           // Std::ElkAST::PrivateIdentifierNode
+var PublicConstantNodeClass *Class              // Std::ElkAST::PublicConstantNode
+var PrivateConstantNodeClass *Class             // Std::ElkAST::PrivateConstantNode
+var AsExpressionNodeClass *Class                // Std::ElkAST::AsExpressionNode
+var DoExpressionNodeClass *Class                // Std::ElkAST::DoExpressionNode
+var SingletonBlockExpressionNodeClass *Class    // Std::ElkAST::SingletonBlockExpressionNode
+var SwitchExpressionNodeClass *Class            // Std::ElkAST::SwitchExpressionNode
+var IfExpressionNodeClass *Class                // Std::ElkAST::IfExpressionNode
+var UnlessExpressionNodeClass *Class            // Std::ElkAST::UnlessExpressionNode
+var WhileExpressionNodeClass *Class             // Std::ElkAST::WhileExpressionNode
+var UntilExpressionNodeClass *Class             // Std::ElkAST::UntilExpressionNode
+var LoopExpressionNodeClass *Class              // Std::ElkAST::LoopExpressionNode
+var NumericForExpressionNodeClass *Class        // Std::ElkAST::NumericForExpressionNode
+var ForInExpressionNodeClass *Class             // Std::ElkAST::ForInExpressionNode
+var BreakExpressionNodeClass *Class             // Std::ElkAST::BreakExpressionNode
+var LabeledExpressionNodeClass *Class           // Std::ElkAST::LabeledExpressionNode
+var GoExpressionNodeClass *Class                // Std::ElkAST::GoExpressionNode
+var ReturnExpressionNodeClass *Class            // Std::ElkAST::ReturnExpressionNode
+var YieldExpressionNodeClass *Class             // Std::ElkAST::YieldExpressionNode
+var ContinueExpressionNodeClass *Class          // Std::ElkAST::ContinueExpressionNode
+var ThrowExpressionNodeClass *Class             // Std::ElkAST::ThrowExpressionNode
+var MustExpressionNodeClass *Class              // Std::ElkAST::MustExpressionNode
+var TryExpressionNodeClass *Class               // Std::ElkAST::TryExpressionNode
+var AwaitExpressionNodeClass *Class             // Std::ElkAST::AwaitExpressionNode
+var TypeofExpressionNodeClass *Class            // Std::ElkAST::TypeofExpressionNode
+var ConstantLookupNodeClass *Class              // Std::ElkAST::ConstantLookupNode
+var MethodLookupNodeClass *Class                // Std::ElkAST::MethodLookupNode
+var UsingEntryWithSubentriesNodeClass *Class    // Std::ElkAST::UsingEntryWithSubentriesNode
+var UsingAllEntryNodeClass *Class               // Std::ElkAST::UsingAllEntryNode
+var ClosureLiteralNodeClass *Class              // Std::ElkAST::ClosureLiteralNode
+var ClassDeclarationNodeClass *Class            // Std::ElkAST::ClassDeclarationNode
+var ModuleDeclarationNodeClass *Class           // Std::ElkAST::ModuleDeclarationNode
+var MixinDeclarationNodeClass *Class            // Std::ElkAST::MixinDeclarationNode
+var InterfaceDeclarationNodeClass *Class        // Std::ElkAST::InterfaceDeclarationNode
+var StructDeclarationNodeClass *Class           // Std::ElkAST::StructDeclarationNode
 
 func initAST() {
 	ElkASTModule = NewModule()
@@ -257,5 +296,165 @@ func initAST() {
 
 	StringInterpolationNodeClass = NewClass()
 	ElkASTModule.AddConstantString("StringInterpolationNode", Ref(StringInterpolationNodeClass))
+
+	ConstantAsNodeClass = NewClass()
+	ConstantAsNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ConstantAsNode", Ref(ConstantAsNodeClass))
+
+	MethodLookupAsNodeClass = NewClass()
+	MethodLookupAsNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MethodLookupAsNode", Ref(MethodLookupAsNodeClass))
+
+	PublicIdentifierNodeClass = NewClass()
+	PublicIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
+
+	PublicIdentifierNodeClass = NewClass()
+	PublicIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
+
+	PublicIdentifierAsNodeClass = NewClass()
+	PublicIdentifierAsNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PublicIdentifierAsNode", Ref(PublicIdentifierAsNodeClass))
+
+	PrivateIdentifierNodeClass = NewClass()
+	PrivateIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PrivateIdentifierNode", Ref(PrivateIdentifierNodeClass))
+
+	PublicConstantNodeClass = NewClass()
+	PublicConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PublicConstantNode", Ref(PublicConstantNodeClass))
+
+	PrivateConstantNodeClass = NewClass()
+	PrivateConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PrivateConstantNode", Ref(PrivateConstantNodeClass))
+
+	AsExpressionNodeClass = NewClass()
+	AsExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("AsExpressionNode", Ref(AsExpressionNodeClass))
+
+	DoExpressionNodeClass = NewClass()
+	DoExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("DoExpressionNode", Ref(DoExpressionNodeClass))
+
+	SingletonBlockExpressionNodeClass = NewClass()
+	SingletonBlockExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("SingletonBlockExpressionNode", Ref(SingletonBlockExpressionNodeClass))
+
+	SwitchExpressionNodeClass = NewClass()
+	SwitchExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("SwitchExpressionNode", Ref(SwitchExpressionNodeClass))
+
+	IfExpressionNodeClass = NewClass()
+	IfExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("IfExpressionNode", Ref(IfExpressionNodeClass))
+
+	UnlessExpressionNodeClass = NewClass()
+	UnlessExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UnlessExpressionNode", Ref(UnlessExpressionNodeClass))
+
+	WhileExpressionNodeClass = NewClass()
+	WhileExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("WhileExpressionNode", Ref(WhileExpressionNodeClass))
+
+	UntilExpressionNodeClass = NewClass()
+	UntilExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UntilExpressionNode", Ref(UntilExpressionNodeClass))
+
+	LoopExpressionNodeClass = NewClass()
+	LoopExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("LoopExpressionNode", Ref(LoopExpressionNodeClass))
+
+	ForInExpressionNodeClass = NewClass()
+	ForInExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ForInExpressionNode", Ref(ForInExpressionNodeClass))
+
+	BreakExpressionNodeClass = NewClass()
+	BreakExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("BreakExpressionNode", Ref(BreakExpressionNodeClass))
+
+	NumericForExpressionNodeClass = NewClass()
+	NumericForExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("NumericForExpressionNode", Ref(NumericForExpressionNodeClass))
+
+	LabeledExpressionNodeClass = NewClass()
+	LabeledExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("LabeledExpressionNode", Ref(LabeledExpressionNodeClass))
+
+	GoExpressionNodeClass = NewClass()
+	GoExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("GoExpressionNode", Ref(GoExpressionNodeClass))
+
+	ReturnExpressionNodeClass = NewClass()
+	ReturnExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ReturnExpressionNode", Ref(ReturnExpressionNodeClass))
+
+	YieldExpressionNodeClass = NewClass()
+	YieldExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("YieldExpressionNode", Ref(YieldExpressionNodeClass))
+
+	ContinueExpressionNodeClass = NewClass()
+	ContinueExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ContinueExpressionNode", Ref(ContinueExpressionNodeClass))
+
+	ThrowExpressionNodeClass = NewClass()
+	ThrowExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ThrowExpressionNode", Ref(ThrowExpressionNodeClass))
+
+	MustExpressionNodeClass = NewClass()
+	MustExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MustExpressionNode", Ref(MustExpressionNodeClass))
+
+	TryExpressionNodeClass = NewClass()
+	TryExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("TryExpressionNode", Ref(TryExpressionNodeClass))
+
+	AwaitExpressionNodeClass = NewClass()
+	AwaitExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("AwaitExpressionNode", Ref(AwaitExpressionNodeClass))
+
+	TypeofExpressionNodeClass = NewClass()
+	TypeofExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("TypeofExpressionNode", Ref(TypeofExpressionNodeClass))
+
+	ConstantLookupNodeClass = NewClass()
+	ConstantLookupNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ConstantLookupNode", Ref(ConstantLookupNodeClass))
+
+	MethodLookupNodeClass = NewClass()
+	MethodLookupNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MethodLookupNode", Ref(MethodLookupNodeClass))
+
+	UsingEntryWithSubentriesNodeClass = NewClass()
+	UsingEntryWithSubentriesNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UsingEntryWithSubentriesNode", Ref(UsingEntryWithSubentriesNodeClass))
+
+	UsingAllEntryNodeClass = NewClass()
+	UsingAllEntryNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UsingAllEntryNode", Ref(UsingAllEntryNodeClass))
+
+	ClosureLiteralNodeClass = NewClass()
+	ClosureLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ClosureLiteralNode", Ref(ClosureLiteralNodeClass))
+
+	ClassDeclarationNodeClass = NewClass()
+	ClassDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ClassDeclarationNode", Ref(ClassDeclarationNodeClass))
+
+	ModuleDeclarationNodeClass = NewClass()
+	ModuleDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ModuleDeclarationNode", Ref(ModuleDeclarationNodeClass))
+
+	MixinDeclarationNodeClass = NewClass()
+	MixinDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MixinDeclarationNode", Ref(MixinDeclarationNodeClass))
+
+	InterfaceDeclarationNodeClass = NewClass()
+	InterfaceDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("InterfaceDeclarationNode", Ref(InterfaceDeclarationNodeClass))
+
+	StructDeclarationNodeClass = NewClass()
+	StructDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("StructDeclarationNode", Ref(StructDeclarationNodeClass))
 
 }

@@ -12,6 +12,18 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+// All nodes that represent regexes should
+// implement this interface.
+type RegexLiteralNode interface {
+	Node
+	PatternExpressionNode
+	regexLiteralNode()
+}
+
+func (*InvalidNode) regexLiteralNode()                    {}
+func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
+func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
+
 // Represents an uninterpolated regex literal eg. `%/foo/`
 type UninterpolatedRegexLiteralNode struct {
 	NodeBase

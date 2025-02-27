@@ -10,6 +10,34 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+// All nodes that represent strings should
+// implement this interface.
+type StringLiteralNode interface {
+	Node
+	PatternExpressionNode
+	StringOrSymbolLiteralNode
+	stringLiteralNode()
+}
+
+func (*InvalidNode) stringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) stringLiteralNode() {}
+func (*RawStringLiteralNode) stringLiteralNode()          {}
+func (*InterpolatedStringLiteralNode) stringLiteralNode() {}
+
+// All nodes that represent simple strings (without interpolation)
+// should implement this interface.
+type SimpleStringLiteralNode interface {
+	Node
+	ExpressionNode
+	StringLiteralNode
+	StringOrSymbolLiteralNode
+	simpleStringLiteralNode()
+}
+
+func (*InvalidNode) simpleStringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) simpleStringLiteralNode() {}
+func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
+
 // Raw string literal enclosed with single quotes eg. `'foo'`.
 type RawStringLiteralNode struct {
 	TypedNodeBase
