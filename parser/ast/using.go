@@ -104,3 +104,56 @@ func (n *UsingEntryWithSubentriesNode) Inspect() string {
 func (n *UsingEntryWithSubentriesNode) Error() string {
 	return n.Inspect()
 }
+
+// Represents a using expression eg. `using Foo`
+type UsingExpressionNode struct {
+	TypedNodeBase
+	Entries []UsingEntryNode
+}
+
+func (*UsingExpressionNode) SkipTypechecking() bool {
+	return false
+}
+
+func (*UsingExpressionNode) IsStatic() bool {
+	return false
+}
+
+func (*UsingExpressionNode) Class() *value.Class {
+	return value.UsingExpressionNodeClass
+}
+
+func (*UsingExpressionNode) DirectClass() *value.Class {
+	return value.UsingExpressionNodeClass
+}
+
+func (n *UsingExpressionNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::UsingExpressionNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  entries: %%[\n")
+	for i, element := range n.Entries {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *UsingExpressionNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a using expression node eg. `using Foo`
+func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *UsingExpressionNode {
+	return &UsingExpressionNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Entries:       consts,
+	}
+}

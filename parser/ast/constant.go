@@ -137,11 +137,11 @@ func (*ConstantLookupNode) IsStatic() bool {
 }
 
 func (*ConstantLookupNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.ConstantLookupNodeClass
 }
 
 func (*ConstantLookupNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.ConstantLookupNodeClass
 }
 
 func (n *ConstantLookupNode) Inspect() string {
@@ -170,5 +170,59 @@ func NewConstantLookupNode(span *position.Span, left ExpressionNode, right Compl
 		TypedNodeBase: TypedNodeBase{span: span},
 		Left:          left,
 		Right:         right,
+	}
+}
+
+// Represents a generic constant in type annotations eg. `ArrayList[String]`
+type GenericConstantNode struct {
+	TypedNodeBase
+	Constant      ComplexConstantNode
+	TypeArguments []TypeNode
+}
+
+func (*GenericConstantNode) IsStatic() bool {
+	return true
+}
+
+func (*GenericConstantNode) Class() *value.Class {
+	return value.GenericConstantNodeClass
+}
+
+func (*GenericConstantNode) DirectClass() *value.Class {
+	return value.GenericConstantNodeClass
+}
+
+func (n *GenericConstantNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::GenericConstantNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  constant: ")
+	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+
+	buff.WriteString(",\n  type_arguments: %%[\n")
+	for i, element := range n.TypeArguments {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *GenericConstantNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a generic constant node eg. `ArrayList[String]`
+func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []TypeNode) *GenericConstantNode {
+	return &GenericConstantNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Constant:      constant,
+		TypeArguments: args,
 	}
 }
