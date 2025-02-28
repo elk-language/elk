@@ -8,6 +8,37 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Represents all nodes that are valid in using declarations
+type UsingEntryNode interface {
+	Node
+	ExpressionNode
+	usingEntryNode()
+}
+
+func (*InvalidNode) usingEntryNode()                  {}
+func (*PublicConstantNode) usingEntryNode()           {}
+func (*PrivateConstantNode) usingEntryNode()          {}
+func (*ConstantLookupNode) usingEntryNode()           {}
+func (*MethodLookupNode) usingEntryNode()             {}
+func (*UsingAllEntryNode) usingEntryNode()            {}
+func (*UsingEntryWithSubentriesNode) usingEntryNode() {}
+func (*ConstantAsNode) usingEntryNode()               {}
+func (*MethodLookupAsNode) usingEntryNode()           {}
+func (*GenericConstantNode) usingEntryNode()          {}
+func (*NilLiteralNode) usingEntryNode()               {}
+
+type UsingSubentryNode interface {
+	Node
+	ExpressionNode
+	usingSubentryNode()
+}
+
+func (*InvalidNode) usingSubentryNode()            {}
+func (*PublicConstantNode) usingSubentryNode()     {}
+func (*PublicConstantAsNode) usingSubentryNode()   {}
+func (*PublicIdentifierNode) usingSubentryNode()   {}
+func (*PublicIdentifierAsNode) usingSubentryNode() {}
+
 // Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
 type UsingAllEntryNode struct {
 	TypedNodeBase

@@ -10,6 +10,18 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+// Nodes that implement this interface can appear
+// inside of a String literal.
+type StringLiteralContentNode interface {
+	Node
+	stringLiteralContentNode()
+}
+
+func (*InvalidNode) stringLiteralContentNode()                     {}
+func (*StringInspectInterpolationNode) stringLiteralContentNode()  {}
+func (*StringInterpolationNode) stringLiteralContentNode()         {}
+func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
+
 // All nodes that represent strings should
 // implement this interface.
 type StringLiteralNode interface {

@@ -12,6 +12,17 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+// Nodes that implement this interface can appear
+// inside of a Regex literal.
+type RegexLiteralContentNode interface {
+	Node
+	regexLiteralContentNode()
+}
+
+func (*InvalidNode) regexLiteralContentNode()                    {}
+func (*RegexInterpolationNode) regexLiteralContentNode()         {}
+func (*RegexLiteralContentSectionNode) regexLiteralContentNode() {}
+
 // All nodes that represent regexes should
 // implement this interface.
 type RegexLiteralNode interface {

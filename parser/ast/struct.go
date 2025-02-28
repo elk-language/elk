@@ -8,6 +8,17 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Represents a single statement of a struct body
+// optionally terminated with a newline or semicolon.
+type StructBodyStatementNode interface {
+	Node
+	structBodyStatementNode()
+}
+
+func (*InvalidNode) structBodyStatementNode()            {}
+func (*EmptyStatementNode) structBodyStatementNode()     {}
+func (*ParameterStatementNode) structBodyStatementNode() {}
+
 // Represents a struct declaration eg. `struct Foo; end`
 type StructDeclarationNode struct {
 	TypedNodeBase

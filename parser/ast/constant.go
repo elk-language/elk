@@ -8,6 +8,40 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// All nodes that should be valid in constant lookups
+// should implement this interface.
+type ComplexConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	PatternNode
+	PatternExpressionNode
+	UsingEntryNode
+	complexConstantNode()
+}
+
+func (*InvalidNode) complexConstantNode()         {}
+func (*PublicConstantNode) complexConstantNode()  {}
+func (*PrivateConstantNode) complexConstantNode() {}
+func (*ConstantLookupNode) complexConstantNode()  {}
+func (*GenericConstantNode) complexConstantNode() {}
+func (*NilLiteralNode) complexConstantNode()      {}
+
+// All nodes that should be valid constants
+// should implement this interface.
+type ConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	UsingEntryNode
+	ComplexConstantNode
+	constantNode()
+}
+
+func (*InvalidNode) constantNode()         {}
+func (*PublicConstantNode) constantNode()  {}
+func (*PrivateConstantNode) constantNode() {}
+
 // Represents a public constant eg. `Foo`.
 type PublicConstantNode struct {
 	TypedNodeBase

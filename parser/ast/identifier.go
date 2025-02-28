@@ -8,6 +8,18 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// All nodes that should be valid identifiers
+// should implement this interface.
+type IdentifierNode interface {
+	Node
+	PatternExpressionNode
+	identifierNode()
+}
+
+func (*InvalidNode) identifierNode()           {}
+func (*PublicIdentifierNode) identifierNode()  {}
+func (*PrivateIdentifierNode) identifierNode() {}
+
 // Represents a public identifier eg. `foo`.
 type PublicIdentifierNode struct {
 	TypedNodeBase
