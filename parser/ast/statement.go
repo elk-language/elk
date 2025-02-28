@@ -20,6 +20,7 @@ func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
 func (*ImportStatementNode) statementNode()     {}
+func (*ParameterStatementNode) statementNode()  {}
 
 // Expression optionally terminated with a newline or a semicolon.
 type ExpressionStatementNode struct {
@@ -136,5 +137,56 @@ func NewImportStatementNode(span *position.Span, path StringLiteralNode) *Import
 	return &ImportStatementNode{
 		NodeBase: NodeBase{span: span},
 		Path:     path,
+	}
+}
+
+// Formal parameter optionally terminated with a newline or a semicolon.
+type ParameterStatementNode struct {
+	NodeBase
+	Parameter ParameterNode
+}
+
+func (*ParameterStatementNode) IsStatic() bool {
+	return false
+}
+
+func (*ParameterStatementNode) Class() *value.Class {
+	return value.ParameterStatementNodeClass
+}
+
+func (*ParameterStatementNode) DirectClass() *value.Class {
+	return value.ParameterStatementNodeClass
+}
+
+func (n *ParameterStatementNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ParameterStatementNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  parameter: ")
+	indentStringFromSecondLine(&buff, n.Parameter.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (e *ParameterStatementNode) Error() string {
+	return e.Inspect()
+}
+
+// Create a new formal parameter statement node eg. `foo: Bar\n`
+func NewParameterStatementNode(span *position.Span, param ParameterNode) *ParameterStatementNode {
+	return &ParameterStatementNode{
+		NodeBase:  NodeBase{span: span},
+		Parameter: param,
+	}
+}
+
+// Same as [NewParameterStatementNode] but returns an interface
+func NewParameterStatementNodeI(span *position.Span, param ParameterNode) StructBodyStatementNode {
+	return &ParameterStatementNode{
+		NodeBase:  NodeBase{span: span},
+		Parameter: param,
 	}
 }

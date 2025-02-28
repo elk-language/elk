@@ -3,10 +3,16 @@ package value
 var ElkASTModule *Module // Std::ElkAST
 var NodeClass *Class     // Std::ElkAST::Node
 
-var StatementNodeInterface *Interface   // Std::ElkAST::StatementNode
+var StructBodyStatementNodeMixin *Class // Std::ElkAST::StructBodyStatementNode
+var StatementNodeMixin *Mixin           // Std::ElkAST::StatementNode
+var ParameterNodeMixin *Mixin           // Std::ElkAST::ParameterNode
+var TypeNodeMixin *Mixin                // Std::ElkAST::TypeNode
+var PatternNodeMixin *Mixin             // Std::ElkAST::PatternNode
+
 var ExpressionStatementNodeClass *Class // Std::ElkAST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::ElkAST::EmptyStatementNode
 var ImportStatementNodeClass *Class     // Std::ElkAST::ImportStatementNode
+var ParameterStatementNodeClass *Class  // Std::ElkAST::ParameterStatementNode
 
 var ProgramNodeClass *Class                       // Std::ElkAST::ProgramNode
 var ExpressionNodeMixin *Mixin                    // Std::ElkAST::ExpressionNode
@@ -145,6 +151,23 @@ var BinHashSetLiteralNodeClass *Class             // Std::ElkAST::BinHashSetLite
 var HashMapLiteralNodeClass *Class                // Std::ElkAST::HashMapLiteralNode
 var HashRecordLiteralNodeClass *Class             // Std::ElkAST::HashRecordLiteralNode
 var RangeLiteralNodeClass *Class                  // Std::ElkAST::RangeLiteralNode
+var VariantTypeParameterNodeClass *Class          // Std::ElkAST::VariantTypeParameterNode
+var FormalParameterNodeClass *Class               // Std::ElkAST::FormalParameterNode
+var MethodParameterNodeClass *Class               // Std::ElkAST::MethodParameterNode
+var SignatureParameterNodeClass *Class            // Std::ElkAST::SignatureParameterNode
+var AttributeParameterNodeClass *Class            // Std::ElkAST::AttributeParameterNode
+var BoolLiteralNodeClass *Class                   // Std::ElkAST::BoolLiteralNode
+var VoidTypeNodeClass *Class                      // Std::ElkAST::VoidTypeNode
+var NeverTypeNodeClass *Class                     // Std::ElkAST::NeverTypeNode
+var AnyTypeNodeClass *Class                       // Std::ElkAST::AnyTypeNode
+var UnionTypeNodeClass *Class                     // Std::ElkAST::UnionTypeNode
+var IntersectionTypeNodeClass *Class              // Std::ElkAST::IntersectionTypeNode
+var BinaryTypeExpressionNodeClass *Class          // Std::ElkAST::BinaryTypeExpressionNode
+var NilableTypeNodeClass *Class                   // Std::ElkAST::NilableTypeNode
+var InstanceOfTypeNodeClass *Class                // Std::ElkAST::InstanceOfTypeNode
+var SingletonTypeNodeClass *Class                 // Std::ElkAST::SingletonTypeNode
+var NotTypeNodeClass *Class                       // Std::ElkAST::NotTypeNode
+var ClosureTypeNodeClass *Class                   // Std::ElkAST::ClosureTypeNode
 
 func initAST() {
 	ElkASTModule = NewModule()
@@ -153,17 +176,32 @@ func initAST() {
 	NodeClass = NewClass()
 	ElkASTModule.AddConstantString("Node", Ref(NodeClass))
 
-	StatementNodeInterface = NewInterface()
-	ElkASTModule.AddConstantString("StatementNode", Ref(StatementNodeInterface))
+	StatementNodeMixin = NewMixin()
+	ElkASTModule.AddConstantString("StatementNode", Ref(StatementNodeMixin))
+
+	StructBodyStatementNodeMixin = NewMixin()
+	ElkASTModule.AddConstantString("StructBodyStatementNode", Ref(StructBodyStatementNodeMixin))
+
+	ParameterNodeMixin = NewMixin()
+	ElkASTModule.AddConstantString("ParameterNode", Ref(ParameterNodeMixin))
 
 	ExpressionStatementNodeClass = NewClass()
+	ExpressionStatementNodeClass.IncludeMixin(StatementNodeMixin)
 	ElkASTModule.AddConstantString("ExpressionStatementNode", Ref(ExpressionStatementNodeClass))
 
 	EmptyStatementNodeClass = NewClass()
+	EmptyStatementNodeClass.IncludeMixin(StatementNodeMixin)
+	EmptyStatementNodeClass.IncludeMixin(StructBodyStatementNodeMixin)
 	ElkASTModule.AddConstantString("EmptyStatementNode", Ref(EmptyStatementNodeClass))
 
 	ImportStatementNodeClass = NewClass()
+	ImportStatementNodeClass.IncludeMixin(StatementNodeMixin)
 	ElkASTModule.AddConstantString("ImportStatementNode", Ref(ImportStatementNodeClass))
+
+	ParameterStatementNodeClass = NewClass()
+	ParameterStatementNodeClass.IncludeMixin(StatementNodeMixin)
+	ParameterStatementNodeClass.IncludeMixin(StructBodyStatementNodeMixin)
+	ElkASTModule.AddConstantString("ParameterStatementNode", Ref(ParameterStatementNodeClass))
 
 	ProgramNodeClass = NewClass()
 	ElkASTModule.AddConstantString("ProgramNode", Ref(ProgramNodeClass))
@@ -172,7 +210,11 @@ func initAST() {
 	ElkASTModule.AddConstantString("ExpressionNode", Ref(ExpressionNodeMixin))
 
 	InvalidNodeClass = NewClass()
+	InvalidNodeClass.IncludeMixin(StatementNodeMixin)
 	InvalidNodeClass.IncludeMixin(ExpressionNodeMixin)
+	InvalidNodeClass.IncludeMixin(StructBodyStatementNodeMixin)
+	InvalidNodeClass.IncludeMixin(ParameterNodeMixin)
+	InvalidNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("InvalidNode", Ref(InvalidNodeClass))
 
 	TypeExpressionNodeClass = NewClass()
@@ -249,6 +291,7 @@ func initAST() {
 
 	SelfLiteralNodeClass = NewClass()
 	SelfLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	SelfLiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("SelfLiteralNode", Ref(SelfLiteralNodeClass))
 
 	InstanceVariableNodeClass = NewClass()
@@ -700,4 +743,70 @@ func initAST() {
 	RangeLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("RangeLiteralNode", Ref(RangeLiteralNodeClass))
 
+	VariantTypeParameterNodeClass = NewClass()
+	ElkASTModule.AddConstantString("VariantTypeParameterNode", Ref(VariantTypeParameterNodeClass))
+
+	FormalParameterNodeClass = NewClass()
+	FormalParameterNodeClass.IncludeMixin(ParameterNodeMixin)
+	ElkASTModule.AddConstantString("FormalParameterNode", Ref(FormalParameterNodeClass))
+
+	MethodParameterNodeClass = NewClass()
+	MethodParameterNodeClass.IncludeMixin(ParameterNodeMixin)
+	ElkASTModule.AddConstantString("MethodParameterNode", Ref(MethodParameterNodeClass))
+
+	SignatureParameterNodeClass = NewClass()
+	SignatureParameterNodeClass.IncludeMixin(ParameterNodeMixin)
+	ElkASTModule.AddConstantString("SignatureParameterNode", Ref(SignatureParameterNodeClass))
+
+	AttributeParameterNodeClass = NewClass()
+	AttributeParameterNodeClass.IncludeMixin(ParameterNodeMixin)
+	ElkASTModule.AddConstantString("AttributeParameterNode", Ref(AttributeParameterNodeClass))
+
+	BoolLiteralNodeClass = NewClass()
+	BoolLiteralNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("BoolLiteralNode", Ref(BoolLiteralNodeClass))
+
+	VoidTypeNodeClass = NewClass()
+	VoidTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("VoidTypeNode", Ref(VoidTypeNodeClass))
+
+	NeverTypeNodeClass = NewClass()
+	NeverTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("NeverTypeNode", Ref(NeverTypeNodeClass))
+
+	AnyTypeNodeClass = NewClass()
+	AnyTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("AnyTypeNode", Ref(AnyTypeNodeClass))
+
+	UnionTypeNodeClass = NewClass()
+	UnionTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("UnionTypeNode", Ref(UnionTypeNodeClass))
+
+	IntersectionTypeNodeClass = NewClass()
+	IntersectionTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("IntersectionTypeNode", Ref(IntersectionTypeNodeClass))
+
+	BinaryTypeExpressionNodeClass = NewClass()
+	BinaryTypeExpressionNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("BinaryTypeExpressionNode", Ref(BinaryTypeExpressionNodeClass))
+
+	NilableTypeNodeClass = NewClass()
+	NilableTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("NilableTypeNode", Ref(NilableTypeNodeClass))
+
+	InstanceOfTypeNodeClass = NewClass()
+	InstanceOfTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("InstanceOfTypeNode", Ref(InstanceOfTypeNodeClass))
+
+	SingletonTypeNodeClass = NewClass()
+	SingletonTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("SingletonTypeNode", Ref(SingletonTypeNodeClass))
+
+	NotTypeNodeClass = NewClass()
+	NotTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("NotTypeNode", Ref(NotTypeNodeClass))
+
+	ClosureTypeNodeClass = NewClass()
+	ClosureTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("ClosureTypeNode", Ref(ClosureTypeNodeClass))
 }

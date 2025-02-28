@@ -8,6 +8,20 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type ProgramState uint8
+
+const (
+	UNCHECKED ProgramState = iota
+	CHECKING_NAMESPACES
+	CHECKED_NAMESPACES
+
+	CHECKING_METHODS
+	CHECKED_METHODS
+
+	CHECKING_EXPRESSIONS
+	CHECKED_EXPRESSIONS
+)
+
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
 	NodeBase
