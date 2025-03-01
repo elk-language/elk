@@ -75,11 +75,11 @@ func (*InterpolatedSymbolLiteralNode) Type(globalEnv *types.GlobalEnvironment) t
 }
 
 func (*InterpolatedSymbolLiteralNode) Class() *value.Class {
-	return value.SimpleSymbolLiteralNodeClass
+	return value.InterpolatedSymbolLiteralNodeClass
 }
 
 func (*InterpolatedSymbolLiteralNode) DirectClass() *value.Class {
-	return value.SimpleSymbolLiteralNodeClass
+	return value.InterpolatedSymbolLiteralNodeClass
 }
 
 func (n *InterpolatedSymbolLiteralNode) Inspect() string {

@@ -790,23 +790,3 @@ func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode)
 		Body:     body,
 	}
 }
-
-// Type of an operator with one operand eg. `-2`, `+3`
-type UnaryTypeNode struct {
-	TypedNodeBase
-	Op       *token.Token // operator
-	TypeNode TypeNode     // right hand side
-}
-
-func (u *UnaryTypeNode) IsStatic() bool {
-	return false
-}
-
-// Create a new unary expression node.
-func NewUnaryTypeNode(span *position.Span, op *token.Token, typeNode TypeNode) *UnaryTypeNode {
-	return &UnaryTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
-		Op:            op,
-		TypeNode:      typeNode,
-	}
-}

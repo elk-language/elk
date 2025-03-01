@@ -259,7 +259,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(21, 1, 22)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -285,7 +285,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(22, 1, 23)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -313,7 +313,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(21, 1, 22)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -364,7 +364,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(5, 2, 5), P(43, 5, 7)),
 							ast.NewPublicConstantNode(S(P(5, 2, 5), P(7, 2, 7)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(17, 3, 6), P(21, 3, 10)),
 									T(S(P(19, 3, 8), P(19, 3, 8)), token.OR),
 									ast.NewIntLiteralNode(S(P(17, 3, 6), P(17, 3, 6)), "1"),

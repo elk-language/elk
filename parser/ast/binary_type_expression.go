@@ -10,20 +10,20 @@ import (
 )
 
 // Type expression of an operator with two operands eg. `String | Int`
-type BinaryTypeExpressionNode struct {
+type BinaryTypeNode struct {
 	TypedNodeBase
 	Op    *token.Token // operator
 	Left  TypeNode     // left hand side
 	Right TypeNode     // right hand side
 }
 
-func (*BinaryTypeExpressionNode) IsStatic() bool {
+func (*BinaryTypeNode) IsStatic() bool {
 	return false
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
-	return &BinaryTypeExpressionNode{
+func NewBinaryTypeNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeNode {
+	return &BinaryTypeNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Op:            op,
 		Left:          left,
@@ -31,9 +31,9 @@ func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, rig
 	}
 }
 
-// Same as [NewBinaryTypeExpressionNode] but returns an interface
-func NewBinaryTypeExpressionNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
-	return &BinaryTypeExpressionNode{
+// Same as [NewBinaryTypeNode] but returns an interface
+func NewBinaryTypeNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
+	return &BinaryTypeNode{
 		TypedNodeBase: TypedNodeBase{span: span},
 		Op:            op,
 		Left:          left,
@@ -41,18 +41,18 @@ func NewBinaryTypeExpressionNodeI(span *position.Span, op *token.Token, left, ri
 	}
 }
 
-func (*BinaryTypeExpressionNode) Class() *value.Class {
-	return value.ReturnExpressionNodeClass
+func (*BinaryTypeNode) Class() *value.Class {
+	return value.BinaryTypeNodeClass
 }
 
-func (*BinaryTypeExpressionNode) DirectClass() *value.Class {
-	return value.ReturnExpressionNodeClass
+func (*BinaryTypeNode) DirectClass() *value.Class {
+	return value.BinaryTypeNodeClass
 }
 
-func (n *BinaryTypeExpressionNode) Inspect() string {
+func (n *BinaryTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::BinaryTypeExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::AST::BinaryTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  op: ")
 	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
@@ -68,6 +68,6 @@ func (n *BinaryTypeExpressionNode) Inspect() string {
 	return buff.String()
 }
 
-func (n *BinaryTypeExpressionNode) Error() string {
+func (n *BinaryTypeNode) Error() string {
 	return n.Inspect()
 }

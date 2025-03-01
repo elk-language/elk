@@ -1594,7 +1594,7 @@ func TestValueDeclaration(t *testing.T) {
 						ast.NewValueDeclarationNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(20, 1, 21)),
 								T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -1616,10 +1616,10 @@ func TestValueDeclaration(t *testing.T) {
 						ast.NewValueDeclarationNode(
 							S(P(0, 1, 1), P(29, 1, 30)),
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(29, 1, 30)),
 								T(S(P(22, 1, 23), P(22, 1, 23)), token.OR),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(9, 1, 10), P(20, 1, 21)),
 									T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -1645,7 +1645,7 @@ func TestValueDeclaration(t *testing.T) {
 							"foo",
 							ast.NewNilableTypeNode(
 								S(P(10, 1, 11), P(23, 1, 24)),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									T(S(P(14, 1, 15), P(14, 1, 15)), token.OR),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
@@ -1668,7 +1668,7 @@ func TestValueDeclaration(t *testing.T) {
 						ast.NewValueDeclarationNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(20, 1, 21)),
 								T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -1690,10 +1690,10 @@ func TestValueDeclaration(t *testing.T) {
 						ast.NewValueDeclarationNode(
 							S(P(0, 1, 1), P(29, 1, 30)),
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(29, 1, 30)),
 								T(S(P(22, 1, 23), P(22, 1, 23)), token.AND),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(9, 1, 10), P(20, 1, 21)),
 									T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -1719,7 +1719,7 @@ func TestValueDeclaration(t *testing.T) {
 							"foo",
 							ast.NewNilableTypeNode(
 								S(P(10, 1, 11), P(23, 1, 24)),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									T(S(P(14, 1, 15), P(14, 1, 15)), token.AND),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
@@ -2141,7 +2141,7 @@ func TestVariableDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(20, 1, 21)),
 							"",
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(20, 1, 21)),
 								T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -2164,10 +2164,10 @@ func TestVariableDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(29, 1, 30)),
 							"",
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(29, 1, 30)),
 								T(S(P(22, 1, 23), P(22, 1, 23)), token.OR),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(9, 1, 10), P(20, 1, 21)),
 									T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -2194,7 +2194,7 @@ func TestVariableDeclaration(t *testing.T) {
 							"foo",
 							ast.NewNilableTypeNode(
 								S(P(10, 1, 11), P(23, 1, 24)),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									T(S(P(14, 1, 15), P(14, 1, 15)), token.OR),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
@@ -2218,7 +2218,7 @@ func TestVariableDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(20, 1, 21)),
 							"",
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(20, 1, 21)),
 								T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -2241,10 +2241,10 @@ func TestVariableDeclaration(t *testing.T) {
 							S(P(0, 1, 1), P(29, 1, 30)),
 							"",
 							"foo",
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(29, 1, 30)),
 								T(S(P(22, 1, 23), P(22, 1, 23)), token.AND),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(9, 1, 10), P(20, 1, 21)),
 									T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
 									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
@@ -2271,7 +2271,7 @@ func TestVariableDeclaration(t *testing.T) {
 							"foo",
 							ast.NewNilableTypeNode(
 								S(P(10, 1, 11), P(23, 1, 24)),
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(10, 1, 11), P(21, 1, 22)),
 									T(S(P(14, 1, 15), P(14, 1, 15)), token.AND),
 									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
@@ -2819,7 +2819,7 @@ func TestTypeDefinition(t *testing.T) {
 									nil,
 								),
 							},
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(34, 1, 35), P(38, 1, 39)),
 								T(S(P(36, 1, 37), P(36, 1, 37)), token.OR),
 								ast.NewPublicConstantNode(
@@ -3085,7 +3085,7 @@ func TestGetterDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(23, 1, 24), P(38, 1, 39)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(28, 1, 29), P(38, 1, 39)),
 										T(S(P(32, 1, 33), P(32, 1, 33)), token.OR),
 										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
@@ -3133,7 +3133,7 @@ func TestGetterDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(44, 4, 9), P(59, 4, 24)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(49, 4, 14), P(59, 4, 24)),
 										T(S(P(53, 4, 18), P(53, 4, 18)), token.OR),
 										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
@@ -3275,7 +3275,7 @@ func TestSetterDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(23, 1, 24), P(38, 1, 39)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(28, 1, 29), P(38, 1, 39)),
 										T(S(P(32, 1, 33), P(32, 1, 33)), token.OR),
 										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
@@ -3323,7 +3323,7 @@ func TestSetterDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(44, 4, 9), P(59, 4, 24)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(49, 4, 14), P(59, 4, 24)),
 										T(S(P(53, 4, 18), P(53, 4, 18)), token.OR),
 										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
@@ -3462,7 +3462,7 @@ func TestAccessorDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(25, 1, 26), P(40, 1, 41)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(30, 1, 31), P(40, 1, 41)),
 										T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
 										ast.NewPublicConstantNode(S(P(30, 1, 31), P(32, 1, 33)), "Int"),
@@ -3510,7 +3510,7 @@ func TestAccessorDeclaration(t *testing.T) {
 								ast.NewAttributeParameterNode(
 									S(P(46, 4, 9), P(61, 4, 24)),
 									"baz",
-									ast.NewBinaryTypeExpressionNode(
+									ast.NewBinaryTypeNode(
 										S(P(51, 4, 14), P(61, 4, 24)),
 										T(S(P(55, 4, 18), P(55, 4, 18)), token.OR),
 										ast.NewPublicConstantNode(S(P(51, 4, 14), P(53, 4, 16)), "Int"),
@@ -6778,7 +6778,7 @@ func TestMethodDefinition(t *testing.T) {
 							nil,
 							nil,
 							nil,
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(33, 1, 34)),
 								T(S(P(23, 1, 24), P(23, 1, 24)), token.OR),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(21, 1, 22)), "NoMethodError"),
@@ -6808,7 +6808,7 @@ func TestMethodDefinition(t *testing.T) {
 								S(P(10, 1, 11), P(16, 1, 17)),
 								ast.NewPublicConstantNode(S(P(10, 1, 11), P(15, 1, 16)), "String"),
 							),
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(20, 1, 21), P(44, 1, 45)),
 								T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
 								ast.NewPublicConstantNode(S(P(20, 1, 21), P(32, 1, 33)), "NoMethodError"),
@@ -8046,7 +8046,7 @@ func TestInitDefinition(t *testing.T) {
 						ast.NewInitDefinitionNode(
 							L("<main>", P(0, 1, 1), P(35, 1, 36)),
 							nil,
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(6, 1, 7), P(30, 1, 31)),
 								T(S(P(20, 1, 21), P(20, 1, 21)), token.OR),
 								ast.NewPublicConstantNode(S(P(6, 1, 7), P(18, 1, 19)), "NoMethodError"),
@@ -8965,7 +8965,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 							nil,
 							nil,
 							nil,
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(9, 1, 10), P(33, 1, 34)),
 								T(S(P(23, 1, 24), P(23, 1, 24)), token.OR),
 								ast.NewPublicConstantNode(S(P(9, 1, 10), P(21, 1, 22)), "NoMethodError"),
@@ -8993,7 +8993,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 								S(P(10, 1, 11), P(16, 1, 17)),
 								ast.NewPublicConstantNode(S(P(10, 1, 11), P(15, 1, 16)), "String"),
 							),
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(20, 1, 21), P(44, 1, 45)),
 								T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
 								ast.NewPublicConstantNode(S(P(20, 1, 21), P(32, 1, 33)), "NoMethodError"),

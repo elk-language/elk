@@ -452,7 +452,7 @@ func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, opera
 
 // binaryTypeExpression = subProduction | binaryTypeExpression operators subProduction
 func (p *Parser) binaryTypeExpression(subProduction func() ast.TypeNode, operators ...token.Type) ast.TypeNode {
-	return binaryProduction(p, ast.NewBinaryTypeExpressionNodeI, subProduction, operators...)
+	return binaryProduction(p, ast.NewBinaryTypeNodeI, subProduction, operators...)
 }
 
 // binaryPattern = subProduction | binaryPattern operators subProduction

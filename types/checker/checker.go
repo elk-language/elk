@@ -5760,7 +5760,7 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 	case *ast.SimpleSymbolLiteralNode:
 		n.SetType(types.NewSymbolLiteral(n.Content))
 		return n
-	case *ast.BinaryTypeExpressionNode:
+	case *ast.BinaryTypeNode:
 		return c.checkBinaryTypeExpressionNode(n)
 	case *ast.IntLiteralNode:
 		n.SetType(types.NewIntLiteral(n.Value))
@@ -5998,7 +5998,7 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 	return node
 }
 
-func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeExpressionNode) ast.TypeNode {
+func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.TypeNode {
 	switch node.Op.Type {
 	case token.OR:
 		return c.constructUnionType(node)
