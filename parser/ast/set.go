@@ -362,3 +362,57 @@ func (n *BinHashSetLiteralNode) Inspect() string {
 func (n *BinHashSetLiteralNode) Error() string {
 	return n.Inspect()
 }
+
+// Represents a Set pattern eg. `^[1, "foo"]`
+type SetPatternNode struct {
+	TypedNodeBase
+	Elements []PatternNode
+}
+
+func (s *SetPatternNode) IsStatic() bool {
+	return false
+}
+
+func (*SetPatternNode) Class() *value.Class {
+	return value.SetPatternNodeClass
+}
+
+func (*SetPatternNode) DirectClass() *value.Class {
+	return value.SetPatternNodeClass
+}
+
+func (n *SetPatternNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::SetPatternNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  elements: %%[\n")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *SetPatternNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a Set pattern node eg. `^[1, "foo"]`
+func NewSetPatternNode(span *position.Span, elements []PatternNode) *SetPatternNode {
+	return &SetPatternNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+	}
+}
+
+// Same as [NewSetPatternNode] but returns an interface
+func NewSetPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewSetPatternNode(span, elements)
+}

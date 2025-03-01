@@ -299,3 +299,57 @@ func (n *BinArrayTupleLiteralNode) Inspect() string {
 func (n *BinArrayTupleLiteralNode) Error() string {
 	return n.Inspect()
 }
+
+// Represents a Tuple pattern eg. `%[1, a, >= 10]`
+type TuplePatternNode struct {
+	TypedNodeBase
+	Elements []PatternNode
+}
+
+func (l *TuplePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Tuple pattern node eg. `%[1, a, >= 10]`
+func NewTuplePatternNode(span *position.Span, elements []PatternNode) *TuplePatternNode {
+	return &TuplePatternNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+	}
+}
+
+// Same as [NewTuplePatternNode] but returns an interface
+func NewTuplePatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewTuplePatternNode(span, elements)
+}
+
+func (*TuplePatternNode) Class() *value.Class {
+	return value.TuplePatternNodeClass
+}
+
+func (*TuplePatternNode) DirectClass() *value.Class {
+	return value.TuplePatternNodeClass
+}
+
+func (n *TuplePatternNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::TuplePatternNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  elements: %%[\n")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *TuplePatternNode) Error() string {
+	return n.Inspect()
+}

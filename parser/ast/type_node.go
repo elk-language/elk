@@ -49,3 +49,15 @@ func (*FloatLiteralNode) typeNode()              {}
 func (*Float64LiteralNode) typeNode()            {}
 func (*Float32LiteralNode) typeNode()            {}
 func (*BigFloatLiteralNode) typeNode()           {}
+
+type StringTypeNode interface {
+	Node
+	TypeNode
+	StringLiteralNode
+}
+
+type StringOrSymbolTypeNode interface {
+	Node
+	TypeNode
+	StringOrSymbolLiteralNode
+}

@@ -362,3 +362,57 @@ func (n *BinArrayListLiteralNode) Inspect() string {
 func (n *BinArrayListLiteralNode) Error() string {
 	return n.Inspect()
 }
+
+// Represents a List pattern eg. `[1, a, >= 10]`
+type ListPatternNode struct {
+	TypedNodeBase
+	Elements []PatternNode
+}
+
+func (l *ListPatternNode) IsStatic() bool {
+	return false
+}
+
+func (*ListPatternNode) Class() *value.Class {
+	return value.ListPatternNodeClass
+}
+
+func (*ListPatternNode) DirectClass() *value.Class {
+	return value.ListPatternNodeClass
+}
+
+func (n *ListPatternNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::ListPatternNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  elements: %%[\n")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *ListPatternNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a List pattern node eg. `[1, a, >= 10]`
+func NewListPatternNode(span *position.Span, elements []PatternNode) *ListPatternNode {
+	return &ListPatternNode{
+		TypedNodeBase: TypedNodeBase{span: span},
+		Elements:      elements,
+	}
+}
+
+// Same as [NewListPatternNode] but returns an interface
+func NewListPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewListPatternNode(span, elements)
+}
