@@ -316,53 +316,6 @@ func IsValidAssignmentTarget(node Node) bool {
 	}
 }
 
-// Check whether the node can be used as a range pattern element.
-func IsValidRangePatternElement(node Node) bool {
-	switch node.(type) {
-	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *CharLiteralNode,
-		*RawCharLiteralNode, *RawStringLiteralNode, *DoubleQuotedStringLiteralNode,
-		*InterpolatedStringLiteralNode, *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
-		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
-		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
-		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
-		*PublicConstantNode, *PrivateConstantNode, *ConstantLookupNode, *UnaryExpressionNode:
-		return true
-	default:
-		return false
-	}
-}
-
-// Check whether the node is a constant.
-func IsConstant(node Node) bool {
-	switch node.(type) {
-	case *PrivateConstantNode, *PublicConstantNode:
-		return true
-	default:
-		return false
-	}
-}
-
-// Check whether the node is a complex constant.
-func IsComplexConstant(node Node) bool {
-	switch node.(type) {
-	case *PrivateConstantNode, *PublicConstantNode, *ConstantLookupNode:
-		return true
-	default:
-		return false
-	}
-}
-
-// Check whether the node is a valid right operand of the pipe operator `|>`.
-func IsValidPipeExpressionTarget(node Node) bool {
-	switch node.(type) {
-	case *MethodCallNode, *GenericMethodCallNode, *ReceiverlessMethodCallNode,
-		*GenericReceiverlessMethodCallNode, *AttributeAccessNode, *ConstructorCallNode, *CallNode:
-		return true
-	default:
-		return false
-	}
-}
-
 type StringOrSymbolLiteralNode interface {
 	Node
 	PatternExpressionNode
@@ -375,53 +328,3 @@ func (*SimpleSymbolLiteralNode) stringOrSymbolLiteralNode()       {}
 func (*DoubleQuotedStringLiteralNode) stringOrSymbolLiteralNode() {}
 func (*RawStringLiteralNode) stringOrSymbolLiteralNode()          {}
 func (*InterpolatedStringLiteralNode) stringOrSymbolLiteralNode() {}
-
-// Represents a `catch` eg.
-//
-//	catch SomeError(message)
-//		print("awesome!")
-//	end
-type CatchNode struct {
-	NodeBase
-	Pattern       PatternNode
-	StackTraceVar IdentifierNode
-	Body          []StatementNode // do expression body
-}
-
-func (*CatchNode) IsStatic() bool {
-	return false
-}
-
-// Create a new `catch` node eg.
-//
-//	catch SomeError(message)
-//		print("awesome!")
-//	end
-func NewCatchNode(span *position.Span, pattern PatternNode, stackTraceVar IdentifierNode, body []StatementNode) *CatchNode {
-	return &CatchNode{
-		NodeBase:      NodeBase{span: span},
-		Pattern:       pattern,
-		StackTraceVar: stackTraceVar,
-		Body:          body,
-	}
-}
-
-// Represents a `case` node eg. `case 3 then println("eureka!")`
-type CaseNode struct {
-	NodeBase
-	Pattern PatternNode
-	Body    []StatementNode
-}
-
-func (*CaseNode) IsStatic() bool {
-	return false
-}
-
-// Create a new `case` node
-func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode) *CaseNode {
-	return &CaseNode{
-		NodeBase: NodeBase{span: span},
-		Pattern:  pattern,
-		Body:     body,
-	}
-}

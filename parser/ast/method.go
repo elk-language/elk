@@ -11,6 +11,17 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Check whether the node is a valid right operand of the pipe operator `|>`.
+func IsValidPipeExpressionTarget(node Node) bool {
+	switch node.(type) {
+	case *MethodCallNode, *GenericMethodCallNode, *ReceiverlessMethodCallNode,
+		*GenericReceiverlessMethodCallNode, *AttributeAccessNode, *ConstructorCallNode, *CallNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
 	TypedNodeBaseWithLoc

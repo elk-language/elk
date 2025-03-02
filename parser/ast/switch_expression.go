@@ -81,3 +81,57 @@ func (n *SwitchExpressionNode) Inspect() string {
 func (n *SwitchExpressionNode) Error() string {
 	return n.Inspect()
 }
+
+// Represents a `case` node eg. `case 3 then println("eureka!")`
+type CaseNode struct {
+	NodeBase
+	Pattern PatternNode
+	Body    []StatementNode
+}
+
+func (*CaseNode) IsStatic() bool {
+	return false
+}
+
+func (*CaseNode) Class() *value.Class {
+	return value.CaseNodeClass
+}
+
+func (*CaseNode) DirectClass() *value.Class {
+	return value.CaseNodeClass
+}
+
+func (n *CaseNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::CaseNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  pattern: ")
+	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+
+	buff.WriteString(",\n  body: %%[\n")
+	for i, element := range n.Body {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *CaseNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a new `case` node
+func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode) *CaseNode {
+	return &CaseNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Body:     body,
+	}
+}

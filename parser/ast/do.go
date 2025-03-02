@@ -86,3 +86,70 @@ func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*C
 		Finally:       finally,
 	}
 }
+
+// Represents a `catch` eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+type CatchNode struct {
+	NodeBase
+	Pattern       PatternNode
+	StackTraceVar IdentifierNode
+	Body          []StatementNode // do expression body
+}
+
+func (*CatchNode) IsStatic() bool {
+	return false
+}
+
+func (*CatchNode) Class() *value.Class {
+	return value.CatchNodeClass
+}
+
+func (*CatchNode) DirectClass() *value.Class {
+	return value.CatchNodeClass
+}
+
+func (n *CatchNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::AST::CatchNode{\n  &: %p", n)
+
+	buff.WriteString(",\n  pattern: ")
+	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+
+	buff.WriteString(",\n  stack_trace_var: ")
+	indentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
+
+	buff.WriteString(",\n  body: %%[\n")
+	for i, element := range n.Body {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *CatchNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a new `catch` node eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+func NewCatchNode(span *position.Span, pattern PatternNode, stackTraceVar IdentifierNode, body []StatementNode) *CatchNode {
+	return &CatchNode{
+		NodeBase:      NodeBase{span: span},
+		Pattern:       pattern,
+		StackTraceVar: stackTraceVar,
+		Body:          body,
+	}
+}

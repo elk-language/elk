@@ -8,6 +8,26 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Check whether the node is a constant.
+func IsConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node is a complex constant.
+func IsComplexConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode, *ConstantLookupNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // All nodes that should be valid in constant lookups
 // should implement this interface.
 type ComplexConstantNode interface {

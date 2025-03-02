@@ -152,6 +152,8 @@ var BinHashSetLiteralNodeClass *Class             // Std::ElkAST::BinHashSetLite
 var HashMapLiteralNodeClass *Class                // Std::ElkAST::HashMapLiteralNode
 var HashRecordLiteralNodeClass *Class             // Std::ElkAST::HashRecordLiteralNode
 var RangeLiteralNodeClass *Class                  // Std::ElkAST::RangeLiteralNode
+var CaseNodeClass *Class                          // Std::ElkAST::CaseNode
+var CatchNodeClass *Class                         // Std::ElkAST::CatchNode
 var VariantTypeParameterNodeClass *Class          // Std::ElkAST::VariantTypeParameterNode
 var FormalParameterNodeClass *Class               // Std::ElkAST::FormalParameterNode
 var MethodParameterNodeClass *Class               // Std::ElkAST::MethodParameterNode
@@ -840,6 +842,12 @@ func initAST() {
 	RangeLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	RangeLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("RangeLiteralNode", Ref(RangeLiteralNodeClass))
+
+	CaseNodeClass = NewClass()
+	ElkASTModule.AddConstantString("CaseNode", Ref(CaseNodeClass))
+
+	CatchNodeClass = NewClass()
+	ElkASTModule.AddConstantString("CatchNode", Ref(CatchNodeClass))
 
 	VariantTypeParameterNodeClass = NewClass()
 	ElkASTModule.AddConstantString("VariantTypeParameterNode", Ref(VariantTypeParameterNodeClass))
