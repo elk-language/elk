@@ -1,3 +1,4 @@
 ignore.*
 .vscode
 docs/**/*
+tmp

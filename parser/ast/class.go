@@ -9,7 +9,6 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-// Rep
 // Represents a class declaration eg. `class Foo; end`
 type ClassDeclarationNode struct {
 	TypedNodeBase

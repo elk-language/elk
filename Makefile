@@ -2,6 +2,9 @@ header:
 	go run ./cmd/headers/main.go -tags headers
 	go fmt ./types/headers.go
 
+elkify:
+	go run ./cmd/elkify/main.go
+
 fmt: header
 	go fmt ./...
 
