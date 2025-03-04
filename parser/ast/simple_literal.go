@@ -30,7 +30,7 @@ func (*TrueLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *TrueLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::TrueLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{&: %p}", n)
 }
 
 func (n *TrueLiteralNode) Error() string {
@@ -66,7 +66,7 @@ func (*FalseLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *FalseLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::FalseLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::FalseLiteralNode{&: %p}", n)
 }
 
 func (n *FalseLiteralNode) Error() string {
@@ -98,7 +98,7 @@ func (*SelfLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *SelfLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::SelfLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::SelfLiteralNode{&: %p}", n)
 }
 
 func (n *SelfLiteralNode) Error() string {
@@ -136,7 +136,7 @@ func (*NilLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *NilLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::NilLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::NilLiteralNode{&: %p}", n)
 }
 
 func (n *NilLiteralNode) Error() string {
@@ -168,7 +168,7 @@ func (*UndefinedLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UndefinedLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::UndefinedLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::UndefinedLiteralNode{&: %p}", n)
 }
 
 func (n *UndefinedLiteralNode) Error() string {

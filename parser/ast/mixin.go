@@ -62,7 +62,7 @@ func (*MixinDeclarationNode) DirectClass() *value.Class {
 func (n *MixinDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MixinDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MixinDeclarationNode{\n  &: %p", n)
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.Abstract)
 

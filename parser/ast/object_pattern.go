@@ -39,7 +39,7 @@ func (*ObjectPatternNode) DirectClass() *value.Class {
 func (n *ObjectPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ObjectPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  object_type: ")
 	indentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)

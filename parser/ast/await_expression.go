@@ -37,7 +37,7 @@ func (*AwaitExpressionNode) DirectClass() *value.Class {
 func (n *AwaitExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::AwaitExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::AwaitExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
 	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

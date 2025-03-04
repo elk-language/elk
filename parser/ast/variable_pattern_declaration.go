@@ -30,7 +30,7 @@ func (*VariablePatternDeclarationNode) DirectClass() *value.Class {
 func (n *VariablePatternDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::VariablePatternDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariablePatternDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  pattern: ")
 	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)

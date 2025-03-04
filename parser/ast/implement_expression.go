@@ -41,7 +41,7 @@ func (*ImplementExpressionNode) DirectClass() *value.Class {
 func (n *ImplementExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ImplementExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ImplementExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constants: %%[\n")
 	for i, element := range n.Constants {

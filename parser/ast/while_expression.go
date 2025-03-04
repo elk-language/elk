@@ -39,7 +39,7 @@ func (*WhileExpressionNode) DirectClass() *value.Class {
 func (n *WhileExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::WhileExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::WhileExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  condition: ")
 	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

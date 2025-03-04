@@ -39,7 +39,7 @@ func (*UntilExpressionNode) DirectClass() *value.Class {
 func (n *UntilExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::UntilExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UntilExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  condition: ")
 	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

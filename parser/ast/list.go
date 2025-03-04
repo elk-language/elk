@@ -52,7 +52,7 @@ func (*ArrayListLiteralNode) DirectClass() *value.Class {
 func (n *ArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayListLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -124,7 +124,7 @@ func (*WordArrayListLiteralNode) DirectClass() *value.Class {
 func (n *WordArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::WordArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -196,7 +196,7 @@ func (*SymbolArrayListLiteralNode) DirectClass() *value.Class {
 func (n *SymbolArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::SymbolArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -268,7 +268,7 @@ func (*HexArrayListLiteralNode) DirectClass() *value.Class {
 func (n *HexArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::HexArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -340,7 +340,7 @@ func (*BinArrayListLiteralNode) DirectClass() *value.Class {
 func (n *BinArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::BinArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -384,7 +384,7 @@ func (*ListPatternNode) DirectClass() *value.Class {
 func (n *ListPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ListPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {

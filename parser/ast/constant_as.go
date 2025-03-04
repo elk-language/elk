@@ -31,7 +31,7 @@ func (*ConstantAsNode) DirectClass() *value.Class {
 func (n *ConstantAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ConstantAsNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constant: ")
 	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)

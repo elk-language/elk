@@ -41,7 +41,7 @@ func (*IfExpressionNode) DirectClass() *value.Class {
 func (n *IfExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::IfExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::IfExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  condition: ")
 	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

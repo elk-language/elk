@@ -39,7 +39,7 @@ func (*MethodLookupNode) DirectClass() *value.Class {
 func (n *MethodLookupNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MethodLookupNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -88,7 +88,7 @@ func (*MethodLookupAsNode) DirectClass() *value.Class {
 func (n *MethodLookupAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MethodLookupAsNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_lookup: ")
 	indentStringFromSecondLine(&buff, n.MethodLookup.Inspect(), 1)

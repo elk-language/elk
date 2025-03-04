@@ -44,7 +44,7 @@ func (*BreakExpressionNode) DirectClass() *value.Class {
 func (n *BreakExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::BreakExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BreakExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  label: ")
 	buff.WriteString(n.Label)

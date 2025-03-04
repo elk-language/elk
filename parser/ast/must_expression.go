@@ -37,7 +37,7 @@ func (*MustExpressionNode) DirectClass() *value.Class {
 func (n *MustExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MustExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MustExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
 	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

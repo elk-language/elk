@@ -44,7 +44,7 @@ func (*ThrowExpressionNode) DirectClass() *value.Class {
 func (n *ThrowExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ThrowExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ThrowExpressionNode{\n  &: %p", n)
 
 	fmt.Fprintf(&buff, ",\n  unchecked: %t", n.Unchecked)
 

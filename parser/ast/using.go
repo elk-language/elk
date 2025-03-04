@@ -60,7 +60,7 @@ func (*UsingAllEntryNode) DirectClass() *value.Class {
 func (n *UsingAllEntryNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::UsingAllEntryNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingAllEntryNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  namespace: ")
 	indentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
@@ -113,7 +113,7 @@ func (*UsingEntryWithSubentriesNode) DirectClass() *value.Class {
 func (n *UsingEntryWithSubentriesNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::UsingEntryWithSubentriesNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingEntryWithSubentriesNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  namespace: ")
 	indentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
@@ -161,7 +161,7 @@ func (*UsingExpressionNode) DirectClass() *value.Class {
 func (n *UsingExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::UsingExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  entries: %%[\n")
 	for i, element := range n.Entries {

@@ -26,7 +26,7 @@ func (*IntLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *IntLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::IntLiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::IntLiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *IntLiteralNode) Error() string {
@@ -60,7 +60,7 @@ func (*Int64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::Int64LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Int64LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *Int64LiteralNode) Error() string {
@@ -94,7 +94,7 @@ func (*UInt64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::UInt64LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::UInt64LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *UInt64LiteralNode) Error() string {
@@ -128,7 +128,7 @@ func (*Int32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::Int32LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Int32LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *Int32LiteralNode) Error() string {
@@ -162,7 +162,7 @@ func (*UInt32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::UInt32LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::UInt32LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *UInt32LiteralNode) Error() string {
@@ -196,7 +196,7 @@ func (*Int16LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int16LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::Int16LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Int16LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *Int16LiteralNode) Error() string {
@@ -230,7 +230,7 @@ func (*UInt16LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt16LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::UInt16LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::UInt16LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *UInt16LiteralNode) Error() string {
@@ -264,7 +264,7 @@ func (*Int8LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int8LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::Int8LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Int8LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *Int8LiteralNode) Error() string {
@@ -298,7 +298,7 @@ func (*UInt8LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt8LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::UInt8LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::UInt8LiteralNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *UInt8LiteralNode) Error() string {

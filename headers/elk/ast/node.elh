@@ -1,7 +1,7 @@
 ##[
 	A base class for all Elk AST (Abstract Syntax Tree) nodes.
 ]##
-sealed primitive class ::Std::ElkAST::Node
+sealed primitive class ::Std::Elk::AST::Node
 	mixin Mixin
 		##[
 			Returns the span that represents

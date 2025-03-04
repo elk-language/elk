@@ -39,7 +39,7 @@ func (*SingletonBlockExpressionNode) DirectClass() *value.Class {
 func (n *SingletonBlockExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::SingletonBlockExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonBlockExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, stmt := range n.Body {

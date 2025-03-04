@@ -27,7 +27,7 @@ func (*ClosureTypeNode) DirectClass() *value.Class {
 func (n *ClosureTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ClosureTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  return_type: ")
 	indentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)

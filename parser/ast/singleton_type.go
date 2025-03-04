@@ -37,7 +37,7 @@ func (*SingletonTypeNode) DirectClass() *value.Class {
 func (n *SingletonTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::SingletonTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  type_node: ")
 	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

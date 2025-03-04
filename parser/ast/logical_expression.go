@@ -54,7 +54,7 @@ func (*LogicalExpressionNode) DirectClass() *value.Class {
 func (n *LogicalExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::LogicalExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::LogicalExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  op: ")
 	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

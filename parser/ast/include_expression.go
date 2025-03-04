@@ -41,7 +41,7 @@ func (*IncludeExpressionNode) DirectClass() *value.Class {
 func (n *IncludeExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::IncludeExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::IncludeExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constants: %%[\n")
 	for i, element := range n.Constants {

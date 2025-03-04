@@ -41,7 +41,7 @@ func (*UnlessExpressionNode) DirectClass() *value.Class {
 func (n *UnlessExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::UnlessExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnlessExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  condition: ")
 	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

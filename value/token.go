@@ -1,8 +1,8 @@
 package value
 
-var ElkTokenClass *Class // Std::ElkToken
+var ElkTokenClass *Class // Std::Elk::Token
 
-func initToken() {
+func initElkToken() {
 	ElkTokenClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	StdModule.AddConstantString("ElkToken", Ref(ElkTokenClass))
+	ElkModule.AddConstantString("Token", Ref(ElkTokenClass))
 }

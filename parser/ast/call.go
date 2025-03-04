@@ -40,7 +40,7 @@ func (*NewExpressionNode) DirectClass() *value.Class {
 func (n *NewExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NewExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NewExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  positional_arguments: %%[\n")
 	for i, element := range n.PositionalArguments {
@@ -93,7 +93,7 @@ func (*GenericConstructorCallNode) DirectClass() *value.Class {
 func (n *GenericConstructorCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GenericConstructorCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstructorCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  class_node: ")
 	indentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
@@ -168,7 +168,7 @@ func (*ConstructorCallNode) DirectClass() *value.Class {
 func (n *ConstructorCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ConstructorCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstructorCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  class_node: ")
 	indentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
@@ -232,7 +232,7 @@ func (*AttributeAccessNode) DirectClass() *value.Class {
 func (n *AttributeAccessNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::AttributeAccessNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeAccessNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -281,7 +281,7 @@ func (*SubscriptExpressionNode) DirectClass() *value.Class {
 func (n *SubscriptExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::SubscriptExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SubscriptExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -331,7 +331,7 @@ func (*NilSafeSubscriptExpressionNode) DirectClass() *value.Class {
 func (n *NilSafeSubscriptExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NilSafeSubscriptExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NilSafeSubscriptExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -382,7 +382,7 @@ func (*CallNode) DirectClass() *value.Class {
 func (n *CallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::CallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::CallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -454,7 +454,7 @@ func (*GenericMethodCallNode) DirectClass() *value.Class {
 func (n *GenericMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GenericMethodCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -540,7 +540,7 @@ func (*MethodCallNode) DirectClass() *value.Class {
 func (n *MethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MethodCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
 	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -614,7 +614,7 @@ func (*ReceiverlessMethodCallNode) DirectClass() *value.Class {
 func (n *ReceiverlessMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ReceiverlessMethodCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_name: ")
 	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
@@ -681,7 +681,7 @@ func (*GenericReceiverlessMethodCallNode) DirectClass() *value.Class {
 func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GenericReceiverlessMethodCallNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericReceiverlessMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_name: ")
 	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)

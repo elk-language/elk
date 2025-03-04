@@ -98,7 +98,7 @@ func (*FormalParameterNode) DirectClass() *value.Class {
 func (n *FormalParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::FormalParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::FormalParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -150,7 +150,7 @@ func (*MethodParameterNode) DirectClass() *value.Class {
 func (n *MethodParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::MethodParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -213,7 +213,7 @@ func (*SignatureParameterNode) DirectClass() *value.Class {
 func (n *SignatureParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::SignatureParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SignatureParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -273,7 +273,7 @@ func (*AttributeParameterNode) DirectClass() *value.Class {
 func (n *AttributeParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::AttributeParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)

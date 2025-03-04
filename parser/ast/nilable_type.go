@@ -37,7 +37,7 @@ func (*NilableTypeNode) DirectClass() *value.Class {
 func (n *NilableTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NilableTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NilableTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  type_node: ")
 	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

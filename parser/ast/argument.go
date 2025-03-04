@@ -41,7 +41,7 @@ func (*NamedCallArgumentNode) DirectClass() *value.Class {
 func (n *NamedCallArgumentNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NamedCallArgumentNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NamedCallArgumentNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	indentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)

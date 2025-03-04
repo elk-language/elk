@@ -43,7 +43,7 @@ func (*NumericForExpressionNode) DirectClass() *value.Class {
 func (n *NumericForExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NumericForExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  initialiser: ")
 	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)

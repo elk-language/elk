@@ -114,7 +114,7 @@ func (*UninterpolatedRegexLiteralNode) DirectClass() *value.Class {
 
 func (n *UninterpolatedRegexLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::AST::UninterpolatedRegexLiteralNode{&: %p, content: %s, flags: %d}",
+		"Std::Elk::AST::UninterpolatedRegexLiteralNode{&: %p, content: %s, flags: %d}",
 		n,
 		value.String(n.Content).Inspect(),
 		n.Flags.Byte(),
@@ -150,7 +150,7 @@ func (*RegexLiteralContentSectionNode) DirectClass() *value.Class {
 
 func (n *RegexLiteralContentSectionNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::AST::RegexLiteralContentSectionNode{&: %p, value: %s}",
+		"Std::Elk::AST::RegexLiteralContentSectionNode{&: %p, value: %s}",
 		n,
 		value.String(n.Value).Inspect(),
 	)
@@ -193,7 +193,7 @@ func (*RegexInterpolationNode) DirectClass() *value.Class {
 func (n *RegexInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::RegexInterpolationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::RegexInterpolationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  expression: ")
 	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -295,7 +295,7 @@ func (*InterpolatedRegexLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedRegexLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InterpolatedRegexLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedRegexLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  content: %%[\n")
 	for i, stmt := range n.Content {

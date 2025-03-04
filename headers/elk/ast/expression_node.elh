@@ -1,0 +1,9 @@
+module ::Std::Elk::AST
+	##[
+		A mixin included in all Elk AST nodes
+		that can be treated as expressions.
+	]##
+	sealed abstract mixin ExpressionNode
+		include Node::Mixin
+	end
+end

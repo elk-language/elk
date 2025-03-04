@@ -59,7 +59,7 @@ func (*InterfaceDeclarationNode) DirectClass() *value.Class {
 func (n *InterfaceDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InterfaceDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterfaceDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
 	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

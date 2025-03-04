@@ -31,7 +31,7 @@ func (*InstanceVariableDeclarationNode) DirectClass() *value.Class {
 func (n *InstanceVariableDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InstanceVariableDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceVariableDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)

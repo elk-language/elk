@@ -50,7 +50,7 @@ func (*SimpleSymbolLiteralNode) DirectClass() *value.Class {
 
 func (n *SimpleSymbolLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::AST::SimpleSymbolLiteralNode{&: %p, content: %s}",
+		"Std::Elk::AST::SimpleSymbolLiteralNode{&: %p, content: %s}",
 		n,
 		value.String(n.Content).Inspect(),
 	)
@@ -85,7 +85,7 @@ func (*InterpolatedSymbolLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedSymbolLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::InterpolatedSymbolLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedSymbolLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  content: ")
 	indentStringFromSecondLine(&buff, n.Content.Inspect(), 1)

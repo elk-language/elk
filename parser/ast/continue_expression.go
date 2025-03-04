@@ -44,7 +44,7 @@ func (*ContinueExpressionNode) DirectClass() *value.Class {
 func (n *ContinueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ContinueExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
 	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

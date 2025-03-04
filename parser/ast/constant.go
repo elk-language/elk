@@ -81,7 +81,7 @@ func (*PublicConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PublicConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::PublicConstantNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PublicConstantNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *PublicConstantNode) Error() string {
@@ -115,7 +115,7 @@ func (*PrivateConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PrivateConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::PrivateConstantNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PrivateConstantNode{&: %p, value: %s}", n, n.Value)
 }
 
 func (n *PrivateConstantNode) Error() string {
@@ -153,7 +153,7 @@ func (*PublicConstantAsNode) DirectClass() *value.Class {
 func (n *PublicConstantAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::PublicConstantAsNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  target: ")
 	indentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
@@ -201,7 +201,7 @@ func (*ConstantLookupNode) DirectClass() *value.Class {
 func (n *ConstantLookupNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ConstantLookupNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  left: ")
 	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
@@ -249,7 +249,7 @@ func (*GenericConstantNode) DirectClass() *value.Class {
 func (n *GenericConstantNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GenericConstantNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constant: ")
 	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)

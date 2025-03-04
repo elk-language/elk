@@ -45,7 +45,7 @@ func (*ConstantDeclarationNode) DirectClass() *value.Class {
 func (n *ConstantDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ConstantDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
 	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

@@ -30,7 +30,7 @@ func (*BoolLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *BoolLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::BoolLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::BoolLiteralNode{&: %p}", n)
 }
 
 func (n *BoolLiteralNode) Error() string {
@@ -62,7 +62,7 @@ func (*VoidTypeNode) DirectClass() *value.Class {
 }
 
 func (n *VoidTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::VoidTypeNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::VoidTypeNode{&: %p}", n)
 }
 
 func (n *VoidTypeNode) Error() string {
@@ -98,7 +98,7 @@ func (*NeverTypeNode) DirectClass() *value.Class {
 }
 
 func (n *NeverTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::NeverTypeNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::NeverTypeNode{&: %p}", n)
 }
 
 func (n *NeverTypeNode) Error() string {
@@ -134,7 +134,7 @@ func (*AnyTypeNode) DirectClass() *value.Class {
 }
 
 func (n *AnyTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::AnyTypeNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{&: %p}", n)
 }
 
 func (n *AnyTypeNode) Error() string {

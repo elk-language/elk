@@ -34,7 +34,7 @@ func (*InvalidNode) DirectClass() *value.Class {
 }
 
 func (n *InvalidNode) Inspect() string {
-	return fmt.Sprintf("Std::AST::InvalidNode{&: %p, token: %s}", n, n.Token.Inspect())
+	return fmt.Sprintf("Std::Elk::AST::InvalidNode{&: %p, token: %s}", n, n.Token.Inspect())
 }
 
 func (p *InvalidNode) Error() string {

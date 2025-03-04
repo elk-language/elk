@@ -63,7 +63,7 @@ func (*VariantTypeParameterNode) DirectClass() *value.Class {
 func (n *VariantTypeParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::VariantTypeParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  variance: ")
 	indentStringFromSecondLine(&buff, value.UInt8(n.Variance).Inspect(), 1)

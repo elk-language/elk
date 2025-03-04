@@ -37,7 +37,7 @@ func (*TryExpressionNode) DirectClass() *value.Class {
 func (n *TryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::TryExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::TryExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
 	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

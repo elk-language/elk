@@ -37,7 +37,7 @@ func (*GoExpressionNode) DirectClass() *value.Class {
 func (n *GoExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GoExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GoExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, stmt := range n.Body {

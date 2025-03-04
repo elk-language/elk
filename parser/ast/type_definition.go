@@ -45,7 +45,7 @@ func (*GenericTypeDefinitionNode) DirectClass() *value.Class {
 func (n *GenericTypeDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::GenericTypeDefinitionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericTypeDefinitionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
 	buff.WriteString(n.DocComment())
@@ -97,7 +97,7 @@ func (*TypeDefinitionNode) DirectClass() *value.Class {
 func (n *TypeDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::TypeDefinitionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeDefinitionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
 	buff.WriteString(n.DocComment())

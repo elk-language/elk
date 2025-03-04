@@ -35,7 +35,7 @@ func (*DoExpressionNode) DirectClass() *value.Class {
 func (n *DoExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::DoExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::DoExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, stmt := range n.Body {
@@ -114,7 +114,7 @@ func (*CatchNode) DirectClass() *value.Class {
 func (n *CatchNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::CatchNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::CatchNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  pattern: ")
 	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)

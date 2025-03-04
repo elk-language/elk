@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Token
+// Std::Elk::Token
 func initToken() {
 	// Instance methods
 	c := &value.ElkTokenClass.MethodContainer

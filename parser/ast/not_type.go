@@ -37,7 +37,7 @@ func (*NotTypeNode) DirectClass() *value.Class {
 func (n *NotTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::NotTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NotTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  type_node: ")
 	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

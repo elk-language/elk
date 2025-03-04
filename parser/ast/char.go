@@ -27,7 +27,7 @@ func (*CharLiteralNode) DirectClass() *value.Class {
 
 func (n *CharLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::AST::CharLiteralNode{&: %p, value: %s}",
+		"Std::Elk::AST::CharLiteralNode{&: %p, value: %s}",
 		n,
 		value.Char(n.Value).Inspect(),
 	)
@@ -65,7 +65,7 @@ func (*RawCharLiteralNode) DirectClass() *value.Class {
 
 func (n *RawCharLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::AST::RawCharLiteralNode{&: %p, value: %s}",
+		"Std::Elk::AST::RawCharLiteralNode{&: %p, value: %s}",
 		n,
 		value.Char(n.Value).Inspect(),
 	)

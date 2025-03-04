@@ -42,7 +42,7 @@ func (*RecordPatternNode) DirectClass() *value.Class {
 func (n *RecordPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::RecordPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::RecordPatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, stmt := range n.Elements {

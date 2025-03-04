@@ -55,7 +55,7 @@ func (*ModuleDeclarationNode) DirectClass() *value.Class {
 func (n *ModuleDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::ModuleDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModuleDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
 	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

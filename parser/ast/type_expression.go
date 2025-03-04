@@ -29,7 +29,7 @@ func (*TypeExpressionNode) DirectClass() *value.Class {
 func (n *TypeExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::AST::TypeExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  type_node: ")
 	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
