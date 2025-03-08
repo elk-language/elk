@@ -9,8 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/iancoleman/strcase"
 )
@@ -30,7 +28,12 @@ type field struct {
 	name          string
 	doc           string
 	inConstructor bool
+	isGetter      bool
 	fieldType     *fieldType
+}
+
+func (f *field) elkName() string {
+	return strcase.ToSnake(f.name)
 }
 
 type fieldType struct {
@@ -112,6 +115,26 @@ func simpleGoTypeToElkType(goType string) string {
 		return "Int"
 	case "uint8", "byte":
 		return "UInt8"
+	case "uint16":
+		return "UInt16"
+	case "uint32":
+		return "UInt32"
+	case "uint64":
+		return "UInt64"
+	case "int8":
+		return "Int8"
+	case "int16":
+		return "Int16"
+	case "int32":
+		return "Int32"
+	case "int64":
+		return "Int64"
+	case "float32":
+		return "Float"
+	case "float64":
+		return "Float"
+	case "rune":
+		return "Char"
 	default:
 		return goType
 	}
@@ -124,6 +147,73 @@ func goTypeToElkType(goType string, isSlice bool) string {
 	}
 
 	return fmt.Sprintf("ArrayTuple[%s]", simpleElkType)
+}
+
+func simpleGoTypeToElkTypeConversion(value string, fldType *fieldType) string {
+	switch fldType.name {
+	case "bool":
+		return fmt.Sprintf("value.ToElkBool(%s)", value)
+	case "string":
+		return fmt.Sprintf("value.Ref(value.String(%s))", value)
+	case "int":
+		return fmt.Sprintf("value.SmallInt(%s).ToValue()", value)
+	case "uint8", "byte":
+		return fmt.Sprintf("value.UInt8(%s).ToValue()", value)
+	case "uint16":
+		return fmt.Sprintf("value.UInt16(%s).ToValue()", value)
+	case "uint32":
+		return fmt.Sprintf("value.UInt32(%s).ToValue()", value)
+	case "uint64":
+		return fmt.Sprintf("value.UInt32(%s).ToValue()", value)
+	case "int8":
+		return fmt.Sprintf("value.Int8(%s).ToValue()", value)
+	case "int16":
+		return fmt.Sprintf("value.Int16(%s).ToValue()", value)
+	case "int32":
+		return fmt.Sprintf("value.Int32(%s).ToValue()", value)
+	case "int64":
+		return fmt.Sprintf("value.Int32(%s).ToValue()", value)
+	case "float32":
+		return fmt.Sprintf("value.Float(%s).ToValue()", value)
+	case "float64":
+		return fmt.Sprintf("value.Float(%s).ToValue()", value)
+	case "rune":
+		return fmt.Sprintf("value.Char(%s).ToValue()", value)
+	default:
+		if fldType.pkg == "position" {
+			switch fldType.name {
+			case "Span", "Position":
+				return fmt.Sprintf(
+					"value.Ref((*value.%s)(%s))",
+					fldType.name,
+					value,
+				)
+			}
+		}
+		return fmt.Sprintf("value.Ref(%s)", value)
+	}
+}
+
+func generateGetterConversionToElkType(buffer *bytes.Buffer, value string, fldType *fieldType, isSlice bool) {
+	if !isSlice {
+		typ := simpleGoTypeToElkTypeConversion(value, fldType)
+		fmt.Fprintf(buffer, "result := %s\n", typ)
+		return
+	}
+
+	fmt.Fprintf(
+		buffer,
+		`
+			collection := %[1]s
+			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			for _, el := range collection {
+				arrayTuple.Append(%s)
+			}
+			result := value.Ref(arrayTuple)
+		`,
+		value,
+		simpleGoTypeToElkTypeConversion("el", fldType),
+	)
 }
 
 const indentUnit = "  "
@@ -162,7 +252,7 @@ func generateHeaderForStruct(structDef *structDefinition, module string) {
 		if !field.inConstructor {
 			continue
 		}
-		elkFieldName := strcase.ToSnake(field.name)
+		elkFieldName := field.elkName()
 		elkType := goTypeToElkType(field.fieldType.name, field.fieldType.isSlice)
 
 		if i != 0 {
@@ -232,6 +322,7 @@ import (
 	fmt.Fprintf(buffer, "c := &value.%sClass.MethodContainer", structDef.name)
 
 	generateConstructorForStruct(buffer, structDef)
+	generateInstanceMethodsForStruct(buffer, structDef)
 
 	buffer.WriteString("\n}\n")
 
@@ -253,13 +344,12 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 		`,
 	)
 
-	i := 0
-	for _, field := range structDef.fields {
-		if !field.inConstructor {
+	for i, fld := range structDef.fields {
+		if i == len(structDef.fields)-1 {
 			continue
 		}
 
-		if field.fieldType.isSlice {
+		if fld.fieldType.isSlice {
 			fmt.Fprintf(
 				buffer,
 				`
@@ -270,30 +360,35 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 					}
 				`,
 				i,
-				valueTypeName(field.fieldType),
-				elkTypeToGoTypeAssertion("el", field.fieldType),
+				valueTypeName(fld.fieldType),
+				elkTypeToGoTypeAssertion("el", fld.fieldType),
 			)
 		} else {
 			fmt.Fprintf(
 				buffer,
 				"arg%[1]d := %s\n",
 				i,
-				elkTypeToGoTypeAssertion(fmt.Sprintf("args[%d]", i), field.fieldType),
+				elkTypeToGoTypeAssertion(fmt.Sprintf("args[%d]", i), fld.fieldType),
 			)
 		}
-
-		i++
 	}
 
-	fmt.Fprintf(buffer, "self := ast.New%s(\nposition.DefaultSpan,\n", structDef.name)
-	i = 0
-	for _, field := range structDef.fields {
-		if !field.inConstructor {
-			continue
-		}
+	fmt.Fprintf(
+		buffer,
+		`
+			var argSpan *position.Span
+			if args[%[1]d].IsUndefined() {
+				argSpan = position.DefaultSpan
+			} else {
+				argSpan = (*position.Span)(args[%[1]d].Pointer())
+			}
+		`,
+		len(structDef.fields)-1,
+	)
 
+	fmt.Fprintf(buffer, "self := ast.New%s(\nargSpan,\n", structDef.name)
+	for i := range len(structDef.fields) - 1 {
 		fmt.Fprintf(buffer, "arg%[1]d,\n", i)
-		i++
 	}
 	buffer.WriteString("\n)\n")
 	buffer.WriteString("return value.Ref(self), value.Undefined\n")
@@ -301,6 +396,45 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 	buffer.WriteString("\n},\n")
 	fmt.Fprintf(buffer, "vm.DefWithParameters(%d),\n", len(structDef.fields))
 	buffer.WriteString("\n)\n")
+}
+
+func generateInstanceMethodsForStruct(buffer *bytes.Buffer, structDef *structDefinition) {
+	for _, field := range structDef.fields {
+		elkFieldName := field.elkName()
+		fmt.Fprintf(
+			buffer,
+			`
+			vm.Def(
+				c,
+				"%s",
+				func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			`,
+			elkFieldName,
+		)
+
+		fmt.Fprintf(
+			buffer,
+			"self := args[0].MustReference().(*ast.%s)\n",
+			structDef.name,
+		)
+
+		var getter string
+		if field.isGetter {
+			getter = fmt.Sprintf("self.%s()", field.name)
+		} else {
+			getter = fmt.Sprintf("self.%s", field.name)
+		}
+		generateGetterConversionToElkType(
+			buffer,
+			getter,
+			field.fieldType,
+			field.fieldType.isSlice,
+		)
+		fmt.Fprintf(buffer, "return result, value.Undefined\n")
+
+		buffer.WriteString("\n},\n")
+		buffer.WriteString("\n)\n")
+	}
 }
 
 func valueTypeName(fldType *fieldType) string {
@@ -320,6 +454,26 @@ func elkTypeToGoTypeAssertion(val string, fldType *fieldType) string {
 		return fmt.Sprintf("(int)(%s.AsInt())", val)
 	case "uint8", "byte":
 		return fmt.Sprintf("(uint8)(%s.AsUInt8())", val)
+	case "uint16":
+		return fmt.Sprintf("(uint16)(%s.AsUInt16())", val)
+	case "uint32":
+		return fmt.Sprintf("(uint32)(%s.AsUInt32())", val)
+	case "uint64":
+		return fmt.Sprintf("(uint64)(%s.AsUInt64())", val)
+	case "int8":
+		return fmt.Sprintf("(int8)(%s.AsInt8())", val)
+	case "int16":
+		return fmt.Sprintf("(int16)(%s.AsInt16())", val)
+	case "int32":
+		return fmt.Sprintf("(int32)(%s.AsInt32())", val)
+	case "int64":
+		return fmt.Sprintf("(int64)(%s.AsInt64())", val)
+	case "float64":
+		return fmt.Sprintf("(float64)(%s.AsFloat())", val)
+	case "float32":
+		return fmt.Sprintf("(float32)(%s.AsFloat())", val)
+	case "rune":
+		return fmt.Sprintf("(rune)(%s.AsChar())", val)
 	default:
 		return fmt.Sprintf("%s.MustReference().(%s)", val, valueTypeName(fldType))
 	}
@@ -340,8 +494,7 @@ func analyseStruct(cache structMap, typeName string, doc string, node *ast.Struc
 				continue
 			}
 
-			firstChar, _ := utf8.DecodeRuneInString(fieldIdent.Name)
-			if !unicode.IsUpper(firstChar) {
+			if !fieldIdent.IsExported() {
 				continue
 			}
 
@@ -361,7 +514,8 @@ func analyseStruct(cache structMap, typeName string, doc string, node *ast.Struc
 	structDefinition.fields = append(
 		structDefinition.fields,
 		&field{
-			name: "Span",
+			name:     "Span",
+			isGetter: true,
 			fieldType: &fieldType{
 				name:      "Span",
 				pkg:       "position",
