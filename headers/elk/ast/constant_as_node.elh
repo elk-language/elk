@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a constant with as in using declarations
+eg. `Foo::Bar as Bar`.
+  ]##
+  sealed primitive class ConstantAsNode
+    include ExpressionNode
+
+    init(constant: ComplexConstantNode, as_name: String, span: String::Span = loop; end); end
+    def constant: ComplexConstantNode; end
+    def as_name: String; end
+    def span: String::Span; end
+  end
+end

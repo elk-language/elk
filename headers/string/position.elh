@@ -1,7 +1,7 @@
 ##[
 	Represents a position of a character in a string.
 ]##
-sealed primitive class ::Std::String::Position < Value
+sealed primitive class ::Std::String::Position
 	init(byte_offset: Int, line: Int, column: Int); end
 
 	##[

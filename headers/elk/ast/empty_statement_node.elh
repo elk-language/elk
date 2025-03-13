@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an empty statement eg. a statement with only a semicolon or a newline.
+  ]##
+  sealed primitive class EmptyStatementNode
+    include StatementNode,
+            StructBodyStatementNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

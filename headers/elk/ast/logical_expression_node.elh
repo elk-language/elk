@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Expression of a logical operator with two operands eg. `foo && bar`
+  ]##
+  sealed primitive class LogicalExpressionNode
+    include ExpressionNode
+
+    init(op: Elk::Token, left: ExpressionNode, right: ExpressionNode, span: String::Span = loop; end); end
+    def op: Elk::Token; end
+    def left: ExpressionNode; end
+    def right: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a symbol ArrayList literal eg. `\s[foo bar]`
+  ]##
+  sealed primitive class SymbolArrayListLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(elements: ArrayTuple[SymbolCollectionContentNode], capacity: ExpressionNode, span: String::Span = loop; end); end
+    def elements: ArrayTuple[SymbolCollectionContentNode]; end
+    def capacity: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

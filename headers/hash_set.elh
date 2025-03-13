@@ -4,7 +4,7 @@
 
 	It is an unordered collection of unique values.
 ]##
-sealed primitive class ::Std::HashSet[Val] < Value
+sealed primitive class ::Std::HashSet[Val]
 	include Set[Val]
 
 	##[

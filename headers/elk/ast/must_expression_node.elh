@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `must` expression eg. `must foo()`
+  ]##
+  sealed primitive class MustExpressionNode
+    include ExpressionNode
+
+    init(value: ExpressionNode, span: String::Span = loop; end); end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,9 @@
+module ::Std::Elk::AST
+	##[
+		Represents a single statement of a struct body
+		optionally terminated with a newline or semicolon.
+	]##
+	sealed mixin StructBodyStatementNode
+		include Node
+	end
+end

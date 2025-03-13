@@ -241,7 +241,7 @@ func (f Float32) StrictEqual(other Value) Value {
 }
 
 func initFloat32() {
-	Float32Class = NewClass()
+	Float32Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Float32", Ref(Float32Class))
 	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
 	Float32Class.AddConstantString("INF", Float32Inf().ToValue())

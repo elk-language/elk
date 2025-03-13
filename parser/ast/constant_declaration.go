@@ -35,11 +35,11 @@ func NewConstantDeclarationNode(span *position.Span, docComment string, constant
 }
 
 func (*ConstantDeclarationNode) Class() *value.Class {
-	return value.AwaitExpressionNodeClass
+	return value.ConstantDeclarationNodeClass
 }
 
 func (*ConstantDeclarationNode) DirectClass() *value.Class {
-	return value.AwaitExpressionNodeClass
+	return value.ConstantDeclarationNodeClass
 }
 
 func (n *ConstantDeclarationNode) Inspect() string {

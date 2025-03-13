@@ -1,0 +1,31 @@
+module Std::Elk::AST
+  ##[
+    Represents a method definition eg. `def foo: String then 'hello world'`
+  ]##
+  sealed primitive class MethodDefinitionNode
+    include ExpressionNode
+
+    init(
+      doc_comment: String,
+      name: String,
+      type_parameters: ArrayTuple[TypeParameterNode],
+      parameters: ArrayTuple[ParameterNode],
+      return_type: TypeNode,
+      throw_type: TypeNode,
+      body: ArrayTuple[StatementNode],
+      flags: UInt8,
+      location: FS::Location = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def name: String; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def parameters: ArrayTuple[ParameterNode]; end
+    def return_type: TypeNode; end
+    def throw_type: TypeNode; end
+    def body: ArrayTuple[StatementNode]; end
+    def flags: UInt8; end
+    def span: String::Span; end
+    def location: FS::Location; end
+  end
+end

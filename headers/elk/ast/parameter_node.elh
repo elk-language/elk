@@ -1,0 +1,9 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be valid in parameter declaration lists
+		of methods or functions should implement this interface.
+	]##
+	sealed mixin ParameterNode
+		include Node
+	end
+end

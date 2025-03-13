@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Union type eg. `String & Int & Float`
+  ]##
+  sealed primitive class IntersectionTypeNode
+    include TypeNode
+
+    init(elements: ArrayTuple[TypeNode], span: String::Span = loop; end); end
+    def elements: ArrayTuple[TypeNode]; end
+    def span: String::Span; end
+  end
+end

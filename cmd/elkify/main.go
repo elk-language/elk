@@ -25,11 +25,11 @@ type structDefinition struct {
 }
 
 type field struct {
-	name          string
-	doc           string
-	inConstructor bool
-	isGetter      bool
-	fieldType     *fieldType
+	name       string
+	doc        string
+	isGetter   bool
+	isOptional bool
+	fieldType  *fieldType
 }
 
 func (f *field) elkName() string {
@@ -206,8 +206,8 @@ func generateGetterConversionToElkType(buffer *bytes.Buffer, value string, fldTy
 		`
 			collection := %[1]s
 			arrayTuple := value.NewArrayTupleWithLength(len(collection))
-			for _, el := range collection {
-				arrayTuple.Append(%s)
+			for i, el := range collection {
+				arrayTuple.SetAt(i, %s)
 			}
 			result := value.Ref(arrayTuple)
 		`,
@@ -249,9 +249,6 @@ func generateHeaderForStruct(structDef *structDefinition, module string) {
 
 	fmt.Fprintf(buffer, "%sconstructor(", indentOne)
 	for i, field := range structDef.fields {
-		if !field.inConstructor {
-			continue
-		}
 		elkFieldName := field.elkName()
 		elkType := goTypeToElkType(field.fieldType.name, field.fieldType.isSlice)
 
@@ -264,6 +261,9 @@ func generateHeaderForStruct(structDef *structDefinition, module string) {
 			elkFieldName,
 			elkType,
 		)
+		if field.isOptional {
+			buffer.WriteString(" = loop; end")
+		}
 	}
 	buffer.WriteString("); end\n")
 
@@ -353,21 +353,22 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 			fmt.Fprintf(
 				buffer,
 				`
-					arg%[1]dTuple := args[%[1]d].MustReference().(*value.ArrayTuple)
-					arg%[1]d := make([]%[2]s, arg%[1]dTuple.Length())
-					for _, el := range *arg%[1]dTuple {
-						arg%[1]d = append(arg%[1]d, %[3]s)
+					arg%[1]sTuple := args[%[4]d].MustReference().(*value.ArrayTuple)
+					arg%[1]s := make([]%[2]s, arg%[1]sTuple.Length())
+					for i, el := range *arg%[1]sTuple {
+						arg%[1]s[i] = %[3]s
 					}
 				`,
-				i,
+				fld.name,
 				valueTypeName(fld.fieldType),
 				elkTypeToGoTypeAssertion("el", fld.fieldType),
+				i,
 			)
 		} else {
 			fmt.Fprintf(
 				buffer,
-				"arg%[1]d := %s\n",
-				i,
+				"arg%s := %s\n",
+				fld.name,
 				elkTypeToGoTypeAssertion(fmt.Sprintf("args[%d]", i), fld.fieldType),
 			)
 		}
@@ -387,8 +388,11 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 	)
 
 	fmt.Fprintf(buffer, "self := ast.New%s(\nargSpan,\n", structDef.name)
-	for i := range len(structDef.fields) - 1 {
-		fmt.Fprintf(buffer, "arg%[1]d,\n", i)
+	for i, fld := range structDef.fields {
+		if i == len(structDef.fields)-1 {
+			continue
+		}
+		fmt.Fprintf(buffer, "arg%s,\n", fld.name)
 	}
 	buffer.WriteString("\n)\n")
 	buffer.WriteString("return value.Ref(self), value.Undefined\n")
@@ -499,10 +503,9 @@ func analyseStruct(cache structMap, typeName string, doc string, node *ast.Struc
 			}
 
 			structField := &field{
-				name:          fieldIdent.Name,
-				fieldType:     fldType,
-				doc:           fld.Doc.Text(),
-				inConstructor: true,
+				name:      fieldIdent.Name,
+				fieldType: fldType,
+				doc:       fld.Doc.Text(),
 			}
 			structDefinition.fields = append(
 				structDefinition.fields,
@@ -514,8 +517,9 @@ func analyseStruct(cache structMap, typeName string, doc string, node *ast.Struc
 	structDefinition.fields = append(
 		structDefinition.fields,
 		&field{
-			name:     "Span",
-			isGetter: true,
+			name:       "Span",
+			isGetter:   true,
+			isOptional: true,
 			fieldType: &fieldType{
 				name:      "Span",
 				pkg:       "position",

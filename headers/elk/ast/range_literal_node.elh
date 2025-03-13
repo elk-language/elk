@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Represents a Range literal eg. `1...5`
+  ]##
+  sealed primitive class RangeLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(start: ExpressionNode, end_node: ExpressionNode, op: Elk::Token, span: String::Span = loop; end); end
+    def start: ExpressionNode; end
+    def end: ExpressionNode; end
+    def op: Elk::Token; end
+    def span: String::Span; end
+  end
+end

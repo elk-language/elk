@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    `any` type.
+  ]##
+  sealed primitive class AnyTypeNode
+    include TypeNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

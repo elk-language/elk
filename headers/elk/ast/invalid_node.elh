@@ -1,16 +1,17 @@
-module ::Std::Elk::AST
-	##[
-		A mixin included in all Elk AST nodes
-		that can be treated as symbol literals.
-	]##
-	sealed abstract class InvalidNode < Node
-		include ExpressionNode
-		include SymbolLiteralNode
+module Std::Elk::AST
+  ##[
+    Represents a syntax error.
+  ]##
+  sealed primitive class InvalidNode
+    include StatementNode,
+            ExpressionNode,
+            StructBodyStatementNode,
+            ParameterNode,
+            TypeNode,
+            PatternNode
 
-		##[
-			Returns the invalid token that
-			was unexpected during parsing.
-		]##
-		def token: Token; end
-	end
+    init(token: Elk::Token, span: String::Span = loop; end); end
+    def token: Elk::Token; end
+    def span: String::Span; end
+  end
 end

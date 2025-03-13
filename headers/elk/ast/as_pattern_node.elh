@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents an as pattern eg. `> 5 && < 20 as foo`
+  ]##
+  sealed primitive class AsPatternNode
+    include TypeNode
+
+    init(pattern: PatternNode, name: IdentifierNode, span: String::Span = loop; end); end
+    def pattern: PatternNode; end
+    def name: IdentifierNode; end
+    def span: String::Span; end
+  end
+end

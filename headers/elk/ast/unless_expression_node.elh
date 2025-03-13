@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents an `unless` expression eg. `unless foo then println("bar")`
+  ]##
+  sealed primitive class UnlessExpressionNode
+    include ExpressionNode
+
+    init(
+      condition: ExpressionNode,
+      then_body: ArrayTuple[StatementNode],
+      else_body: ArrayTuple[StatementNode],
+      span: String::Span = loop; end,
+    ); end
+
+    def condition: ExpressionNode; end
+    def then_body: ArrayTuple[StatementNode]; end
+    def else_body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

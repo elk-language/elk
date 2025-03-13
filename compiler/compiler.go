@@ -27,13 +27,13 @@ import (
 const MainName = "<main>"
 
 func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
-	compiler := New(loc.Filename, topLevelMode, loc, checker)
+	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.Errors = errors
 	return compiler
 }
 
 func (c *Compiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
-	compiler := New(loc.Filename, topLevelMode, loc, checker)
+	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -631,7 +631,7 @@ func (c *Compiler) compileNamespace(node ast.Node) bool {
 
 // Create a new location struct with the given position.
 func (c *Compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.Bytecode.Location.Filename, span)
+	return position.NewLocationWithSpan(c.Bytecode.Location.FilePath, span)
 }
 
 func (c *Compiler) prepLocals() {
@@ -5714,7 +5714,7 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 				errEndPos.Line += lineDifference
 				errEndPos.ByteOffset += byteDifference
 			}
-			err.Location.Filename = c.Bytecode.Location.Filename
+			err.Location.FilePath = c.Bytecode.Location.FilePath
 
 			c.Errors.Append(err)
 		}

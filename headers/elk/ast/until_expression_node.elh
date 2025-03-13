@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a `until` expression eg. `until i >= 5 then i += 5`
+  ]##
+  sealed primitive class UntilExpressionNode
+    include ExpressionNode
+
+    init(condition: ExpressionNode, then_body: ArrayTuple[StatementNode], span: String::Span = loop; end); end
+    def condition: ExpressionNode; end
+    def then_body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

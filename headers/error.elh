@@ -1,7 +1,8 @@
 ##[
 	A base class for most errors in Elk stdlib.
 ]##
-class Std::Error; end
+class Std::Error
+end
 
 ##[
 	Thrown when a numeric value is too large or too small to be used in a particular setting.
@@ -14,3 +15,8 @@ class Std::OutOfRangeError < Std::Error; end
 class Std::FormatError < Std::Error; end
 
 class Std::FileSystemError < Std::Error; end
+
+##[
+	Thrown when an invalid glob pattern has been encountered.
+]##
+class Std::GlobError < Std::Error; end

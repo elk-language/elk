@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
+  ]##
+  sealed primitive class UsingAllEntryNode
+    include ExpressionNode
+
+    init(namespace: UsingEntryNode, span: String::Span = loop; end); end
+    def namespace: UsingEntryNode; end
+    def span: String::Span; end
+  end
+end

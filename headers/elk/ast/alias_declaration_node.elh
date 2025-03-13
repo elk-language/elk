@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a new alias declaration eg. `alias push append, add plus`
+  ]##
+  sealed primitive class AliasDeclarationNode
+    include ExpressionNode
+
+    init(entries: ArrayTuple[AliasDeclarationEntry], span: String::Span = loop; end); end
+    def entries: ArrayTuple[AliasDeclarationEntry]; end
+    def span: String::Span; end
+  end
+end

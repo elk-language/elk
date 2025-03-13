@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`
+  ]##
+  sealed primitive class ModifierIfElseNode
+    include ExpressionNode
+
+    init(
+      then_expression: ExpressionNode,
+      condition: ExpressionNode,
+      else_expression: ExpressionNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def then_expression: ExpressionNode; end
+    def condition: ExpressionNode; end
+    def else_expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

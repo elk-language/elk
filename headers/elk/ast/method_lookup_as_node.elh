@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a method lookup with as in using declarations
+eg. `Foo::bar as Bar`.
+  ]##
+  sealed primitive class MethodLookupAsNode
+    include ExpressionNode
+
+    init(method_lookup: MethodLookupNode, as_name: String, span: String::Span = loop; end); end
+    def method_lookup: MethodLookupNode; end
+    def as_name: String; end
+    def span: String::Span; end
+  end
+end

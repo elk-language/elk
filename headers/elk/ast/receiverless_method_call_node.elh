@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents a function-like call eg. `to_string(123)`
+  ]##
+  sealed primitive class ReceiverlessMethodCallNode
+    include ExpressionNode
+
+    init(
+      method_name: String,
+      positional_arguments: ArrayTuple[ExpressionNode],
+      named_arguments: ArrayTuple[NamedArgumentNode],
+      span: String::Span = loop; end
+    ); end
+
+    def method_name: String; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def span: String::Span; end
+  end
+end

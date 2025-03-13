@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    `self` literal.
+  ]##
+  sealed primitive class SelfLiteralNode
+    include ExpressionNode,
+            TypeNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

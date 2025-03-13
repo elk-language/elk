@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a hex HashSet literal eg. `^x[ff ee}]`
+  ]##
+  sealed primitive class HexHashSetLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(elements: ArrayTuple[IntCollectionContentNode], capacity: ExpressionNode, span: String::Span = loop; end); end
+    def elements: ArrayTuple[IntCollectionContentNode]; end
+    def capacity: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

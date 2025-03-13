@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a word ArrayList literal eg. `\w[foo bar]`
+  ]##
+  sealed primitive class WordArrayListLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(elements: ArrayTuple[WordCollectionContentNode], capacity: ExpressionNode, span: String::Span = loop; end); end
+    def elements: ArrayTuple[WordCollectionContentNode]; end
+    def capacity: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

@@ -1,14 +1,10 @@
 ##[
-	A base class for all Elk AST (Abstract Syntax Tree) nodes.
+	A base for all Elk AST (Abstract Syntax Tree) nodes.
 ]##
-sealed primitive class ::Std::Elk::AST::Node
-	mixin Mixin
-		##[
-			Returns the span that represents
-			the position of this node in a source file/string.
-		]##
-		def span: String::Span; end
-	end
-	include Mixin
-
+sealed mixin ::Std::Elk::AST::Node
+	##[
+		Returns the span that represents
+		the position of this node in a source file/string.
+	]##
+	def span: String::Span; end
 end

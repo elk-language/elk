@@ -2,7 +2,7 @@
 	Represents the elapsed time between two Times as an int64 nanosecond count.
 	 The representation limits the largest representable duration to approximately 290 years.
 ]##
-sealed primitive class ::Std::Duration
+sealed primitive class ::Std::Duration < Value
 	singleton
 		##[
 			Parses a duration string and creates a Duration value.

@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an enhance expression eg. `implement Enumerable[V]`
+  ]##
+  sealed primitive class ImplementExpressionNode
+    include ExpressionNode
+
+    init(constants: ArrayTuple[ComplexConstantNode], span: String::Span = loop; end); end
+    def constants: ArrayTuple[ComplexConstantNode]; end
+    def span: String::Span; end
+  end
+end

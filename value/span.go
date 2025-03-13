@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/position"
 )
 
-var SpanClass *Class // Std::Span
+var SpanClass *Class // Std::String::Span
 
 type Span position.Span
 

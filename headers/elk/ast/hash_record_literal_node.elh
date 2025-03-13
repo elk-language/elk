@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`
+  ]##
+  sealed primitive class HashRecordLiteralNode
+    include ExpressionNode
+
+    init(elements: ArrayTuple[ExpressionNode], span: String::Span = loop; end); end
+    def elements: ArrayTuple[ExpressionNode]; end
+    def span: String::Span; end
+  end
+end

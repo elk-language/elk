@@ -1,0 +1,23 @@
+module Std::Elk::AST
+  ##[
+    Represents an interface declaration eg. `interface Foo; end`
+  ]##
+  sealed primitive class InterfaceDeclarationNode
+    include ExpressionNode
+
+    init(
+      doc_comment: String,
+      constant: ExpressionNode,
+      type_parameters: ArrayTuple[TypeParameterNode],
+      body: ArrayTuple[StatementNode],
+      span: String::Span = loop; end,
+    ); end
+
+    def constant: ExpressionNode; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def body: ArrayTuple[StatementNode]; end
+    def implements: ArrayTuple[ImplementExpressionNode]; end
+    def bytecode: BytecodeFunction; end
+    def span: String::Span; end
+  end
+end

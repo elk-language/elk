@@ -42,7 +42,7 @@ func (*PublicIdentifierAsNode) usingSubentryNode() {}
 // Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
 type UsingAllEntryNode struct {
 	TypedNodeBase
-	Namespace ExpressionNode
+	Namespace UsingEntryNode
 }
 
 func (*UsingAllEntryNode) IsStatic() bool {
@@ -85,7 +85,7 @@ func NewUsingAllEntryNode(span *position.Span, namespace UsingEntryNode) *UsingA
 // Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
 type UsingEntryWithSubentriesNode struct {
 	NodeBase
-	Namespace  ExpressionNode
+	Namespace  UsingEntryNode
 	Subentries []UsingSubentryNode
 }
 

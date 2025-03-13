@@ -1,0 +1,26 @@
+module Std::Elk::AST
+  ##[
+    Represents a method signature definition eg. `sig to_string(val: Int): String`
+  ]##
+  sealed primitive class MethodSignatureDefinitionNode
+    include ExpressionNode
+
+    init(
+      doc_comment: String,
+      name: String,
+      type_parameters: ArrayTuple[TypeParameterNode],
+      parameters: ArrayTuple[ParameterNode],
+      return_type: TypeNode,
+      throw_type: TypeNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def name: String; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def parameters: ArrayTuple[ParameterNode]; end
+    def return_type: TypeNode; end
+    def throw_type: TypeNode; end
+    def span: String::Span; end
+  end
+end

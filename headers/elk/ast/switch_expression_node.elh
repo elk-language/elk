@@ -1,0 +1,29 @@
+module Std::Elk::AST
+  ##[
+    Represents a `switch` expression eg.
+
+    switch a
+    case 3
+      println("eureka!")
+    case nil
+      println("boo")
+    else
+      println("nothing")
+    end
+  ]##
+  sealed primitive class SwitchExpressionNode
+    include ExpressionNode
+
+    init(
+      value: ExpressionNode,
+      cases: ArrayTuple[CaseNode],
+      else_body: ArrayTuple[StatementNode],
+      span: String::Span = loop; end,
+    ); end
+
+    def value: ExpressionNode; end
+    def cases: ArrayTuple[CaseNode]; end
+    def else_body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`
+  ]##
+  sealed primitive class YieldExpressionNode
+    include ExpressionNode
+
+    init(value: ExpressionNode, forward: Bool, span: String::Span = loop; end); end
+    def value: ExpressionNode; end
+    def forward: Bool; end
+    def span: String::Span; end
+  end
+end

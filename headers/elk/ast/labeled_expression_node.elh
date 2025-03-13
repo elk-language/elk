@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a labeled expression eg. `$foo: 1 + 2`
+  ]##
+  sealed primitive class LabeledExpressionNode
+    include ExpressionNode
+
+    init(label: String, expression: ExpressionNode, span: String::Span = loop; end); end
+    def label: String; end
+    def expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

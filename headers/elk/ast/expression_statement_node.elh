@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Expression optionally terminated with a newline or a semicolon.
+  ]##
+  sealed primitive class ExpressionStatementNode
+    include StatementNode
+
+    init(expression: ExpressionNode, span: String::Span = loop; end); end
+    def expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

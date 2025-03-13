@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    `true` literal.
+  ]##
+  sealed primitive class TrueLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

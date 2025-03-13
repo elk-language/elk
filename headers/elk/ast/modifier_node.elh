@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.
+  ]##
+  sealed primitive class ModifierNode
+    include ExpressionNode
+
+    init(modifier: Elk::Token, left: ExpressionNode, right: ExpressionNode, span: String::Span = loop; end); end
+    def modifier: Elk::Token; end
+    def left: ExpressionNode; end
+    def right: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

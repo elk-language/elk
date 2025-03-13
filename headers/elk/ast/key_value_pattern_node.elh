@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a key value pattern eg. `foo => bar`
+  ]##
+  sealed primitive class KeyValuePatternNode
+    include PatternNode
+
+    init(key: PatternExpressionNode, value: PatternNode, span: String::Span = loop; end); end
+    def key: PatternExpressionNode; end
+    def value: PatternNode; end
+    def span: String::Span; end
+  end
+end

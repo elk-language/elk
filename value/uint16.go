@@ -308,6 +308,6 @@ func (i UInt16) StrictEqual(other Value) Value {
 }
 
 func initUInt16() {
-	UInt16Class = NewClass()
+	UInt16Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("UInt16", Ref(UInt16Class))
 }

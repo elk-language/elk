@@ -97,7 +97,7 @@ func (c *Checker) checkMethods() {
 			method := methodCheck.method
 			node := methodCheck.node
 			methodChecker := c.newMethodChecker(
-				node.Location().Filename,
+				node.Location().FilePath,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
 				method.DefinedUnder,

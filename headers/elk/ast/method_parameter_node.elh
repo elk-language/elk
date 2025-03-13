@@ -1,0 +1,24 @@
+module Std::Elk::AST
+  ##[
+    Represents a formal parameter in method declarations eg. `foo: String = 'bar'`
+  ]##
+  sealed primitive class MethodParameterNode
+    include ParameterNode
+
+    init(
+      name: String,
+      type_node: TypeNode,
+      initialiser: ExpressionNode,
+      set_instance_variable: bool,
+      kind: UInt8,
+      span: String::Span = loop; end,
+    ); end
+
+    def name: String; end
+    def type_node: TypeNode; end
+    def initialiser: ExpressionNode; end
+    def set_instance_variable: Bool; end
+    def kind: UInt8; end
+    def span: String::Span; end
+  end
+end

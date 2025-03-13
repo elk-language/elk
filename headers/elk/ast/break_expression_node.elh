@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a `break` expression eg. `break`, `break false`
+  ]##
+  sealed primitive class BreakExpressionNode
+    include ExpressionNode
+
+    init(label: String, value: ExpressionNode, span: String::Span = loop; end); end
+    def label: String; end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

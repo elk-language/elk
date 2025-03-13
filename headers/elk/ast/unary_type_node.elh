@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Type of an operator with one operand eg. `-2`, `+3`
+  ]##
+  sealed primitive class UnaryTypeNode
+    include TypeNode
+
+    init(op: Elk::Token, type_node: TypeNode, span: String::Span = loop; end); end
+    def op: Elk::Token; end
+    def type_node: TypeNode; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,6 @@
+##[
+	Contains types used for interacting
+  with the file system.
+]##
+module ::Std::FS
+end

@@ -96,7 +96,6 @@ func InitGlobalEnvironment() {
 	initSet()
 	initHashSet()
 	initSymbolMap()
-	initError()
 	initRange()
 	initClosedRange()
 	initOpenRange()
@@ -127,6 +126,9 @@ func InitGlobalEnvironment() {
 	initCallFrame()
 	initPromise()
 	initThreadPool()
+	initFS()
+	initPath()
+	initError()
 }
 
 func init() {

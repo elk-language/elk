@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents attribute access eg. `foo.bar`
+  ]##
+  sealed primitive class AttributeAccessNode
+    include ExpressionNode
+
+    init(receiver: ExpressionNode, attribute_name: String, span: String::Span = loop; end); end
+    def receiver: ExpressionNode; end
+    def attribute_name: String; end
+    def span: String::Span; end
+  end
+end

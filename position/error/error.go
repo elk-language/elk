@@ -93,7 +93,7 @@ func (e *Error) String() string {
 // Return a string representation of this error
 // that can be presented to humans.
 func (e *Error) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
-	source, err := os.ReadFile(e.Location.Filename)
+	source, err := os.ReadFile(e.Location.FilePath)
 	if err != nil {
 		return "", err
 	}

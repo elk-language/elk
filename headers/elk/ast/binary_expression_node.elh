@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Expression of an operator with two operands eg. `2 + 5`, `foo > bar`
+  ]##
+  sealed primitive class BinaryExpressionNode
+    include ExpressionNode
+
+    init(op: Elk::Token, left: ExpressionNode, right: ExpressionNode, span: String::Span = loop; end); end
+    def op: Elk::Token; end
+    def left: ExpressionNode; end
+    def right: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

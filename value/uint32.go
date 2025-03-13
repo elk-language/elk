@@ -308,6 +308,6 @@ func (i UInt32) StrictEqual(other Value) Value {
 }
 
 func initUInt32() {
-	UInt32Class = NewClass()
+	UInt32Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("UInt32", Ref(UInt32Class))
 }

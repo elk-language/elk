@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
+  ]##
+  sealed primitive class ConstantDeclarationNode
+    include ExpressionNode
+
+    init(
+      doc_comment: String,
+      constant: ExpressionNode,
+      type_node: TypeNode,
+      initialiser: ExpressionNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def constant: ExpressionNode; end
+    def type_node: TypeNode; end
+    def initialiser: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

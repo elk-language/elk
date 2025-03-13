@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`
+  ]##
+  sealed primitive class MapPatternNode
+    include PatternNode
+
+    init(elements: ArrayTuple[PatternNode], span: String::Span = loop; end); end
+    def elements: ArrayTuple[PatternNode]; end
+    def span: String::Span; end
+  end
+end

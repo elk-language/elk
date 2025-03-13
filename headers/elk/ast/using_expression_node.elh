@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a using expression eg. `using Foo`
+  ]##
+  sealed primitive class UsingExpressionNode
+    include ExpressionNode
+
+    init(entries: ArrayTuple[UsingEntryNode], span: String::Span = loop; end); end
+    def entries: ArrayTuple[UsingEntryNode]; end
+    def span: String::Span; end
+  end
+end

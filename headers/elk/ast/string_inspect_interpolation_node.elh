@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a single inspect interpolated section of a string literal eg. `bar + 2` in `"foo#{bar + 2}"`
+  ]##
+  sealed primitive class StringInspectInterpolationNode
+    include Node
+
+    init(expression: ExpressionNode, span: String::Span = loop; end); end
+    def expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

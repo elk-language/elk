@@ -21,6 +21,16 @@ var UnexpectedNilErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::FS::Path::Error
+//
+// Thrown when an error is encountered when working with paths.
+var PathErrorClass *Class
+
+// ::Std::GlobError
+//
+// Thrown when an invalid glob has been encountered.
+var GlobErrorClass *Class
+
 // ::Std::PatternNotMatchedError
 //
 // Thrown when a pattern was not matched
@@ -482,6 +492,12 @@ func initError() {
 
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("TypeError", Ref(TypeErrorClass))
+
+	PathErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	PathClass.AddConstantString("Error", Ref(PathErrorClass))
+
+	GlobErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("GlobError", Ref(GlobErrorClass))
 
 	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ModifierMismatchError", Ref(ModifierMismatchErrorClass))

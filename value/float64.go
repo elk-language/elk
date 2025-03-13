@@ -238,7 +238,7 @@ func (f Float64) StrictEqual(other Value) Value {
 }
 
 func initFloat64() {
-	Float64Class = NewClass()
+	Float64Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Float64", Ref(Float64Class))
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())

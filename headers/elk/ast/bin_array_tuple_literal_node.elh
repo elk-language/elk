@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a bin ArrayTuple literal eg. `%b[11 10]`
+  ]##
+  sealed primitive class BinArrayTupleLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(elements: ArrayTuple[IntCollectionContentNode], span: String::Span = loop; end); end
+    def elements: ArrayTuple[IntCollectionContentNode]; end
+    def span: String::Span; end
+  end
+end

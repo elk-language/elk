@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents a new type definition eg. `typedef StringList = ArrayList[String]`
+  ]##
+  sealed primitive class TypeDefinitionNode
+    include ExpressionNode
+
+    init(
+      doc_comment: String,
+      constant: ComplexConstantNode,
+      type_node: TypeNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def constant: ComplexConstantNode; end
+    def type_node: TypeNode; end
+    def span: String::Span; end
+  end
+end

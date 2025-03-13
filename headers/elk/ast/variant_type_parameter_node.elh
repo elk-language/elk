@@ -1,0 +1,24 @@
+module Std::Elk::AST
+  ##[
+    Represents a type parameter eg. `+V`
+  ]##
+  sealed primitive class VariantTypeParameterNode
+    include Node
+
+    init(
+      variance: UInt8,
+      name: String,
+      lower_bound: TypeNode,
+      upper_bound: TypeNode,
+      default: TypeNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def variance: UInt8; end
+    def name: String; end
+    def lower_bound: TypeNode; end
+    def upper_bound: TypeNode; end
+    def default: TypeNode; end
+    def span: String::Span; end
+  end
+end

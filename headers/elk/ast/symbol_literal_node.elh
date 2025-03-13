@@ -6,32 +6,4 @@ module ::Std::Elk::AST
 	sealed abstract mixin SymbolLiteralNode
 		include Mixin
 	end
-
-	##[
-		Represents a symbol literal with simple content
-		eg. `:foo`, `:'foo bar`, `:"lol"`
-	]##
-	sealed class SimpleSymbolLiteralNode < Node
-		include ExpressionNode
-		include SymbolLiteralNode
-
-		##[
-			Returns a string that holds the content of the symbol.
-		]##
-		def content: String; end
-	end
-
-	##[
-		Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
-	]##
-	sealed class InterpolatedSymbolLiteralNode < Node
-		include ExpressionNode
-		include SymbolLiteralNode
-
-		##[
-			Returns the interpolated string literal that
-			makes up the name of the symbol.
-		]##
-		def content: InterpolatedStringLiteralNode; end
-	end
 end

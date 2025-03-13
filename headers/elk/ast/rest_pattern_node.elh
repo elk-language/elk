@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a rest element in a list pattern eg. `*a`
+  ]##
+  sealed primitive class RestPatternNode
+    include PatternNode
+
+    init(identifier: IdentifierNode, span: String::Span = loop; end); end
+    def identifier: IdentifierNode; end
+    def span: String::Span; end
+  end
+end

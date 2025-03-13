@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents an attribute declaration in getters, setters and accessors eg. `foo: String`
+  ]##
+  sealed primitive class AttributeParameterNode
+    include ParameterNode
+
+    init(name: String, type_node: TypeNode, initialiser: ExpressionNode, span: String::Span = loop; end); end
+    def name: String; end
+    def type_node: TypeNode; end
+    def initialiser: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

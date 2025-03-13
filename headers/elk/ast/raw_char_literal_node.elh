@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Raw Char literal eg. `a`
+  ]##
+  sealed primitive class RawCharLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: Char, span: String::Span = loop; end); end
+    def value: Char; end
+    def span: String::Span; end
+  end
+end

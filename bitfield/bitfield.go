@@ -20,7 +20,7 @@ func BitField8FromBitFlag(f BitFlag8) BitField8 {
 }
 
 // Create a new 8-bit bit field from an int.
-func BitField8FromInt[T uint8 | int8 | uint16 | int16 | uint32 | int32 | uint64 | int64 | uint | int](i T) BitField8 {
+func BitField8FromInt[T ~uint8 | ~int8 | ~uint16 | ~int16 | ~uint32 | ~int32 | ~uint64 | ~int64 | ~uint | ~int](i T) BitField8 {
 	return BitField8{
 		bitfield: BitFlag8(i),
 	}
@@ -67,7 +67,7 @@ func BitField16FromBitFlag(f BitFlag16) BitField16 {
 }
 
 // Create a new 8-bit bit field from an int.
-func BitField16FromInt[T uint8 | int8 | uint16 | int16 | uint32 | int32 | uint64 | int64 | uint | int](i T) BitField16 {
+func BitField16FromInt[T ~uint8 | ~int8 | ~uint16 | ~int16 | ~uint32 | ~int32 | ~uint64 | ~int64 | ~uint | ~int](i T) BitField16 {
 	return BitField16{
 		bitfield: BitFlag16(i),
 	}

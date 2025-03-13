@@ -143,11 +143,11 @@ func (*PublicConstantAsNode) IsStatic() bool {
 }
 
 func (*PublicConstantAsNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantAsNodeClass
 }
 
 func (*PublicConstantAsNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantAsNodeClass
 }
 
 func (n *PublicConstantAsNode) Inspect() string {

@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    A single alias entry eg. `new_name old_name`
+  ]##
+  sealed primitive class AliasDeclarationEntry
+    include Node
+
+    init(new_name: String, old_name: String, span: String::Span = loop; end); end
+    def new_name: String; end
+    def old_name: String; end
+    def span: String::Span; end
+  end
+end

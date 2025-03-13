@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    `undefined` literal.
+  ]##
+  sealed primitive class UndefinedLiteralNode
+    include ExpressionNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

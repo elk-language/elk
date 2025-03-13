@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a private identifier eg. `_foo`
+  ]##
+  sealed primitive class PrivateIdentifierNode
+    include ExpressionNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

@@ -1,10 +1,10 @@
 ##[
-	Represents a token produced by a lexer.
+	Represents a token produced by the Elk lexer.
 
 	A token is a single lexical unit of text
 	with a particular meaning.
 ]##
-sealed primitive class ::Std::Token < Value
+sealed primitive class ::Std::Elk::Token
 	init(typ: UInt16, span: String::Span, value: String = ""); end
 
 	##[

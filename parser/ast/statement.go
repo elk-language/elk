@@ -105,7 +105,7 @@ func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 	}
 }
 
-// Expression optionally terminated with a newline or a semicolon.
+// Represents an import statement eg. `import "./foo/bar.elk"`
 type ImportStatementNode struct {
 	NodeBase
 	Path    StringLiteralNode

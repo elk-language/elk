@@ -305,6 +305,6 @@ func (i Int8) StrictEqual(other Value) Value {
 }
 
 func initInt8() {
-	Int8Class = NewClass()
+	Int8Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Int8", Ref(Int8Class))
 }

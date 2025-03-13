@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents subscript access eg. `arr[5]`
+  ]##
+  sealed primitive class SubscriptExpressionNode
+    include ExpressionNode
+
+    init(receiver: ExpressionNode, key: ExpressionNode, span: String::Span = loop; end); end
+    def receiver: ExpressionNode; end
+    def key: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

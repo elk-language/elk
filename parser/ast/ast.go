@@ -153,11 +153,11 @@ func (t *TypedNodeBase) SetSpan(span *position.Span) {
 }
 
 func (t *TypedNodeBase) Class() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (t *TypedNodeBase) DirectClass() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (t *TypedNodeBase) SingletonClass() *value.Class {
@@ -215,11 +215,11 @@ func (t *TypedNodeBaseWithLoc) SetLocation(loc *position.Location) {
 }
 
 func (t *TypedNodeBaseWithLoc) Class() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (t *TypedNodeBaseWithLoc) DirectClass() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (t *TypedNodeBaseWithLoc) SingletonClass() *value.Class {
@@ -266,11 +266,11 @@ func (n *NodeBase) SetSpan(span *position.Span) {
 }
 
 func (n *NodeBase) Class() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (n *NodeBase) DirectClass() *value.Class {
-	return value.NodeClass
+	return nil
 }
 
 func (n *NodeBase) SingletonClass() *value.Class {

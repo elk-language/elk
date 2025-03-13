@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents an uninterpolated regex literal eg. `%/foo/`
+  ]##
+  sealed primitive class UninterpolatedRegexLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(content: String, flags: UInt8, span: String::Span = loop; end); end
+    def content: String; end
+    def flags: UInt8; end
+    def span: String::Span; end
+  end
+end

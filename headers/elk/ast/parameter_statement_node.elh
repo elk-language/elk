@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Formal parameter optionally terminated with a newline or a semicolon.
+  ]##
+  sealed primitive class ParameterStatementNode
+    include StatementNode,
+            StructBodyStatementNode
+
+    init(parameter: ParameterNode, span: String::Span = loop; end); end
+    def parameter: ParameterNode; end
+    def span: String::Span; end
+  end
+end

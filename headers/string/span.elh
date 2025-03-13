@@ -4,7 +4,7 @@
 	It is made up of two positions, start position
 	(position of the first character) and end position (position of the last character).
 ]##
-sealed primitive class ::Std::String::Span < Value
+sealed primitive class ::Std::String::Span
 	init(start_pos: String::Position, end_pos: String::Position); end
 
 	##[

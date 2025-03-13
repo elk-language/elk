@@ -1,0 +1,6 @@
+##[
+	Represents boolean values.
+	There are only two instances of `Bool`, `true` and `false`.
+]##
+sealed noinit primitive class ::Std::Bool < Value
+end

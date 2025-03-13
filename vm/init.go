@@ -73,6 +73,8 @@ func InitGlobalEnvironment() {
 	initPosition()
 	initSpan()
 	initToken()
+	initLocation()
+	initPath()
 }
 
 func init() {

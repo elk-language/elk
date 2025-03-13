@@ -1,0 +1,21 @@
+module ::Std::FS
+  ##[
+    Represents the position of a piece of text in a file.
+
+    It is made up of a path and a span.
+  ]##
+  sealed primitive class Location
+    init(path: Path, span: String::Span); end
+
+    ##[
+      Returns the position of the file fragment.
+    ]##
+    def span: String::Span; end
+
+    ##[
+      Returns the path of the file
+      where the piece of text is located.
+    ]##
+    def file_path: Path; end
+  end
+end
