@@ -14,13 +14,13 @@ module Std::Elk::AST
     init(
       body: ArrayTuple[StatementNode],
       catches: ArrayTuple[CatchNode],
-      finally: ArrayTuple[StatementNode],
+      finally_body: ArrayTuple[StatementNode],
       span: String::Span = loop; end,
     ); end
 
     def body: ArrayTuple[StatementNode]; end
     def catches: ArrayTuple[CatchNode]; end
-    def finally: ArrayTuple[StatementNode]; end
+    def finally_body: ArrayTuple[StatementNode]; end
     def span: String::Span; end
   end
 end

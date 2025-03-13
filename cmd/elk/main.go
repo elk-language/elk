@@ -7,6 +7,7 @@ import (
 
 	"path/filepath"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/repl"
 )
 
@@ -74,4 +75,8 @@ func runSourceWithName(sourceName string, source []byte) {
 // Elk source code.
 func runSource(source []byte) {
 	runSourceWithName("(eval)", source)
+}
+
+func init() {
+	elk.InitGlobalEnvironment()
 }

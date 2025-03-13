@@ -1,4 +1,4 @@
-package ast
+package runtime
 
 import (
 	"github.com/elk-language/elk/parser/ast"
@@ -51,7 +51,18 @@ func initMixinDeclarationNode() {
 
 	vm.Def(
 		c,
-		"abstract",
+		"doc_comment",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MixinDeclarationNode)
+			result := value.Ref(value.String(self.DocComment()))
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_abstract",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			result := value.ToElkBool(self.Abstract)
@@ -100,34 +111,6 @@ func initMixinDeclarationNode() {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
 			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
-		},
-	)
-
-	vm.Def(
-		c,
-		"includes_and_implements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MixinDeclarationNode)
-
-			collection := self.IncludesAndImplements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
-		},
-	)
-
-	vm.Def(
-		c,
-		"bytecode",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MixinDeclarationNode)
-			result := value.Ref(self.Bytecode)
 			return result, value.Undefined
 
 		},

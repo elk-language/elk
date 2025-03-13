@@ -3,7 +3,7 @@ module ::Std::Elk::AST
 		All nodes that should be valid in type annotations should
 		implement this interface
 	]##
-	sealed mixin ParameterNode
+	mixin TypeNode
 		include Node
 	end
 end

@@ -10,7 +10,7 @@ module Std::Elk::AST
       name: String,
       lower_bound: TypeNode,
       upper_bound: TypeNode,
-      default: TypeNode,
+      is_default: TypeNode,
       span: String::Span = loop; end,
     ); end
 
@@ -18,7 +18,7 @@ module Std::Elk::AST
     def name: String; end
     def lower_bound: TypeNode; end
     def upper_bound: TypeNode; end
-    def default: TypeNode; end
+    def is_default: TypeNode; end
     def span: String::Span; end
   end
 end

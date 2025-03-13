@@ -130,7 +130,3 @@ func InitGlobalEnvironment() {
 	initPath()
 	initError()
 }
-
-func init() {
-	InitGlobalEnvironment()
-}

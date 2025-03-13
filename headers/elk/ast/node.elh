@@ -1,7 +1,7 @@
 ##[
 	A base for all Elk AST (Abstract Syntax Tree) nodes.
 ]##
-sealed mixin ::Std::Elk::AST::Node
+mixin ::Std::Elk::AST::Node
 	##[
 		Returns the span that represents
 		the position of this node in a source file/string.

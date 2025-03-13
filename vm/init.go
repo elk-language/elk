@@ -1,6 +1,8 @@
 package vm
 
-import "github.com/elk-language/elk/value"
+import (
+	"github.com/elk-language/elk/value"
+)
 
 func InitGlobalEnvironment() {
 	value.InitGlobalEnvironment()
@@ -75,8 +77,4 @@ func InitGlobalEnvironment() {
 	initToken()
 	initLocation()
 	initPath()
-}
-
-func init() {
-	InitGlobalEnvironment()
 }

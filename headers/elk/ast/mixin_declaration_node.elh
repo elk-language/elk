@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class MixinDeclarationNode
     init(
       doc_comment: String,
-      abstract: Bool,
+      is_abstract: Bool,
       constant: ExpressionNode,
       type_parameters: ArrayTuple[TypeParameterNode],
       body: ArrayTuple[StatementNode],
@@ -13,7 +13,7 @@ module Std::Elk::AST
     ); end
 
     def doc_comment: String; end
-    def abstract: Bool; end
+    def is_abstract: Bool; end
     def constant: ExpressionNode; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StatementNode]; end

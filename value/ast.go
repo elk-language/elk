@@ -9,6 +9,7 @@ var ParameterNodeMixin *Mixin           // Std::Elk::AST::ParameterNode
 var TypeNodeMixin *Mixin                // Std::Elk::AST::TypeNode
 var PatternNodeMixin *Mixin             // Std::Elk::AST::PatternNode
 var ExpressionNodeMixin *Mixin          // Std::Elk::AST::ExpressionNode
+var SymbolLiteralNodeMixin *Mixin       // Std::Elk::AST::SymbolLiteralNode
 
 var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
@@ -239,6 +240,10 @@ func initElkAST() {
 	ExpressionNodeMixin.IncludeMixin(NodeMixin)
 	ElkASTModule.AddConstantString("ExpressionNode", Ref(ExpressionNodeMixin))
 
+	SymbolLiteralNodeMixin = NewMixin()
+	SymbolLiteralNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("SymbolLiteralNode", Ref(SymbolLiteralNodeMixin))
+
 	InvalidNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InvalidNodeClass.IncludeMixin(StatementNodeMixin)
 	InvalidNodeClass.IncludeMixin(ExpressionNodeMixin)
@@ -246,6 +251,7 @@ func initElkAST() {
 	InvalidNodeClass.IncludeMixin(ParameterNodeMixin)
 	InvalidNodeClass.IncludeMixin(TypeNodeMixin)
 	InvalidNodeClass.IncludeMixin(PatternNodeMixin)
+	InvalidNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	ElkASTModule.AddConstantString("InvalidNode", Ref(InvalidNodeClass))
 
 	TypeExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -340,6 +346,7 @@ func initElkAST() {
 	SimpleSymbolLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	SimpleSymbolLiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	SimpleSymbolLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	SimpleSymbolLiteralNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	ElkASTModule.AddConstantString("SimpleSymbolLiteralNode", Ref(SimpleSymbolLiteralNodeClass))
 
 	IntLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -484,6 +491,7 @@ func initElkAST() {
 	InterpolatedSymbolLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	InterpolatedSymbolLiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	InterpolatedSymbolLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	InterpolatedSymbolLiteralNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	ElkASTModule.AddConstantString("InterpolatedSymbolLiteralNode", Ref(InterpolatedSymbolLiteralNodeClass))
 
 	ConstantAsNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

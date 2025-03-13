@@ -3,7 +3,7 @@ module ::Std::Elk::AST
 		All nodes that should be valid in pattern matching should
 		implement this interface
 	]##
-	sealed mixin PatternNode
+	mixin PatternNode
 		include Node
 	end
 end

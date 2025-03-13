@@ -1,4 +1,4 @@
-package ast
+package runtime
 
 import (
 	"github.com/elk-language/elk/parser/ast"
@@ -86,7 +86,7 @@ func initDoExpressionNode() {
 
 	vm.Def(
 		c,
-		"finally",
+		"finally_body",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 

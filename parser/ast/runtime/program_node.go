@@ -1,4 +1,4 @@
-package ast
+package runtime
 
 import (
 	"github.com/elk-language/elk/parser/ast"

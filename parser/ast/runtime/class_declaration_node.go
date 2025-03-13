@@ -1,4 +1,4 @@
-package ast
+package runtime
 
 import (
 	"github.com/elk-language/elk/parser/ast"
@@ -59,7 +59,7 @@ func initClassDeclarationNode() {
 
 	vm.Def(
 		c,
-		"abstract",
+		"is_abstract",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Abstract)
@@ -70,7 +70,7 @@ func initClassDeclarationNode() {
 
 	vm.Def(
 		c,
-		"sealed",
+		"is_sealed",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Sealed)
@@ -81,7 +81,7 @@ func initClassDeclarationNode() {
 
 	vm.Def(
 		c,
-		"primitive",
+		"is_primitive",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Primitive)
@@ -92,7 +92,7 @@ func initClassDeclarationNode() {
 
 	vm.Def(
 		c,
-		"no_init",
+		"is_no_init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.NoInit)

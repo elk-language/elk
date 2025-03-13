@@ -4,7 +4,7 @@ module ::Std::Elk::AST
 		a single valid "line" of Elk code.
 		Usually its an expression optionally terminated with a newline or a semicolon.
 	]##
-	sealed mixin StatementNode
+	mixin StatementNode
 		include Node
 	end
 end

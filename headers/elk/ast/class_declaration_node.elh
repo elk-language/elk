@@ -7,10 +7,10 @@ module Std::Elk::AST
 
     init(
       doc_comments: String,
-      abstract: Bool,
-      sealed: Bool,
-      primitive: Bool,
-      no_init: Bool,
+      is_abstract: Bool,
+      is_sealed: Bool,
+      is_primitive: Bool,
+      is_no_init: Bool,
       constant: ExpressionNode,
       type_parameters: ArrayTuple[TypeParameterNode],
       superclass: ExpressionNode,
@@ -18,10 +18,10 @@ module Std::Elk::AST
       span: String::Span = loop; end
     ); end
 
-    def abstract: Bool; end
-    def sealed: Bool; end
-    def primitive: Bool; end
-    def no_init: Bool; end
+    def is_abstract: Bool; end
+    def is_sealed: Bool; end
+    def is_primitive: Bool; end
+    def is_no_init: Bool; end
     def constant: ExpressionNode; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def superclass: ExpressionNode; end

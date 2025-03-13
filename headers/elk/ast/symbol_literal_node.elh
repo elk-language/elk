@@ -3,7 +3,7 @@ module ::Std::Elk::AST
 		A mixin included in all Elk AST nodes
 		that can be treated as symbol literals.
 	]##
-	sealed abstract mixin SymbolLiteralNode
-		include Mixin
+	abstract mixin SymbolLiteralNode
+		include ExpressionNode
 	end
 end
