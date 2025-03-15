@@ -8,14 +8,14 @@ module Std::Elk::AST
     init(
       name: String,
       type_node: TypeNode,
-      optional: bool,
+      is_optional: bool,
       kind: UInt8,
       span: String::Span = loop; end,
     ); end
 
     def name: String; end
     def type_node: TypeNode; end
-    def optional: bool; end
+    def is_optional: bool; end
     def kind: UInt8; end
     def span: String::Span; end
   end

@@ -4,7 +4,9 @@ module Std::Elk::AST
   ]##
   sealed primitive class PublicIdentifierNode
     include ExpressionNode,
-            PatternNode
+            PatternNode,
+            UsingSubentryNode,
+            IdentifierNode
 
     init(value: String, span: String::Span = loop; end); end
     def value: String; end

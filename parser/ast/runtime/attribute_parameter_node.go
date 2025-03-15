@@ -59,6 +59,17 @@ func initAttributeParameterNode() {
 
 	vm.Def(
 		c,
+		"is_optional",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.AttributeParameterNode)
+			result := value.ToElkBool(self.IsOptional())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)

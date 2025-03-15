@@ -27,6 +27,8 @@ func (*MethodLookupAsNode) usingEntryNode()           {}
 func (*GenericConstantNode) usingEntryNode()          {}
 func (*NilLiteralNode) usingEntryNode()               {}
 
+// Represents all nodes that are valid in using subentries
+// in `UsingEntryWithSubentriesNode`
 type UsingSubentryNode interface {
 	Node
 	ExpressionNode

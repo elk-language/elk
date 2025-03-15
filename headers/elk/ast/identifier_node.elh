@@ -1,0 +1,10 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be valid identifiers
+		should implement this interface.
+	]##
+	mixin IdentifierNode
+		include ExpressionNode,
+						PatternNode
+	end
+end

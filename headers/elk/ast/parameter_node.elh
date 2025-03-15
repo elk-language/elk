@@ -3,7 +3,9 @@ module ::Std::Elk::AST
 		All nodes that should be valid in parameter declaration lists
 		of methods or functions should implement this interface.
 	]##
-	mixin ParameterNode
+	abstract mixin ParameterNode
 		include Node
+
+		def is_optional: bool; end
 	end
 end

@@ -4,7 +4,8 @@ module Std::Elk::AST
     eg. `Foo as Bar`.
   ]##
   sealed primitive class PublicConstantAsNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingSubentryNode
 
     init(target: PublicConstantNode, as_name: String, span: String::Span = loop; end); end
     def target: PublicConstantNode; end

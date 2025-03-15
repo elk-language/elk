@@ -5,7 +5,8 @@ module Std::Elk::AST
   sealed primitive class IntLiteralNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            IntCollectionContentNode
 
     init(value: String, span: String::Span = loop; end); end
     def value: String; end

@@ -11,5 +11,6 @@ module Std::Elk::AST
     def initialiser: ExpressionNode; end
     def kind: ParameterKind; end
     def span: String::Span; end
+    def is_optional: bool; end
   end
 end

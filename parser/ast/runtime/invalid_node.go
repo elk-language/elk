@@ -34,6 +34,14 @@ func initInvalidNode() {
 
 	vm.Def(
 		c,
+		"is_optional",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			return value.False, value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
 		"token",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InvalidNode)

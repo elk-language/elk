@@ -5,7 +5,9 @@ module Std::Elk::AST
   sealed primitive class NilLiteralNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
 
     init(span: String::Span = loop; end); end
     def span: String::Span; end

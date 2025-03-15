@@ -5,7 +5,8 @@ module Std::Elk::AST
   sealed primitive class InterpolatedSymbolLiteralNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            SymbolLiteralNode
 
     init(content: InterpolatedStringLiteralNode, span: String::Span = loop; end); end
     def content: InterpolatedStringLiteralNode; end

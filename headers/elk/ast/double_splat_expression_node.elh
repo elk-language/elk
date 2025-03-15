@@ -3,7 +3,8 @@ module Std::Elk::AST
     Represents a double splat expression eg. `**foo`
   ]##
   sealed primitive class DoubleSplatExpressionNode
-    include ExpressionNode
+    include ExpressionNode,
+            NamedArgumentNode
 
     init(value: ExpressionNode, span: String::Span = loop; end); end
     def value: ExpressionNode; end

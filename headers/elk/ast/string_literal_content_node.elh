@@ -1,0 +1,9 @@
+module ::Std::Elk::AST
+	##[
+		Nodes that implement this interface can appear
+		inside of a String literal.
+	]##
+	mixin StringLiteralContentNode
+		include Node
+	end
+end

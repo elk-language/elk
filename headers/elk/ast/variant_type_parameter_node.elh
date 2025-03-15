@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a type parameter eg. `+V`
   ]##
   sealed primitive class VariantTypeParameterNode
-    include Node
+    include TypeParameterNode
 
     init(
       variance: UInt8,

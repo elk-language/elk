@@ -5,7 +5,9 @@ module Std::Elk::AST
   sealed primitive class SimpleSymbolLiteralNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            SymbolCollectionContentNode,
+            SymbolLiteralNode
 
     init(content: String, span: String::Span = loop; end); end
     def content: String; end

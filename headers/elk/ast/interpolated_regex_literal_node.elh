@@ -4,7 +4,8 @@ module Std::Elk::AST
   ]##
   sealed primitive class InterpolatedRegexLiteralNode
     include ExpressionNode,
-            PatternNode
+            PatternNode,
+            RegexLiteralNode
 
     init(
       content: ArrayTuple[RegexLiteralContentNode],

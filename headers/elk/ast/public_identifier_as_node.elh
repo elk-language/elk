@@ -4,7 +4,8 @@ module Std::Elk::AST
     eg. `foo as bar`.
   ]##
   sealed primitive class PublicIdentifierAsNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingSubentryNode
 
     init(target: PublicIdentifierNode, as_name: String, span: String::Span = loop; end); end
     def target: PublicIdentifierNode; end

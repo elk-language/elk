@@ -1,0 +1,10 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that represent simple strings (without interpolation)
+		should implement this interface.
+	]##
+	mixin SimpleStringLiteralNode
+		include StringLiteralNode,
+						ExpressionNode
+	end
+end

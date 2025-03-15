@@ -1,0 +1,10 @@
+module Std::Elk::AST
+  ##[
+    All nodes that represent regexes should
+    implement this interface.
+  ]##
+  mixin RegexLiteralNode
+    include PatternNode,
+            ExpressionNode
+  end
+end

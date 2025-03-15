@@ -3,7 +3,8 @@ module Std::Elk::AST
     Represents a single interpolated section of a string literal eg. `bar + 2` in `"foo${bar + 2}"`
   ]##
   sealed primitive class StringInterpolationNode
-    include Node
+    include Node,
+            StringLiteralContentNode
 
     init(expression: ExpressionNode, span: String::Span = loop; end); end
     def expression: ExpressionNode; end

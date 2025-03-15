@@ -5,7 +5,9 @@ module Std::Elk::AST
   sealed primitive class ConstantLookupNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
 
     init(left: ExpressionNode, right: ComplexConstantNode, span: String::Span = loop; end); end
     def left: ExpressionNode; end

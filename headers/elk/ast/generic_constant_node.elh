@@ -5,7 +5,9 @@ module Std::Elk::AST
   sealed primitive class GenericConstantNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
 
     init(constant: ComplexConstantNode, type_arguments: ArrayTuple[TypeNode], span: String::Span = loop; end); end
     def constant: ComplexConstantNode; end

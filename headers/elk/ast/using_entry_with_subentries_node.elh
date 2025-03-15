@@ -3,7 +3,8 @@ module Std::Elk::AST
     Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
   ]##
   sealed primitive class UsingEntryWithSubentriesNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingEntryNode
 
     init(
       namespace: UsingEntryNode,

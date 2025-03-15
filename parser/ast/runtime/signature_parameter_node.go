@@ -61,7 +61,7 @@ func initSignatureParameterNode() {
 
 	vm.Def(
 		c,
-		"optional",
+		"is_optional",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.ToElkBool(self.Optional)

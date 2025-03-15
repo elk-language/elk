@@ -1,0 +1,9 @@
+module ::Std::Elk::AST
+	##[
+		Nodes that implement this interface represent
+		named arguments in method calls.
+	]##
+	mixin NamedArgumentNode
+		include Node
+	end
+end

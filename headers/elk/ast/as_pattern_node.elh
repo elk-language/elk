@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents an as pattern eg. `> 5 && < 20 as foo`
   ]##
   sealed primitive class AsPatternNode
-    include TypeNode
+    include PatternNode
 
     init(pattern: PatternNode, name: IdentifierNode, span: String::Span = loop; end); end
     def pattern: PatternNode; end

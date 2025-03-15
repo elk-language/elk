@@ -3,7 +3,8 @@ module Std::Elk::AST
     Represents a method lookup expression eg. `Foo::bar`, `a::c`
   ]##
   sealed primitive class MethodLookupNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingEntryNode
 
     init(receiver: ExpressionNode, name: String, span: String::Span = loop; end); end
     def receiver: ExpressionNode; end

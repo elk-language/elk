@@ -3,6 +3,8 @@ module Std::Elk::AST
     Represents a named argument in a function call eg. `foo: 123`
   ]##
   sealed primitive class NamedCallArgumentNode
+    include NamedArgumentNode
+
     init(name: String, value: ExpressionNode, span: String::Span = loop; end); end
     def name: String; end
     def value: ExpressionNode; end

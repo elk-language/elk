@@ -14,6 +14,7 @@ module Std::Elk::AST
       span: String::Span = loop; end,
     ); end
 
+    def is_optional: bool; end
     def name: String; end
     def type_node: TypeNode; end
     def initialiser: ExpressionNode; end

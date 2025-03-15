@@ -3,8 +3,7 @@ module Std::Elk::AST
     Formal parameter optionally terminated with a newline or a semicolon.
   ]##
   sealed primitive class ParameterStatementNode
-    include StatementNode,
-            StructBodyStatementNode
+    include StructBodyStatementNode
 
     init(parameter: ParameterNode, span: String::Span = loop; end); end
     def parameter: ParameterNode; end

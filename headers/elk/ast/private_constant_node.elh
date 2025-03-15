@@ -5,7 +5,10 @@ module Std::Elk::AST
   sealed primitive class PrivateConstantNode
     include ExpressionNode,
             TypeNode,
-            PatternNode
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode,
+            ConstantNode
 
     init(value: String, span: String::Span = loop; end); end
     def value: String; end

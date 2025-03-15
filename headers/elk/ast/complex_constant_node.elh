@@ -1,0 +1,13 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be valid in constant lookups
+		should implement this interface.
+	]##
+	mixin ComplexConstantNode
+		include ExpressionNode,
+						TypeNode,
+						PatternNode,
+						UsingEntryNode
+
+	end
+end

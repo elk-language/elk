@@ -4,7 +4,8 @@ module Std::Elk::AST
 eg. `Foo::Bar as Bar`.
   ]##
   sealed primitive class ConstantAsNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingEntryNode
 
     init(constant: ComplexConstantNode, as_name: String, span: String::Span = loop; end); end
     def constant: ComplexConstantNode; end

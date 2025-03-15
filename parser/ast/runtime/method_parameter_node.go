@@ -96,6 +96,16 @@ func initMethodParameterNode() {
 
 	vm.Def(
 		c,
+		"is_optional",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodParameterNode)
+			return value.ToElkBool(self.IsOptional()), value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"span",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)

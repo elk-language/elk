@@ -4,7 +4,8 @@ module Std::Elk::AST
 eg. `Foo::bar as Bar`.
   ]##
   sealed primitive class MethodLookupAsNode
-    include ExpressionNode
+    include ExpressionNode,
+            UsingEntryNode
 
     init(method_lookup: MethodLookupNode, as_name: String, span: String::Span = loop; end); end
     def method_lookup: MethodLookupNode; end

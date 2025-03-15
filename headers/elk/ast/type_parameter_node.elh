@@ -1,0 +1,8 @@
+module ::Std::Elk::AST
+	##[
+		Represents a type variable in generics like `class Foo[+V]; end`
+	]##
+	mixin TypeParameterNode
+		include Node
+	end
+end
