@@ -16,8 +16,6 @@ module Std::Elk::AST
     def constant: ExpressionNode; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StatementNode]; end
-    def implements: ArrayTuple[ImplementExpressionNode]; end
-    def bytecode: BytecodeFunction; end
     def span: String::Span; end
   end
 end

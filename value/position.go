@@ -37,8 +37,16 @@ func (*Position) InstanceVariables() SymbolMap {
 
 func (p *Position) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Position{&: %p, byte_offset: %d, line: %d, column: %d}",
-		p,
+		"Std::String::Position(%d, %d, %d)",
+		p.ByteOffset,
+		p.Line,
+		p.Column,
+	)
+}
+
+func (p *Position) SimpleInspect() string {
+	return fmt.Sprintf(
+		"(%d, %d, %d)",
 		p.ByteOffset,
 		p.Line,
 		p.Column,

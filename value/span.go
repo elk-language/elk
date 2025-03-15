@@ -37,10 +37,9 @@ func (*Span) InstanceVariables() SymbolMap {
 
 func (s *Span) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Span{&: %p, start_pos: %s, end_pos: %s}",
-		s,
-		s.StartPosition().Inspect(),
-		s.EndPosition().Inspect(),
+		"Std::String::Span(%s, %s)",
+		s.StartPosition().SimpleInspect(),
+		s.EndPosition().SimpleInspect(),
 	)
 }
 

@@ -25,6 +25,7 @@ var StringLiteralContentNodeMixin *Mixin    // Std::Elk::AST::StringLiteralConte
 var StringLiteralNodeMixin *Mixin           // Std::Elk::AST::StringLiteralNode
 var SimpleStringLiteralNodeMixin *Mixin     // Std::Elk::AST::SimpleStringLiteralNode
 var TypeParameterNodeMixin *Mixin           // Std::Elk::AST::TypeParameterNode
+var PatternExpressionNodeMixin *Mixin       // Std::Elk::AST::PatternExpressionNode
 
 var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
@@ -219,6 +220,9 @@ func initElkAST() {
 
 	ParameterNodeMixin = NewMixin()
 	ParameterNodeMixin.IncludeMixin(NodeMixin)
+	ParameterNodeMixin.AddConstantString("NORMAL_KIND", UInt8(0).ToValue())
+	ParameterNodeMixin.AddConstantString("POSITIONAL_REST_KIND", UInt8(1).ToValue())
+	ParameterNodeMixin.AddConstantString("NAMED_REST_KIND", UInt8(2).ToValue())
 	ElkASTModule.AddConstantString("ParameterNode", Ref(ParameterNodeMixin))
 
 	PatternNodeMixin = NewMixin()
@@ -313,6 +317,11 @@ func initElkAST() {
 	TypeParameterNodeMixin = NewMixin()
 	TypeParameterNodeMixin.IncludeMixin(NodeMixin)
 	ElkASTModule.AddConstantString("TypeParameterNode", Ref(TypeParameterNodeMixin))
+
+	PatternExpressionNodeMixin = NewMixin()
+	PatternExpressionNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	PatternExpressionNodeMixin.IncludeMixin(PatternNodeMixin)
+	ElkASTModule.AddConstantString("PatternExpressionNode", Ref(PatternExpressionNodeMixin))
 
 	ComplexConstantNodeMixin = NewMixin()
 	ComplexConstantNodeMixin.IncludeMixin(ExpressionNodeMixin)

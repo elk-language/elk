@@ -15,7 +15,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 	// Define all namespaces
 	namespace.DefineSubtype(value.ToSymbol("Byte"), NewNamedType("Byte", NameToType("Std::UInt8", env)))
-	namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Dupa"), objectClass, env)
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
@@ -45,7 +44,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
 		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nv := try ch.pop # pop `5` from the channel\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
@@ -86,8 +85,210 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, false, value.ToSymbol("Duration"), objectClass, env)
 		{
-			namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", value.ToSymbol("ElkAST"), env)
-			namespace.TryDefineClass("An", false, true, true, false, value.ToSymbol("Node"), objectClass, env)
+			namespace := namespace.TryDefineModule("Contains utilities for dealing with Elk\nsource code.", value.ToSymbol("Elk"), env)
+			{
+				namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", value.ToSymbol("AST"), env)
+				namespace.TryDefineClass("A single alias entry eg. `new_name old_name`", false, true, true, false, value.ToSymbol("AliasDeclarationEntry"), objectClass, env)
+				namespace.TryDefineClass("Represents a new alias declaration eg. `alias push append, add plus`", false, true, true, false, value.ToSymbol("AliasDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("`any` type.", false, true, true, false, value.ToSymbol("AnyTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a ArrayList literal eg. `[1, 5, -6]`", false, true, true, false, value.ToSymbol("ArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a ArrayTuple literal eg. `%[1, 5, -6]`", false, true, true, false, value.ToSymbol("ArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an as type downcast eg. `foo as String`", false, true, true, false, value.ToSymbol("AsExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an as pattern eg. `> 5 && < 20 as foo`", false, true, true, false, value.ToSymbol("AsPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Assignment with the specified operator.", false, true, true, false, value.ToSymbol("AssignmentExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new setter declaration eg. `attr foo: String`", false, true, true, false, value.ToSymbol("AttrDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents attribute access eg. `foo.bar`", false, true, true, false, value.ToSymbol("AttributeAccessNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an attribute declaration in getters, setters and accessors eg. `foo: String`", false, true, true, false, value.ToSymbol("AttributeParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `await` expression eg. `await foo()`", false, true, true, false, value.ToSymbol("AwaitExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`", false, true, true, false, value.ToSymbol("BigFloatLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin ArrayList literal eg. `\\b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin ArrayTuple literal eg. `%b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin HashSet literal eg. `^b[11 10]`", false, true, true, false, value.ToSymbol("BinHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of an operator with two operands eg. `2 + 5`, `foo > bar`", false, true, true, false, value.ToSymbol("BinaryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Pattern with two operands eg. `> 10 && < 50`", false, true, true, false, value.ToSymbol("BinaryPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Type expression of an operator with two operands eg. `String | Int`", false, true, true, false, value.ToSymbol("BinaryTypeNode"), objectClass, env)
+				namespace.TryDefineClass("`bool` literal.", false, true, true, false, value.ToSymbol("BoolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("CaseNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `catch` eg.\n\n```\ncatch SomeError(message)\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("CatchNode"), objectClass, env)
+				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a closure eg. `|i| -> println(i)`", false, true, true, false, value.ToSymbol("ClosureLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a closure type eg. `|i: Int|: String`", false, true, true, false, value.ToSymbol("ClosureTypeNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
+				namespace.TryDefineClass("    Represents a constant with as in using declarations\neg. `Foo::Bar as Bar`.", false, true, true, false, value.ToSymbol("ConstantAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant declaration eg. `const Foo: ArrayList[String] = [\"foo\", \"bar\"]`", false, true, true, false, value.ToSymbol("ConstantDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant lookup expressions eg. `Foo::Bar`", false, true, true, false, value.ToSymbol("ConstantLookupNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be valid constants\nshould implement this interface.", false, value.ToSymbol("ConstantNode"), env)
+				namespace.TryDefineClass("Represents a constructor call eg. `String(123)`", false, true, true, false, value.ToSymbol("ConstructorCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `continue` expression eg. `continue`, `continue \"foo\"`", false, true, true, false, value.ToSymbol("ContinueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `do` expression eg.\n\n```\ndo\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("DoExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a simple double quoted string literal eg. `\"foo baz\"`", false, true, true, false, value.ToSymbol("DoubleQuotedStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a double splat expression eg. `**foo`", false, true, true, false, value.ToSymbol("DoubleSplatExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an empty statement eg. a statement with only a semicolon or a newline.", false, true, true, false, value.ToSymbol("EmptyStatementNode"), objectClass, env)
+				namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as expressions.", false, value.ToSymbol("ExpressionNode"), env)
+				namespace.TryDefineClass("Expression optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ExpressionStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `extend where` block expression eg.\n\n```\nextend where T < Foo\n  def hello then println(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("ExtendWhereBlockExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`false` literal.", false, true, true, false, value.ToSymbol("FalseLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`", false, true, true, false, value.ToSymbol("Float32LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`", false, true, true, false, value.ToSymbol("Float64LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Float literal eg. `5.2`, `.5`, `45e20`", false, true, true, false, value.ToSymbol("FloatLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `for in` expression eg. `for i in 5..15 then println(i)`", false, true, true, false, value.ToSymbol("ForInExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`", false, true, true, false, value.ToSymbol("FormalParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a generic constant in type annotations eg. `ArrayList[String]`", false, true, true, false, value.ToSymbol("GenericConstantNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`", false, true, true, false, value.ToSymbol("GenericConstructorCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `foo.bar::[String](a)`", false, true, true, false, value.ToSymbol("GenericMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a generic function-like call eg. `foo::[Int](123)`", false, true, true, false, value.ToSymbol("GenericReceiverlessMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`", false, true, true, false, value.ToSymbol("GenericTypeDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new getter declaration eg. `getter foo: String`", false, true, true, false, value.ToSymbol("GetterDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `go` expression eg. `go foo()`, `go; foo(); end`", false, true, true, false, value.ToSymbol("GoExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, value.ToSymbol("HashMapLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, value.ToSymbol("HashRecordLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a HashSet literal eg. `^[1, 5, -6]`", false, true, true, false, value.ToSymbol("HashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex ArrayList literal eg. `\\x[ff ee]`", false, true, true, false, value.ToSymbol("HexArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex ArrayTuple literal eg. `%x[ff ee]`", false, true, true, false, value.ToSymbol("HexArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex HashSet literal eg. `^x[ff ee}]`", false, true, true, false, value.ToSymbol("HexHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be valid identifiers\nshould implement this interface.", false, value.ToSymbol("IdentifierNode"), env)
+				namespace.TryDefineClass("Represents an `if` expression eg. `if foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("IfExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an enhance expression eg. `implement Enumerable[V]`", false, true, true, false, value.ToSymbol("ImplementExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an import statement eg. `import \"./foo/bar.elk\"`", false, true, true, false, value.ToSymbol("ImportStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an include expression eg. `include Enumerable[V]`", false, true, true, false, value.ToSymbol("IncludeExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, value.ToSymbol("InitDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance type eg. `^self`", false, true, true, false, value.ToSymbol("InstanceOfTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance variable declaration eg. `var @foo: String`", false, true, true, false, value.ToSymbol("InstanceVariableDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance variable eg. `@foo`", false, true, true, false, value.ToSymbol("InstanceVariableNode"), objectClass, env)
+				namespace.TryDefineClass("Int16 literal eg. `5i16`, `1_20i16`, `0xffi16`", false, true, true, false, value.ToSymbol("Int16LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Int32 literal eg. `5i32`, `1_20i32`, `0xffi32`", false, true, true, false, value.ToSymbol("Int32LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`", false, true, true, false, value.ToSymbol("Int64LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`", false, true, true, false, value.ToSymbol("Int8LiteralNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of Int collection literals should\nimplement this interface.", false, value.ToSymbol("IntCollectionContentNode"), env)
+				namespace.TryDefineClass("Int literal eg. `5`, `125_355`, `0xff`", false, true, true, false, value.ToSymbol("IntLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interface declaration eg. `interface Foo; end`", false, true, true, false, value.ToSymbol("InterfaceDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an Interpolated regex literal eg. `%/foo${1 + 2}bar/`", false, true, true, false, value.ToSymbol("InterpolatedRegexLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interpolated string literal eg. `\"foo ${bar} baz\"`", false, true, true, false, value.ToSymbol("InterpolatedStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interpolated symbol eg. `:\"foo ${bar + 2}\"`", false, true, true, false, value.ToSymbol("InterpolatedSymbolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Union type eg. `String & Int & Float`", false, true, true, false, value.ToSymbol("IntersectionTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a syntax error.", false, true, true, false, value.ToSymbol("InvalidNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a key value expression eg. `foo => bar`", false, true, true, false, value.ToSymbol("KeyValueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a key value pattern eg. `foo => bar`", false, true, true, false, value.ToSymbol("KeyValuePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a labeled expression eg. `$foo: 1 + 2`", false, true, true, false, value.ToSymbol("LabeledExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a List pattern eg. `[1, a, >= 10]`", false, true, true, false, value.ToSymbol("ListPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of a logical operator with two operands eg. `foo && bar`", false, true, true, false, value.ToSymbol("LogicalExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `loop` expression.", false, true, true, false, value.ToSymbol("LoopExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("MapPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, value.ToSymbol("MethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("    Represents a method lookup with as in using declarations\neg. `Foo::bar as Bar`.", false, true, true, false, value.ToSymbol("MethodLookupAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method lookup expression eg. `Foo::bar`, `a::c`", false, true, true, false, value.ToSymbol("MethodLookupNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a formal parameter in method declarations eg. `foo: String = 'bar'`", false, true, true, false, value.ToSymbol("MethodParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method signature definition eg. `sig to_string(val: Int): String`", false, true, true, false, value.ToSymbol("MethodSignatureDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a mixin declaration eg. `mixin Foo; end`", false, true, true, false, value.ToSymbol("MixinDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`", false, true, true, false, value.ToSymbol("ModifierForInNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`", false, true, true, false, value.ToSymbol("ModifierIfElseNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.", false, true, true, false, value.ToSymbol("ModifierNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a module declaration eg. `module Foo; end`", false, true, true, false, value.ToSymbol("ModuleDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `must` expression eg. `must foo()`", false, true, true, false, value.ToSymbol("MustExpressionNode"), objectClass, env)
+				namespace.TryDefineMixin("Nodes that implement this interface represent\nnamed arguments in method calls.", false, value.ToSymbol("NamedArgumentNode"), env)
+				namespace.TryDefineClass("Represents a named argument in a function call eg. `foo: 123`", false, true, true, false, value.ToSymbol("NamedCallArgumentNode"), objectClass, env)
+				namespace.TryDefineClass("`never` type.", false, true, true, false, value.ToSymbol("NeverTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new expression eg. `new(123)`", false, true, true, false, value.ToSymbol("NewExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`nil` literal.", false, true, true, false, value.ToSymbol("NilLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents nil-safe subscript access eg. `arr?[5]`", false, true, true, false, value.ToSymbol("NilSafeSubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an optional or nilable type eg. `String?`", false, true, true, false, value.ToSymbol("NilableTypeNode"), objectClass, env)
+				namespace.TryDefineMixin("A base for all Elk AST (Abstract Syntax Tree) nodes.", false, value.ToSymbol("Node"), env)
+				namespace.TryDefineClass("Represents a not type eg. `~String`", false, true, true, false, value.ToSymbol("NotTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`", false, true, true, false, value.ToSymbol("NumericForExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`", false, true, true, false, value.ToSymbol("ObjectPatternNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be valid in parameter declaration lists\nof methods or functions should implement this interface.", true, value.ToSymbol("ParameterNode"), env)
+				namespace.TryDefineClass("Formal parameter optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ParameterStatementNode"), objectClass, env)
+				namespace.TryDefineMixin("Represents AST nodes that are valid expressions and patterns.", false, value.ToSymbol("PatternExpressionNode"), env)
+				namespace.TryDefineMixin("All nodes that should be valid in pattern matching should\nimplement this interface", false, value.ToSymbol("PatternNode"), env)
+				namespace.TryDefineClass("Postfix expression eg. `foo++`, `bar--`", false, true, true, false, value.ToSymbol("PostfixExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a private constant eg. `_Foo`", false, true, true, false, value.ToSymbol("PrivateConstantNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a private identifier eg. `_foo`", false, true, true, false, value.ToSymbol("PrivateIdentifierNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single Elk program (usually a single file).", false, true, true, false, value.ToSymbol("ProgramNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo as Bar`.", false, true, true, false, value.ToSymbol("PublicConstantAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a public constant eg. `Foo`.", false, true, true, false, value.ToSymbol("PublicConstantNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an identifier with as in using declarations\neg. `foo as bar`.", false, true, true, false, value.ToSymbol("PublicIdentifierAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a public identifier eg. `foo`.", false, true, true, false, value.ToSymbol("PublicIdentifierNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Range literal eg. `1...5`", false, true, true, false, value.ToSymbol("RangeLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Raw Char literal eg. `a`", false, true, true, false, value.ToSymbol("RawCharLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Raw string literal enclosed with single quotes eg. `'foo'`.", false, true, true, false, value.ToSymbol("RawStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a function-like call eg. `to_string(123)`", false, true, true, false, value.ToSymbol("ReceiverlessMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Record pattern eg. `%{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("RecordPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single interpolated section of a regex literal eg. `bar + 2` in `%/foo${bar + 2}/`", false, true, true, false, value.ToSymbol("RegexInterpolationNode"), objectClass, env)
+				namespace.TryDefineMixin("Nodes that implement this interface can appear\ninside of a Regex literal.", false, value.ToSymbol("RegexLiteralContentNode"), env)
+				namespace.TryDefineClass("Represents a single section of characters of a regex literal eg. `foo` in `%/foo${bar}/`.", false, true, true, false, value.ToSymbol("RegexLiteralContentSectionNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that represent regexes should\nimplement this interface.", false, value.ToSymbol("RegexLiteralNode"), env)
+				namespace.TryDefineClass("Represents a rest element in a list pattern eg. `*a`", false, true, true, false, value.ToSymbol("RestPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `return` expression eg. `return`, `return true`", false, true, true, false, value.ToSymbol("ReturnExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`self` literal.", false, true, true, false, value.ToSymbol("SelfLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Set pattern eg. `^[1, \"foo\"]`", false, true, true, false, value.ToSymbol("SetPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new setter declaration eg. `setter foo: String`", false, true, true, false, value.ToSymbol("SetterDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a signature parameter in method and function signatures eg. `foo?: String`", false, true, true, false, value.ToSymbol("SignatureParameterNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that represent simple strings (without interpolation)\nshould implement this interface.", false, value.ToSymbol("SimpleStringLiteralNode"), env)
+				namespace.TryDefineClass("Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:\"lol\"`", false, true, true, false, value.ToSymbol("SimpleSymbolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `singleton` block expression eg.\n\nsingleton\n  def hello then println(\"awesome!\")\nend", false, true, true, false, value.ToSymbol("SingletonBlockExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a singleton type eg. `&String`", false, true, true, false, value.ToSymbol("SingletonTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a splat expression eg. `*foo`", false, true, true, false, value.ToSymbol("SplatExpressionNode"), objectClass, env)
+				namespace.TryDefineMixin("Represents a single statement, so for example\na single valid \"line\" of Elk code.\nUsually its an expression optionally terminated with a newline or a semicolon.", false, value.ToSymbol("StatementNode"), env)
+				namespace.TryDefineClass("Represents a single inspect interpolated section of a string literal eg. `bar + 2` in `\"foo#{bar + 2}\"`", false, true, true, false, value.ToSymbol("StringInspectInterpolationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single interpolated section of a string literal eg. `bar + 2` in `\"foo${bar + 2}\"`", false, true, true, false, value.ToSymbol("StringInterpolationNode"), objectClass, env)
+				namespace.TryDefineMixin("Nodes that implement this interface can appear\ninside of a String literal.", false, value.ToSymbol("StringLiteralContentNode"), env)
+				namespace.TryDefineClass("Represents a single section of characters of a string literal eg. `foo` in `\"foo${bar}\"`.", false, true, true, false, value.ToSymbol("StringLiteralContentSectionNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that represent strings should\nimplement this interface.", false, value.ToSymbol("StringLiteralNode"), env)
+				namespace.TryDefineMixin("Represents a single statement of a struct body\noptionally terminated with a newline or semicolon.", false, value.ToSymbol("StructBodyStatementNode"), env)
+				namespace.TryDefineClass("Represents a struct declaration eg. `struct Foo; end`", false, true, true, false, value.ToSymbol("StructDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents subscript access eg. `arr[5]`", false, true, true, false, value.ToSymbol("SubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `switch` expression eg.\n\nswitch a\ncase 3\n  println(\"eureka!\")\ncase nil\n  println(\"boo\")\nelse\n  println(\"nothing\")\nend", false, true, true, false, value.ToSymbol("SwitchExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol ArrayList literal eg. `\\s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol ArrayTuple literal eg. `%s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of symbol collection literals should\nimplement this interface.", false, value.ToSymbol("SymbolCollectionContentNode"), env)
+				namespace.TryDefineClass("Represents a symbol HashSet literal eg. `^s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol value expression eg. `foo: bar`", false, true, true, false, value.ToSymbol("SymbolKeyValueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol value pattern eg. `foo: bar`", false, true, true, false, value.ToSymbol("SymbolKeyValuePatternNode"), objectClass, env)
+				namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as symbol literals.", false, value.ToSymbol("SymbolLiteralNode"), env)
+				namespace.TryDefineClass("Represents a `throw` expression eg. `throw ArgumentError(\"foo\")`", false, true, true, false, value.ToSymbol("ThrowExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`true` literal.", false, true, true, false, value.ToSymbol("TrueLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `try` expression eg. `try foo()`", false, true, true, false, value.ToSymbol("TryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Tuple pattern eg. `%[1, a, >= 10]`", false, true, true, false, value.ToSymbol("TuplePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new type definition eg. `typedef StringList = ArrayList[String]`", false, true, true, false, value.ToSymbol("TypeDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a type expression `type String?`", false, true, true, false, value.ToSymbol("TypeExpressionNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be valid in type annotations should\nimplement this interface", false, value.ToSymbol("TypeNode"), env)
+				namespace.TryDefineMixin("Represents a type variable in generics like `class Foo[+V]; end`", false, value.ToSymbol("TypeParameterNode"), env)
+				namespace.TryDefineClass("Represents a `typeof` expression eg. `typeof foo()`", false, true, true, false, value.ToSymbol("TypeofExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`", false, true, true, false, value.ToSymbol("UInt16LiteralNod"), objectClass, env)
+				namespace.TryDefineClass("UInt32 literal eg. `5u32`, `1_20u32`, `0xffu32`", false, true, true, false, value.ToSymbol("UInt32LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`", false, true, true, false, value.ToSymbol("UInt64LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("UInt8 literal eg. `5u8`, `1_20u8`, `0xffu8`", false, true, true, false, value.ToSymbol("UInt8LiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of an operator with one operand eg. `!foo`, `-bar`", false, true, true, false, value.ToSymbol("UnaryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Type of an operator with one operand eg. `-2`, `+3`", false, true, true, false, value.ToSymbol("UnaryTypeNode"), objectClass, env)
+				namespace.TryDefineClass("`undefined` literal.", false, true, true, false, value.ToSymbol("UndefinedLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an uninterpolated regex literal eg. `%/foo/`", false, true, true, false, value.ToSymbol("UninterpolatedRegexLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Union type eg. `String | Int | Float`", false, true, true, false, value.ToSymbol("UnionTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `unless` expression eg. `unless foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("UnlessExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `until` expression eg. `until i >= 5 then i += 5`", false, true, true, false, value.ToSymbol("UntilExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a using all entry node eg. `Foo::*`, `A::B::C::*`", false, true, true, false, value.ToSymbol("UsingAllEntryNode"), objectClass, env)
+				namespace.TryDefineMixin("Represents all nodes that are valid in using declarations", false, value.ToSymbol("UsingEntryNode"), env)
+				namespace.TryDefineClass("Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`", false, true, true, false, value.ToSymbol("UsingEntryWithSubentriesNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a using expression eg. `using Foo`", false, true, true, false, value.ToSymbol("UsingExpressionNode"), objectClass, env)
+				namespace.TryDefineMixin("Represents all nodes that are valid in using subentries\nin `UsingEntryWithSubentriesNode`", false, value.ToSymbol("UsingSubentryNode"), env)
+				namespace.TryDefineClass("Represents a value declaration eg. `val foo: String`", false, true, true, false, value.ToSymbol("ValueDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a value pattern declaration eg. `val [foo, { bar }] = baz()`", false, true, true, false, value.ToSymbol("ValuePatternDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a variable declaration eg. `var foo: String`", false, true, true, false, value.ToSymbol("VariableDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`", false, true, true, false, value.ToSymbol("VariablePatternDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a type parameter eg. `+V`", false, true, true, false, value.ToSymbol("VariantTypeParameterNode"), objectClass, env)
+				namespace.TryDefineClass("`void` type.", false, true, true, false, value.ToSymbol("VoidTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `while` expression eg. `while i < 5 then i += 5`", false, true, true, false, value.ToSymbol("WhileExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a word ArrayList literal eg. `\\w[foo bar]`", false, true, true, false, value.ToSymbol("WordArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a word ArrayTuple literal eg. `%w[foo bar]`", false, true, true, false, value.ToSymbol("WordArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of word collection literals should\nimplement this interface.", false, value.ToSymbol("WordCollectionContentNode"), env)
+				namespace.TryDefineClass("Represents a word HashSet literal eg. `^w[foo bar]`", false, true, true, false, value.ToSymbol("WordHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`", false, true, true, false, value.ToSymbol("YieldExpressionNode"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -107,6 +308,16 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+		{
+			namespace := namespace.TryDefineModule("Contains types used for interacting\n with the file system.", value.ToSymbol("FS"), env)
+			namespace.TryDefineClass("Represents the position of a piece of text in a file.\n\nIt is made up of a path and a span.", false, true, true, false, value.ToSymbol("Location"), objectClass, env)
+			{
+				namespace := namespace.TryDefineClass("Represents a file system path.\nPaths are immutable and safe to use by multiple threads.", false, true, true, false, value.ToSymbol("Path"), objectClass, env)
+				namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
 		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
@@ -118,6 +329,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("Implements a generator object that is iterable.", false, true, true, true, value.ToSymbol("Generator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Thrown when an invalid glob pattern has been encountered.", false, false, false, false, value.ToSymbol("GlobError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, value.ToSymbol("HashMap"), objectClass, env)
 			{
@@ -301,7 +513,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
 		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
-		namespace.TryDefineClass("Represents a token produced by a lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{
@@ -332,20 +543,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		// Define instance variables
 
 		{
-			namespace := namespace.MustSubtype("Dupa").(*Class)
-
-			namespace.Name() // noop - avoid unused variable error
-			namespace.SetParent(NameToNamespace("Std::ElkAST::Node", env))
-
-			// Include mixins and implement interfaces
-
-			// Define methods
-
-			// Define constants
-
-			// Define instance variables
-		}
-		{
 			namespace := namespace.MustSubtype("Std").(*Module)
 
 			namespace.Name() // noop - avoid unused variable error
@@ -373,8 +570,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::List", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
@@ -449,8 +644,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ArrayTuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
@@ -514,8 +707,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::BeginlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
@@ -546,8 +737,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::BeginlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
@@ -565,7 +754,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("BigFloat").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -773,8 +961,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
@@ -997,6 +1183,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Duration").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 
@@ -1047,7 +1234,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("ElkAST").(*Module)
+				namespace := namespace.MustSubtype("Elk").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1060,15 +1247,3641 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Node").(*Class)
+					namespace := namespace.MustSubtype("AST").(*Module)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
 
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Returns the span that represents\nthe position of this node in a source file/string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.MustSubtype("AliasDeclarationEntry").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("new_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("old_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("new_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("old_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AliasDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::AliasDeclarationEntry", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::AliasDeclarationEntry", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AnyTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ArrayListLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ArrayTupleLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AsExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("runtime_type"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("runtime_type"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AsPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AssignmentExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AttrDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AttributeAccessNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("attribute_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attribute_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AttributeParameterNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("AwaitExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BigFloatLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinArrayListLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinArrayTupleLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinHashSetLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinaryExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinaryPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BinaryTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BoolLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("BreakExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("label"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("label"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("CallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("nil_safe"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nil_safe"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("CaseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("CatchNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("stack_trace_var"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("stack_trace_var"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("CharLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ClassDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comments"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_abstract"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_sealed"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_primitive"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_no_init"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("superclass"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_abstract"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_no_init"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_primitive"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_sealed"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("superclass"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ClosureLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("return_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("throw_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ClosureTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("return_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("throw_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ComplexConstantNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ConstantAsNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ConstantDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ConstantLookupNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ConstantNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ConstructorCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("class_node"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("class_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ContinueExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("label"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("label"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("DoExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("catches"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CatchNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("finally_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("catches"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CatchNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("finally_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("DoubleQuotedStringLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SimpleStringLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("DoubleSplatExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::NamedArgumentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("EmptyStatementNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StructBodyStatementNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ExpressionNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ExpressionStatementNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ExtendWhereBlockExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("where_params"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("where_params"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("FalseLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Float32LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Float64LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("FloatLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ForInExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("FormalParameterNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("kind"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GenericConstantNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GenericConstructorCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("class_node"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("class_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GenericMethodCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("method_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("method_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GenericReceiverlessMethodCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("method_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("method_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GenericTypeDefinitionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GetterDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("GoExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HashMapLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HashRecordLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HashSetLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HexArrayListLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HexArrayTupleLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("HexHashSetLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IdentifierNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IfExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ImplementExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ImportStatementNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("path"), NameToType("Std::Elk::AST::StringLiteralNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("path"), nil, nil, NameToType("Std::Elk::AST::StringLiteralNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IncludeExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InitDefinitionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("throw_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InstanceOfTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InstanceVariableDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InstanceVariableNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Int16LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Int32LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Int64LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Int8LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IntCollectionContentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IntLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IntCollectionContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InterfaceDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InterpolatedRegexLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("content"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::RegexLiteralContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("flags"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::RegexLiteralContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InterpolatedStringLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("content"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StringLiteralContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StringLiteralContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InterpolatedSymbolLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("content"), NameToType("Std::Elk::AST::InterpolatedStringLiteralNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NameToType("Std::Elk::AST::InterpolatedStringLiteralNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("IntersectionTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("InvalidNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StructBodyStatementNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::NamedArgumentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ConstantNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::WordCollectionContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolCollectionContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IntCollectionContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SimpleStringLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("token"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("token"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("KeyValueExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("KeyValuePatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::PatternExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::PatternExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("LabeledExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("label"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("label"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ListPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("LogicalExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("LoopExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MapPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("method_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("method_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodDefinitionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("return_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("throw_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("flags"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodLookupAsNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("method_lookup"), NameToType("Std::Elk::AST::MethodLookupNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("method_lookup"), nil, nil, NameToType("Std::Elk::AST::MethodLookupNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodLookupNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodParameterNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("set_instance_variable"), Bool{}, NormalParameterKind, false), NewParameter(value.ToSymbol("kind"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("set_instance_variable"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MethodSignatureDefinitionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("return_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("throw_type"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MixinDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_abstract"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_abstract"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ModifierForInNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ModifierIfElseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("else_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ModifierNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("modifier"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("modifier"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ModuleDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("MustExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NamedArgumentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NamedCallArgumentNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::NamedArgumentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NeverTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NewExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NilLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NilSafeSubscriptExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NilableTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Node").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Returns the span that represents\nthe position of this node in a source file/string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NotTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("NumericForExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("increment"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("increment"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ObjectPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("object_type"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("attributes"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attributes"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("object_type"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ParameterNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ParameterStatementNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StructBodyStatementNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parameter"), NameToType("Std::Elk::AST::ParameterNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameter"), nil, nil, NameToType("Std::Elk::AST::ParameterNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PatternExpressionNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PatternNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PostfixExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PrivateConstantNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ConstantNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PrivateIdentifierNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ProgramNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PublicConstantAsNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("target"), NameToType("Std::Elk::AST::PublicConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::PublicConstantNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PublicConstantNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ConstantNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PublicIdentifierAsNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("target"), NameToType("Std::Elk::AST::PublicIdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::PublicIdentifierNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("PublicIdentifierNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RangeLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("start"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("end_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("end"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("start"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RawCharLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RawStringLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::WordCollectionContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SimpleStringLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ReceiverlessMethodCallNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("method_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("method_name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RecordPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RegexInterpolationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RegexLiteralContentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RegexLiteralContentSectionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RegexLiteralNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("RestPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("identifier"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("identifier"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ReturnExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SelfLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SetPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SetterDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SignatureParameterNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_optional"), Bool{}, NormalParameterKind, false), NewParameter(value.ToSymbol("kind"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SimpleStringLiteralNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SimpleSymbolLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolCollectionContentNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("content"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SingletonBlockExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SingletonTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SplatExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StatementNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StringInspectInterpolationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StringInterpolationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StringLiteralContentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StringLiteralContentSectionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StringLiteralNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StructBodyStatementNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("StructDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StructBodyStatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StructBodyStatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SubscriptExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SwitchExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolArrayListLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolArrayTupleLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolCollectionContentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolHashSetLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolKeyValueExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolKeyValuePatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("SymbolLiteralNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ThrowExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("is_unchecked"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_unchecked"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TrueLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TryExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TuplePatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TypeDefinitionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TypeExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TypeNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TypeParameterNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("TypeofExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UInt16LiteralNod").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UInt32LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UInt64LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UInt8LiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UnaryExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UnaryTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UndefinedLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UninterpolatedRegexLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("content"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("flags"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UnionTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UnlessExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UntilExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UsingAllEntryNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("namespace"), NameToType("Std::Elk::AST::UsingEntryNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("namespace"), nil, nil, NameToType("Std::Elk::AST::UsingEntryNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UsingEntryNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UsingEntryWithSubentriesNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("namespace"), NameToType("Std::Elk::AST::UsingEntryNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("subentries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingSubentryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("namespace"), nil, nil, NameToType("Std::Elk::AST::UsingEntryNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("subentries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingSubentryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UsingExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("UsingSubentryNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ValueDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("ValuePatternDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("VariableDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("VariablePatternDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("VariantTypeParameterNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeParameterNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("variance"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("lower_bound"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("upper_bound"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("is_default"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_default"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("lower_bound"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("upper_bound"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("variance"), nil, nil, NameToType("Std::UInt8", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("VoidTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("WhileExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("WordArrayListLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("WordArrayTupleLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("WordCollectionContentNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("WordHashSetLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("YieldExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("forward"), NameToType("Std::Bool", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("forward"), nil, nil, NameToType("Std::Bool", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+				}
+				{
+					namespace := namespace.MustSubtype("Token").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("typ"), NameToType("Std::UInt16", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nFetches the lexeme from a global map of lexemes\nfor Elk tokens if the value is an empty string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("fetch_value"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns the span that represents the position of\nthe token in the source string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+					namespace.DefineMethod("Returns an integer that represents the type of the token.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("typ"), nil, nil, NameToType("Std::UInt16", env), Never{})
+					namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nMay return an empty string for simple tokens\nlike operators where the lexeme is obvious (it will always be the same).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 					// Define constants
 
@@ -1091,8 +4904,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
@@ -1166,8 +4977,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
@@ -1221,6 +5030,94 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define constants
 
 					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.MustSubtype("FS").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Location").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("path"), NameToType("Std::FS::Path", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the path of the file\nwhere the piece of text is located.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("file_path"), nil, nil, NameToType("Std::FS::Path", env), Never{})
+					namespace.DefineMethod("Returns the position of the file fragment.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtype("Path").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the last element of the path.\nTypically this is the name of the file.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("base"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns a path based on `self` omitting the last element.\nTypically this would result in the path to the parent directory.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("dir"), nil, nil, NameToType("Std::FS::Path", env), Never{})
+					namespace.DefineMethod("Returns the extension of the file.\nThe extension is the suffix beginning at the final dot in the final element of path; it is empty if there is no dot.\n\n```\nFS::Path(\"index\").extension #=> \"\"\nFS::Path(\"index.js\").extension #=> \".js\"\nFS::Path(\"index.html.erb\").extension #=> \".erb\"\n```", 0|METHOD_NATIVE_FLAG, value.ToSymbol("extension"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Reports whether the path is absolute.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_absolute"), nil, nil, Bool{}, Never{})
+					namespace.DefineMethod("Reports whether the path is local.\nIt is a primitive lexical check it does not take into account\nsymbolic links etc", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_local"), nil, nil, Bool{}, Never{})
+					namespace.DefineMethod("Checks whether the path matches the given glob pattern.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("matches_glob"), nil, []*Parameter{NewParameter(value.ToSymbol("patten"), NameToType("Std::String", env), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("Returns a path based on `self` that is\nthe shortest possible version of it based on lexical analysis.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("normalize"), nil, nil, NameToType("Std::FS::Path", env), Never{})
+					namespace.DefineMethod("Split the path into individual elements\nseparated by the OS separator (`/` or `\\`)", 0|METHOD_NATIVE_FLAG, value.ToSymbol("split"), nil, nil, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::String", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+					namespace.DefineMethod("Returns the absolute version of this path.\nIf the path is not absolute it will be joined with the current working directory to turn it into an absolute path.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_absolute"), nil, nil, NameToType("Std::FS::Path", env), Never{})
+					namespace.DefineMethod("Returns the path as a backslash `\"\\\\\"` separated `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_backslash_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns a path based on `target` that is relative to `self`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_relative"), nil, []*Parameter{NewParameter(value.ToSymbol("target"), NameToType("Std::FS::Path", env), NormalParameterKind, false)}, NameToType("Std::FS::Path", env), Never{})
+					namespace.DefineMethod("Returns the path as a slash `\"/\"` separated `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_slash_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns the path as a `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("VolumeName returns leading volume name.\nGiven \"C:\\foo\\bar\" it returns \"C:\" on Windows.\nGiven \"\\\\host\\share\\foo\" it returns \"\\\\host\\share\". On other platforms it returns \"\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("volume_name"), nil, nil, NameToType("Std::String", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Create a new path from a list of elements.\nUses the OS-specific separator.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("build"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NameToType("Std::String", env), PositionalRestParameterKind, false)}, NameToType("Std::FS::Path", env), Never{})
+						namespace.DefineMethod("Create a new path from a slash-separated string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("from_slash"), nil, []*Parameter{NewParameter(value.ToSymbol("path"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::FS::Path", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Error").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+						namespace.SetParent(NameToNamespace("Std::Error", env))
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 			}
 			{
@@ -1454,6 +5351,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtype("GlobError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Error", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1473,8 +5384,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Map", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashMap::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashMap::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
@@ -1557,8 +5466,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Record", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::HashRecord::Key", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::HashRecord::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
@@ -1629,8 +5536,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Set", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::HashSet::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
@@ -2442,8 +6347,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
 
@@ -2580,20 +6483,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Method").(*Class)
-
-				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
-				// Include mixins and implement interfaces
-
-				// Define methods
-
-				// Define constants
-
-				// Define instance variables
-			}
-			{
 				namespace := namespace.MustSubtype("Mixin").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -2682,8 +6571,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
@@ -2775,8 +6662,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineConstant(value.ToSymbol("Value"), NoValue{})
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
@@ -2984,7 +6869,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("Regex").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 
@@ -3079,8 +6963,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
-
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				IncludeMixin(namespace, NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})))
@@ -3212,7 +7094,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtype("String").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -3312,7 +7193,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Position").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
 
 					// Include mixins and implement interfaces
 
@@ -3330,7 +7210,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtype("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
 
 					// Include mixins and implement interfaces
 
@@ -3637,25 +7516,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
-			}
-			{
-				namespace := namespace.MustSubtype("Token").(*Class)
-
-				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
-
-				// Include mixins and implement interfaces
-
-				// Define methods
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("typ"), NameToType("Std::UInt16", env), NormalParameterKind, false), NewParameter(value.ToSymbol("span"), NameToType("Std::String::Span", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nFetches the lexeme from a global map of lexemes\nfor Elk tokens if the value is an empty string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("fetch_value"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the span that represents the position of\nthe token in the source string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
-				namespace.DefineMethod("Returns an integer that represents the type of the token.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("typ"), nil, nil, NameToType("Std::UInt16", env), Never{})
-				namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nMay return an empty string for simple tokens\nlike operators where the lexeme is obvious (it will always be the same).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
-
-				// Define constants
-
-				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtype("True").(*Class)

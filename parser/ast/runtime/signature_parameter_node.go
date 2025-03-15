@@ -72,6 +72,39 @@ func initSignatureParameterNode() {
 
 	vm.Def(
 		c,
+		"is_normal",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SignatureParameterNode)
+			result := value.ToElkBool(self.Kind == ast.NormalParameterKind)
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_positional_rest",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SignatureParameterNode)
+			result := value.ToElkBool(self.Kind == ast.PositionalRestParameterKind)
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_named_rest",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SignatureParameterNode)
+			result := value.ToElkBool(self.Kind == ast.NamedRestParameterKind)
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"kind",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)

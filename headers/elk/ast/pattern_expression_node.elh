@@ -1,0 +1,10 @@
+module ::Std::Elk::AST
+	##[
+		Represents AST nodes that are valid expressions and patterns.
+	]##
+	mixin PatternExpressionNode
+		include ExpressionNode,
+						PatternNode
+
+	end
+end
