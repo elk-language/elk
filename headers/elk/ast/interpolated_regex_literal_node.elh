@@ -9,12 +9,68 @@ module Std::Elk::AST
 
     init(
       content: ArrayTuple[RegexLiteralContentNode],
-      flags: UInt8,
+      flags: UInt8 = 0u8,
       span: String::Span = loop; end,
     ); end
 
     def content: ArrayTuple[RegexLiteralContentNode]; end
-    def flags: UInt8; end
     def span: String::Span; end
+
+    ##[
+      Flags of the regex literal.
+
+      They're defined as constants
+      under the `RegexLiteralNode` namespace:
+
+      - `CASE_INSENSITIVE_FLAG`
+      - `MULTILINE_FLAG`
+      - `DOT_ALL_FLAG`
+      - `UNGREEDY_FLAG`
+      - `EXTENDED_FLAG`
+      - `ASCII_FLAG`
+
+      Example usage:
+
+      ```
+      using Elk::AST::RegexLiteralNode::*
+
+      # check if a flag is set
+      node.flags & MULTILINE_FLAG != 0
+
+      # combine flags
+      node.flags = UNGREEDY_FLAG | MULTILINE_FLAG
+      ```
+    ]##
+    def flags: UInt8; end
+
+    ##[
+      Whether the regex has the `i` flag.
+    ]##
+    def is_case_insensitive: bool; end
+
+    ##[
+      Whether the regex has the `m` flag.
+    ]##
+    def is_multiline: bool; end
+
+    ##[
+      Whether the regex has the `s` flag.
+    ]##
+    def is_dot_all: bool; end
+
+    ##[
+      Whether the regex has the `U` flag.
+    ]##
+    def is_ungreedy: bool; end
+
+    ##[
+      Whether the regex has the `a` flag.
+    ]##
+    def is_ascii: bool; end
+
+    ##[
+      Whether the regex has the `x` flag.
+    ]##
+    def is_extended: bool; end
   end
 end

@@ -6,5 +6,48 @@ module Std::Elk::AST
   mixin RegexLiteralNode
     include PatternNode,
             ExpressionNode
+
+    ##[
+      `i` - case insensitive character matching
+
+      eg. `%/foo/i`
+    ]##
+    const CASE_INSENSITIVE_FLAG: UInt8
+
+    ##[
+      `m` - multi-line mode: `^` and `$` match begin/end line in addition to begin/end text
+
+      eg. `%/foo/m`
+    ]##
+    const MULTILINE_FLAG: UInt8
+
+    ##[
+      `s` - let `.` match `\n`
+
+      eg. `%/foo/s`
+    ]##
+    const DOT_ALL_FLAG: UInt8
+
+    ##[
+      `U` - ungreedy: swap meaning of x* and x*?, x+ and x+?, etc
+
+      eg. `%/foo/U`
+    ]##
+    const UNGREEDY_FLAG: UInt8
+
+    ##[
+      `x` - ignore all whitespace and allow for comments with `#`
+
+      eg. `%/foo/x`
+    ]##
+    const EXTENDED_FLAG: UInt8
+
+    ##[
+      `a` - ASCII mode, Perl char classes like `\w`, `\d`, `\s`
+      only match ASCII characters.
+
+      eg. `%/foo/x`
+    ]##
+    const ASCII_FLAG: UInt8
   end
 end

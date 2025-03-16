@@ -5,6 +5,11 @@ module Std::Elk::AST
   sealed primitive class MethodDefinitionNode
     include ExpressionNode
 
+    const ABSTRACT_FLAG: UInt8
+    const SEALED_FLAG: UInt8
+    const GENERATOR_FLAG: UInt8
+    const ASYNC_FLAG: UInt8
+
     init(
       doc_comment: String,
       name: String,
@@ -27,5 +32,25 @@ module Std::Elk::AST
     def flags: UInt8; end
     def span: String::Span; end
     def location: FS::Location; end
+
+    ##[
+      Whether the method is abstract eg. `abstract def foo; end`
+    ]##
+    def is_abstract: bool; end
+
+    ##[
+      Whether the method is sealed eg. `sealed def foo; end`
+    ]##
+    def is_sealed: bool; end
+
+    ##[
+      Whether the method is a generator eg. `def* foo; end`
+    ]##
+    def is_generator: bool; end
+
+    ##[
+      Whether the method is asynchronous eg. `async def foo; end`
+    ]##
+    def is_async: bool; end
   end
 end

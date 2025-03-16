@@ -85,7 +85,7 @@ func initVariantTypeParameterNode() {
 
 	vm.Def(
 		c,
-		"is_default",
+		"default_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
 			result := value.Ref(self.Default)
@@ -102,6 +102,36 @@ func initVariantTypeParameterNode() {
 			result := value.Ref((*value.Span)(self.Span()))
 			return result, value.Undefined
 
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_invariant",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
+			result := value.ToElkBool(self.Variance == ast.INVARIANT)
+			return result, value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_covariant",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
+			result := value.ToElkBool(self.Variance == ast.COVARIANT)
+			return result, value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_contravariant",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
+			result := value.ToElkBool(self.Variance == ast.CONTRAVARIANT)
+			return result, value.Undefined
 		},
 	)
 

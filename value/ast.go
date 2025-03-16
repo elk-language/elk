@@ -1,5 +1,9 @@
 package value
 
+import (
+	"github.com/elk-language/elk/regex/flag"
+)
+
 var ElkASTModule *Module // Std::Elk::AST
 
 var NodeMixin *Mixin                        // Std::Elk::AST::Node
@@ -298,6 +302,12 @@ func initElkAST() {
 	RegexLiteralNodeMixin = NewMixin()
 	RegexLiteralNodeMixin.IncludeMixin(PatternNodeMixin)
 	RegexLiteralNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	RegexLiteralNodeMixin.AddConstantString("CASE_INSENSITIVE_FLAG", UInt8(flag.CaseInsensitiveFlag).ToValue())
+	RegexLiteralNodeMixin.AddConstantString("MULTILINE_FLAG", UInt8(flag.MultilineFlag).ToValue())
+	RegexLiteralNodeMixin.AddConstantString("DOT_ALL_FLAG", UInt8(flag.DotAllFlag).ToValue())
+	RegexLiteralNodeMixin.AddConstantString("UNGREEDY_FLAG", UInt8(flag.UngreedyFlag).ToValue())
+	RegexLiteralNodeMixin.AddConstantString("EXTENDED_FLAG", UInt8(flag.ExtendedFlag).ToValue())
+	RegexLiteralNodeMixin.AddConstantString("ASCII_FLAG", UInt8(flag.ASCIIFlag).ToValue())
 	ElkASTModule.AddConstantString("RegexLiteralNode", Ref(RegexLiteralNodeMixin))
 
 	StringLiteralContentNodeMixin = NewMixin()
@@ -812,6 +822,10 @@ func initElkAST() {
 
 	MethodDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	MethodDefinitionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	MethodDefinitionNodeClass.AddConstantString("ABSTRACT_FLAG", UInt8(1).ToValue())
+	MethodDefinitionNodeClass.AddConstantString("SEALED_FLAG", UInt8(2).ToValue())
+	MethodDefinitionNodeClass.AddConstantString("GENERATOR_FLAG", UInt8(4).ToValue())
+	MethodDefinitionNodeClass.AddConstantString("ASYNC_FLAG", UInt8(8).ToValue())
 	ElkASTModule.AddConstantString("MethodDefinitionNode", Ref(MethodDefinitionNodeClass))
 
 	InitDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

@@ -169,6 +169,50 @@ func initMethodDefinitionNode() {
 
 	vm.Def(
 		c,
+		"is_abstract",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.ToElkBool(self.IsAbstract())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_sealed",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.ToElkBool(self.IsSealed())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_generator",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.ToElkBool(self.IsGenerator())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_async",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.ToElkBool(self.IsAsync())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"span",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
