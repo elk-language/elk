@@ -4,11 +4,11 @@ module Std::Elk::AST
   ]##
   sealed primitive class MixinDeclarationNode
     init(
-      doc_comment: String,
       is_abstract: Bool,
       constant: ExpressionNode,
       type_parameters: ArrayTuple[TypeParameterNode],
       body: ArrayTuple[StatementNode],
+      doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 

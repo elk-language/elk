@@ -13,26 +13,30 @@ func initInterfaceDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argDocComment := string(args[0].MustReference().(value.String))
-			argConstant := args[1].MustReference().(ast.ExpressionNode)
+			argConstant := args[0].MustReference().(ast.ExpressionNode)
 
-			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
 			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 			for i, el := range *argTypeParametersTuple {
 				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
 			}
 
-			argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
 			for i, el := range *argBodyTuple {
 				argBody[i] = el.MustReference().(ast.StatementNode)
+			}
+
+			var argDocComment string
+			if !args[3].IsUndefined() {
+				argDocComment = string(args[3].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
 			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewInterfaceDeclarationNode(
 				argSpan,

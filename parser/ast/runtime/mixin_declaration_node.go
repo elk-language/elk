@@ -13,7 +13,6 @@ func initMixinDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argDocComment := string(args[0].MustReference().(value.String))
 			argAbstract := value.Truthy(args[0])
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
@@ -29,11 +28,16 @@ func initMixinDeclarationNode() {
 				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
+			var argDocComment string
+			if !args[4].IsUndefined() {
+				argDocComment = string(args[4].MustReference().(value.String))
+			}
+
 			var argSpan *position.Span
-			if args[6].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewMixinDeclarationNode(
 				argSpan,

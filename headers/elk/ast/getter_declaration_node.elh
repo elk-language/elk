@@ -4,8 +4,8 @@ module Std::Elk::AST
   ]##
   sealed primitive class GetterDeclarationNode
     init(
-      doc_comment: String,
       entries: ArrayTuple[ParameterNode],
+      doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 

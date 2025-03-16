@@ -6,9 +6,9 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      doc_comment: String,
       constant: ComplexConstantNode,
       type_node: TypeNode,
+      doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 

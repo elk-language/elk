@@ -14,29 +14,33 @@ func initMethodDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argDocComment := (string)(args[0].MustReference().(value.String))
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := (string)(args[0].MustReference().(value.String))
 
-			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
 			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 			for i, el := range *argTypeParametersTuple {
 				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
 			}
 
-			argParametersTuple := args[3].MustReference().(*value.ArrayTuple)
+			argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
 			argParameters := make([]ast.ParameterNode, argParametersTuple.Length())
 			for i, el := range *argParametersTuple {
 				argParameters[i] = el.MustReference().(ast.ParameterNode)
 			}
-			argReturnType := args[4].MustReference().(ast.TypeNode)
-			argThrowType := args[5].MustReference().(ast.TypeNode)
+			argReturnType := args[3].MustReference().(ast.TypeNode)
+			argThrowType := args[4].MustReference().(ast.TypeNode)
 
-			argBodyTuple := args[6].MustReference().(*value.ArrayTuple)
+			argBodyTuple := args[5].MustReference().(*value.ArrayTuple)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
 			for i, el := range *argBodyTuple {
 				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
-			argFlags := bitfield.BitFlag8(args[7].AsUInt8())
+			argFlags := bitfield.BitFlag8(args[6].AsUInt8())
+
+			var argDocComment string
+			if !args[7].IsUndefined() {
+				argDocComment = string(args[7].MustReference().(value.String))
+			}
 
 			var argLocation *position.Location
 			if args[8].IsUndefined() {

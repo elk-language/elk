@@ -13,9 +13,13 @@ func initTypeDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argDocComment := string(args[0].MustReference().(value.String))
-			argConstant := args[1].MustReference().(ast.ComplexConstantNode)
-			argTypeNode := args[2].MustReference().(ast.TypeNode)
+			argConstant := args[0].MustReference().(ast.ComplexConstantNode)
+			argTypeNode := args[1].MustReference().(ast.TypeNode)
+
+			var argDocComment string
+			if !args[2].IsUndefined() {
+				argDocComment = string(args[2].MustReference().(value.String))
+			}
 
 			var argSpan *position.Span
 			if args[3].IsUndefined() {

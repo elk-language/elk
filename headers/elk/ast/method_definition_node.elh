@@ -11,7 +11,6 @@ module Std::Elk::AST
     const ASYNC_FLAG: UInt8
 
     init(
-      doc_comment: String,
       name: String,
       type_parameters: ArrayTuple[TypeParameterNode],
       parameters: ArrayTuple[ParameterNode],
@@ -19,6 +18,7 @@ module Std::Elk::AST
       throw_type: TypeNode,
       body: ArrayTuple[StatementNode],
       flags: UInt8,
+      doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
 

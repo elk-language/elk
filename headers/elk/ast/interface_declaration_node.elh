@@ -6,13 +6,14 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      doc_comment: String,
       constant: ExpressionNode,
       type_parameters: ArrayTuple[TypeParameterNode],
       body: ArrayTuple[StatementNode],
+      doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 
+    def doc_comment: String; end
     def constant: ExpressionNode; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StatementNode]; end

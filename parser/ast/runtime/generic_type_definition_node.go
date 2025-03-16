@@ -13,21 +13,24 @@ func initGenericTypeDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argDocComment := (string)(args[0].MustReference().(value.String))
-			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+			argTypeParametersTuple := args[0].MustReference().(*value.ArrayTuple)
 			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 			for i, el := range *argTypeParametersTuple {
 				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
 			}
-			argConstant := args[2].MustReference().(ast.ComplexConstantNode)
-			argTypeNode := args[3].MustReference().(ast.TypeNode)
+			argConstant := args[1].MustReference().(ast.ComplexConstantNode)
+			argTypeNode := args[2].MustReference().(ast.TypeNode)
+
+			var argDocComment string
+			if !args[3].IsUndefined() {
+				argDocComment = string(args[3].MustReference().(value.String))
+			}
 
 			var argSpan *position.Span
 			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewGenericTypeDefinitionNode(
 				argSpan,
@@ -39,7 +42,7 @@ func initGenericTypeDefinitionNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(4),
+		vm.DefWithParameters(5),
 	)
 
 	vm.Def(
