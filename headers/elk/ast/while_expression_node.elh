@@ -5,7 +5,12 @@ module Std::Elk::AST
   sealed primitive class WhileExpressionNode
     include ExpressionNode
 
-    init(condition: ExpressionNode, then_body: ArrayTuple[StatementNode], span: String::Span = loop; end); end
+    init(
+      condition: ExpressionNode,
+      then_body: ArrayTuple[StatementNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def condition: ExpressionNode; end
     def then_body: ArrayTuple[StatementNode]; end
     def span: String::Span; end

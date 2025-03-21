@@ -9,8 +9,13 @@ module Std::Elk::AST
             UsingEntryNode,
             ComplexConstantNode
 
-    init(left: ExpressionNode, right: ComplexConstantNode, span: String::Span = loop; end); end
-    def left: ExpressionNode; end
+    init(
+      left: ExpressionNode?,
+      right: ComplexConstantNode,
+      span: String::Span = loop; end
+    ); end
+
+    def left: ExpressionNode?; end
     def right: ComplexConstantNode; end
     def span: String::Span; end
   end

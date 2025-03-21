@@ -13,9 +13,17 @@ func initAttributeParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[0].MustReference().(value.String))
-			arg1 := args[1].MustReference().(ast.TypeNode)
-			arg2 := args[2].MustReference().(ast.ExpressionNode)
+			argName := (string)(args[0].MustReference().(value.String))
+
+			var argTypeNode ast.TypeNode
+			if !args[1].IsUndefined() {
+				argTypeNode = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argInit ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				argInit = args[2].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[3].IsUndefined() {
@@ -25,9 +33,9 @@ func initAttributeParameterNode() {
 			}
 			self := ast.NewAttributeParameterNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argName,
+				argTypeNode,
+				argInit,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -51,8 +59,11 @@ func initAttributeParameterNode() {
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
-			result := value.Ref(self.TypeNode)
-			return result, value.Undefined
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.TypeNode), value.Undefined
 
 		},
 	)
@@ -97,8 +108,11 @@ func initAttributeParameterNode() {
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
-			result := value.Ref(self.Initialiser)
-			return result, value.Undefined
+			if self.Initialiser == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Initialiser), value.Undefined
 
 		},
 	)

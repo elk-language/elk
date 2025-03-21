@@ -13,13 +13,19 @@ func initWordArrayListLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.WordCollectionContentNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.WordCollectionContentNode)
+			var argElements []ast.WordCollectionContentNode
+			if !args[0].IsUndefined() {
+				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.WordCollectionContentNode, argElementsTuple.Length())
+				for i, el := range *argElementsTuple {
+					argElements[i] = el.MustReference().(ast.WordCollectionContentNode)
+				}
 			}
-			argCapacity := args[1].MustReference().(ast.ExpressionNode)
+
+			var argCapacity ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -60,6 +66,9 @@ func initWordArrayListLiteralNode() {
 		"capacity",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.WordArrayListLiteralNode)
+			if self.Capacity == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Capacity)
 			return result, value.Undefined
 

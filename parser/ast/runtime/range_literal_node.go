@@ -16,7 +16,13 @@ func initRangeLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argStart := args[0].MustReference().(ast.ExpressionNode)
 			argEnd := args[1].MustReference().(ast.ExpressionNode)
-			argOp := args[2].MustReference().(*token.Token)
+
+			var argOp *token.Token
+			if !args[2].IsUndefined() {
+				argOp = args[2].MustReference().(*token.Token)
+			} else {
+				argOp = token.New(position.DefaultSpan, token.CLOSED_RANGE_OP)
+			}
 
 			var argSpan *position.Span
 			if args[3].IsUndefined() {

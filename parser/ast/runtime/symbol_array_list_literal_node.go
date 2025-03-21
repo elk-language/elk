@@ -14,12 +14,19 @@ func initSymbolArrayListLiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.SymbolCollectionContentNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.SymbolCollectionContentNode)
+			var argElements []ast.SymbolCollectionContentNode
+			if !args[0].IsUndefined() {
+				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.SymbolCollectionContentNode, argElementsTuple.Length())
+				for i, el := range *argElementsTuple {
+					argElements[i] = el.MustReference().(ast.SymbolCollectionContentNode)
+				}
 			}
-			argCapacity := args[1].MustReference().(ast.ExpressionNode)
+
+			var argCapacity ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -60,9 +67,11 @@ func initSymbolArrayListLiteralNode() {
 		"capacity",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
+			if self.Capacity == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Capacity)
 			return result, value.Undefined
-
 		},
 	)
 

@@ -13,13 +13,17 @@ func initCatchNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.PatternNode)
-			arg1 := args[1].MustReference().(ast.IdentifierNode)
+			argPattern := args[0].MustReference().(ast.PatternNode)
 
-			arg2Tuple := args[2].MustReference().(*value.ArrayTuple)
-			arg2 := make([]ast.StatementNode, arg2Tuple.Length())
+			arg2Tuple := args[1].MustReference().(*value.ArrayTuple)
+			argBody := make([]ast.StatementNode, arg2Tuple.Length())
 			for i, el := range *arg2Tuple {
-				arg2[i] = el.MustReference().(ast.StatementNode)
+				argBody[i] = el.MustReference().(ast.StatementNode)
+			}
+
+			var argStackTraceVar ast.IdentifierNode
+			if !args[2].IsUndefined() {
+				argStackTraceVar = args[2].MustReference().(ast.IdentifierNode)
 			}
 
 			var argSpan *position.Span
@@ -30,9 +34,9 @@ func initCatchNode() {
 			}
 			self := ast.NewCatchNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argPattern,
+				argStackTraceVar,
+				argBody,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -56,8 +60,11 @@ func initCatchNode() {
 		"stack_trace_var",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
-			result := value.Ref(self.StackTraceVar)
-			return result, value.Undefined
+			if self.StackTraceVar == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.StackTraceVar), value.Undefined
 
 		},
 	)

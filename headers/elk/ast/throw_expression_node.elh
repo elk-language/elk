@@ -5,9 +5,14 @@ module Std::Elk::AST
   sealed primitive class ThrowExpressionNode
     include ExpressionNode
 
-    init(is_unchecked: Bool, value: ExpressionNode, span: String::Span = loop; end); end
-    def is_unchecked: Bool; end
-    def value: ExpressionNode; end
+    init(
+      value: ExpressionNode? = nil,
+      is_unchecked: bool = false,
+      span: String::Span = loop; end,
+    ); end
+
+    def is_unchecked: bool; end
+    def value: ExpressionNode?; end
     def span: String::Span; end
   end
 end

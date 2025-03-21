@@ -5,7 +5,11 @@ module Std::Elk::AST
   sealed primitive class ProgramNode
     include Node
 
-    init(body: ArrayTuple[StatementNode], span: String::Span = loop; end); end
+    init(
+      body: ArrayTuple[StatementNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def body: ArrayTuple[StatementNode]; end
     def span: String::Span; end
   end

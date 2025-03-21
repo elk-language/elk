@@ -13,7 +13,10 @@ func initReturnExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argValue := args[0].MustReference().(ast.ExpressionNode)
+			var argValue ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				argValue = args[0].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[1].IsUndefined() {
@@ -36,6 +39,9 @@ func initReturnExpressionNode() {
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReturnExpressionNode)
+			if self.Value == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Value)
 			return result, value.Undefined
 

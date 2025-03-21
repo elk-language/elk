@@ -13,11 +13,27 @@ func initVariantTypeParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argVariance := args[0].AsUInt8()
-			argName := (string)(args[1].MustReference().(value.String))
-			argLowerBound := args[2].MustReference().(ast.TypeNode)
-			argUpperBound := args[3].MustReference().(ast.TypeNode)
-			argDefault := args[4].MustReference().(ast.TypeNode)
+			argName := (string)(args[0].MustReference().(value.String))
+
+			var argLowerBound ast.TypeNode
+			if !args[1].IsUndefined() {
+				argLowerBound = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argUpperBound ast.TypeNode
+			if !args[2].IsUndefined() {
+				argUpperBound = args[2].MustReference().(ast.TypeNode)
+			}
+
+			var argDefault ast.TypeNode
+			if !args[3].IsUndefined() {
+				argDefault = args[3].MustReference().(ast.TypeNode)
+			}
+
+			var argVariance ast.Variance
+			if !args[4].IsUndefined() {
+				argVariance = ast.Variance(args[4].AsUInt8())
+			}
 
 			var argSpan *position.Span
 			if args[5].IsUndefined() {
@@ -27,7 +43,7 @@ func initVariantTypeParameterNode() {
 			}
 			self := ast.NewVariantTypeParameterNode(
 				argSpan,
-				ast.Variance(argVariance),
+				argVariance,
 				argName,
 				argLowerBound,
 				argUpperBound,

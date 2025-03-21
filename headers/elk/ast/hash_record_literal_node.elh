@@ -5,7 +5,11 @@ module Std::Elk::AST
   sealed primitive class HashRecordLiteralNode
     include ExpressionNode
 
-    init(elements: ArrayTuple[ExpressionNode], span: String::Span = loop; end); end
+    init(
+      elements: ArrayTuple[ExpressionNode] = loop; end,
+      span: String::Span = loop; end
+    ); end
+
     def elements: ArrayTuple[ExpressionNode]; end
     def span: String::Span; end
   end

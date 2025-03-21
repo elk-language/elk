@@ -14,7 +14,11 @@ func initUninterpolatedRegexLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argContent := (string)(args[0].MustReference().(value.String))
+			var argContent string
+			if !args[0].IsUndefined() {
+				argContent = (string)(args[0].MustReference().(value.String))
+			}
+
 			var argFlags bitfield.BitField8
 			if !args[1].IsUndefined() {
 				argFlags = bitfield.BitField8FromInt(args[1].AsUInt8())

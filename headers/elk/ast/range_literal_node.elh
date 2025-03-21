@@ -6,7 +6,13 @@ module Std::Elk::AST
     include ExpressionNode,
             PatternNode
 
-    init(start: ExpressionNode, end_node: ExpressionNode, op: Elk::Token, span: String::Span = loop; end); end
+    init(
+      start: ExpressionNode,
+      end_node: ExpressionNode,
+      op: Elk::Token = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def start: ExpressionNode; end
     def end: ExpressionNode; end
     def op: Elk::Token; end

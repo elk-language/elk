@@ -15,19 +15,33 @@ func initMethodSignatureDefinitionNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argName := (string)(args[0].MustReference().(value.String))
 
-			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
-			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-			for i, el := range *argTypeParametersTuple {
-				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+			var argTypeParameters []ast.TypeParameterNode
+			if !args[1].IsUndefined() {
+				argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
+				for i, el := range *argTypeParametersTuple {
+					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+				}
 			}
 
-			argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
-			argParameters := make([]ast.ParameterNode, argParametersTuple.Length())
-			for i, el := range *argParametersTuple {
-				argParameters[i] = el.MustReference().(ast.ParameterNode)
+			var argParameters []ast.ParameterNode
+			if !args[2].IsUndefined() {
+				argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
+				for i, el := range *argParametersTuple {
+					argParameters[i] = el.MustReference().(ast.ParameterNode)
+				}
 			}
-			argReturnType := args[3].MustReference().(ast.TypeNode)
-			argThrowType := args[4].MustReference().(ast.TypeNode)
+
+			var argReturnType ast.TypeNode
+			if !args[3].IsUndefined() {
+				argReturnType = args[3].MustReference().(ast.TypeNode)
+			}
+
+			var argThrowType ast.TypeNode
+			if !args[4].IsUndefined() {
+				argThrowType = args[4].MustReference().(ast.TypeNode)
+			}
 
 			var argDocComment string
 			if !args[5].IsUndefined() {
@@ -116,8 +130,10 @@ func initMethodSignatureDefinitionNode() {
 		"return_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
-			result := value.Ref(self.ReturnType)
-			return result, value.Undefined
+			if self.ReturnType == nil {
+				return value.Nil, value.Undefined
+			}
+			return value.Ref(self.ReturnType), value.Undefined
 
 		},
 	)
@@ -127,8 +143,10 @@ func initMethodSignatureDefinitionNode() {
 		"throw_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
-			result := value.Ref(self.ThrowType)
-			return result, value.Undefined
+			if self.ThrowType == nil {
+				return value.Nil, value.Undefined
+			}
+			return value.Ref(self.ThrowType), value.Undefined
 
 		},
 	)

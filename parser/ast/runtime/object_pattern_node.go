@@ -15,10 +15,13 @@ func initObjectPatternNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argObjectType := args[0].MustReference().(ast.ComplexConstantNode)
 
-			argAttributesTuple := args[1].MustReference().(*value.ArrayTuple)
-			argAttributes := make([]ast.PatternNode, argAttributesTuple.Length())
-			for i, el := range *argAttributesTuple {
-				argAttributes[i] = el.MustReference().(ast.PatternNode)
+			var argAttributes []ast.PatternNode
+			if !args[1].IsUndefined() {
+				argAttributesTuple := args[1].MustReference().(*value.ArrayTuple)
+				argAttributes = make([]ast.PatternNode, argAttributesTuple.Length())
+				for i, el := range *argAttributesTuple {
+					argAttributes[i] = el.MustReference().(ast.PatternNode)
+				}
 			}
 
 			var argSpan *position.Span
@@ -45,7 +48,6 @@ func initObjectPatternNode() {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 			result := value.Ref(self.ObjectType)
 			return result, value.Undefined
-
 		},
 	)
 

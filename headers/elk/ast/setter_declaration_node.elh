@@ -5,7 +5,12 @@ module Std::Elk::AST
   sealed primitive class SetterDeclarationNode
     include ExpressionNode
 
-    init(doc_comment: String, entries: ArrayTuple[ParameterNode], span: String::Span = loop; end); end
+    init(
+      entries: ArrayTuple[ParameterNode],
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
     def doc_comment: String; end
     def entries: ArrayTuple[ParameterNode]; end
     def span: String::Span; end

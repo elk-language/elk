@@ -13,11 +13,13 @@ func initWordArrayTupleLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.WordCollectionContentNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.WordCollectionContentNode)
+			var argElements []ast.WordCollectionContentNode
+			if !args[0].IsUndefined() {
+				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.WordCollectionContentNode, argElementsTuple.Length())
+				for i, el := range *argElementsTuple {
+					argElements[i] = el.MustReference().(ast.WordCollectionContentNode)
+				}
 			}
 
 			var argSpan *position.Span

@@ -5,8 +5,13 @@ module Std::Elk::AST
   sealed primitive class YieldExpressionNode
     include ExpressionNode
 
-    init(value: ExpressionNode, forward: Bool, span: String::Span = loop; end); end
-    def value: ExpressionNode; end
+    init(
+      value: ExpressionNode? = nil,
+      forward: bool = false,
+      span: String::Span = loop; end,
+    ); end
+
+    def value: ExpressionNode?; end
     def forward: Bool; end
     def span: String::Span; end
   end

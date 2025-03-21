@@ -13,14 +13,24 @@ func initClosureTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.ParameterNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.ParameterNode)
+			var argParams []ast.ParameterNode
+			if !args[0].IsUndefined() {
+				argParamsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argParams := make([]ast.ParameterNode, argParamsTuple.Length())
+				for i, el := range *argParamsTuple {
+					argParams[i] = el.MustReference().(ast.ParameterNode)
+				}
 			}
-			arg1 := args[1].MustReference().(ast.TypeNode)
-			arg2 := args[2].MustReference().(ast.TypeNode)
+
+			var argReturnType ast.TypeNode
+			if !args[1].IsUndefined() {
+				argReturnType = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argThrowType ast.TypeNode
+			if !args[2].IsUndefined() {
+				argThrowType = args[2].MustReference().(ast.TypeNode)
+			}
 
 			var argSpan *position.Span
 			if args[3].IsUndefined() {
@@ -30,9 +40,9 @@ func initClosureTypeNode() {
 			}
 			self := ast.NewClosureTypeNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argParams,
+				argReturnType,
+				argThrowType,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -62,9 +72,11 @@ func initClosureTypeNode() {
 		"return_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureTypeNode)
-			result := value.Ref(self.ReturnType)
-			return result, value.Undefined
+			if self.ReturnType == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.ReturnType), value.Undefined
 		},
 	)
 
@@ -73,9 +85,11 @@ func initClosureTypeNode() {
 		"throw_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureTypeNode)
-			result := value.Ref(self.ThrowType)
-			return result, value.Undefined
+			if !args[0].IsUndefined() {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.ThrowType), value.Undefined
 		},
 	)
 
@@ -86,7 +100,6 @@ func initClosureTypeNode() {
 			self := args[0].MustReference().(*ast.ClosureTypeNode)
 			result := value.Ref((*value.Span)(self.Span()))
 			return result, value.Undefined
-
 		},
 	)
 

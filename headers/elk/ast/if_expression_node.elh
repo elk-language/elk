@@ -8,7 +8,7 @@ module Std::Elk::AST
     init(
       condition: ExpressionNode,
       then_body: ArrayTuple[StatementNode],
-      else_body: ArrayTuple[StatementNode],
+      else_body: ArrayTuple[StatementNode] = loop; end,
       span: String::Span = loop; end,
     ); end
 

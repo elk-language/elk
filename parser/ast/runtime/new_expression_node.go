@@ -13,17 +13,21 @@ func initNewExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argPositionalArgumentsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argPositionalArguments := make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
-			for i, el := range *argPositionalArgumentsTuple {
-				argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
+			var argPositionalArguments []ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				argPositionalArgumentsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
+				for i, el := range *argPositionalArgumentsTuple {
+					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
+				}
 			}
-
-			argNamedArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
-			argNamedArguments := make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
-			for i, el := range *argNamedArgumentsTuple {
-				argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
+			var argNamedArguments []ast.NamedArgumentNode
+			if !args[1].IsUndefined() {
+				argNamedArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
+				for i, el := range *argNamedArgumentsTuple {
+					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
+				}
 			}
 
 			var argSpan *position.Span

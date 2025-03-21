@@ -7,9 +7,9 @@ module Std::Elk::AST
 
     init(
       name: String,
-      type_node: TypeNode,
-      is_optional: bool,
-      kind: UInt8,
+      type_node: TypeNode? = nil,
+      is_optional: bool = false,
+      kind: UInt8 = 0u8,
       span: String::Span = loop; end,
     ); end
 

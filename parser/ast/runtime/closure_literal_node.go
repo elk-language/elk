@@ -13,19 +13,32 @@ func initClosureLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.ParameterNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.ParameterNode)
+			var argParameters []ast.ParameterNode
+			if !args[0].IsUndefined() {
+				argParametersTuple := args[0].MustReference().(*value.ArrayTuple)
+				argParameters := make([]ast.ParameterNode, argParametersTuple.Length())
+				for i, el := range *argParametersTuple {
+					argParameters[i] = el.MustReference().(ast.ParameterNode)
+				}
 			}
-			arg1 := args[1].MustReference().(ast.TypeNode)
-			arg2 := args[2].MustReference().(ast.TypeNode)
 
-			arg3Tuple := args[3].MustReference().(*value.ArrayTuple)
-			arg3 := make([]ast.StatementNode, arg3Tuple.Length())
-			for i, el := range *arg3Tuple {
-				arg3[i] = el.MustReference().(ast.StatementNode)
+			var argReturnType ast.TypeNode
+			if !args[1].IsUndefined() {
+				argReturnType = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argThrowType ast.TypeNode
+			if !args[2].IsUndefined() {
+				argThrowType = args[2].MustReference().(ast.TypeNode)
+			}
+
+			var argBody []ast.StatementNode
+			if !args[3].IsUndefined() {
+				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argBody := make([]ast.StatementNode, argBodyTuple.Length())
+				for i, el := range *argBodyTuple {
+					argBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argSpan *position.Span
@@ -36,10 +49,10 @@ func initClosureLiteralNode() {
 			}
 			self := ast.NewClosureLiteralNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
-				arg3,
+				argParameters,
+				argReturnType,
+				argThrowType,
+				argBody,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -52,7 +65,6 @@ func initClosureLiteralNode() {
 		"parameters",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
-
 			collection := self.Parameters
 			arrayTuple := value.NewArrayTupleWithLength(len(collection))
 			for i, el := range collection {
@@ -69,8 +81,11 @@ func initClosureLiteralNode() {
 		"return_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
-			result := value.Ref(self.ReturnType)
-			return result, value.Undefined
+			if self.ReturnType == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.ReturnType), value.Undefined
 
 		},
 	)
@@ -80,9 +95,11 @@ func initClosureLiteralNode() {
 		"throw_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
-			result := value.Ref(self.ThrowType)
-			return result, value.Undefined
+			if self.ReturnType == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.ThrowType), value.Undefined
 		},
 	)
 
@@ -110,7 +127,6 @@ func initClosureLiteralNode() {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			result := value.Ref((*value.Span)(self.Span()))
 			return result, value.Undefined
-
 		},
 	)
 

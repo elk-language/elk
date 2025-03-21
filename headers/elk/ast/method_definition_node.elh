@@ -12,12 +12,12 @@ module Std::Elk::AST
 
     init(
       name: String,
-      type_parameters: ArrayTuple[TypeParameterNode],
-      parameters: ArrayTuple[ParameterNode],
-      return_type: TypeNode,
-      throw_type: TypeNode,
-      body: ArrayTuple[StatementNode],
-      flags: UInt8,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
+      throw_type: TypeNode? = nil,
+      body: ArrayTuple[StatementNode] = loop; end,
+      flags: UInt8 = 0u8,
       doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end

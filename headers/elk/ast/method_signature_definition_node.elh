@@ -6,12 +6,12 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      doc_comment: String,
       name: String,
-      type_parameters: ArrayTuple[TypeParameterNode],
-      parameters: ArrayTuple[ParameterNode],
-      return_type: TypeNode,
-      throw_type: TypeNode,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
+      throw_type: TypeNode? = nil,
+      doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 

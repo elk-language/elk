@@ -13,10 +13,18 @@ func initFormalParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[0].MustReference().(value.String))
-			arg1 := args[1].MustReference().(ast.TypeNode)
-			arg2 := args[2].MustReference().(ast.ExpressionNode)
-			arg3 := ast.ParameterKind(args[3].AsUInt8())
+			argName := (string)(args[0].MustReference().(value.String))
+			argKind := ast.ParameterKind(args[1].AsUInt8())
+
+			var argType ast.TypeNode
+			if !args[2].IsUndefined() {
+				argType = args[2].MustReference().(ast.TypeNode)
+			}
+
+			var argInit ast.ExpressionNode
+			if !args[3].IsUndefined() {
+				argInit = args[3].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[4].IsUndefined() {
@@ -26,10 +34,10 @@ func initFormalParameterNode() {
 			}
 			self := ast.NewFormalParameterNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
-				arg3,
+				argName,
+				argType,
+				argInit,
+				argKind,
 			)
 			return value.Ref(self), value.Undefined
 

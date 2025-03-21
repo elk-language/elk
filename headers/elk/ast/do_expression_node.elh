@@ -12,9 +12,9 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      body: ArrayTuple[StatementNode],
-      catches: ArrayTuple[CatchNode],
-      finally_body: ArrayTuple[StatementNode],
+      body: ArrayTuple[StatementNode] = loop; end,
+      catches: ArrayTuple[CatchNode] = loop; end,
+      finally_body: ArrayTuple[StatementNode] = loop; end,
       span: String::Span = loop; end,
     ); end
 

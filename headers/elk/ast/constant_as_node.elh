@@ -1,7 +1,7 @@
 module Std::Elk::AST
   ##[
     Represents a constant with as in using declarations
-eg. `Foo::Bar as Bar`.
+    eg. `Foo::Bar as Bar`.
   ]##
   sealed primitive class ConstantAsNode
     include ExpressionNode,

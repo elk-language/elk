@@ -13,12 +13,15 @@ func initSetterDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argDocComment := string(args[0].MustReference().(value.String))
-			argEntriesTuple := args[1].MustReference().(*value.ArrayTuple)
+			argEntriesTuple := args[0].MustReference().(*value.ArrayTuple)
 			argEntries := make([]ast.ParameterNode, argEntriesTuple.Length())
 			for i, el := range *argEntriesTuple {
 				argEntries[i] = el.MustReference().(ast.ParameterNode)
+			}
+
+			var argDocComment string
+			if !args[1].IsUndefined() {
+				argDocComment = string(args[1].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
@@ -35,12 +38,12 @@ func initSetterDeclarationNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(2),
+		vm.DefWithParameters(3),
 	)
 
 	vm.Def(
 		c,
-		"span",
+		"doc_comment",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SetterDeclarationNode)
 			result := value.Ref((value.String)(self.DocComment()))

@@ -17,7 +17,7 @@ module Std::Elk::AST
     init(
       value: ExpressionNode,
       cases: ArrayTuple[CaseNode],
-      else_body: ArrayTuple[StatementNode],
+      else_body: ArrayTuple[StatementNode] = loop; end,
       span: String::Span = loop; end,
     ); end
 

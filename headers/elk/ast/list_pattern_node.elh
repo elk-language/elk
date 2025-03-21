@@ -5,7 +5,11 @@ module Std::Elk::AST
   sealed primitive class ListPatternNode
     include PatternNode
 
-    init(elements: ArrayTuple[PatternNode], span: String::Span = loop; end); end
+    init(
+      elements: ArrayTuple[PatternNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def elements: ArrayTuple[PatternNode]; end
     def span: String::Span; end
   end

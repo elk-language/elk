@@ -6,23 +6,24 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      doc_comments: String,
-      is_abstract: Bool,
-      is_sealed: Bool,
-      is_primitive: Bool,
-      is_no_init: Bool,
       constant: ExpressionNode,
-      type_parameters: ArrayTuple[TypeParameterNode],
-      superclass: ExpressionNode,
-      body: ArrayTuple[StatementNode],
+      body: ArrayTuple[StatementNode] = loop; end,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      is_abstract: bool = false,
+      is_sealed: bool = false,
+      is_primitive: bool = false,
+      is_no_init: bool = false,
+      superclass: ExpressionNode? = nil,
+      doc_comment: String = "",
       span: String::Span = loop; end
     ); end
 
+    def doc_comment: Bool; end
     def is_abstract: Bool; end
     def is_sealed: Bool; end
     def is_primitive: Bool; end
     def is_no_init: Bool; end
-    def constant: ExpressionNode; end
+    def constant: ExpressionNode?; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def superclass: ExpressionNode; end
     def body: ArrayTuple[StatementNode]; end

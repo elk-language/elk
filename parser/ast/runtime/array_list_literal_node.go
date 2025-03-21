@@ -13,13 +13,19 @@ func initArrayListLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.ExpressionNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.ExpressionNode)
+			var argElements []ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.ExpressionNode, arg0Tuple.Length())
+				for i, el := range *arg0Tuple {
+					argElements[i] = el.MustReference().(ast.ExpressionNode)
+				}
 			}
-			arg1 := args[1].MustReference().(ast.ExpressionNode)
+
+			var argCapacity ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -29,8 +35,8 @@ func initArrayListLiteralNode() {
 			}
 			self := ast.NewArrayListLiteralNode(
 				argSpan,
-				arg0,
-				arg1,
+				argElements,
+				argCapacity,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -60,8 +66,11 @@ func initArrayListLiteralNode() {
 		"capacity",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ArrayListLiteralNode)
-			result := value.Ref(self.Capacity)
-			return result, value.Undefined
+			if self.Capacity == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Capacity), value.Undefined
 
 		},
 	)

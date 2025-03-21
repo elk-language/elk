@@ -5,10 +5,16 @@ module Std::Elk::AST
   sealed primitive class FormalParameterNode
     include ParameterNode
 
-    init(name: String, type_node: TypeNode, initialiser: ExpressionNode, kind: UInt8, span: String::Span = loop; end); end
+    init(
+      name: String,
+      kind: UInt8,
+      type_node: TypeNode? = nil,
+      initialiser: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
     def name: String; end
     def type_node: TypeNode; end
-    def initialiser: ExpressionNode; end
+    def initialiser: ExpressionNode?; end
     def span: String::Span; end
 
     ##[

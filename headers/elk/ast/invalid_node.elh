@@ -30,5 +30,8 @@ module Std::Elk::AST
     def token: Elk::Token; end
     def span: String::Span; end
     def is_optional: bool; end
+    def is_normal: bool; end
+    def is_positional_rest: bool; end
+    def is_named_rest: bool; end
   end
 end

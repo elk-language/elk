@@ -14,10 +14,13 @@ func initSetPatternNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.PatternNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.PatternNode)
+			var argElements []ast.PatternNode
+			if !args[0].IsUndefined() {
+				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.PatternNode, argElementsTuple.Length())
+				for i, el := range *argElementsTuple {
+					argElements[i] = el.MustReference().(ast.PatternNode)
+				}
 			}
 
 			var argSpan *position.Span

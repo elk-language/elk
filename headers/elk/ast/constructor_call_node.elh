@@ -7,8 +7,8 @@ module Std::Elk::AST
 
     init(
       class_node: ComplexConstantNode,
-      positional_arguments: ArrayTuple[ExpressionNode],
-      named_arguments: ArrayTuple[NamedArgumentNode],
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
       span: String::Span = loop; end
     ); end
 

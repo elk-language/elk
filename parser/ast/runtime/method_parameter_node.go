@@ -15,9 +15,21 @@ func initMethodParameterNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argName := (string)(args[0].MustReference().(value.String))
 			argTypeNode := args[1].MustReference().(ast.TypeNode)
-			argInitialiser := args[2].MustReference().(ast.ExpressionNode)
-			argSetInstanceVariable := value.Truthy(args[3])
-			argKind := ast.ParameterKind(args[4].AsUInt8())
+
+			var argInitialiser ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				argInitialiser = args[2].MustReference().(ast.ExpressionNode)
+			}
+
+			var argSetInstanceVariable bool
+			if !args[3].IsUndefined() {
+				argSetInstanceVariable = value.Truthy(args[3])
+			}
+
+			var argKind ast.ParameterKind
+			if !args[4].IsUndefined() {
+				argKind = ast.ParameterKind(args[4].AsUInt8())
+			}
 
 			var argSpan *position.Span
 			if args[5].IsUndefined() {
@@ -49,15 +61,16 @@ func initMethodParameterNode() {
 
 		},
 	)
-
 	vm.Def(
 		c,
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
-			result := value.Ref(self.TypeNode)
-			return result, value.Undefined
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.TypeNode), value.Undefined
 		},
 	)
 
@@ -66,9 +79,11 @@ func initMethodParameterNode() {
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
-			result := value.Ref(self.Initialiser)
-			return result, value.Undefined
+			if self.Initialiser == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.Initialiser), value.Undefined
 		},
 	)
 

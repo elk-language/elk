@@ -7,14 +7,14 @@ module Std::Elk::AST
 
     init(
       constant: ExpressionNode,
-      type_parameters: ArrayTuple[TypeParameterNode],
-      body: ArrayTuple[StructBodyStatementNode],
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      body: ArrayTuple[StructBodyStatementNode] = loop; end,
       doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 
     def doc_comment: String; end
-    def constant: ExpressionNode; end
+    def constant: ExpressionNode?; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StructBodyStatementNode]; end
     def span: String::Span; end

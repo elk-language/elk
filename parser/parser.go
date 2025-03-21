@@ -4598,7 +4598,7 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
-// tryExpression = "try" [expressionWithoutModifier]
+// tryExpression = "try" expressionWithoutModifier
 func (p *Parser) tryExpression() *ast.TryExpressionNode {
 	tryTok := p.advance()
 	expr := p.expressionWithoutModifier()
@@ -4609,7 +4609,7 @@ func (p *Parser) tryExpression() *ast.TryExpressionNode {
 	)
 }
 
-// typeofExpression = "typeof" [expressionWithoutModifier]
+// typeofExpression = "typeof" expressionWithoutModifier
 func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 	mustTok := p.advance()
 	expr := p.expressionWithoutModifier()

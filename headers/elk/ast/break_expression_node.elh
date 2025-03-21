@@ -5,9 +5,14 @@ module Std::Elk::AST
   sealed primitive class BreakExpressionNode
     include ExpressionNode
 
-    init(label: String, value: ExpressionNode, span: String::Span = loop; end); end
+    init(
+      label: String = "",
+      value: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
     def label: String; end
-    def value: ExpressionNode; end
+    def value: ExpressionNode?; end
     def span: String::Span; end
   end
 end

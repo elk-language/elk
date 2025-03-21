@@ -5,7 +5,12 @@ module Std::Elk::AST
   sealed primitive class NewExpressionNode
     include ExpressionNode
 
-    init(positional_arguments: ArrayTuple[ExpressionNode], named_arguments: ArrayTuple[NamedArgumentNode], span: String::Span = loop; end); end
+    init(
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end
+    ); end
+
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def span: String::Span; end

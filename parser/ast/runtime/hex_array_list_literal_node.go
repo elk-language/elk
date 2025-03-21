@@ -13,13 +13,19 @@ func initHexArrayListLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.IntCollectionContentNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.IntCollectionContentNode)
+			var argElements []ast.IntCollectionContentNode
+			if !args[0].IsUndefined() {
+				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+				argElements = make([]ast.IntCollectionContentNode, argElementsTuple.Length())
+				for i, el := range *argElementsTuple {
+					argElements[i] = el.MustReference().(ast.IntCollectionContentNode)
+				}
 			}
-			argCapacity := args[1].MustReference().(ast.ExpressionNode)
+
+			var argCapacity ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -60,8 +66,11 @@ func initHexArrayListLiteralNode() {
 		"capacity",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
-			result := value.Ref(self.Capacity)
-			return result, value.Undefined
+			if self.Capacity == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Capacity), value.Undefined
 
 		},
 	)

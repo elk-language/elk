@@ -13,14 +13,28 @@ func initNumericForExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argInitialiser := args[0].MustReference().(ast.ExpressionNode)
-			argCondition := args[1].MustReference().(ast.ExpressionNode)
-			argIncrement := args[2].MustReference().(ast.ExpressionNode)
+			var argInitialiser ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				argInitialiser = args[0].MustReference().(ast.ExpressionNode)
+			}
 
-			argThenBodyTuple := args[3].MustReference().(*value.ArrayTuple)
-			argThenBody := make([]ast.StatementNode, argThenBodyTuple.Length())
-			for i, el := range *argThenBodyTuple {
-				argThenBody[i] = el.MustReference().(ast.StatementNode)
+			var argCondition ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argCondition = args[1].MustReference().(ast.ExpressionNode)
+			}
+
+			var argIncrement ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				argIncrement = args[2].MustReference().(ast.ExpressionNode)
+			}
+
+			var argThenBody []ast.StatementNode
+			if !args[3].IsUndefined() {
+				argThenBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
+				for i, el := range *argThenBodyTuple {
+					argThenBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argSpan *position.Span
@@ -47,9 +61,11 @@ func initNumericForExpressionNode() {
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
+			if self.Initialiser == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Initialiser)
 			return result, value.Undefined
-
 		},
 	)
 
@@ -58,6 +74,9 @@ func initNumericForExpressionNode() {
 		"condition",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
+			if self.Condition == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Condition)
 			return result, value.Undefined
 
@@ -69,6 +88,9 @@ func initNumericForExpressionNode() {
 		"increment",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
+			if self.Increment == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Increment)
 			return result, value.Undefined
 

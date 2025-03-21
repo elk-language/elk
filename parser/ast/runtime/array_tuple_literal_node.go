@@ -13,11 +13,13 @@ func initArrayTupleLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.ExpressionNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.ExpressionNode)
+			var arg0 []ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
+				arg0 = make([]ast.ExpressionNode, arg0Tuple.Length())
+				for i, el := range *arg0Tuple {
+					arg0[i] = el.MustReference().(ast.ExpressionNode)
+				}
 			}
 
 			var argSpan *position.Span

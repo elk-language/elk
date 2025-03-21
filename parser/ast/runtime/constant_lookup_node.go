@@ -38,9 +38,11 @@ func initConstantLookupNode() {
 		"left",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
-			result := value.Ref(self.Left)
-			return result, value.Undefined
+			if self.Left == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.Left), value.Undefined
 		},
 	)
 

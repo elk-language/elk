@@ -14,9 +14,21 @@ func initSignatureParameterNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argName := (string)(args[0].MustReference().(value.String))
-			argTypeNode := args[1].MustReference().(ast.TypeNode)
-			argOptional := value.Truthy(args[2])
-			argKind := args[3].AsUInt8()
+
+			var argTypeNode ast.TypeNode
+			if !args[1].IsUndefined() {
+				argTypeNode = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argOptional bool
+			if !args[2].IsUndefined() {
+				argOptional = value.Truthy(args[2])
+			}
+
+			var argKind ast.ParameterKind
+			if !args[3].IsUndefined() {
+				argKind = ast.ParameterKind(args[3].AsUInt8())
+			}
 
 			var argSpan *position.Span
 			if args[4].IsUndefined() {
@@ -29,7 +41,7 @@ func initSignatureParameterNode() {
 				argName,
 				argTypeNode,
 				argOptional,
-				ast.ParameterKind(argKind),
+				argKind,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -53,9 +65,11 @@ func initSignatureParameterNode() {
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
-
 		},
 	)
 

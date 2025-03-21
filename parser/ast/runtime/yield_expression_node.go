@@ -13,8 +13,15 @@ func initYieldExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argValue := args[0].MustReference().(ast.ExpressionNode)
-			argForward := value.Truthy(args[1])
+			var argValue ast.ExpressionNode
+			if !args[0].IsUndefined() {
+				argValue = args[0].MustReference().(ast.ExpressionNode)
+			}
+
+			var argForward bool
+			if !args[1].IsUndefined() {
+				argForward = value.Truthy(args[1])
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -38,9 +45,11 @@ func initYieldExpressionNode() {
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
+			if self.Value == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Value)
 			return result, value.Undefined
-
 		},
 	)
 

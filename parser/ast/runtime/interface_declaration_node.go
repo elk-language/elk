@@ -14,17 +14,22 @@ func initInterfaceDeclarationNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[0].MustReference().(ast.ExpressionNode)
-
-			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
-			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-			for i, el := range *argTypeParametersTuple {
-				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+			var argTypeParameters []ast.TypeParameterNode
+			if !args[1].IsUndefined() {
+				argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
+				for i, el := range *argTypeParametersTuple {
+					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+				}
 			}
 
-			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
-			argBody := make([]ast.StatementNode, argBodyTuple.Length())
-			for i, el := range *argBodyTuple {
-				argBody[i] = el.MustReference().(ast.StatementNode)
+			var argBody []ast.StatementNode
+			if !args[2].IsUndefined() {
+				argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				argBody = make([]ast.StatementNode, argBodyTuple.Length())
+				for i, el := range *argBodyTuple {
+					argBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argDocComment string
@@ -67,9 +72,11 @@ func initInterfaceDeclarationNode() {
 		"constant",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
-			result := value.Ref(self.Constant)
-			return result, value.Undefined
+			if self.Constant == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.Constant), value.Undefined
 		},
 	)
 

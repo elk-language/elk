@@ -4,17 +4,17 @@ module Std::Elk::AST
   ]##
   sealed primitive class MixinDeclarationNode
     init(
-      is_abstract: Bool,
       constant: ExpressionNode,
-      type_parameters: ArrayTuple[TypeParameterNode],
-      body: ArrayTuple[StatementNode],
+      is_abstract: bool = false,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      body: ArrayTuple[StatementNode] = loop; end,
       doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 
     def doc_comment: String; end
-    def is_abstract: Bool; end
-    def constant: ExpressionNode; end
+    def is_abstract: bool; end
+    def constant: ExpressionNode?; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StatementNode]; end
     def span: String::Span; end

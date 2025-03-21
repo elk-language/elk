@@ -5,7 +5,14 @@ module Std::Elk::AST
   sealed primitive class GenericReceiverlessMethodCallNode
     include ExpressionNode
 
-    init(method_name: String, type_arguments: ArrayTuple[TypeNode], positional_arguments: ArrayTuple[ExpressionNode], named_arguments: ArrayTuple[NamedArgumentNode], span: String::Span = loop; end); end
+    init(
+      method_name: String,
+      type_arguments: ArrayTuple[TypeNode],
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def method_name: String; end
     def type_arguments: ArrayTuple[TypeNode]; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end

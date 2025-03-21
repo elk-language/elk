@@ -8,16 +8,16 @@ module Std::Elk::AST
     init(
       name: String,
       type_node: TypeNode,
-      initialiser: ExpressionNode,
-      set_instance_variable: bool,
-      kind: UInt8,
+      initialiser: ExpressionNode? = nil,
+      set_instance_variable: bool = false,
+      kind: UInt8 = 0u8,
       span: String::Span = loop; end,
     ); end
 
     def name: String; end
-    def type_node: TypeNode; end
-    def initialiser: ExpressionNode; end
-    def set_instance_variable: Bool; end
+    def type_node: TypeNode?; end
+    def initialiser: ExpressionNode?; end
+    def set_instance_variable: bool; end
     def span: String::Span; end
 
     ##[

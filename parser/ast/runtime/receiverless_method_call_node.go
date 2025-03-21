@@ -15,16 +15,22 @@ func initReceiverlessMethodCallNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argMethodName := (string)(args[0].MustReference().(value.String))
 
-			argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
-			argPositionalArguments := make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
-			for i, el := range *argPositionalArgumentsTuple {
-				argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
+			var argPositionalArguments []ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
+				for i, el := range *argPositionalArgumentsTuple {
+					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
+				}
 			}
 
-			argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
-			argNamedArguments := make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
-			for i, el := range *argNamedArgumentsTuple {
-				argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
+			var argNamedArguments []ast.NamedArgumentNode
+			if !args[2].IsUndefined() {
+				argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
+				for i, el := range *argNamedArgumentsTuple {
+					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
+				}
 			}
 
 			var argSpan *position.Span

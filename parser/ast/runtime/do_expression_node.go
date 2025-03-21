@@ -13,23 +13,31 @@ func initDoExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.StatementNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.StatementNode)
+			var argBody []ast.StatementNode
+			if !args[0].IsUndefined() {
+				argBodyTuple := args[0].MustReference().(*value.ArrayTuple)
+				argBody = make([]ast.StatementNode, argBodyTuple.Length())
+				for i, el := range *argBodyTuple {
+					argBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
-			arg1Tuple := args[1].MustReference().(*value.ArrayTuple)
-			arg1 := make([]*ast.CatchNode, arg1Tuple.Length())
-			for i, el := range *arg1Tuple {
-				arg1[i] = el.MustReference().(*ast.CatchNode)
+			var argCatches []*ast.CatchNode
+			if !args[1].IsUndefined() {
+				argCatchesTuple := args[1].MustReference().(*value.ArrayTuple)
+				argCatches = make([]*ast.CatchNode, argCatchesTuple.Length())
+				for i, el := range *argCatchesTuple {
+					argCatches[i] = el.MustReference().(*ast.CatchNode)
+				}
 			}
 
-			arg2Tuple := args[2].MustReference().(*value.ArrayTuple)
-			arg2 := make([]ast.StatementNode, arg2Tuple.Length())
-			for i, el := range *arg2Tuple {
-				arg2[i] = el.MustReference().(ast.StatementNode)
+			var argFinally []ast.StatementNode
+			if !args[2].IsUndefined() {
+				argFinallyTuple := args[2].MustReference().(*value.ArrayTuple)
+				argFinally = make([]ast.StatementNode, argFinallyTuple.Length())
+				for i, el := range *argFinallyTuple {
+					argFinally[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argSpan *position.Span
@@ -40,9 +48,9 @@ func initDoExpressionNode() {
 			}
 			self := ast.NewDoExpressionNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argBody,
+				argCatches,
+				argFinally,
 			)
 			return value.Ref(self), value.Undefined
 

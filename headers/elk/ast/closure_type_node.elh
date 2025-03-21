@@ -6,15 +6,15 @@ module Std::Elk::AST
     include TypeNode
 
     init(
-      parameters: ArrayTuple[ParameterNode],
-      return_type: TypeNode,
-      throw_type: TypeNode,
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
+      throw_type: TypeNode? = nil,
       span: String::Span = loop; end,
     ); end
 
     def parameters: ArrayTuple[ParameterNode]; end
-    def return_type: TypeNode; end
-    def throw_type: TypeNode; end
+    def return_type: TypeNode?; end
+    def throw_type: TypeNode?; end
     def span: String::Span; end
   end
 end

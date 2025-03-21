@@ -15,16 +15,22 @@ func initUnlessExpressionNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argCondition := args[0].MustReference().(ast.ExpressionNode)
 
-			argThenBodyTuple := args[1].MustReference().(*value.ArrayTuple)
-			argThenBody := make([]ast.StatementNode, argThenBodyTuple.Length())
-			for i, el := range *argThenBodyTuple {
-				argThenBody[i] = el.MustReference().(ast.StatementNode)
+			var argThenBody []ast.StatementNode
+			if !args[1].IsUndefined() {
+				argThenBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
+				for i, el := range *argThenBodyTuple {
+					argThenBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
-			argElseBodyTuple := args[2].MustReference().(*value.ArrayTuple)
-			argElseBody := make([]ast.StatementNode, argElseBodyTuple.Length())
-			for i, el := range *argElseBodyTuple {
-				argElseBody[i] = el.MustReference().(ast.StatementNode)
+			var argElseBody []ast.StatementNode
+			if !args[2].IsUndefined() {
+				argElseBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
+				for i, el := range *argElseBodyTuple {
+					argElseBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argSpan *position.Span

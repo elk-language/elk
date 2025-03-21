@@ -5,7 +5,16 @@ module Std::Elk::AST
   sealed primitive class GenericMethodCallNode
     include ExpressionNode
 
-    init(receiver: ExpressionNode, op: Elk::Token, method_name: String, type_arguments: ArrayTuple[TypeNode], positional_arguments: ArrayTuple[ExpressionNode], named_arguments: ArrayTuple[NamedArgumentNode], span: String::Span = loop; end); end
+    init(
+      receiver: ExpressionNode,
+      method_name: String,
+      type_arguments: ArrayTuple[TypeNode],
+      op: Elk::Token = loop; end,
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def receiver: ExpressionNode; end
     def op: Elk::Token; end
     def method_name: String; end

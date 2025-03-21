@@ -5,9 +5,14 @@ module Std::Elk::AST
   sealed primitive class ArrayListLiteralNode
     include ExpressionNode
 
-    init(elements: ArrayTuple[ExpressionNode], capacity: ExpressionNode, span: String::Span = loop; end); end
+    init(
+      elements: ArrayTuple[ExpressionNode] = loop; end,
+      capacity: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
     def elements: ArrayTuple[ExpressionNode]; end
-    def capacity: ExpressionNode; end
+    def capacity: ExpressionNode?; end
     def span: String::Span; end
   end
 end

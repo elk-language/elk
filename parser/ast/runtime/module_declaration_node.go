@@ -13,13 +13,20 @@ func initModuleDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argDocComment := string(args[0].MustReference().(value.String))
-			argConstant := args[1].MustReference().(ast.ExpressionNode)
+			argConstant := args[0].MustReference().(ast.ExpressionNode)
 
-			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
-			argBody := make([]ast.StatementNode, argBodyTuple.Length())
-			for i, el := range *argBodyTuple {
-				argBody[i] = el.MustReference().(ast.StatementNode)
+			var argBody []ast.StatementNode
+			if !args[1].IsUndefined() {
+				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+				argBody = make([]ast.StatementNode, argBodyTuple.Length())
+				for i, el := range *argBodyTuple {
+					argBody[i] = el.MustReference().(ast.StatementNode)
+				}
+			}
+
+			var argDocComment string
+			if !args[2].IsUndefined() {
+				argDocComment = string(args[2].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
@@ -45,9 +52,12 @@ func initModuleDeclarationNode() {
 		"constant",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
+			if self.Constant == nil {
+				return value.Nil, value.Undefined
+			}
+
 			result := value.Ref(self.Constant)
 			return result, value.Undefined
-
 		},
 	)
 
@@ -70,12 +80,11 @@ func initModuleDeclarationNode() {
 
 	vm.Def(
 		c,
-		"bytecode",
+		"doc_comment",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
-			result := value.Ref(self.Bytecode)
+			result := value.Ref((value.String)(self.DocComment()))
 			return result, value.Undefined
-
 		},
 	)
 

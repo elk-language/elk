@@ -7,16 +7,16 @@ module Std::Elk::AST
 
     init(
       name: String,
-      type_node: TypeNode,
-      initialiser: ExpressionNode,
+      type_node: TypeNode? = nil,
+      initialiser: ExpressionNode? = nil,
       doc_comment: String = "",
       span: String::Span = loop; end,
     ); end
 
     def doc_comment: String; end
     def name: String; end
-    def type_node: TypeNode; end
-    def initialiser: ExpressionNode; end
+    def type_node: TypeNode?; end
+    def initialiser: ExpressionNode?; end
     def span: String::Span; end
   end
 end

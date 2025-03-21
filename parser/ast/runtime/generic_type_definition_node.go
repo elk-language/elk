@@ -13,12 +13,12 @@ func initGenericTypeDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argTypeParametersTuple := args[0].MustReference().(*value.ArrayTuple)
+			argConstant := args[0].MustReference().(ast.ComplexConstantNode)
+			argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
 			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 			for i, el := range *argTypeParametersTuple {
 				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
 			}
-			argConstant := args[1].MustReference().(ast.ComplexConstantNode)
 			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
 			var argDocComment string

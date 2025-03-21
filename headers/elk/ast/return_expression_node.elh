@@ -5,8 +5,12 @@ module Std::Elk::AST
   sealed primitive class ReturnExpressionNode
     include ExpressionNode
 
-    init(value: ExpressionNode, span: String::Span = loop; end); end
-    def value: ExpressionNode; end
+    init(
+      value: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def value: ExpressionNode?; end
     def span: String::Span; end
   end
 end

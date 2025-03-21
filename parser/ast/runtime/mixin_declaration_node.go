@@ -13,19 +13,29 @@ func initMixinDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argAbstract := value.Truthy(args[0])
-			argConstant := args[1].MustReference().(ast.ExpressionNode)
+			argConstant := args[0].MustReference().(ast.ExpressionNode)
 
-			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
-			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-			for i, el := range *argTypeParametersTuple {
-				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+			var argAbstract bool
+			if !args[1].IsUndefined() {
+				argAbstract = value.Truthy(args[1])
 			}
 
-			argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
-			argBody := make([]ast.StatementNode, argBodyTuple.Length())
-			for i, el := range *argBodyTuple {
-				argBody[i] = el.MustReference().(ast.StatementNode)
+			var argTypeParameters []ast.TypeParameterNode
+			if !args[2].IsUndefined() {
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
+				for i, el := range *argTypeParametersTuple {
+					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
+				}
+			}
+
+			var argBody []ast.StatementNode
+			if !args[3].IsUndefined() {
+				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argBody = make([]ast.StatementNode, argBodyTuple.Length())
+				for i, el := range *argBodyTuple {
+					argBody[i] = el.MustReference().(ast.StatementNode)
+				}
 			}
 
 			var argDocComment string
@@ -80,8 +90,11 @@ func initMixinDeclarationNode() {
 		"constant",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
-			result := value.Ref(self.Constant)
-			return result, value.Undefined
+			if self.Constant == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Constant), value.Undefined
 
 		},
 	)

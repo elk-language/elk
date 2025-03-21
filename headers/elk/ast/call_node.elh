@@ -7,14 +7,14 @@ module Std::Elk::AST
 
     init(
       receiver: ExpressionNode,
-      nil_safe: Bool,
+      nil_safe: bool,
       positional_arguments: ArrayTuple[ExpressionNode],
       named_arguments: ArrayTuple[NamedArgumentNode],
       span: String::Span = loop; end
     ); end
 
     def receiver: ExpressionNode; end
-    def nil_safe: Bool; end
+    def nil_safe: bool; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def span: String::Span; end

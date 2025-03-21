@@ -13,24 +13,30 @@ func initGenericReceiverlessMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[0].MustReference().(value.String))
 
-			arg1Tuple := args[1].MustReference().(*value.ArrayTuple)
-			arg1 := make([]ast.TypeNode, arg1Tuple.Length())
-			for i, el := range *arg1Tuple {
-				arg1[i] = el.MustReference().(ast.TypeNode)
+			argTypeArgsTuple := args[1].MustReference().(*value.ArrayTuple)
+			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
+			for i, el := range *argTypeArgsTuple {
+				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
 			}
 
-			arg2Tuple := args[2].MustReference().(*value.ArrayTuple)
-			arg2 := make([]ast.ExpressionNode, arg2Tuple.Length())
-			for i, el := range *arg2Tuple {
-				arg2[i] = el.MustReference().(ast.ExpressionNode)
+			var argPosArgs []ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				argPosArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
+				for i, el := range *argPosArgsTuple {
+					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
+				}
 			}
 
-			arg3Tuple := args[3].MustReference().(*value.ArrayTuple)
-			arg3 := make([]ast.NamedArgumentNode, arg3Tuple.Length())
-			for i, el := range *arg3Tuple {
-				arg3[i] = el.MustReference().(ast.NamedArgumentNode)
+			var argNamedArgs []ast.NamedArgumentNode
+			if !args[3].IsUndefined() {
+				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
+				for i, el := range *argNamedArgsTuple {
+					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
+				}
 			}
 
 			var argSpan *position.Span
@@ -41,10 +47,10 @@ func initGenericReceiverlessMethodCallNode() {
 			}
 			self := ast.NewGenericReceiverlessMethodCallNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
-				arg3,
+				argName,
+				argTypeArgs,
+				argPosArgs,
+				argNamedArgs,
 			)
 			return value.Ref(self), value.Undefined
 

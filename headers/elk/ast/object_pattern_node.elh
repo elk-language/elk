@@ -5,7 +5,12 @@ module Std::Elk::AST
   sealed primitive class ObjectPatternNode
     include PatternNode
 
-    init(object_type: ComplexConstantNode, attributes: ArrayTuple[PatternNode], span: String::Span = loop; end); end
+    init(
+      object_type: ComplexConstantNode,
+      attributes: ArrayTuple[PatternNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
     def object_type: ComplexConstantNode; end
     def attributes: ArrayTuple[PatternNode]; end
     def span: String::Span; end

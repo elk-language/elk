@@ -15,11 +15,15 @@ func initBinHashSetLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
 			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.IntCollectionContentNode, arg0Tuple.Length())
+			argElements := make([]ast.IntCollectionContentNode, arg0Tuple.Length())
 			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.IntCollectionContentNode)
+				argElements[i] = el.MustReference().(ast.IntCollectionContentNode)
 			}
-			arg1 := args[1].MustReference().(ast.ExpressionNode)
+
+			var argCapacity ast.ExpressionNode
+			if args[1].IsUndefined() {
+				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -29,8 +33,8 @@ func initBinHashSetLiteralNode() {
 			}
 			self := ast.NewBinHashSetLiteralNode(
 				argSpan,
-				arg0,
-				arg1,
+				argElements,
+				argCapacity,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -60,8 +64,11 @@ func initBinHashSetLiteralNode() {
 		"capacity",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
-			result := value.Ref(self.Capacity)
-			return result, value.Undefined
+			if self.Capacity == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Capacity), value.Undefined
 
 		},
 	)

@@ -14,8 +14,16 @@ func initConstantDeclarationNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			constant := args[0].MustReference().(ast.ExpressionNode)
-			typeNode := args[1].MustReference().(ast.TypeNode)
-			init := args[2].MustReference().(ast.ExpressionNode)
+
+			var typeNode ast.TypeNode
+			if !args[1].IsUndefined() {
+				typeNode = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var init ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				init = args[2].MustReference().(ast.ExpressionNode)
+			}
 
 			var docComment string
 			if !args[3].IsUndefined() {
@@ -68,8 +76,11 @@ func initConstantDeclarationNode() {
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
-			result := value.Ref(self.TypeNode)
-			return result, value.Undefined
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.TypeNode), value.Undefined
 
 		},
 	)
@@ -79,8 +90,11 @@ func initConstantDeclarationNode() {
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
-			result := value.Ref(self.Initialiser)
-			return result, value.Undefined
+			if self.Initialiser == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.Initialiser), value.Undefined
 
 		},
 	)

@@ -6,9 +6,14 @@ module Std::Elk::AST
     include ExpressionNode,
             PatternNode
 
-    init(elements: ArrayTuple[IntCollectionContentNode], capacity: ExpressionNode, span: String::Span = loop; end); end
+    init(
+      elements: ArrayTuple[IntCollectionContentNode],
+      capacity: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
     def elements: ArrayTuple[IntCollectionContentNode]; end
-    def capacity: ExpressionNode; end
+    def capacity: ExpressionNode?; end
     def span: String::Span; end
   end
 end

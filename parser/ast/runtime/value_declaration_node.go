@@ -14,8 +14,16 @@ func initValueDeclarationNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argName := (string)(args[0].MustReference().(value.String))
-			argTypeNode := args[1].MustReference().(ast.TypeNode)
-			argInitialiser := args[2].MustReference().(ast.ExpressionNode)
+
+			var argTypeNode ast.TypeNode
+			if !args[1].IsUndefined() {
+				argTypeNode = args[1].MustReference().(ast.TypeNode)
+			}
+
+			var argInitialiser ast.ExpressionNode
+			if !args[2].IsUndefined() {
+				argInitialiser = args[2].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[3].IsUndefined() {
@@ -51,6 +59,9 @@ func initValueDeclarationNode() {
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ValueDeclarationNode)
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
 
@@ -62,6 +73,9 @@ func initValueDeclarationNode() {
 		"initialiser",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ValueDeclarationNode)
+			if self.Initialiser == nil {
+				return value.Nil, value.Undefined
+			}
 			result := value.Ref(self.Initialiser)
 			return result, value.Undefined
 

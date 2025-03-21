@@ -10,19 +10,19 @@ module ::Std::Elk::AST
 			The default parameter kind
 			eg. `foo: String`
 		]##
-		const NORMAL_KIND: UInt8 = 0
+		const NORMAL_KIND: UInt8 = 0u8
 
 		##[
 			Positional rest parameter kind
 			eg. `*foo: String`
 		]##
-		const POSITIONAL_REST_KIND: UInt8 = 1
+		const POSITIONAL_REST_KIND: UInt8 = 1u8
 
 		##[
 			Named rest parameter kind
 			eg. `**foo: String`
 		]##
-		const NAMED_REST_KIND: UInt8 = 2
+		const NAMED_REST_KIND: UInt8 = 2u8
 
 		##[
 			Whether the parameter is optional (has a default value).

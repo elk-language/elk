@@ -13,8 +13,15 @@ func initBreakExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[0].MustReference().(value.String))
-			arg1 := args[1].MustReference().(ast.ExpressionNode)
+			var argLabel string
+			if !args[0].IsUndefined() {
+				argLabel = (string)(args[0].MustReference().(value.String))
+			}
+
+			var argValue ast.ExpressionNode
+			if !args[1].IsUndefined() {
+				argValue = args[1].MustReference().(ast.ExpressionNode)
+			}
 
 			var argSpan *position.Span
 			if args[2].IsUndefined() {
@@ -24,8 +31,8 @@ func initBreakExpressionNode() {
 			}
 			self := ast.NewBreakExpressionNode(
 				argSpan,
-				arg0,
-				arg1,
+				argLabel,
+				argValue,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -49,9 +56,11 @@ func initBreakExpressionNode() {
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
-			result := value.Ref(self.Value)
-			return result, value.Undefined
+			if self.Value == nil {
+				return value.Nil, value.Undefined
+			}
 
+			return value.Ref(self.Value), value.Undefined
 		},
 	)
 
