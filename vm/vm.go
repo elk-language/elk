@@ -974,7 +974,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result, err := value.LessThanEqualBool(left, right)
+			result, err := value.LessThanEqual(left, right)
 			if !err.IsUndefined() {
 				vm.throw(err)
 				break
@@ -989,7 +989,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result, err := value.LessThanBool(left, right)
+			result, err := value.LessThan(left, right)
 			if !err.IsUndefined() {
 				vm.throw(err)
 				break
@@ -1004,7 +1004,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result, err := value.GreaterThanEqualBool(left, right)
+			result, err := value.GreaterThanEqual(left, right)
 			if !err.IsUndefined() {
 				vm.throw(err)
 				break
@@ -1019,7 +1019,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result, err := value.GreaterThanBool(left, right)
+			result, err := value.GreaterThan(left, right)
 			if !err.IsUndefined() {
 				vm.throw(err)
 				break
@@ -1034,7 +1034,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result := value.EqualBool(left, right)
+			result := value.Equal(left, right)
 			if !result {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
@@ -1045,7 +1045,7 @@ func (vm *VM) run() {
 			right := vm.popGet()
 			left := vm.popGet()
 
-			result := value.EqualBool(left, right)
+			result := value.Equal(left, right)
 			if result {
 				jump := vm.readUint16()
 				vm.ipIncrementBy(uintptr(jump))
@@ -1059,10 +1059,10 @@ func (vm *VM) run() {
 			var result bool
 			if left.IsSmallInt() {
 				left := left.AsSmallInt()
-				result, _ = left.LessThanEqualBool(right)
+				result, _ = left.LessThanEqual(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result, _ = leftBig.LessThanEqualBool(right)
+				result, _ = leftBig.LessThanEqual(right)
 			}
 			if !result {
 				jump := vm.readUint16()
@@ -1077,10 +1077,10 @@ func (vm *VM) run() {
 			var result bool
 			if left.IsSmallInt() {
 				left := left.AsSmallInt()
-				result, _ = left.LessThanBool(right)
+				result, _ = left.LessThan(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result, _ = leftBig.LessThanBool(right)
+				result, _ = leftBig.LessThan(right)
 			}
 			if !result {
 				jump := vm.readUint16()
@@ -1095,10 +1095,10 @@ func (vm *VM) run() {
 			var result bool
 			if left.IsSmallInt() {
 				left := left.AsSmallInt()
-				result, _ = left.GreaterThanEqualBool(right)
+				result, _ = left.GreaterThanEqual(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result, _ = leftBig.GreaterThanEqualBool(right)
+				result, _ = leftBig.GreaterThanEqual(right)
 			}
 			if !result {
 				jump := vm.readUint16()
@@ -1113,10 +1113,10 @@ func (vm *VM) run() {
 			var result bool
 			if left.IsSmallInt() {
 				left := left.AsSmallInt()
-				result, _ = left.GreaterThanBool(right)
+				result, _ = left.GreaterThan(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result, _ = leftBig.GreaterThanBool(right)
+				result, _ = leftBig.GreaterThan(right)
 			}
 			if !result {
 				jump := vm.readUint16()
@@ -1134,7 +1134,7 @@ func (vm *VM) run() {
 				result = left.StrictEqualBool(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result = leftBig.EqualBool(right)
+				result = leftBig.Equal(right)
 			}
 			if !result {
 				jump := vm.readUint16()
@@ -1152,7 +1152,7 @@ func (vm *VM) run() {
 				result = left.StrictEqualBool(right)
 			} else {
 				leftBig := left.AsReference().(*value.BigInt)
-				result = leftBig.EqualBool(right)
+				result = leftBig.Equal(right)
 			}
 			if result {
 				jump := vm.readUint16()
@@ -3075,7 +3075,7 @@ func (vm *VM) opNegateInt() {
 	var result value.Value
 	if operand.IsSmallInt() {
 		operand := operand.AsSmallInt()
-		result = operand.Negate()
+		result = operand.NegateVal()
 	} else {
 		operand := operand.AsReference().(*value.BigInt)
 		result = value.Ref(operand.Negate())
@@ -3112,34 +3112,34 @@ func (vm *VM) opDecrementInt() {
 		result = operand.Decrement()
 	} else {
 		operand := operand.AsReference().(*value.BigInt)
-		result = operand.Decrement()
+		result = operand.DecrementVal()
 	}
 	vm.replace(result)
 }
 
 // Increment the element on top of the stack
 func (vm *VM) opIncrement() (err value.Value) {
-	return vm.unaryOperation(value.Increment, symbol.OpIncrement)
+	return vm.unaryOperation(value.IncrementVal, symbol.OpIncrement)
 }
 
 // Decrement the element on top of the stack
 func (vm *VM) opDecrement() (err value.Value) {
-	return vm.unaryOperation(value.Decrement, symbol.OpDecrement)
+	return vm.unaryOperation(value.DecrementVal, symbol.OpDecrement)
 }
 
 // Negate the element on top of the stack
 func (vm *VM) opNegate() (err value.Value) {
-	return vm.unaryOperation(value.Negate, symbol.OpNegate)
+	return vm.unaryOperation(value.NegateVal, symbol.OpNegate)
 }
 
 // Perform unary plus on the element on top of the stack
 func (vm *VM) opUnaryPlus() (err value.Value) {
-	return vm.unaryOperation(value.UnaryPlus, symbol.OpUnaryPlus)
+	return vm.unaryOperation(value.UnaryPlusVal, symbol.OpUnaryPlus)
 }
 
 // Preform bitwise not on the element on top of the stack
 func (vm *VM) opBitwiseNot() (err value.Value) {
-	return vm.unaryOperation(value.BitwiseNot, symbol.OpBitwiseNot)
+	return vm.unaryOperation(value.BitwiseNotVal, symbol.OpBitwiseNot)
 }
 
 func (vm *VM) opAppendAt() value.Value {
@@ -3303,12 +3303,12 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 
 // Perform a bitwise AND and push the result to the stack.
 func (vm *VM) opBitwiseAnd() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAnd, symbol.OpAnd)
+	return vm.binaryOperation(value.BitwiseAndVal, symbol.OpAnd)
 }
 
 // Perform a bitwise AND NOT and push the result to the stack.
 func (vm *VM) opBitwiseAndNot() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAndNot, symbol.OpAndNot)
+	return vm.binaryOperation(value.BitwiseAndNotVal, symbol.OpAndNot)
 }
 
 // Get the value under the given key and push the result to the stack.
@@ -3327,27 +3327,27 @@ func (vm *VM) opSubscript() (err value.Value) {
 
 // Perform a bitwise OR and push the result to the stack.
 func (vm *VM) opBitwiseOr() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseOr, symbol.OpOr)
+	return vm.binaryOperation(value.BitwiseOrVal, symbol.OpOr)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 func (vm *VM) opBitwiseXor() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseXor, symbol.OpXor)
+	return vm.binaryOperation(value.BitwiseXorVal, symbol.OpXor)
 }
 
 // Perform a comparison and push the result to the stack.
 func (vm *VM) opCompare() (err value.Value) {
-	return vm.binaryOperation(value.Compare, symbol.OpSpaceship)
+	return vm.binaryOperation(value.CompareVal, symbol.OpSpaceship)
 }
 
 // Perform opModulo and push the result to the stack.
 func (vm *VM) opModulo() (err value.Value) {
-	return vm.binaryOperation(value.Modulo, symbol.OpModulo)
+	return vm.binaryOperation(value.ModuloVal, symbol.OpModulo)
 }
 
 // Check whether two top elements on the stack are opEqual and push the result to the stack.
 func (vm *VM) opEqual() (err value.Value) {
-	return vm.callEqualityOperator(value.Equal, symbol.OpEqual)
+	return vm.callEqualityOperator(value.EqualVal, symbol.OpEqual)
 }
 
 func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
@@ -3402,17 +3402,17 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) opNotEqual() (err value.Value) {
-	return vm.callNegatedEqualityOperator(value.NotEqual, symbol.OpEqual)
+	return vm.callNegatedEqualityOperator(value.NotEqualVal, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *VM) opLaxEqual() (err value.Value) {
-	return vm.callEqualityOperator(value.LaxEqual, symbol.OpLaxEqual)
+	return vm.callEqualityOperator(value.LaxEqualVal, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) opLaxNotEqual() (err value.Value) {
-	return vm.callNegatedEqualityOperator(value.LaxNotEqual, symbol.OpLaxEqual)
+	return vm.callNegatedEqualityOperator(value.LaxNotEqualVal, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
@@ -3420,7 +3420,7 @@ func (vm *VM) opStrictEqual() {
 	right := vm.popGet()
 	left := vm.peek()
 
-	result := value.StrictEqual(left, right)
+	result := value.StrictEqualVal(left, right)
 	vm.replace(result)
 }
 
@@ -3429,28 +3429,28 @@ func (vm *VM) opStrictNotEqual() {
 	right := vm.popGet()
 	left := vm.peek()
 
-	result := value.StrictNotEqual(left, right)
+	result := value.StrictNotEqualVal(left, right)
 	vm.replace(result)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
 func (vm *VM) opGreaterThan() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThan, symbol.OpGreaterThan)
+	return vm.binaryOperation(value.GreaterThanVal, symbol.OpGreaterThan)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
 func (vm *VM) opGreaterThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThanEqual, symbol.OpGreaterThanEqual)
+	return vm.binaryOperation(value.GreaterThanEqualVal, symbol.OpGreaterThanEqual)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
 func (vm *VM) opLessThan() (err value.Value) {
-	return vm.binaryOperation(value.LessThan, symbol.OpLessThan)
+	return vm.binaryOperation(value.LessThanVal, symbol.OpLessThan)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
 func (vm *VM) opLessThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.LessThanEqual, symbol.OpLessThanEqual)
+	return vm.binaryOperation(value.LessThanEqualVal, symbol.OpLessThanEqual)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
@@ -3461,10 +3461,10 @@ func (vm *VM) opLessThanEqualInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.LessThanEqual(right)
+		result, _ = left.LessThanEqualVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.LessThanEqual(right)
+		result, _ = leftBig.LessThanEqualVal(right)
 	}
 	vm.replace(result)
 }
@@ -3474,7 +3474,7 @@ func (vm *VM) opLessThanEqualFloat() {
 	left := vm.peek()
 
 	l := left.AsSmallInt()
-	result, _ := l.LessThanEqual(right)
+	result, _ := l.LessThanEqualVal(right)
 	vm.replace(result)
 }
 
@@ -3485,10 +3485,10 @@ func (vm *VM) opLessThanInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.LessThan(right)
+		result, _ = left.LessThanVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.LessThan(right)
+		result, _ = leftBig.LessThanVal(right)
 	}
 	vm.replace(result)
 }
@@ -3498,7 +3498,7 @@ func (vm *VM) opLessThanFloat() {
 	left := vm.peek()
 
 	l := left.AsSmallInt()
-	result, _ := l.LessThan(right)
+	result, _ := l.LessThanVal(right)
 	vm.replace(result)
 }
 
@@ -3509,10 +3509,10 @@ func (vm *VM) opGreaterThanInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.GreaterThan(right)
+		result, _ = left.GreaterThanVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.GreaterThan(right)
+		result, _ = leftBig.GreaterThanVal(right)
 	}
 	vm.replace(result)
 }
@@ -3522,7 +3522,7 @@ func (vm *VM) opGreaterThanFloat() {
 	left := vm.peek()
 
 	l := left.AsFloat()
-	result, _ := l.GreaterThan(right)
+	result, _ := l.GreaterThanVal(right)
 	vm.replace(result)
 }
 
@@ -3533,10 +3533,10 @@ func (vm *VM) opGreaterThanEqualInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.GreaterThanEqual(right)
+		result, _ = left.GreaterThanEqualVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.GreaterThanEqual(right)
+		result, _ = leftBig.GreaterThanEqualVal(right)
 	}
 	vm.replace(result)
 }
@@ -3546,33 +3546,33 @@ func (vm *VM) opGreaterThanEqualFloat() {
 	left := vm.peek()
 
 	l := left.AsFloat()
-	result, _ := l.GreaterThanEqual(right)
+	result, _ := l.GreaterThanEqualVal(right)
 	vm.replace(result)
 }
 
 // Perform a left bitshift and push the result to the stack.
 func (vm *VM) opLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LeftBitshift, symbol.OpLeftBitshift)
+	return vm.binaryOperation(value.LeftBitshiftVal, symbol.OpLeftBitshift)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 func (vm *VM) opLogicalLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalLeftBitshift, symbol.OpLogicalLeftBitshift)
+	return vm.binaryOperation(value.LogicalLeftBitshiftVal, symbol.OpLogicalLeftBitshift)
 }
 
 // Perform a right bitshift and push the result to the stack.
 func (vm *VM) opRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.RightBitshift, symbol.OpRightBitshift)
+	return vm.binaryOperation(value.RightBitshiftVal, symbol.OpRightBitshift)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 func (vm *VM) opLogicalRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalRightBitshift, symbol.OpLogicalRightBitshift)
+	return vm.binaryOperation(value.LogicalRightBitshiftVal, symbol.OpLogicalRightBitshift)
 }
 
 // Add two operands together and push the result to the stack.
 func (vm *VM) opAdd() (err value.Value) {
-	return vm.binaryOperation(value.Add, symbol.OpAdd)
+	return vm.binaryOperation(value.AddVal, symbol.OpAdd)
 }
 
 func (vm *VM) opBitwiseOrInt() {
@@ -3581,10 +3581,10 @@ func (vm *VM) opBitwiseOrInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.BitwiseOr(right)
+		result, _ = left.BitwiseOrVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.BitwiseOr(right)
+		result, _ = leftBig.BitwiseOrVal(right)
 	}
 
 	vm.replace(result)
@@ -3596,10 +3596,10 @@ func (vm *VM) opBitwiseXorInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.BitwiseXor(right)
+		result, _ = left.BitwiseXorVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.BitwiseXor(right)
+		result, _ = leftBig.BitwiseXorVal(right)
 	}
 
 	vm.replace(result)
@@ -3611,10 +3611,10 @@ func (vm *VM) opBitwiseAndInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.BitwiseAnd(right)
+		result, _ = left.BitwiseAndVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.BitwiseAnd(right)
+		result, _ = leftBig.BitwiseAndVal(right)
 	}
 
 	vm.replace(result)
@@ -3626,10 +3626,10 @@ func (vm *VM) opLeftBitshiftInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.LeftBitshift(right)
+		result, _ = left.LeftBitshiftVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.LeftBitshift(right)
+		result, _ = leftBig.LeftBitshiftVal(right)
 	}
 
 	vm.replace(result)
@@ -3641,10 +3641,10 @@ func (vm *VM) opRightBitshiftInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.RightBitshift(right)
+		result, _ = left.RightBitshiftVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.RightBitshift(right)
+		result, _ = leftBig.RightBitshiftVal(right)
 	}
 
 	vm.replace(result)
@@ -3657,10 +3657,10 @@ func (vm *VM) opAddInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Add(right)
+		result, _ = left.AddVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Add(right)
+		result, _ = leftBig.AddVal(right)
 	}
 
 	vm.replace(result)
@@ -3671,13 +3671,13 @@ func (vm *VM) opAddFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
-	result, _ := l.Add(right)
+	result, _ := l.AddVal(right)
 	vm.replace(result)
 }
 
 // Subtract two operands and push the result to the stack.
 func (vm *VM) opSubtract() (err value.Value) {
-	return vm.binaryOperation(value.Subtract, symbol.OpSubtract)
+	return vm.binaryOperation(value.SubtractVal, symbol.OpSubtract)
 }
 
 // Subtract a value from an Int another value and push the result to the stack.
@@ -3688,10 +3688,10 @@ func (vm *VM) opSubtractInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Subtract(right)
+		result, _ = left.SubtractVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Subtract(right)
+		result, _ = leftBig.SubtractVal(right)
 	}
 	vm.replace(result)
 }
@@ -3701,7 +3701,7 @@ func (vm *VM) opSubtractFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsSmallInt()
-	result, _ := l.Subtract(right)
+	result, _ := l.SubtractVal(right)
 	vm.replace(result)
 }
 
@@ -3713,10 +3713,10 @@ func (vm *VM) opMultiplyInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Multiply(right)
+		result, _ = left.MultiplyVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Multiply(right)
+		result, _ = leftBig.MultiplyVal(right)
 	}
 	vm.replace(result)
 }
@@ -3726,7 +3726,7 @@ func (vm *VM) opMultiplyFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
-	result, _ := l.Multiply(right)
+	result, _ := l.MultiplyVal(right)
 	vm.replace(result)
 }
 
@@ -3738,10 +3738,10 @@ func (vm *VM) opDivideInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Divide(right)
+		result, _ = left.DivideVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Divide(right)
+		result, _ = leftBig.DivideVal(right)
 	}
 	vm.replace(result)
 }
@@ -3751,7 +3751,7 @@ func (vm *VM) opDivideFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
-	result, _ := l.Divide(right)
+	result, _ := l.DivideVal(right)
 	vm.replace(result)
 }
 
@@ -3763,10 +3763,10 @@ func (vm *VM) opExponentiateInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Exponentiate(right)
+		result, _ = left.ExponentiateVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Exponentiate(right)
+		result, _ = leftBig.ExponentiateVal(right)
 	}
 	vm.replace(result)
 }
@@ -3778,10 +3778,10 @@ func (vm *VM) opModuloInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.Modulo(right)
+		result, _ = left.ModuloVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.Modulo(right)
+		result, _ = leftBig.ModuloVal(right)
 	}
 	vm.replace(result)
 }
@@ -3790,7 +3790,7 @@ func (vm *VM) opModuloFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
-	result, _ := l.Modulo(right)
+	result, _ := l.ModuloVal(right)
 	vm.replace(result)
 }
 
@@ -3801,10 +3801,10 @@ func (vm *VM) opEqualInt() {
 	var result value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result = left.Equal(right)
+		result = left.EqualVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result = leftBig.Equal(right)
+		result = leftBig.EqualVal(right)
 	}
 	vm.replace(result)
 }
@@ -3813,7 +3813,7 @@ func (vm *VM) opEqualFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
-	result := l.Equal(right)
+	result := l.EqualVal(right)
 	vm.replace(result)
 }
 
@@ -3824,10 +3824,10 @@ func (vm *VM) opNotEqualInt() {
 	var result bool
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result = left.EqualBool(right)
+		result = left.Equal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result = leftBig.EqualBool(right)
+		result = leftBig.Equal(right)
 	}
 	vm.replace(value.ToElkBool(!result))
 }
@@ -3838,23 +3838,23 @@ func (vm *VM) opNotEqualFloat() {
 
 	var result bool
 	l := left.AsFloat()
-	result = l.EqualBool(right)
+	result = l.Equal(right)
 	vm.replace(value.ToElkBool(!result))
 }
 
 // Multiply two operands together and push the result to the stack.
 func (vm *VM) opMultiply() (err value.Value) {
-	return vm.binaryOperation(value.Multiply, symbol.OpMultiply)
+	return vm.binaryOperation(value.MultiplyVal, symbol.OpMultiply)
 }
 
 // Divide two operands and push the result to the stack.
 func (vm *VM) opDivide() (err value.Value) {
-	return vm.binaryOperation(value.Divide, symbol.OpDivide)
+	return vm.binaryOperation(value.DivideVal, symbol.OpDivide)
 }
 
 // Exponentiate two operands and push the result to the stack.
 func (vm *VM) opExponentiate() (err value.Value) {
-	return vm.binaryOperation(value.Exponentiate, symbol.OpExponentiate)
+	return vm.binaryOperation(value.ExponentiateVal, symbol.OpExponentiate)
 }
 
 // Throw an error when the value on top of the stack is `nil`

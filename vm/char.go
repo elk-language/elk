@@ -53,7 +53,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.Compare(other)
+			return self.CompareVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -63,7 +63,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.LessThanEqual(other)
+			return self.LessThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -73,7 +73,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.LessThan(other)
+			return self.LessThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -83,7 +83,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.GreaterThan(other)
+			return self.GreaterThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -93,7 +93,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.GreaterThanEqual(other)
+			return self.GreaterThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -103,7 +103,7 @@ func initChar() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
-			return self.Equal(other), value.Undefined
+			return self.EqualVal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)

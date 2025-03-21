@@ -142,7 +142,7 @@ func (t *ArrayTuple) SubscriptSet(key, val Value) Value {
 
 // Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
-func (t *ArrayTuple) Concat(other Value) (Value, Value) {
+func (t *ArrayTuple) ConcatVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *ArrayList:

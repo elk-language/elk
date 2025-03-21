@@ -35,7 +35,7 @@ func TestArrayTuple_Concat(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.left.Concat(tc.right)
+			got, err := tc.left.ConcatVal(tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatal(diff)

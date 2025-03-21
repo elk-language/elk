@@ -158,7 +158,7 @@ func (i UInt8) BitwiseXor(other Value) (UInt8, Value) {
 	return i ^ o, Undefined
 }
 
-func (i UInt8) Exponentiate(other Value) (UInt8, Value) {
+func (i UInt8) ExponentiateVal(other Value) (UInt8, Value) {
 	if !other.IsUInt8() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -193,7 +193,7 @@ func (i UInt8) Multiply(other Value) (UInt8, Value) {
 	return i * o, Undefined
 }
 
-func (i UInt8) Modulo(other Value) (UInt8, Value) {
+func (i UInt8) ModuloVal(other Value) (UInt8, Value) {
 	if !other.IsUInt8() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -216,7 +216,7 @@ func (i UInt8) Divide(other Value) (UInt8, Value) {
 	return i / o, Undefined
 }
 
-func (i UInt8) Compare(other Value) (Value, Value) {
+func (i UInt8) CompareVal(other Value) (Value, Value) {
 	if !other.IsUInt8() {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -231,12 +231,12 @@ func (i UInt8) Compare(other Value) (Value, Value) {
 	return SmallInt(0).ToValue(), Undefined
 }
 
-func (i UInt8) GreaterThan(other Value) (Value, Value) {
-	result, err := i.GreaterThanBool(other)
+func (i UInt8) GreaterThanVal(other Value) (Value, Value) {
+	result, err := i.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt8) GreaterThanBool(other Value) (bool, Value) {
+func (i UInt8) GreaterThan(other Value) (bool, Value) {
 	if !other.IsUInt8() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -245,12 +245,12 @@ func (i UInt8) GreaterThanBool(other Value) (bool, Value) {
 	return i > o, Undefined
 }
 
-func (i UInt8) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := i.GreaterThanEqualBool(other)
+func (i UInt8) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt8) GreaterThanEqualBool(other Value) (bool, Value) {
+func (i UInt8) GreaterThanEqual(other Value) (bool, Value) {
 	if !other.IsUInt8() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -259,12 +259,12 @@ func (i UInt8) GreaterThanEqualBool(other Value) (bool, Value) {
 	return i >= o, Undefined
 }
 
-func (i UInt8) LessThan(other Value) (Value, Value) {
-	result, err := i.LessThanBool(other)
+func (i UInt8) LessThanVal(other Value) (Value, Value) {
+	result, err := i.LessThan(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt8) LessThanBool(other Value) (bool, Value) {
+func (i UInt8) LessThan(other Value) (bool, Value) {
 	if !other.IsUInt8() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -273,12 +273,12 @@ func (i UInt8) LessThanBool(other Value) (bool, Value) {
 	return i < o, Undefined
 }
 
-func (i UInt8) LessThanEqual(other Value) (Value, Value) {
-	result, err := i.LessThanEqualBool(other)
+func (i UInt8) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := i.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt8) LessThanEqualBool(other Value) (bool, Value) {
+func (i UInt8) LessThanEqual(other Value) (bool, Value) {
 	if !other.IsUInt8() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -287,11 +287,11 @@ func (i UInt8) LessThanEqualBool(other Value) (bool, Value) {
 	return i <= o, Undefined
 }
 
-func (i UInt8) Equal(other Value) Value {
-	return ToElkBool(i.EqualBool(other))
+func (i UInt8) EqualVal(other Value) Value {
+	return ToElkBool(i.Equal(other))
 }
 
-func (i UInt8) EqualBool(other Value) bool {
+func (i UInt8) Equal(other Value) bool {
 	if !other.IsUInt8() {
 		return false
 	}
@@ -300,8 +300,8 @@ func (i UInt8) EqualBool(other Value) bool {
 	return i == o
 }
 
-func (i UInt8) StrictEqual(other Value) Value {
-	return i.Equal(other)
+func (i UInt8) StrictEqualVal(other Value) Value {
+	return i.EqualVal(other)
 }
 
 func initUInt8() {

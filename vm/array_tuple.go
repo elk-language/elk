@@ -56,7 +56,7 @@ func initArrayTuple() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			other := args[1]
-			return self.Concat(other)
+			return self.ConcatVal(other)
 		},
 		DefWithParameters(1),
 	)

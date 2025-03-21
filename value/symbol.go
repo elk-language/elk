@@ -131,7 +131,7 @@ func (s Symbol) InstanceVariables() SymbolMap {
 }
 
 // Check whether s is equal to other
-func (s Symbol) Equal(other Value) Value {
+func (s Symbol) EqualVal(other Value) Value {
 	if other.IsSymbol() {
 		return ToElkBool(s == other.AsSymbol())
 	}
@@ -140,7 +140,7 @@ func (s Symbol) Equal(other Value) Value {
 }
 
 // Check whether s is equal to other
-func (s Symbol) EqualBool(other Value) bool {
+func (s Symbol) Equal(other Value) bool {
 	if other.IsSymbol() {
 		return s == other.AsSymbol()
 	}
@@ -149,13 +149,13 @@ func (s Symbol) EqualBool(other Value) bool {
 }
 
 // Check whether s is equal to other
-func (s Symbol) StrictEqual(other Value) Value {
-	return s.Equal(other)
+func (s Symbol) StrictEqualVal(other Value) Value {
+	return s.EqualVal(other)
 }
 
 // Check whether s is equal to other
-func (s Symbol) LaxEqual(other Value) Value {
-	return s.Equal(other)
+func (s Symbol) LaxEqualVal(other Value) Value {
+	return s.EqualVal(other)
 }
 
 func (s Symbol) Hash() UInt64 {

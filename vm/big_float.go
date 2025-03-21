@@ -52,7 +52,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Add(other)
+			return self.AddVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -62,7 +62,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Subtract(other)
+			return self.SubtractVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -72,7 +72,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Multiply(other)
+			return self.MultiplyVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -82,7 +82,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Divide(other)
+			return self.DivideVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -92,7 +92,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Exponentiate(other)
+			return self.ExponentiateVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -102,7 +102,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Compare(other)
+			return self.CompareVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -112,7 +112,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.GreaterThan(other)
+			return self.GreaterThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -122,7 +122,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.GreaterThanEqual(other)
+			return self.GreaterThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -132,7 +132,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.LessThan(other)
+			return self.LessThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -142,7 +142,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.LessThanEqual(other)
+			return self.LessThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -152,7 +152,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Equal(other), value.Undefined
+			return self.EqualVal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -162,7 +162,7 @@ func initBigFloat() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			other := args[1]
-			return self.Modulo(other)
+			return self.ModuloVal(other)
 		},
 		DefWithParameters(1),
 	)

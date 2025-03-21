@@ -186,7 +186,7 @@ func (c Char) Repeat(other Value) (String, Value) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (c Char) Compare(other Value) (Value, Value) {
+func (c Char) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -205,14 +205,14 @@ func (c Char) Compare(other Value) (Value, Value) {
 
 // Check whether c is greater than other and return an error
 // if something went wrong.
-func (c Char) GreaterThan(other Value) (Value, Value) {
-	result, err := c.GreaterThanBool(other)
+func (c Char) GreaterThanVal(other Value) (Value, Value) {
+	result, err := c.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether c is greater than other and return an error
 // if something went wrong.
-func (c Char) GreaterThanBool(other Value) (bool, Value) {
+func (c Char) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -232,14 +232,14 @@ func (c Char) GreaterThanBool(other Value) (bool, Value) {
 
 // Check whether c is greater than or equal to other and return an error
 // if something went wrong.
-func (c Char) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := c.GreaterThanEqualBool(other)
+func (c Char) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := c.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether c is greater than or equal to other and return an error
 // if something went wrong.
-func (c Char) GreaterThanEqualBool(other Value) (bool, Value) {
+func (c Char) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -259,14 +259,14 @@ func (c Char) GreaterThanEqualBool(other Value) (bool, Value) {
 
 // Check whether c is less than other and return an error
 // if something went wrong.
-func (c Char) LessThan(other Value) (Value, Value) {
-	result, err := c.LessThanBool(other)
+func (c Char) LessThanVal(other Value) (Value, Value) {
+	result, err := c.LessThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether c is less than other and return an error
 // if something went wrong.
-func (c Char) LessThanBool(other Value) (bool, Value) {
+func (c Char) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -286,14 +286,14 @@ func (c Char) LessThanBool(other Value) (bool, Value) {
 
 // Check whether c is less than or equal to other and return an error
 // if something went wrong.
-func (c Char) LessThanEqual(other Value) (Value, Value) {
-	result, err := c.LessThanEqualBool(other)
+func (c Char) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := c.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether c is less than or equal to other and return an error
 // if something went wrong.
-func (c Char) LessThanEqualBool(other Value) (bool, Value) {
+func (c Char) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -312,7 +312,7 @@ func (c Char) LessThanEqualBool(other Value) (bool, Value) {
 }
 
 // Check whether c is equal to other
-func (c Char) LaxEqual(other Value) Value {
+func (c Char) LaxEqualVal(other Value) Value {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -336,12 +336,12 @@ func (c Char) LaxEqual(other Value) Value {
 }
 
 // Check whether s is equal to other
-func (c Char) Equal(other Value) Value {
-	return ToElkBool(c.EqualBool(other))
+func (c Char) EqualVal(other Value) Value {
+	return ToElkBool(c.Equal(other))
 }
 
 // Check whether s is equal to other
-func (c Char) EqualBool(other Value) bool {
+func (c Char) Equal(other Value) bool {
 	if other.IsChar() {
 		return c == other.AsChar()
 	}
@@ -360,8 +360,8 @@ func (c Char) Lowercase() Char {
 }
 
 // Check whether s is strictly equal to other
-func (c Char) StrictEqual(other Value) Value {
-	return c.Equal(other)
+func (c Char) StrictEqualVal(other Value) Value {
+	return c.EqualVal(other)
 }
 
 func initChar() {

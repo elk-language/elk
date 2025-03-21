@@ -41,7 +41,7 @@ func TestBigInt_Add_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Add(tc.b)
+			got, err := tc.a.AddVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -74,7 +74,7 @@ func TestBigInt_Subtract_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Subtract(tc.b)
+			got, err := tc.a.SubtractVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -102,7 +102,7 @@ func TestBigInt_Multiply_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Multiply(tc.b)
+			got, err := tc.a.MultiplyVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -130,7 +130,7 @@ func TestBigInt_Divide_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Divide(tc.b)
+			got, err := tc.a.DivideVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
@@ -169,7 +169,7 @@ func TestBigInt_RightBitshift_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.RightBitshift(tc.b)
+			got, err := tc.a.RightBitshiftVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -197,7 +197,7 @@ func TestBigInt_BitwiseXor_64sys(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.BitwiseXor(tc.b)
+			got, err := tc.a.BitwiseXorVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)

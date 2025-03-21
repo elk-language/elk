@@ -119,7 +119,7 @@ func (r *Regex) Equal(other Value) Value {
 }
 
 // Check whether r is equal to other
-func (r *Regex) LaxEqual(other Value) Value {
+func (r *Regex) LaxEqualVal(other Value) Value {
 	return r.Equal(other)
 }
 
@@ -139,7 +139,7 @@ func (r *Regex) WriteSourceTo(w io.StringWriter) {
 }
 
 // Create a new regex concatenating r with other
-func (r *Regex) Concat(other Value) (Value, Value) {
+func (r *Regex) ConcatVal(other Value) (Value, Value) {
 	if !other.IsReference() {
 		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
@@ -159,8 +159,8 @@ func (r *Regex) Concat(other Value) (Value, Value) {
 	}
 }
 
-// Repeat the content of this Regex n times and return a new Regex.
-func (r *Regex) Repeat(other Value) (Value, Value) {
+// RepeatVal the content of this Regex n times and return a new Regex.
+func (r *Regex) RepeatVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}

@@ -121,7 +121,7 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 
 // Check whether two values are equal
 func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result := value.Equal(left, right)
+	result := value.EqualVal(left, right)
 
 	if !result.IsUndefined() {
 		return result, value.Undefined
@@ -139,7 +139,7 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 
 // Check whether two values are equal (lax)
 func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result := value.LaxEqual(left, right)
+	result := value.LaxEqualVal(left, right)
 
 	if !result.IsUndefined() {
 		return result, value.Undefined
@@ -157,7 +157,7 @@ func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 
 // Check whether the left value is greater than the right
 func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result, err := value.GreaterThan(left, right)
+	result, err := value.GreaterThanVal(left, right)
 
 	if !err.IsUndefined() {
 		return value.Undefined, err
@@ -178,7 +178,7 @@ func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 
 // Check whether the left value is greater than or equal to the right
 func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result, err := value.GreaterThanEqual(left, right)
+	result, err := value.GreaterThanEqualVal(left, right)
 
 	if !err.IsUndefined() {
 		return value.Undefined, err
@@ -199,7 +199,7 @@ func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value
 
 // Check whether the left value is less than the right
 func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result, err := value.LessThan(left, right)
+	result, err := value.LessThanVal(left, right)
 
 	if !err.IsUndefined() {
 		return value.Undefined, err
@@ -220,7 +220,7 @@ func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 
 // Check whether the left value is less than or equal to the right
 func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result, err := value.LessThanEqual(left, right)
+	result, err := value.LessThanEqualVal(left, right)
 
 	if !err.IsUndefined() {
 		return value.Undefined, err
@@ -241,7 +241,7 @@ func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 
 // Increment the given value
 func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
-	result := value.Increment(val)
+	result := value.IncrementVal(val)
 
 	if !result.IsUndefined() {
 		return result, value.Undefined
@@ -259,7 +259,7 @@ func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
 
 // Decrement the given value
 func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
-	result := value.Decrement(val)
+	result := value.DecrementVal(val)
 
 	if !result.IsUndefined() {
 		return result, value.Undefined

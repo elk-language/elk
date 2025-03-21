@@ -182,9 +182,9 @@ func (f Float) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
-// Add another value and return an error
+// AddVal another value and return an error
 // if something went wrong.
-func (f Float) Add(other Value) (result, err Value) {
+func (f Float) AddVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -208,9 +208,9 @@ func (f Float) Add(other Value) (result, err Value) {
 	}
 }
 
-// Subtract another value and return an error
+// SubtractVal another value and return an error
 // if something went wrong.
-func (f Float) Subtract(other Value) (result, err Value) {
+func (f Float) SubtractVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -236,7 +236,7 @@ func (f Float) Subtract(other Value) (result, err Value) {
 
 // Add another value and return an error
 // if something went wrong.
-func (f Float) Multiply(other Value) (result, err Value) {
+func (f Float) MultiplyVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -260,9 +260,9 @@ func (f Float) Multiply(other Value) (result, err Value) {
 	}
 }
 
-// Divide by another value and return an error
+// DivideVal by another value and return an error
 // if something went wrong.
-func (f Float) Divide(other Value) (result, err Value) {
+func (f Float) DivideVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -286,9 +286,9 @@ func (f Float) Divide(other Value) (result, err Value) {
 	}
 }
 
-// Exponentiate by another value and return an error
+// ExponentiateVal by another value and return an error
 // if something went wrong.
-func (f Float) Exponentiate(other Value) (result, err Value) {
+func (f Float) ExponentiateVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -320,7 +320,7 @@ func (a Float) Mod(b Float) Float {
 
 // Perform modulo by another numeric value and return an error
 // if something went wrong.
-func (f Float) Modulo(other Value) (result, err Value) {
+func (f Float) ModuloVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -349,7 +349,7 @@ func (f Float) Modulo(other Value) (result, err Value) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (f Float) Compare(other Value) (result, err Value) {
+func (f Float) CompareVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -386,14 +386,14 @@ func (f Float) Compare(other Value) (result, err Value) {
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f Float) GreaterThan(other Value) (Value, Value) {
-	result, err := f.GreaterThanBool(other)
+func (f Float) GreaterThanVal(other Value) (Value, Value) {
+	result, err := f.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f Float) GreaterThanBool(other Value) (bool, Value) {
+func (f Float) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -426,14 +426,14 @@ func (f Float) GreaterThanBool(other Value) (bool, Value) {
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f Float) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := f.GreaterThanEqualBool(other)
+func (f Float) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f Float) GreaterThanEqualBool(other Value) (bool, Value) {
+func (f Float) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -466,14 +466,14 @@ func (f Float) GreaterThanEqualBool(other Value) (bool, Value) {
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f Float) LessThan(other Value) (Value, Value) {
-	result, err := f.LessThanBool(other)
+func (f Float) LessThanVal(other Value) (Value, Value) {
+	result, err := f.LessThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f Float) LessThanBool(other Value) (bool, Value) {
+func (f Float) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -506,14 +506,14 @@ func (f Float) LessThanBool(other Value) (bool, Value) {
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f Float) LessThanEqual(other Value) (Value, Value) {
-	result, err := f.LessThanEqualBool(other)
+func (f Float) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := f.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f Float) LessThanEqualBool(other Value) (bool, Value) {
+func (f Float) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -545,7 +545,7 @@ func (f Float) LessThanEqualBool(other Value) (bool, Value) {
 }
 
 // Check whether f is equal to other
-func (f Float) LaxEqual(other Value) Value {
+func (f Float) LaxEqualVal(other Value) Value {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -599,13 +599,13 @@ func (f Float) LaxEqual(other Value) Value {
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f Float) Equal(other Value) Value {
-	return ToElkBool(f.EqualBool(other))
+func (f Float) EqualVal(other Value) Value {
+	return ToElkBool(f.Equal(other))
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f Float) EqualBool(other Value) bool {
+func (f Float) Equal(other Value) bool {
 	if other.IsFloat() {
 		return f == other.AsFloat()
 	}
@@ -615,8 +615,8 @@ func (f Float) EqualBool(other Value) bool {
 
 // Check whether f is strictly equal to other and return an error
 // if something went wrong.
-func (f Float) StrictEqual(other Value) Value {
-	return f.Equal(other)
+func (f Float) StrictEqualVal(other Value) Value {
+	return f.EqualVal(other)
 }
 
 func (f Float) Nanoseconds() Duration {

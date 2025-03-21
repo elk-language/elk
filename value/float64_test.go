@@ -45,7 +45,7 @@ func TestFloat64_Exponentiate(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Exponentiate(tc.b)
+			got, err := tc.a.ExponentiateVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -224,7 +224,7 @@ func TestFloat64_GreaterThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.GreaterThan(tc.b)
+			got, err := tc.a.GreaterThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -274,7 +274,7 @@ func TestFloat64_GreaterThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.GreaterThanEqual(tc.b)
+			got, err := tc.a.GreaterThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -324,7 +324,7 @@ func TestFloat64_LessThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.LessThan(tc.b)
+			got, err := tc.a.LessThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -374,7 +374,7 @@ func TestFloat64_LessThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.LessThanEqual(tc.b)
+			got, err := tc.a.LessThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -866,7 +866,7 @@ func TestFloat64_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.a.Equal(tc.b)
+			got := tc.a.EqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -970,7 +970,7 @@ func TestFloat64_Modulo(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Modulo(tc.b)
+			got, err := tc.a.ModuloVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)

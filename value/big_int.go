@@ -124,8 +124,8 @@ func (i *BigInt) Increment() *BigInt {
 	return result
 }
 
-// Decrement the number and return the result.
-func (i *BigInt) Decrement() Value {
+// DecrementVal the number and return the result.
+func (i *BigInt) DecrementVal() Value {
 	oBigInt := big.NewInt(int64(1))
 	oBigInt.Sub(i.ToGoBigInt(), oBigInt)
 	result := ToElkBigInt(oBigInt)
@@ -158,7 +158,7 @@ func (x *BigInt) Cmp(y *BigInt) int {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (i *BigInt) Compare(other Value) (Value, Value) {
+func (i *BigInt) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -189,9 +189,9 @@ func (i *BigInt) Compare(other Value) (Value, Value) {
 	}
 }
 
-// Add another value and return an error
+// AddVal another value and return an error
 // if something went wrong.
-func (i *BigInt) Add(other Value) (Value, Value) {
+func (i *BigInt) AddVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -225,9 +225,9 @@ func (i *BigInt) Add(other Value) (Value, Value) {
 	}
 }
 
-// Subtract another value and return an error
+// SubtractVal another value and return an error
 // if something went wrong.
-func (i *BigInt) Subtract(other Value) (Value, Value) {
+func (i *BigInt) SubtractVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -262,9 +262,9 @@ func (i *BigInt) Subtract(other Value) (Value, Value) {
 	}
 }
 
-// Multiply by another value and return an error
+// MultiplyVal by another value and return an error
 // if something went wrong.
-func (i *BigInt) Multiply(other Value) (Value, Value) {
+func (i *BigInt) MultiplyVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -298,9 +298,9 @@ func (i *BigInt) Multiply(other Value) (Value, Value) {
 	}
 }
 
-// Divide by another value and return an error
+// DivideVal by another value and return an error
 // if something went wrong.
-func (i *BigInt) Divide(other Value) (Value, Value) {
+func (i *BigInt) DivideVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -341,9 +341,9 @@ func (i *BigInt) Divide(other Value) (Value, Value) {
 	}
 }
 
-// Exponentiate by another value and return an error
+// ExponentiateVal by another value and return an error
 // if something went wrong.
-func (i *BigInt) Exponentiate(other Value) (Value, Value) {
+func (i *BigInt) ExponentiateVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -381,7 +381,7 @@ func (i *BigInt) Exponentiate(other Value) (Value, Value) {
 
 // Perform modulo with another numeric value and return an error
 // if something went wrong.
-func (i *BigInt) Modulo(other Value) (Value, Value) {
+func (i *BigInt) ModuloVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -430,14 +430,14 @@ func (i *BigInt) Modulo(other Value) (Value, Value) {
 
 // Check whether i is greater than other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThan(other Value) (Value, Value) {
-	result, err := i.GreaterThanBool(other)
+func (i *BigInt) GreaterThanVal(other Value) (Value, Value) {
+	result, err := i.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether i is greater than other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThanBool(other Value) (bool, Value) {
+func (i *BigInt) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -465,14 +465,14 @@ func (i *BigInt) GreaterThanBool(other Value) (bool, Value) {
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := i.GreaterThanEqualBool(other)
+func (i *BigInt) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) GreaterThanEqualBool(other Value) (bool, Value) {
+func (i *BigInt) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -501,14 +501,14 @@ func (i *BigInt) GreaterThanEqualBool(other Value) (bool, Value) {
 
 // Check whether i is less than other and return an error
 // if something went wrong.
-func (i *BigInt) LessThan(other Value) (Value, Value) {
-	result, err := i.LessThanBool(other)
+func (i *BigInt) LessThanVal(other Value) (Value, Value) {
+	result, err := i.LessThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether i is less than other and return an error
 // if something went wrong.
-func (i *BigInt) LessThanBool(other Value) (bool, Value) {
+func (i *BigInt) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -537,14 +537,14 @@ func (i *BigInt) LessThanBool(other Value) (bool, Value) {
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) LessThanEqual(other Value) (Value, Value) {
-	result, err := i.LessThanEqualBool(other)
+func (i *BigInt) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := i.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
-func (i *BigInt) LessThanEqualBool(other Value) (bool, Value) {
+func (i *BigInt) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -572,7 +572,7 @@ func (i *BigInt) LessThanEqualBool(other Value) (bool, Value) {
 }
 
 // Check whether i is equal to other (with coercion)
-func (i *BigInt) LaxEqual(other Value) Value {
+func (i *BigInt) LaxEqualVal(other Value) Value {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -636,7 +636,7 @@ func (i *BigInt) LaxEqual(other Value) Value {
 }
 
 // Check whether i is equal to other
-func (i *BigInt) EqualBool(other Value) bool {
+func (i *BigInt) Equal(other Value) bool {
 	if other.IsSmallInt() {
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
 		return i.Cmp(oBigInt) == 0
@@ -654,13 +654,13 @@ func (i *BigInt) EqualBool(other Value) bool {
 }
 
 // Check whether i is equal to other
-func (i *BigInt) Equal(other Value) Value {
-	return ToElkBool(i.EqualBool(other))
+func (i *BigInt) EqualVal(other Value) Value {
+	return ToElkBool(i.Equal(other))
 }
 
 // Check whether i is strictly equal to other
-func (i *BigInt) StrictEqual(other Value) Value {
-	return i.Equal(other)
+func (i *BigInt) StrictEqualVal(other Value) Value {
+	return i.EqualVal(other)
 }
 
 func rightBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
@@ -677,7 +677,7 @@ func rightBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
 
 // Bitshift to the right by another integer value and return an error
 // if something went wrong.
-func (i *BigInt) RightBitshift(other Value) (Value, Value) {
+func (i *BigInt) RightBitshiftVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
@@ -759,7 +759,7 @@ func leftBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
 
 // Bitshift to the left by another integer value and return an error
 // if something went wrong.
-func (i *BigInt) LeftBitshift(other Value) (Value, Value) {
+func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
@@ -811,7 +811,7 @@ func (i *BigInt) LeftBitshift(other Value) (Value, Value) {
 
 // Perform bitwise AND with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseAnd(other Value) (Value, Value) {
+func (i *BigInt) BitwiseAndVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -840,7 +840,7 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, Value) {
 
 // Perform bitwise AND NOT with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseAndNot(other Value) (Value, Value) {
+func (i *BigInt) BitwiseAndNotVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -869,7 +869,7 @@ func (i *BigInt) BitwiseAndNot(other Value) (Value, Value) {
 
 // Perform bitwise OR with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseOr(other Value) (Value, Value) {
+func (i *BigInt) BitwiseOrVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -898,7 +898,7 @@ func (i *BigInt) BitwiseOr(other Value) (Value, Value) {
 
 // Perform bitwise XOR with another value and return an error
 // if something went wrong.
-func (i *BigInt) BitwiseXor(other Value) (Value, Value) {
+func (i *BigInt) BitwiseXorVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -1180,7 +1180,7 @@ func (*BigIntIterator) InstanceVariables() SymbolMap {
 }
 
 func (l *BigIntIterator) Next() (Value, Value) {
-	stop, err := l.Int.LessThanBool(l.Counter)
+	stop, err := l.Int.LessThan(l.Counter)
 	if !err.IsUndefined() {
 		return Undefined, err
 	}
@@ -1189,7 +1189,7 @@ func (l *BigIntIterator) Next() (Value, Value) {
 	}
 
 	next := l.Counter
-	l.Counter = Increment(l.Counter)
+	l.Counter = IncrementVal(l.Counter)
 	return next, Undefined
 }
 
