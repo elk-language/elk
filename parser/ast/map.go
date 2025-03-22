@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -59,12 +60,12 @@ func (n *HashMapLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -118,7 +119,7 @@ func (n *HashRecordLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

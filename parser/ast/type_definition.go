@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -51,17 +52,17 @@ func (n *GenericTypeDefinitionNode) Inspect() string {
 	buff.WriteString(n.DocComment())
 
 	buff.WriteString(",\n  constant: ")
-	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  type_parameters: %%[\n")
 	for i, element := range n.TypeParameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -103,10 +104,10 @@ func (n *TypeDefinitionNode) Inspect() string {
 	buff.WriteString(n.DocComment())
 
 	buff.WriteString(",\n  constant: ")
-	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

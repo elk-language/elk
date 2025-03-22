@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -104,10 +105,10 @@ func (n *FormalParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
-	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
 
 	buff.WriteString(",\n  kind: ")
 	buff.WriteString(value.UInt8(n.Kind).Inspect())
@@ -156,10 +157,10 @@ func (n *MethodParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
-	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
 
 	buff.WriteString(",\n  kind: ")
 	buff.WriteString(value.UInt8(n.Kind).Inspect())
@@ -219,7 +220,7 @@ func (n *SignatureParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	fmt.Fprintf(&buff, ",\n  optional: %t", n.Optional)
 
@@ -279,7 +280,7 @@ func (n *AttributeParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
 	buff.WriteString(n.Initialiser.Inspect())

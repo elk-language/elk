@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -81,29 +82,29 @@ func (n *ClassDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  noinit: %t", n.NoInit)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
 	buff.WriteString(",\n  type_parameters: %%[\n")
 	for i, element := range n.TypeParameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  superclass: ")
-	indentStringFromSecondLine(&buff, n.Superclass.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Superclass.Inspect(), 1)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

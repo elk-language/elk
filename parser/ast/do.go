@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -42,7 +43,7 @@ func (n *DoExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -51,7 +52,7 @@ func (n *DoExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -60,7 +61,7 @@ func (n *DoExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -117,17 +118,17 @@ func (n *CatchNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::CatchNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  pattern: ")
-	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
 
 	buff.WriteString(",\n  stack_trace_var: ")
-	indentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

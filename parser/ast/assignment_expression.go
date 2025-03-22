@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
@@ -45,13 +46,13 @@ func (n *AssignmentExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  op: ")
-	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  left: ")
-	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
 
 	buff.WriteString(",\n  right: ")
-	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

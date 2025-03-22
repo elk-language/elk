@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -33,10 +34,10 @@ func (n *ValuePatternDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ValuePatternDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  pattern: ")
-	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
-	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

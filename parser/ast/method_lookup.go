@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -42,7 +43,7 @@ func (n *MethodLookupNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -91,7 +92,7 @@ func (n *MethodLookupAsNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_lookup: ")
-	indentStringFromSecondLine(&buff, n.MethodLookup.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MethodLookup.Inspect(), 1)
 
 	buff.WriteString(",\n  as_name: ")
 	buff.WriteString(n.AsName)

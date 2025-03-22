@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -105,7 +106,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodDefinitionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.IsAbstract())
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.IsSealed())
@@ -116,17 +117,17 @@ func (n *MethodDefinitionNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  return_type: ")
-	indentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
 	buff.WriteString(",\n  type_parameters: %%[\n")
 	for i, element := range n.TypeParameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -135,7 +136,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -144,7 +145,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -211,17 +212,17 @@ func (n *InitDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::InitDefinitionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
 	buff.WriteString(",\n  parameters: %%[\n")
 	for i, element := range n.Parameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -230,7 +231,7 @@ func (n *InitDefinitionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -282,20 +283,20 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  return_type: ")
-	indentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
 	buff.WriteString(",\n  type_parameters: %%[\n")
 	for i, element := range n.TypeParameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -304,7 +305,7 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -352,7 +353,16 @@ func (*AliasDeclarationEntry) DirectClass() *value.Class {
 }
 
 func (n *AliasDeclarationEntry) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::AliasDeclarationEntry{&: %p, new_name: %s, old_name: %s}", n, n.NewName, n.OldName)
+	var buff strings.Builder
+
+	buff.WriteString("Std::Elk::AST::AliasDeclarationEntry{\n")
+
+	fmt.Fprintf(&buff, "  span: %s,\n", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "  new_name: %s,\n", n.NewName)
+	fmt.Fprintf(&buff, "  old_name: %s,\n", n.OldName)
+	buff.WriteRune('}')
+
+	return buff.String()
 }
 
 func (n *AliasDeclarationEntry) Error() string {
@@ -389,14 +399,15 @@ func (*AliasDeclarationNode) DirectClass() *value.Class {
 func (n *AliasDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AliasDeclarationNode{\n  &: %p", n)
+	buff.WriteString("Std::Elk::AST::AliasDeclarationNode{\n")
 
-	buff.WriteString(",\n  entries: %%[\n")
+	fmt.Fprintf(&buff, "  span: %s,\n", (*value.Span)(n.span).Inspect())
+	buff.WriteString("  entries: %%[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -442,14 +453,14 @@ func (n *GetterDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GetterDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  entries: %%[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -498,14 +509,14 @@ func (n *SetterDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SetterDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  entries: %%[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -554,14 +565,14 @@ func (n *AttrDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::AttrDeclarationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  doc_comment: ")
-	indentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  entries: %%[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

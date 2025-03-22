@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -42,14 +43,14 @@ func (n *ObjectPatternNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  object_type: ")
-	indentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)
 
 	buff.WriteString(",\n  attributes: %%[\n")
 	for i, element := range n.Attributes {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

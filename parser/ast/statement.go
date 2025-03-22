@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -46,7 +47,7 @@ func (n *ExpressionStatementNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ExpressionStatementNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  expression: ")
-	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -164,7 +165,7 @@ func (n *ParameterStatementNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ParameterStatementNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  parameter: ")
-	indentStringFromSecondLine(&buff, n.Parameter.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Parameter.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

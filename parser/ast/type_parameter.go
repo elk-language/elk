@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -66,19 +67,19 @@ func (n *VariantTypeParameterNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  variance: ")
-	indentStringFromSecondLine(&buff, value.UInt8(n.Variance).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.UInt8(n.Variance).Inspect(), 1)
 
 	buff.WriteString(",\n  name: ")
-	indentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
 
 	buff.WriteString(",\n  lower_bound: ")
-	indentStringFromSecondLine(&buff, n.LowerBound.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.LowerBound.Inspect(), 1)
 
 	buff.WriteString(",\n  upper_bound: ")
-	indentStringFromSecondLine(&buff, n.UpperBound.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.UpperBound.Inspect(), 1)
 
 	buff.WriteString(",\n  default: ")
-	indentStringFromSecondLine(&buff, n.Default.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Default.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

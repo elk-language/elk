@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
@@ -63,13 +64,13 @@ func (n *RangeLiteralNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  start: ")
-	indentStringFromSecondLine(&buff, n.Start.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Start.Inspect(), 1)
 
 	buff.WriteString(",\n  end: ")
-	indentStringFromSecondLine(&buff, n.End.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.End.Inspect(), 1)
 
 	buff.WriteString(",\n  op: ")
-	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

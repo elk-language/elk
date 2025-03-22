@@ -6,58 +6,12 @@
 package ast
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
-
-const indentUnitString = "  "
-
-var indentUnitBytes = []byte(indentUnitString)
-var newlineBytes = []byte{'\n'}
-
-func indentString(out io.Writer, str string, indentLevel int) {
-	scanner := bufio.NewScanner(strings.NewReader(str))
-
-	firstIteration := true
-	for scanner.Scan() {
-		if !firstIteration {
-			out.Write(newlineBytes)
-		} else {
-			firstIteration = false
-		}
-
-		for range indentLevel {
-			out.Write(indentUnitBytes)
-		}
-		line := scanner.Bytes()
-		out.Write(line)
-	}
-}
-
-func indentStringFromSecondLine(out io.Writer, str string, indentLevel int) {
-	scanner := bufio.NewScanner(strings.NewReader(str))
-
-	firstIteration := true
-	for scanner.Scan() {
-		if !firstIteration {
-			out.Write(newlineBytes)
-			for range indentLevel {
-				out.Write(indentUnitBytes)
-			}
-		} else {
-			firstIteration = false
-		}
-
-		line := scanner.Bytes()
-		out.Write(line)
-	}
-}
 
 // Checks whether all expressions in the given list are static.
 func isExpressionSliceStatic(elements []ExpressionNode) bool {

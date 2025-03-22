@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
@@ -35,13 +36,13 @@ func (n *ModifierNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  modifier: ")
-	indentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
 
 	buff.WriteString(",\n  left: ")
-	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
 
 	buff.WriteString(",\n  right: ")
-	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -88,13 +89,13 @@ func (n *ModifierIfElseNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierIfElseNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  then_expression: ")
-	indentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
 
 	buff.WriteString(",\n  condition: ")
-	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
 	buff.WriteString(",\n  else_expression: ")
-	indentStringFromSecondLine(&buff, n.ElseExpression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ElseExpression.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -141,13 +142,13 @@ func (n *ModifierForInNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierForInNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  then_expression: ")
-	indentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
 
 	buff.WriteString(",\n  pattern: ")
-	indentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
 
 	buff.WriteString(",\n  in_expression: ")
-	indentStringFromSecondLine(&buff, n.InExpression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.InExpression.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

@@ -45,6 +45,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
 		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, value.ToSymbol("Box"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nv := try ch.pop # pop `5` from the channel\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
@@ -804,6 +808,33 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Box").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Retrieves the value stored in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, nil, NameToType("Std::Box::Val", env), Never{})
+				namespace.DefineMethod("Stores the given value in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("set"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, NameToType("Std::Box::Val", env), Never{})
 
 				// Define constants
 

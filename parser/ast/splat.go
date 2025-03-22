@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -32,7 +33,7 @@ func (n *DoubleSplatExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::DoubleSplatExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -75,7 +76,7 @@ func (n *SplatExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SplatExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

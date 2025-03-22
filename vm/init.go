@@ -77,4 +77,5 @@ func InitGlobalEnvironment() {
 	initToken()
 	initLocation()
 	initPath()
+	initBox()
 }

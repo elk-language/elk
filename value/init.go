@@ -129,4 +129,5 @@ func InitGlobalEnvironment() {
 	initFS()
 	initPath()
 	initError()
+	initBox()
 }

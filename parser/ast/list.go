@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -52,19 +53,20 @@ func (*ArrayListLiteralNode) DirectClass() *value.Class {
 func (n *ArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayListLiteralNode{\n  &: %p", n)
+	buff.WriteString("Std::Elk::AST::ArrayListLiteralNode{\n")
 
+	fmt.Fprintf(&buff, "span: %s", (*value.Span)(n.span).Inspect())
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -131,12 +133,12 @@ func (n *WordArrayListLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -203,12 +205,12 @@ func (n *SymbolArrayListLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -275,12 +277,12 @@ func (n *HexArrayListLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -347,12 +349,12 @@ func (n *BinArrayListLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -391,7 +393,7 @@ func (n *ListPatternNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

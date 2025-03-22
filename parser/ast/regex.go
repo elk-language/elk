@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/types"
@@ -196,7 +197,7 @@ func (n *RegexInterpolationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::RegexInterpolationNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  expression: ")
-	indentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -302,7 +303,7 @@ func (n *InterpolatedRegexLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 
 	buff.WriteString("\n  ]")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -44,10 +45,10 @@ func (n *KeyValueExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::KeyValueExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -92,10 +93,10 @@ func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -131,10 +132,10 @@ func (n *SymbolKeyValuePatternNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -179,10 +180,10 @@ func (n *KeyValuePatternNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

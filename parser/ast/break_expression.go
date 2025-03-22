@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -50,7 +51,7 @@ func (n *BreakExpressionNode) Inspect() string {
 	buff.WriteString(n.Label)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

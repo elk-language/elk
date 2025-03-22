@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -50,22 +51,22 @@ func (n *ClosureLiteralNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  return_type: ")
-	indentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

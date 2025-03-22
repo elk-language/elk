@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -30,17 +31,17 @@ func (n *ClosureTypeNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  return_type: ")
-	indentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
 	buff.WriteString(",\n  parameters: %%[\n")
 	for i, stmt := range n.Parameters {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -44,7 +45,7 @@ func (n *IntersectionTypeNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, stmt.Inspect(), 2)
+		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

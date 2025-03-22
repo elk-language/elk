@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
@@ -43,10 +44,10 @@ func (n *UnaryTypeNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryTypeNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  op: ")
-	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -156,7 +157,7 @@ func (n *PublicConstantAsNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  target: ")
-	indentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
 
 	buff.WriteString(",\n  as_name: ")
 	buff.WriteString(n.AsName)
@@ -204,10 +205,10 @@ func (n *ConstantLookupNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  left: ")
-	indentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
 
 	buff.WriteString(",\n  right: ")
-	indentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Right.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -252,14 +253,14 @@ func (n *GenericConstantNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constant: ")
-	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %%[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

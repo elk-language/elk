@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -88,7 +89,7 @@ func (n *InterpolatedSymbolLiteralNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedSymbolLiteralNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  content: ")
-	indentStringFromSecondLine(&buff, n.Content.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Content.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

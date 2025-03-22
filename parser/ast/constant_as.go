@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -34,7 +35,7 @@ func (n *ConstantAsNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantAsNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  constant: ")
-	indentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
 	buff.WriteString(",\n  as_name: ")
 	buff.WriteString(n.AsName)

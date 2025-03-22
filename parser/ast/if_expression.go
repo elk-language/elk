@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -44,14 +45,14 @@ func (n *IfExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::IfExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  condition: ")
-	indentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
 	buff.WriteString(",\n  then_body: %%[\n")
 	for i, element := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -60,7 +61,7 @@ func (n *IfExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 

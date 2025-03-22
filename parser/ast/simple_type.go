@@ -134,7 +134,7 @@ func (*AnyTypeNode) DirectClass() *value.Class {
 }
 
 func (n *AnyTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{span: %s}", (*value.Span)(n.span).Inspect())
 }
 
 func (n *AnyTypeNode) Error() string {

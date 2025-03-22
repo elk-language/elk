@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -38,10 +39,10 @@ func (n *VariableDeclarationNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
-	indentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

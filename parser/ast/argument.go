@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -44,10 +45,10 @@ func (n *NamedCallArgumentNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::NamedCallArgumentNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  name: ")
-	indentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
-	indentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

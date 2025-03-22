@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
@@ -32,7 +33,7 @@ func (n *TypeExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::TypeExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  type_node: ")
-	indentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

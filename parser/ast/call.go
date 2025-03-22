@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
@@ -47,7 +48,7 @@ func (n *NewExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -56,7 +57,7 @@ func (n *NewExpressionNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -96,14 +97,14 @@ func (n *GenericConstructorCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstructorCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  class_node: ")
-	indentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %%[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -112,7 +113,7 @@ func (n *GenericConstructorCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -121,7 +122,7 @@ func (n *GenericConstructorCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -171,14 +172,14 @@ func (n *ConstructorCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ConstructorCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  class_node: ")
-	indentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %%[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -187,7 +188,7 @@ func (n *ConstructorCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -235,10 +236,10 @@ func (n *AttributeAccessNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeAccessNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  attribute_name: ")
-	indentStringFromSecondLine(&buff, value.String(n.AttributeName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.AttributeName).Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -284,10 +285,10 @@ func (n *SubscriptExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SubscriptExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -334,10 +335,10 @@ func (n *NilSafeSubscriptExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::NilSafeSubscriptExpressionNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  key: ")
-	indentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -385,7 +386,7 @@ func (n *CallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::CallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	fmt.Fprintf(&buff, ",\n  nil_safe: %t", n.NilSafe)
 
@@ -394,7 +395,7 @@ func (n *CallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -403,7 +404,7 @@ func (n *CallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -457,20 +458,20 @@ func (n *GenericMethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GenericMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  op: ")
-	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
-	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %%[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -479,7 +480,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -488,7 +489,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -543,20 +544,20 @@ func (n *MethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  receiver: ")
-	indentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  op: ")
-	indentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
-	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %%[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -565,7 +566,7 @@ func (n *MethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -617,14 +618,14 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_name: ")
-	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %%[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -633,7 +634,7 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -684,14 +685,14 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GenericReceiverlessMethodCallNode{\n  &: %p", n)
 
 	buff.WriteString(",\n  method_name: ")
-	indentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %%[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -700,7 +701,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
@@ -709,7 +710,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 		if i != 0 {
 			buff.WriteString(",\n")
 		}
-		indentString(&buff, element.Inspect(), 2)
+		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
 
