@@ -17,6 +17,52 @@ type BreakExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *BreakExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BreakExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Label != o.Label {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *BreakExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("break")
+
+	if n.Label != "" {
+		buff.WriteRune('$')
+		buff.WriteString(n.Label)
+	}
+
+	if n.Value != nil {
+		buff.WriteRune(' ')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*BreakExpressionNode) IsStatic() bool {
 	return false
 }

@@ -273,6 +273,21 @@ type DoubleQuotedStringLiteralNode struct {
 	Value string
 }
 
+// Check if this node equals another node.
+func (n *DoubleQuotedStringLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleQuotedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value && n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *DoubleQuotedStringLiteralNode) String() string {
+	return value.String(n.Value).Inspect()
+}
+
 func (*DoubleQuotedStringLiteralNode) IsStatic() bool {
 	return true
 }

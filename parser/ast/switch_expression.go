@@ -90,6 +90,44 @@ type CaseNode struct {
 	Body    []StatementNode
 }
 
+func (n *CaseNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CaseNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.Equal(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *CaseNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("case ")
+	buff.WriteString(n.Pattern.String())
+	buff.WriteRune('\n')
+
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+
+	return buff.String()
+}
+
 func (*CaseNode) IsStatic() bool {
 	return false
 }

@@ -15,6 +15,42 @@ type IncludeExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
+// Check if this node equals another node.
+func (n *IncludeExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IncludeExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Constants) != len(o.Constants) {
+		return false
+	}
+
+	for i, constant := range n.Constants {
+		if !constant.Equal(value.Ref(o.Constants[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *IncludeExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("include ")
+
+	for i, constant := range n.Constants {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(constant.String())
+	}
+
+	return buff.String()
+}
+
 func (*IncludeExpressionNode) SkipTypechecking() bool {
 	return false
 }

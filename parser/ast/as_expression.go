@@ -28,6 +28,46 @@ func (*AsExpressionNode) DirectClass() *value.Class {
 	return value.PublicIdentifierNodeClass
 }
 
+func (n *AsExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AsExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	if !n.RuntimeType.Equal(value.Ref(o.RuntimeType)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AsExpressionNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Value.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(" as ")
+
+	buff.WriteString(n.RuntimeType.String())
+
+	return buff.String()
+}
+
 func (n *AsExpressionNode) Inspect() string {
 	var buff strings.Builder
 

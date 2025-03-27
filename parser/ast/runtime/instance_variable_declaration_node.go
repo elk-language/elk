@@ -55,9 +55,12 @@ func initInstanceVariableDeclarationNode() {
 		"type_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
+			if self.TypeNode == nil {
+				return value.Nil, value.Undefined
+			}
+
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
-
 		},
 	)
 
@@ -69,6 +72,25 @@ func initInstanceVariableDeclarationNode() {
 			result := value.Ref((*value.Span)(self.Span()))
 			return result, value.Undefined
 
+		},
+	)
+	vm.Def(
+		c,
+		"==",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"to_string",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
+			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
 

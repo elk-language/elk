@@ -15,6 +15,42 @@ type ImplementExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
+// Check if this node equals another node.
+func (n *ImplementExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ImplementExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Constants) != len(o.Constants) {
+		return false
+	}
+
+	for i, constant := range n.Constants {
+		if !constant.Equal(value.Ref(o.Constants[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ImplementExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("implement ")
+
+	for i, constant := range n.Constants {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(constant.String())
+	}
+
+	return buff.String()
+}
+
 func (*ImplementExpressionNode) SkipTypechecking() bool {
 	return false
 }

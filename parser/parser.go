@@ -1126,9 +1126,9 @@ func (p *Parser) logicalOrExpression() ast.ExpressionNode {
 	return p.logicalExpression(p.logicalAndExpression, token.OR_OR, token.QUESTION_QUESTION, token.OR_BANG)
 }
 
-// logicalAndExpression = bitwiseOrExpression |
-// logicalAndExpression "&&" bitwiseOrExpression |
-// logicalAndExpression "&!" bitwiseOrExpression
+// logicalAndExpression = pipeExpression |
+// logicalAndExpression "&&" pipeExpression |
+// logicalAndExpression "&!" pipeExpression
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	return p.logicalExpression(p.pipeExpression, token.AND_AND, token.AND_BANG)
 }

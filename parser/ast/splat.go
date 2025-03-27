@@ -15,6 +15,35 @@ type DoubleSplatExpressionNode struct {
 	Value ExpressionNode
 }
 
+// Check if this node equals another node.
+func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *DoubleSplatExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("**")
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Value.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*DoubleSplatExpressionNode) IsStatic() bool {
 	return false
 }

@@ -25,6 +25,106 @@ type ClassDeclarationNode struct {
 	Bytecode       *vm.BytecodeFunction
 }
 
+func (n *ClassDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.Abstract != o.Abstract ||
+		n.Sealed != o.Sealed ||
+		n.Primitive != o.Primitive ||
+		n.NoInit != o.NoInit {
+		return false
+	}
+
+	if !n.Constant.Equal(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if n.Superclass == o.Superclass {
+	} else if n.Superclass == nil || o.Superclass == nil {
+		return false
+	} else if !n.Superclass.Equal(value.Ref(o.Superclass)) {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *ClassDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	if n.Abstract {
+		buff.WriteString("abstract ")
+	}
+
+	if n.Sealed {
+		buff.WriteString("sealed ")
+	}
+
+	if n.Primitive {
+		buff.WriteString("primitive ")
+	}
+
+	if n.NoInit {
+		buff.WriteString("noinit ")
+	}
+
+	buff.WriteString("class ")
+	buff.WriteString(n.Constant.String())
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('[')
+		for i, param := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteRune(']')
+	}
+
+	if n.Superclass != nil {
+		buff.WriteString(" < ")
+		buff.WriteString(n.Superclass.String())
+	}
+
+	buff.WriteRune('\n')
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*ClassDeclarationNode) SkipTypechecking() bool {
 	return false
 }

@@ -20,6 +20,58 @@ type ExtendWhereBlockExpressionNode struct {
 	Where []TypeParameterNode
 }
 
+// Check if this node equals another node.
+func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExtendWhereBlockExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) ||
+		len(n.Where) != len(o.Where) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Where {
+		if !param.Equal(value.Ref(o.Where[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ExtendWhereBlockExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("extend where ")
+
+	for i, param := range n.Where {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(param.String())
+	}
+
+	buff.WriteString("\n")
+
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteString("\n")
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*ExtendWhereBlockExpressionNode) SkipTypechecking() bool {
 	return false
 }

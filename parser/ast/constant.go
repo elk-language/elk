@@ -187,6 +187,37 @@ type ConstantLookupNode struct {
 	Right ComplexConstantNode // right hand side
 }
 
+// Check if this node equals another node.
+func (n *ConstantLookupNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstantLookupNode)
+	if !ok {
+		return false
+	}
+
+	if n.Left == o.Left {
+	} else if n.Left == nil || o.Left == nil {
+		return false
+	} else if !n.Left.Equal(value.Ref(o.Left)) {
+		return false
+	}
+
+	return n.Right.Equal(value.Ref(o.Right)) &&
+		n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ConstantLookupNode) String() string {
+	var buff strings.Builder
+
+	if n.Left != nil {
+		buff.WriteString(n.Left.String())
+	}
+	buff.WriteString("::")
+	buff.WriteString(n.Right.String())
+
+	return buff.String()
+}
+
 func (*ConstantLookupNode) IsStatic() bool {
 	return false
 }
@@ -233,6 +264,49 @@ type GenericConstantNode struct {
 	TypedNodeBase
 	Constant      ComplexConstantNode
 	TypeArguments []TypeNode
+}
+
+// Equal checks if the given GenericConstantNode is equal to another value.
+func (n *GenericConstantNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericConstantNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.Equal(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.Equal(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// String returns a string representation of the GenericConstantNode.
+func (n *GenericConstantNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Constant.String())
+	buff.WriteString("[")
+
+	for i, arg := range n.TypeArguments {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(arg.String())
+	}
+
+	buff.WriteString("]")
+
+	return buff.String()
 }
 
 func (*GenericConstantNode) IsStatic() bool {

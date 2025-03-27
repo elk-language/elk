@@ -17,6 +17,54 @@ type ContinueExpressionNode struct {
 	Value ExpressionNode
 }
 
+// Check if this node equals another node.
+func (n *ContinueExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ContinueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Label != o.Label {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ContinueExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("continue")
+
+	if n.Label != "" {
+		buff.WriteRune('$')
+		buff.WriteString(n.Label)
+	}
+
+	if n.Value != nil {
+		buff.WriteRune(' ')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*ContinueExpressionNode) Type(*types.GlobalEnvironment) types.Type {
 	return types.Never{}
 }

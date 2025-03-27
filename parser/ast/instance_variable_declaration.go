@@ -17,6 +17,49 @@ type InstanceVariableDeclarationNode struct {
 	TypeNode TypeNode // type of the variable
 }
 
+func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceVariableDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		n.Name != o.Name ||
+		!n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *InstanceVariableDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("var @")
+	buff.WriteString(n.Name)
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	return buff.String()
+}
+
 func (*InstanceVariableDeclarationNode) IsStatic() bool {
 	return false
 }

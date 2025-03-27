@@ -7,10 +7,23 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Char literal eg. `c"a"`
+// Char literal eg. `a`
 type CharLiteralNode struct {
 	TypedNodeBase
 	Value rune // value of the string literal
+}
+
+func (n *CharLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CharLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value && n.Span().Equal(o.Span())
+}
+
+func (n *CharLiteralNode) String() string {
+	return value.Char(n.Value).Inspect()
 }
 
 func (*CharLiteralNode) IsStatic() bool {
@@ -45,7 +58,7 @@ func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
 	}
 }
 
-// Raw Char literal eg. `a`
+// Raw Char literal eg. r`a`
 type RawCharLiteralNode struct {
 	TypedNodeBase
 	Value rune // value of the char literal

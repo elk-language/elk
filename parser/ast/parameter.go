@@ -69,6 +69,53 @@ type FormalParameterNode struct {
 	Kind        ParameterKind
 }
 
+// Equal checks if the given FormalParameterNode is equal to another value.
+func (n *FormalParameterNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*FormalParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.Name != o.Name || n.Kind != o.Kind {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// String returns a string representation of the FormalParameterNode.
+func (f *FormalParameterNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(f.Name)
+
+	if f.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(f.TypeNode.String())
+	}
+
+	if f.Initialiser != nil {
+		buff.WriteString(" = ")
+		buff.WriteString(f.Initialiser.String())
+	}
+
+	return buff.String()
+}
+
 func (*FormalParameterNode) IsStatic() bool {
 	return false
 }
@@ -269,6 +316,55 @@ func (*AttributeParameterNode) Class() *value.Class {
 
 func (*AttributeParameterNode) DirectClass() *value.Class {
 	return value.AttributeParameterNodeClass
+}
+
+func (n *AttributeParameterNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if n.Name != o.Name {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AttributeParameterNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Name)
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	if n.Initialiser != nil {
+		buff.WriteString(" = ")
+		buff.WriteString(n.Initialiser.String())
+	}
+
+	return buff.String()
 }
 
 func (n *AttributeParameterNode) Inspect() string {

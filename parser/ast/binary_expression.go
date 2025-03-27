@@ -19,6 +19,56 @@ type BinaryExpressionNode struct {
 	static bool
 }
 
+func (n *BinaryExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Op.Equal(o.Op) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *BinaryExpressionNode) String() string {
+	var buff strings.Builder
+
+	associativity := ExpressionAssociativity(n)
+
+	var leftParen bool
+	var rightParen bool
+	if associativity == LEFT_ASSOCIATIVE {
+		leftParen = ExpressionPrecedence(n) > ExpressionPrecedence(n.Left)
+		rightParen = ExpressionPrecedence(n) >= ExpressionPrecedence(n.Right)
+	} else {
+		leftParen = ExpressionPrecedence(n) >= ExpressionPrecedence(n.Left)
+		rightParen = ExpressionPrecedence(n) > ExpressionPrecedence(n.Right)
+	}
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Left.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteRune(' ')
+	buff.WriteString(n.Op.FetchValue())
+	buff.WriteRune(' ')
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (b *BinaryExpressionNode) IsStatic() bool {
 	return b.static
 }

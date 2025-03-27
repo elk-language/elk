@@ -49,6 +49,19 @@ type FalseLiteralNode struct {
 	NodeBase
 }
 
+func (n *FalseLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*FalseLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *FalseLiteralNode) String() string {
+	return "false"
+}
+
 func (*FalseLiteralNode) IsStatic() bool {
 	return true
 }

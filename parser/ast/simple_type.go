@@ -13,6 +13,19 @@ type BoolLiteralNode struct {
 	NodeBase
 }
 
+func (n *BoolLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BoolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *BoolLiteralNode) String() string {
+	return "bool"
+}
+
 func (*BoolLiteralNode) IsStatic() bool {
 	return true
 }
@@ -115,6 +128,18 @@ func NewNeverTypeNode(span *position.Span) *NeverTypeNode {
 // `any` type.
 type AnyTypeNode struct {
 	NodeBase
+}
+
+func (n *AnyTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AnyTypeNode)
+	if !ok {
+		return false
+	}
+	return n.Span().Equal(o.Span())
+}
+
+func (n *AnyTypeNode) String() string {
+	return "any"
 }
 
 func (*AnyTypeNode) IsStatic() bool {

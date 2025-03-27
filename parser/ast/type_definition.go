@@ -18,6 +18,61 @@ type GenericTypeDefinitionNode struct {
 	TypeNode       TypeNode            // the type
 }
 
+// Equal compares this node to another value for equality.
+func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.Equal(value.Ref(o.Constant)) ||
+		!n.TypeNode.Equal(value.Ref(o.TypeNode)) ||
+		!n.span.Equal(o.span) ||
+		n.DocComment() != o.DocComment() {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// String returns a string representation of the GenericTypeDefinitionNode.
+func (n *GenericTypeDefinitionNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("typedef ")
+	buff.WriteString(n.Constant.String())
+	buff.WriteString("[")
+
+	for i, param := range n.TypeParameters {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(param.String())
+	}
+
+	buff.WriteString("] = ")
+	buff.WriteString(n.TypeNode.String())
+
+	return buff.String()
+}
+
 func (*GenericTypeDefinitionNode) IsStatic() bool {
 	return false
 }

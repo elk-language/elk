@@ -15,6 +15,35 @@ type InstanceOfTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+// Equal checks if this node equals the other node.
+func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.TypeNode.Equal(value.Ref(o.TypeNode))
+}
+
+// String returns the string representation of this node.
+func (n *InstanceOfTypeNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('^')
+
+	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.TypeNode.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*InstanceOfTypeNode) IsStatic() bool {
 	return false
 }

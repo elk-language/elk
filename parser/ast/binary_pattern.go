@@ -18,6 +18,56 @@ type BinaryPatternNode struct {
 	Right PatternNode  // right hand side
 }
 
+func (n *BinaryPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Op.Equal(o.Op) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *BinaryPatternNode) String() string {
+	var buff strings.Builder
+
+	associativity := PatternAssociativity(n)
+
+	var leftParen bool
+	var rightParen bool
+	if associativity == RIGHT_ASSOCIATIVE {
+		leftParen = PatternPrecedence(n) > PatternPrecedence(n.Left)
+		rightParen = PatternPrecedence(n) >= PatternPrecedence(n.Right)
+	} else {
+		leftParen = PatternPrecedence(n) >= PatternPrecedence(n.Left)
+		rightParen = PatternPrecedence(n) > PatternPrecedence(n.Right)
+	}
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Left.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteRune(' ')
+	buff.WriteString(n.Op.FetchValue())
+	buff.WriteRune(' ')
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*BinaryPatternNode) IsStatic() bool {
 	return false
 }

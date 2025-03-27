@@ -17,6 +17,46 @@ type ForInExpressionNode struct {
 	ThenBody     []StatementNode // then expression body
 }
 
+func (n *ForInExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ForInExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		!n.Pattern.Equal(value.Ref(o.Pattern)) ||
+		!n.InExpression.Equal(value.Ref(o.InExpression)) ||
+		len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ForInExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("for ")
+	buff.WriteString(n.Pattern.String())
+	buff.WriteString(" in ")
+	buff.WriteString(n.InExpression.String())
+	buff.WriteRune('\n')
+
+	for _, stmt := range n.ThenBody {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteString("\n")
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*ForInExpressionNode) IsStatic() bool {
 	return false
 }

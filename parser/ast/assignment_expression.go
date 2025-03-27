@@ -59,6 +59,56 @@ func (n *AssignmentExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AssignmentExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AssignmentExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if !n.Op.Equal(o.Op) {
+		return false
+	}
+
+	return n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *AssignmentExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Left.String())
+	buff.WriteRune(' ')
+	buff.WriteString(n.Op.FetchValue())
+	buff.WriteRune(' ')
+
+	rightStr := n.Right.String()
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Right)
+	if strings.ContainsRune(rightStr, '\n') {
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteRune('\n')
+		indent.IndentString(&buff, rightStr, 1)
+		if parens {
+			buff.WriteString("\n)")
+		}
+	} else {
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(rightStr)
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (p *AssignmentExpressionNode) Error() string {
 	return p.Inspect()
 }

@@ -50,6 +50,88 @@ func (*ArrayListLiteralNode) DirectClass() *value.Class {
 	return value.ArrayListLiteralNodeClass
 }
 
+func (n *ArrayListLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+		return true
+	}
+
+	if n.Capacity == nil || o.Capacity == nil {
+		return false
+	}
+
+	return n.Capacity.Equal(value.Ref(o.Capacity))
+}
+
+func (n *ArrayListLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('[')
+
+	var hasMultilineElements bool
+	elementStrings := make([]string, len(n.Elements))
+
+	for i, element := range n.Elements {
+		elementString := element.String()
+		elementStrings[i] = elementString
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
+		}
+	}
+
+	if hasMultilineElements || len(n.Elements) > 10 {
+		buff.WriteRune('\n')
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, elementStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(elementStr)
+		}
+	}
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (n *ArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
@@ -229,6 +311,65 @@ type HexArrayListLiteralNode struct {
 	static   bool
 }
 
+// Check if this node equals another node.
+func (n *HexArrayListLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HexArrayListLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("\\x[")
+
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(" ")
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0x"
+	}
+	buff.WriteString("]")
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (h *HexArrayListLiteralNode) IsStatic() bool {
 	return h.static
 }
@@ -303,6 +444,68 @@ type BinArrayListLiteralNode struct {
 
 func (b *BinArrayListLiteralNode) IsStatic() bool {
 	return b.static
+}
+func (n *BinArrayListLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *BinArrayListLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("\\b[")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(" ")
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0b"
+	}
+	buff.WriteString("]")
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
 }
 
 // Create a bin ArrayList literal node eg. `\b[11 10]`

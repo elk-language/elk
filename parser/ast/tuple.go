@@ -42,6 +42,67 @@ func (*ArrayTupleLiteralNode) DirectClass() *value.Class {
 	return value.ArrayTupleLiteralNodeClass
 }
 
+func (n *ArrayTupleLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ArrayTupleLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%[")
+
+	var hasMultilineElements bool
+	elementStrings := make([]string, len(n.Elements))
+
+	for i, element := range n.Elements {
+		elementString := element.String()
+		elementStrings[i] = elementString
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
+		}
+	}
+
+	if hasMultilineElements || len(n.Elements) > 10 {
+		buff.WriteRune('\n')
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, elementStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(elementStr)
+		}
+	}
+	buff.WriteString("]")
+
+	return buff.String()
+}
+
 func (n *ArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
@@ -189,6 +250,49 @@ type HexArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
+// Check if this node equals another node.
+func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HexArrayTupleLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%x[")
+
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0x"
+	}
+	buff.WriteRune(']')
+
+	return buff.String()
+}
+
+func (n *HexArrayTupleLiteralNode) Error() string {
+	return n.Inspect()
+}
+
 func (*HexArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
@@ -246,6 +350,49 @@ func (n *HexArrayTupleLiteralNode) Error() string {
 type BinArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
+}
+
+func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *BinArrayTupleLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%b[")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(" ")
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0b"
+	}
+	buff.WriteString("]")
+
+	return buff.String()
 }
 
 func (*BinArrayTupleLiteralNode) IsStatic() bool {

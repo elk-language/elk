@@ -79,6 +79,102 @@ type GenericConstructorCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
+// Equal checks if the given GenericConstructorCallNode is equal to another value.
+func (n *GenericConstructorCallNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.Equal(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.Equal(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.Equal(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// String returns a string representation of the GenericConstructorCallNode.
+func (n *GenericConstructorCallNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.ClassNode.String())
+	buff.WriteString("::[")
+
+	for i, arg := range n.TypeArguments {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(arg.String())
+	}
+
+	buff.WriteString("](")
+
+	var hasMultilineArgs bool
+	argCount := len(n.PositionalArguments) + len(n.NamedArguments)
+	argStrings := make([]string, 0, argCount)
+
+	for _, arg := range n.PositionalArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || argCount > 6 {
+		buff.WriteRune('\n')
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, argStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(argStr)
+		}
+	}
+
+	buff.WriteString(")")
+
+	return buff.String()
+}
+
 func (*GenericConstructorCallNode) IsStatic() bool {
 	return false
 }
@@ -152,6 +248,86 @@ type ConstructorCallNode struct {
 	ClassNode           ComplexConstantNode // class that is being instantiated
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+}
+
+// Check if this node equals another node.
+func (n *ConstructorCallNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.Equal(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.Equal(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ConstructorCallNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.ClassNode.String())
+	buff.WriteString("(")
+
+	var hasMultilineArgs bool
+	argCount := len(n.PositionalArguments) + len(n.NamedArguments)
+	argStrings := make([]string, 0, argCount)
+
+	for _, arg := range n.PositionalArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || argCount > 6 {
+		buff.WriteRune('\n')
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, argStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(argStr)
+		}
+	}
+
+	buff.WriteString(")")
+
+	return buff.String()
 }
 
 func (*ConstructorCallNode) IsStatic() bool {
@@ -229,7 +405,6 @@ func (*AttributeAccessNode) Class() *value.Class {
 func (*AttributeAccessNode) DirectClass() *value.Class {
 	return value.AttributeAccessNodeClass
 }
-
 func (n *AttributeAccessNode) Inspect() string {
 	var buff strings.Builder
 
@@ -242,6 +417,35 @@ func (n *AttributeAccessNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.AttributeName).Inspect(), 1)
 
 	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *AttributeAccessNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeAccessNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Receiver.Equal(value.Ref(o.Receiver)) &&
+		n.AttributeName == o.AttributeName
+}
+
+func (n *AttributeAccessNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Receiver.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(".")
+	buff.WriteString(n.AttributeName)
 
 	return buff.String()
 }
@@ -368,6 +572,91 @@ type CallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
+func (n *CallNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallNode)
+	if !ok {
+		return false
+	}
+
+	if n.NilSafe != o.NilSafe {
+		return false
+	}
+
+	if !n.Receiver.Equal(value.Ref(o.Receiver)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.Equal(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Span().Equal(o.Span())
+}
+
+func (n *CallNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Receiver.String())
+
+	if n.NilSafe {
+		buff.WriteRune('?')
+	}
+	buff.WriteString(".(")
+
+	var hasMultilineArgs bool
+	argCount := len(n.PositionalArguments) + len(n.NamedArguments)
+	argStrings := make([]string, 0, argCount)
+
+	for _, arg := range n.PositionalArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || argCount > 6 {
+		buff.WriteRune('\n')
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, argStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(argStr)
+		}
+	}
+	buff.WriteString(")")
+
+	return buff.String()
+}
+
 func (*CallNode) IsStatic() bool {
 	return false
 }
@@ -438,6 +727,107 @@ type GenericMethodCallNode struct {
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
+}
+
+// Equal checks if the given GenericMethodCallNode is equal to another value.
+func (n *GenericMethodCallNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if n.MethodName != o.MethodName ||
+		!n.Receiver.Equal(value.Ref(o.Receiver)) ||
+		!n.Op.Equal(o.Op) ||
+		n.span.Equal(o.span) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.Equal(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.Equal(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// String returns a string representation of the GenericMethodCallNode.
+func (n *GenericMethodCallNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Receiver.String())
+	buff.WriteString(n.Op.String())
+	buff.WriteString(n.MethodName)
+	buff.WriteString("::[")
+
+	for i, arg := range n.TypeArguments {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(arg.String())
+	}
+
+	buff.WriteString("](")
+
+	var hasMultilineArgs bool
+	argCount := len(n.PositionalArguments) + len(n.NamedArguments)
+	argStrings := make([]string, 0, argCount)
+
+	for _, arg := range n.PositionalArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || argCount > 6 {
+		buff.WriteRune('\n')
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, argStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(argStr)
+		}
+	}
+
+	buff.WriteString(")")
+
+	return buff.String()
 }
 
 func (*GenericMethodCallNode) IsStatic() bool {
@@ -665,6 +1055,102 @@ type GenericReceiverlessMethodCallNode struct {
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
+}
+
+// Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.
+func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericReceiverlessMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if n.MethodName != o.MethodName || !n.span.Equal(o.span) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.Equal(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.Equal(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// String returns a string representation of the GenericReceiverlessMethodCallNode.
+func (n *GenericReceiverlessMethodCallNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.MethodName)
+	buff.WriteString("::[")
+
+	for i, arg := range n.TypeArguments {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(arg.String())
+	}
+
+	buff.WriteString("](")
+
+	var hasMultilineArgs bool
+	argCount := len(n.PositionalArguments) + len(n.NamedArguments)
+	argStrings := make([]string, 0, argCount)
+
+	for _, arg := range n.PositionalArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		argString := arg.String()
+		argStrings = append(argStrings, argString)
+		if strings.ContainsRune(argString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || argCount > 6 {
+		buff.WriteRune('\n')
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, argStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, argStr := range argStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(argStr)
+		}
+	}
+
+	buff.WriteString(")")
+
+	return buff.String()
 }
 
 func (*GenericReceiverlessMethodCallNode) IsStatic() bool {

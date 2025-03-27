@@ -26,6 +26,42 @@ func NewAwaitExpressionNode(span *position.Span, val ExpressionNode) *AwaitExpre
 		Value:         val,
 	}
 }
+func (n *AwaitExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AwaitExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AwaitExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("await ")
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Value.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
 
 func (*AwaitExpressionNode) Class() *value.Class {
 	return value.AwaitExpressionNodeClass

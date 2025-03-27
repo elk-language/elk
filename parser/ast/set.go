@@ -17,6 +17,86 @@ type HashSetLiteralNode struct {
 	static   bool
 }
 
+// Check if this node equals another node.
+func (n *HashSetLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashSetLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HashSetLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("^[")
+
+	var hasMultilineArgs bool
+	elementStrings := make([]string, len(n.Elements))
+
+	for i, element := range n.Elements {
+		elementString := element.String()
+		elementStrings[i] = elementString
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || len(n.Elements) > 10 {
+		buff.WriteRune('\n')
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, elementStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(elementStr)
+		}
+	}
+
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (s *HashSetLiteralNode) IsStatic() bool {
 	return s.static
 }
@@ -220,7 +300,7 @@ func (n *SymbolHashSetLiteralNode) Error() string {
 	return n.Inspect()
 }
 
-// Represents a hex HashSet literal eg. `^x[ff ee}]`
+// Represents a hex HashSet literal eg. `^x[ff ee]`
 type HexHashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
@@ -230,6 +310,58 @@ type HexHashSetLiteralNode struct {
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
 	return h.static
+}
+
+// Check if this node equals another node.
+func (n *HexHashSetLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexHashSetLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HexHashSetLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("^x[")
+
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0x"
+	}
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteString(":(")
+		buff.WriteString(n.Capacity.String())
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
 }
 
 // Create a hex HashSet literal node eg. `^x[ff ee]`
@@ -298,6 +430,69 @@ type BinHashSetLiteralNode struct {
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
+}
+
+func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinHashSetLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *BinHashSetLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("^b[")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+
+		elementStr := element.String()
+		buff.WriteString(elementStr[2:]) // skip "0b"
+	}
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
 }
 
 func (b *BinHashSetLiteralNode) IsStatic() bool {

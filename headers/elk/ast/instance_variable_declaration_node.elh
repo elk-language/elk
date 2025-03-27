@@ -14,7 +14,7 @@ module Std::Elk::AST
 
     def doc_comment: String; end
     def name: String; end
-    def type_node: TypeNode; end
+    def type_node: TypeNode?; end
     def span: String::Span; end
   end
 end

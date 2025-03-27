@@ -17,6 +17,86 @@ type HashMapLiteralNode struct {
 	static   bool
 }
 
+// Check if this node equals another node.
+func (n *HashMapLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HashMapLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('{')
+
+	var hasMultilineArgs bool
+	elementStrings := make([]string, len(n.Elements))
+
+	for i, element := range n.Elements {
+		elementString := element.String()
+		elementStrings[i] = elementString
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || len(n.Elements) > 6 {
+		buff.WriteRune('\n')
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, elementStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(elementStr)
+		}
+	}
+
+	buff.WriteRune('}')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (m *HashMapLiteralNode) IsStatic() bool {
 	return m.static
 }
@@ -81,6 +161,66 @@ type HashRecordLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
 	static   bool
+}
+
+// Check if this node equals another node.
+func (n *HashRecordLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashRecordLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *HashRecordLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%{")
+
+	var hasMultilineArgs bool
+	elementStrings := make([]string, len(n.Elements))
+
+	for i, element := range n.Elements {
+		elementString := element.String()
+		elementStrings[i] = elementString
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineArgs = true
+		}
+	}
+
+	if hasMultilineArgs || len(n.Elements) > 6 {
+		buff.WriteRune('\n')
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, elementStr, 1)
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementStr := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(elementStr)
+		}
+	}
+
+	buff.WriteRune('}')
+
+	return buff.String()
 }
 
 func (r *HashRecordLiteralNode) IsStatic() bool {

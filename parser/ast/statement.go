@@ -29,6 +29,21 @@ type ExpressionStatementNode struct {
 	Expression ExpressionNode
 }
 
+func (e *ExpressionStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
+	if !ok {
+		return false
+	}
+
+	return o.span.Equal(o.span) &&
+		e.Expression.Equal(value.Ref(o.Expression))
+}
+
+// Return a string representation of the node.
+func (e *ExpressionStatementNode) String() string {
+	return e.Expression.String()
+}
+
 func (e *ExpressionStatementNode) IsStatic() bool {
 	return e.Expression.IsStatic()
 }
@@ -79,6 +94,21 @@ type EmptyStatementNode struct {
 	NodeBase
 }
 
+// Check if this node equals another node.
+func (n *EmptyStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*EmptyStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *EmptyStatementNode) String() string {
+	return ""
+}
+
 func (*EmptyStatementNode) IsStatic() bool {
 	return false
 }
@@ -111,6 +141,26 @@ type ImportStatementNode struct {
 	NodeBase
 	Path    StringLiteralNode
 	FsPaths []string // resolved file system paths
+}
+
+// Check if this node equals another node.
+func (n *ImportStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ImportStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Path.Equal(value.Ref(o.Path)) && n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ImportStatementNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("import ")
+	buff.WriteString(n.Path.String())
+
+	return buff.String()
 }
 
 func (i *ImportStatementNode) IsStatic() bool {

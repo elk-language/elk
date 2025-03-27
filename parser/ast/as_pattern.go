@@ -53,6 +53,46 @@ func (n *AsPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AsPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AsPatternNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if !n.Pattern.Equal(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if !n.Name.Equal(value.Ref(o.Name)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *AsPatternNode) Error() string {
 	return n.Inspect()
+}
+
+func (n *AsPatternNode) String() string {
+	var buff strings.Builder
+
+	leftParen := PatternPrecedence(n) > PatternPrecedence(n.Pattern)
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Pattern.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(" as ")
+
+	buff.WriteString(n.Name.String())
+
+	return buff.String()
 }

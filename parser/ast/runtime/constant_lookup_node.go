@@ -67,5 +67,24 @@ func initConstantLookupNode() {
 
 		},
 	)
+	vm.Def(
+		c,
+		"==",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ConstantLookupNode)
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"to_string",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ConstantLookupNode)
+			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
 
 }

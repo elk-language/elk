@@ -18,6 +18,56 @@ type BinaryTypeNode struct {
 	Right TypeNode     // right hand side
 }
 
+func (n *BinaryTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Op.Equal(o.Op) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *BinaryTypeNode) String() string {
+	var buff strings.Builder
+
+	associativity := TypeAssociativity(n)
+
+	var leftParen bool
+	var rightParen bool
+	if associativity == RIGHT_ASSOCIATIVE {
+		leftParen = TypePrecedence(n) > TypePrecedence(n.Left)
+		rightParen = TypePrecedence(n) >= TypePrecedence(n.Right)
+	} else {
+		leftParen = TypePrecedence(n) >= TypePrecedence(n.Left)
+		rightParen = TypePrecedence(n) > TypePrecedence(n.Right)
+	}
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Left.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteRune(' ')
+	buff.WriteString(n.Op.FetchValue())
+	buff.WriteRune(' ')
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*BinaryTypeNode) IsStatic() bool {
 	return false
 }

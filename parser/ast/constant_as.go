@@ -17,6 +17,29 @@ type ConstantAsNode struct {
 	AsName   string
 }
 
+// Check if this node equals another node.
+func (n *ConstantAsNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstantAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.AsName == o.AsName &&
+		n.Constant.Equal(value.Ref(o.Constant)) &&
+		n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ConstantAsNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Constant.String())
+	buff.WriteString(" as ")
+	buff.WriteString(n.AsName)
+
+	return buff.String()
+}
+
 func (*ConstantAsNode) IsStatic() bool {
 	return false
 }

@@ -194,6 +194,84 @@ type InitDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
+// Check if this node equals another node.
+func (n *InitDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InitDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.loc.Equal(o.loc) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.Equal(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.Equal(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return true
+}
+
+// Return a string representation of the node.
+func (n *InitDefinitionNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("init")
+
+	if len(n.Parameters) > 0 {
+		buff.WriteString("(")
+		for i, param := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteString(")")
+	}
+
+	if n.ThrowType != nil {
+		buff.WriteString(" ! ")
+		buff.WriteString(n.ThrowType.String())
+	}
+	buff.WriteRune('\n')
+
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*InitDefinitionNode) IsStatic() bool {
 	return false
 }
@@ -365,6 +443,31 @@ func (n *AliasDeclarationEntry) Inspect() string {
 	return buff.String()
 }
 
+func (n *AliasDeclarationEntry) Equal(other value.Value) bool {
+	if !other.IsReference() {
+		return false
+	}
+
+	o, ok := other.AsReference().(*AliasDeclarationEntry)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.NewName == o.NewName &&
+		n.OldName == o.OldName
+}
+
+func (n *AliasDeclarationEntry) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.NewName)
+	buff.WriteRune(' ')
+	buff.WriteString(n.OldName)
+
+	return buff.String()
+}
+
 func (n *AliasDeclarationEntry) Error() string {
 	return n.Inspect()
 }
@@ -382,6 +485,43 @@ func NewAliasDeclarationEntry(span *position.Span, newName, oldName string) *Ali
 type AliasDeclarationNode struct {
 	TypedNodeBase
 	Entries []*AliasDeclarationEntry
+}
+
+func (n *AliasDeclarationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("alias ")
+	for i, entry := range n.Entries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(entry.String())
+	}
+
+	return buff.String()
+}
+
+func (n *AliasDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AliasDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (*AliasDeclarationNode) IsStatic() bool {
@@ -433,6 +573,54 @@ type GetterDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
+}
+
+// Equal checks if this node equals the other node.
+func (n *GetterDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GetterDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// String returns the string representation of this node.
+func (n *GetterDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("getter ")
+
+	for i, entry := range n.Entries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(entry.String())
+	}
+
+	return buff.String()
 }
 
 func (*GetterDeclarationNode) IsStatic() bool {
@@ -577,6 +765,54 @@ func (n *AttrDeclarationNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *AttrDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttrDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Span().Equal(o.Span()) {
+		return false
+	}
+
+	if n.DocComment() != o.DocComment() {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *AttrDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+	buff.WriteString("attr ")
+
+	for i, entry := range n.Entries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(entry.String())
+	}
 
 	return buff.String()
 }
