@@ -27,6 +27,27 @@ type NamedCallArgumentNode struct {
 	Value ExpressionNode
 }
 
+func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Name == o.Name &&
+		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *NamedCallArgumentNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Name)
+	buff.WriteString(": ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
+}
+
 func (*NamedCallArgumentNode) IsStatic() bool {
 	return false
 }

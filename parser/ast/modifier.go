@@ -18,6 +18,47 @@ type ModifierNode struct {
 	Right    ExpressionNode // right hand side
 }
 
+func (n *ModifierNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Modifier.Equal(o.Modifier) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *ModifierNode) String() string {
+	var buff strings.Builder
+
+	leftParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Left)
+	rightParen := ExpressionPrecedence(n) >= ExpressionPrecedence(n.Right)
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Left.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteRune(' ')
+	buff.WriteString(n.Modifier.FetchValue())
+	buff.WriteRune(' ')
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*ModifierNode) IsStatic() bool {
 	return false
 }
@@ -71,6 +112,46 @@ type ModifierIfElseNode struct {
 	ElseExpression ExpressionNode // else expression body
 }
 
+func (n *ModifierIfElseNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.ThenExpression.Equal(value.Ref(o.ThenExpression)) &&
+		n.Condition.Equal(value.Ref(o.Condition)) &&
+		n.ElseExpression.Equal(value.Ref(o.ElseExpression))
+}
+
+func (n *ModifierIfElseNode) String() string {
+	var buff strings.Builder
+
+	thenParens := ExpressionPrecedence(n) > ExpressionPrecedence(n.ThenExpression)
+	if thenParens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.ThenExpression.String())
+	if thenParens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(" if ")
+	buff.WriteString(n.Condition.String())
+	buff.WriteString(" else ")
+
+	elseParens := ExpressionPrecedence(n) > ExpressionPrecedence(n.ElseExpression)
+	if elseParens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.ElseExpression.String())
+	if elseParens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*ModifierIfElseNode) IsStatic() bool {
 	return false
 }
@@ -122,6 +203,37 @@ type ModifierForInNode struct {
 	ThenExpression ExpressionNode // then expression body
 	Pattern        PatternNode
 	InExpression   ExpressionNode // expression that will be iterated through
+}
+
+func (n *ModifierForInNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierForInNode)
+	if !ok {
+		return false
+	}
+
+	return n.ThenExpression.Equal(value.Ref(o.ThenExpression)) &&
+		n.Pattern.Equal(value.Ref(o.Pattern)) &&
+		n.InExpression.Equal(value.Ref(o.InExpression)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *ModifierForInNode) String() string {
+	var buff strings.Builder
+
+	thenParens := ExpressionPrecedence(n) > ExpressionPrecedence(n.ThenExpression)
+	if thenParens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.ThenExpression.String())
+	if thenParens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(" for ")
+	buff.WriteString(n.Pattern.String())
+	buff.WriteString(" in ")
+	buff.WriteString(n.InExpression.String())
+	return buff.String()
 }
 
 func (*ModifierForInNode) IsStatic() bool {

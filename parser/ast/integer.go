@@ -13,6 +13,20 @@ type IntLiteralNode struct {
 	Value string
 }
 
+func (n *IntLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *IntLiteralNode) String() string {
+	return n.Value
+}
+
 func (*IntLiteralNode) IsStatic() bool {
 	return true
 }
@@ -45,6 +59,20 @@ func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
 type Int64LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *Int64LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *Int64LiteralNode) String() string {
+	return fmt.Sprintf("%si64", n.Value)
 }
 
 func (*Int64LiteralNode) IsStatic() bool {
@@ -115,6 +143,20 @@ type Int32LiteralNode struct {
 	Value string
 }
 
+func (n *Int32LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *Int32LiteralNode) String() string {
+	return fmt.Sprintf("%si32", n.Value)
+}
+
 func (*Int32LiteralNode) IsStatic() bool {
 	return true
 }
@@ -183,6 +225,20 @@ type Int16LiteralNode struct {
 	Value string
 }
 
+func (n *Int16LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *Int16LiteralNode) String() string {
+	return fmt.Sprintf("%si16", n.Value)
+}
+
 func (*Int16LiteralNode) IsStatic() bool {
 	return true
 }
@@ -249,6 +305,20 @@ func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
 type Int8LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *Int8LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *Int8LiteralNode) String() string {
+	return fmt.Sprintf("%si8", n.Value)
 }
 
 func (*Int8LiteralNode) IsStatic() bool {

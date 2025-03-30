@@ -31,6 +31,34 @@ type ProgramNode struct {
 	State       ProgramState
 }
 
+func (n *ProgramNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ProgramNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !value.Equal(value.Ref(stmt), value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *ProgramNode) String() string {
+	var buff strings.Builder
+	for _, stmt := range n.Body {
+		buff.WriteString(stmt.String())
+		buff.WriteRune('\n')
+	}
+	return buff.String()
+}
+
 func (*ProgramNode) IsStatic() bool {
 	return false
 }

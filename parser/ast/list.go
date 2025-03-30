@@ -574,6 +574,40 @@ type ListPatternNode struct {
 	Elements []PatternNode
 }
 
+func (n *ListPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ListPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *ListPatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('[')
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(element.String())
+	}
+	buff.WriteRune(']')
+
+	return buff.String()
+}
+
 func (l *ListPatternNode) IsStatic() bool {
 	return false
 }

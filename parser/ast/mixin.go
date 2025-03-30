@@ -22,6 +22,88 @@ type MixinDeclarationNode struct {
 	Bytecode              *vm.BytecodeFunction
 }
 
+func (n *MixinDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.Abstract != o.Abstract ||
+		!n.span.Equal(o.span) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.Equal(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *MixinDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	if n.Abstract {
+		buff.WriteString("abstract ")
+	}
+
+	buff.WriteString("mixin ")
+	buff.WriteString(n.Constant.String())
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('[')
+		for i, param := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteRune(']')
+	}
+
+	if len(n.Body) == 0 {
+		buff.WriteString("; end")
+		return buff.String()
+	}
+
+	buff.WriteString("\n")
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteString("\n")
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*MixinDeclarationNode) SkipTypechecking() bool {
 	return false
 }

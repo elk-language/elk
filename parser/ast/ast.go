@@ -71,7 +71,8 @@ func ExpressionAssociativity(expr ExpressionNode) Associativity {
 		*TypeofExpressionNode, *LoopExpressionNode, *GoExpressionNode,
 		*DoExpressionNode, *IfExpressionNode, *UnlessExpressionNode,
 		*WhileExpressionNode, *UntilExpressionNode, *ForInExpressionNode,
-		*NumericForExpressionNode, *TypeExpressionNode, *ClosureLiteralNode:
+		*NumericForExpressionNode, *TypeExpressionNode, *ClosureLiteralNode,
+		*LabeledExpressionNode:
 		return RIGHT_ASSOCIATIVE
 	case *BinaryExpressionNode:
 		switch e.Op.Type {
@@ -98,6 +99,8 @@ func StatementPrecedence(stmt StatementNode) uint8 {
 
 func ExpressionPrecedence(expr ExpressionNode) uint8 {
 	switch e := expr.(type) {
+	case *LabeledExpressionNode:
+		return 5
 	case *ModifierNode, *ModifierForInNode, *ModifierIfElseNode:
 		return 10
 	case *ReturnExpressionNode, *BreakExpressionNode,
@@ -170,7 +173,8 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 
 func TypeAssociativity(expr TypeNode) Associativity {
 	switch expr.(type) {
-	case *BinaryTypeNode, *NilableTypeNode:
+	case *BinaryTypeNode, *NilableTypeNode,
+		*IntersectionTypeNode, *UnionTypeNode:
 		return LEFT_ASSOCIATIVE
 	case *NotTypeNode, *SingletonTypeNode, *InstanceOfTypeNode,
 		*UnaryTypeNode, *ClosureTypeNode:
@@ -184,6 +188,10 @@ func TypePrecedence(expr TypeNode) uint8 {
 	switch e := expr.(type) {
 	case *ClosureTypeNode:
 		return 10
+	case *UnionTypeNode:
+		return 20
+	case *IntersectionTypeNode:
+		return 30
 	case *BinaryTypeNode:
 		switch e.Op.Type {
 		case token.OR:

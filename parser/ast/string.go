@@ -57,6 +57,20 @@ type RawStringLiteralNode struct {
 	Value string // value of the string literal
 }
 
+func (n *RawStringLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *RawStringLiteralNode) String() string {
+	return fmt.Sprintf("'%s'", n.Value)
+}
+
 func (*RawStringLiteralNode) IsStatic() bool {
 	return true
 }
@@ -217,6 +231,37 @@ func NewStringInterpolationNode(span *position.Span, expr ExpressionNode) *Strin
 type InterpolatedStringLiteralNode struct {
 	NodeBase
 	Content []StringLiteralContentNode
+}
+
+func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Content) != len(o.Content) {
+		return false
+	}
+
+	for i, content := range n.Content {
+		if !content.Equal(value.Ref(o.Content[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *InterpolatedStringLiteralNode) String() string {
+	var buff strings.Builder
+	buff.WriteString("\"")
+
+	for _, content := range n.Content {
+		buff.WriteString(content.String())
+	}
+
+	buff.WriteString("\"")
+	return buff.String()
 }
 
 func (*InterpolatedStringLiteralNode) IsStatic() bool {

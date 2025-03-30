@@ -15,6 +15,40 @@ type LoopExpressionNode struct {
 	ThenBody []StatementNode // then expression body
 }
 
+func (n *LoopExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LoopExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *LoopExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("loop\n")
+
+	for _, stmt := range n.ThenBody {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteString("\n")
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*LoopExpressionNode) IsStatic() bool {
 	return false
 }

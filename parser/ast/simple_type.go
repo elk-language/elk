@@ -94,6 +94,18 @@ type NeverTypeNode struct {
 	NodeBase
 }
 
+func (n *NeverTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NeverTypeNode)
+	if !ok {
+		return false
+	}
+	return n.span.Equal(o.span)
+}
+
+func (n *NeverTypeNode) String() string {
+	return "never"
+}
+
 func (*NeverTypeNode) IsStatic() bool {
 	return true
 }

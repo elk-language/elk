@@ -15,6 +15,25 @@ type RestPatternNode struct {
 	Identifier IdentifierNode
 }
 
+func (n *RestPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RestPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Identifier.Equal(value.Ref(o.Identifier)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *RestPatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('*')
+	buff.WriteString(n.Identifier.String())
+
+	return buff.String()
+}
+
 func (r *RestPatternNode) IsStatic() bool {
 	return false
 }

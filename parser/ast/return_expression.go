@@ -16,6 +16,41 @@ type ReturnExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *ReturnExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReturnExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+	return n.span.Equal(o.span)
+}
+
+func (n *ReturnExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("return")
+
+	if n.Value != nil {
+		buff.WriteRune(' ')
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*ReturnExpressionNode) IsStatic() bool {
 	return false
 }

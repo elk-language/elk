@@ -179,6 +179,26 @@ type RegexInterpolationNode struct {
 	Expression ExpressionNode
 }
 
+func (n *RegexInterpolationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RegexInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.Equal(value.Ref(o.Expression)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *RegexInterpolationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("${")
+	buff.WriteString(n.Expression.String())
+	buff.WriteString("}")
+
+	return buff.String()
+}
+
 func (*RegexInterpolationNode) IsStatic() bool {
 	return false
 }
@@ -221,6 +241,57 @@ type InterpolatedRegexLiteralNode struct {
 	NodeBase
 	Content []RegexLiteralContentNode
 	Flags   bitfield.BitField8
+}
+
+func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedRegexLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Content) != len(o.Content) {
+		return false
+	}
+
+	for i, content := range n.Content {
+		if !content.Equal(value.Ref(o.Content[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span) && n.Flags == o.Flags
+}
+
+func (n *InterpolatedRegexLiteralNode) String() string {
+	var buff strings.Builder
+	buff.WriteString("%/")
+
+	for _, content := range n.Content {
+		buff.WriteString(content.String())
+	}
+
+	buff.WriteString("/")
+
+	if n.IsCaseInsensitive() {
+		buff.WriteString("i")
+	}
+	if n.IsMultiline() {
+		buff.WriteString("m")
+	}
+	if n.IsDotAll() {
+		buff.WriteString("s")
+	}
+	if n.IsUngreedy() {
+		buff.WriteString("U")
+	}
+	if n.IsASCII() {
+		buff.WriteString("a")
+	}
+	if n.IsExtended() {
+		buff.WriteString("x")
+	}
+
+	return buff.String()
 }
 
 func (*InterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {

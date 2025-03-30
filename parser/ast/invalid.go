@@ -15,6 +15,20 @@ type InvalidNode struct {
 	Token *token.Token
 }
 
+func (n *InvalidNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InvalidNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Token.Equal(o.Token)
+}
+
+func (n *InvalidNode) String() string {
+	return "<invalid>"
+}
+
 func (*InvalidNode) SetType(types.Type) {}
 
 func (*InvalidNode) IsStatic() bool {

@@ -37,7 +37,7 @@ func (n *BinaryPatternNode) String() string {
 
 	var leftParen bool
 	var rightParen bool
-	if associativity == RIGHT_ASSOCIATIVE {
+	if associativity == LEFT_ASSOCIATIVE {
 		leftParen = PatternPrecedence(n) > PatternPrecedence(n.Left)
 		rightParen = PatternPrecedence(n) >= PatternPrecedence(n.Right)
 	} else {

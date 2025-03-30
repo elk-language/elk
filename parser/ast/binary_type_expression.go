@@ -37,7 +37,7 @@ func (n *BinaryTypeNode) String() string {
 
 	var leftParen bool
 	var rightParen bool
-	if associativity == RIGHT_ASSOCIATIVE {
+	if associativity == LEFT_ASSOCIATIVE {
 		leftParen = TypePrecedence(n) > TypePrecedence(n.Left)
 		rightParen = TypePrecedence(n) >= TypePrecedence(n.Right)
 	} else {

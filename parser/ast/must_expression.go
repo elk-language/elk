@@ -15,6 +15,25 @@ type MustExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *MustExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MustExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *MustExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("must ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
+}
+
 func (*MustExpressionNode) IsStatic() bool {
 	return false
 }

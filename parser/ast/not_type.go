@@ -15,6 +15,33 @@ type NotTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *NotTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NotTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.TypeNode.Equal(value.Ref(o.TypeNode))
+}
+
+func (n *NotTypeNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('~')
+
+	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.TypeNode.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*NotTypeNode) IsStatic() bool {
 	return false
 }

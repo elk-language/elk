@@ -38,7 +38,10 @@ func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Constant.Equal(value.Ref(o.Constant)) {
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.Equal(value.Ref(o.Constant)) {
 		return false
 	}
 
@@ -95,8 +98,11 @@ func (n *ClassDeclarationNode) String() string {
 		buff.WriteString("noinit ")
 	}
 
-	buff.WriteString("class ")
-	buff.WriteString(n.Constant.String())
+	buff.WriteString("class")
+	if n.Constant != nil {
+		buff.WriteRune(' ')
+		buff.WriteString(n.Constant.String())
+	}
 
 	if len(n.TypeParameters) > 0 {
 		buff.WriteRune('[')
@@ -112,6 +118,11 @@ func (n *ClassDeclarationNode) String() string {
 	if n.Superclass != nil {
 		buff.WriteString(" < ")
 		buff.WriteString(n.Superclass.String())
+	}
+
+	if len(n.Body) == 0 {
+		buff.WriteString("; end")
+		return buff.String()
 	}
 
 	buff.WriteRune('\n')

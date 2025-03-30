@@ -15,6 +15,33 @@ type NilableTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *NilableTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilableTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.TypeNode.Equal(value.Ref(o.TypeNode))
+}
+
+func (n *NilableTypeNode) String() string {
+	var buff strings.Builder
+
+	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.TypeNode.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString("?")
+
+	return buff.String()
+}
+
 func (*NilableTypeNode) IsStatic() bool {
 	return false
 }

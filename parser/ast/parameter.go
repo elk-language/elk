@@ -179,6 +179,61 @@ type MethodParameterNode struct {
 	Kind                ParameterKind
 }
 
+func (n *MethodParameterNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Name == o.Name &&
+		n.SetInstanceVariable == o.SetInstanceVariable &&
+		n.Kind == o.Kind
+}
+
+func (n *MethodParameterNode) String() string {
+	var buff strings.Builder
+
+	switch n.Kind {
+	case PositionalRestParameterKind:
+		buff.WriteRune('*')
+	case NamedRestParameterKind:
+		buff.WriteString("**")
+	}
+
+	if n.SetInstanceVariable {
+		buff.WriteRune('@')
+	}
+
+	buff.WriteString(n.Name)
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	if n.Initialiser != nil {
+		buff.WriteString(" = ")
+		buff.WriteString(n.Initialiser.String())
+	}
+
+	return buff.String()
+}
+
 func (*MethodParameterNode) IsStatic() bool {
 	return false
 }

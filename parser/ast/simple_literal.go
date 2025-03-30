@@ -130,6 +130,19 @@ type NilLiteralNode struct {
 	NodeBase
 }
 
+func (n *NilLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *NilLiteralNode) String() string {
+	return "nil"
+}
+
 func (*NilLiteralNode) SetType(types.Type) {}
 
 func (*NilLiteralNode) IsStatic() bool {

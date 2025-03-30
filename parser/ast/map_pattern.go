@@ -15,6 +15,42 @@ type MapPatternNode struct {
 	Elements []PatternNode
 }
 
+func (n *MapPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MapPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, elem := range n.Elements {
+		if !elem.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *MapPatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("{")
+
+	for i, elem := range n.Elements {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(elem.String())
+	}
+
+	buff.WriteString("}")
+
+	return buff.String()
+}
+
 func (m *MapPatternNode) IsStatic() bool {
 	return false
 }

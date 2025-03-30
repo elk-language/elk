@@ -19,6 +19,56 @@ type LogicalExpressionNode struct {
 	static bool
 }
 
+func (n *LogicalExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.Equal(o.Op) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
+		n.Right.Equal(value.Ref(o.Right)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *LogicalExpressionNode) String() string {
+	var buff strings.Builder
+
+	associativity := ExpressionAssociativity(n)
+
+	var leftParen bool
+	var rightParen bool
+	if associativity == LEFT_ASSOCIATIVE {
+		leftParen = ExpressionPrecedence(n) > ExpressionPrecedence(n.Left)
+		rightParen = ExpressionPrecedence(n) >= ExpressionPrecedence(n.Right)
+	} else {
+		leftParen = ExpressionPrecedence(n) >= ExpressionPrecedence(n.Left)
+		rightParen = ExpressionPrecedence(n) > ExpressionPrecedence(n.Right)
+	}
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Left.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(" ")
+	buff.WriteString(n.Op.String())
+	buff.WriteString(" ")
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (l *LogicalExpressionNode) IsStatic() bool {
 	return l.static
 }

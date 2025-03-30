@@ -36,6 +36,116 @@ type MethodDefinitionNode struct {
 	Flags          bitfield.BitField8
 }
 
+// Check if this method definition is equal to another value.
+func (n *MethodDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, tp := range n.TypeParameters {
+		if !tp.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Parameters {
+		if !param.Equal(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.Equal(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.Equal(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return n.Flags == o.Flags &&
+		n.loc.Equal(o.loc) &&
+		n.Name == o.Name
+}
+
+// Return a string representation of this method definition.
+func (n *MethodDefinitionNode) String() string {
+	var buff strings.Builder
+
+	if n.IsAbstract() {
+		buff.WriteString("abstract ")
+	}
+	if n.IsSealed() {
+		buff.WriteString("sealed ")
+	}
+	if n.IsGenerator() {
+		buff.WriteString("generator ")
+	}
+	if n.IsAsync() {
+		buff.WriteString("async ")
+	}
+
+	buff.WriteString("def ")
+	buff.WriteString(n.Name)
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteString("[")
+		for i, tp := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(tp.String())
+		}
+		buff.WriteString("]")
+	}
+
+	buff.WriteString("(")
+	for i, param := range n.Parameters {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(param.String())
+	}
+	buff.WriteString(")")
+
+	if n.ReturnType != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.ReturnType.String())
+	}
+
+	if n.ThrowType != nil {
+		buff.WriteString(" ! ")
+		buff.WriteString(n.ThrowType.String())
+	}
+
+	buff.WriteRune('\n')
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*MethodDefinitionNode) IsStatic() bool {
 	return false
 }
@@ -341,6 +451,100 @@ type MethodSignatureDefinitionNode struct {
 	Parameters     []ParameterNode // formal parameters
 	ReturnType     TypeNode
 	ThrowType      TypeNode
+}
+
+func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodSignatureDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Name != o.Name ||
+		!n.span.Equal(o.span) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Parameters) != len(o.Parameters) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Parameters {
+		if !param.Equal(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.Equal(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.Equal(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *MethodSignatureDefinitionNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("sig ")
+	buff.WriteString(n.Name)
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('[')
+		for i, param := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteRune(']')
+	}
+
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('(')
+		for i, param := range n.Parameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteRune(')')
+	}
+
+	if n.ReturnType != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.ReturnType.String())
+	}
+
+	if n.ThrowType != nil {
+		buff.WriteString(" ! ")
+		buff.WriteString(n.ThrowType.String())
+	}
+
+	return buff.String()
 }
 
 func (*MethodSignatureDefinitionNode) IsStatic() bool {

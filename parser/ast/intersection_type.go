@@ -15,6 +15,38 @@ type IntersectionTypeNode struct {
 	Elements []TypeNode
 }
 
+func (n *IntersectionTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IntersectionTypeNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *IntersectionTypeNode) String() string {
+	var buff strings.Builder
+
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(" & ")
+		}
+		buff.WriteString(element.String())
+	}
+
+	return buff.String()
+}
+
 func (*IntersectionTypeNode) IsStatic() bool {
 	return false
 }

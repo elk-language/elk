@@ -17,6 +17,34 @@ type PostfixExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *PostfixExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.Equal(o.Op) &&
+		n.Expression.Equal(value.Ref(o.Expression)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *PostfixExpressionNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Expression)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Expression.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(n.Op.String())
+
+	return buff.String()
+}
+
 func (i *PostfixExpressionNode) IsStatic() bool {
 	return false
 }

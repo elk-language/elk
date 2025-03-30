@@ -13,6 +13,20 @@ type InstanceVariableNode struct {
 	Value string
 }
 
+func (n *InstanceVariableNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceVariableNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value != o.Value ||
+		!n.span.Equal(o.span)
+}
+
+func (n *InstanceVariableNode) String() string {
+	return fmt.Sprintf("@%s", n.Value)
+}
+
 func (*InstanceVariableNode) IsStatic() bool {
 	return false
 }

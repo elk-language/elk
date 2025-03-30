@@ -15,6 +15,43 @@ type RecordPatternNode struct {
 	Elements []PatternNode
 }
 
+func (n *RecordPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RecordPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *RecordPatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%{")
+
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(element.String())
+	}
+
+	buff.WriteString("}")
+
+	return buff.String()
+}
+
 func (m *RecordPatternNode) IsStatic() bool {
 	return false
 }

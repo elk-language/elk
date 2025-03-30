@@ -67,6 +67,25 @@ type InterpolatedSymbolLiteralNode struct {
 	Content *InterpolatedStringLiteralNode
 }
 
+func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content.Equal(value.Ref(o.Content)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *InterpolatedSymbolLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(":")
+	buff.WriteString(n.Content.String())
+
+	return buff.String()
+}
+
 func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
 	return false
 }

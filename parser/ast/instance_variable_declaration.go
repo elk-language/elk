@@ -25,7 +25,7 @@ func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
 
 	if n.comment != o.comment ||
 		n.Name != o.Name ||
-		!n.Span().Equal(o.Span()) {
+		!n.span.Equal(o.span) {
 		return false
 	}
 

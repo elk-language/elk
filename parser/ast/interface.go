@@ -21,6 +21,74 @@ type InterfaceDeclarationNode struct {
 	Bytecode       *vm.BytecodeFunction
 }
 
+func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterfaceDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.Equal(value.Ref(o.Constant)) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.comment == o.comment &&
+		n.span.Equal(o.span)
+}
+
+func (n *InterfaceDeclarationNode) String() string {
+	var buff strings.Builder
+	buff.WriteString("interface")
+	if n.Constant != nil {
+		buff.WriteRune(' ')
+		buff.WriteString(n.Constant.String())
+	}
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteString("[")
+		for i, param := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(param.String())
+		}
+		buff.WriteString("]")
+	}
+
+	if len(n.Body) == 0 {
+		buff.WriteString("; end")
+		return buff.String()
+	}
+
+	buff.WriteString("\n")
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteString("\n")
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*InterfaceDeclarationNode) SkipTypechecking() bool {
 	return false
 }

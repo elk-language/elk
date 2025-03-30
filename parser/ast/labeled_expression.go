@@ -17,6 +17,36 @@ type LabeledExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *LabeledExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LabeledExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Label == o.Label &&
+		n.Expression.Equal(value.Ref(o.Expression))
+}
+
+func (n *LabeledExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('$')
+	buff.WriteString(n.Label)
+	buff.WriteString(": ")
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Expression)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Expression.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (l *LabeledExpressionNode) Type(env *types.GlobalEnvironment) types.Type {
 	return l.Expression.Type(env)
 }

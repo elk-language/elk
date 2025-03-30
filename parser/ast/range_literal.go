@@ -35,6 +35,45 @@ type RangeLiteralNode struct {
 	static bool
 }
 
+func (n *RangeLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RangeLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Start.Equal(value.Ref(o.Start)) &&
+		n.End.Equal(value.Ref(o.End)) &&
+		n.Op.Equal(o.Op) &&
+		n.span.Equal(o.span)
+}
+
+func (n *RangeLiteralNode) String() string {
+	var buff strings.Builder
+
+	leftParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Start)
+	rightParen := ExpressionPrecedence(n) >= ExpressionPrecedence(n.End)
+
+	if leftParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Start.String())
+	if leftParen {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString(n.Op.String())
+
+	if rightParen {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.End.String())
+	if rightParen {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (r *RangeLiteralNode) IsStatic() bool {
 	return r.static
 }

@@ -17,6 +17,27 @@ type KeyValueExpressionNode struct {
 	static bool
 }
 
+func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Key.Equal(value.Ref(o.Key)) &&
+		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *KeyValueExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Key.String())
+	buff.WriteString(" => ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
+}
+
 func (k *KeyValueExpressionNode) IsStatic() bool {
 	return k.static
 }
@@ -160,6 +181,27 @@ type KeyValuePatternNode struct {
 	NodeBase
 	Key   PatternExpressionNode
 	Value PatternNode
+}
+
+func (n *KeyValuePatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Key.Equal(value.Ref(o.Key)) &&
+		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *KeyValuePatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Key.String())
+	buff.WriteString(" => ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
 }
 
 func (k *KeyValuePatternNode) IsStatic() bool {

@@ -64,6 +64,20 @@ type RawCharLiteralNode struct {
 	Value rune // value of the char literal
 }
 
+func (n *RawCharLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RawCharLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *RawCharLiteralNode) String() string {
+	return "r" + value.Char(n.Value).Inspect()
+}
+
 func (*RawCharLiteralNode) IsStatic() bool {
 	return true
 }

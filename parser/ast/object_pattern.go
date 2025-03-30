@@ -16,6 +16,44 @@ type ObjectPatternNode struct {
 	Attributes []PatternNode
 }
 
+func (n *ObjectPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ObjectPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Attributes) != len(o.Attributes) {
+		return false
+	}
+
+	for i, attr := range n.Attributes {
+		if !attr.Equal(value.Ref(o.Attributes[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span) &&
+		n.ObjectType.Equal(value.Ref(o.ObjectType))
+}
+
+func (n *ObjectPatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.ObjectType.String())
+	buff.WriteRune('(')
+
+	for i, attr := range n.Attributes {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(attr.String())
+	}
+
+	buff.WriteRune(')')
+
+	return buff.String()
+}
+
 func (m *ObjectPatternNode) IsStatic() bool {
 	return false
 }

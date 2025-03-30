@@ -19,6 +19,64 @@ type ModuleDeclarationNode struct {
 	Bytecode *vm.BytecodeFunction
 }
 
+func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		n.comment != o.comment ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.Equal(value.Ref(o.Constant)) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ModuleDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("module")
+	if n.Constant != nil {
+		buff.WriteRune(' ')
+		buff.WriteString(n.Constant.String())
+	}
+
+	if len(n.Body) > 0 {
+		buff.WriteString("\n")
+		for _, stmt := range n.Body {
+			indent.IndentString(&buff, stmt.String(), 1)
+			buff.WriteString("\n")
+		}
+		buff.WriteString("end")
+	} else {
+		buff.WriteString("; end")
+	}
+
+	return buff.String()
+}
+
 func (*ModuleDeclarationNode) SkipTypechecking() bool {
 	return false
 }

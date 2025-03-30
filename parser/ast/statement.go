@@ -197,6 +197,21 @@ type ParameterStatementNode struct {
 	Parameter ParameterNode
 }
 
+func (n *ParameterStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ParameterStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Parameter.Equal(value.Ref(o.Parameter)) &&
+		n.span.Equal(o.span)
+}
+
+// Return a string representation of the node.
+func (n *ParameterStatementNode) String() string {
+	return n.Parameter.String()
+}
+
 func (*ParameterStatementNode) IsStatic() bool {
 	return false
 }

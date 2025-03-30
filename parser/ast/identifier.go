@@ -27,6 +27,20 @@ type PublicIdentifierNode struct {
 	Value string
 }
 
+func (n *PublicIdentifierNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *PublicIdentifierNode) String() string {
+	return n.Value
+}
+
 func (*PublicIdentifierNode) IsStatic() bool {
 	return false
 }
@@ -59,6 +73,20 @@ func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierN
 type PrivateIdentifierNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PrivateIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *PrivateIdentifierNode) String() string {
+	return n.Value
 }
 
 func (*PrivateIdentifierNode) IsStatic() bool {
@@ -95,6 +123,21 @@ type PublicIdentifierAsNode struct {
 	NodeBase
 	Target *PublicIdentifierNode
 	AsName string
+}
+
+func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicIdentifierAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.Equal(value.Ref(o.Target)) &&
+		n.AsName == o.AsName &&
+		n.span.Equal(o.span)
+}
+
+func (n *PublicIdentifierAsNode) String() string {
+	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName)
 }
 
 func (*PublicIdentifierAsNode) IsStatic() bool {

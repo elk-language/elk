@@ -16,6 +16,36 @@ type MethodLookupNode struct {
 	Name     string
 }
 
+func (n *MethodLookupNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Receiver.Equal(value.Ref(o.Receiver)) &&
+		n.Name == o.Name
+}
+
+func (n *MethodLookupNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Receiver.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString("::")
+	buff.WriteString(n.Name)
+
+	return buff.String()
+}
+
 func (*MethodLookupNode) IsStatic() bool {
 	return false
 }
@@ -63,6 +93,29 @@ type MethodLookupAsNode struct {
 	NodeBase
 	MethodLookup *MethodLookupNode
 	AsName       string
+}
+
+// Check if this method lookup as node is equal to another value.
+func (n *MethodLookupAsNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.MethodLookup.Equal(value.Ref(o.MethodLookup)) &&
+		n.AsName == o.AsName
+}
+
+// Return a string representation of this method lookup as node.
+func (n *MethodLookupAsNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.MethodLookup.String())
+	buff.WriteString(" as ")
+	buff.WriteString(n.AsName)
+
+	return buff.String()
 }
 
 func (*MethodLookupAsNode) IsStatic() bool {

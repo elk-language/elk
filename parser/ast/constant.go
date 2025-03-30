@@ -69,6 +69,20 @@ type PublicConstantNode struct {
 	Value string
 }
 
+func (n *PublicConstantNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicConstantNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *PublicConstantNode) String() string {
+	return n.Value
+}
+
 func (*PublicConstantNode) IsStatic() bool {
 	return false
 }
@@ -101,6 +115,20 @@ func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode 
 type PrivateConstantNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *PrivateConstantNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PrivateConstantNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *PrivateConstantNode) String() string {
+	return n.Value
 }
 
 func (*PrivateConstantNode) IsStatic() bool {
@@ -137,6 +165,21 @@ type PublicConstantAsNode struct {
 	NodeBase
 	Target *PublicConstantNode
 	AsName string
+}
+
+func (n *PublicConstantAsNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicConstantAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.Equal(value.Ref(o.Target)) &&
+		n.AsName == o.AsName &&
+		n.span.Equal(o.span)
+}
+
+func (n *PublicConstantAsNode) String() string {
+	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName)
 }
 
 func (*PublicConstantAsNode) IsStatic() bool {
