@@ -70,7 +70,7 @@ func (*IntersectionTypeNode) DirectClass() *value.Class {
 func (n *IntersectionTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::IntersectionTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::IntersectionTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, stmt := range n.Elements {

@@ -85,8 +85,8 @@ func (*RawStringLiteralNode) DirectClass() *value.Class {
 
 func (n *RawStringLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::RawStringLiteralNode{&: %p, value: %s}",
-		n,
+		"Std::Elk::AST::RawStringLiteralNode{span: %s, value: %s}",
+		(*value.Span)(n.span).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -137,8 +137,8 @@ func (*StringLiteralContentSectionNode) DirectClass() *value.Class {
 
 func (n *StringLiteralContentSectionNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::StringLiteralContentSectionNode{&: %p, value: %s}",
-		n,
+		"Std::Elk::AST::StringLiteralContentSectionNode{span: %s, value: %s}",
+		(*value.Span)(n.span).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -196,7 +196,7 @@ func (*StringInspectInterpolationNode) DirectClass() *value.Class {
 func (n *StringInspectInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::StringInspectInterpolationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::StringInspectInterpolationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -259,7 +259,7 @@ func (*StringInterpolationNode) DirectClass() *value.Class {
 func (n *StringInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::StringInterpolationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::StringInterpolationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -337,7 +337,7 @@ func (*InterpolatedStringLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedStringLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedStringLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedStringLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  content: %%[\n")
 	for i, stmt := range n.Content {
@@ -401,8 +401,8 @@ func (*DoubleQuotedStringLiteralNode) DirectClass() *value.Class {
 
 func (n *DoubleQuotedStringLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::DoubleQuotedStringLiteralNode{&: %p, value: %s}",
-		n,
+		"Std::Elk::AST::DoubleQuotedStringLiteralNode{span: %s, value: %s}",
+		(*value.Span)(n.span).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }

@@ -74,7 +74,7 @@ func (*ModifierNode) DirectClass() *value.Class {
 func (n *ModifierNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  modifier: ")
 	indent.IndentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
@@ -167,7 +167,7 @@ func (*ModifierIfElseNode) DirectClass() *value.Class {
 func (n *ModifierIfElseNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierIfElseNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierIfElseNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  then_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
@@ -251,7 +251,7 @@ func (*ModifierForInNode) DirectClass() *value.Class {
 func (n *ModifierForInNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierForInNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierForInNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  then_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)

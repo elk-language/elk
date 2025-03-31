@@ -69,7 +69,7 @@ func (*PostfixExpressionNode) DirectClass() *value.Class {
 func (n *PostfixExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PostfixExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::PostfixExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

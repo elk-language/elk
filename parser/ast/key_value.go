@@ -63,7 +63,7 @@ func (*KeyValueExpressionNode) DirectClass() *value.Class {
 func (n *KeyValueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::KeyValueExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::KeyValueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
@@ -132,7 +132,7 @@ func (*SymbolKeyValueExpressionNode) DirectClass() *value.Class {
 func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
@@ -192,7 +192,7 @@ func (*SymbolKeyValuePatternNode) DirectClass() *value.Class {
 func (n *SymbolKeyValuePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
@@ -261,7 +261,7 @@ func (*KeyValuePatternNode) DirectClass() *value.Class {
 func (n *KeyValuePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)

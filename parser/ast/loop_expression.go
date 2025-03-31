@@ -72,7 +72,7 @@ func (*LoopExpressionNode) DirectClass() *value.Class {
 func (n *LoopExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  then_body: %%[\n")
 	for i, stmt := range n.ThenBody {

@@ -104,7 +104,7 @@ func (*ClosureTypeNode) DirectClass() *value.Class {
 func (n *ClosureTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  return_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)

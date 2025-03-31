@@ -48,7 +48,7 @@ func (*InstanceVariableNode) DirectClass() *value.Class {
 }
 
 func (i *InstanceVariableNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::InstanceVariableNode{&: %p, value: %s}", i, value.String(i.Value).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::InstanceVariableNode{span: %s, value: %s}", (*value.Span)(i.span).Inspect(), value.String(i.Value).Inspect())
 }
 
 func (p *InstanceVariableNode) Error() string {

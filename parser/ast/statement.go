@@ -59,7 +59,7 @@ func (e *ExpressionStatementNode) DirectClass() *value.Class {
 func (n *ExpressionStatementNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ExpressionStatementNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ExpressionStatementNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -122,7 +122,7 @@ func (e *EmptyStatementNode) DirectClass() *value.Class {
 }
 
 func (e *EmptyStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::EmptyStatementNode{&: %p}", e)
+	return fmt.Sprintf("Std::Elk::AST::EmptyStatementNode{span: %s}", (*value.Span)(e.span).Inspect())
 }
 
 func (e *EmptyStatementNode) Error() string {
@@ -176,7 +176,7 @@ func (e *ImportStatementNode) DirectClass() *value.Class {
 }
 
 func (e *ImportStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{&: %p, path: %s}", e, e.Path.Inspect())
+	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{span: %s, path: %s}", (*value.Span)(e.span).Inspect(), e.Path.Inspect())
 }
 
 func (e *ImportStatementNode) Error() string {
@@ -227,7 +227,7 @@ func (*ParameterStatementNode) DirectClass() *value.Class {
 func (n *ParameterStatementNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ParameterStatementNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ParameterStatementNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  parameter: ")
 	indent.IndentStringFromSecondLine(&buff, n.Parameter.Inspect(), 1)

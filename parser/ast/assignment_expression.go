@@ -43,7 +43,7 @@ func (*AssignmentExpressionNode) DirectClass() *value.Class {
 func (n *AssignmentExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

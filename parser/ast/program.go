@@ -74,7 +74,7 @@ func (*ProgramNode) DirectClass() *value.Class {
 func (n *ProgramNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, stmt := range n.Body {

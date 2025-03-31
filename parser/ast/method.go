@@ -213,7 +213,7 @@ func (*MethodDefinitionNode) DirectClass() *value.Class {
 func (n *MethodDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodDefinitionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -397,7 +397,7 @@ func (*InitDefinitionNode) DirectClass() *value.Class {
 func (n *InitDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InitDefinitionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::InitDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -562,7 +562,7 @@ func (*MethodSignatureDefinitionNode) DirectClass() *value.Class {
 func (n *MethodSignatureDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -842,7 +842,7 @@ func (*GetterDeclarationNode) DirectClass() *value.Class {
 func (n *GetterDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GetterDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GetterDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -939,7 +939,7 @@ func (*SetterDeclarationNode) DirectClass() *value.Class {
 func (n *SetterDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SetterDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SetterDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -995,7 +995,7 @@ func (*AttrDeclarationNode) DirectClass() *value.Class {
 func (n *AttrDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AttrDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttrDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

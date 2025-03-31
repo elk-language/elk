@@ -70,7 +70,7 @@ func (*UnionTypeNode) DirectClass() *value.Class {
 func (n *UnionTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnionTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnionTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, stmt := range n.Elements {

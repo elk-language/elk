@@ -271,7 +271,7 @@ func (*WordArrayListLiteralNode) DirectClass() *value.Class {
 func (n *WordArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -406,7 +406,7 @@ func (*SymbolArrayListLiteralNode) DirectClass() *value.Class {
 func (n *SymbolArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -542,7 +542,7 @@ func (*HexArrayListLiteralNode) DirectClass() *value.Class {
 func (n *HexArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -681,7 +681,7 @@ func (*BinArrayListLiteralNode) DirectClass() *value.Class {
 func (n *BinArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -759,7 +759,7 @@ func (*ListPatternNode) DirectClass() *value.Class {
 func (n *ListPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {

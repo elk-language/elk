@@ -96,7 +96,7 @@ func (*PublicConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PublicConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PublicConstantNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PublicConstantNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *PublicConstantNode) Error() string {
@@ -144,7 +144,7 @@ func (*PrivateConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PrivateConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PrivateConstantNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PrivateConstantNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *PrivateConstantNode) Error() string {
@@ -197,7 +197,7 @@ func (*PublicConstantAsNode) DirectClass() *value.Class {
 func (n *PublicConstantAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  target: ")
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
@@ -276,7 +276,7 @@ func (*ConstantLookupNode) DirectClass() *value.Class {
 func (n *ConstantLookupNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  left: ")
 	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
@@ -367,7 +367,7 @@ func (*GenericConstantNode) DirectClass() *value.Class {
 func (n *GenericConstantNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)

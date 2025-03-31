@@ -133,7 +133,7 @@ func (*HashMapLiteralNode) DirectClass() *value.Class {
 func (n *HashMapLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HashMapLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::HashMapLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -252,7 +252,7 @@ func (*HashRecordLiteralNode) DirectClass() *value.Class {
 func (n *HashRecordLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HashRecordLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::HashRecordLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {

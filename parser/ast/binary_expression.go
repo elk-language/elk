@@ -100,7 +100,7 @@ func (*BinaryExpressionNode) DirectClass() *value.Class {
 func (n *BinaryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

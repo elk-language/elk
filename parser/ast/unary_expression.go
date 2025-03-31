@@ -69,7 +69,7 @@ func (*UnaryExpressionNode) DirectClass() *value.Class {
 func (n *UnaryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

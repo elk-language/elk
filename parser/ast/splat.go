@@ -59,7 +59,7 @@ func (*DoubleSplatExpressionNode) DirectClass() *value.Class {
 func (n *DoubleSplatExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::DoubleSplatExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::DoubleSplatExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -129,7 +129,7 @@ func (*SplatExpressionNode) DirectClass() *value.Class {
 func (n *SplatExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SplatExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SplatExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

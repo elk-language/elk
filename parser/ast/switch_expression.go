@@ -104,7 +104,7 @@ func (*SwitchExpressionNode) DirectClass() *value.Class {
 func (n *SwitchExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SwitchExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SwitchExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -196,7 +196,7 @@ func (*CaseNode) DirectClass() *value.Class {
 func (n *CaseNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::CaseNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::CaseNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)

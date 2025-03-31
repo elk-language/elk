@@ -54,7 +54,7 @@ func (*PublicIdentifierNode) DirectClass() *value.Class {
 }
 
 func (n *PublicIdentifierNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PublicIdentifierNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PublicIdentifierNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *PublicIdentifierNode) Error() string {
@@ -102,7 +102,7 @@ func (*PrivateIdentifierNode) DirectClass() *value.Class {
 }
 
 func (n *PrivateIdentifierNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PrivateIdentifierNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::PrivateIdentifierNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *PrivateIdentifierNode) Error() string {
@@ -155,7 +155,7 @@ func (*PublicIdentifierAsNode) DirectClass() *value.Class {
 func (n *PublicIdentifierAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PublicIdentifierAsNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::PublicIdentifierAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  target: ")
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)

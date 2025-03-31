@@ -126,7 +126,7 @@ func (*VariantTypeParameterNode) DirectClass() *value.Class {
 func (n *VariantTypeParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  variance: ")
 	indent.IndentStringFromSecondLine(&buff, value.UInt8(n.Variance).Inspect(), 1)

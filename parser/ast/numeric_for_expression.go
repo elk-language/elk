@@ -117,7 +117,7 @@ func (*NumericForExpressionNode) DirectClass() *value.Class {
 func (n *NumericForExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  initialiser: ")
 	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)

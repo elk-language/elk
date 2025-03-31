@@ -106,7 +106,7 @@ func (n *ArrayTupleLiteralNode) String() string {
 func (n *ArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.Span()).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -208,7 +208,7 @@ func (*WordArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *WordArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -312,7 +312,7 @@ func (*SymbolArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *SymbolArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -415,7 +415,7 @@ func (*HexArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *HexArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -522,7 +522,7 @@ func (*BinArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *BinArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {
@@ -611,7 +611,7 @@ func (*TuplePatternNode) DirectClass() *value.Class {
 func (n *TuplePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, element := range n.Elements {

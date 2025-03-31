@@ -104,7 +104,7 @@ func (*ExtendWhereBlockExpressionNode) DirectClass() *value.Class {
 func (n *ExtendWhereBlockExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ExtendWhereBlockExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ExtendWhereBlockExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  body: %%[\n")
 	for i, element := range n.Body {

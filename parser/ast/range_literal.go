@@ -100,7 +100,7 @@ func (*RangeLiteralNode) DirectClass() *value.Class {
 func (n *RangeLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  start: ")
 	indent.IndentStringFromSecondLine(&buff, n.Start.Inspect(), 1)

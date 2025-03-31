@@ -79,7 +79,7 @@ func (*MapPatternNode) DirectClass() *value.Class {
 func (n *MapPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MapPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::MapPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  elements: %%[\n")
 	for i, stmt := range n.Elements {

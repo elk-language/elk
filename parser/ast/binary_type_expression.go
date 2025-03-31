@@ -103,7 +103,7 @@ func (*BinaryTypeNode) DirectClass() *value.Class {
 func (n *BinaryTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryTypeNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

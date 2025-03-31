@@ -40,7 +40,7 @@ func (*FloatLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *FloatLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::FloatLiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::FloatLiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *FloatLiteralNode) Error() string {
@@ -88,7 +88,7 @@ func (*BigFloatLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *BigFloatLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::BigFloatLiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::BigFloatLiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *BigFloatLiteralNode) Error() string {
@@ -136,7 +136,7 @@ func (*Float64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Float64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Float64LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Float64LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *Float64LiteralNode) Error() string {
@@ -184,7 +184,7 @@ func (*Float32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Float32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Float32LiteralNode{&: %p, value: %s}", n, n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Float32LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
 }
 
 func (n *Float32LiteralNode) Error() string {

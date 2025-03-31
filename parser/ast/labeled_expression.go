@@ -75,7 +75,7 @@ func (*LabeledExpressionNode) DirectClass() *value.Class {
 func (n *LabeledExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::LabeledExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::LabeledExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  label: ")
 	buff.WriteString(n.Label)

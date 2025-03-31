@@ -57,7 +57,7 @@ func (*RestPatternNode) DirectClass() *value.Class {
 func (n *RestPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RestPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::RestPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  identifier: ")
 	indent.IndentStringFromSecondLine(&buff, n.Identifier.Inspect(), 1)

@@ -93,7 +93,7 @@ func (*ContinueExpressionNode) DirectClass() *value.Class {
 func (n *ContinueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

@@ -185,7 +185,7 @@ func (*ClassDeclarationNode) DirectClass() *value.Class {
 func (n *ClassDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClassDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClassDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.Abstract)
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.Sealed)

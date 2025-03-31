@@ -78,7 +78,7 @@ func (*ObjectPatternNode) DirectClass() *value.Class {
 func (n *ObjectPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  object_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)

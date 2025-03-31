@@ -131,7 +131,7 @@ func (*ClosureLiteralNode) DirectClass() *value.Class {
 func (n *ClosureLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  parameters: %%[\n")
 	for i, element := range n.Parameters {

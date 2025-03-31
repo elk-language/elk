@@ -53,7 +53,7 @@ func (*ValuePatternDeclarationNode) DirectClass() *value.Class {
 func (n *ValuePatternDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ValuePatternDeclarationNode{\n  &: %p", n)
+	fmt.Fprintf(&buff, "Std::Elk::AST::ValuePatternDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
