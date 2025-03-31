@@ -87,6 +87,27 @@ type SymbolKeyValueExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key != o.Key &&
+		n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *SymbolKeyValueExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Key)
+	buff.WriteString(": ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
+}
+
 func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
 	return s.Value.IsStatic()
 }
@@ -133,6 +154,27 @@ type SymbolKeyValuePatternNode struct {
 	NodeBase
 	Key   string
 	Value PatternNode
+}
+
+func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key != o.Key &&
+		n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *SymbolKeyValuePatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Key)
+	buff.WriteString(": ")
+	buff.WriteString(n.Value.String())
+
+	return buff.String()
 }
 
 func (s *SymbolKeyValuePatternNode) IsStatic() bool {

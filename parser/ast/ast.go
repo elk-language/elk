@@ -214,10 +214,9 @@ func TypePrecedence(expr TypeNode) uint8 {
 
 func PatternAssociativity(expr PatternNode) Associativity {
 	switch expr.(type) {
-	case *BinaryTypeNode, *NilableTypeNode:
+	case *BinaryPatternNode:
 		return LEFT_ASSOCIATIVE
-	case *NotTypeNode, *SingletonTypeNode, *InstanceOfTypeNode,
-		*UnaryTypeNode:
+	case *UnaryExpressionNode:
 		return RIGHT_ASSOCIATIVE
 	}
 

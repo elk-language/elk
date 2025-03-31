@@ -16,6 +16,28 @@ type VariablePatternDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
+func (n *VariablePatternDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariablePatternDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Pattern.Equal(value.Ref(o.Pattern)) &&
+		n.Initialiser.Equal(value.Ref(o.Initialiser))
+}
+
+func (n *VariablePatternDeclarationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("var ")
+	buff.WriteString(n.Pattern.String())
+	buff.WriteString(" = ")
+	buff.WriteString(n.Initialiser.String())
+
+	return buff.String()
+}
+
 func (*VariablePatternDeclarationNode) IsStatic() bool {
 	return false
 }

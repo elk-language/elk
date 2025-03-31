@@ -18,6 +18,54 @@ type VariableDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
+func (n *VariableDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.Name != o.Name ||
+		n.comment != o.comment ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *VariableDeclarationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("var ")
+	buff.WriteString(n.Name)
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	if n.Initialiser != nil {
+		buff.WriteString(" = ")
+		buff.WriteString(n.Initialiser.String())
+	}
+
+	return buff.String()
+}
+
 func (*VariableDeclarationNode) IsStatic() bool {
 	return false
 }

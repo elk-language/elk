@@ -138,6 +138,36 @@ type TypeDefinitionNode struct {
 	TypeNode TypeNode            // the type
 }
 
+func (n *TypeDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Constant.Equal(value.Ref(o.Constant)) &&
+		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
+		n.comment == o.comment &&
+		n.span.Equal(o.span)
+}
+
+func (n *TypeDefinitionNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("typedef ")
+	buff.WriteString(n.Constant.String())
+	buff.WriteString(" = ")
+	buff.WriteString(n.TypeNode.String())
+
+	return buff.String()
+}
+
 func (*TypeDefinitionNode) IsStatic() bool {
 	return false
 }

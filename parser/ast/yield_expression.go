@@ -16,6 +16,51 @@ type YieldExpressionNode struct {
 	Forward bool
 }
 
+func (n *YieldExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*YieldExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		n.Forward != o.Forward {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *YieldExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("yield")
+	if n.Forward {
+		buff.WriteRune('*')
+	}
+
+	if n.Value != nil {
+		buff.WriteRune(' ')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*YieldExpressionNode) IsStatic() bool {
 	return false
 }

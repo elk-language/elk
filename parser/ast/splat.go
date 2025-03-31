@@ -87,6 +87,33 @@ type SplatExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *SplatExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *SplatExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('*')
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Value.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*SplatExpressionNode) IsStatic() bool {
 	return false
 }

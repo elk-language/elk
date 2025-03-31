@@ -62,6 +62,18 @@ type VoidTypeNode struct {
 	NodeBase
 }
 
+func (n *VoidTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VoidTypeNode)
+	if !ok {
+		return false
+	}
+	return n.span.Equal(o.span)
+}
+
+func (n *VoidTypeNode) String() string {
+	return "void"
+}
+
 func (*VoidTypeNode) IsStatic() bool {
 	return true
 }

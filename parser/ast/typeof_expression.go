@@ -15,6 +15,32 @@ type TypeofExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *TypeofExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeofExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *TypeofExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("typeof ")
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Value.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*TypeofExpressionNode) IsStatic() bool {
 	return false
 }

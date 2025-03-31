@@ -109,6 +109,20 @@ type UInt64LiteralNode struct {
 	Value string
 }
 
+func (n *UInt64LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *UInt64LiteralNode) String() string {
+	return fmt.Sprintf("%su64", n.Value)
+}
+
 func (*UInt64LiteralNode) IsStatic() bool {
 	return true
 }
@@ -189,6 +203,20 @@ func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
 type UInt32LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt32LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *UInt32LiteralNode) String() string {
+	return fmt.Sprintf("%su32", n.Value)
 }
 
 func (*UInt32LiteralNode) IsStatic() bool {
@@ -273,6 +301,20 @@ type UInt16LiteralNode struct {
 	Value string
 }
 
+func (n *UInt16LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *UInt16LiteralNode) String() string {
+	return fmt.Sprintf("%su16", n.Value)
+}
+
 func (*UInt16LiteralNode) IsStatic() bool {
 	return true
 }
@@ -353,6 +395,20 @@ func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
 type UInt8LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt8LiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *UInt8LiteralNode) String() string {
+	return fmt.Sprintf("%su8", n.Value)
 }
 
 func (*UInt8LiteralNode) IsStatic() bool {

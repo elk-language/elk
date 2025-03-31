@@ -16,6 +16,44 @@ type UntilExpressionNode struct {
 	ThenBody  []StatementNode // then expression body
 }
 
+func (n *UntilExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UntilExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		!n.Condition.Equal(value.Ref(o.Condition)) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UntilExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("until ")
+	buff.WriteString(n.Condition.String())
+
+	buff.WriteRune('\n')
+	for _, stmt := range n.ThenBody {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*UntilExpressionNode) IsStatic() bool {
 	return false
 }

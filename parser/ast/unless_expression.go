@@ -17,6 +17,59 @@ type UnlessExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
+func (n *UnlessExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.Condition.Equal(value.Ref(o.Condition)) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.Equal(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UnlessExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("unless ")
+	buff.WriteString(n.Condition.String())
+
+	buff.WriteRune('\n')
+	for _, stmt := range n.ThenBody {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+
+	if len(n.ElseBody) > 0 {
+		buff.WriteString("else\n")
+		for _, stmt := range n.ElseBody {
+			indent.IndentString(&buff, stmt.String(), 1)
+			buff.WriteRune('\n')
+		}
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*UnlessExpressionNode) IsStatic() bool {
 	return false
 }

@@ -13,6 +13,19 @@ type TrueLiteralNode struct {
 	NodeBase
 }
 
+func (n *TrueLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TrueLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *TrueLiteralNode) String() string {
+	return "true"
+}
+
 func (*TrueLiteralNode) IsStatic() bool {
 	return true
 }
@@ -30,7 +43,7 @@ func (*TrueLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *TrueLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{&: %p}", n)
+	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{span: %s}", (*value.Span)(n.Span()).Inspect())
 }
 
 func (n *TrueLiteralNode) Error() string {
@@ -96,6 +109,19 @@ func NewFalseLiteralNode(span *position.Span) *FalseLiteralNode {
 // `self` literal.
 type SelfLiteralNode struct {
 	TypedNodeBase
+}
+
+func (n *SelfLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SelfLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *SelfLiteralNode) String() string {
+	return "self"
 }
 
 func (*SelfLiteralNode) IsStatic() bool {
@@ -179,6 +205,19 @@ func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 // `undefined` literal.
 type UndefinedLiteralNode struct {
 	NodeBase
+}
+
+func (n *UndefinedLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UndefinedLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *UndefinedLiteralNode) String() string {
+	return "undefined"
 }
 
 func (*UndefinedLiteralNode) IsStatic() bool {

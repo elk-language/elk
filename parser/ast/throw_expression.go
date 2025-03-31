@@ -17,6 +17,47 @@ type ThrowExpressionNode struct {
 	Value     ExpressionNode
 }
 
+func (n *ThrowExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return n.Unchecked == o.Unchecked &&
+		n.span.Equal(o.span)
+}
+
+func (n *ThrowExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("throw ")
+
+	if n.Unchecked {
+		buff.WriteString("unchecked ")
+	}
+
+	if n.Value != nil {
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*ThrowExpressionNode) Type(*types.GlobalEnvironment) types.Type {
 	return types.Never{}
 }

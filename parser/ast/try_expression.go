@@ -15,6 +15,36 @@ type TryExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *TryExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.Equal(value.Ref(o.Value)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *TryExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("try ")
+
+	if n.Value != nil {
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
+
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Value.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (*TryExpressionNode) IsStatic() bool {
 	return false
 }

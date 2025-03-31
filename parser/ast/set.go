@@ -164,6 +164,69 @@ type WordHashSetLiteralNode struct {
 	static   bool
 }
 
+func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordHashSetLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordHashSetLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("^w[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*RawStringLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+		buff.WriteString(element.Value)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (w *WordHashSetLiteralNode) IsStatic() bool {
 	return w.static
 }
@@ -234,6 +297,69 @@ type SymbolHashSetLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
+}
+
+func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolHashSetLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SymbolHashSetLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("^s[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*SimpleSymbolLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+		buff.WriteString(element.Content)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
 }
 
 func (s *SymbolHashSetLiteralNode) IsStatic() bool {
@@ -345,20 +471,32 @@ func (n *HexHashSetLiteralNode) String() string {
 
 	buff.WriteString("^x[")
 
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
 			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0x"
+		buff.WriteString(element.Value[2:]) // skip "0x"
+		i++
 	}
 	buff.WriteRune(']')
 
 	if n.Capacity != nil {
-		buff.WriteString(":(")
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
 		buff.WriteString(n.Capacity.String())
-		buff.WriteRune(')')
+		if parens {
+			buff.WriteRune(')')
+		}
 	}
 
 	return buff.String()
@@ -469,13 +607,18 @@ func (n *BinHashSetLiteralNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("^b[")
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
 			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0b"
+		buff.WriteString(element.Value[2:]) // skip "0b"
+		i++
 	}
 	buff.WriteRune(']')
 
@@ -563,6 +706,38 @@ func (n *BinHashSetLiteralNode) Error() string {
 type SetPatternNode struct {
 	TypedNodeBase
 	Elements []PatternNode
+}
+
+func (n *SetPatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SetPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span)
+}
+
+func (n *SetPatternNode) String() string {
+	var buff strings.Builder
+	buff.WriteString("^[")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(element.String())
+	}
+	buff.WriteRune(']')
+	return buff.String()
 }
 
 func (s *SetPatternNode) IsStatic() bool {

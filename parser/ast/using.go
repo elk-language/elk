@@ -48,6 +48,25 @@ type UsingAllEntryNode struct {
 	Namespace UsingEntryNode
 }
 
+func (n *UsingAllEntryNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
+	if !ok {
+		return false
+	}
+
+	return n.Namespace.Equal(value.Ref(o.Namespace)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *UsingAllEntryNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Namespace.String())
+	buff.WriteString("::*")
+
+	return buff.String()
+}
+
 func (*UsingAllEntryNode) IsStatic() bool {
 	return false
 }
@@ -90,6 +109,45 @@ type UsingEntryWithSubentriesNode struct {
 	NodeBase
 	Namespace  UsingEntryNode
 	Subentries []UsingSubentryNode
+}
+
+func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingEntryWithSubentriesNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Subentries) != len(o.Subentries) ||
+		!n.Namespace.Equal(value.Ref(o.Namespace)) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, subentry := range n.Subentries {
+		if !subentry.Equal(value.Ref(o.Subentries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UsingEntryWithSubentriesNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Namespace.String())
+	buff.WriteString("::{")
+
+	for i, subentry := range n.Subentries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(subentry.String())
+	}
+
+	buff.WriteRune('}')
+
+	return buff.String()
 }
 
 func (*UsingEntryWithSubentriesNode) IsStatic() bool {
@@ -143,6 +201,41 @@ func (n *UsingEntryWithSubentriesNode) Error() string {
 type UsingExpressionNode struct {
 	TypedNodeBase
 	Entries []UsingEntryNode
+}
+
+func (n *UsingExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UsingExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("using ")
+
+	for i, entry := range n.Entries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(entry.String())
+	}
+
+	return buff.String()
 }
 
 func (*UsingExpressionNode) SkipTypechecking() bool {

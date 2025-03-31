@@ -15,6 +15,33 @@ type SingletonTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *SingletonTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SingletonTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *SingletonTypeNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteRune('&')
+	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
+
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.TypeNode.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (*SingletonTypeNode) IsStatic() bool {
 	return false
 }

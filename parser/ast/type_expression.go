@@ -15,6 +15,25 @@ type TypeExpressionNode struct {
 	TypeNode TypeNode
 }
 
+func (n *TypeExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *TypeExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("type ")
+	buff.WriteString(n.TypeNode.String())
+
+	return buff.String()
+}
+
 func (*TypeExpressionNode) IsStatic() bool {
 	return false
 }

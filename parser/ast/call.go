@@ -547,6 +547,36 @@ type SubscriptExpressionNode struct {
 	static   bool
 }
 
+func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SubscriptExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Receiver.Equal(value.Ref(o.Receiver)) &&
+		n.Key.Equal(value.Ref(o.Key))
+}
+
+func (n *SubscriptExpressionNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Receiver.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteRune('[')
+	buff.WriteString(n.Key.String())
+	buff.WriteRune(']')
+
+	return buff.String()
+}
+
 func (s *SubscriptExpressionNode) IsStatic() bool {
 	return s.static
 }

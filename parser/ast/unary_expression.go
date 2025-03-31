@@ -17,6 +17,34 @@ type UnaryExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
+func (n *UnaryExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnaryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.Equal(o.Op) &&
+		n.Right.Equal(value.Ref(o.Right)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *UnaryExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Op.FetchValue())
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Right)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Right.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (u *UnaryExpressionNode) IsStatic() bool {
 	return u.Right.IsStatic()
 }

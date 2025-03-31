@@ -43,6 +43,46 @@ type UninterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
+func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UninterpolatedRegexLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Content == o.Content &&
+		n.Flags == o.Flags
+}
+
+func (n *UninterpolatedRegexLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%/")
+	buff.WriteString(n.Content)
+	buff.WriteRune('/')
+
+	if n.IsCaseInsensitive() {
+		buff.WriteString("i")
+	}
+	if n.IsMultiline() {
+		buff.WriteString("m")
+	}
+	if n.IsDotAll() {
+		buff.WriteString("s")
+	}
+	if n.IsUngreedy() {
+		buff.WriteString("U")
+	}
+	if n.IsASCII() {
+		buff.WriteString("a")
+	}
+	if n.IsExtended() {
+		buff.WriteString("x")
+	}
+
+	return buff.String()
+}
+
 func (*UninterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {
 	return env.StdSubtype(symbol.Regex)
 }
@@ -139,6 +179,20 @@ func NewUninterpolatedRegexLiteralNode(span *position.Span, content string, flag
 type RegexLiteralContentSectionNode struct {
 	NodeBase
 	Value string
+}
+
+func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RegexLiteralContentSectionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *RegexLiteralContentSectionNode) String() string {
+	return n.Value
 }
 
 func (*RegexLiteralContentSectionNode) Class() *value.Class {

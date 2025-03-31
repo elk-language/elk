@@ -26,6 +26,59 @@ type SwitchExpressionNode struct {
 	ElseBody []StatementNode
 }
 
+func (n *SwitchExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Cases) != len(o.Cases) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.span.Equal(o.span) ||
+		!n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	for i, c := range n.Cases {
+		if !c.Equal(value.Ref(o.Cases[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.Equal(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SwitchExpressionNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("switch ")
+	buff.WriteString(n.Value.String())
+	buff.WriteString("\n")
+
+	for _, c := range n.Cases {
+		buff.WriteString(c.String())
+		buff.WriteString("\n")
+	}
+
+	if len(n.ElseBody) > 0 {
+		buff.WriteString("else\n")
+		for _, stmt := range n.ElseBody {
+			indent.IndentString(&buff, stmt.String(), 1)
+			buff.WriteString("\n")
+		}
+	}
+
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
 func (*SwitchExpressionNode) IsStatic() bool {
 	return false
 }

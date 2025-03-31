@@ -17,6 +17,34 @@ type UnaryTypeNode struct {
 	TypeNode TypeNode     // right hand side
 }
 
+func (n *UnaryTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnaryTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.Equal(o.Op) &&
+		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *UnaryTypeNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Op.FetchValue())
+
+	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.TypeNode.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	return buff.String()
+}
+
 func (u *UnaryTypeNode) IsStatic() bool {
 	return false
 }

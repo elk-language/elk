@@ -114,12 +114,16 @@ func InspectSymbolContent(name string) string {
 	return result.String()
 }
 
+func InspectSymbol(name string) string {
+	return fmt.Sprintf(`:%s`, InspectSymbolContent(name))
+}
+
 func (s Symbol) InspectContent() string {
 	return InspectSymbolContent(s.String())
 }
 
 func (s Symbol) Inspect() string {
-	return fmt.Sprintf(`:%s`, s.InspectContent())
+	return InspectSymbol(s.String())
 }
 
 func (s Symbol) Error() string {

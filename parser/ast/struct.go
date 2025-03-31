@@ -29,6 +29,76 @@ type StructDeclarationNode struct {
 	Body           []StructBodyStatementNode // body of the struct
 }
 
+func (n *StructDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StructDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.Equal(value.Ref(o.Constant)) ||
+		!n.span.Equal(o.span) ||
+		n.comment != o.comment ||
+		len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, typeParam := range n.TypeParameters {
+		if !typeParam.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, bodyStmt := range n.Body {
+		if !bodyStmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *StructDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("struct")
+	if n.Constant != nil {
+		buff.WriteRune(' ')
+		buff.WriteString(n.Constant.String())
+	}
+
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('[')
+		for i, typeParam := range n.TypeParameters {
+			if i > 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(typeParam.String())
+		}
+		buff.WriteRune(']')
+	}
+
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for _, stmt := range n.Body {
+			indent.IndentString(&buff, stmt.String(), 1)
+			buff.WriteRune('\n')
+		}
+		buff.WriteString("end")
+	} else {
+		buff.WriteString("; end")
+	}
+
+	return buff.String()
+}
+
 func (*StructDeclarationNode) IsStatic() bool {
 	return false
 }

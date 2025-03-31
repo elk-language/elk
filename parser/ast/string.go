@@ -109,6 +109,20 @@ type StringLiteralContentSectionNode struct {
 	Value string
 }
 
+func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.span.Equal(o.span)
+}
+
+func (n *StringLiteralContentSectionNode) String() string {
+	return n.Value
+}
+
 func (*StringLiteralContentSectionNode) IsStatic() bool {
 	return true
 }
@@ -145,6 +159,26 @@ func NewStringLiteralContentSectionNode(span *position.Span, val string) *String
 type StringInspectInterpolationNode struct {
 	NodeBase
 	Expression ExpressionNode
+}
+
+func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInspectInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.Equal(value.Ref(o.Expression)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *StringInspectInterpolationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("#{")
+	buff.WriteString(n.Expression.String())
+	buff.WriteRune('}')
+
+	return buff.String()
 }
 
 func (*StringInspectInterpolationNode) IsStatic() bool {
@@ -188,6 +222,26 @@ func NewStringInspectInterpolationNode(span *position.Span, expr ExpressionNode)
 type StringInterpolationNode struct {
 	NodeBase
 	Expression ExpressionNode
+}
+
+func (n *StringInterpolationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.Equal(value.Ref(o.Expression)) &&
+		n.span.Equal(o.span)
+}
+
+func (n *StringInterpolationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("${")
+	buff.WriteString(n.Expression.String())
+	buff.WriteRune('}')
+
+	return buff.String()
 }
 
 func (*StringInterpolationNode) IsStatic() bool {

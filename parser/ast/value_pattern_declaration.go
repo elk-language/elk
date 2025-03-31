@@ -16,6 +16,28 @@ type ValuePatternDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the value
 }
 
+func (n *ValuePatternDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ValuePatternDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Pattern.Equal(value.Ref(o.Pattern)) &&
+		n.Initialiser.Equal(value.Ref(o.Initialiser))
+}
+
+func (n *ValuePatternDeclarationNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("val ")
+	buff.WriteString(n.Pattern.String())
+	buff.WriteString(" = ")
+	buff.WriteString(n.Initialiser.String())
+
+	return buff.String()
+}
+
 func (*ValuePatternDeclarationNode) IsStatic() bool {
 	return false
 }

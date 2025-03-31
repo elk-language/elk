@@ -297,6 +297,42 @@ type SignatureParameterNode struct {
 	Kind     ParameterKind
 }
 
+func (n *SignatureParameterNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SignatureParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.Name == o.Name &&
+		n.Optional == o.Optional &&
+		n.Kind == o.Kind &&
+		n.span.Equal(o.span)
+}
+
+func (n *SignatureParameterNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString(n.Name)
+
+	if n.Optional {
+		buff.WriteRune('?')
+	}
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	return buff.String()
+}
+
 func (*SignatureParameterNode) IsStatic() bool {
 	return false
 }

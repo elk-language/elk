@@ -29,6 +29,20 @@ type SimpleSymbolLiteralNode struct {
 	Content string
 }
 
+func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content == o.Content &&
+		n.span.Equal(o.span)
+}
+
+func (n *SimpleSymbolLiteralNode) String() string {
+	return value.InspectSymbol(n.Content)
+}
+
 func (*SimpleSymbolLiteralNode) IsStatic() bool {
 	return true
 }

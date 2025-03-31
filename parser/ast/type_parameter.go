@@ -37,6 +37,68 @@ type VariantTypeParameterNode struct {
 	Default    TypeNode
 }
 
+func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.LowerBound == o.LowerBound {
+	} else if n.LowerBound == nil || o.LowerBound == nil {
+		return false
+	} else if !n.LowerBound.Equal(value.Ref(o.LowerBound)) {
+		return false
+	}
+
+	if n.UpperBound == o.UpperBound {
+	} else if n.UpperBound == nil || o.UpperBound == nil {
+		return false
+	} else if !n.UpperBound.Equal(value.Ref(o.UpperBound)) {
+		return false
+	}
+
+	if n.Default == o.Default {
+	} else if n.Default == nil || o.Default == nil {
+		return false
+	} else if !n.Default.Equal(value.Ref(o.Default)) {
+		return false
+	}
+
+	return n.span.Equal(o.span) &&
+		n.Variance == o.Variance &&
+		n.Name == o.Name
+}
+
+func (n *VariantTypeParameterNode) String() string {
+	var buff strings.Builder
+
+	switch n.Variance {
+	case COVARIANT:
+		buff.WriteRune('+')
+	case CONTRAVARIANT:
+		buff.WriteRune('-')
+	}
+
+	buff.WriteString(n.Name)
+
+	if n.LowerBound != nil {
+		buff.WriteString(" > ")
+		buff.WriteString(n.LowerBound.String())
+	}
+
+	if n.UpperBound != nil {
+		buff.WriteString(" < ")
+		buff.WriteString(n.UpperBound.String())
+	}
+
+	if n.Default != nil {
+		buff.WriteString(" = ")
+		buff.WriteString(n.Default.String())
+	}
+
+	return buff.String()
+}
+
 func (*VariantTypeParameterNode) IsStatic() bool {
 	return false
 }

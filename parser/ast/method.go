@@ -883,6 +883,47 @@ type SetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
+func (n *SetterDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SetterDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return n.span.Equal(o.span) &&
+		n.comment == o.comment
+}
+
+func (n *SetterDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("setter ")
+	for i, entry := range n.Entries {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(entry.String())
+	}
+
+	return buff.String()
+}
+
 func (*SetterDeclarationNode) IsStatic() bool {
 	return false
 }

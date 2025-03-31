@@ -167,6 +167,69 @@ type WordArrayListLiteralNode struct {
 	static   bool
 }
 
+func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayListLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("\\w[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*RawStringLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+		buff.WriteString(element.Value)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
+}
+
 func (w *WordArrayListLiteralNode) IsStatic() bool {
 	return w.static
 }
@@ -237,6 +300,69 @@ type SymbolArrayListLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
+}
+
+func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SymbolArrayListLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("\\s[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*SimpleSymbolLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteString(" ")
+		}
+		buff.WriteString(element.Content)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	if n.Capacity != nil {
+		buff.WriteRune(':')
+
+		parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Capacity)
+		if parens {
+			buff.WriteRune('(')
+		}
+		buff.WriteString(n.Capacity.String())
+		if parens {
+			buff.WriteRune(')')
+		}
+	}
+
+	return buff.String()
 }
 
 func (s *SymbolArrayListLiteralNode) IsStatic() bool {
@@ -344,15 +470,20 @@ func (n *HexArrayListLiteralNode) String() string {
 
 	buff.WriteString("\\x[")
 
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
-			buff.WriteString(" ")
+			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0x"
+		buff.WriteString(element.Value[2:]) // skip "0x"
+		i++
 	}
-	buff.WriteString("]")
+	buff.WriteRune(']')
 
 	if n.Capacity != nil {
 		buff.WriteRune(':')
@@ -482,15 +613,20 @@ func (n *BinArrayListLiteralNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("\\b[")
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
-			buff.WriteString(" ")
+			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0b"
+		buff.WriteString(element.Value[2:]) // skip "0b"
+		i++
 	}
-	buff.WriteString("]")
+	buff.WriteRune(']')
 
 	if n.Capacity != nil {
 		buff.WriteRune(':')

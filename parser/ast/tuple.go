@@ -98,7 +98,7 @@ func (n *ArrayTupleLiteralNode) String() string {
 			buff.WriteString(elementStr)
 		}
 	}
-	buff.WriteString("]")
+	buff.WriteRune(']')
 
 	return buff.String()
 }
@@ -130,6 +130,49 @@ func (n *ArrayTupleLiteralNode) Error() string {
 type WordArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []WordCollectionContentNode
+}
+
+func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if !n.span.Equal(o.span) ||
+		len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayTupleLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%w[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*RawStringLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteRune(' ')
+		}
+		buff.WriteString(element.Value)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	return buff.String()
 }
 
 func (*WordArrayTupleLiteralNode) IsStatic() bool {
@@ -189,6 +232,51 @@ func (n *WordArrayTupleLiteralNode) Error() string {
 type SymbolArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []SymbolCollectionContentNode
+}
+
+// Check if this node equals another node.
+func (n *SymbolArrayTupleLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Return a string representation of the node.
+func (n *SymbolArrayTupleLiteralNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%s[")
+
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*SimpleSymbolLiteralNode)
+		if !ok {
+			continue
+		}
+		if i != 0 {
+			buff.WriteString(" ")
+		}
+		buff.WriteString(element.Content)
+		i++
+	}
+
+	buff.WriteRune(']')
+
+	return buff.String()
 }
 
 func (*SymbolArrayTupleLiteralNode) IsStatic() bool {
@@ -276,21 +364,22 @@ func (n *HexArrayTupleLiteralNode) String() string {
 
 	buff.WriteString("%x[")
 
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
 			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0x"
+		buff.WriteString(element.Value[2:]) // skip "0x"
+		i++
 	}
 	buff.WriteRune(']')
 
 	return buff.String()
-}
-
-func (n *HexArrayTupleLiteralNode) Error() string {
-	return n.Inspect()
 }
 
 func (*HexArrayTupleLiteralNode) IsStatic() bool {
@@ -382,15 +471,20 @@ func (n *BinArrayTupleLiteralNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("%b[")
-	for i, element := range n.Elements {
+	var i int
+	for _, element := range n.Elements {
+		element, ok := element.(*IntLiteralNode)
+		if !ok {
+			continue
+		}
 		if i != 0 {
-			buff.WriteString(" ")
+			buff.WriteRune(' ')
 		}
 
-		elementStr := element.String()
-		buff.WriteString(elementStr[2:]) // skip "0b"
+		buff.WriteString(element.Value[2:]) // skip "0b"
+		i++
 	}
-	buff.WriteString("]")
+	buff.WriteRune(']')
 
 	return buff.String()
 }
@@ -452,6 +546,41 @@ func (n *BinArrayTupleLiteralNode) Error() string {
 type TuplePatternNode struct {
 	TypedNodeBase
 	Elements []PatternNode
+}
+
+func (n *TuplePatternNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TuplePatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) ||
+		!n.span.Equal(o.span) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *TuplePatternNode) String() string {
+	var buff strings.Builder
+
+	buff.WriteString("%[")
+	for i, element := range n.Elements {
+		if i != 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(element.String())
+	}
+	buff.WriteRune(']')
+
+	return buff.String()
 }
 
 func (l *TuplePatternNode) IsStatic() bool {
