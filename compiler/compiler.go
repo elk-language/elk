@@ -2758,7 +2758,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
 	default:
 		c.Errors.AddFailure(
-			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
 			c.newLocation(span),
 		)
 	}
@@ -3490,7 +3490,7 @@ func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
 	case token.AND_AND:
 		op = bytecode.JUMP_UNLESS_NP
 	default:
-		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.Name()))
 	}
 
 	c.pattern(pat.Left)

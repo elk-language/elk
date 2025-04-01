@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -385,6 +386,11 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinSubscriptable, BuiltinSubscriptable)
 
+	ElkTokenConstant, _ := env.StdSubtypeModule(symbol.Elk).Subtype(symbol.Token)
+	ElkTokenClass := ElkTokenConstant.Type.(*Class)
+	for _, tokenName := range token.Types() {
+		ElkTokenClass.DefineConstant(value.ToSymbol(tokenName), UInt16)
+	}
 }
 
 func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {

@@ -122,18 +122,18 @@ func (p *Parser) reset() {
 // Adds an error which tells the user that the received
 // token is unexpected.
 func (p *Parser) errorUnexpected(message string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.Type.String(), message))
+	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.Type.Name(), message))
 }
 
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.Type.String(), expected))
+	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.Type.Name(), expected))
 }
 
 // Same as [errorExpected] but lets you pass a token type.
 func (p *Parser) errorExpectedToken(expected token.Type) {
-	p.errorExpected(expected.String())
+	p.errorExpected(expected.Name())
 }
 
 // Adds an error with a custom message.
@@ -166,7 +166,7 @@ func (p *Parser) errorToken(err *token.Token) {
 // If the next token doesn't match an error is added and the parser
 // enters panic mode.
 func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
-	return p.consumeExpected(tokenType, tokenType.String())
+	return p.consumeExpected(tokenType, tokenType.Name())
 }
 
 // Same as [consume] but lets you specify a custom expected error message.
@@ -839,7 +839,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessageSpan(
-				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.String()),
+				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.Name()),
 				left.Span(),
 			)
 		}
@@ -850,7 +850,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
 		p.errorMessageSpan(
-			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.String()),
+			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.Name()),
 			left.Span(),
 		)
 	}
@@ -1380,7 +1380,7 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 
 	if !ast.IsValidAssignmentTarget(expr) {
 		p.errorMessageSpan(
-			fmt.Sprintf("invalid `%s` assignment target", op.Type.String()),
+			fmt.Sprintf("invalid `%s` assignment target", op.Type.Name()),
 			expr.Span(),
 		)
 	}

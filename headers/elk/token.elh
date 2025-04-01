@@ -5,12 +5,27 @@
 	with a particular meaning.
 ]##
 sealed primitive class ::Std::Elk::Token
+	singleton
+		##[
+			Get the token type name of the given token type.
+		]##
+		def type_name(typ: UInt16): String; end
+	end
+
+	const TYPES_TO_NAMES: HashMap[UInt16, String]
+	const NAMES_TO_TYPES: HashMap[String, UInt16]
+
 	init(typ: UInt16, span: String::Span, value: String = ""); end
 
 	##[
 		Returns an integer that represents the type of the token.
 	]##
 	def typ: UInt16; end
+
+	##[
+		Get the token type name like `"LBRACE"`
+	]##
+	def type_name: String; end
 
 	##[
 		Returns the span that represents the position of

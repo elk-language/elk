@@ -8,9 +8,21 @@ import (
 
 // Std::Elk::Token
 func initToken() {
-	// Instance methods
-	c := &value.ElkTokenClass.MethodContainer
+	// Singleton methods
+	c := &value.ElkTokenClass.SingletonClass().MethodContainer
+	Def(
+		c,
+		"type_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			typ := args[1].AsUInt16()
+			result := value.String(token.Type(typ).TypeName())
+			return value.Ref(result), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 
+	// Instance methods
+	c = &value.ElkTokenClass.MethodContainer
 	Def(
 		c,
 		"#init",
@@ -48,6 +60,15 @@ func initToken() {
 	)
 	Def(
 		c,
+		"type_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*token.Token)(args[0].Pointer())
+			result := value.String(self.Type.TypeName())
+			return value.Ref(result), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"value",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
@@ -71,4 +92,17 @@ func initToken() {
 		},
 	)
 
+	typesToNames := value.NewHashMap(token.Length())
+	namesToTypes := value.NewHashMap(token.Length())
+	for tokenId, tokenName := range token.Types() {
+		idVal := value.UInt16(tokenId).ToValue()
+		nameVal := value.Ref(value.String(tokenName))
+
+		value.ElkTokenClass.AddConstantString(tokenName, idVal)
+		HashMapSet(nil, typesToNames, idVal, nameVal)
+		HashMapSet(nil, namesToTypes, nameVal, idVal)
+	}
+
+	value.ElkTokenClass.AddConstantString("TYPES_TO_NAMES", value.Ref(typesToNames))
+	value.ElkTokenClass.AddConstantString("NAMES_TO_TYPES", value.Ref(namesToTypes))
 }

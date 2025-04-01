@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/elk-language/elk/indent"
 )
 
 const HashMapMaxLoad = 0.75
@@ -56,40 +58,91 @@ func (h *HashMap) Error() string {
 	return h.Inspect()
 }
 
-const MAX_HASH_MAP_ELEMENTS_IN_INSPECT = 50
+const MAX_HASH_MAP_ELEMENTS_IN_INSPECT = 300
 
 func (h *HashMap) Inspect() string {
-	var buffer strings.Builder
-	buffer.WriteRune('{')
+	var hasMultilineElements bool
+	keyStrings := make(
+		[]string,
+		0,
+		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
+	)
+	valStrings := make(
+		[]string,
+		0,
+		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
+	)
 
-	first := true
 	i := 0
 	for _, entry := range h.Table {
 		if entry.Key.IsUndefined() {
 			continue
 		}
-		if first {
-			first = false
-		} else {
-			buffer.WriteString(", ")
+
+		keyString := entry.Key.Inspect()
+		keyStrings = append(keyStrings, keyString)
+
+		valString := entry.Value.Inspect()
+		valStrings = append(valStrings, valString)
+
+		if strings.ContainsRune(keyString, '\n') ||
+			strings.ContainsRune(valString, '\n') {
+			hasMultilineElements = true
 		}
-		buffer.WriteString(entry.Key.Inspect())
-		buffer.WriteString("=>")
-		buffer.WriteString(entry.Value.Inspect())
 
 		if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
-			buffer.WriteString(", ...")
 			break
 		}
 		i++
 	}
-	buffer.WriteRune('}')
+
+	var buff strings.Builder
+
+	buff.WriteRune('{')
+	if hasMultilineElements || h.Length() > 15 {
+		buff.WriteRune('\n')
+		for i := range len(keyStrings) {
+			keyString := keyStrings[i]
+			valString := valStrings[i]
+
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, keyString, 1)
+			buff.WriteString(" => ")
+			indent.IndentStringFromSecondLine(&buff, valString, 1)
+
+			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i := range len(keyStrings) {
+			keyString := keyStrings[i]
+			valString := valStrings[i]
+
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(keyString)
+			buff.WriteString(" => ")
+			buff.WriteString(valString)
+
+			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+	buff.WriteRune('}')
 
 	leftCapacity := h.LeftCapacity()
 	if leftCapacity > 0 {
-		fmt.Fprintf(&buffer, ":%d", leftCapacity)
+		fmt.Fprintf(&buff, ":%d", leftCapacity)
 	}
-	return buffer.String()
+	return buff.String()
 }
 
 func (*HashMap) InstanceVariables() SymbolMap {

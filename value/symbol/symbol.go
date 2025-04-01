@@ -73,6 +73,8 @@ var (
 	CallFrame            = value.ToSymbol("CallFrame")
 	Promise              = value.ToSymbol("Promise")
 	Key                  = value.ToSymbol("Key")
+	Elk                  = value.ToSymbol("Elk")
+	Token                = value.ToSymbol("Token")
 )
 
 // lowercase symbols

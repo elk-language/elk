@@ -188,7 +188,7 @@ func (t *Token) SetSpan(span *position.Span) {
 // the string will be fetched from a global map.
 func (t *Token) FetchValue() string {
 	if t.Value == "" {
-		return t.Type.String()
+		return t.Type.Name()
 	}
 
 	return t.Value
@@ -197,9 +197,9 @@ func (t *Token) FetchValue() string {
 // Implements the fmt.Stringer interface.
 func (t *Token) String() string {
 	if len(t.Value) == 0 {
-		return t.Type.String()
+		return t.Type.Name()
 	}
-	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.Type.String())
+	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.Type.Name())
 }
 
 const maxInspectLen = 20

@@ -4713,7 +4713,7 @@ func (c *Checker) checkAssignmentExpressionNode(node *ast.AssignmentExpressionNo
 		return c.checkShortVariableDeclaration(node)
 	default:
 		c.addFailure(
-			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.String()),
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.Name()),
 			span,
 		)
 		return node
@@ -5848,7 +5848,7 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		negate = true
 	case token.PLUS:
 	default:
-		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.String()))
+		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.Name()))
 	}
 
 	typ := c.TypeOf(node.TypeNode)
@@ -5865,7 +5865,7 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		c.addFailure(
 			fmt.Sprintf(
 				"unary operator `%s` cannot be used on type `%s`",
-				node.Op.Type.String(),
+				node.Op.Type.Name(),
 				types.InspectWithColor(typ),
 			),
 			node.Span(),

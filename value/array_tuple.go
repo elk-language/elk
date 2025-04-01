@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/elk-language/elk/indent"
 )
 
 // ::Std::ArrayTuple
@@ -64,27 +66,64 @@ func (t *ArrayTuple) Append(element Value) {
 	*t = append(*t, element)
 }
 
-const MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT = 50
+const MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT = 300
 
 func (t *ArrayTuple) Inspect() string {
-	var builder strings.Builder
-
-	builder.WriteString("%[")
+	var hasMultilineElements bool
+	elementStrings := make(
+		[]string,
+		0,
+		min(MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT, t.Length()),
+	)
 
 	for i, element := range *t {
-		if i != 0 {
-			builder.WriteString(", ")
+		elementString := element.Inspect()
+		elementStrings = append(elementStrings, elementString)
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
 		}
 
-		builder.WriteString(element.Inspect())
 		if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
-			builder.WriteString(", ...")
 			break
 		}
 	}
 
-	builder.WriteString("]")
-	return builder.String()
+	var buff strings.Builder
+
+	buff.WriteString("%[")
+
+	if hasMultilineElements || t.Length() > 15 {
+		buff.WriteRune('\n')
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+
+			indent.IndentString(&buff, elementString, 1)
+
+			if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+
+			buff.WriteString(elementString)
+
+			if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+
+	buff.WriteRune(']')
+	return buff.String()
 }
 
 func (*ArrayTuple) InstanceVariables() SymbolMap {

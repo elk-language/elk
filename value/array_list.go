@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"strings"
+
+	"github.com/elk-language/elk/indent"
 )
 
 // ::Std::ArrayList
@@ -65,33 +67,68 @@ func (l *ArrayList) Error() string {
 	return l.Inspect()
 }
 
-const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 50
+const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 300
 
 func (l *ArrayList) Inspect() string {
-	var builder strings.Builder
-
-	builder.WriteString("[")
+	var hasMultilineElements bool
+	elementStrings := make(
+		[]string,
+		0,
+		min(MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT, l.Length()),
+	)
 
 	for i, element := range *l {
-		if i != 0 {
-			builder.WriteString(", ")
+		elementString := element.Inspect()
+		elementStrings = append(elementStrings, elementString)
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
 		}
 
-		builder.WriteString(element.Inspect())
-
 		if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
-			builder.WriteString(", ...")
 			break
 		}
 	}
 
-	builder.WriteString("]")
+	var buff strings.Builder
+
+	buff.WriteRune('[')
+	if hasMultilineElements || l.Length() > 15 {
+		buff.WriteRune('\n')
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+
+			indent.IndentString(&buff, elementString, 1)
+
+			if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+
+			buff.WriteString(elementString)
+
+			if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+
+	buff.WriteRune(']')
 	leftCap := l.LeftCapacity()
 	if leftCap > 0 {
-		builder.WriteByte(':')
-		fmt.Fprintf(&builder, "%d", leftCap)
+		buff.WriteByte(':')
+		fmt.Fprintf(&buff, "%d", leftCap)
 	}
-	return builder.String()
+	return buff.String()
 }
 
 func (*ArrayList) InstanceVariables() SymbolMap {

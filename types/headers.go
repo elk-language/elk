@@ -5150,11 +5150,29 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nFetches the lexeme from a global map of lexemes\nfor Elk tokens if the value is an empty string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("fetch_value"), nil, nil, NameToType("Std::String", env), Never{})
 					namespace.DefineMethod("Returns the span that represents the position of\nthe token in the source string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
 					namespace.DefineMethod("Returns an integer that represents the type of the token.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("typ"), nil, nil, NameToType("Std::UInt16", env), Never{})
+					namespace.DefineMethod("Get the token type name like `\"LBRACE\"`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_name"), nil, nil, NameToType("Std::String", env), Never{})
 					namespace.DefineMethod("Returns the lexeme, a piece of source text\nthat this token represents.\n\nMay return an empty string for simple tokens\nlike operators where the lexeme is obvious (it will always be the same).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 					// Define constants
+					namespace.DefineConstant(value.ToSymbol("NAMES_TO_TYPES"), NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::String", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::UInt16", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
+					namespace.DefineConstant(value.ToSymbol("TYPES_TO_NAMES"), NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Key"): NewTypeArgument(NameToType("Std::UInt16", env), INVARIANT), value.ToSymbol("Value"): NewTypeArgument(NameToType("Std::String", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Key"), value.ToSymbol("Value")})))
 
 					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Get the token type name of the given token type.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_name"), nil, []*Parameter{NewParameter(value.ToSymbol("typ"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 			}
 			{

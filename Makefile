@@ -2,10 +2,13 @@ header:
 	go run ./cmd/headers/main.go -tags headers
 	go fmt ./types/headers.go
 
+generate:
+	go generate ./...
+
 elkify:
 	go run ./cmd/elkify/main.go
 
-fmt: header
+fmt: generate header
 	go fmt ./...
 
 vet:
