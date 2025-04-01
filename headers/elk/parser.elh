@@ -3,6 +3,6 @@
 ]##
 sealed primitive noinit class ::Std::Elk::Parser
 	singleton
-		def parse(source: String, source_name: String = "<main>"); end
+		def parse(source: String, source_name: String = "<main>"): Result; end
 	end
 end

@@ -83,7 +83,7 @@ func (n *UntilExpressionNode) Inspect() string {
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %%[\n")
+	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")

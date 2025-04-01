@@ -299,6 +299,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`", false, true, true, false, value.ToSymbol("YieldExpressionNode"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
+			namespace.TryDefineClass("Implements a lexer/tokenizer of the Elk programming language.", false, true, true, false, value.ToSymbol("Lexer"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("Implements a parser of the Elk programming language.", false, true, true, true, value.ToSymbol("Parser"), objectClass, env)
 				namespace.TryDefineClass("Represents the result of parsing Elk source code.", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
@@ -5064,6 +5065,37 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					}
 				}
 				{
+					namespace := namespace.MustSubtype("Lexer").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("source_name"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Get the next token.\nToken will be of type `END_OF_FILE` when\nthe end of source is reached.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Colorize the given string of Elk source code\nwith ANSI escape codes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("colorize"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("Tokenize the given string of Elk source code\nand return an array of tokens.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("lex"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("source_name"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::Token", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+				}
+				{
 					namespace := namespace.MustSubtype("Parser").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
@@ -5084,7 +5116,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("source_name"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("source_name"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, NameToType("Std::Elk::Parser::Result", env), Never{})
 
 						// Define constants
 

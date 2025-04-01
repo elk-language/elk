@@ -1,8 +1,7 @@
 package runtime
 
 func InitGlobalEnvironment() {
-	initParser()
-	initResult()
+	initLexer()
 }
 
 func init() {

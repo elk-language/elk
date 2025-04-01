@@ -76,7 +76,7 @@ func (n *ProgramNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")

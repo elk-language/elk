@@ -7,6 +7,7 @@ import (
 
 	"path/filepath"
 
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/repl"
 )
 

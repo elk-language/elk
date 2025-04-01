@@ -112,7 +112,7 @@ func (n *ClosureTypeNode) Inspect() string {
 	buff.WriteString(",\n  throw_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
-	buff.WriteString(",\n  parameters: %%[\n")
+	buff.WriteString(",\n  parameters: %[\n")
 	for i, stmt := range n.Parameters {
 		if i != 0 {
 			buff.WriteString(",\n")

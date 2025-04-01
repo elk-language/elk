@@ -90,7 +90,7 @@ func (n *ForInExpressionNode) Inspect() string {
 	buff.WriteString(",\n  in_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.InExpression.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %%[\n")
+	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")

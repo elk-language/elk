@@ -83,7 +83,7 @@ func (n *ObjectPatternNode) Inspect() string {
 	buff.WriteString(",\n  object_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)
 
-	buff.WriteString(",\n  attributes: %%[\n")
+	buff.WriteString(",\n  attributes: %[\n")
 	for i, element := range n.Attributes {
 		if i != 0 {
 			buff.WriteString(",\n")

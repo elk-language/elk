@@ -179,7 +179,7 @@ func (n *UsingEntryWithSubentriesNode) Inspect() string {
 	buff.WriteString(",\n  namespace: ")
 	indent.IndentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
 
-	buff.WriteString(",\n  subentries: %%[\n")
+	buff.WriteString(",\n  subentries: %[\n")
 	for i, element := range n.Subentries {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -259,7 +259,7 @@ func (n *UsingExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::UsingExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  entries: %%[\n")
+	buff.WriteString(",\n  entries: %[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
 			buff.WriteString(",\n")

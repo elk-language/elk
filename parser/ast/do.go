@@ -101,7 +101,7 @@ func (n *DoExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::DoExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -110,7 +110,7 @@ func (n *DoExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  catches: %%[\n")
+	buff.WriteString(",\n  catches: %[\n")
 	for i, stmt := range n.Catches {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -119,7 +119,7 @@ func (n *DoExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  finally: %%[\n")
+	buff.WriteString(",\n  finally: %[\n")
 	for i, stmt := range n.Finally {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -236,7 +236,7 @@ func (n *CatchNode) Inspect() string {
 	buff.WriteString(",\n  stack_trace_var: ")
 	indent.IndentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")

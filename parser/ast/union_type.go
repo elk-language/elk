@@ -72,7 +72,7 @@ func (n *UnionTypeNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::UnionTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, stmt := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")

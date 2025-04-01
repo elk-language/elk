@@ -40,9 +40,10 @@ func (t *Token) InstanceVariables() value.SymbolMap {
 
 func (t *Token) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Token{&: %p, value: %s, span: %s}",
+		"Std::Token{&: %p, value: %s, typ: %s, span: %s}",
 		t,
 		value.String(t.Value).Inspect(),
+		value.UInt16(t.Type).Inspect(),
 		(*value.Span)(t.Span()).Inspect(),
 	)
 }

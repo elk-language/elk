@@ -112,7 +112,7 @@ func (n *GenericTypeDefinitionNode) Inspect() string {
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
-	buff.WriteString(",\n  type_parameters: %%[\n")
+	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {
 		if i != 0 {
 			buff.WriteString(",\n")

@@ -133,7 +133,7 @@ func (n *ClosureLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  parameters: %%[\n")
+	buff.WriteString(",\n  parameters: %[\n")
 	for i, element := range n.Parameters {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -148,7 +148,7 @@ func (n *ClosureLiteralNode) Inspect() string {
 	buff.WriteString(",\n  throw_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")

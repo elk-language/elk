@@ -109,7 +109,7 @@ func (n *SwitchExpressionNode) Inspect() string {
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Cases {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -118,7 +118,7 @@ func (n *SwitchExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  else_body: %%[\n")
+	buff.WriteString(",\n  else_body: %[\n")
 	for i, stmt := range n.ElseBody {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -201,7 +201,7 @@ func (n *CaseNode) Inspect() string {
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")

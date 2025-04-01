@@ -108,7 +108,7 @@ func (n *ArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.Span()).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -210,7 +210,7 @@ func (n *WordArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -314,7 +314,7 @@ func (n *SymbolArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -417,7 +417,7 @@ func (n *HexArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -524,7 +524,7 @@ func (n *BinArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -613,7 +613,7 @@ func (n *TuplePatternNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")

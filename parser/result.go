@@ -28,7 +28,7 @@ func (r *Result) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::Parser::Result{\n  &: %p", r)
 
-	buff.WriteString("  ast: ")
+	buff.WriteString(",\n  ast: ")
 	indent.IndentStringFromSecondLine(&buff, r.AST.Inspect(), 1)
 
 	buff.WriteString(",\n  diagnostics: ")

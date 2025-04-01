@@ -119,7 +119,7 @@ func (n *NewExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::NewExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -128,7 +128,7 @@ func (n *NewExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -271,7 +271,7 @@ func (n *GenericConstructorCallNode) Inspect() string {
 	buff.WriteString(",\n  class_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
 
-	buff.WriteString(",\n  type_arguments: %%[\n")
+	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -280,7 +280,7 @@ func (n *GenericConstructorCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -289,7 +289,7 @@ func (n *GenericConstructorCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -426,7 +426,7 @@ func (n *ConstructorCallNode) Inspect() string {
 	buff.WriteString(",\n  class_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -435,7 +435,7 @@ func (n *ConstructorCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -815,7 +815,7 @@ func (n *CallNode) Inspect() string {
 
 	fmt.Fprintf(&buff, ",\n  nil_safe: %t", n.NilSafe)
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -824,7 +824,7 @@ func (n *CallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -992,7 +992,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
-	buff.WriteString(",\n  type_arguments: %%[\n")
+	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1001,7 +1001,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1010,7 +1010,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1156,7 +1156,7 @@ func (n *MethodCallNode) Inspect() string {
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1165,7 +1165,7 @@ func (n *MethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1299,7 +1299,7 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1308,7 +1308,7 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1462,7 +1462,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
 
-	buff.WriteString(",\n  type_arguments: %%[\n")
+	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1471,7 +1471,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  positional_arguments: %%[\n")
+	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -1480,7 +1480,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  named_arguments: %%[\n")
+	buff.WriteString(",\n  named_arguments: %[\n")
 	for i, element := range n.NamedArguments {
 		if i != 0 {
 			buff.WriteString(",\n")

@@ -100,7 +100,7 @@ func (n *UnlessExpressionNode) Inspect() string {
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %%[\n")
+	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -109,7 +109,7 @@ func (n *UnlessExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  else_body: %%[\n")
+	buff.WriteString(",\n  else_body: %[\n")
 	for i, stmt := range n.ElseBody {
 		if i != 0 {
 			buff.WriteString(",\n")

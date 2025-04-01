@@ -138,7 +138,7 @@ func (n *ArrayListLiteralNode) Inspect() string {
 	buff.WriteString("Std::Elk::AST::ArrayListLiteralNode{\n")
 
 	fmt.Fprintf(&buff, "span: %s", (*value.Span)(n.span).Inspect())
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -273,7 +273,7 @@ func (n *WordArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -408,7 +408,7 @@ func (n *SymbolArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -544,7 +544,7 @@ func (n *HexArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -683,7 +683,7 @@ func (n *BinArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -761,7 +761,7 @@ func (n *ListPatternNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")

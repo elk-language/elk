@@ -135,7 +135,7 @@ func (n *HashMapLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HashMapLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -254,7 +254,7 @@ func (n *HashRecordLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HashRecordLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")

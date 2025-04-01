@@ -121,7 +121,7 @@ func (n *ModuleDeclarationNode) Inspect() string {
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %%[\n")
+	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
 		if i != 0 {
 			buff.WriteString(",\n")

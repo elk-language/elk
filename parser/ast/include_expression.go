@@ -80,7 +80,7 @@ func (n *IncludeExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::IncludeExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  constants: %%[\n")
+	buff.WriteString(",\n  constants: %[\n")
 	for i, element := range n.Constants {
 		if i != 0 {
 			buff.WriteString(",\n")

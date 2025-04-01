@@ -74,7 +74,7 @@ func (n *LoopExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  then_body: %%[\n")
+	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")

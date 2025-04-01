@@ -128,7 +128,7 @@ func (n *NumericForExpressionNode) Inspect() string {
 	buff.WriteString(",\n  increment: ")
 	indent.IndentStringFromSecondLine(&buff, n.Increment.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %%[\n")
+	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {
 		if i != 0 {
 			buff.WriteString(",\n")

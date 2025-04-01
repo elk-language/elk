@@ -372,7 +372,7 @@ func (n *GenericConstantNode) Inspect() string {
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
-	buff.WriteString(",\n  type_arguments: %%[\n")
+	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
 		if i != 0 {
 			buff.WriteString(",\n")

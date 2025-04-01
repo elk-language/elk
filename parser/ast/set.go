@@ -135,7 +135,7 @@ func (n *HashSetLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -270,7 +270,7 @@ func (n *WordHashSetLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::WordHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -405,7 +405,7 @@ func (n *SymbolHashSetLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -541,7 +541,7 @@ func (n *HexHashSetLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HexHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -681,7 +681,7 @@ func (n *BinHashSetLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::BinHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
@@ -757,7 +757,7 @@ func (n *SetPatternNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SetPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
-	buff.WriteString(",\n  elements: %%[\n")
+	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
 			buff.WriteString(",\n")
