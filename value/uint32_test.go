@@ -27,7 +27,7 @@ func TestUInt32Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -82,10 +82,10 @@ func TestUInt32_Exponentiate(t *testing.T) {
 			got, err := tc.a.ExponentiateVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -125,10 +125,10 @@ func TestUInt32_Add(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -168,10 +168,10 @@ func TestUInt32_Subtract(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -211,10 +211,10 @@ func TestUInt32_Multiply(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -261,10 +261,10 @@ func TestUInt32_GreaterThan(t *testing.T) {
 			got, err := tc.a.GreaterThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -310,10 +310,10 @@ func TestUInt32_GreaterThanEqual(t *testing.T) {
 			got, err := tc.a.GreaterThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -360,10 +360,10 @@ func TestUInt32_LessThan(t *testing.T) {
 			got, err := tc.a.LessThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -410,10 +410,10 @@ func TestUInt32_LessThanEqual(t *testing.T) {
 			got, err := tc.a.LessThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -658,7 +658,7 @@ func TestUInt32_Equal(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -708,10 +708,10 @@ func TestUInt32_BitwiseAnd(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -760,10 +760,10 @@ func TestUInt32_BitwiseOr(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -813,10 +813,10 @@ func TestUInt32_BitwiseXor(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -866,10 +866,10 @@ func TestUInt32_Modulo(t *testing.T) {
 			got, err := tc.a.ModuloVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

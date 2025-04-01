@@ -33,7 +33,7 @@ func TestSpanJoin(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.left.Join(tc.right)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

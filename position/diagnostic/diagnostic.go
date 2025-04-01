@@ -1,4 +1,4 @@
-package error
+package diagnostic
 
 import (
 	"fmt"
@@ -32,77 +32,90 @@ func (s Severity) color() color.Attribute {
 }
 
 const (
-	FAILURE Severity = iota
-	WARNING
+	FAIL Severity = iota
+	WARN
+	INFO
 )
 
 var severityNames = []string{
-	FAILURE: "FAIL",
-	WARNING: "WARN",
+	FAIL: "FAIL",
+	WARN: "WARN",
+	INFO: "INFO",
 }
 
 var severityColor = []color.Attribute{
-	FAILURE: color.FgRed,
-	WARNING: color.FgYellow,
+	FAIL: color.FgRed,
+	WARN: color.FgYellow,
+	INFO: color.FgBlue,
 }
 
-// Represents a single error in a particular source location.
-type Error struct {
+// Represents a single diagnostic
+// at a particular source location (an error, a warning, an info message)
+type Diagnostic struct {
 	*position.Location
 	Severity Severity
 	Message  string
 }
 
-// Create a new error.
-func NewError(loc *position.Location, msg string, severity Severity) *Error {
-	return &Error{
+// Create a new diagnostic.
+func NewDiagnostic(loc *position.Location, msg string, severity Severity) *Diagnostic {
+	return &Diagnostic{
 		Location: loc,
 		Message:  msg,
 		Severity: severity,
 	}
 }
 
-// Create a new warning.
-func NewFailure(loc *position.Location, msg string) *Error {
-	return &Error{
+// Create a new info message.
+func NewInfo(loc *position.Location, msg string) *Diagnostic {
+	return &Diagnostic{
 		Location: loc,
 		Message:  msg,
-		Severity: FAILURE,
+		Severity: INFO,
+	}
+}
+
+// Create a new failure.
+func NewFailure(loc *position.Location, msg string) *Diagnostic {
+	return &Diagnostic{
+		Location: loc,
+		Message:  msg,
+		Severity: FAIL,
 	}
 }
 
 // Create a new warning.
-func NewWarning(loc *position.Location, msg string) *Error {
-	return &Error{
+func NewWarning(loc *position.Location, msg string) *Diagnostic {
+	return &Diagnostic{
 		Location: loc,
 		Message:  msg,
-		Severity: WARNING,
+		Severity: WARN,
 	}
 }
 
 // Implements the error interface.
-func (e *Error) Error() string {
+func (e *Diagnostic) Error() string {
 	return e.String()
 }
 
 // Implements the fmt.Stringer interface
-func (e *Error) String() string {
+func (e *Diagnostic) String() string {
 	return fmt.Sprintf("%s: %s", e.Location.String(), e.Message)
 }
 
 // Return a string representation of this error
 // that can be presented to humans.
-func (e *Error) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
+func (e *Diagnostic) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
 	source, err := os.ReadFile(e.Location.FilePath)
 	if err != nil {
 		return "", err
 	}
-	return e.HumanStringWithSource(string(source), style, colorizer), nil
+	return e.HumanStringWithSource(string(source), style, colorizer)
 }
 
 // Return a string representation of this error
 // that can be presented to humans.
-func (e *Error) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) string {
+func (e *Diagnostic) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) (string, error) {
 	var result strings.Builder
 	severityColor := color.New(color.Bold, e.Severity.color())
 	if !style {
@@ -116,7 +129,7 @@ func (e *Error) HumanStringWithSource(source string, style bool, colorizer color
 	result.WriteString(e.Message)
 	result.WriteByte('\n')
 	if len(source) == 0 {
-		return result.String()
+		return result.String(), nil
 	}
 
 	var startOffset int
@@ -216,8 +229,12 @@ func (e *Error) HumanStringWithSource(source string, style bool, colorizer color
 	}
 	sourceFragment = sourceFragmentBuff.String()
 
-	if style {
-		sourceFragment = colorizer.Colorize(sourceFragment)
+	if style && colorizer != nil {
+		var err error
+		sourceFragment, err = colorizer.Colorize(sourceFragment)
+		if err != nil {
+			return "", err
+		}
 	}
 	result.WriteString(sourceFragment)
 	if ellipsisEnd {
@@ -242,45 +259,50 @@ func (e *Error) HumanStringWithSource(source string, style bool, colorizer color
 	}
 	result.WriteString(strings.Repeat(" ", spaceCount))
 	result.WriteString(severityColor.Sprint("└ Here\n"))
-	return result.String()
+	return result.String(), nil
 }
 
-// ErrorList is a list of *Errors.
-// The zero value for an ErrorList is an empty ErrorList ready to use.
-type ErrorList []*Error
+// DiagnosticList is a list of *Errors.
+// The zero value for an DiagnosticList is an empty DiagnosticList ready to use.
+type DiagnosticList []*Diagnostic
 
 // Create a new slice containing the elements of the
-// two given error lists.
-func (e ErrorList) Join(other ErrorList) ErrorList {
+// two given diagnostic lists.
+func (e DiagnosticList) Join(other DiagnosticList) DiagnosticList {
 	n := len(e)
 	return append(e[:n:n], other...)
 }
 
-// Add a new error.
-func (e *ErrorList) Append(err *Error) {
-	*e = append(*e, err)
+// Add a new diagnostic.
+func (dl *DiagnosticList) Append(d *Diagnostic) {
+	*dl = append(*dl, d)
 }
 
-// Create and add a new error.
-func (e *ErrorList) Add(message string, loc *position.Location, severity Severity) {
-	e.Append(NewError(loc, message, severity))
+// Create and add a new diagnostic.
+func (e *DiagnosticList) Add(message string, loc *position.Location, severity Severity) {
+	e.Append(NewDiagnostic(loc, message, severity))
 }
 
 // Create and add a new failure.
-func (e *ErrorList) AddFailure(message string, loc *position.Location) {
-	e.Append(NewError(loc, message, FAILURE))
+func (e *DiagnosticList) AddFailure(message string, loc *position.Location) {
+	e.Append(NewDiagnostic(loc, message, FAIL))
 }
 
 // Create and add a new warning.
-func (e *ErrorList) AddWarning(message string, loc *position.Location) {
-	e.Append(NewError(loc, message, WARNING))
+func (e *DiagnosticList) AddWarning(message string, loc *position.Location) {
+	e.Append(NewDiagnostic(loc, message, WARN))
 }
 
-// Implements the error interface.
-func (e ErrorList) Error() string {
+// Create and add a new info.
+func (e *DiagnosticList) AddInfo(message string, loc *position.Location) {
+	e.Append(NewDiagnostic(loc, message, INFO))
+}
+
+// Implements the diagnostic interface.
+func (e DiagnosticList) Error() string {
 	switch len(e) {
 	case 0:
-		return "<empty ErrorList>"
+		return "<empty DiagnosticList>"
 	case 1:
 		return e[0].Error()
 	}
@@ -300,7 +322,7 @@ const (
 
 // Return a string representation of this error list
 // that can be presented to humans.
-func (el ErrorList) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
+func (el DiagnosticList) HumanString(style bool, colorizer colorizer.Colorizer) (string, error) {
 	var result strings.Builder
 	for _, e := range el {
 		msg, err := e.HumanString(style, colorizer)
@@ -315,27 +337,31 @@ func (el ErrorList) HumanString(style bool, colorizer colorizer.Colorizer) (stri
 
 // Return a string representation of this error list
 // that can be presented to humans.
-func (e ErrorList) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) string {
+func (dl DiagnosticList) HumanStringWithSource(source string, style bool, colorizer colorizer.Colorizer) (string, error) {
 	var result strings.Builder
-	for _, err := range e {
-		result.WriteString(err.HumanStringWithSource(source, style, colorizer))
+	for _, d := range dl {
+		str, err := d.HumanStringWithSource(source, style, colorizer)
+		if err != nil {
+			return "", err
+		}
+		result.WriteString(str)
 		result.WriteRune('\n')
 	}
-	return result.String()
+	return result.String(), nil
 }
 
 // Err returns an error equivalent to this error list.
 // If the list is empty, Err returns nil.
-func (e ErrorList) Err() error {
+func (e DiagnosticList) Err() error {
 	if len(e) == 0 {
 		return nil
 	}
 	return e
 }
 
-func (e ErrorList) IsFailure() bool {
+func (e DiagnosticList) IsFailure() bool {
 	for _, err := range e {
-		if err.Severity == FAILURE {
+		if err.Severity == FAIL {
 			return true
 		}
 	}
@@ -344,57 +370,62 @@ func (e ErrorList) IsFailure() bool {
 }
 
 // A thread-safe list of errors.
-type SyncErrorList struct {
-	ErrorList ErrorList
-	mutex     sync.Mutex
+type SyncDiagnosticList struct {
+	DiagnosticList DiagnosticList
+	Mutex          sync.Mutex
 }
 
-func NewSyncErrorList() *SyncErrorList {
-	return &SyncErrorList{}
+func NewSyncDiagnosticList() *SyncDiagnosticList {
+	return &SyncDiagnosticList{}
 }
 
 // Create and add a new error.
-func (e *SyncErrorList) Add(message string, loc *position.Location, severity Severity) {
-	e.Append(NewError(loc, message, severity))
+func (e *SyncDiagnosticList) Add(message string, loc *position.Location, severity Severity) {
+	e.Append(NewDiagnostic(loc, message, severity))
 }
 
 // Create and add a new failure.
-func (e *SyncErrorList) AddFailure(message string, loc *position.Location) {
+func (e *SyncDiagnosticList) AddFailure(message string, loc *position.Location) {
 	e.Append(NewFailure(loc, message))
 }
 
 // Create and add a new warning.
-func (e *SyncErrorList) AddWarning(message string, loc *position.Location) {
+func (e *SyncDiagnosticList) AddWarning(message string, loc *position.Location) {
 	e.Append(NewWarning(loc, message))
 }
 
-// Add a new error.
-func (e *SyncErrorList) Append(err *Error) {
-	e.mutex.Lock()
-	e.ErrorList = append(e.ErrorList, err)
-	e.mutex.Unlock()
+// Create and add a new warning.
+func (e *SyncDiagnosticList) AddInfo(message string, loc *position.Location) {
+	e.Append(NewInfo(loc, message))
 }
 
-func (e *SyncErrorList) Join(other *SyncErrorList) {
-	e.mutex.Lock()
-	other.mutex.Lock()
-
-	e.ErrorList = append(e.ErrorList, other.ErrorList...)
-
-	other.mutex.Unlock()
-	e.mutex.Unlock()
+// Add a new diagnostic.
+func (e *SyncDiagnosticList) Append(err *Diagnostic) {
+	e.Mutex.Lock()
+	e.DiagnosticList = append(e.DiagnosticList, err)
+	e.Mutex.Unlock()
 }
 
-func (e *SyncErrorList) JoinErrList(other ErrorList) {
-	e.mutex.Lock()
-	e.ErrorList = append(e.ErrorList, other...)
-	e.mutex.Unlock()
+func (e *SyncDiagnosticList) Join(other *SyncDiagnosticList) {
+	e.Mutex.Lock()
+	other.Mutex.Lock()
+
+	e.DiagnosticList = append(e.DiagnosticList, other.DiagnosticList...)
+
+	other.Mutex.Unlock()
+	e.Mutex.Unlock()
 }
 
-func (e *SyncErrorList) IsFailure() bool {
-	return e.ErrorList.IsFailure()
+func (e *SyncDiagnosticList) JoinErrList(other DiagnosticList) {
+	e.Mutex.Lock()
+	e.DiagnosticList = append(e.DiagnosticList, other...)
+	e.Mutex.Unlock()
 }
 
-func (e *SyncErrorList) Error() string {
-	return e.ErrorList.Error()
+func (e *SyncDiagnosticList) IsFailure() bool {
+	return e.DiagnosticList.IsFailure()
+}
+
+func (e *SyncDiagnosticList) Error() string {
+	return e.DiagnosticList.Error()
 }

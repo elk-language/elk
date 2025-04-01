@@ -124,10 +124,10 @@ func (l *ArrayList) Grow(newSlots int) {
 }
 
 // Get an element under the given index.
-func GetFromSlice(collection *[]Value, index int) (Value, Value) {
+func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return Undefined, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
+		return ret, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
 	}
 
 	if index < 0 {
@@ -138,7 +138,7 @@ func GetFromSlice(collection *[]Value, index int) (Value, Value) {
 }
 
 // Set an element under the given index.
-func SetInSlice(collection *[]Value, index int, val Value) Value {
+func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
 		return Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
@@ -257,7 +257,7 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 			))
 		}
 		newList := make(ArrayList, 0, newLen)
-		for i := 0; i < int(o); i++ {
+		for range int(o) {
 			newList = append(newList, *l...)
 		}
 		return &newList, Undefined

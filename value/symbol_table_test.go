@@ -43,10 +43,10 @@ func TestSymbolTableGet(t *testing.T) {
 			got, ok := tc.table.Get(tc.get)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.ok, ok); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -140,14 +140,14 @@ func TestSymbolTableAdd(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.table.Add(tc.add)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			opts := []cmp.Option{
 				cmp.AllowUnexported(SymbolTableStruct{}),
 				cmpopts.IgnoreFields(SymbolTableStruct{}, "mutex"),
 			}
 			if diff := cmp.Diff(tc.tableAfter, tc.table, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

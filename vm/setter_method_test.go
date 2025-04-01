@@ -71,7 +71,7 @@ func TestDefineSetter(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName))
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -164,7 +164,7 @@ func TestDefineAccessor(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName))
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

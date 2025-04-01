@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -17,7 +17,7 @@ import (
 type testCase struct {
 	input string
 	want  *ast.ProgramNode
-	err   error.ErrorList
+	err   diagnostic.DiagnosticList
 }
 
 // Type of the parser test table.
@@ -160,8 +160,8 @@ func TestStatement(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(9, 1, 10)), "unexpected INT, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(9, 1, 10)), "unexpected INT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {
@@ -369,8 +369,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `-=` assignment target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `-=` assignment target"),
 			},
 		},
 		"ints are not valid declaration targets": {
@@ -389,8 +389,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `:=` declaration target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `:=` declaration target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -409,8 +409,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `-=` assignment target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `-=` assignment target"),
 			},
 		},
 		"strings are not valid declaration targets": {
@@ -429,8 +429,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -449,8 +449,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"constants are not valid declaration targets": {
@@ -469,8 +469,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
 			},
 		},
 		"private constants are not valid assignment targets": {
@@ -489,8 +489,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are not valid declaration targets": {
@@ -509,8 +509,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -665,10 +665,10 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected =, expected an expression"),
-				error.NewFailure(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected =, expected an expression"),
-				error.NewFailure(L("<main>", P(16, 4, 1), P(16, 4, 1)), "unexpected =, expected an expression"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected =, expected an expression"),
+				diagnostic.NewFailure(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected =, expected an expression"),
+				diagnostic.NewFailure(L("<main>", P(16, 4, 1), P(16, 4, 1)), "unexpected =, expected an expression"),
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -849,8 +849,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `++` assignment target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `++` assignment target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -868,8 +868,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `--` assignment target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `--` assignment target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -887,8 +887,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `++` assignment target"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `++` assignment target"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -945,8 +945,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(6, 1, 7)), "unexpected ++, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(6, 1, 7)), "unexpected ++, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -995,8 +995,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -1066,8 +1066,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {
@@ -1101,8 +1101,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(7, 1, 8)), "unexpected INT, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(7, 1, 8)), "unexpected INT, expected a constant"),
 			},
 		},
 		"can be a part of an expression": {

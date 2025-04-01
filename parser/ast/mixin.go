@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 )
 
 // Represents a mixin declaration eg. `mixin Foo; end`
@@ -19,7 +18,7 @@ type MixinDeclarationNode struct {
 	TypeParameters        []TypeParameterNode // Generic type variable definitions
 	Body                  []StatementNode     // body of the mixin
 	IncludesAndImplements []ExpressionNode
-	Bytecode              *vm.BytecodeFunction
+	Bytecode              value.Method
 }
 
 func (n *MixinDeclarationNode) Equal(other value.Value) bool {

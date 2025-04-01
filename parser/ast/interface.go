@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 )
 
 // Represents an interface declaration eg. `interface Foo; end`
@@ -18,7 +17,7 @@ type InterfaceDeclarationNode struct {
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Body           []StatementNode     // body of the interface
 	Implements     []*ImplementExpressionNode
-	Bytecode       *vm.BytecodeFunction
+	Bytecode       value.Method
 }
 
 func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {

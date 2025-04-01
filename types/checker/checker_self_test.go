@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestSelfType(t *testing.T) {
@@ -12,8 +12,8 @@ func TestSelfType(t *testing.T) {
 			input: `
 				var a: self
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "type `self` can appear only in method throw types, method return types and method bodies"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "type `self` can appear only in method throw types, method return types and method bodies"),
 			},
 		},
 		"use self in a variable declaration in a class body": {
@@ -22,8 +22,8 @@ func TestSelfType(t *testing.T) {
 					var a: self
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 3, 13), P(28, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 3, 13), P(28, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
 			},
 		},
 		"use self in a variable declaration in a module body": {
@@ -32,8 +32,8 @@ func TestSelfType(t *testing.T) {
 					var a: self
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(26, 3, 13), P(29, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(26, 3, 13), P(29, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
 			},
 		},
 		"use self in a variable declaration in a mixin body": {
@@ -42,8 +42,8 @@ func TestSelfType(t *testing.T) {
 					var a: self
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 3, 13), P(28, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 3, 13), P(28, 3, 16)), "type `self` can appear only in method throw types, method return types and method bodies"),
 			},
 		},
 		"use self in a variable declaration in a method": {
@@ -77,8 +77,8 @@ func TestSelfType(t *testing.T) {
 					def foo(a: self); end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(29, 3, 17), P(32, 3, 20)), "type `self` can appear only in method throw types, method return types and method bodies"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(29, 3, 17), P(32, 3, 20)), "type `self` can appear only in method throw types, method return types and method bodies"),
 			},
 		},
 		"assign self to self": {
@@ -107,8 +107,8 @@ func TestSelfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 4, 21), P(48, 4, 23)), "type `A` cannot be assigned to type `self`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(46, 4, 21), P(48, 4, 23)), "type `A` cannot be assigned to type `self`"),
 			},
 		},
 		"do not replace self in method calls on self": {
@@ -138,8 +138,8 @@ func TestSelfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(73, 5, 21), P(82, 5, 30)), "type `&self` cannot be assigned to type `&Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(73, 5, 21), P(82, 5, 30)), "type `&self` cannot be assigned to type `&Bar`"),
 			},
 		},
 		"assign ^self to the class instance": {
@@ -175,8 +175,8 @@ func TestSelfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `^self` cannot be assigned to type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `^self` cannot be assigned to type `Bar`"),
 			},
 		},
 	}

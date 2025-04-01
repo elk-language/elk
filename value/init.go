@@ -1,5 +1,7 @@
 package value
 
+import "fmt"
+
 // Initialize the class hierarchy etc
 func initBootstrap() {
 	ClassClass = &Class{
@@ -50,6 +52,7 @@ func initBootstrap() {
 
 // Initialize all built-ins
 func InitGlobalEnvironment() {
+	fmt.Println("DUPAAA!!!!")
 	initBootstrap()
 	initGlobalObject()
 	initInterface()
@@ -130,4 +133,13 @@ func InitGlobalEnvironment() {
 	initPath()
 	initError()
 	initBox()
+	initColorizer()
+	initDiagnostic()
+	initDiagnosticList()
+	initSyncDiagnosticList()
+	initElkParser()
+}
+
+func init() {
+	InitGlobalEnvironment()
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -29,7 +29,7 @@ import (
 )
 
 // Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -39,17 +39,17 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	checker := newChecker(sourceName, globalEnv, headerMode)
 	bytecode := checker.checkProgram(ast)
-	return bytecode, checker.Errors.ErrorList
+	return bytecode, checker.Errors.DiagnosticList
 }
 
 // Check the types of an Elk file.
-func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
+func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	checker := newChecker(fileName, globalEnv, headerMode)
 	bytecode := checker.checkFile(fileName)
-	return bytecode, checker.Errors.ErrorList
+	return bytecode, checker.Errors.DiagnosticList
 }
 
 func I(typ types.Type) string {
@@ -102,8 +102,8 @@ const (
 
 // Holds the state of the type checking process
 type Checker struct {
-	Filename                string               // name of the current source file
-	Errors                  *error.SyncErrorList // list of typechecking errors
+	Filename                string                         // name of the current source file
+	Errors                  *diagnostic.SyncDiagnosticList // list of typechecking errors
 	env                     *types.GlobalEnvironment
 	flags                   bitfield.BitField8
 	phase                   phase
@@ -138,7 +138,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		returnType: types.Void{},
 		throwType:  types.Never{},
 		mode:       topLevelMode,
-		Errors:     new(error.SyncErrorList),
+		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
@@ -217,7 +217,7 @@ func (c *Checker) setInferClosureThrowType(val bool) {
 }
 
 // Used in the REPL to typecheck and compile the input
-func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
+func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 		c.methodScopes = methodScopesCopy
 	}
 
-	return bytecodeFunc, c.Errors.ErrorList
+	return bytecodeFunc, c.Errors.DiagnosticList
 }
 
 func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
@@ -380,7 +380,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	source := string(bytes)
 	ast, errList := parser.Parse(filename, source)
 	if errList != nil {
-		c.Errors.ErrorList.Join(errList)
+		c.Errors.DiagnosticList.Join(errList)
 		return nil
 	}
 
@@ -506,7 +506,7 @@ func (c *Checker) setMode(mode mode) {
 }
 
 func (c *Checker) ClearErrors() {
-	c.Errors = new(error.SyncErrorList)
+	c.Errors = new(diagnostic.SyncDiagnosticList)
 }
 
 // Create a new location struct with the given position.

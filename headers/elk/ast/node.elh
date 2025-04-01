@@ -7,4 +7,9 @@ mixin ::Std::Elk::AST::Node
 		the position of this node in a source file/string.
 	]##
 	def span: String::Span; end
+
+	##[
+		Convert the AST back to a `String` of source code.
+	]##
+	def to_string: String; end
 end

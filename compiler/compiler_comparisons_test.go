@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -182,8 +182,8 @@ func TestEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
 			},
 		},
 		"resolve static 25 == 25": {
@@ -215,8 +215,8 @@ func TestEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
 		"compile runtime int": {
@@ -335,8 +335,8 @@ func TestNotEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
 			},
 		},
 		"resolve static 25 != 25": {
@@ -368,8 +368,8 @@ func TestNotEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
 		"compile runtime int": {
@@ -504,8 +504,8 @@ func TestStrictEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
 			},
 		},
 		"resolve static 25 === '25'": {
@@ -522,8 +522,8 @@ func TestStrictEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
 		"compile runtime 24 === 98": {
@@ -588,8 +588,8 @@ func TestStrictNotEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
 			},
 		},
 		"resolve static 25 !== '25'": {
@@ -606,8 +606,8 @@ func TestStrictNotEqual(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
 			},
 		},
 		"compile runtime 24 !== 98": {

@@ -82,8 +82,8 @@ type Lexer struct {
 // Implements the Colorizer interface
 type Colorizer struct{}
 
-func (c Colorizer) Colorize(source string) string {
-	return Colorize(source)
+func (c Colorizer) Colorize(source string) (string, error) {
+	return Colorize(source), nil
 }
 
 // Lex the given string and construct a new one colouring every token.

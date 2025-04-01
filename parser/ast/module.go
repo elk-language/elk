@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 )
 
 // Represents a module declaration eg. `module Foo; end`
@@ -16,7 +15,7 @@ type ModuleDeclarationNode struct {
 	DocCommentableNodeBase
 	Constant ExpressionNode  // The constant that will hold the module value
 	Body     []StatementNode // body of the module
-	Bytecode *vm.BytecodeFunction
+	Bytecode value.Method
 }
 
 func (n *ModuleDeclarationNode) Equal(other value.Value) bool {

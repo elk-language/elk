@@ -175,3 +175,7 @@ func InitGlobalEnvironment() {
 	initWordHashSetLiteralNode()
 	initYieldExpressionNode()
 }
+
+func init() {
+	InitGlobalEnvironment()
+}

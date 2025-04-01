@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -49,8 +49,8 @@ func TestVMSource_Subscript(t *testing.T) {
 				list := nil
 				list[-10]
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(21, 3, 5), P(29, 3, 13)), "method `[]` is not defined on type `Std::Nil`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(21, 3, 5), P(29, 3, 13)), "method `[]` is not defined on type `Std::Nil`"),
 			},
 		},
 	}
@@ -135,8 +135,8 @@ func TestVMSource_Instantiate(t *testing.T) {
 
 				::Foo(2)
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(25, 4, 5), P(32, 4, 12)), "expected 0 arguments in call to `#init`, got 1"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(25, 4, 5), P(32, 4, 12)), "expected 0 arguments in call to `#init`, got 1"),
 			},
 		},
 		"instantiate a class with an initialiser without arguments": {
@@ -147,8 +147,8 @@ func TestVMSource_Instantiate(t *testing.T) {
 
 				::Foo()
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(54, 6, 5), P(60, 6, 11)), "argument `a` is missing in call to `#init`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(54, 6, 5), P(60, 6, 11)), "argument `a` is missing in call to `#init`"),
 			},
 		},
 		"instantiate a class with an initialiser with arguments": {
@@ -206,8 +206,8 @@ func TestVMSource_Alias(t *testing.T) {
 			source: `
 				alias foo blabla
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(11, 2, 11), P(20, 2, 20)), "method `blabla` is not defined on type `Std::Kernel`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(11, 2, 11), P(20, 2, 20)), "method `blabla` is not defined on type `Std::Kernel`"),
 			},
 		},
 	}
@@ -301,8 +301,8 @@ func TestVMSource_CallClosure(t *testing.T) {
 				pow2 := |a: Int| -> a ** 2
 				pow2.call(5, 8)
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(36, 3, 5), P(50, 3, 19)), "expected 1 arguments in call to `call`, got 2"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(36, 3, 5), P(50, 3, 19)), "expected 1 arguments in call to `call`, got 2"),
 			},
 		},
 		"call closure in a native method": {
@@ -572,8 +572,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				add(5)
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `add`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `add`"),
 			},
 			wantRuntimeErr: value.Ref(value.NewError(
 				value.ArgumentErrorClass,
@@ -1004,8 +1004,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(b: 1, a: 2)
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(99, 6, 5), P(113, 6, 19)), "expected 2... positional arguments in call to `foo`, got 0"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(99, 6, 5), P(113, 6, 19)), "expected 2... positional arguments in call to `foo`, got 0"),
 			},
 		},
 		"call a method with rest parameters and no optional arguments": {
@@ -1106,8 +1106,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("a", e: "e")
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(182, 6, 5), P(197, 6, 20)), "argument `b` is missing in call to `foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(182, 6, 5), P(197, 6, 20)), "argument `b` is missing in call to `foo`"),
 			},
 		},
 		"call a method with duplicated arguments": {
@@ -1118,8 +1118,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("a", b: "b", a: "a2")
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(97, 6, 22), P(103, 6, 28)), "duplicated argument `a` in call to `foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(97, 6, 22), P(103, 6, 28)), "duplicated argument `a` in call to `foo`"),
 			},
 		},
 		"call a method with unknown named arguments": {
@@ -1130,9 +1130,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("a", unknown: "lala", moo: "meow", b: "b")
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(89, 6, 14), P(103, 6, 28)), "nonexistent parameter `unknown` given in call to `foo`"),
-				error.NewFailure(L(P(106, 6, 31), P(116, 6, 41)), "nonexistent parameter `moo` given in call to `foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(89, 6, 14), P(103, 6, 28)), "nonexistent parameter `unknown` given in call to `foo`"),
+				diagnostic.NewFailure(L(P(106, 6, 31), P(116, 6, 41)), "nonexistent parameter `moo` given in call to `foo`"),
 			},
 		},
 		"call a module method without arguments": {
@@ -1214,8 +1214,8 @@ func TestVMSource_Setters(t *testing.T) {
 				foo := ::Foo(1)
 				foo.bar++
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(96, 8, 5), P(104, 8, 13)), "method `++` is not defined on type `Std::Nil`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(96, 8, 5), P(104, 8, 13)), "method `++` is not defined on type `Std::Nil`"),
 			},
 		},
 		"setter increment": {
@@ -1625,9 +1625,9 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [1, 8, 7.8]
 				list[0] ||= 5
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
-				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
+				diagnostic.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
 			},
 			wantStackTop: value.SmallInt(1).ToValue(),
 		},
@@ -1650,8 +1650,8 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [1, 8, 7.8]
 				list[0] &&= 5
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` is truthy"),
 			},
 			wantStackTop: value.SmallInt(5).ToValue(),
 		},
@@ -1668,9 +1668,9 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] ??= 5
 			`,
 			wantStackTop: value.False,
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(33, 3, 5), P(39, 3, 11)), "this condition will always have the same result since type `bool | Std::Int | Std::Float` can never be nil"),
-				error.NewWarning(L(P(45, 3, 17), P(45, 3, 17)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(33, 3, 5), P(39, 3, 11)), "this condition will always have the same result since type `bool | Std::Int | Std::Float` can never be nil"),
+				diagnostic.NewWarning(L(P(45, 3, 17), P(45, 3, 17)), "unreachable code"),
 			},
 		},
 		"subscript setter nil coalesce truthy": {
@@ -1679,9 +1679,9 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] ??= 5
 			`,
 			wantStackTop: value.SmallInt(1).ToValue(),
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
-				error.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(29, 3, 5), P(35, 3, 11)), "this condition will always have the same result since type `Std::Int | Std::Float` can never be nil"),
+				diagnostic.NewWarning(L(P(41, 3, 17), P(41, 3, 17)), "unreachable code"),
 			},
 		},
 	}

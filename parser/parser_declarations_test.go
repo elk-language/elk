@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 )
 
@@ -21,8 +21,8 @@ func TestImport(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected a string literal"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected a string literal"),
 			},
 		},
 		"import with a non string path": {
@@ -36,8 +36,8 @@ func TestImport(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(7, 1, 8)), "unexpected INT, expected a string literal"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(7, 1, 8)), "unexpected INT, expected a string literal"),
 			},
 		},
 		"import with a raw string": {
@@ -96,8 +96,8 @@ func TestImport(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(15, 1, 16)), "cannot interpolate strings in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(15, 1, 16)), "cannot interpolate strings in this context"),
 			},
 		},
 	}
@@ -205,8 +205,8 @@ nil
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 3, 2), P(28, 4, 11)), "singleton definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 3, 2), P(28, 4, 11)), "singleton definitions cannot appear in expressions"),
 			},
 		},
 	}
@@ -388,8 +388,8 @@ nil
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 3, 2), P(41, 4, 11)), "extend where definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 3, 2), P(41, 4, 11)), "extend where definitions cannot appear in expressions"),
 			},
 		},
 	}
@@ -417,9 +417,9 @@ func TestDocComment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected an expression"),
-				error.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "doc comments cannot be attached to this expression"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected an expression"),
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "doc comments cannot be attached to this expression"),
 			},
 		},
 		"cannot be nested": {
@@ -433,9 +433,9 @@ func TestDocComment(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(18, 1, 19)), "doc comments cannot document one another"),
-				error.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "doc comments cannot be attached to this expression"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(18, 1, 19)), "doc comments cannot document one another"),
+				diagnostic.NewFailure(L("<main>", P(20, 1, 21), P(20, 1, 21)), "doc comments cannot be attached to this expression"),
 			},
 		},
 		"can be empty": {
@@ -521,8 +521,8 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -667,8 +667,8 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(12, 1, 13)), "using declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(12, 1, 13)), "using declarations cannot appear in expressions"),
 			},
 		},
 		"can have many arguments": {
@@ -816,8 +816,8 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 1, 26), P(25, 1, 26)), "unexpected PUBLIC_IDENTIFIER, expected PUBLIC_CONSTANT"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 1, 26), P(25, 1, 26)), "unexpected PUBLIC_IDENTIFIER, expected PUBLIC_CONSTANT"),
 			},
 		},
 		"can have a method lookup as the argument": {
@@ -905,8 +905,8 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 1, 32), P(31, 1, 32)), "unexpected PUBLIC_CONSTANT, expected PUBLIC_IDENTIFIER"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 1, 32), P(31, 1, 32)), "unexpected PUBLIC_CONSTANT, expected PUBLIC_IDENTIFIER"),
 			},
 		},
 		"can have a generic constant as the argument": {
@@ -925,8 +925,8 @@ func TestUsingExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 1, 17), P(16, 1, 17)), "unexpected [, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 1, 17), P(16, 1, 17)), "unexpected [, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -959,8 +959,8 @@ func TestIncludeExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -1008,8 +1008,8 @@ func TestIncludeExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(25, 1, 26)), "this definition cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(25, 1, 26)), "this definition cannot appear in expressions"),
 			},
 		},
 		"can have many arguments": {
@@ -1190,8 +1190,8 @@ func TestImplementExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -1239,8 +1239,8 @@ func TestImplementExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(27, 1, 28)), "this definition cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(27, 1, 28)), "this definition cannot appear in expressions"),
 			},
 		},
 		"can have many arguments": {
@@ -1474,8 +1474,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "instance variables cannot be declared using `val`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "instance variables cannot be declared using `val`"),
 			},
 		},
 		"cannot have a constant as the value name": {
@@ -1492,8 +1492,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -1836,8 +1836,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in value declarations should define at least one value"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in value declarations should define at least one value"),
 			},
 		},
 	}
@@ -1954,9 +1954,9 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
 			},
 		},
 		"instance variables cannot be initialised": {
@@ -1975,9 +1975,9 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 1, 12), P(11, 1, 12)), "instance variables cannot be initialised when declared"),
-				error.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 1, 12), P(11, 1, 12)), "instance variables cannot be initialised when declared"),
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
 			},
 		},
 		"cannot have a constant as the variable name": {
@@ -1994,8 +1994,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -2105,8 +2105,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(12, 1, 13)), "type `void` cannot be used in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(12, 1, 13)), "type `void` cannot be used in this context"),
 			},
 		},
 		"can have a nilable type": {
@@ -2434,8 +2434,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in variable declarations should define at least one variable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "patterns in variable declarations should define at least one variable"),
 			},
 		},
 	}
@@ -2516,8 +2516,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(29, 1, 30)), "constant declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(29, 1, 30)), "constant declarations cannot appear in expressions"),
 			},
 		},
 		"can have a private constant as the name": {
@@ -2567,8 +2567,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(9, 1, 10)), "invalid constant name"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(9, 1, 10)), "invalid constant name"),
 			},
 		},
 		"cannot have a lowercase identifier as the name": {
@@ -2594,8 +2594,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid constant name"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid constant name"),
 			},
 		},
 		"can have a static initialiser without a type": {
@@ -2751,8 +2751,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 1, 12), P(14, 1, 15)), "type `void` cannot be used in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 1, 12), P(14, 1, 15)), "type `void` cannot be used in this context"),
 			},
 		},
 	}
@@ -2780,8 +2780,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 1, 12), P(10, 1, 11)), "unexpected END_OF_FILE, expected ="),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 1, 12), P(10, 1, 11)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can be generic": {
@@ -2863,8 +2863,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(24, 1, 25)), "type definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(24, 1, 25)), "type definitions cannot appear in expressions"),
 			},
 		},
 		"can have a public constant as the name": {
@@ -2958,8 +2958,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(11, 1, 12)), "unexpected INSTANCE_VARIABLE, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(11, 1, 12)), "unexpected INSTANCE_VARIABLE, expected a constant"),
 			},
 		},
 		"cannot have a lowercase identifier as the name": {
@@ -2984,8 +2984,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(10, 1, 11)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 	}
@@ -3026,8 +3026,8 @@ func TestGetterDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "getter declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "getter declarations cannot appear in expressions"),
 			},
 		},
 		"can have a type": {
@@ -3185,8 +3185,8 @@ func TestSetterDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "setter declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(9, 1, 10)), "setter declarations cannot appear in expressions"),
 			},
 		},
 		"can have a type": {
@@ -3242,8 +3242,8 @@ func TestSetterDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "setter declarations cannot have initialisers"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "setter declarations cannot have initialisers"),
 			},
 		},
 		"can have a few attributes": {
@@ -3375,8 +3375,8 @@ func TestAccessorDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "attr declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "attr declarations cannot appear in expressions"),
 			},
 		},
 		"can have a type": {
@@ -3560,8 +3560,8 @@ func TestAliasDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(16, 1, 17)), "alias definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(16, 1, 17)), "alias definitions cannot appear in expressions"),
 			},
 		},
 		"can have a few entries": {
@@ -3720,9 +3720,9 @@ func TestAliasDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
-				error.NewFailure(L("<main>", P(11, 1, 12), P(14, 1, 15)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
+				diagnostic.NewFailure(L("<main>", P(11, 1, 12), P(14, 1, 15)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
 			},
 		},
 	}
@@ -3758,8 +3758,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous classes are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous classes are not supported"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -3789,9 +3789,9 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "class declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous classes are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "class declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous classes are not supported"),
 			},
 		},
 		"cannot be anonymous with a superclass": {
@@ -3816,8 +3816,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(15, 1, 16)), "anonymous classes are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(15, 1, 16)), "anonymous classes are not supported"),
 			},
 		},
 		"can have type variables": {
@@ -3942,8 +3942,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can be abstract": {
@@ -3997,8 +3997,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 1, 20), P(32, 1, 33)), "class declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(32, 1, 33)), "class declarations cannot appear in expressions"),
 			},
 		},
 		"cannot appear in expressions with doc comments": {
@@ -4029,8 +4029,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 1, 20), P(32, 1, 33)), "class declarations cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(32, 1, 33)), "class declarations cannot appear in expressions"),
 			},
 		},
 		"cannot repeat abstract": {
@@ -4055,8 +4055,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
 			},
 		},
 		"cannot attach abstract to a sealed class": {
@@ -4081,8 +4081,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier cannot be attached to sealed classes"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier cannot be attached to sealed classes"),
 			},
 		},
 		"can be primitive": {
@@ -4176,8 +4176,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier cannot be attached to abstract classes"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier cannot be attached to abstract classes"),
 			},
 		},
 		"cannot repeat sealed": {
@@ -4202,8 +4202,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can only be attached once"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can only be attached once"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -4301,8 +4301,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid class name, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid class name, expected a constant"),
 			},
 		},
 		"can have a public constant as a superclass": {
@@ -4457,8 +4457,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -4561,8 +4561,8 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous modules are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous modules are not supported"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -4586,9 +4586,9 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "module declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous modules are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "module declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous modules are not supported"),
 			},
 		},
 		"cannot be generic": {
@@ -4607,8 +4607,8 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(20, 1, 21)), "modules cannot be generic"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(20, 1, 21)), "modules cannot be generic"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -4682,8 +4682,8 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "invalid module name, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "invalid module name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -4776,8 +4776,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous mixins are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous mixins are not supported"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -4803,9 +4803,9 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "mixin declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous mixins are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "mixin declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous mixins are not supported"),
 			},
 		},
 		"can have type variables": {
@@ -4918,8 +4918,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"cannot be sealed": {
@@ -4940,8 +4940,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(20, 1, 21)), "the sealed modifier can only be attached to classes and methods"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(20, 1, 21)), "the sealed modifier can only be attached to classes and methods"),
 			},
 		},
 		"can be abstract": {
@@ -5042,8 +5042,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid mixin name, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid mixin name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -5139,8 +5139,8 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(13, 1, 14)), "anonymous interfaces are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(13, 1, 14)), "anonymous interfaces are not supported"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -5165,9 +5165,9 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(19, 1, 20)), "interface declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(6, 1, 7), P(19, 1, 20)), "anonymous interfaces are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(19, 1, 20)), "interface declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(19, 1, 20)), "anonymous interfaces are not supported"),
 			},
 		},
 		"can have type variables": {
@@ -5277,8 +5277,8 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(14, 1, 15)), "unexpected ], expected a list of type variables"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(14, 1, 15)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -5356,8 +5356,8 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "invalid interface name, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(12, 1, 13)), "invalid interface name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -5451,8 +5451,8 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous structs are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous structs are not supported"),
 			},
 		},
 		"cannot be a part of an expression": {
@@ -5477,9 +5477,9 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "struct declarations cannot appear in expressions"),
-				error.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous structs are not supported"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "struct declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous structs are not supported"),
 			},
 		},
 		"can have type variables": {
@@ -5714,8 +5714,8 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 1, 12), P(11, 1, 12)), "unexpected ], expected a list of type variables"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 1, 12), P(11, 1, 12)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -5793,8 +5793,8 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "invalid struct name, expected a constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "invalid struct name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -5925,8 +5925,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(17, 1, 18)), "method definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(17, 1, 18)), "method definitions cannot appear in expressions"),
 			},
 		},
 		"can have a public identifier as a name": {
@@ -6078,8 +6078,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can only be attached once"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can only be attached once"),
 			},
 		},
 		"can be async": {
@@ -6125,8 +6125,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "the async modifier can only be attached once"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(4, 1, 5)), "the async modifier can only be attached once"),
 			},
 		},
 		"cannot attach sealed to an abstract method": {
@@ -6150,8 +6150,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier cannot be attached to abstract methods"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier cannot be attached to abstract methods"),
 			},
 		},
 		"can be abstract": {
@@ -6197,8 +6197,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
 			},
 		},
 		"cannot attach abstract to a sealed method": {
@@ -6222,8 +6222,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier cannot be attached to sealed methods"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier cannot be attached to sealed methods"),
 			},
 		},
 		"can have a setter as a name": {
@@ -6290,8 +6290,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 1, 14), P(18, 1, 19)), "setter methods cannot be defined with custom return types"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(13, 1, 14), P(18, 1, 19)), "setter methods cannot be defined with custom return types"),
 			},
 		},
 		"setters cannot have multiple parameters": {
@@ -6340,8 +6340,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "setter methods must have a single parameter, got: 3"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "setter methods must have a single parameter, got: 3"),
 			},
 		},
 		"setters must have a parameter": {
@@ -6365,8 +6365,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "setter methods must have a single parameter, got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "setter methods must have a single parameter, got: 0"),
 			},
 		},
 		"can have subscript setter with two arguments": {
@@ -6449,8 +6449,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "setter methods cannot be defined with custom return types"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "setter methods cannot be defined with custom return types"),
 			},
 		},
 		"cannot define subscript setter with less parameters": {
@@ -6483,8 +6483,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(8, 1, 9), P(8, 1, 9)), "subscript setter methods must have two parameters, got: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(8, 1, 9), P(8, 1, 9)), "subscript setter methods must have two parameters, got: 1"),
 			},
 		},
 		"can be a generator with private identifier": {
@@ -6662,8 +6662,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"cannot have a non overridable operator as a name": {
@@ -6687,8 +6687,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"cannot have a private constant as a name": {
@@ -6712,8 +6712,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
@@ -7069,8 +7069,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(19, 1, 20)), "rest parameters cannot have default values"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(19, 1, 20)), "rest parameters cannot have default values"),
 			},
 		},
 		"can have a positional rest parameter in the middle": {
@@ -7182,8 +7182,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 1, 19), P(22, 1, 23)), "optional parameters cannot appear after rest parameters"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 1, 19), P(22, 1, 23)), "optional parameters cannot appear after rest parameters"),
 			},
 		},
 		"cannot have multiple positional rest parameters": {
@@ -7240,8 +7240,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 1, 19), P(19, 1, 20)), "there should be only a single positional rest parameter"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 1, 19), P(19, 1, 20)), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest parameter with a type": {
@@ -7384,8 +7384,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(20, 1, 21)), "rest parameters cannot have default values"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(20, 1, 21)), "rest parameters cannot have default values"),
 			},
 		},
 		"can have a named rest parameter with a type": {
@@ -7489,8 +7489,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "named rest parameters should appear last"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
@@ -7610,8 +7610,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 1, 22), P(23, 1, 24)), "named rest parameters cannot appear after a post parameter"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 1, 22), P(23, 1, 24)), "named rest parameters cannot appear after a post parameter"),
 			},
 		},
 		"can have arguments with types": {
@@ -7737,8 +7737,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 1, 20), P(22, 1, 23)), "type `void` cannot be used in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(22, 1, 23)), "type `void` cannot be used in this context"),
 			},
 		},
 		"can have arguments with initialisers": {
@@ -7873,9 +7873,9 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 1, 17), P(24, 1, 25)), "required parameters cannot appear after optional parameters"),
-				error.NewFailure(L("<main>", P(37, 1, 38), P(37, 1, 38)), "required parameters cannot appear after optional parameters"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 1, 17), P(24, 1, 25)), "required parameters cannot appear after optional parameters"),
+				diagnostic.NewFailure(L("<main>", P(37, 1, 38), P(37, 1, 38)), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -7986,8 +7986,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(14, 1, 15)), "method definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(14, 1, 15)), "method definitions cannot appear in expressions"),
 			},
 		},
 		"can have an empty argument list": {
@@ -8031,9 +8031,9 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(4, 1, 5)), "unexpected :, expected a statement separator `\\n`, `;`"),
-				error.NewFailure(L("<main>", P(12, 1, 13), P(12, 1, 13)), "unexpected ?, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(4, 1, 5)), "unexpected :, expected a statement separator `\\n`, `;`"),
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(12, 1, 13)), "unexpected ?, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can have a throw type and omit arguments": {
@@ -8233,8 +8233,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(16, 1, 17)), "there should be only a single positional rest parameter"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(16, 1, 17)), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest parameter with a type": {
@@ -8412,8 +8412,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 1, 17), P(16, 1, 17)), "named rest parameters should appear last"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 1, 17), P(16, 1, 17)), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
@@ -8620,9 +8620,9 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 1, 14), P(21, 1, 22)), "required parameters cannot appear after optional parameters"),
-				error.NewFailure(L("<main>", P(34, 1, 35), P(34, 1, 35)), "required parameters cannot appear after optional parameters"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(13, 1, 14), P(21, 1, 22)), "required parameters cannot appear after optional parameters"),
+				diagnostic.NewFailure(L("<main>", P(34, 1, 35), P(34, 1, 35)), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -8726,8 +8726,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(12, 1, 13)), "signature definitions cannot appear in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(12, 1, 13)), "signature definitions cannot appear in expressions"),
 			},
 		},
 		"can have a public identifier as a name": {
@@ -8858,8 +8858,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"cannot have a non overridable operator as a name": {
@@ -8881,8 +8881,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"cannot have a private constant as a name": {
@@ -8904,8 +8904,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
@@ -9170,9 +9170,9 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(12, 1, 13)), "required parameters cannot appear after optional parameters"),
-				error.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "required parameters cannot appear after optional parameters"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(12, 1, 13)), "required parameters cannot appear after optional parameters"),
+				diagnostic.NewFailure(L("<main>", P(19, 1, 20), P(19, 1, 20)), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"cannot have arguments with initialisers": {
@@ -9189,8 +9189,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected =, expected )"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected =, expected )"),
 			},
 		},
 	}

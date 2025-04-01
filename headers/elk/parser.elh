@@ -1,0 +1,8 @@
+##[
+	Implements a parser of the Elk programming language.
+]##
+sealed primitive noinit class ::Std::Elk::Parser
+	singleton
+		def parse(source: String, source_name: String = "<main>"); end
+	end
+end

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -31,8 +31,8 @@ func TestBinaryExpressions(t *testing.T) {
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"is a\" check is always true, `3` will always be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"is a\" check is always true, `3` will always be an instance of `Std::Int`"),
 			},
 		},
 		"instance of": {
@@ -54,8 +54,8 @@ func TestBinaryExpressions(t *testing.T) {
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"instance of\" check is always true, `3` will always be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"instance of\" check is always true, `3` will always be an instance of `Std::Int`"),
 			},
 		},
 		"resolve static add": {

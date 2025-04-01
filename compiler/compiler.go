@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -26,13 +26,13 @@ import (
 
 const MainName = "<main>"
 
-func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
+func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
 	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.Errors = errors
 	return compiler
 }
 
-func (c *Compiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
+func (c *Compiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
 	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
@@ -145,7 +145,7 @@ type upvalue struct {
 type Compiler struct {
 	Name               string
 	Bytecode           *vm.BytecodeFunction
-	Errors             *error.SyncErrorList
+	Errors             *diagnostic.SyncDiagnosticList
 	scopes             scopes
 	loopJumpSets       []*loopJumpSet
 	offsetValueIds     []int // ids of integers in the value pool that represent bytecode offsets
@@ -177,7 +177,7 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 		Name:           name,
 		mode:           mode,
 		checker:        checker,
-		Errors:         error.NewSyncErrorList(),
+		Errors:         diagnostic.NewSyncDiagnosticList(),
 	}
 	// reserve the first slot on the stack for `self`
 	c.defineLocal("$self", &position.Span{})
@@ -5691,7 +5691,7 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 	}
 
 	re, err := value.CompileRegex(node.Content, node.Flags)
-	if errList, ok := err.(error.ErrorList); ok {
+	if errList, ok := err.(diagnostic.DiagnosticList); ok {
 		regexStartPos := node.Span().StartPos
 		for _, err := range errList {
 			errStartPos := err.Span.StartPos

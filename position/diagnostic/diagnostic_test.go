@@ -1,4 +1,4 @@
-package error
+package diagnostic
 
 import (
 	"testing"
@@ -13,60 +13,60 @@ var L = position.NewLocation
 // Create a new position in tests
 var P = position.New
 
-func TestErrorString(t *testing.T) {
-	err := NewError(
+func TestDiagnosticString(t *testing.T) {
+	err := NewDiagnostic(
 		L("/opt/elk", P(0, 2, 1), P(5, 2, 1)),
 		"foo bar",
-		FAILURE,
+		FAIL,
 	)
 
 	diff := cmp.Diff(err.String(), "/opt/elk:2:1: foo bar")
 	if diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 
-func TestErrorListAdd(t *testing.T) {
-	got := ErrorList{
-		NewError(
+func TestDiagnosticListAdd(t *testing.T) {
+	got := DiagnosticList{
+		NewDiagnostic(
 			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
 			"foo bar",
-			FAILURE,
+			FAIL,
 		),
 	}
 
-	got.Add("sick style dude!", L("/opt/elk", P(6, 2, 2), P(10, 2, 6)), FAILURE)
+	got.Add("sick style dude!", L("/opt/elk", P(6, 2, 2), P(10, 2, 6)), FAIL)
 
-	want := ErrorList{
-		NewError(
+	want := DiagnosticList{
+		NewDiagnostic(
 			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
 			"foo bar",
-			FAILURE,
+			FAIL,
 		),
-		NewError(
+		NewDiagnostic(
 			L("/opt/elk", P(6, 2, 2), P(10, 2, 6)),
 			"sick style dude!",
-			FAILURE,
+			FAIL,
 		),
 	}
 
 	diff := cmp.Diff(got, want)
 	if diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 
-func TestErrorListError(t *testing.T) {
-	err := ErrorList{
-		NewError(
+func TestDiagnosticListError(t *testing.T) {
+	err := DiagnosticList{
+		NewDiagnostic(
 			L("/some/path", P(5, 2, 1), P(5, 2, 1)),
 			"foo bar",
-			FAILURE,
+			FAIL,
 		),
-		NewError(
+		NewDiagnostic(
 			L("<main>", P(20, 4, 5), P(25, 4, 10)),
 			"sick style dude!",
-			FAILURE,
+			FAIL,
 		),
 	}
 
@@ -74,105 +74,105 @@ func TestErrorListError(t *testing.T) {
 	want := "/some/path:2:1: foo bar\n<main>:4:5: sick style dude!\n"
 
 	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 
-func TestErrorListJoin(t *testing.T) {
+func TestDiagnosticListJoin(t *testing.T) {
 	tests := map[string]struct {
-		left  ErrorList
-		right ErrorList
-		want  ErrorList
+		left  DiagnosticList
+		right DiagnosticList
+		want  DiagnosticList
 	}{
 		"return left when right is nil": {
-			left: ErrorList{
-				NewError(
+			left: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
 			},
 			right: nil,
-			want: ErrorList{
-				NewError(
+			want: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
 			},
 		},
 		"return right when left is nil": {
 			left: nil,
-			right: ErrorList{
-				NewError(
+			right: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
 			},
-			want: ErrorList{
-				NewError(
+			want: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
 			},
 		},
 		"return joined list": {
-			left: ErrorList{
-				NewError(
+			left: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
 			},
-			right: ErrorList{
-				NewError(
+			right: DiagnosticList{
+				NewDiagnostic(
 					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
 					"baz",
-					FAILURE,
+					FAIL,
 				),
 			},
-			want: ErrorList{
-				NewError(
+			want: DiagnosticList{
+				NewDiagnostic(
 					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
 					"foo bar",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
-					FAILURE,
+					FAIL,
 				),
-				NewError(
+				NewDiagnostic(
 					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
 					"baz",
-					FAILURE,
+					FAIL,
 				),
 			},
 		},
@@ -182,7 +182,7 @@ func TestErrorListJoin(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.left.Join(tc.right)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

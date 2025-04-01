@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3551,8 +3551,8 @@ func TestInstantiate(t *testing.T) {
 				end
 				::Foo(b: 1, a: 'lol', b: 2)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(83, 5, 27), P(86, 5, 30)),
 					"duplicated argument `b` in call to `#init`",
 				),
@@ -5534,8 +5534,8 @@ func TestCallMethod(t *testing.T) {
 				end
 				Foo.foo(b: 1, a: 'lol', b: 2)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(89, 5, 29), P(92, 5, 32)),
 					"duplicated argument `b` in call to `foo`",
 				),
@@ -6298,8 +6298,8 @@ func TestCallFunction(t *testing.T) {
 				def foo(a: String, b: Int); end
 				foo(b: 1, a: 'lol', b: 2)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(61, 3, 25), P(64, 3, 28)),
 					"duplicated argument `b` in call to `foo`",
 				),

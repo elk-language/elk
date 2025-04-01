@@ -119,6 +119,9 @@ var NotBuiltinErrorClass *Class
 // ::Std::FileSystemError
 var FileSystemErrorClass *Class
 
+// ::Std::ColorizerError
+var ColorizerErrorClass *Class
+
 var NotBuiltinError *Object
 
 // Create a new Elk error.
@@ -547,4 +550,7 @@ func initError() {
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))
 	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
+
+	ColorizerErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ColorizerError", Ref(ColorizerErrorClass))
 }

@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 )
 
@@ -15,8 +15,8 @@ func TestVMSource_Exponentiate(t *testing.T) {
 		},
 		"Int64 ** Int32": {
 			source: "2i64 ** 10i32",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `**`, got type `10i32`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `**`, got type `10i32`"),
 			},
 		},
 	}
@@ -36,14 +36,14 @@ func TestVMSource_Modulo(t *testing.T) {
 		},
 		"SmallInt % Float": {
 			source: "250 % 4.5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `%`, got type `4.5`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `%`, got type `4.5`"),
 			},
 		},
 		"Int64 % Int32": {
 			source: "11i64 % 2i32",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `%`, got type `2i32`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `%`, got type `2i32`"),
 			},
 		},
 	}
@@ -59,20 +59,20 @@ func TestVMSource_RightBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int >> String": {
 			source: "3 >> 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 >> Float": {
 			source: "3u16 >> 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `5.2`"),
 			},
 		},
 		"String >> Int": {
 			source: "'36' >> 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `>>` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `>>` is not defined on type `Std::String`"),
 			},
 		},
 
@@ -257,26 +257,26 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int >>> String": {
 			source: "3 >>> 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(10, 1, 11)), "method `>>>` is not defined on type `Std::Int`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(10, 1, 11)), "method `>>>` is not defined on type `Std::Int`"),
 			},
 		},
 		"Int64 >>> String": {
 			source: "3i64 >>> 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 >>> Float": {
 			source: "3u16 >>> 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `5.2`"),
 			},
 		},
 		"String >>> Int": {
 			source: "'36' >>> 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `>>>` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `>>>` is not defined on type `Std::String`"),
 			},
 		},
 
@@ -444,20 +444,20 @@ func TestVMSource_LeftBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int << String": {
 			source: "3 << 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 << Float": {
 			source: "3u16 << 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `5.2`"),
 			},
 		},
 		"String << Int": {
 			source: "'36' << 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `<<` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `<<` is not defined on type `Std::String`"),
 			},
 		},
 
@@ -642,26 +642,26 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 <<< String": {
 			source: "3i64 <<< 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 <<< Float": {
 			source: "3u16 <<< 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `5.2`"),
 			},
 		},
 		"String <<< Int": {
 			source: "'36' <<< 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `<<<` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "method `<<<` is not defined on type `Std::String`"),
 			},
 		},
 		"Int <<< Int": {
 			source: "16 <<< 2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `<<<` is not defined on type `Std::Int`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `<<<` is not defined on type `Std::Int`"),
 			},
 		},
 		"Int64 <<< Int64": {
@@ -828,32 +828,32 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 	tests := sourceTestTable{
 		"Float & Int": {
 			source: "3.6 & 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `&` is not defined on type `Std::Float`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `&` is not defined on type `Std::Float`"),
 			},
 		},
 		"Int64 & String": {
 			source: "3i64 & 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 & SmallInt": {
 			source: "3i64 & 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `5`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `5`"),
 			},
 		},
 		"UInt16 & Float": {
 			source: "3u16 & 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `&`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `&`, got type `5.2`"),
 			},
 		},
 		"String & Int": {
 			source: "'36' & 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&` is not defined on type `Std::String`"),
 			},
 		},
 		"Int & Int": {
@@ -881,32 +881,32 @@ func TestVMSource_BitwiseAndNot(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 &~ String": {
 			source: "3i64 &~ 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 &~ SmallInt": {
 			source: "3i64 &~ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `5`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `5`"),
 			},
 		},
 		"UInt16 &~ Float": {
 			source: "3u16 &~ 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `&~`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `&~`, got type `5.2`"),
 			},
 		},
 		"String &~ Int": {
 			source: "'36' &~ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `&~` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "method `&~` is not defined on type `Std::String`"),
 			},
 		},
 		"Float &~ Int": {
 			source: "3.6 &~ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&~` is not defined on type `Std::Float`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `&~` is not defined on type `Std::Float`"),
 			},
 		},
 		"Int &~ Int": {
@@ -934,32 +934,32 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 | String": {
 			source: "3i64 | 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 | SmallInt": {
 			source: "3i64 | 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `5`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `5`"),
 			},
 		},
 		"UInt16 | Float": {
 			source: "3u16 | 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `|`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `|`, got type `5.2`"),
 			},
 		},
 		"String | Int": {
 			source: "'36' | 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `|` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `|` is not defined on type `Std::String`"),
 			},
 		},
 		"Float | Int": {
 			source: "3.6 | 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `|` is not defined on type `Std::Float`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `|` is not defined on type `Std::Float`"),
 			},
 		},
 		"Int | Int": {
@@ -987,32 +987,32 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 ^ String": {
 			source: "3i64 ^ 'foo'",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 ^ SmallInt": {
 			source: "3i64 ^ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `5`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `5`"),
 			},
 		},
 		"UInt16 ^ Float": {
 			source: "3u16 ^ 5.2",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `^`, got type `5.2`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `^`, got type `5.2`"),
 			},
 		},
 		"String ^ Int": {
 			source: "'36' ^ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `^` is not defined on type `Std::String`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "method `^` is not defined on type `Std::String`"),
 			},
 		},
 		"Float ^ Int": {
 			source: "3.6 ^ 5",
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `^` is not defined on type `Std::Float`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(6, 1, 7)), "method `^` is not defined on type `Std::Float`"),
 			},
 		},
 		"Int ^ Int": {

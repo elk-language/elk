@@ -1,12 +1,14 @@
 package vm
 
 import (
-	"github.com/elk-language/elk/value"
+	_ "github.com/elk-language/elk/value"
 )
 
-func InitGlobalEnvironment() {
-	value.InitGlobalEnvironment()
+func init() {
+	InitGlobalEnvironment()
+}
 
+func InitGlobalEnvironment() {
 	initIterator()
 	initArrayList()
 	initArrayListIterator()

@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 )
 
 // Represents a class declaration eg. `class Foo; end`
@@ -22,7 +21,7 @@ type ClassDeclarationNode struct {
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Superclass     ExpressionNode      // the super/parent class of this class
 	Body           []StatementNode     // body of the class
-	Bytecode       *vm.BytecodeFunction
+	Bytecode       value.Method
 }
 
 func (n *ClassDeclarationNode) Equal(other value.Value) bool {

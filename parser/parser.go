@@ -15,9 +15,10 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/value"
 )
 
 // Parsing mode.
@@ -40,7 +41,7 @@ type Parser struct {
 	lookahead        *token.Token // next token used for predicting productions
 	secondLookahead  *token.Token // second next token used for predicting productions
 	thirdLookahead   *token.Token // third next token used for predicting productions
-	errors           error.ErrorList
+	diagnostics      diagnostic.DiagnosticList
 	mode             mode
 	indentedSection  bool
 	incompleteIndent bool
@@ -57,8 +58,36 @@ func New(sourceName string, source string) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(sourceName string, source string) (*ast.ProgramNode, error.ErrorList) {
+func Parse(sourceName string, source string) (*ast.ProgramNode, diagnostic.DiagnosticList) {
 	return New(sourceName, source).Parse()
+}
+
+func (*Parser) Class() *value.Class {
+	return value.ElkParserClass
+}
+
+func (*Parser) DirectClass() *value.Class {
+	return value.ElkParserClass
+}
+
+func (p *Parser) Inspect() string {
+	return fmt.Sprintf("Std::Elk::Parser{&: %p}", p)
+}
+
+func (p *Parser) Error() string {
+	return p.Inspect()
+}
+
+func (p *Parser) SingletonClass() *value.Class {
+	return nil
+}
+
+func (p *Parser) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (p *Parser) Copy() value.Reference {
+	return p
 }
 
 // Returns true when the parser had finished early
@@ -75,19 +104,19 @@ func (p *Parser) ShouldIndent() bool {
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (*ast.ProgramNode, error.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, diagnostic.DiagnosticList) {
 	p.reset()
 
 	p.advance() // populate thirdLookahead
 	p.advance() // populate secondLookahead
 	p.advance() // populate lookahead
-	return p.program(), p.errors
+	return p.program(), p.diagnostics
 }
 
 func (p *Parser) reset() {
 	p.lexer = lexer.NewWithName(p.sourceName, p.source)
 	p.mode = normalMode
-	p.errors = nil
+	p.diagnostics = nil
 }
 
 // Adds an error which tells the user that the received
@@ -118,7 +147,7 @@ func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 		return
 	}
 
-	p.errors.AddFailure(
+	p.diagnostics.AddFailure(
 		message,
 		p.newLocation(span),
 	)

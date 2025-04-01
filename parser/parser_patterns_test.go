@@ -5,7 +5,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 )
 
@@ -31,8 +31,8 @@ end
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(1, 2, 1), P(14, 3, 3)), "switch cannot be empty"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(1, 2, 1), P(14, 3, 3)), "switch cannot be empty"),
 			},
 		},
 		"is an expression": {
@@ -117,8 +117,8 @@ end
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(1, 2, 1), P(27, 5, 3)), "switch cannot only consist of else"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(1, 2, 1), P(27, 5, 3)), "switch cannot only consist of else"),
 			},
 		},
 		"can have multiple branches": {
@@ -2272,8 +2272,8 @@ end
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 1, 36), P(38, 1, 39)), "set patterns cannot contain identifiers other than _"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 1, 36), P(38, 1, 39)), "set patterns cannot contain identifiers other than _"),
 			},
 		},
 		"empty list pattern": {

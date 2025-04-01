@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestTypeDefinition(t *testing.T) {
@@ -13,8 +13,8 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Foo = 1
 				a := Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "`Foo` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "`Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"define types with circular dependencies": {
@@ -22,8 +22,8 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Foo = Bar
 				typedef Bar = Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(41, 3, 19), P(43, 3, 21)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(41, 3, 19), P(43, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define a type and assign a compatible value": {
@@ -37,13 +37,13 @@ func TestTypeDefinition(t *testing.T) {
 				typedef Text = String
 				var a: Text = 1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 19), P(45, 3, 19)), "type `1` cannot be assigned to type `Text`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 19), P(45, 3, 19)), "type `1` cannot be assigned to type `Text`"),
 			},
 		},
 		"call a method on a defined type": {
 			input: `
-				sealed primitive noinit class Std::String < Value
+				sealed primitive noinit class Std::String
 					def foo; end
 				end
 
@@ -59,8 +59,8 @@ func TestTypeDefinition(t *testing.T) {
 
 				var b: Bar / 3 = 9.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 5, 22), P(72, 5, 24)), "type `9.2` cannot be assigned to type `Baz | nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(70, 5, 22), P(72, 5, 24)), "type `9.2` cannot be assigned to type `Baz | nil`"),
 			},
 		},
 		"define a type using another type before its declaration": {
@@ -75,8 +75,8 @@ func TestTypeDefinition(t *testing.T) {
 					typedef Foo = Bar | nil
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(40, 3, 28)), "type definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(40, 3, 28)), "type definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -95,8 +95,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V] = V?
 				a := Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 10), P(36, 3, 12)), "`Foo` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 10), P(36, 3, 12)), "`Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"define generic types with circular dependencies": {
@@ -104,8 +104,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V] = V | Bar
 				typedef Bar = Foo[Int]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 3, 19), P(50, 3, 21)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 3, 19), P(50, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define generic types with circular dependencies in the bounds": {
@@ -113,8 +113,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V < Bar] = V | Float
 				typedef Bar = Foo[Int]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 19), P(58, 3, 21)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 3, 19), P(58, 3, 21)), "type `Foo` circularly references itself"),
 			},
 		},
 		"define a generic type with valid content": {
@@ -129,16 +129,16 @@ func TestGenericTypeDefinition(t *testing.T) {
 				end
 				var a: Foo::Bar[Int] = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(84, 5, 28), P(86, 5, 30)), "type `nil` cannot be assigned to type `Std::Int | Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(84, 5, 28), P(86, 5, 30)), "type `nil` cannot be assigned to type `Std::Int | Std::String`"),
 			},
 		},
 		"define a generic type with invalid content": {
 			input: `
 				typedef Dupa[V] = T | String
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 2, 23), P(23, 2, 23)), "undefined type `T`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(23, 2, 23), P(23, 2, 23)), "undefined type `T`"),
 			},
 		},
 		"define a generic type with valid upper bound": {
@@ -150,8 +150,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 			input: `
 				typedef Dupa[V < Foo] = V | String
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
 			},
 		},
 		"define a generic type with valid lower bound": {
@@ -163,17 +163,17 @@ func TestGenericTypeDefinition(t *testing.T) {
 			input: `
 				typedef Dupa[V > Foo] = V | String
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
 			},
 		},
 		"define a generic type with invalid upper and lower bound": {
 			input: `
 				typedef Dupa[V > Foo < Bar] = V | String
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
-				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "undefined type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(24, 2, 24)), "undefined type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "undefined type `Bar`"),
 			},
 		},
 
@@ -182,8 +182,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V] = V | String
 				var a: Foo[Int] = 2.4
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(55, 3, 23), P(57, 3, 25)), "type `2.4` cannot be assigned to type `Std::Int | Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(55, 3, 23), P(57, 3, 25)), "type `2.4` cannot be assigned to type `Std::Int | Std::String`"),
 			},
 		},
 		"use a generic type with an invalid number of type arguments": {
@@ -191,8 +191,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V] = V | String
 				var a: Foo[Int, Float] = 2.4
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "`Foo[V]` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 3, 12), P(46, 3, 14)), "`Foo[V]` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"use a generic type with a satisfied upper bound": {
@@ -206,8 +206,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V < Float] = V | String
 				var a: Foo[Int] = 2.4
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Float`"),
 			},
 		},
 		"use a generic type with a satisfied lower bound": {
@@ -221,8 +221,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V > Float] = V | String
 				var a: Foo[Int] = 2.4
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 3, 16), P(58, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
 			},
 		},
 		"use a generic type with an unsatisfied upper and lower bound": {
@@ -230,9 +230,9 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Foo[V > Float < Object] = V | String
 				var a: Foo[Int] = 2.4
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Object`"),
-				error.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the upper bound `Std::Object`"),
+				diagnostic.NewFailure(L("<main>", P(65, 3, 16), P(67, 3, 18)), "type `Std::Int` does not satisfy the lower bound `Std::Float`"),
 			},
 		},
 		"use a generic type without type arguments": {
@@ -240,8 +240,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				typedef Dupa[V] = V | String
 				var a: Dupa = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "`Dupa[V]` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 12), P(48, 3, 15)), "`Dupa[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"use a generic type under a namespace without type arguments": {
@@ -251,8 +251,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 				end
 				var a: Foo::Bar = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "`Foo::Bar[V]` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 5, 12), P(75, 5, 19)), "`Foo::Bar[V]` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"define within a method": {
@@ -261,8 +261,8 @@ func TestGenericTypeDefinition(t *testing.T) {
 					typedef Bar[V] = V | String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(44, 3, 32)), "type definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(44, 3, 32)), "type definitions cannot appear in this context"),
 			},
 		},
 	}

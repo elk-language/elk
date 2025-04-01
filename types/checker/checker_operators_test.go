@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestNilCoalescingOperator(t *testing.T) {
@@ -14,9 +14,9 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b = 2
 				var c: String = a ?? b
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` can never be nil"),
-				error.NewWarning(L("<main>", P(58, 4, 26), P(58, 4, 26)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(53, 4, 21), P(53, 4, 21)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L("<main>", P(58, 4, 26), P(58, 4, 26)), "unreachable code"),
 			},
 		},
 		"returns the right type when the left type is nilable": {
@@ -25,8 +25,8 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b = 2
 				var c: Int = a ?? b
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(48, 4, 18), P(48, 4, 18)), "this condition will always have the same result"),
 			},
 		},
 		"returns a union of both types with bool": {
@@ -35,8 +35,8 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b = 2
 				var c: 9 = a ?? b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 4, 16), P(59, 4, 21)), "type `Std::Bool | Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 4, 16), P(59, 4, 21)), "type `Std::Bool | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without nil when the left can be both truthy and falsy": {
@@ -45,8 +45,8 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b = 2
 				var c: 9 = a ?? b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 16), P(62, 4, 21)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"returns a union of both types without duplication": {
@@ -55,8 +55,8 @@ func TestNilCoalescingOperator(t *testing.T) {
 				var b: Float | Int | nil = 2.2
 				var c: 9 = a ?? b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(87, 4, 16), P(92, 4, 21)), "type `Std::String | Std::Int | Std::Float | nil` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -97,8 +97,8 @@ func TestTilde(t *testing.T) {
 				class Foo < nil; end
 				~Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `~` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `~` is not defined on type `Foo`"),
 			},
 		},
 		"valid call": {
@@ -134,8 +134,8 @@ func TestUnaryMinus(t *testing.T) {
 				class Foo < nil; end
 				-Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `-@` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `-@` is not defined on type `Foo`"),
 			},
 		},
 		"valid call": {
@@ -171,8 +171,8 @@ func TestUnaryPlus(t *testing.T) {
 				class Foo < nil; end
 				+Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `+@` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(35, 3, 10)), "method `+@` is not defined on type `Foo`"),
 			},
 		},
 		"valid call": {
@@ -208,8 +208,8 @@ func TestEqual(t *testing.T) {
 				class Foo < nil; end
 				Foo() == "foo"
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"no method negated": {
@@ -217,8 +217,8 @@ func TestEqual(t *testing.T) {
 				class Foo < nil; end
 				Foo() != "foo"
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"valid check": {
@@ -250,16 +250,16 @@ func TestStrictEqual(t *testing.T) {
 			input: `
 				1 === "foo"
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check negated": {
 			input: `
 				1 !== "foo"
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this strict equality check is impossible, `1` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"impossible check with variables": {
@@ -268,8 +268,8 @@ func TestStrictEqual(t *testing.T) {
 				var b = "foo"
 				a === b
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(37, 4, 5), P(37, 4, 5)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(37, 4, 5), P(37, 4, 5)), "this strict equality check is impossible, `Std::Int` cannot ever be equal to `Std::String`"),
 			},
 		},
 		"impossible check with union type": {
@@ -278,8 +278,8 @@ func TestStrictEqual(t *testing.T) {
 				var b: String? = "foo"
 				a === b
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(59, 4, 5), P(59, 4, 5)), "this strict equality check is impossible, `Std::Int | Std::Float` cannot ever be equal to `Std::String?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(59, 4, 5), P(59, 4, 5)), "this strict equality check is impossible, `Std::Int | Std::Float` cannot ever be equal to `Std::String?`"),
 			},
 		},
 		"valid check": {
@@ -318,8 +318,8 @@ func TestIsA(t *testing.T) {
 			input: `
 				1.2 <: Int
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"impossible check with not type": {
@@ -329,8 +329,8 @@ func TestIsA(t *testing.T) {
 					a + 2
 				end
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(32, 3, 8), P(32, 3, 8)), "impossible \"is a\" check, `~Std::Int` cannot ever be an instance of a descendant of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(32, 3, 8), P(32, 3, 8)), "impossible \"is a\" check, `~Std::Int` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"valid check with not type": {
@@ -345,16 +345,16 @@ func TestIsA(t *testing.T) {
 			input: `
 				Int :> 1.2
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(12, 2, 12), P(14, 2, 14)), "impossible \"is a\" check, `1.2` cannot ever be an instance of a descendant of `Std::Int`"),
 			},
 		},
 		"always true check": {
 			input: `
 				1 <: Int
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `1` will always be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"is a\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -403,8 +403,8 @@ func TestIsA(t *testing.T) {
 			input: `
 				1 <: 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(10, 2, 10), P(10, 2, 10)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(10, 2, 10), P(10, 2, 10)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
 			},
 		},
 		"invalid right operand - module": {
@@ -412,8 +412,8 @@ func TestIsA(t *testing.T) {
 				module Foo; end
 				1 <: Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 10), P(32, 3, 12)), "only classes and mixins are allowed as the right operand of the is a operator `<:`"),
 			},
 		},
 	}
@@ -431,24 +431,24 @@ func TestInstanceOf(t *testing.T) {
 			input: `
 				1.2 <<: Int
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(7, 2, 7)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"impossible reverse check": {
 			input: `
 				Int :>> 1.2
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(13, 2, 13), P(15, 2, 15)), "impossible \"instance of\" check, `1.2` cannot ever be an instance of `Std::Int`"),
 			},
 		},
 		"always true check": {
 			input: `
 				1 <<: Int
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `1` will always be an instance of `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(5, 2, 5), P(5, 2, 5)), "this \"instance of\" check is always true, `1` will always be an instance of `Std::Int`"),
 			},
 		},
 		"valid check with class": {
@@ -464,16 +464,16 @@ func TestInstanceOf(t *testing.T) {
 				var a: Bar? = nil
 				a <<: Foo
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(71, 5, 5), P(71, 5, 5)), "impossible \"instance of\" check, `Bar?` cannot ever be an instance of `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(71, 5, 5), P(71, 5, 5)), "impossible \"instance of\" check, `Bar?` cannot ever be an instance of `Foo`"),
 			},
 		},
 		"invalid right operand": {
 			input: `
 				1 <<: 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
 			},
 		},
 		"invalid right operand - module": {
@@ -481,8 +481,8 @@ func TestInstanceOf(t *testing.T) {
 				module Foo; end
 				1 <<: Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 11), P(33, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 11), P(33, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
 			},
 		},
 		"invalid right operand - mixin": {
@@ -490,8 +490,8 @@ func TestInstanceOf(t *testing.T) {
 				mixin Foo; end
 				1 <<: Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 11), P(32, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 11), P(32, 3, 13)), "only classes are allowed as the right operand of the instance of operator `<<:`"),
 			},
 		},
 	}
@@ -522,8 +522,8 @@ func TestBinaryOpMethod(t *testing.T) {
 
 				var a: String = Foo() + "lol"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "method `+` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(41, 4, 21), P(53, 4, 33)), "method `+` is not defined on type `Foo`"),
 			},
 		},
 	}
@@ -541,8 +541,8 @@ func TestAdd(t *testing.T) {
 			input: `
 				var a: Int = 1 + "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
 			},
 		},
 		"Int + Int => Int": {
@@ -605,8 +605,8 @@ func TestSubtract(t *testing.T) {
 			input: `
 				var a: Int = 1 - "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"foo\"`"),
 			},
 		},
 		"Int - Int => Int": {
@@ -669,8 +669,8 @@ func TestMultiply(t *testing.T) {
 			input: `
 				var a: Int = 1 * "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"foo\"`"),
 			},
 		},
 		"Int * Int => Int": {
@@ -733,8 +733,8 @@ func TestDivide(t *testing.T) {
 			input: `
 				var a: Int = 1 / "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `/`, got type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `/`, got type `\"foo\"`"),
 			},
 		},
 		"Int / Int => Int": {
@@ -797,8 +797,8 @@ func TestExponentiate(t *testing.T) {
 			input: `
 				var a: Int = 1 ** "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `**`, got type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `**`, got type `\"foo\"`"),
 			},
 		},
 		"Int ** Int => Int": {

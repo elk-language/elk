@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestVariableAssignment(t *testing.T) {
@@ -21,8 +21,8 @@ func TestVariableAssignment(t *testing.T) {
 				foo = 'f'
 				println foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 11), P(30, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"assign initialised variable with a matching type": {
@@ -36,8 +36,8 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int = 5
 				foo = 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 11), P(34, 3, 13)), "type `\"f\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 
@@ -46,10 +46,10 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int
 				foo ??= 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` can never be nil"),
-				error.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
+				diagnostic.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` can never be nil"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
 			},
 		},
 		"??= initialised variable with a non-matching type": {
@@ -58,8 +58,8 @@ func TestVariableAssignment(t *testing.T) {
 				foo ??= 'f'
 				println foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"??= initialised variable with a matching nilable type": {
@@ -80,10 +80,10 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int
 				foo ||= 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` is truthy"),
-				error.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 3, 5), P(24, 3, 7)), "cannot access uninitialised local `foo`"),
+				diagnostic.NewWarning(L("<main>", P(22, 3, 5), P(24, 3, 7)), "this condition will always have the same result since type `Std::Int` is truthy"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 13), P(32, 3, 15)), "unreachable code"),
 			},
 		},
 		"||= initialised variable with a non-matching and non-falsy type": {
@@ -91,8 +91,8 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int? = 5
 				foo ||= 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 3, 13), P(37, 3, 15)), "type `Std::Int | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"||= initialised variable with a matching nilable type": {
@@ -113,10 +113,10 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Nil | False
 				foo &&= 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "cannot access uninitialised local `foo`"),
-				error.NewWarning(L("<main>", P(30, 3, 5), P(32, 3, 7)), "this condition will always have the same result since type `Std::Nil | Std::False` is falsy"),
-				error.NewWarning(L("<main>", P(38, 3, 13), P(40, 3, 15)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(32, 3, 7)), "cannot access uninitialised local `foo`"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(32, 3, 7)), "this condition will always have the same result since type `Std::Nil | Std::False` is falsy"),
+				diagnostic.NewWarning(L("<main>", P(38, 3, 13), P(40, 3, 15)), "unreachable code"),
 			},
 		},
 		"&&= initialised variable with a non-matching type": {
@@ -124,8 +124,8 @@ func TestVariableAssignment(t *testing.T) {
 				var foo: Int? = nil
 				foo &&= 'f'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 13), P(39, 3, 15)), "type `nil | \"f\"` cannot be assigned to type `Std::Int?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 3, 13), P(39, 3, 15)), "type `nil | \"f\"` cannot be assigned to type `Std::Int?`"),
 			},
 		},
 		"&&= initialised variable with a matching truthy type": {
@@ -140,8 +140,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: String
 				a += "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"+= on a type with the method": {
@@ -155,8 +155,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a += "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `+` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `+` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -165,8 +165,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a -= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"-= on a type with the method": {
@@ -180,8 +180,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a -= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `-` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `-` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -190,8 +190,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a *= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"*= on a type with the method": {
@@ -205,8 +205,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a *= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `*` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `*` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -215,8 +215,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a /= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"/= on a type with the method": {
@@ -230,8 +230,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a /= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `/` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `/` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -240,8 +240,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a **= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"**= on a type with the method": {
@@ -255,8 +255,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a **= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `**` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `**` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -265,8 +265,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a %= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"%= on a type with the method": {
@@ -280,8 +280,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a %= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `%` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `%` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -290,8 +290,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a &= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"&= on a type with the method": {
@@ -305,8 +305,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a &= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `&` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `&` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -315,8 +315,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a |= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"|= on a type with the method": {
@@ -330,8 +330,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a |= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `|` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `|` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -340,8 +340,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a ^= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"^= on a type with the method": {
@@ -355,8 +355,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a ^= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `^` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 10), P(35, 3, 14)), "method `^` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -365,8 +365,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a <<= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"<<= on a type with the method": {
@@ -380,8 +380,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a <<= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `<<` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `<<` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -390,8 +390,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int
 				a >>= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		">>= on a type with the method": {
@@ -405,8 +405,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a >>= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `>>` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 11), P(36, 3, 15)), "method `>>` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -415,8 +415,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int64
 				a >>>= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		">>>= on a type with the method": {
@@ -430,8 +430,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a >>>= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `>>>` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `>>>` is not defined on type `Std::Object`"),
 			},
 		},
 
@@ -440,8 +440,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a: Int64
 				a <<<= 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 3, 5), P(22, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"<<<= on a type with the method": {
@@ -455,8 +455,8 @@ func TestVariableAssignment(t *testing.T) {
 				var a = Object()
 				a <<<= "bar"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `<<<` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 12), P(37, 3, 16)), "method `<<<` is not defined on type `Std::Object`"),
 			},
 		},
 	}
@@ -472,14 +472,14 @@ func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"returns void when not initialised": {
 			input: "var a: 9 = (var foo: Int)",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"returns assigned value": {
 			input: "var a: 9 = (var b: String? = 'foo')",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(33, 1, 34)), "type `\"foo\"` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(33, 1, 34)), "type `\"foo\"` cannot be assigned to type `9`"),
 			},
 		},
 		"accept variable declaration with matching initializer and type": {
@@ -493,14 +493,14 @@ func TestVariableDeclaration(t *testing.T) {
 				def bar; end
 				var foo = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject variable declaration without matching initializer and type": {
 			input: "var foo: Int = 5.2",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept variable declaration without initializer": {
@@ -508,20 +508,20 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"reject variable declaration with invalid type": {
 			input: "var foo: Foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject variable declaration without initializer and type": {
 			input: "var foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
 			},
 		},
 		"reject redeclared variable": {
 			input: "var foo: Int; var foo: String",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 	}
@@ -543,14 +543,14 @@ func TestShortVariableDeclaration(t *testing.T) {
 				def bar; end
 				foo := bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject redeclared variable": {
 			input: `var foo: Int; foo := "foo"`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(25, 1, 26)), "cannot redeclare local `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(25, 1, 26)), "cannot redeclare local `foo`"),
 			},
 		},
 	}
@@ -566,8 +566,8 @@ func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
 		"returns void when not initialised": {
 			input: "var a: 9 = (val foo: Int)",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"accept value declaration with matching initializer and type": {
@@ -581,14 +581,14 @@ func TestValueDeclaration(t *testing.T) {
 				def bar; end
 				val foo = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 15), P(36, 3, 19)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"reject value declaration without matching initializer and type": {
 			input: "val foo: Int = 5.2",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept value declaration without initializer": {
@@ -596,20 +596,20 @@ func TestValueDeclaration(t *testing.T) {
 		},
 		"reject value declaration with invalid type": {
 			input: "val foo: Foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject value declaration without initializer and type": {
 			input: "val foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
 			},
 		},
 		"reject redeclared value": {
 			input: "val foo: Int; val foo: String",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 		"declaration with type lookup": {
@@ -617,14 +617,14 @@ func TestValueDeclaration(t *testing.T) {
 		},
 		"declaration with type lookup and error in the middle": {
 			input: "val foo: Std::Foo::Bar",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
 			},
 		},
 		"declaration with type lookup and error at the start": {
 			input: "val foo: Foo::Bar::Baz",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"declaration with absolute type lookup": {
@@ -646,8 +646,8 @@ func TestLocalAccess(t *testing.T) {
 		},
 		"access uninitialised variable": {
 			input: "var foo: Int; foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 		"access initialised value": {
@@ -655,8 +655,8 @@ func TestLocalAccess(t *testing.T) {
 		},
 		"access uninitialised value": {
 			input: "val foo: Int; foo",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 )
 
 // Represents a `singleton` block expression eg.
@@ -18,7 +17,7 @@ import (
 type SingletonBlockExpressionNode struct {
 	TypedNodeBase
 	Body     []StatementNode // do expression body
-	Bytecode *vm.BytecodeFunction
+	Bytecode value.Method
 }
 
 func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {

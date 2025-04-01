@@ -402,8 +402,8 @@ func TestSymbolMapInspect(t *testing.T) {
 				value.ToSymbol("foo"): value.Ref(value.String("baz")),
 				value.ToSymbol("bar"): value.Ref(value.FloatClass),
 			},
-			want:    `{foo: "baz", bar: class Std::Float < Std::Object}`,
-			wantAlt: `{bar: class Std::Float < Std::Object, foo: "baz"}`,
+			want:    `{foo: "baz", bar: class Std::Float < Std::Value}`,
+			wantAlt: `{bar: class Std::Float < Std::Value, foo: "baz"}`,
 		},
 	}
 

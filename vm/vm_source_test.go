@@ -5,9 +5,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
-	perror "github.com/elk-language/elk/position/error"
+	perror "github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -22,7 +23,7 @@ type sourceTestCase struct {
 	wantStdout     string
 	wantStderr     string
 	wantRuntimeErr value.Value
-	wantCompileErr perror.ErrorList
+	wantCompileErr perror.DiagnosticList
 }
 
 // Type of the compiler test table.
@@ -119,7 +120,7 @@ func (b *concurrentStringBuilder) WriteString(s string) (int, error) {
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
-	vm.InitGlobalEnvironment() // reset the global environment
+	elk.InitGlobalEnvironment() // reset the global environment
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()

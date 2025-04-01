@@ -74,6 +74,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineInterface("Represents an object that can colorize\na string.", value.ToSymbol("Colorizer"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be compared\nusing relational operators like `>`, `>=`, `<`, `<=`, `<=>`", value.ToSymbol("Comparable"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -85,6 +86,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		namespace.TryDefineClass("Represents an info message, a warning or a failure\nat a particular `Location`", false, true, true, false, value.ToSymbol("Diagnostic"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("A builtin list of diagnostics.", false, true, true, false, value.ToSymbol("DiagnosticList"), objectClass, env)
+			namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, false, value.ToSymbol("Duration"), objectClass, env)
@@ -290,6 +297,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of word collection literals should\nimplement this interface.", false, value.ToSymbol("WordCollectionContentNode"), env)
 				namespace.TryDefineClass("Represents a word HashSet literal eg. `^w[foo bar]`", false, true, true, false, value.ToSymbol("WordHashSetLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`", false, true, true, false, value.ToSymbol("YieldExpressionNode"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
+			{
+				namespace := namespace.TryDefineClass("Implements a parser of the Elk programming language.", false, true, true, true, value.ToSymbol("Parser"), objectClass, env)
+				namespace.TryDefineClass("Represents the result of parsing Elk source code.", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
@@ -506,6 +518,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, value.ToSymbol("Symbol"), objectClass, env)
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", value.ToSymbol("Sync"), env)
+			{
+				namespace := namespace.TryDefineClass("A thread safe `DiagnosticList`, synchronized with a Mutex.", false, true, true, false, value.ToSymbol("DiagnosticList"), objectClass, env)
+				namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace.Name() // noop - avoid unused variable error
+			}
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, value.ToSymbol("Mutex"), objectClass, env)
 			namespace.TryDefineClass("`Once` is a kind of lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, value.ToSymbol("Once"), objectClass, env)
 			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, value.ToSymbol("ROMutex"), objectClass, env)
@@ -1114,6 +1131,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
+				namespace := namespace.MustSubtype("Colorizer").(*Interface)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("colorize"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtype("Comparable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1209,6 +1240,82 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("Diagnostic").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("message"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), NormalParameterKind, false), NewParameter(value.ToSymbol("severity"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("message"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Indicates whether this Diagnostic\nrepresents an info message, a warning or a failure.\n\nValid values are defined as constants:\n- `INFO`\n- `WARN`\n- `FAIL`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("severity"), nil, nil, NameToType("Std::UInt8", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("severity_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Get the human readable\nstring representation of this diagnostic\nwith a snippet of source code.\n\nIt will attempt to read the source fragment from the file\nif no source string is given.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_human_string"), nil, []*Parameter{NewParameter(value.ToSymbol("style"), Bool{}, DefaultValueParameterKind, false), NewParameter(value.ToSymbol("colorizer"), NewNilable(NameToType("Std::Colorizer", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("source"), NewNilable(NameToType("Std::String", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Get the string representation of this diagnostic.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, Void{}, Never{})
+
+				// Define constants
+				namespace.DefineConstant(value.ToSymbol("FAIL"), NameToType("Std::UInt8", env))
+				namespace.DefineConstant(value.ToSymbol("INFO"), NameToType("Std::UInt8", env))
+				namespace.DefineConstant(value.ToSymbol("WARN"), NameToType("Std::UInt8", env))
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtype("DiagnosticList").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::List", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
+
+				// Define methods
+				namespace.DefineMethod("Create a new list containing the elements of `self`\nrepeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nand another given `Tuple`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Diagnostic", env), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Check whether the given value is an `ArrayList`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Check whether the given value is an `ArrayList` or `ArrayTuple`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Diagnostic", env), Never{})
+				namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Adds the given values to the list.\n\nReallocates the underlying array if it is\ntoo small to hold them.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Diagnostic", env), PositionalRestParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the number of elements that can be\nheld by the underlying array.\n\nThis value will change when the list gets resized,\nand the underlying array gets reallocated", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Removes all elements from the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Check whether the given `value` is present in this list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Mutates the list.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Check if this diagnostic list contains a fail.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_failure"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NameToType("Std::DiagnosticList::Iterator", env), Never{})
+				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the list before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of elements present in the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new List that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT))
+				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nMutates the list in place replacing the elements with the ones\nreturned by the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map_mut"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, NameToType("Std::Diagnostic", env), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT)), NormalParameterKind, false)}, Self{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT))
+				namespace.DefineMethod("Adds the given value to the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Removes the element from the list.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Get the human readable\nstring representation of this diagnostic list\nwith a snippet of source code.\n\nIt will attempt to read the source fragment from the file\nif no source string is given.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_human_string"), nil, []*Parameter{NewParameter(value.ToSymbol("style"), Bool{}, DefaultValueParameterKind, false), NewParameter(value.ToSymbol("colorizer"), NewNilable(NameToType("Std::Colorizer", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("source"), NewNilable(NameToType("Std::String", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtype("Iterator").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("list"), NameToType("Std::DiagnosticList", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Diagnostic", env), NewSymbolLiteral("stop_iteration"))
+					namespace.DefineMethod("Resets the state of the iterator.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtype("Duration").(*Class)
@@ -3351,6 +3458,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						namespace.DefineMethod("Returns the span that represents\nthe position of this node in a source file/string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
+						namespace.DefineMethod("Convert the AST back to a `String` of source code.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
@@ -4949,6 +5057,49 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("forward"), nil, nil, NameToType("Std::Bool", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("span"), nil, nil, NameToType("Std::String::Span", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+				}
+				{
+					namespace := namespace.MustSubtype("Parser").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("source"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("source_name"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtype("Result").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Returns the Abstract Syntax Tree produced by the parser.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ast"), nil, nil, NameToType("Std::Elk::AST::ProgramNode", env), Never{})
+						namespace.DefineMethod("Returns a list of diagnostics (warnings, errors, info messages)", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diagnostics"), nil, nil, NameToType("Std::DiagnosticList", env), Never{})
 
 						// Define constants
 
@@ -7357,6 +7508,60 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define instance variables
 
+				{
+					namespace := namespace.MustSubtype("DiagnosticList").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NewGeneric(NameToType("Std::List", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
+
+					// Define methods
+					namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nrepeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nand another given `Tuple`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Diagnostic", env), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+					namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("Check whether the given value is an `ArrayList`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+					namespace.DefineMethod("Check whether the given value is an `ArrayList` or `ArrayTuple`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+					namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Diagnostic", env), Never{})
+					namespace.DefineMethod("Set the element under the given index to the given value.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]="), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Adds the given values to the list.\n\nReallocates the underlying array if it is\ntoo small to hold them.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("append"), nil, []*Parameter{NewParameter(value.ToSymbol("values"), NameToType("Std::Diagnostic", env), PositionalRestParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("Returns the number of elements that can be\nheld by the underlying array.\n\nThis value will change when the list gets resized,\nand the underlying array gets reallocated", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Removes all elements from the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Check whether the given `value` is present in this list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), NameToType("Std::Diagnostic", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("Returns the internal `DiagnosticList`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("diagnostic_list"), nil, nil, NameToType("Std::DiagnosticList", env), Never{})
+					namespace.DefineMethod("Mutates the list.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
+					namespace.DefineMethod("Check if this diagnostic list contains a fail.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_failure"), nil, nil, Bool{}, Never{})
+					namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NameToType("Std::Sync::DiagnosticList::Iterator", env), Never{})
+					namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the list before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the number of elements present in the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new List that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT))
+					namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nMutates the list in place replacing the elements with the ones\nreturned by the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map_mut"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, NameToType("Std::Diagnostic", env), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT)), NormalParameterKind, false)}, Self{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT))
+					namespace.DefineMethod("Adds the given value to the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Removes the element from the list.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Diagnostic", env), NormalParameterKind, false)}, Bool{}, Never{})
+					namespace.DefineMethod("Get the human readable\nstring representation of this diagnostic list\nwith a snippet of source code.\n\nIt will attempt to read the source fragment from the file\nif no source string is given.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_human_string"), nil, []*Parameter{NewParameter(value.ToSymbol("style"), Bool{}, DefaultValueParameterKind, false), NewParameter(value.ToSymbol("colorizer"), NewNilable(NameToType("Std::Colorizer", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("source"), NewNilable(NameToType("Std::String", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.MustSubtype("Iterator").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NewGeneric(NameToType("Std::ResettableIterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("list"), NameToType("Std::DiagnosticList", env), NormalParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("Get the next element of the list.\nThrows `:stop_iteration` when there are no more elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Diagnostic", env), NewSymbolLiteral("stop_iteration"))
+						namespace.DefineMethod("Resets the state of the iterator.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("reset"), nil, nil, Void{}, Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+				}
 				{
 					namespace := namespace.MustSubtype("Mutex").(*Class)
 

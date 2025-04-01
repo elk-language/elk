@@ -1,0 +1,42 @@
+##[
+	Represents an info message, a warning or a failure
+	at a particular `Location`
+]##
+sealed primitive class ::Std::Diagnostic
+	const INFO: UInt8
+	const WARN: UInt8
+	const FAIL: UInt8
+
+	init(message: String, location: FS::Location, severity: UInt8 = FAIL); end
+
+	def message: String; end
+	def location: FS::Location; end
+
+		##[
+		Indicates whether this Diagnostic
+		represents an info message, a warning or a failure.
+
+		Valid values are defined as constants:
+		- `INFO`
+		- `WARN`
+		- `FAIL`
+	]##
+  def severity: UInt8; end
+
+	def severity_name: String; end
+
+	##[
+		Get the string representation of this diagnostic.
+	]##
+	def to_string; end
+
+	##[
+		Get the human readable
+		string representation of this diagnostic
+		with a snippet of source code.
+
+		It will attempt to read the source fragment from the file
+		if no source string is given.
+	]##
+	def to_human_string(style: bool = true, colorizer: Colorizer? = loop; end, source: String? = nil); end
+end

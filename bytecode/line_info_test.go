@@ -29,7 +29,7 @@ func TestLineInfoListLast(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.in.Last()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -72,7 +72,7 @@ func TestLineInfoListGetLineNumber(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.list.GetLineNumber(tc.index)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -106,7 +106,7 @@ func TestLineInfoListAddLineNumber(t *testing.T) {
 			tc.list.AddLineNumber(tc.line, 1)
 			got := tc.list
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

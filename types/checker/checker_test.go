@@ -8,7 +8,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 // Represents a single checker test case.
 type testCase struct {
 	input string
-	err   error.ErrorList
+	err   diagnostic.DiagnosticList
 }
 
 // Type of the checker test table.
