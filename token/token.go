@@ -39,13 +39,21 @@ func (t *Token) InstanceVariables() value.SymbolMap {
 }
 
 func (t *Token) Inspect() string {
-	return fmt.Sprintf(
-		"Std::Token{&: %p, value: %s, typ: %s, span: %s}",
-		t,
-		value.String(t.Value).Inspect(),
-		value.UInt16(t.Type).Inspect(),
+	var buff strings.Builder
+
+	buff.WriteString("Std::Token{")
+	if t.Value != "" {
+		fmt.Fprintf(&buff, "value: %s, ", value.String(t.Value).Inspect())
+	}
+
+	fmt.Fprintf(
+		&buff,
+		"typ: %s, span: %s}",
+		t.Type.TypeName(),
 		(*value.Span)(t.Span()).Inspect(),
 	)
+
+	return buff.String()
 }
 
 func (t *Token) Error() string {
